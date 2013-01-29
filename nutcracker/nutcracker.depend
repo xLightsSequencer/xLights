@@ -2946,7 +2946,7 @@
 	<wx/frame.h>
 	<wx/statusbr.h>
 
-1359441222 source:c:\users\smeighan\documents\github\nutcracker_c\nutcracker\resource.rc
+1359441586 source:c:\users\smeighan\documents\github\nutcracker_c\nutcracker\resource.rc
 	"wx/msw/wx.rc"
 
 1359392906 c:\wxwidgets\include\wx\msw\wx.rc
@@ -2966,10 +2966,13 @@
 
 1359392906 c:\wxwidgets\include\wx\msw\rcdefs.h
 
-1359440560 source:c:\users\smeighan\documents\github\nutcracker_c\nutcracker\nutcrackermain.cpp
+1359441683 source:c:\users\smeighan\documents\github\nutcracker_c\nutcracker\nutcrackermain.cpp
 	"wx_pch.h"
 	"nutcrackerMain.h"
 	<wx/msgdlg.h>
+	<wx/bitmap.h>
+	<wx/icon.h>
 	<wx/intl.h>
+	<wx/image.h>
 	<wx/string.h>
 

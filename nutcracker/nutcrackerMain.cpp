@@ -12,7 +12,10 @@
 #include <wx/msgdlg.h>
 
 //(*InternalHeaders(nutcrackerFrame)
+#include <wx/bitmap.h>
+#include <wx/icon.h>
 #include <wx/intl.h>
+#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
@@ -68,6 +71,11 @@ nutcrackerFrame::nutcrackerFrame(wxWindow* parent,wxWindowID id)
 
     Create(parent, id, _("Nutcracker"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     SetClientSize(wxSize(869,290));
+    {
+    	wxIcon FrameIcon;
+    	FrameIcon.CopyFromBitmap(wxBitmap(wxImage(_T("C:\\xampp\\htdocs\\nutcracker\\images\\IMG_7965_gray.png"))));
+    	SetIcon(FrameIcon);
+    }
     MenuBar1 = new wxMenuBar();
     Menu1 = new wxMenu();
     MenuItem1 = new wxMenuItem(Menu1, idMenuQuit, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
