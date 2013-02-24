@@ -1,0 +1,37 @@
+/* XPM */
+static const char *deleterow_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    23    22        8            1",
+/* colors */
+"` c #575757",
+". c #4f4f4f",
+"# c #e5e5e5",
+"a c #e6e6e6",
+"b c #565656",
+"c c #4e4e4e",
+"d c #ffffff",
+"e c None",
+/* pixels */
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeccc.c..ceeeeeeeeeee",
+"eeeedddddddceeeeeeeeeee",
+"eeeedddddddceeeeeeeeeee",
+"eeeeddddddd.eeeeeeeeeee",
+"eeeeccccc.cccccee`eeeee",
+"eeee#dad#dadadcee``eeee",
+"eeeedad#d#dad#c``b``eee",
+"eeee#dad#dad#dceeb`eeee",
+"eeeec.cccc.ccccee`eeeee",
+"eeeedddddddceeeeeeeeeee",
+"eeeedddddddceeeeeeeeeee",
+"eeeedddddddceeeeeeeeeee",
+"eeeec.cccccceeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee"
+};

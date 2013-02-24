@@ -1,0 +1,37 @@
+/* XPM */
+static const char *insertrow_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    23    22        8            1",
+/* colors */
+"` c #575757",
+". c #565656",
+"# c #e6e6e6",
+"a c #e5e5e5",
+"b c #4f4f4f",
+"c c #4e4e4e",
+"d c #ffffff",
+"e c None",
+/* pixels */
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeecccbccbeeeeeeeeeeee",
+"eeeeccccccceeeeeeeeeeee",
+"eeeeccccccceeeeeeeeeeee",
+"eeeeccbcccceeeeeeeeeeee",
+"eeeecccbcbbeeeeeeeeeeee",
+"eeeeeeeeeeee.eebcccceee",
+"eeeeeeeeeee``eecad#deee",
+"eeeeeeeeee`.`..cd#d#eee",
+"eeeeeeeeeee.`eec#dadeee",
+"eeeeeeeeeeee`eeccccceee",
+"eeeebccbccceeeeeeeeeeee",
+"eeeeddddddceeeeeeeeeeee",
+"eeeeddddddceeeeeeeeeeee",
+"eeeeddddddbeeeeeeeeeeee",
+"eeeecbbcccceeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeee"
+};
