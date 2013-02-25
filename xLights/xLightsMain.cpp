@@ -535,10 +535,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.0 )"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     {
     	wxIcon FrameIcon;
-    	FrameIcon.CopyFromBitmap(wxBitmap(wxImage(_T("C:\\xampp\\htdocs\\nutcracker\\images\\IMG_7965_gray.png"))));
+    	FrameIcon.CopyFromBitmap(wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\nutcracker_c\\include\\IMG_7965_gray.png"))));
     	SetIcon(FrameIcon);
     }
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
