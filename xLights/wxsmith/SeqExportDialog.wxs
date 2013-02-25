@@ -20,11 +20,13 @@
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceFormat" member="yes">
 							<content>
-								<item>LOR</item>
-								<item>Vixen</item>
-								<item>Light Show Pro</item>
-								<item>HLS</item>
-								<item>xLights</item>
+								<item>LOR. *.lms or *.las</item>
+								<item>Lcb, LOR Clipboard *.lcb</item>
+								<item>Vixen, Vixen sequence file *.vix</item>
+								<item>Vir, Vixen Routine file. *.vir</item>
+								<item>LSP, Light Show Pro (NOT IMPLEMENTED YET)</item>
+								<item>HLS, Hinkle Lighte Sequencer *.hlsnc</item>
+								<item>xLights, *.xseq</item>
 							</content>
 							<selection>0</selection>
 						</object>

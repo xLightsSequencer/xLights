@@ -535,7 +535,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 1A - Feb 23 , 2013)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 1B - Feb 24 , 2013)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     {
     	wxIcon FrameIcon;
     	FrameIcon.CopyFromBitmap(wxBitmap(wxImage(_T("C:\\xampp\\htdocs\\nutcracker\\images\\IMG_7965_gray.png"))));
@@ -843,6 +843,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ChoiceOutputFormat->Append(_("Vix,Vixen 2.1 *.vix sequence file"));
     ChoiceOutputFormat->Append(_("Vir, Vixen 2.1 *.vir routine file"));
     ChoiceOutputFormat->Append(_("LOR Sequence *.las or *.lms"));
+    ChoiceOutputFormat->Append(_("Lcb, LOR clipboard *.lcb"));
     ChoiceOutputFormat->Append(_("HLS *.hlsnc"));
     FlexGridSizer26->Add(ChoiceOutputFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText20 = new wxStaticText(PanelConvert, ID_STATICTEXT20, _("Save channel names:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT20"));

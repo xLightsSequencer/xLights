@@ -1022,6 +1022,7 @@ private:
     void WriteXLightsFile(const wxString& filename);
     void WriteConductorFile(const wxString& filename);
     void WriteLorFile(const wxString& filename);
+    void WriteLcbFile(const wxString& filename);
     void ClearLastPeriod();
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);

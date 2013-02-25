@@ -33,11 +33,13 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Format"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceFormat = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    ChoiceFormat->SetSelection( ChoiceFormat->Append(_("LOR")) );
-    ChoiceFormat->Append(_("Vixen"));
-    ChoiceFormat->Append(_("Light Show Pro"));
-    ChoiceFormat->Append(_("HLS"));
-    ChoiceFormat->Append(_("xLights"));
+    ChoiceFormat->SetSelection( ChoiceFormat->Append(_("LOR. *.lms or *.las")) );
+    ChoiceFormat->Append(_("Lcb, LOR Clipboard *.lcb"));
+    ChoiceFormat->Append(_("Vixen, Vixen sequence file *.vix"));
+    ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
+    ChoiceFormat->Append(_("LSP, Light Show Pro (NOT IMPLEMENTED YET)"));
+    ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
+    ChoiceFormat->Append(_("xLights, *.xseq"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

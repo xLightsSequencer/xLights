@@ -1765,7 +1765,11 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     oName.SetPath( CurrentDir );
     wxString fullpath;
     wxString format=dialog.ChoiceFormat->GetStringSelection();
-    if (format == wxT("LOR"))
+    wxStopWatch sw;
+    wxString Out3=format.Left(3);
+    StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
+
+    if (Out3 == wxT("LOR"))
     {
         if (mediaFilename.IsEmpty())
         {
@@ -1778,27 +1782,41 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         fullpath=oName.GetFullPath();
         WriteLorFile(fullpath);
     }
-    else if (format == wxT("Vixen"))
+     else if (Out3 == wxT("Lcb"))
+    {
+        oName.SetExt(_("lcb"));
+        fullpath=oName.GetFullPath();
+        WriteLcbFile(fullpath);
+    }
+    else if (Out3 == wxT("Vix"))
     {
         oName.SetExt(_("vix"));
         fullpath=oName.GetFullPath();
         WriteVixenFile(fullpath);
     }
-    else if (format == wxT("Light Show Pro"))
+    else if (Out3 == wxT("Vir"))
+    {
+        oName.SetExt(_("vir"));
+        fullpath=oName.GetFullPath();
+        WriteVirFile(fullpath);
+    }
+    else if (Out3 == wxT("LSP"))
     {
         wxMessageBox(wxT("Light Show Pro export not implemented yet"));
         return;
     }
-    else if (format == wxT("HLS"))
+    else if (Out3 == wxT("HLS"))
     {
-        wxMessageBox(wxT("HLS export not implemented yet"));
-        return;
+        oName.SetExt(_("hlsnc"));
+        fullpath=oName.GetFullPath();
+        WriteHLSFile(fullpath);
     }
-    else if (format == wxT("xLights"))
+    else if (Out3 == wxT("xLi"))
     {
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
         fullpath=oName.GetFullPath();
         WriteXLightsFile(fullpath);
     }
-    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath);
+
+    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
 }

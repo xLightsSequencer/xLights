@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 1A - Feb 23 , 2013)</title>
+		<title>xLights/Nutcracker  (Ver 1B - Feb 24 , 2013)</title>
 		<icon>C:\xampp\htdocs\nutcracker\images\IMG_7965_gray.png</icon>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1064,6 +1064,7 @@
 																				<item>Vix,Vixen 2.1 *.vix sequence file</item>
 																				<item>Vir, Vixen 2.1 *.vir routine file</item>
 																				<item>LOR Sequence *.las or *.lms</item>
+																				<item>Lcb, LOR clipboard *.lcb</item>
 																				<item>HLS *.hlsnc</item>
 																			</content>
 																			<selection>0</selection>
