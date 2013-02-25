@@ -1148,7 +1148,7 @@
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361744391 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.cpp
+1361750646 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.cpp
 	"SeqExportDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
@@ -1319,7 +1319,7 @@
 
 1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1361748779 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1361758696 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
