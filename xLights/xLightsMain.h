@@ -36,6 +36,7 @@
 #include <wx/frame.h>
 #include <wx/timer.h>
 #include <wx/choicebk.h>
+#include <wx/gauge.h>
 #include <wx/statusbr.h>
 //*)
 
@@ -46,6 +47,10 @@
 #include <wx/xml/xml.h>
 #include <wx/fontdlg.h>
 #include <wx/dir.h>
+
+#include <wx/gauge.h>
+
+
 #include <map>
 #include <vector>
 
@@ -374,12 +379,13 @@ private:
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
     static const long ID_BUTTON2;
-    static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON1;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
+    static const long ID_BUTTON_SeqExport;
+    static const long ID_GAUGE1;
     static const long ID_GRID1;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT25;
@@ -716,6 +722,7 @@ private:
     wxButton* ButtonChooseFile;
     wxStaticText* StaticText64;
     wxSlider* Slider_Snowstorm1_Length;
+    wxGauge* Gauge1;
     wxCheckBox* CheckBoxRunSchedule;
     wxStaticText* StaticText32;
     wxSlider* SliderFgColorC;

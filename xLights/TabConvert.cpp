@@ -164,7 +164,7 @@ void xLightsFrame::OnButtonChooseFileClick(wxCommandEvent& event)
 bool xLightsFrame::WriteVixenFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
-    int32_t ChannelColor;
+    int32_t ChannelColor,done;
     long TotalTime=SeqNumPeriods * Timer1.GetInterval();
     wxXmlNode *node,*chparent,*textnode;
     wxXmlDocument doc;
@@ -182,8 +182,19 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, wxT("Music") );
 
     chparent = new wxXmlNode( root, wxXML_ELEMENT_NODE, wxT("Channels") );
+
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    // itemBoxSizer15->Add(_gauge, 1, wxALIGN_CENTER_VERTICAL|wxGROW|wxALL, 1);
+    _gauge->Show(false);
+
+    _gauge->SetValue(0);
+    _gauge->Show(true);
     for (int ch=0; ch < SeqNumChannels; ch++ )
     {
+
+    done = (ch * 100.0) / SeqNumChannels;
+        _gauge->SetValue(done);
         node = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("Channel") );
         node->AddAttribute( wxT("output"), wxString::Format(wxT("%d"),ch));
         node->AddAttribute( wxT("id"), wxT("0"));
@@ -246,6 +257,10 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
 
     node = new wxXmlNode( root, wxXML_ELEMENT_NODE, wxT("Time") );
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, wxString::Format(wxT("%ld"),TotalTime) );
+
+    _gauge->SetValue(100);
+    _gauge->Show(false);
+
     return doc.Save( filename );
 }
 
@@ -455,9 +470,9 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
 
 
     wxString m_Path, m_Name, m_Ext;
-         wxFileName::SplitPath(filename, &m_Path, &m_Name, &m_Ext);
-   //  printf("'%s' is split as '%s', '%s', '%s'\n", m_FileName, m_Path,
-   //  m_Name, m_Ext);
+    wxFileName::SplitPath(filename, &m_Path, &m_Name, &m_Ext);
+    //  printf("'%s' is split as '%s', '%s', '%s'\n", m_FileName, m_Path,
+    //  m_Name, m_Ext);
 
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
     long centiseconds=SeqNumPeriods * interval;
@@ -472,7 +487,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
     {
         f.Write(wxString::Format(wxT("\t<cellDemarcation centisecond=\"%d\"/>\n"),csec));
     }
-                             f.Write(wxT("</cellDemarcations>\n"));
+    f.Write(wxT("</cellDemarcations>\n"));
     //
     f.Write(wxT("<channels>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )

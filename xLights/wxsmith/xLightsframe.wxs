@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
 		<title>xLights/Nutcracker  (Ver 3.0.0)</title>
-		<icon>C:\Users\smeighan\Documents\c++\nutcracker_c\include\IMG_7965_gray.png</icon>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -1363,6 +1362,7 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
 																							<label>Play</label>
+																							<size>59,23</size>
 																							<bg>#00FF00</bg>
 																							<tooltip>Play from current grid cell</tooltip>
 																							<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
@@ -1376,16 +1376,6 @@
 																							<label>Display Elements</label>
 																							<bg>#E0E0E0</bg>
 																							<handler function="OnButtonDisplayElementsClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
-																							<label>Export</label>
-																							<bg>#E0E0E0</bg>
-																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
@@ -1407,6 +1397,7 @@
 																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButtonOpenSeq" member="yes">
 																							<bitmap code="open_xpm" />
 																							<default>1</default>
+																							<size>48,23</size>
 																							<tooltip>Open Sequence</tooltip>
 																							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_BUTTON" />
 																						</object>
@@ -1418,6 +1409,7 @@
 																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButtonSaveSeq" member="yes">
 																							<bitmap code="save_xpm" />
 																							<default>1</default>
+																							<size>53,23</size>
 																							<tooltip>Save Sequence</tooltip>
 																							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_BUTTON" />
 																						</object>
@@ -1429,6 +1421,7 @@
 																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButtonInsertRow" member="yes">
 																							<bitmap code="insertrow_xpm" />
 																							<default>1</default>
+																							<size>50,23</size>
 																							<tooltip>Insert Row</tooltip>
 																							<handler function="OnBitmapButtonInsertRowClick" entry="EVT_BUTTON" />
 																						</object>
@@ -1440,10 +1433,32 @@
 																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButtonDeleteRow" member="yes">
 																							<bitmap code="deleterow_xpm" />
 																							<default>1</default>
+																							<size>49,23</size>
 																							<tooltip>Delete Row</tooltip>
 																							<handler function="OnBitmapButtonDeleteRowClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
+																							<label>Export</label>
+																							<size>52,23</size>
+																							<bg>#E0E0E0</bg>
+																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxGauge" name="ID_GAUGE1" variable="Gauge1" member="yes">
+																							<shadow>3</shadow>
+																							<bezel>1</bezel>
+																							<size>100,20</size>
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
 																						<option>1</option>
 																					</object>

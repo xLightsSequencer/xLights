@@ -1,0 +1,188 @@
+VERSION 2 BUILD INSTRUCTIONS (VERSIONS 2012C AND LATER)
+
+xLights can be built and run on Linux, Mac OS/X, or Windows. This document
+describes how **developers** should set up their tool chain to build xLights.
+If you are a user, installation packages are available on the xLights
+web site for Windows and Mac OS/X -- you can ignore the rest of this document.
+Linux users will need to follow the instructions below to compile there own copy.
+
+
+xLights is written in C++ and uses the wxWidgets library as a compatibility layer across operating systems.
+The version 2 branch should be compiled using wxWidgets version 2.9.4 or later.
+This will probably require you to build wxWidgets yourself.
+
+
+LINUX
+
+These instructions have been tested on Linux Mint 12 and Ubuntu 12.10. 
+Instructions for other Linux distributions will vary. 
+
+  a) Using Software Manager (or apt-get or rpm), install these packages: 
+
+build-essential
+subversion
+libgtk2.0-dev
+libgstreamer0.10-dev
+libgstreamer-plugins-base0.10-dev
+
+  b) Build wxWidgets 2.9.4
+
+$ cd ~
+$ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.4.tar.bz2
+$ tar xjf wxWidgets-2.9.4.tar.bz2
+$ cd wxWidgets-2.9.4
+$ ./configure --with-mediactrl
+$ make
+$ sudo make install
+$ sudo ldconfig
+
+  c) Get the xLights source code by opening a terminal window and typing the following:
+
+     svn co https://xlights.svn.sourceforge.net/svnroot/xlights/trunk xlights
+
+xLights can be built 2 ways on Linux. First, you can use the supplied makefile
+to build it. This is sufficient to get xLights running, but not to modify it.
+The second way is to install the Code::Blocks IDE and compile xLights within
+the IDE. If you plan on modifying xLights yourself, this is the way to go.
+
+To build xLights using the supplied makefile:
+
+  d) Build xLights:
+
+$ cd xlights/version2/xLights
+$ make -f xLights.cbp.mak clean
+$ make -f xLights.cbp.mak releaselinux
+ 
+     You will get some compiler warnings, however, the executable should
+     get built in the ./bin directory.
+
+Building xLights using Code::Blocks (if you want to edit the code)
+
+  e) Install the Code::Blocks IDE using Software Manager. 
+     The latest stable version is 10.05, which works ok for
+     everything except the bitmap buttons on the Sequence tab.
+     It will compile xLights just fine; but if you change the 
+     visual layout using 10.05, you will lose those bitmap 
+     buttons. Also, you may need to install libwxsmithlib0 to 
+     enable visual layout.
+
+  f) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the xLights.cbp file.
+     In order for the double-click to work, you may need 
+     to first right-click on the cbp file, select properties,
+     and uncheck the box indicating that the file is runnable.
+     Make sure you set the target to "Release Linux" before you build.
+
+
+
+OS/X (Mac)
+
+Unfortunately, xLights cannot be compiled using the OS/X cocoa libraries
+due to bugs in wxWidgets. Ticket #13065 (wxMediaCtrl not ported to wxCocoa)
+is the problem. Until the ticket is resolved, xLights must be compiled as a carbon app.
+
+On OS/X, compilation is done using Xcode. Code::Blocks is not used.
+Xcode can be downloaded from the Apple developer web site. Make
+sure you install the version of Xcode that matches your version of
+OS/X. For example, I use OS/X 10.6, so I installed Xcode 3.1.
+Instructions are here:
+
+  http://wiki.wxwidgets.org/Installing_Xcode
+
+
+OS/X comes with the wxWidgets libraries pre-installed. If you have
+OS/X version 10.5 or higher, then xLights can use the version
+of wxWidgets that comes with the OS and you can skip this step.
+If you are using 10.4 or earlier, then you will need an updated
+version of wxWidgets and this step is required. Note that after
+performing this step, you will have 2 copies of wxWidgets on your
+system and you will need to be very careful to access the correct one in
+later steps. Use "./wx-config --version" to check which one you are accessing.
+The instructions here suggest compiling with Xcode:
+  http://wiki.wxwidgets.org/Compiling_wxWidgets_with_Xcode
+
+However, I followed the method used for Linux from inside a Terminal window:
+  cd <wxMac base dir>
+  ./configure --disable-shared --enable-universal-binary --enable-mediactrl
+  make
+
+Next, you will use Xcode to compile each of the xLights modules
+(xMenu, xScheduler, xConverter). You will need to treat each one
+as a separate project. Most of the steps are listed here:
+
+  http://wiki.wxwidgets.org/Creating_Xcode_projects_for_wxWidgets_applications
+
+In addition to the instructions on the wiki page above, you will also need to:
+  1) Fix the reference to the precompiled header file in each project. This can
+     be done by double-clicking on the xxxTarget.xcconfig file and then changing
+     the GCC_PREFIX_HEADER to wx_pch.h.
+  2) When configuring the project for xScheduler, set "Other Linker Flags" to
+     the output of: "./wx-config --libs std,media,aui".
+
+
+WINDOWS
+
+You will need:
+  a) Code::Blocks for Windows
+  
+     Version 10.05 can be used to compile xLights, but it will not work
+     for changing the visual layout. I strongly recommend using one of the
+     daily builds. I am using SVN 8484 which is discussed here: 
+     http://forums.codeblocks.org/index.php/topic,17019.0.html
+
+     Important points from this thread:
+
+     If you already have codeblocks 10.05 and/or the mingw compiler installed 
+     on your system they should be removed/uninstalled.
+
+     Download the following items:
+        wxWidget dll for Code::Blocks http://prdownload.berlios.de/codeblocks/wxmsw28u_gcc_cb_wx2812_gcc471-TDM.7z
+        the mingw10m.dll http://prdownload.berlios.de/codeblocks/mingwm10_gcc471-TDM.7z
+        the 28 October 2012 build of codeblocks http://prdownload.berlios.de/codeblocks/CB_20121028_rev8484_win32.7z
+
+     Unzip codeblocks, the wxWidget dll, and the mingwm10 dll to the same folder.
+     Do not reuse any other folder, create a new folder and put the files from 
+     all three archives into that new folder.
+
+     Get the mingw compiler here: http://tdm-gcc.tdragon.net/
+     and extract it so that the path to it is C:\mingw
+
+     Then run the codeblocks exe in the folder you created. 
+     From the menu, select Settings -> Compiler -> Toolchain executables
+     Set the path to C:\mingw\bin
+     And then click "auto-detect"  You may have to exit codeblocks and 
+     restart it before auto detect works correctly.
+  
+  c) wxWidgets for Windows (currently using version 2.9.4)
+     Download the version with the Windows installer from here:
+     http://www.wxwidgets.org/downloads/
+     The installer only puts the wxWidgets source code on your system, you will need
+     to compile it yourself to create the dll. To compile it yourself:
+     1) Open a command prompt
+     2) cd to the build\msw directory under your wxWidgets base directory
+     3) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 BUILD=debug
+     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 BUILD=release
+
+  d) In Code::Blocks:
+     1) select Settings > Compiler & Debugger
+     2) click Search Directories tab
+     3) Under Compiler sub-tab should be:
+          $(#wx)\include
+          $(#wx)\contrib\include
+     4) Under Linker sub-tab should be:
+          $(#wx)\lib\gcc_dll
+     5) Make sure "wx" is defined under Settings > Global Variables
+        as described in the Code::Blocks documentation. It should be
+        set to your wxWidgets base directory.
+        
+  e) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the cbp file in the version2/xLights directory.
+
+
+
+SVN
+
+Setting up SVN (all platforms):
+  a) URL: https://xlights.svn.sourceforge.net/svnroot/xlights/trunk
+  b) If using Tortoise SVN on Windows, set the global ignore pattern to:
+     *.o *.lo *.la *.al .libs *.so *.so.[0-9]* *.a *.pyc *.pyo *.rej *~ #*# .#* .*.swp .DS_Store *.exe .objs Thumbs.db *.dll release other_ico gcc_mswd *.depend *.layout
