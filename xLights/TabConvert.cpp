@@ -173,8 +173,15 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
 
     // add nodes to root in reverse order
 
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    _gauge->SetValue(0);
+    _gauge->Show(true);
+
     node = new wxXmlNode( root, wxXML_ELEMENT_NODE, wxT("EventValues") );
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, base64_encode() );
+    _gauge->SetValue(50);
+
 
     node = new wxXmlNode( root, wxXML_ELEMENT_NODE, wxT("Audio") );
     node->AddAttribute( wxT("filename"), mediaFilename);
@@ -183,18 +190,10 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
 
     chparent = new wxXmlNode( root, wxXML_ELEMENT_NODE, wxT("Channels") );
 
-    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
-    _gauge->SetRange(100);
-    // itemBoxSizer15->Add(_gauge, 1, wxALIGN_CENTER_VERTICAL|wxGROW|wxALL, 1);
-    _gauge->Show(false);
 
-    _gauge->SetValue(0);
-    _gauge->Show(true);
     for (int ch=0; ch < SeqNumChannels; ch++ )
     {
-
-    done = (ch * 100.0) / SeqNumChannels;
-        _gauge->SetValue(done);
+        _gauge->SetValue(50+(ch * 50.0) / SeqNumChannels);
         node = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("Channel") );
         node->AddAttribute( wxT("output"), wxString::Format(wxT("%d"),ch));
         node->AddAttribute( wxT("id"), wxT("0"));
@@ -259,6 +258,7 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, wxString::Format(wxT("%ld"),TotalTime) );
 
     _gauge->SetValue(100);
+    Sleep(1000);
     _gauge->Show(false);
 
     return doc.Save( filename );
@@ -277,9 +277,13 @@ void xLightsFrame::WriteVirFile(const wxString& filename)
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
-
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    _gauge->SetValue(0);
+    _gauge->Show(true);
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
+        _gauge->SetValue((ch * 100.0) / SeqNumChannels);
         buff=wxT("");
         for (p=0; p < SeqNumPeriods; p++, seqidx++)
         {
@@ -289,6 +293,8 @@ void xLightsFrame::WriteVirFile(const wxString& filename)
         f.Write(buff);
     }
     f.Close();
+    _gauge->SetValue(100);
+    _gauge->Show(false);
 }
 
 void xLightsFrame::WriteHLSFile(const wxString& filename)
@@ -306,9 +312,13 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     }
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
     long centiseconds=SeqNumPeriods * interval;
-
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    _gauge->SetValue(0);
+    _gauge->Show(true);
     for (ch=0; ch < SeqNumChannels; ch+=3 )
     {
+        _gauge->SetValue((ch * 100.0) / SeqNumChannels);
         LastIntensity=0;
         buff=wxT("");
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
@@ -321,6 +331,8 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         f.Write(buff);
     }
     f.Close();
+    _gauge->SetValue(100);
+    _gauge->Show(false);
 }
 
 
@@ -340,11 +352,18 @@ void xLightsFrame::WriteXLightsFile(const wxString& filename)
         return;
     }
     int xseq_format_version = 1;
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    _gauge->SetValue(0);
+    _gauge->Show(true);
+
     sprintf(hdr,"xLights %2d %8ld %8ld",xseq_format_version,SeqNumChannels,SeqNumPeriods);
     strncpy(&hdr[32],mediaFilename.c_str(),470);
     f.Write(hdr,512);
     f.Write((const char *)&SeqData.front(),SeqDataLen);
     f.Close();
+    _gauge->SetValue(100);
+    _gauge->Show(false);
 }
 
 void xLightsFrame::WriteLorFile(const wxString& filename)
@@ -362,6 +381,13 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     }
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
     long centiseconds=SeqNumPeriods * interval;
+
+    wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
+    _gauge->SetRange(100);
+    _gauge->SetValue(0);
+    _gauge->Show(true);
+
+
     f.Write(wxT("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"));
     f.Write(wxT("<sequence saveFileVersion=\"3\""));
     if (!mediaFilename.IsEmpty())
@@ -372,6 +398,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write(wxT("\t<channels>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
+        _gauge->SetValue((ch * 100.0) / SeqNumChannels);
         if (ch < CheckListBoxTestChannels->GetCount())
         {
             TestName=CheckListBoxTestChannels->GetString(ch);
@@ -452,6 +479,8 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write(wxT("\t</tracks>\n"));
     f.Write(wxT("</sequence>\n"));
     f.Close();
+    _gauge->SetValue(100);
+    _gauge->Show(false);
 }
 
 void xLightsFrame::WriteLcbFile(const wxString& filename)

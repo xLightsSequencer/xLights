@@ -178,6 +178,12 @@ You will need:
   e) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the version2/xLights directory.
 
+Windows Installer
+We use Inno Setup to create the setup.exe for xLights/Nutcracker
+http://www.jrsoftware.org/isinfo.php
+
+You will find a xLights.iss file that is used to create the release setup.exe
+
 
 
 SVN

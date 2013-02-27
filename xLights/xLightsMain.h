@@ -49,7 +49,12 @@
 #include <wx/dir.h>
 
 #include <wx/gauge.h>
-
+#ifdef LINUX
+#include <unistd.h>
+#endif
+#ifdef WINDOWS
+#inlcude <windows.h>
+#endif
 
 #include <map>
 #include <vector>

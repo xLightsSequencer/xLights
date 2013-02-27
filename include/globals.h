@@ -1,7 +1,7 @@
 #ifndef XLIGHTS_GLOBALS_H_INCLUDED_
 #define XLIGHTS_GLOBALS_H_INCLUDED_
 
-#define XLIGHTS_VERSION "2013a"
+#define XLIGHTS_VERSION "3.0.2"
 #define XLIGHTS_CONFIG_ID "xLights"
 #define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
 #define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
@@ -17,7 +17,7 @@
 
 #define XLIGHTS_DESCRIPTION "Use xLights to control you holiday light display"
 
-#define XLIGHTS_LICENSE "Copyright 2010-2013 Matt Brown\n\nThis file is part of xLights.\n\nxLights is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. xLights is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with xLights.  If not, see <http://www.gnu.org/licenses/>.\n\nAcknowledgements\n\nPortions of xLights were inspired by Nutcracker, written by Sean Meighan. Nutcracker effects are used with his permission.\n\nxLights relies are on 2 open-source libraries: wxWidgets and irrXML.\n\nCode for serial port communication was inpired by the ctb library written by Joachim Buermann. Code for base64 encoding and decoding was written by René Nyffenegger."
+#define XLIGHTS_LICENSE "xLights Copyright 2010-2013 Matt Brown\nNutcracker Copyright 2012-2013 Sean Meighan\n\nThis file is part of xLights.\n\nxLights-Nutcracker is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. xLights-Nutcracker is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with xLights.  If not, see <http://www.gnu.org/licenses/>.\n\nNutcracker website is http://nutcracker123.com/nutcracker\n\nAcknowledgements\n\nxLights relies on 2 open-source libraries: wxWidgets and irrXML.\n\nCode for serial port communication was inpired by the ctb library written by Joachim Buermann. Code for base64 encoding and decoding was written by René Nyffenegger."
 
 #if !wxCHECK_VERSION(2,9,1)
 #define HasAttribute HasProp
@@ -25,5 +25,3 @@
 #endif
 
 #endif
-
-
