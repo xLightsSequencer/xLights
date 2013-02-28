@@ -1265,7 +1265,7 @@
 1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
 	<wx/app.h>
 
-1361900805 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
+1362029236 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
 	<wx/listctrl.h>
 	<wx/scrolwin.h>
 	<wx/treectrl.h>
@@ -1322,7 +1322,7 @@
 
 1361926498 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1361925204 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1361948487 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1416,7 +1416,7 @@
 
 1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabtest.cpp
 
-1361901016 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
+1361999421 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
 
 1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 

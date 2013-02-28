@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
 		<title>xLights/Nutcracker  (Ver 3.0.1)</title>
-		<icon>C:\Users\smeighan\Documents\c++\nutcracker_c\include\IMG_7965_gray.png</icon>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>

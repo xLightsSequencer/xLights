@@ -1028,13 +1028,14 @@ private:
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
-    bool WriteVixenFile(const wxString& filename);
-    void WriteVirFile(const wxString& filename);
-    void WriteHLSFile(const wxString& filename);
-    void WriteXLightsFile(const wxString& filename);
-    void WriteConductorFile(const wxString& filename);
-    void WriteLorFile(const wxString& filename);
-    void WriteLcbFile(const wxString& filename);
+    bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
+    void WriteVirFile(const wxString& filename); //       Vixen *.vir
+    void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
+    void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
+    void WriteConductorFile(const wxString& filename); // Conductor *.seq
+    void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
+    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
+    void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
     void ClearLastPeriod();
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);

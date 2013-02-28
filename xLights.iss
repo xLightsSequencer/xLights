@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 [Setup]
-AppName=xLights
+AppName=xLights-Nutcracker
 AppVersion=3.0.1
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
