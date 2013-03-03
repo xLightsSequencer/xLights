@@ -324,8 +324,10 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         buff=wxT("");
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
         {
-            rgb = SeqData[seqidx] << 16 + SeqData[seqidx+1] << 8 + SeqData[seqidx+2]; // we want a 24bit value for HLS
-            buff += wxString::Format(wxT("%ld "),rgb);
+            //((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
+            rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+1]& 0xff) << 8 | (SeqData[seqidx+2]& 0xff); // we want a 24bit value for HLS
+            buff += wxString::Format(wxT("%d "),rgb);
+            // buff += wxString::Format(wxT("0x%X%X%X "),SeqData[seqidx],SeqData[seqidx+1],SeqData[seqidx+2]);
             // f.Write(wxString::Format(wxT("%d "),SeqData[seqidx]));
         }
         buff += wxString::Format(wxT("\n"));

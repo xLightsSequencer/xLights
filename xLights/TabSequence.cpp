@@ -673,6 +673,11 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Font")],
                           EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_Dir")]));
     }
+    else if (effect == wxT("Twinkle"))
+    {
+        buffer.RenderTwinkle(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]));
+
+    }
 }
 
 void xLightsFrame::PlayRgbEffect(int EffectPeriod)
@@ -765,6 +770,10 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           TextCtrl_Text1_Font->GetValue(),
                           Choice_Text1_Dir->GetSelection());
         break;
+    case 13:
+        buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue());
+        break;
+
     }
 
     // render effect 2
@@ -834,6 +843,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           TextCtrl_Text2_Font->GetValue(),
                           Choice_Text2_Dir->GetSelection());
         break;
+
     }
     buffer.CalcOutput();
     DisplayEffectOnWindow();
@@ -1782,7 +1792,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         fullpath=oName.GetFullPath();
         WriteLorFile(fullpath);
     }
-     else if (Out3 == wxT("Lcb"))
+    else if (Out3 == wxT("Lcb"))
     {
         oName.SetExt(_("lcb"));
         fullpath=oName.GetFullPath();

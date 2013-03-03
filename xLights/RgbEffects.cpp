@@ -1167,3 +1167,39 @@ void RgbEffects::RenderText(int Top, const wxString& Line1, const wxString& Line
     }
 }
 
+void RgbEffects::RenderTwinkle(int Count)
+{
+
+    int x,y,i,j,i7,r,ColorIdx;
+    int lights = (BufferHt*BufferWi)*(Count/100.0);
+    int step=BufferHt*BufferWi/lights;
+    if(step<1) step=1;
+    wxColour color;
+    srand(1); // always have the same random numbers for each frame (state)
+    wxImage::HSVValue hsv;
+    size_t colorcnt=GetColorCount();
+
+    i=0;
+    for (y=1; y<BufferHt; y++)
+    {
+        for (x=0; x<BufferWi; x++)
+        {
+            i++;
+            if(i%step==0)
+            {
+                ColorIdx=i % colorcnt;
+                ColorIdx = rand() % 6;
+                ColorIdx=ColorIdx % colorcnt;
+
+                palette.GetHSV(ColorIdx, hsv);
+                i7=(state/4+rand())%9;
+                if(i7==0 || i7==8)  hsv.value = 0.1;
+                if(i7==1 || i7==7)  hsv.value = 0.3;
+                if(i7==2 || i7==6)  hsv.value = 0.5;
+                if(i7==3 || i7==5)  hsv.value = 0.7;
+                if(i7==4  )  hsv.value = 1.0;
+                SetPixel(x,y,hsv);
+            }
+        }
+    }
+}

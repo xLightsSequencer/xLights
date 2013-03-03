@@ -309,3 +309,7 @@ void PixelBufferClass::RenderText(int Top, const wxString& Line1, const wxString
     Effect[CurrentLayer].RenderText(Top,Line1,Line2,FontString,dir);
 }
 
+void PixelBufferClass::RenderTwinkle(int Count)
+{
+    Effect[CurrentLayer].RenderTwinkle(Count);
+}

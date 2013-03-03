@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.1)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.3)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -2220,6 +2220,33 @@
 																								</object>
 																								<label>Text</label>
 																							</object>
+																							<object class="choicebookpage">
+																								<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
+																									<pos>130,6</pos>
+																									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+																										<cols>2</cols>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT86" variable="StaticText85" member="yes">
+																												<label>Number Lights</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Twinkle1_Count" variable="Slider_Twinkle1_Count" member="yes">
+																												<value>10</value>
+																												<min>2</min>
+																												<size>117,24</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																									</object>
+																								</object>
+																								<label>Twinkle</label>
+																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
@@ -3639,5 +3666,9 @@
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 		<object class="wxColourDialog" variable="ColourDialog1" member="yes" />
+		<object class="wxMessageDialog" name="ID_MESSAGEDIALOG1" variable="MessageDialog1" member="yes">
+			<caption>Message</caption>
+			<message>Hello</message>
+		</object>
 	</object>
 </wxsmith>

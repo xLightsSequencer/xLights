@@ -272,6 +272,9 @@ const long xLightsFrame::ID_TEXTCTRL_Text1_Font = wxNewId();
 const long xLightsFrame::ID_STATICTEXT79 = wxNewId();
 const long xLightsFrame::ID_CHOICE_Text1_Dir = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT86 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Twinkle1_Count = wxNewId();
+const long xLightsFrame::ID_PANEL33 = wxNewId();
 const long xLightsFrame::ID_CHOICEBOOK1 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Palette1_1 = wxNewId();
@@ -422,6 +425,7 @@ const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
+const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 //*)
 
 const long xLightsFrame::ID_PLAYER_DIALOG = wxNewId();
@@ -465,6 +469,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer51;
     wxStaticBoxSizer* StaticBoxSizer4;
     wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem1;
     wxMenuItem* MenuItem4;
@@ -535,7 +540,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.1)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.3)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1220,6 +1225,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Text->SetSizer(FlexGridSizer46);
     FlexGridSizer46->Fit(Panel1_Text);
     FlexGridSizer46->SetSizeHints(Panel1_Text);
+    Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxPoint(130,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
+    FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText85 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT86, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT86"));
+    FlexGridSizer3->Add(StaticText85, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Twinkle1_Count = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Count, 10, 2, 100, wxDefaultPosition, wxSize(117,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Count"));
+    FlexGridSizer3->Add(Slider_Twinkle1_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1_Twinkle->SetSizer(FlexGridSizer3);
+    FlexGridSizer3->Fit(Panel1_Twinkle);
+    FlexGridSizer3->SetSizeHints(Panel1_Twinkle);
     Choicebook1->AddPage(Panel1_None, _("None"), false);
     Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
     Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
@@ -1233,6 +1247,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook1->AddPage(Panel1_Snowstorm, _("Snowstorm"), false);
     Choicebook1->AddPage(Panel1_Spirals, _("Spirals"), false);
     Choicebook1->AddPage(Panel1_Text, _("Text"), false);
+    Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
     FlexGridSizer34->Add(Choicebook1, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Palette1 = new wxButton(Panel4, ID_BUTTON_Palette1, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
@@ -1722,6 +1737,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Timer1.SetOwner(this, ID_TIMER1);
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|xLights Sequences(*.xseq)|*.xseq|Lynx Conductor Sequences (*.seq)|*.seq"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     ColourDialog1 = new wxColourDialog(this);
+    MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -1851,6 +1867,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetIcon(wxIcon(xlights_xpm));
     wxStandardPathsBase& stdp = wxStandardPaths::Get();
     wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
+
 
     // Load headings into network list
     wxListItem itemCol;

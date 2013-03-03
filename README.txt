@@ -24,5 +24,7 @@ Version History:
 
 Nutcracker 3.0 Releases
 
+3.0.3: 3/02/12 Added new effect, Twinkle
+3.0.2: 2/28/12 Corrected unsigned 24bit value for HLS *.hlsnc export
 3.0.1: 2/26/12 Added wxGauge to show process for exporting sequence files
 3.0.0: 2/22/12 Initial Release

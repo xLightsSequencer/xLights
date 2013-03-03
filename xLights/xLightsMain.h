@@ -21,6 +21,7 @@
 #include <wx/menu.h>
 #include <wx/textctrl.h>
 #include <wx/checklst.h>
+#include <wx/msgdlg.h>
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/radiobut.h>
@@ -473,6 +474,9 @@ private:
     static const long ID_STATICTEXT79;
     static const long ID_CHOICE_Text1_Dir;
     static const long ID_PANEL7;
+    static const long ID_STATICTEXT86;
+    static const long ID_SLIDER_Twinkle1_Count;
+    static const long ID_PANEL33;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
     static const long ID_CHECKBOX_Palette1_1;
@@ -623,6 +627,7 @@ private:
     static const long idMenuAbout;
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
+    static const long ID_MESSAGEDIALOG1;
     //*)
 
     static const long ID_PLAYER_DIALOG;
@@ -663,8 +668,8 @@ private:
     wxCheckBox* CheckBox_Palette1_2;
     wxRadioButton* RadioButtonRgbChase4;
     wxChoice* Choice_Models;
-    wxStaticText* StaticText45;
     wxPanel* Panel3;
+    wxStaticText* StaticText45;
     wxStaticText* StaticText11;
     wxPanel* PanelTestRgb;
     wxSlider* Slider_Spirals1_Count;
@@ -777,6 +782,7 @@ private:
     wxSlider* Slider_Bars2_BarCount;
     wxSlider* Slider_Meteors2_Length;
     wxPanel* Panel1_Bars;
+    wxPanel* Panel1_Twinkle;
     wxChoice* Choice_Pictures2_Direction;
     wxStaticText* StaticTextDirName;
     wxButton* Button_ChannelMap;
@@ -790,6 +796,7 @@ private:
     wxStaticText* StaticText70;
     wxStaticText* StaticText35;
     wxButton* ButtonShowDatesChange;
+    wxStaticText* StaticText85;
     wxPanel* Panel1_Garlands;
     wxButton* Button_Text1_Font;
     wxSlider* Slider_Fire1_Height;
@@ -924,6 +931,7 @@ private:
     wxButton* Button_Palette2_4;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;
+    wxSlider* Slider_Twinkle1_Count;
     wxButton* Button_PresetAdd;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxStaticText* StaticText82;
@@ -949,6 +957,7 @@ private:
     wxBitmapButton* BitmapButtonInsertRow;
     wxCheckBox* CheckBox_Palette1_3;
     wxTextCtrl* TextCtrlConversionStatus;
+    wxMessageDialog* MessageDialog1;
     wxStaticText* StaticText20;
     wxButton* Button_Palette2_2;
     wxStaticText* StaticTextSequenceFileName;
