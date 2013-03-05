@@ -1170,36 +1170,204 @@ void RgbEffects::RenderText(int Top, const wxString& Line1, const wxString& Line
 void RgbEffects::RenderTwinkle(int Count)
 {
 
-    int x,y,i,j,i7,r,ColorIdx;
-    int lights = (BufferHt*BufferWi)*(Count/100.0);
+    int x,y,i,i7,r,ColorIdx;
+    int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
     int step=BufferHt*BufferWi/lights;
     if(step<1) step=1;
-    wxColour color;
     srand(1); // always have the same random numbers for each frame (state)
-    wxImage::HSVValue hsv;
+    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+
     size_t colorcnt=GetColorCount();
 
     i=0;
-    for (y=1; y<BufferHt; y++)
+
+    for (y=1; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
-        for (x=0; x<BufferWi; x++)
+        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
             i++;
-            if(i%step==0)
+            if(i%step==0) // Should we draw a light?
             {
-                ColorIdx=i % colorcnt;
-                ColorIdx = rand() % 6;
-                ColorIdx=ColorIdx % colorcnt;
+                // Yes, so now decide on what color it should be
 
-                palette.GetHSV(ColorIdx, hsv);
-                i7=(state/4+rand())%9;
+                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+                palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+                i7=(state/4+rand())%9; // Our twinkle is 9 steps. 4 ramping up, 5th at full brightness and then 4 more ramping down
+                //  Note that we are adding state to this calculation, this causes a different blink rate for each light
+
                 if(i7==0 || i7==8)  hsv.value = 0.1;
                 if(i7==1 || i7==7)  hsv.value = 0.3;
                 if(i7==2 || i7==6)  hsv.value = 0.5;
                 if(i7==3 || i7==5)  hsv.value = 0.7;
                 if(i7==4  )  hsv.value = 1.0;
-                SetPixel(x,y,hsv);
+                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
+                SetPixel(x,y,hsv); // Turn pixel on
             }
         }
+    }
+}
+
+
+void RgbEffects::RenderTree(int Branches)
+{
+
+    int x,y,i,i7,r,ColorIdx,Count,pixels_per_branch;
+    int maxFrame,mod,branch,row,b,f_mod,m,frame;
+    int number_garlands,f_mod_odd,s_odd_row,odd_even;
+    float V,H;
+
+    number_garlands=1;
+    srand(1); // always have the same random numbers for each frame (state)
+    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    pixels_per_branch=(int)(0.5+BufferHt/Branches);
+    maxFrame=(Branches+1) *BufferWi;
+    size_t colorcnt=GetColorCount();
+    frame = (state/4)%maxFrame;
+
+    i=0;
+
+    for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    {
+        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+        {
+            mod=y%pixels_per_branch;
+            if(mod==0) mod=pixels_per_branch;
+            V=1-(1.0*mod/pixels_per_branch)*0.70;
+            i++;
+
+            ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+            ColorIdx=0;
+            palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+            hsv.value = V; // we have now set the color for the background tree
+
+            //   $orig_rgbval=$rgb_val;
+            branch = (int)((y-1)/pixels_per_branch);
+            row = pixels_per_branch-mod; // now row=0 is bottom of branch, row=1 is one above bottom
+            //  mod = which pixel we are in the branch
+            //	mod=1,row=pixels_per_branch-1   top picrl in branch
+            //	mod=2, second pixel down into branch
+            //	mod=pixels_per_branch,row=0  last pixel in branch
+            //
+            //	row = 0, the $p is in the bottom row of tree
+            //	row =1, the $p is in second row from bottom
+            b = (int) ((state)/BufferWi)%Branches; // what branch we are on based on frame #
+            //
+            //	b = 0, we are on bottomow row of tree during frames 1 to BufferWi
+            //	b = 1, we are on second row from bottom, frames = BufferWi+1 to 2*BufferWi
+            //	b = 2, we are on third row from bottome, frames - 2*BufferWi+1 to 3*BufferWi
+            f_mod = (state/4)%BufferWi;
+            //   if(f_mod==0) f_mod=BufferWi;
+            //	f_mod is  to BufferWi-1 on each row
+            //	f_mod == 0, left strand of this row
+            //	f_mod==BufferWi, right strand of this row
+            //
+            m=(x%6);
+            if(m==0) m=6;  // use $m to indicate where we are in horizontal pattern
+            // m=1, 1sr strand
+            // m=2, 2nd strand
+            // m=6, last strand in 6 strand pattern
+
+
+
+            r=branch%5;
+            H = r/4.0;
+
+            odd_even=b%2;
+            s_odd_row = BufferWi-x+1;
+            f_mod_odd = BufferWi-f_mod+1;
+
+            if(branch<=b && x<=frame && // for branches below or equal to current row
+                    (((row==3 or (number_garlands==2 and row==6)) and (m==1 or m==6))
+                     ||
+                     ((row==2 or (number_garlands==2 and row==5)) and (m==2 or m==5))
+                     ||
+                     ((row==1 or (number_garlands==2 and row==4)) and (m==3 or m==4))
+                    ))
+                if((odd_even ==0 and x<=f_mod) || (odd_even ==1 and s_odd_row<=f_mod))
+                {
+                    hsv.hue = H;
+                    hsv.saturation=1.0;
+                    hsv.value=1.0;
+                }
+            //	if(branch>b)
+//	{
+//		return $rgb_val; // for branches below current, dont dont balnk anything out
+//	}
+//	else if(branch==b)
+//	{
+//		if(odd_even ==0 and x>f_mod)
+//		{
+//			$rgb_val=$orig_rgbval;// we are even row ,counting from bottom as zero
+//		}
+//		if(odd_even ==1 and s_odd_row>f_mod)
+//		{
+//			$rgb_val=$orig_rgbval;// we are even row ,counting from bottom as zero
+//		}
+//	}
+            //if($branch>$b) $rgb_val=$orig_rgbval; // erase rows above our current row.
+
+
+            // Yes, so now decide on what color it should be
+
+
+            //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
+            SetPixel(x,y,hsv); // Turn pixel on
+
+        }
+    }
+}
+
+
+// for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+//    {
+//        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+//        {
+
+
+void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d)
+{
+#define PI 3.14159265
+    int i,x,y,k,xc,yc,MAX_RADIUS,ColorIdx,Count,pixels_per_branch;
+    int mod1440,row,b,f_mod,m;
+    int radius,steps,theta_offset,sign_direction;
+    int number_arms=3;
+    float V,H,radius_delta,R,r,d,t;
+    wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+
+    k=1;
+
+
+    size_t colorcnt=GetColorCount();
+
+
+//
+    xc= (int)(BufferWi/2);
+    yc= (int)(BufferHt/2);
+    R=xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
+    r=xc*(int_r/100.0); // start little circle at 1/4 of max width
+    if(r>R) r=R;
+
+    d=xc*(int_d/100.0);
+    ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+
+    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+
+    palette.GetHSV(0, hsv0);
+    palette.GetHSV(1, hsv1);
+//
+//    A hypotrochoid is a roulette traced by a point attached to a circle of radius r rolling around the inside of a fixed circle of radius R, where the point is a distance d from the center of the interior circle.
+//The parametric equations for a hypotrochoid are:[citation needed]
+//
+//x(t) = (R-r) * cos t + d*cos ((R-r/r)*t);
+//y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
+
+    mod1440=state%1440;
+    for(i=1; i<=360; i++)
+    {
+        t = (i+mod1440)*PI/180;
+        x = (R-r) * cos (t) + d*cos ((R-r/r)*t) + xc;
+        y = (R-r) * sin (t) + d*sin ((R-r/r)*t) + yc;
+        if(i<=360) SetPixel(x,y,hsv0); // Turn pixel on
+        else SetPixel(x,y,hsv1);
     }
 }

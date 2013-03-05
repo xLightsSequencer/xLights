@@ -313,3 +313,13 @@ void PixelBufferClass::RenderTwinkle(int Count)
 {
     Effect[CurrentLayer].RenderTwinkle(Count);
 }
+
+void PixelBufferClass::RenderTree(int Branches)
+{
+    Effect[CurrentLayer].RenderTree(Branches);
+}
+
+void PixelBufferClass::RenderSpirograph(int R, int r, int d)
+{
+    Effect[CurrentLayer].RenderSpirograph( R,  r,  d);
+}

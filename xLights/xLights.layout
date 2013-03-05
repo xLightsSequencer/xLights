@@ -6,34 +6,49 @@
 			<Cursor1 position="1335" topLine="27" />
 		</Cursor>
 	</File>
-	<File name="TabConvert.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="wxsmith\xLightsframe.wxs" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6841" topLine="178" />
+			<Cursor1 position="1389" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="TabSchedule.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="TabSchedule.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="66078" topLine="1779" />
 		</Cursor>
 	</File>
-	<File name="PixelBuffer.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="TabSequence.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4611" topLine="183" />
+			<Cursor1 position="27092" topLine="745" />
 		</Cursor>
 	</File>
-	<File name="TabSequence.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="xLightsMain.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="37172" topLine="1033" />
-		</Cursor>
-	</File>
-	<File name="xLightsMain.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="164151" topLine="434" />
+			<Cursor1 position="163143" topLine="431" />
 		</Cursor>
 	</File>
 	<File name="RgbEffects.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="33515" topLine="1156" />
+			<Cursor1 position="36361" topLine="1215" />
+		</Cursor>
+	</File>
+	<File name="PixelBuffer.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2520" topLine="52" />
+		</Cursor>
+	</File>
+	<File name="RgbEffects.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4070" topLine="139" />
+		</Cursor>
+	</File>
+	<File name="PixelBuffer.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8204" topLine="291" />
+		</Cursor>
+	</File>
+	<File name="TabConvert.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6841" topLine="178" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

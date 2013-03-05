@@ -477,6 +477,17 @@ private:
     static const long ID_STATICTEXT86;
     static const long ID_SLIDER_Twinkle1_Count;
     static const long ID_PANEL33;
+    static const long ID_STATICTEXT87;
+    static const long ID_SLIDER_Tree1_Branches;
+    static const long ID_PANEL34;
+    static const long ID_STATICTEXT88;
+    static const long ID_SLIDER_Spirograph1_R;
+    static const long ID_STATICTEXT89;
+    static const long ID_SLIDER_Spirograph1_r;
+    static const long ID_STATICTEXT90;
+    static const long ID_SLIDER_Spirograph1_d;
+    static const long ID_STATICTEXT91;
+    static const long ID_PANEL35;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
     static const long ID_CHECKBOX_Palette1_1;
@@ -635,6 +646,7 @@ private:
     //(*Declarations(xLightsFrame)
     wxStaticText* StaticText6;
     wxCheckBox* CheckBox_Palette1_1;
+    wxSlider* Slider_Spirograph1_d;
     wxFlexGridSizer* FlexGridSizer_Palette1;
     wxSlider* Slider_Spirals1_Thickness;
     wxGrid* Grid1;
@@ -654,6 +666,7 @@ private:
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
     wxPanel* Panel1_Life;
+    wxStaticText* StaticText86;
     wxStaticText* StaticText42;
     wxSlider* Slider_Meteors1_Count;
     wxPanel* PanelSequence2;
@@ -676,6 +689,7 @@ private:
     wxStaticText* StaticText18;
     wxStaticText* StaticText30;
     wxPanel* Panel1;
+    wxSlider* Slider_Spirograph1_R;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText48;
@@ -692,6 +706,7 @@ private:
     wxSlider* Slider_Life1_Seed;
     wxStaticText* StaticText22;
     wxStaticText* StaticTextShowStart;
+    wxStaticText* StaticText87;
     wxSlider* Slider_ColorWash1_Count;
     wxPanel* Panel2_Life;
     wxCheckBox* CheckBox_ColorWash2_VFade;
@@ -748,6 +763,7 @@ private:
     wxSlider* Slider_Spirals2_Count;
     wxStaticText* StaticText25;
     wxStaticText* StaticText28;
+    wxStaticText* StaticText89;
     wxPanel* Panel2_Spirals;
     wxStaticText* StaticText23;
     wxStaticText* StaticText63;
@@ -822,12 +838,14 @@ private:
     wxStaticText* StaticText21;
     wxListCtrl* GridNetwork;
     wxCheckBox* CheckBox_Palette2_2;
+    wxPanel* Spirograph;
     wxSlider* Slider_Snowflakes1_Type;
     wxRadioButton* RadioButtonRgbCycle4;
     wxButton* Button_Palette1_4;
     wxStaticText* StaticText57;
     wxStaticText* StaticText84;
     wxRadioButton* RadioButtonChase3;
+    wxStaticText* StaticText90;
     wxButton* ButtonSaveLog;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText61;
@@ -844,9 +862,9 @@ private:
     wxStaticText* StaticText79;
     wxButton* ButtonDeleteShow;
     wxButton* ButtonNetworkDeleteAll;
+    wxButton* ButtonSaveSchedule;
     wxPanel* Panel2_None;
     wxRadioButton* RadioButtonRgbCycle3;
-    wxButton* ButtonSaveSchedule;
     wxCheckBox* CheckBox_ColorWash2_HFade;
     wxButton* ButtonNetworkDelete;
     wxButton* Button_Palette1_5;
@@ -859,10 +877,12 @@ private:
     wxStaticText* StaticText44;
     wxSlider* Slider_Spirals2_Thickness;
     wxSlider* Slider_Snowstorm2_Length;
+    wxStaticText* StaticText88;
     wxNotebook* NotebookTest;
     wxStaticText* StaticText59;
     wxPanel* Panel2_Bars;
     wxRadioButton* RadioButtonShimmer;
+    wxSlider* Slider_Tree1_Branches;
     wxStaticText* StaticText68;
     wxPanel* Panel1_Pictures;
     wxStaticText* StaticText71;
@@ -884,8 +904,8 @@ private:
     wxTextCtrl* TextCtrlFilename;
     wxSlider* Slider_Snowflakes2_Type;
     wxTextCtrl* TextCtrl_Pictures2_Filename;
-    wxRadioButton* RadioButtonRgbCycleOff;
     wxButton* ButtonAddShow;
+    wxRadioButton* RadioButtonRgbCycleOff;
     wxStaticText* StaticText50;
     wxStaticText* StaticText81;
     wxStaticText* StaticText58;
@@ -937,6 +957,7 @@ private:
     wxStaticText* StaticText82;
     wxButton* ButtonSeqExport;
     wxStaticText* StaticText51;
+    wxSlider* Slider_Spirograph1_r;
     wxStaticText* StaticText33;
     wxPanel* Panel2_Pictures;
     wxChoice* Choice_Butterfly1_Colors;
@@ -947,6 +968,7 @@ private:
     wxStaticText* StaticTextSetup1;
     wxButton* Button_PlayRgbSeq;
     wxStaticText* StaticText5;
+    wxPanel* Panel1_Tree;
     wxSplitterWindow* SplitterWindow1;
     wxRadioButton* RadioButtonRgbCycle5;
     wxCheckBox* CheckBox_Palette2_4;

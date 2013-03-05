@@ -75,6 +75,8 @@ public:
     void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
     void RenderText(int Top, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir);
     void RenderTwinkle(int Count);
+    void RenderTree(int Branches);
+    void RenderSpirograph(int R, int r, int d);
     void CalcOutput();
 };
 

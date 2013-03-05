@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.3)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.4)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -2246,6 +2246,102 @@
 																									</object>
 																								</object>
 																								<label>Twinkle</label>
+																							</object>
+																							<object class="choicebookpage">
+																								<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
+																									<pos>99,9</pos>
+																									<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
+																										<cols>2</cols>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
+																												<label>Number Branches</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Tree1_Branches" variable="Slider_Tree1_Branches" member="yes">
+																												<value>3</value>
+																												<min>1</min>
+																												<max>10</max>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																									</object>
+																								</object>
+																								<label>Tree</label>
+																							</object>
+																							<object class="choicebookpage">
+																								<object class="wxPanel" name="ID_PANEL35" variable="Spirograph" member="yes">
+																									<pos>82,12</pos>
+																									<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
+																										<cols>2</cols>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
+																												<label>R - Radius if outer circle</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Spirograph1_R" variable="Slider_Spirograph1_R" member="yes">
+																												<value>20</value>
+																												<min>1</min>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT89" variable="StaticText88" member="yes">
+																												<label>r - Radius of inner circle</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Spirograph1_r" variable="Slider_Spirograph1_r" member="yes">
+																												<value>10</value>
+																												<min>1</min>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
+																												<label>d - Distance</label>
+																												<size>84,13</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Spirograph1_d" variable="Slider_Spirograph1_d" member="yes">
+																												<value>30</value>
+																												<min>1</min>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT91" variable="StaticText90" member="yes">
+																												<label>Note: r should be &lt;= R</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																									</object>
+																								</object>
+																								<label>Spirograph</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

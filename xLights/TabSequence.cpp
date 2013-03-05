@@ -676,7 +676,16 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     else if (effect == wxT("Twinkle"))
     {
         buffer.RenderTwinkle(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]));
-
+    }
+    else if (effect == wxT("Tree"))
+    {
+        buffer.RenderTree(wxAtoi(SettingsMap[wxT("ID_SLIDER_Tree")+LayerStr+wxT("_Branches")]));
+    }
+    else if (effect == wxT("Spirograph"))
+    {
+        buffer.RenderSpirograph(wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_R")]),
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_r")]),
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]));
     }
 }
 
@@ -772,6 +781,14 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
     case 13:
         buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue());
+        break;
+    case 14:
+        buffer.RenderTree(Slider_Tree1_Branches->GetValue());
+        break;
+    case 15:
+        buffer.RenderSpirograph(Slider_Spirograph1_R->GetValue(),
+                                Slider_Spirograph1_r->GetValue(),
+                                Slider_Spirograph1_d->GetValue());
         break;
 
     }
