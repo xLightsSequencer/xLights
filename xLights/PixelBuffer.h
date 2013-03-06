@@ -77,6 +77,7 @@ public:
     void RenderTwinkle(int Count);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d);
+    void RenderSean(int Count);
     void CalcOutput();
 };
 

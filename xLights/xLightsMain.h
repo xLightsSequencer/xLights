@@ -488,6 +488,9 @@ private:
     static const long ID_SLIDER_Spirograph1_d;
     static const long ID_STATICTEXT91;
     static const long ID_PANEL35;
+    static const long ID_STATICTEXT92;
+    static const long ID_SLIDER_Sean1_Count;
+    static const long ID_PANEL36;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
     static const long ID_CHECKBOX_Palette1_1;
@@ -674,6 +677,7 @@ private:
     wxSlider* Slider_Spirals1_Rotation;
     wxButton* ButtonLightsOff;
     wxCheckBox* CheckBox_Bars1_3D;
+    wxStaticText* StaticText91;
     wxSlider* Slider_Butterfly1_Chunks;
     wxRadioButton* RadioButtonRgbDim;
     wxSplitterWindow* SplitterWindow2;
@@ -750,6 +754,7 @@ private:
     wxGauge* Gauge1;
     wxCheckBox* CheckBoxRunSchedule;
     wxStaticText* StaticText32;
+    wxSlider* Slider_Sean1_Count;
     wxSlider* SliderFgColorC;
     wxStaticText* StaticText14;
     wxStaticText* StaticText36;
@@ -833,12 +838,12 @@ private:
     wxSlider* Slider_Spirals2_Rotation;
     wxButton* ButtonStartConversion;
     wxStatusBar* StatusBar1;
+    wxPanel* Panel1_Sean;
     wxStaticText* StaticText40;
     wxButton* Button_Palette2_5;
     wxStaticText* StaticText21;
     wxListCtrl* GridNetwork;
     wxCheckBox* CheckBox_Palette2_2;
-    wxPanel* Spirograph;
     wxSlider* Slider_Snowflakes1_Type;
     wxRadioButton* RadioButtonRgbCycle4;
     wxButton* Button_Palette1_4;
@@ -1001,6 +1006,7 @@ private:
     wxPanel* Panel1_Snowflakes;
     wxButton* Button_Models;
     wxBitmapButton* BitmapButtonSaveSeq;
+    wxPanel* Panel1_Spirograph;
     wxStaticText* StaticText9;
     wxSlider* Slider_Butterfly2_Style;
     wxScrolledWindow* ScrolledWindow1;

@@ -1085,15 +1085,15 @@
 	<wx/msgdlg.h>
 	<wx/textdlg.h>
 
-1362452905 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
+1362531989 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
 	"PixelBuffer.h"
 
-1362452857 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
+1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
 	<wx/xml/xml.h>
 	"ModelClass.h"
 	"RgbEffects.h"
 
-1362452857 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
+1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
 	<stdint.h>
 	<list>
 	<vector>
@@ -1131,7 +1131,7 @@
 1360547968 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
 	"wx/msw/wx.rc"
 
-1362454491 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
+1362531989 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
 	<cmath>
 	"RgbEffects.h"
 
@@ -1265,7 +1265,7 @@
 1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
 	<wx/app.h>
 
-1362452508 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
+1362532400 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
 	<wx/listctrl.h>
 	<wx/scrolwin.h>
 	<wx/treectrl.h>
@@ -1323,7 +1323,7 @@
 
 1362454601 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1362454596 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1362532400 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1421,5 +1421,5 @@
 
 1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 
-1362453008 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
+1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
 

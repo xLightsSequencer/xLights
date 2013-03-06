@@ -323,3 +323,9 @@ void PixelBufferClass::RenderSpirograph(int R, int r, int d)
 {
     Effect[CurrentLayer].RenderSpirograph( R,  r,  d);
 }
+
+
+void PixelBufferClass::RenderSean(int Count)
+{
+    Effect[CurrentLayer].RenderSean(Count);
+}

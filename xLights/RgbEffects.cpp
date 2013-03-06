@@ -1181,7 +1181,7 @@ void RgbEffects::RenderTwinkle(int Count)
 
     i=0;
 
-    for (y=1; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
@@ -1327,47 +1327,83 @@ void RgbEffects::RenderTree(int Branches)
 void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d)
 {
 #define PI 3.14159265
-    int i,x,y,k,xc,yc,MAX_RADIUS,ColorIdx,Count,pixels_per_branch;
-    int mod1440,row,b,f_mod,m;
-    int radius,steps,theta_offset,sign_direction;
-    int number_arms=3;
-    float V,H,radius_delta,R,r,d,t;
+    int i,x,y,k,xc,yc,ColorIdx;
+    int mod1440,state360;
+    srand(1);
+    float R,r,d,d_orig,t;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-
-    k=1;
-
-
     size_t colorcnt=GetColorCount();
 
-
-//
-    xc= (int)(BufferWi/2);
+    xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
     yc= (int)(BufferHt/2);
     R=xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
     r=xc*(int_r/100.0); // start little circle at 1/4 of max width
     if(r>R) r=R;
-
     d=xc*(int_d/100.0);
     ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-
     palette.GetHSV(0, hsv0);
     palette.GetHSV(1, hsv1);
 //
 //    A hypotrochoid is a roulette traced by a point attached to a circle of radius r rolling around the inside of a fixed circle of radius R, where the point is a distance d from the center of the interior circle.
 //The parametric equations for a hypotrochoid are:[citation needed]
 //
+//  more info: http://en.wikipedia.org/wiki/Hypotrochoid
+//
 //x(t) = (R-r) * cos t + d*cos ((R-r/r)*t);
 //y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
 
     mod1440=state%1440;
+    state360 = state%360;
+    d_orig=d;
     for(i=1; i<=360; i++)
     {
+        d = (int)(d_orig+state/2)%100;
         t = (i+mod1440)*PI/180;
         x = (R-r) * cos (t) + d*cos ((R-r/r)*t) + xc;
         y = (R-r) * sin (t) + d*sin ((R-r/r)*t) + yc;
-        if(i<=360) SetPixel(x,y,hsv0); // Turn pixel on
+        if(i<=state360) SetPixel(x,y,hsv0); // Turn pixel on
         else SetPixel(x,y,hsv1);
+    }
+}
+
+
+void RgbEffects::RenderSean(int Count)
+{
+
+    int x,y,i,i7,r,ColorIdx;
+    int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
+    int step=BufferHt*BufferWi/lights;
+    if(step<1) step=1;
+    srand(1); // always have the same random numbers for each frame (state)
+    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+
+    size_t colorcnt=GetColorCount();
+
+    i=0;
+
+    for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    {
+        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+        {
+            i++;
+            if(i%step==0) // Should we draw a light?
+            {
+                // Yes, so now decide on what color it should be
+
+                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+                palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+                i7=(state/4+rand())%9; // Our twinkle is 9 steps. 4 ramping up, 5th at full brightness and then 4 more ramping down
+                //  Note that we are adding state to this calculation, this causes a different blink rate for each light
+
+                if(i7==0 || i7==8)  hsv.value = 0.1;
+                if(i7==1 || i7==7)  hsv.value = 0.3;
+                if(i7==2 || i7==6)  hsv.value = 0.5;
+                if(i7==3 || i7==5)  hsv.value = 0.7;
+                if(i7==4  )  hsv.value = 1.0;
+                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
+                SetPixel(x,y,hsv); // Turn pixel on
+            }
+        }
     }
 }

@@ -687,6 +687,10 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                                 wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_r")]),
                                 wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]));
     }
+    else if (effect == wxT("Sean"))
+    {
+        buffer.RenderSean(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]));
+    }
 }
 
 void xLightsFrame::PlayRgbEffect(int EffectPeriod)
@@ -789,6 +793,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderSpirograph(Slider_Spirograph1_R->GetValue(),
                                 Slider_Spirograph1_r->GetValue(),
                                 Slider_Spirograph1_d->GetValue());
+        break;
+         case 16:
+        buffer.RenderSean(Slider_Sean1_Count->GetValue());
         break;
 
     }
