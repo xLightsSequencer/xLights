@@ -174,6 +174,11 @@ protected:
     wxUint32 GetTempPixelRGB(int x, int y);
     void SetFireBuffer(int x, int y, int PaletteIdx);
     int GetFireBuffer(int x, int y);
+     void SetWaveBuffer1(int x, int y, int value);
+    int GetWaveBuffer1(int x, int y);
+     void SetWaveBuffer2(int x, int y, int value);
+    int GetWaveBuffer2(int x, int y);
+
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, wxColour &color);
@@ -184,6 +189,8 @@ protected:
     wxPoint SnowstormVector(int idx);
     void SnowstormAdvance(SnowstormClass& ssItem);
     void ClearTempBuf();
+     void ClearWaveBuffer1();
+      void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
 
     int BufferHt,BufferWi;  // size of the buffer
@@ -191,6 +198,9 @@ protected:
     wxColourVector tempbuf;
     wxColourVector FirePalette;
     std::vector<int> FireBuffer;
+    std::vector<int> WaveBuffer0;
+    std::vector<int> WaveBuffer1;
+    std::vector<int> WaveBuffer2;
     MeteorList meteors;
     SnowstormList SnowstormItems;
     PaletteClass palette;

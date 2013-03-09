@@ -67,6 +67,9 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     FireBuffer.resize(NumPixels);
+    WaveBuffer0.resize(NumPixels);
+    WaveBuffer1.resize(NumPixels);
+    WaveBuffer2.resize(NumPixels);
     state=0;
 }
 
@@ -381,6 +384,38 @@ int RgbEffects::GetFireBuffer(int x, int y)
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         return FireBuffer[y*BufferWi+x];
+    }
+    return -1;
+}
+
+void RgbEffects::SetWaveBuffer1(int x, int y, int value)
+{
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        WaveBuffer1[y*BufferWi+x] = value;
+    }
+}
+void RgbEffects::SetWaveBuffer2(int x, int y, int value)
+{
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        WaveBuffer2[y*BufferWi+x] = value;
+    }
+}
+
+int RgbEffects::GetWaveBuffer1(int x, int y)
+{
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        return WaveBuffer1[y*BufferWi+x];
+    }
+    return -1;
+}
+int RgbEffects::GetWaveBuffer2(int x, int y)
+{
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        return WaveBuffer2[y*BufferWi+x];
     }
     return -1;
 }
@@ -786,6 +821,20 @@ void RgbEffects::ClearTempBuf()
     }
 }
 
+void RgbEffects::ClearWaveBuffer1()
+{
+    for (size_t i=0; i < WaveBuffer1.size(); i++)
+    {
+        WaveBuffer1[i]=0;
+    }
+}
+void RgbEffects::ClearWaveBuffer2()
+{
+    for (size_t i=0; i < WaveBuffer2.size(); i++)
+    {
+        WaveBuffer2[i]=0;
+    }
+}
 void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
 {
     int i,n,x,y0,y,check,delta_y;
@@ -1375,35 +1424,103 @@ void RgbEffects::RenderSean(int Count)
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
     int step=BufferHt*BufferWi/lights;
     if(step<1) step=1;
+    double damping=0.8;
     srand(1); // always have the same random numbers for each frame (state)
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-
+    wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+    wxColour color;
+    int color1,color2,color3,color4,new_color,old_color;
     size_t colorcnt=GetColorCount();
-
     i=0;
+    palette.GetHSV(0, hsv0); // hsv0.hue, hsv0.saturation, hsv0.value
+    palette.GetHSV(1, hsv1);
+
+
+    if(state==0)
+    {
+        ClearWaveBuffer1();
+        ClearWaveBuffer2();
+        color1=100;
+    }
+    if(state%20==0)
+    {
+        color1=100;
+
+        SetWaveBuffer2((BufferWi+state)%BufferWi,(BufferHt+state)%BufferHt,color1);
+        SetWaveBuffer2((BufferWi+state)%BufferWi,(BufferHt+state)%BufferHt,color1);
+    }
+
+    for (y=1; y<BufferHt-1; y++) // For my 20x120 megatree, BufferHt=120
+    {
+        for (x=1; x<BufferWi-1; x++) // BufferWi=20 in the above example
+        {
+//            GetTempPixel(x,y,color);
+//            isLive=(color.GetRGB() != 0);
+
+            old_color=GetWaveBuffer1(x,y) ;
+            color1=GetWaveBuffer2(x-1,y);
+            color2=GetWaveBuffer2(x+1,y) ;
+            color3=GetWaveBuffer2(x,y+1) ;
+            color4=GetWaveBuffer2(x,y+2) ;
+
+            new_color = (color1+color2+color3+color4)/2 - old_color;
+            new_color = new_color /8.0;
+            SetWaveBuffer1(x,y,new_color);
+        }
+    }
 
     for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
-            i++;
-            if(i%step==0) // Should we draw a light?
+            new_color=GetWaveBuffer1(x,y);
+            if(new_color>= -0.01 && new_color<= 0.01)
             {
-                // Yes, so now decide on what color it should be
-
-                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-                palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                i7=(state/4+rand())%9; // Our twinkle is 9 steps. 4 ramping up, 5th at full brightness and then 4 more ramping down
-                //  Note that we are adding state to this calculation, this causes a different blink rate for each light
-
-                if(i7==0 || i7==8)  hsv.value = 0.1;
-                if(i7==1 || i7==7)  hsv.value = 0.3;
-                if(i7==2 || i7==6)  hsv.value = 0.5;
-                if(i7==3 || i7==5)  hsv.value = 0.7;
-                if(i7==4  )  hsv.value = 1.0;
-                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-                SetPixel(x,y,hsv); // Turn pixel on
+                SetPixel(x,y,hsv1);
+            }
+            else
+            {
+                if(new_color>0)
+                {
+                    hsv0.value = (new_color%100)/100.0;
+                    SetPixel(x,y,hsv0);
+                }
+                else
+                {
+                    hsv0.hue = 0.3;
+                    hsv0.value = -(new_color%100)/100.0;
+                    SetPixel(x,y,hsv0);
+                }
             }
         }
     }
+    WaveBuffer0=WaveBuffer2;
+    WaveBuffer2=WaveBuffer1;
+    WaveBuffer1=WaveBuffer0;
 }
+
+
+//ClearTempBuf();
+//
+//SetTempPixel(x-1,y+2,color2);
+//SetTempPixel(x+1,y+2,color2);
+//
+//// move snowflakes
+//int new_x,new_y,new_x2,new_y2;
+//for (x=0; x<BufferWi; x++)
+//{
+//    new_x = (x+state/20) % BufferWi; // CW
+//    new_x2 = (x-state/20) % BufferWi; // CCW
+//    if (new_x2 < 0) new_x2+=BufferWi;
+//    for (y=0; y<BufferHt; y++)
+//    {
+//        new_y = (y+state/10) % BufferHt;
+//        new_y2 = (new_y + BufferHt/2) % BufferHt;
+//        GetTempPixel(new_x,new_y,color1);
+//        if (color1.GetRGB() == 0) GetTempPixel(new_x2,new_y2,color1);
+//        SetPixel(x,y,color1);
+//    }
+//}
+//
+//// copy new life state to tempbuf
+//tempbuf=pixels;
+

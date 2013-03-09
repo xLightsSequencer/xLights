@@ -24,6 +24,7 @@ Version History:
 
 Nutcracker 3.0 Releases
 
+3.0.5: Mar 08,2013 Corrected color swap in lcb files. Corrected bug in hls export
 3.0.4: Mar 04,2013 Added new effects, Tree and Spirograph
 3.0.3: Mar 02,2013 Added new effect, Twinkle
 3.0.2: Feb 28,2013 Corrected unsigned 24bit value for HLS *.hlsnc export

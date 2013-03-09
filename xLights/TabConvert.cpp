@@ -304,7 +304,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     int ch,p,csec,StartCSec;
     unsigned long rgb;
     int seqidx=0;
-    int intensity,LastIntensity;
+
     wxFile f;
     if (!f.Create(filename,true))
     {
@@ -317,18 +317,14 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     _gauge->SetRange(100);
     _gauge->SetValue(0);
     _gauge->Show(true);
-    for (ch=0; ch < SeqNumChannels; ch+=3 )
+    for (ch=0; ch < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
         _gauge->SetValue((ch * 100.0) / SeqNumChannels);
-        LastIntensity=0;
         buff=wxT("");
-        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
+        for (p=0; p < SeqNumPeriods; p++, seqidx++)
         {
-            //((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
-            rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+1]& 0xff) << 8 | (SeqData[seqidx+2]& 0xff); // we want a 24bit value for HLS
+            rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+2*SeqNumPeriods]& 0xff); // we want a 24bit value for HLS
             buff += wxString::Format(wxT("%d "),rgb);
-            // buff += wxString::Format(wxT("0x%X%X%X "),SeqData[seqidx],SeqData[seqidx+1],SeqData[seqidx+2]);
-            // f.Write(wxString::Format(wxT("%d "),SeqData[seqidx]));
         }
         buff += wxString::Format(wxT("\n"));
         f.Write(buff);
@@ -612,7 +608,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
     int32_t ChannelColor;
-    int ch,p,csec,StartCSec;
+    int ch,p,csec,StartCSec,chmod;
     int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
@@ -650,7 +646,13 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
         LastIntensity=0;
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
         {
-            intensity=SeqData[seqidx] * 100 / 255;
+            chmod = ch%3; // our data is RGB order, we need BGR. So chmod==0 means pull sata from ch+2, c
+            if(chmod==0) intensity=SeqData[seqidx+SeqNumPeriods*2] * 100 / 255;
+            if(chmod==1) intensity=SeqData[seqidx] * 100 / 255;
+            if(chmod==2) intensity=SeqData[seqidx-SeqNumPeriods*2] * 100 / 255;
+            // old way     intensity=SeqData[seqidx] * 100 / 255;
+
+
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)

@@ -1093,7 +1093,7 @@
 	"ModelClass.h"
 	"RgbEffects.h"
 
-1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
+1362639694 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
 	<stdint.h>
 	<list>
 	<vector>
@@ -1131,7 +1131,7 @@
 1360547968 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
 	"wx/msw/wx.rc"
 
-1362531989 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
+1362812056 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
 	<cmath>
 	"RgbEffects.h"
 
@@ -1321,9 +1321,9 @@
 	"PixelBuffer.h"
 	"NetInfo.h"
 
-1362454601 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
+1362764575 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1362532400 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1362764428 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1417,7 +1417,7 @@
 
 1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabtest.cpp
 
-1362075055 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
+1362764235 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
 
 1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 
