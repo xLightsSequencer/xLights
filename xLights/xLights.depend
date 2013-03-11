@@ -946,14 +946,14 @@
 
 1361302027 c:\users\smeighan\documents\c++\nutcracker\xlights\tabsequence.cpp
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\addshowdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\addshowdialog.cpp
 	"AddShowDialog.h"
 	<wx/font.h>
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\addshowdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\addshowdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/checkbox.h>
@@ -962,24 +962,24 @@
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\channellayoutdialog.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\channellayoutdialog.cpp
 	"ChannelLayoutDialog.h"
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\channellayoutdialog.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\channellayoutdialog.h
 	<wx/sizer.h>
 	<wx/button.h>
 	<wx/dialog.h>
 	<wx/html/htmlwin.h>
 	<wx/html/htmprint.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\channelmapdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\channelmapdialog.cpp
 	"ChannelMapDialog.h"
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\channelmapdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\channelmapdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/checkbox.h>
@@ -988,18 +988,18 @@
 	<wx/dialog.h>
 	"NetInfo.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\xlights\netinfo.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\xlights\netinfo.h
 	<vector>
 	<wx/string.h>
 	<wx/arrstr.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\e131dialog.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\e131dialog.cpp
 	"E131Dialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\e131dialog.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\e131dialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/textctrl.h>
@@ -1007,7 +1007,7 @@
 	<wx/radiobut.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\effectlistdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\effectlistdialog.cpp
 	"EffectListDialog.h"
 	<wx/msgdlg.h>
 	<wx/textdlg.h>
@@ -1015,30 +1015,30 @@
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\effectlistdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\effectlistdialog.h
 	<wx/sizer.h>
 	<wx/listbox.h>
 	<wx/button.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modelclass.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modelclass.cpp
 	"ModelClass.h"
 	<wx/msgdlg.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modelclass.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modelclass.h
 	<vector>
 	<wx/xml/xml.h>
 	<wx/gdicmn.h>
 	<wx/colour.h>
 	<stdint.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modeldialog.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modeldialog.cpp
 	"ModelDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modeldialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modeldialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/textctrl.h>
@@ -1048,7 +1048,7 @@
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modellistdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\modellistdialog.cpp
 	"ModelListDialog.h"
 	"ModelDialog.h"
 	"ChannelLayoutDialog.h"
@@ -1058,7 +1058,7 @@
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modellistdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\modellistdialog.h
 	<wx/sizer.h>
 	<wx/listbox.h>
 	<wx/button.h>
@@ -1066,16 +1066,16 @@
 	<wx/html/htmprint.h>
 	"ModelClass.h"
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\netinfo.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\netinfo.cpp
 	"NetInfo.h"
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\palettemgmtdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\palettemgmtdialog.cpp
 	"PaletteMgmtDialog.h"
 	<wx/font.h>
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\palettemgmtdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\palettemgmtdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/listbox.h>
@@ -1085,15 +1085,15 @@
 	<wx/msgdlg.h>
 	<wx/textdlg.h>
 
-1362531989 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
+1362535589 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
 	"PixelBuffer.h"
 
-1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
+1362535589 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
 	<wx/xml/xml.h>
 	"ModelClass.h"
 	"RgbEffects.h"
 
-1362639694 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
+1362643294 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
 	<stdint.h>
 	<list>
 	<vector>
@@ -1102,18 +1102,18 @@
 	<wx/dcmemory.h>
 	<wx/image.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\playbackoptionsdialog.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\playbackoptionsdialog.cpp
 	"PlaybackOptionsDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\playbackoptionsdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\playbackoptionsdialog.h
 	<wx/sizer.h>
 	<wx/checkbox.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\playerframe.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\playerframe.cpp
 	"PlayerFrame.h"
 	<wx/msgdlg.h>
 	<wx/sizer.h>
@@ -1122,52 +1122,52 @@
 	<wx/intl.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\playerframe.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\playerframe.h
 	<wx/frame.h>
 	<wx/mediactrl.h>
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xlights.xpm
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xlights.xpm
 
-1360547968 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
+1360551568 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
 	"wx/msw/wx.rc"
 
 1362812056 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
 	<cmath>
 	"RgbEffects.h"
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.cpp
 	"SeqElementMismatchDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/radiobut.h>
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361750646 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.cpp
+1361754246 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.cpp
 	"SeqExportDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqexportdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/textctrl.h>
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqopendialog.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqopendialog.cpp
 	"SeqOpenDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqopendialog.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqopendialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/spinctrl.h>
@@ -1175,19 +1175,19 @@
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqparmsdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqparmsdialog.cpp
 	"SeqParmsDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqparmsdialog.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqparmsdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/checklst.h>
 	<wx/dialog.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial.cpp
 	<stdio.h>
 	<string.h>
 	<sstream>
@@ -1197,21 +1197,21 @@
 	"serial_osx.cpp"
 	"serial_posix.cpp"
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial.h
 	<wx/string.h>
 	<windows.h>
 	<termios.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_win32.cpp
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_win32.cpp
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_osx.cpp
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_osx.cpp
 	<errno.h>
 	<fcntl.h>
 	<sys/ioctl.h>
 	<sys/types.h>
 	<unistd.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_posix.cpp
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serial_posix.cpp
 	<errno.h>
 	<fcntl.h>
 	<sys/ioctl.h>
@@ -1219,7 +1219,7 @@
 	<unistd.h>
 	<linux/serial.h>
 
-1361302027 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\serialportwithrate.cpp
+1361305627 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\serialportwithrate.cpp
 	"SerialPortWithRate.h"
 	<wx/intl.h>
 	<wx/button.h>
@@ -1227,45 +1227,45 @@
 	<wx/valtext.h>
 	<wx/msgdlg.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serialportwithrate.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\serialportwithrate.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/textctrl.h>
 	<wx/choice.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\showdatesdialog.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\showdatesdialog.cpp
 	"ShowDatesDialog.h"
 	<wx/intl.h>
 	<wx/button.h>
 	<wx/string.h>
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\showdatesdialog.h
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\showdatesdialog.h
 	<wx/sizer.h>
 	<wx/stattext.h>
 	<wx/calctrl.h>
 	<wx/statline.h>
 	<wx/dialog.h>
 
-1361302026 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlights_out.cpp
+1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlights_out.cpp
 	"xlights_out.h"
 	<wx/socket.h>
 	"serial.h"
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlights_out.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlights_out.h
 	<wx/string.h>
 	<wx/dynarray.h>
 	<vector>
 
-1361304153 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.cpp
+1361307753 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.cpp
 	"xLightsApp.h"
 	"xLightsMain.h"
 	<wx/image.h>
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
 	<wx/app.h>
 
-1362532400 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
+1362536000 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
 	<wx/listctrl.h>
 	<wx/scrolwin.h>
 	<wx/treectrl.h>
@@ -1321,9 +1321,9 @@
 	"PixelBuffer.h"
 	"NetInfo.h"
 
-1362764575 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
+1362768175 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1362764428 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1362768028 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1353,7 +1353,7 @@
 	"TabSchedule.cpp"
 	"TabSequence.cpp"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrxml.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrxml.h
 	<stdio.h>
 	<irrXML.h>
 	<string>
@@ -1361,40 +1361,40 @@
 	<irrXML.h>
 	<irrXML.h>
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrxml.cpp
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrxml.cpp
 	"irrXML.h"
 	"irrString.h"
 	"irrArray.h"
 	"fast_atof.h"
 	"CXMLReaderImpl.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrstring.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrstring.h
 	"irrTypes.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrtypes.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrtypes.h
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrarray.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\irrarray.h
 	"irrTypes.h"
 	"heapsort.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\heapsort.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\heapsort.h
 	"irrTypes.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\fast_atof.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\fast_atof.h
 	<stdlib.h>
 	<math.h>
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\cxmlreaderimpl.h
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\xml-irr-1.2\cxmlreaderimpl.h
 	"irrXML.h"
 	"irrString.h"
 	"irrArray.h"
 	"fast_atof.h"
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsbasic.cpp
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsbasic.cpp
 	"../include/minibasic.cpp"
 	"serial.h"
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\minibasic.cpp
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\minibasic.cpp
 	<ctype.h>
 	<string.h>
 	<math.h>
@@ -1405,21 +1405,21 @@
 	<iostream>
 	<fstream>
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\open.xpm
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\open.xpm
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\save.xpm
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\save.xpm
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\insertrow.xpm
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\insertrow.xpm
 
-1360547968 c:\users\smeighan\documents\c++\nutcracker_c\include\deleterow.xpm
+1360551568 c:\users\smeighan\documents\c++\nutcracker_c\include\deleterow.xpm
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsetup.cpp
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsetup.cpp
 
-1361302027 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabtest.cpp
+1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabtest.cpp
 
-1362764235 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
+1362767835 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
 
-1361302026 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
+1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 
-1362531989 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
+1362535589 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
 

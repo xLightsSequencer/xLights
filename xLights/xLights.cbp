@@ -160,6 +160,10 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="metaballs.cpp">
+			<Option target="DebugWindows" />
+			<Option target="ReleaseWindows" />
+		</Unit>
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="DebugWindows" />
@@ -205,23 +209,23 @@
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="xLightsApp.cpp" main="xLightsFrame" init_handlers="necessary" language="CPP" />
 				<resources>
-					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" name="xLightsFrame" language="CPP" />
-					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="SerialPortWithRate.cpp" hdr="SerialPortWithRate.h" name="SerialPortWithRate" language="CPP" />
-					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="E131Dialog.cpp" hdr="E131Dialog.h" name="E131Dialog" language="CPP" />
-					<wxFrame wxs="wxsmith/PlayerFrame.wxs" src="PlayerFrame.cpp" hdr="PlayerFrame.h" name="PlayerFrame" language="CPP" />
-					<wxDialog wxs="wxsmith/AddShowDialog.wxs" src="AddShowDialog.cpp" hdr="AddShowDialog.h" name="AddShowDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ShowDatesDialog.wxs" src="ShowDatesDialog.cpp" hdr="ShowDatesDialog.h" name="ShowDatesDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/PlaybackOptionsDialog.wxs" src="PlaybackOptionsDialog.cpp" hdr="PlaybackOptionsDialog.h" name="PlaybackOptionsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelDialog.wxs" src="ModelDialog.cpp" hdr="ModelDialog.h" name="ModelDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ModelListDialog.wxs" src="ModelListDialog.cpp" hdr="ModelListDialog.h" name="ModelListDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" name="EffectListDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" name="ChannelLayoutDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" name="PaletteMgmtDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqParmsDialog.wxs" src="SeqParmsDialog.cpp" hdr="SeqParmsDialog.h" name="SeqParmsDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/ChannelMapDialog.wxs" src="ChannelMapDialog.cpp" hdr="ChannelMapDialog.h" name="ChannelMapDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" name="SeqElementMismatchDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" name="SeqExportDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SeqOpenDialog.wxs" src="SeqOpenDialog.cpp" hdr="SeqOpenDialog.h" name="SeqOpenDialog" language="CPP" />
+					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="SerialPortWithRate.cpp" hdr="SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
+					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="E131Dialog.cpp" hdr="E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
+					<wxFrame wxs="wxsmith/PlayerFrame.wxs" src="PlayerFrame.cpp" hdr="PlayerFrame.h" fwddecl="0" i18n="1" name="PlayerFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/AddShowDialog.wxs" src="AddShowDialog.cpp" hdr="AddShowDialog.h" fwddecl="0" i18n="1" name="AddShowDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShowDatesDialog.wxs" src="ShowDatesDialog.cpp" hdr="ShowDatesDialog.h" fwddecl="0" i18n="1" name="ShowDatesDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PlaybackOptionsDialog.wxs" src="PlaybackOptionsDialog.cpp" hdr="PlaybackOptionsDialog.h" fwddecl="0" i18n="1" name="PlaybackOptionsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelDialog.wxs" src="ModelDialog.cpp" hdr="ModelDialog.h" fwddecl="0" i18n="1" name="ModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelListDialog.wxs" src="ModelListDialog.cpp" hdr="ModelListDialog.h" fwddecl="0" i18n="1" name="ModelListDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqParmsDialog.wxs" src="SeqParmsDialog.cpp" hdr="SeqParmsDialog.h" fwddecl="0" i18n="1" name="SeqParmsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ChannelMapDialog.wxs" src="ChannelMapDialog.cpp" hdr="ChannelMapDialog.h" fwddecl="0" i18n="1" name="ChannelMapDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqOpenDialog.wxs" src="SeqOpenDialog.cpp" hdr="SeqOpenDialog.h" fwddecl="0" i18n="1" name="SeqOpenDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
