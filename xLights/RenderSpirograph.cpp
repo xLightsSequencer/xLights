@@ -1,4 +1,4 @@
-void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d)
+void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 {
 #define PI 3.14159265
     int i,x,y,k,xc,yc,ColorIdx;
@@ -32,7 +32,7 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d)
     d_orig=d;
     for(i=1; i<=360; i++)
     {
-        d = (int)(d_orig+state/2)%100;
+        if(Animate) d = (int)(d_orig+state/2)%100; // should we modify the distance variable each pass through?
         t = (i+mod1440)*PI/180;
         x = (R-r) * cos (t) + d*cos (((R-r)/r)*t) + xc;
         y = (R-r) * sin (t) + d*sin (((R-r)/r)*t) + yc;

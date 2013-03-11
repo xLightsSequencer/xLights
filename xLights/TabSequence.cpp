@@ -685,7 +685,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderSpirograph(wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_R")]),
                                 wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_r")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]));
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]),
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_Animate")]));
     }
     else if (effect == wxT("Sean"))
     {
@@ -792,9 +793,10 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     case 15:
         buffer.RenderSpirograph(Slider_Spirograph1_R->GetValue(),
                                 Slider_Spirograph1_r->GetValue(),
-                                Slider_Spirograph1_d->GetValue());
+                                Slider_Spirograph1_d->GetValue(),
+                                CheckBox_Spirograph1_Animate->GetValue());
         break;
-         case 16:
+    case 16:
         buffer.RenderSean(Slider_Sean1_Count->GetValue());
         break;
 

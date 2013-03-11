@@ -1085,15 +1085,15 @@
 	<wx/msgdlg.h>
 	<wx/textdlg.h>
 
-1362535589 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
+1362986294 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.cpp
 	"PixelBuffer.h"
 
-1362535589 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
+1362986294 c:\users\smeighan\documents\c++\nutcracker_c\xlights\pixelbuffer.h
 	<wx/xml/xml.h>
 	"ModelClass.h"
 	"RgbEffects.h"
 
-1362643294 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
+1362986294 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
 	<stdint.h>
 	<list>
 	<vector>
@@ -1131,9 +1131,25 @@
 1360551568 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
 	"wx/msw/wx.rc"
 
-1362812056 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
+1362981201 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
 	<cmath>
 	"RgbEffects.h"
+	"RenderBars.cpp"
+	"RenderButterfly.cpp"
+	"RenderColorWash.cpp"
+	"RenderFire.cpp"
+	"RenderGarlands.cpp"
+	"RenderLife.cpp"
+	"RenderMeteors.cpp"
+	"RenderPictures.cpp"
+	"RenderSnowflakes.cpp"
+	"RenderSnowstorm.cpp"
+	"RenderSpirals.cpp"
+	"RenderText.cpp"
+	"RenderTwinkle.cpp"
+	"RenderTree.cpp"
+	"RenderSpirograph.cpp"
+	"RenderSean.cpp"
 
 1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.cpp
 	"SeqElementMismatchDialog.h"
@@ -1265,7 +1281,7 @@
 1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
 	<wx/app.h>
 
-1362536000 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
+1362987557 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
 	<wx/listctrl.h>
 	<wx/scrolwin.h>
 	<wx/treectrl.h>
@@ -1323,7 +1339,7 @@
 
 1362768175 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1362768028 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1362987557 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1421,5 +1437,37 @@
 
 1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 
-1362535589 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
+1362987927 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabsequence.cpp
+
+1362979918 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderbars.cpp
+
+1362980046 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderbutterfly.cpp
+
+1362980086 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendercolorwash.cpp
+
+1362980152 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderfire.cpp
+
+1362980186 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendergarlands.cpp
+
+1362980301 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderlife.cpp
+
+1362980340 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendermeteors.cpp
+
+1362980411 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderpictures.cpp
+
+1362980454 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersnowflakes.cpp
+
+1362980502 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersnowstorm.cpp
+
+1362980538 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderspirals.cpp
+
+1362980570 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertext.cpp
+
+1362980607 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertwinkle.cpp
+
+1362980649 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertree.cpp
+
+1362986436 c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderspirograph.cpp
+
+1362981186 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersean.cpp
 

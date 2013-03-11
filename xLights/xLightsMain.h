@@ -486,6 +486,8 @@ private:
     static const long ID_SLIDER_Spirograph1_r;
     static const long ID_STATICTEXT90;
     static const long ID_SLIDER_Spirograph1_d;
+    static const long ID_STATICTEXT93;
+    static const long ID_CHECKBOX_Spirograph1_Animate;
     static const long ID_STATICTEXT91;
     static const long ID_PANEL35;
     static const long ID_STATICTEXT92;
@@ -711,6 +713,7 @@ private:
     wxStaticText* StaticText22;
     wxStaticText* StaticTextShowStart;
     wxStaticText* StaticText87;
+    wxStaticText* StaticText92;
     wxSlider* Slider_ColorWash1_Count;
     wxPanel* Panel2_Life;
     wxCheckBox* CheckBox_ColorWash2_VFade;
@@ -852,6 +855,7 @@ private:
     wxRadioButton* RadioButtonChase3;
     wxStaticText* StaticText90;
     wxButton* ButtonSaveLog;
+    wxCheckBox* CheckBox_Spirograph1_Animate;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText61;
     wxStaticText* StaticText62;

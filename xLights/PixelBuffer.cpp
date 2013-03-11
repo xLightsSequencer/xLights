@@ -319,9 +319,9 @@ void PixelBufferClass::RenderTree(int Branches)
     Effect[CurrentLayer].RenderTree(Branches);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d)
+void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
 {
-    Effect[CurrentLayer].RenderSpirograph( R,  r,  d);
+    Effect[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
 }
 
 

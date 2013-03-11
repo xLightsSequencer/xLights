@@ -160,10 +160,6 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
-		<Unit filename="metaballs.cpp">
-			<Option target="DebugWindows" />
-			<Option target="ReleaseWindows" />
-		</Unit>
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="DebugWindows" />
