@@ -21,7 +21,6 @@
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
 #include <cmath>
-
 #include "RgbEffects.h"
 
 RgbEffects::RgbEffects()
@@ -255,22 +254,22 @@ void RgbEffects::ClearWaveBuffer2()
 //  Now we come to including the programs that actually do the effects.
 
 
-#include "RenderBars.cpp"
-#include "RenderButterfly.cpp"
-#include "RenderColorWash.cpp"
-#include "RenderFire.cpp"
-#include "RenderGarlands.cpp"
-#include "RenderLife.cpp"
-#include "RenderMeteors.cpp"
-#include "RenderPictures.cpp"
-#include "RenderSnowflakes.cpp"
-#include "RenderSnowstorm.cpp"
-#include "RenderSpirals.cpp"
-#include "RenderText.cpp"
-#include "RenderTwinkle.cpp"
-#include "RenderTree.cpp"
-#include "RenderSpirograph.cpp"
-#include "RenderSean.cpp"
+//#include "RenderBars.cpp"
+//#include "RenderButterfly.cpp"
+//#include "RenderColorWash.cpp"
+//#include "RenderFire.cpp"
+//#include "RenderGarlands.cpp"
+//#include "RenderLife.cpp"
+//#include "RenderMeteors.cpp"
+//#include "RenderPictures.cpp"
+//#include "RenderSnowflakes.cpp"
+//#include "RenderSnowstorm.cpp"
+//#include "RenderSpirals.cpp"
+//#include "RenderText.cpp"
+//#include "RenderTwinkle.cpp"
+//#include "RenderTree.cpp"
+////#include "RenderSpirograph.cpp"
+//#include "RenderSean.cpp"
 
 
 

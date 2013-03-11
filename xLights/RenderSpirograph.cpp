@@ -1,3 +1,7 @@
+#include <cmath>
+
+#include "RgbEffects.h"
+
 void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 {
 #define PI 3.14159265
