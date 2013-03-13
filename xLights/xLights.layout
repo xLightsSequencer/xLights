@@ -1,14 +1,119 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="ReleaseWindows" />
+	<File name="TabSequence.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="53457" topLine="1488" />
+		</Cursor>
+	</File>
+	<File name="xlights_out.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="69" />
+		</Cursor>
+	</File>
+	<File name="RenderText.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="TabSetup.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7287" topLine="215" />
+		</Cursor>
+	</File>
+	<File name="RenderTree.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="TabConvert.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="10763" topLine="310" />
+		</Cursor>
+	</File>
+	<File name="RenderBars.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
 	<File name="ChannelMapDialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="17804" topLine="213" />
 		</Cursor>
 	</File>
+	<File name="RenderTwinkle.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="RgbEffects.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6648" topLine="222" />
+		</Cursor>
+	</File>
+	<File name="ModelClass.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="RenderColorWash.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="RgbEffects.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6480" topLine="199" />
+		</Cursor>
+	</File>
+	<File name="RenderFire.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
 	<File name="xLightsMain.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="163143" topLine="431" />
+			<Cursor1 position="76146" topLine="1023" />
+		</Cursor>
+	</File>
+	<File name="RenderSean.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1194" topLine="14" />
+		</Cursor>
+	</File>
+	<File name="xLightsMain.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="14036" topLine="388" />
+		</Cursor>
+	</File>
+	<File name="RenderButterfly.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="ModelDialog.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="3" />
+		</Cursor>
+	</File>
+	<File name="PixelBuffer.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8262" topLine="304" />
+		</Cursor>
+	</File>
+	<File name="RenderLife.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1053" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="PlaybackOptionsDialog.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="16" />
+		</Cursor>
+	</File>
+	<File name="wxsmith\xLightsframe.wxs" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="81253" topLine="1548" />
 		</Cursor>
 	</File>
 	<File name="TabSchedule.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -16,49 +121,44 @@
 			<Cursor1 position="66078" topLine="1779" />
 		</Cursor>
 	</File>
-	<File name="TabSequence.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderSnowstorm.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="28525" topLine="1829" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="PixelBuffer.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderGarlands.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4270" topLine="170" />
-		</Cursor>
-	</File>
-	<File name="TabSetup.cpp" open="1" top="1" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="7287" topLine="215" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="PixelBuffer.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1752" topLine="53" />
+			<Cursor1 position="2478" topLine="57" />
 		</Cursor>
 	</File>
-	<File name="RgbEffects.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderPictures.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6063" topLine="187" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="TabConvert.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderMeteors.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="22096" topLine="310" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="RgbEffects.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderSnowflakes.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="21763" topLine="755" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="wxsmith\xLightsframe.wxs" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="RenderSpirals.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="676" topLine="0" />
+			<Cursor1 position="1053" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="xLightsMain.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="serial.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1335" topLine="27" />
+			<Cursor1 position="0" topLine="18" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

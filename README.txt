@@ -20,10 +20,17 @@ Version History:
 
 1.0 Released Feb 2012, one effect spirals
 2.0 Released Aug 2012, 18 effects and projects and songs
-3.0 Pre-release Jan 2013: Complete rewrite of Nutcracker into C++ plus wxWidgets. It is our goal to remove the need for WAMP or XAMPP
+3.0 Pre-release Jan 2013: Complete rewrite of Nutcracker into C++ plus wxWidgets by Matt Brown. 
+    It is our goal to remove the need for WAMP or XAMPP
 
 Nutcracker 3.0 Releases
 
+3.0.6: Mar 11,2013 - Corrected another bug in LOR lcb export
+                   - Modifed Nutcracker tab to keep a minimum size screen on left window
+				   - Added color selection based on distance from center of object for Spirograph
+				   - Added the ability to animate the d parameter in spirograph
+				   - Moved all effects into their own source file. RGBEffects.cpp is now smaller and there are 
+				     20 new cpp files. RenderBars.cpp, RenderMeteors.cpp, .etc.
 3.0.5: Mar 08,2013 Corrected color swap in lcb files. Corrected bug in hls export
 3.0.4: Mar 04,2013 Added new effects, Tree and Spirograph
 3.0.3: Mar 02,2013 Added new effect, Twinkle

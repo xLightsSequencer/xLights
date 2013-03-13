@@ -608,7 +608,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
     int32_t ChannelColor;
-    int ch,p,csec,StartCSec,chmod;
+    int ch,p,csec,StartCSec;
     int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
@@ -633,12 +633,14 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
 //  <channel>
 //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     f.Write(wxT("<cellDemarcations>\n"));
-    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
+    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval)
     {
         f.Write(wxString::Format(wxT("\t<cellDemarcation centisecond=\"%d\"/>\n"),csec));
     }
     f.Write(wxT("</cellDemarcations>\n"));
     //
+    // LOR is BGR with high bits=0
+    // Vix is RGB with high bits=1
     f.Write(wxT("<channels>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
@@ -646,11 +648,9 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
         LastIntensity=0;
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
         {
-            chmod = ch%3; // our data is RGB order, we need BGR. So chmod==0 means pull sata from ch+2, c
-            if(chmod==0) intensity=SeqData[seqidx+SeqNumPeriods*2] * 100 / 255;
-            if(chmod==1) intensity=SeqData[seqidx] * 100 / 255;
-            if(chmod==2) intensity=SeqData[seqidx-SeqNumPeriods*2] * 100 / 255;
-            // old way     intensity=SeqData[seqidx] * 100 / 255;
+
+
+            intensity=SeqData[seqidx] * 100 / 255;
 
 
             if (intensity != LastIntensity)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.5)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.6)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -73,7 +73,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-								<size>1080,500</size>
+								<size>1180,500</size>
 								<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 								<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 								<object class="notebookpage">
@@ -1181,6 +1181,7 @@
 																	<growablerows>0</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
+																			<size>276,225</size>
 																			<bg>#000000</bg>
 																			<style>wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL</style>
 																		</object>

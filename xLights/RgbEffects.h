@@ -174,9 +174,9 @@ protected:
     wxUint32 GetTempPixelRGB(int x, int y);
     void SetFireBuffer(int x, int y, int PaletteIdx);
     int GetFireBuffer(int x, int y);
-     void SetWaveBuffer1(int x, int y, int value);
+    void SetWaveBuffer1(int x, int y, int value);
     int GetWaveBuffer1(int x, int y);
-     void SetWaveBuffer2(int x, int y, int value);
+    void SetWaveBuffer2(int x, int y, int value);
     int GetWaveBuffer2(int x, int y);
 
     double rand01();
@@ -189,8 +189,8 @@ protected:
     wxPoint SnowstormVector(int idx);
     void SnowstormAdvance(SnowstormClass& ssItem);
     void ClearTempBuf();
-     void ClearWaveBuffer1();
-      void ClearWaveBuffer2();
+    void ClearWaveBuffer1();
+    void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
 
     int BufferHt,BufferWi;  // size of the buffer
@@ -216,6 +216,34 @@ protected:
     int speed;
     int lastperiod;
 
+    struct debris
+    {
+        float _x;
+        float _y;
+        float _dx;
+        float _dy;
+        bool _bActive;
+        int _cycles;
+
+        debris(int x=0, int y=0)
+        {
+            reset(x,y);
+        }
+        void reset(int x, int y, bool active = false)
+        {
+            const float velocity = 0.2;
+
+            _x = x;
+            _y = y;
+            float vel = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
+            float angle = 2*M_PI*rand()/RAND_MAX;
+            _dx = vel*cos(angle);
+            _dy = vel*sin(angle);
+            _bActive = active;
+            _cycles = 0;
+        }
+    };
+debris flakes[100000];
 private:
 };
 

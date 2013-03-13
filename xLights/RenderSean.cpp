@@ -25,8 +25,20 @@
 
 void RgbEffects::RenderSean(int Count)
 {
+    const float velocity = 0.2;
+    const int maxFlakes = 262144;
+    const int maxCycle = 4096;
+    const int maxNewBurstFlakes = 10;
 
-    int x,y,i,i7,r,ColorIdx;
+    int i, totalFlakes=0, idxFlakes=0;
+    int omoux=0, omouy=0;
+    int moux=0, mouy=0;
+    int events=0;
+
+    int MAXX = 640;
+    int MAXY = 480;
+
+    int x,y,ColorIdx;
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
     int step=BufferHt*BufferWi/lights;
     if(step<1) step=1;
@@ -41,67 +53,81 @@ void RgbEffects::RenderSean(int Count)
     palette.GetHSV(1, hsv1);
 
 
-    if(state==0)
+    if (totalFlakes < maxFlakes-maxNewBurstFlakes)
     {
-        ClearWaveBuffer1();
-        ClearWaveBuffer2();
-        color1=100;
-    }
-    if(state%20==0)
-    {
-        color1=100;
-
-        SetWaveBuffer2((BufferWi+state)%BufferWi,(BufferHt+state)%BufferHt,color1);
-        SetWaveBuffer2((BufferWi+state)%BufferWi,(BufferHt+state)%BufferHt,color1);
-    }
-
-    for (y=1; y<BufferHt-1; y++) // For my 20x120 megatree, BufferHt=120
-    {
-        for (x=1; x<BufferWi-1; x++) // BufferWi=20 in the above example
+        for(int j=0; j<maxNewBurstFlakes; j++)
         {
-//            GetTempPixel(x,y,color);
-//            isLive=(color.GetRGB() != 0);
-
-            old_color=GetWaveBuffer1(x,y) ;
-            color1=GetWaveBuffer2(x-1,y-1);
-            color2=GetWaveBuffer2(x+1,y+1) ;
-            color3=GetWaveBuffer2(x+1,y-1) ;
-            color4=GetWaveBuffer2(x+1,y+1) ;
-
-            new_color = (color1+color2+color3+color4)/2 - old_color;
-          //  new_color = (127.0+224.0*0.99999*new_color/8192.);
-            new_color=new_color/8.0;
-            SetWaveBuffer1(x,y,new_color);
+            totalFlakes++;
+            do
+            {
+                idxFlakes = (idxFlakes + 1) % maxFlakes;
+            }
+            while (flakes[idxFlakes]._bActive);
+            flakes[idxFlakes].reset(moux, mouy, true);
+            //printf("Active: %d\n", totalFlakes);
         }
     }
 
-    for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+
+    // Process all...
+    //#pragma omp parallel for default(none) shared(flakes, MAXX, MAXY, totalFlakes)
+    for (i=0; i<maxFlakes; i++)
     {
-        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+
+        // ... active flakes:
+        if (flakes[i]._bActive)
         {
-            new_color=GetWaveBuffer1(x,y);
-            if(new_color>= -0.01 && new_color<= 0.01)
+
+            // Erase old pixel, if within frame (e.g. don't clear the roof-exceeding ones)
+            if (flakes[i]._x>=0. && flakes[i]._x<MAXX && flakes[i]._y>=0. && flakes[i]._y<MAXY)
+                i=i; //  qplot((int) flakes[i]._x, (int) flakes[i]._y, 0);
+
+            // Update position
+            flakes[i]._x += flakes[i]._dx;
+            flakes[i]._y += flakes[i]._dy + flakes[i]._cycles*flakes[i]._cycles/10000000.0;
+
+            // If this flake run for more than maxCycle, time to switch it off
+            if (maxCycle == flakes[i]._cycles++)
             {
-                SetPixel(x,y,hsv1);
+                flakes[i]._bActive = false;
+                //#pragma omp atomic
+                totalFlakes--;
+                continue;
+            }
+
+            // If this flake hit the earth, time to switch it off
+            if (flakes[i]._y>=MAXY)
+            {
+                flakes[i]._bActive = false;
+                //#pragma omp atomic
+                totalFlakes--;
+                continue;
+            }
+
+            // Draw the flake, if its X-pos is within frame
+            if (flakes[i]._x>=0. && flakes[i]._x<MAXX)
+            {
+
+                // But only if it is "under" the roof!
+                if (flakes[i]._y>=0.)
+                {
+
+                    // Oh, and "dim" it towards red, and eventually, black:
+                    int color = 255 - int(255*(flakes[i]._cycles*2)/maxCycle);
+                    if (color<0) color=0;
+                    color=color; //  qplot((int) flakes[i]._x, (int) flakes[i]._y, color);
+                }
             }
             else
             {
-                if(new_color>0)
-                {
-                    hsv0.value = (new_color%100)/100.0;
-                    SetPixel(x,y,hsv0);
-                }
-                else
-                {
-                    hsv0.hue = 0.3;
-                    hsv0.value = -(new_color%100)/100.0;
-                    SetPixel(x,y,hsv0);
-                }
+                // otherwise it just got outside the valid X-pos, so switch it off
+                flakes[i]._bActive = false;
+                //#pragma omp atomic
+                totalFlakes--;
+                continue;
             }
         }
+
     }
-    WaveBuffer0=WaveBuffer2;
-    WaveBuffer2=WaveBuffer1;
-    WaveBuffer1=WaveBuffer0;
 }
 

@@ -1093,7 +1093,7 @@
 	"ModelClass.h"
 	"RgbEffects.h"
 
-1362986294 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
+1363146427 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.h
 	<stdint.h>
 	<list>
 	<vector>
@@ -1131,25 +1131,9 @@
 1360551568 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\resource.rc
 	"wx/msw/wx.rc"
 
-1362981201 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rgbeffects.cpp
 	<cmath>
 	"RgbEffects.h"
-	"RenderBars.cpp"
-	"RenderButterfly.cpp"
-	"RenderColorWash.cpp"
-	"RenderFire.cpp"
-	"RenderGarlands.cpp"
-	"RenderLife.cpp"
-	"RenderMeteors.cpp"
-	"RenderPictures.cpp"
-	"RenderSnowflakes.cpp"
-	"RenderSnowstorm.cpp"
-	"RenderSpirals.cpp"
-	"RenderText.cpp"
-	"RenderTwinkle.cpp"
-	"RenderTree.cpp"
-	"RenderSpirograph.cpp"
-	"RenderSean.cpp"
 
 1361305626 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\seqelementmismatchdialog.cpp
 	"SeqElementMismatchDialog.h"
@@ -1281,7 +1265,7 @@
 1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsapp.h
 	<wx/app.h>
 
-1362987557 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
+1363146408 c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.h
 	<wx/listctrl.h>
 	<wx/scrolwin.h>
 	<wx/treectrl.h>
@@ -1337,9 +1321,9 @@
 	"PixelBuffer.h"
 	"NetInfo.h"
 
-1362768175 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
+1363068661 c:\users\smeighan\documents\c++\nutcracker_c\include\globals.h
 
-1362987557 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
+1363147105 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\xlightsmain.cpp
 	"xLightsMain.h"
 	<wx/msgdlg.h>
 	<wx/config.h>
@@ -1433,7 +1417,7 @@
 
 1361305627 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabtest.cpp
 
-1362767835 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
+1363068590 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabconvert.cpp
 
 1361305626 c:\users\smeighan\documents\c++\nutcracker_c\xlights\tabschedule.cpp
 
@@ -1471,7 +1455,67 @@
 
 1362981186 c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersean.cpp
 
-1363016755 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderspirograph.cpp
+1363153086 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderspirograph.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderbars.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderbutterfly.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendercolorwash.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderfire.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendergarlands.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderlife.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendermeteors.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderpictures.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363071331 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersean.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersnowflakes.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendersnowstorm.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\renderspirals.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertext.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertree.cpp
+	<cmath>
+	"RgbEffects.h"
+
+1363039583 source:c:\users\smeighan\documents\c++\nutcracker_c\xlights\rendertwinkle.cpp
 	<cmath>
 	"RgbEffects.h"
 

@@ -559,7 +559,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.5)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.6)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -581,7 +581,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBoxLightOutput->SetValue(false);
     FlexGridSizer19->Add(CheckBoxLightOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer19, 1, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Notebook1 = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxSize(1080,500), 0, _T("ID_NOTEBOOK1"));
+    Notebook1 = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxSize(1180,500), 0, _T("ID_NOTEBOOK1"));
     Notebook1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
@@ -908,7 +908,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer30 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer30->AddGrowableCol(0);
     FlexGridSizer30->AddGrowableRow(0);
-    ScrolledWindow1 = new wxScrolledWindow(Panel5, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+    ScrolledWindow1 = new wxScrolledWindow(Panel5, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxSize(276,225), wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
     ScrolledWindow1->SetBackgroundColour(wxColour(0,0,0));
     FlexGridSizer30->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
