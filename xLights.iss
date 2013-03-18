@@ -15,7 +15,7 @@ OutputDir=output
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
-Source: "bin/wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
+Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
 

@@ -22,14 +22,23 @@ LOR S2 and S3: Produces *.lcba nd *.lms files
 HLS: Produces hlsnc file
 LSP: Produces UserPatterns.xml
 
+xLights version History:
+   2010 Original xLights released
+   2012e Latest version of xLights from December 2012 that is used to enhance 
+      Nutcracker tab.
 
-Version History:
+Nutcracker Version History:
 
-1.0 Released Feb 2012, one effect spirals
-2.0 Released Aug 2012, 18 effects and projects and songs
-3.0 Pre-release Jan 2013: Complete rewrite of Nutcracker into C++ plus
-    wxWidgets by Matt Brown. 
-    It is our goal to remove the need for WAMP or XAMPP
+   PHP, web page Versions
+   --------------------
+      1.0 Released Feb 2012, one effect spirals. 
+      2.0 Released Aug 2012, 18 effects and projects and songs
+   C++, Integrated into xLights
+   ----------------------------
+      3.0 Pre-release Jan 2013: Complete rewrite of Nutcracker into C++ plus
+          wxWidgets by Matt Brown. 
+	
+It is our goal to remove the need for WAMP or XAMPP
 
 Nutcracker 3.0 Releases
 
