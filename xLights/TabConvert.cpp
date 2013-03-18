@@ -258,7 +258,11 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, wxString::Format(wxT("%ld"),TotalTime) );
 
     _gauge->SetValue(100);
+#if defined(__WXMSW__)
     Sleep(1000);
+#else
+    sleep(1);
+#endif
     _gauge->Show(false);
 
     return doc.Save( filename );
