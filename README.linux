@@ -89,3 +89,12 @@ using Code::Blocks, proceed to step 'e'.:
      and uncheck the box indicating that the file is runnable.
      Make sure you set the target to "Release Linux" before you build.
 
+That should be all you need to build xLights/Nutcracker.
+
+==============================================================================
+
+If it is necessary to rebuild the xLights.cbp.mak makefile, the command used
+to run cbp2make is:
+
+cbp2make -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
+

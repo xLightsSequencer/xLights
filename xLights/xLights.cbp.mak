@@ -181,8 +181,6 @@ $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
 
 clean_debuglinux: 
 	rm -f $(OBJ_DEBUGLINUX) $(OUT_DEBUGLINUX)
-	rm -rf ../bin
-	rm -rf $(OBJDIR_DEBUGLINUX)
 
 before_releaselinux: 
 	test -d ../bin || mkdir -p ../bin
@@ -317,8 +315,98 @@ $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
 
 clean_releaselinux: 
 	rm -f $(OBJ_RELEASELINUX) $(OUT_RELEASELINUX)
-	rm -rf ../bin
-	rm -rf $(OBJDIR_RELEASELINUX)
+
+SerialPortWithRate.cpp: SerialPortWithRate.h
+
+serial.cpp: serial.h serial_win32.cpp serial_osx.cpp serial_posix.cpp
+
+serial_posix.cpp: serial.h
+
+ShowDatesDialog.cpp: ShowDatesDialog.h
+
+SeqParmsDialog.cpp: SeqParmsDialog.h
+
+SeqOpenDialog.cpp: SeqOpenDialog.h
+
+SeqExportDialog.cpp: SeqExportDialog.h
+
+SeqElementMismatchDialog.cpp: SeqElementMismatchDialog.h
+
+xlights_out.cpp: xlights_out.h serial.h
+
+xLightsMain.cpp: xLightsMain.h SerialPortWithRate.h E131Dialog.h xLightsBasic.cpp TabSetup.cpp TabTest.cpp TabConvert.cpp TabSchedule.cpp TabSequence.cpp
+
+xLightsMain.h: xlights_out.h PlayerFrame.h AddShowDialog.h ShowDatesDialog.h PlaybackOptionsDialog.h ModelListDialog.h EffectListDialog.h PaletteMgmtDialog.h SeqParmsDialog.h ChannelMapDialog.h SeqOpenDialog.h SeqExportDialog.h SeqElementMismatchDialog.h PixelBuffer.h NetInfo.h
+
+ModelListDialog.h: ModelClass.h
+
+ChannelMapDialog.h: NetInfo.h
+
+PixelBuffer.h: ModelClass.h RgbEffects.h
+
+xLightsBasic.cpp: serial.h
+
+xLightsApp.cpp: xLightsApp.h xLightsMain.h
+
+RgbEffects.cpp: RgbEffects.h
+
+ModelClass.cpp: ModelClass.h
+
+PixelBuffer.cpp: PixelBuffer.h
+
+PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
+
+NetInfo.cpp: NetInfo.h
+
+ModelListDialog.cpp: ModelListDialog.h ModelDialog.h ChannelLayoutDialog.h
+
+ModelDialog.cpp: ModelDialog.h
+
+EffectListDialog.cpp: EffectListDialog.h
+
+E131Dialog.cpp: E131Dialog.h
+
+ChannelMapDialog.cpp: ChannelMapDialog.h
+
+ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
+
+RenderLife.cpp: RgbEffects.h
+
+RenderTwinkle.cpp: RgbEffects.h
+
+RenderTree.cpp: RgbEffects.h
+
+RenderText.cpp: RgbEffects.h
+
+RenderSpirograph.cpp: RgbEffects.h
+
+RenderSpirals.cpp: RgbEffects.h
+
+RenderSnowstorm.cpp: RgbEffects.h
+
+RenderSnowflakes.cpp: RgbEffects.h
+
+RenderSean.cpp: RgbEffects.h
+
+RenderPictures.cpp: RgbEffects.h
+
+RenderMeteors.cpp: RgbEffects.h
+
+AddShowDialog.cpp: AddShowDialog.h
+
+RenderGarlands.cpp: RgbEffects.h
+
+RenderFire.cpp: RgbEffects.h
+
+RenderColorWash.cpp: RgbEffects.h
+
+RenderButterfly.cpp: RgbEffects.h
+
+RenderBars.cpp: RgbEffects.h
+
+PlayerFrame.cpp: PlayerFrame.h
+
+PlaybackOptionsDialog.cpp: PlaybackOptionsDialog.h
 
 .PHONY: before_debuglinux after_debuglinux clean_debuglinux before_releaselinux after_releaselinux clean_releaselinux
 
