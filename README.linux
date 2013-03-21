@@ -1,0 +1,91 @@
+xLights/Nutcracker Version 3.x Linux build instructions
+------------------------------------------------------------------------------
+
+xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
+document describes how **developers** should set up their tool chain to build
+xLights/Nutcracker on Linux.
+
+xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
+compatibility layer across operating systems.  The minimum required version
+of wxWidgets for xLights/Nutcracker is 2.9.4.  This can be compiled from
+source or installed via packages if they are available for your distribution.
+This document describes how to build wxWidgets if you need to to that yourself.
+
+These instructions have been tested on the following distributions:
+
+  - Linux Mint 12
+  - Ubuntu 12.10
+
+Instructions for other Linux distributions will vary. 
+
+  a) Using Software Manager (or apt-get or rpm), install these packages: 
+
+     build-essential
+     subversion
+     libgtk2.0-dev
+     libgstreamer0.10-dev
+     libgstreamer-plugins-base0.10-dev
+
+  b) Build wxWidgets 2.9.4
+
+     $ cd ~
+     $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.4.tar.bz2
+     $ tar xjf wxWidgets-2.9.4.tar.bz2
+     $ cd wxWidgets-2.9.4
+     $ ./configure --with-mediactrl
+     $ make
+     $ sudo make install
+     $ sudo ldconfig
+
+  c) Get the xLights/Nutcracker source code by opening a terminal window and
+     typing the following:
+
+     git clone https://github.com/smeighan/nutcracker_c.git nutcracker
+
+
+xLights/Nutcracker can be built 2 ways on Linux. First, you can use the
+supplied makefile to build it. This is sufficient to get xLights/Nutcracker
+running, but you will be limited in what source code modifications you can
+make.  Minor code changes or enhancements will be OK.  The second way to
+build is to install the Code::Blocks IDE and compile xLights/Nutcracker
+within the IDE. If you plan on modifying xLights/Nutcracker yourself, this
+may be the easiest way to go.
+
+To build xLights using the supplied makefile proceed to step 'd'.  To build
+using Code::Blocks, proceed to step 'e'.:
+
+
+  d) Build xLights using the supplied makefile:
+
+     $ cd nutcracker/xLights
+     $ make -f xLights.cbp.mak clean
+     $ make -f xLights.cbp.mak releaselinux
+ 
+     You will get some compiler warnings, however, the executable 'xLights'
+     should get built in the ./bin directory.  The proper dependencies are
+     not currently setup in the makefile to trigger rebuilds when some
+     files are modified, so you may have to run the clean command if your
+     code does not build properly after making modifications to the source.
+
+     If you built using the makefile, you can copy the nutcracker/bin/xLights
+     binary to a directory in your path or run it directly from there.
+
+     If you want to build using Code::Blocks, proceed to step 'e'.
+
+  e) Building xLights using Code::Blocks
+
+     Install the Code::Blocks IDE using your distribution's package
+     manager.  The latest stable version is 10.05, which works ok for
+     everything except the bitmap buttons on the Sequence tab.
+     It will compile xLights just fine; but if you change the 
+     visual layout using 10.05, you will lose those bitmap 
+     buttons. Also, you may need to install libwxsmithlib0 to 
+     enable visual layout.
+
+  f) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the xLights.cbp file.
+     In order for the double-click to work, you may need 
+     to first right-click on the cbp file, select properties,
+     and uncheck the box indicating that the file is runnable.
+     Make sure you set the target to "Release Linux" before you build.
+

@@ -1,0 +1,57 @@
+xLights/Nutcracker Version 3.x OS/X build instructions
+------------------------------------------------------------------------------
+NOTE: These docs need updating for build instructions for xLights/Nutcracker
+      These are the original Mac OS/X notes from ToolConfig.txt created by
+      Matt Brown for xLights.
+------------------------------------------------------------------------------
+
+xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
+document describes how **developers** should set up their tool chain to build
+xLights/Nutcracker on Mac OS/X.
+
+xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
+compatibility layer across operating systems.  The minimum required version
+of wxWidgets for xLights/Nutcracker is 2.9.4.
+
+Unfortunately, xLights/Nutcracker cannot be compiled using the OS/X Cocoa
+libraries due to bugs in wxWidgets. Ticket #13065 (wxMediaCtrl not ported
+to wxCocoa) is the problem. Until the ticket is resolved, xLights/Nutcracker
+must be compiled as a Carbon app.
+
+On OS/X, compilation is done using Xcode. Code::Blocks is not used.
+Xcode can be downloaded from the Apple developer web site. Make
+sure you install the version of Xcode that matches your version of
+OS/X. For example, I use OS/X 10.6, so I installed Xcode 3.1.
+Instructions are here:
+
+  http://wiki.wxwidgets.org/Installing_Xcode
+
+OS/X comes with the wxWidgets libraries pre-installed. If you have
+OS/X version 10.5 or higher, then xLights can use the version
+of wxWidgets that comes with the OS and you can skip this step.
+If you are using 10.4 or earlier, then you will need an updated
+version of wxWidgets and this step is required. Note that after
+performing this step, you will have 2 copies of wxWidgets on your
+system and you will need to be very careful to access the correct one in
+later steps. Use "./wx-config --version" to check which one you are accessing.
+The instructions here suggest compiling with Xcode:
+  http://wiki.wxwidgets.org/Compiling_wxWidgets_with_Xcode
+
+However, I followed the method used for Linux from inside a Terminal window:
+  cd <wxMac base dir>
+  ./configure --disable-shared --enable-universal-binary --enable-mediactrl
+  make
+
+Next, you will use Xcode to compile each of the xLights modules
+(xMenu, xScheduler, xConverter). You will need to treat each one
+as a separate project. Most of the steps are listed here:
+
+  http://wiki.wxwidgets.org/Creating_Xcode_projects_for_wxWidgets_applications
+
+In addition to the instructions on the wiki page above, you will also need to:
+  1) Fix the reference to the precompiled header file in each project. This can
+     be done by double-clicking on the xxxTarget.xcconfig file and then changing
+     the GCC_PREFIX_HEADER to wx_pch.h.
+  2) When configuring the project for xScheduler, set "Other Linker Flags" to
+     the output of: "./wx-config --libs std,media,aui".
+
