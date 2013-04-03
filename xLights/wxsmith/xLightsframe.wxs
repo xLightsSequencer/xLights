@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.6)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.7)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -2410,7 +2410,6 @@
 																									<object class="sizeritem">
 																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_1" variable="CheckBox_Palette1_1" member="yes">
 																											<checked>1</checked>
-																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
@@ -2429,7 +2428,6 @@
 																									<object class="sizeritem">
 																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_2" variable="CheckBox_Palette1_2" member="yes">
 																											<checked>1</checked>
-																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
@@ -2462,9 +2460,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_4" variable="CheckBox_Palette1_4" member="yes">
-																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
-																										</object>
+																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_4" variable="CheckBox_Palette1_4" member="yes" />
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
 																										<option>1</option>

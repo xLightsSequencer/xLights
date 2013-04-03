@@ -24,8 +24,8 @@ LSP: Produces UserPatterns.xml
 
 xLights version History:
    2010 Original xLights released
-   2012e Latest version of xLights from December 2012 that is used to enhance 
-      Nutcracker tab.
+   2012e Latest version of xLights from December 2012 that was used as base
+         to add new Nutcracker tab.
 
 Nutcracker Version History:
 
@@ -40,8 +40,10 @@ Nutcracker Version History:
 	
 It is our goal to remove the need for WAMP or XAMPP
 
-Nutcracker 3.0 Releases
+NUTCRACKER RELEASES
+-------------------
 
+3.0.7: Apr 03,2013 - Fixed Pallet 3 button. It was not picking up color when it was clicked.
 3.0.6: Mar 11,2013 - Corrected another bug in LOR lcb export.
                    - Modifed Nutcracker tab to keep a minimum size screen on
                      left window.
@@ -59,3 +61,20 @@ Nutcracker 3.0 Releases
 3.0.1: Feb 26,2013 - Added wxGauge to show process for exporting sequence files.
 3.0.0: Feb 22,2013 - Initial Release. This is Matt Browns original porting of
                      Nutcracker into xLights.
+
+KNOWN BUGS:
+-----------
+Bug#  Status  Version  Description
+0001  Open    3.0.0    Spirals,Life or Snowstorm effects are blank on any exported file
+0002  Open    3.0.0    HLS export file is jumbled
+0003  Closed  3.0.4    Vixen VIR files has RED and BLUE swapped
+0004  Closed  3.0.5    LCB colors swapped.
+0005  Closed  3.0.7    On effect 1, Palette 3 button is not being picked up.
+
+
+
+
+
+
+
+

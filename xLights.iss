@@ -5,7 +5,7 @@
 
 [Setup]
 AppName=xLights-Nutcracker
-AppVersion=3.0.6
+AppVersion=3.0.7
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 UninstallDisplayIcon={app}\xLights.exe
