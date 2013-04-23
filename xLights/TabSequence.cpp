@@ -636,13 +636,20 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Life"))
     {
+        buffer.RenderLife(wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Count")]),
+
+                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Seed")]));
     }
     else if (effect == wxT("Meteors"))
     {
-        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
-                             wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Length")]));
-    }
+      buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
+                            wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
+                        wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]));
+
+              //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
+               //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
+                //            wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Length")]));
+   }
     else if (effect == wxT("Pictures"))
     {
         buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
@@ -655,6 +662,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Snowstorm"))
     {
+        buffer.RenderSnowstorm(wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Count")]),
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Length")]));
     }
     else if (effect == wxT("Spirals"))
     {

@@ -273,6 +273,7 @@ private:
     void OnButton_ColorClick(wxCommandEvent& event);
     void OnChoicebookEffectPageChanged(wxChoicebookEvent& event);
     void OnButtonSeqExportClick(wxCommandEvent& event);
+    void OnCheckBox_PaletteClick(wxCommandEvent& event);
     //*)
 
     //(*Identifiers(xLightsFrame)
@@ -1146,7 +1147,7 @@ private:
     void OnTimerPlaylist(long msec);
 
     // sequence
-    void OnCheckBox_PaletteClick(wxCommandEvent& event);
+//    void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void PresetsSelect();
     void LoadEffectsFile();
     bool SaveEffectsFile();

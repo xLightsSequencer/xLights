@@ -43,7 +43,10 @@ It is our goal to remove the need for WAMP or XAMPP
 NUTCRACKER RELEASES
 -------------------
 
-3.0.7: Apr 03,2013 - Fixed Pallet 3 button. It was not picking up color when it was clicked.
+3.0.7: Apr 23,2013 - Fixed Pallet 3 button. It was not picking up color when it was clicked.
+                   - Fixed export of Meteors. This effected all sequencers
+				   - Fixed export of Life. This effected all sequencers
+				   - Fixed export of Snowstorm. This effected all sequencers
 3.0.6: Mar 11,2013 - Corrected another bug in LOR lcb export.
                    - Modifed Nutcracker tab to keep a minimum size screen on
                      left window.
@@ -65,7 +68,7 @@ NUTCRACKER RELEASES
 KNOWN BUGS:
 -----------
 Bug#  Status  Version  Description
-0001  Open    3.0.0    Spirals,Life or Snowstorm effects are blank on any exported file
+0001  Closed  3.0.7    Spirals,Life or Snowstorm effects are blank on any exported file
 0002  Open    3.0.0    HLS export file is jumbled
 0003  Closed  3.0.4    Vixen VIR files has RED and BLUE swapped
 0004  Closed  3.0.5    LCB colors swapped.

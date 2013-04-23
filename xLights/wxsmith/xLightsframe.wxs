@@ -2410,6 +2410,7 @@
 																									<object class="sizeritem">
 																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_1" variable="CheckBox_Palette1_1" member="yes">
 																											<checked>1</checked>
+																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
@@ -2428,6 +2429,7 @@
 																									<object class="sizeritem">
 																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_2" variable="CheckBox_Palette1_2" member="yes">
 																											<checked>1</checked>
+																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
@@ -2444,7 +2446,9 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_3" variable="CheckBox_Palette1_3" member="yes" />
+																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_3" variable="CheckBox_Palette1_3" member="yes">
+																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
 																										<option>1</option>
@@ -2460,7 +2464,9 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_4" variable="CheckBox_Palette1_4" member="yes" />
+																										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1_4" variable="CheckBox_Palette1_4" member="yes">
+																											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+																										</object>
 																										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																										<border>5</border>
 																										<option>1</option>
