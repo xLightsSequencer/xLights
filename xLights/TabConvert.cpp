@@ -315,21 +315,30 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
+
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
     long centiseconds=SeqNumPeriods * interval;
+
     wxGauge* _gauge = new wxGauge( Gauge1, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100, 20), wxGA_HORIZONTAL );
     _gauge->SetRange(100);
     _gauge->SetValue(0);
     _gauge->Show(true);
+
     for (ch=0; ch < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
-    {
+   {
         _gauge->SetValue((ch * 100.0) / SeqNumChannels);
         buff=wxT("");
+
         for (p=0; p < SeqNumPeriods; p++, seqidx++)
         {
-            rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+2*SeqNumPeriods]& 0xff); // we want a 24bit value for HLS
+         //    rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+(2*SeqNumPeriods)]& 0xff); // we want a 24bit value for HLS
+          //  buff += wxString::Format(wxT("%d (%d:%d %d %d)"),rgb,seqidx,SeqData[seqidx],SeqData[seqidx+SeqNumPeriods],SeqData[seqidx+2*SeqNumPeriods]);
+          rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+           if(p<SeqNumPeriods-1)
             buff += wxString::Format(wxT("%d "),rgb);
-        }
+          else
+            buff += wxString::Format(wxT("%d"),rgb);
+       }
         buff += wxString::Format(wxT("\n"));
         f.Write(buff);
     }
@@ -337,7 +346,6 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     _gauge->SetValue(100);
     _gauge->Show(false);
 }
-
 
 void xLightsFrame::WriteXLightsFile(const wxString& filename)
 {
@@ -652,11 +660,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
         LastIntensity=0;
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
         {
-
-
             intensity=SeqData[seqidx] * 100 / 255;
-
-
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)

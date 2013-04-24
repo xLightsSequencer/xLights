@@ -2344,6 +2344,8 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
     SaveScheduleFile();
 }
 
+
+
 // displays color chooser and updates the button's background color with the return value
 void xLightsFrame::OnButton_ColorClick(wxCommandEvent& event)
 {
