@@ -69,7 +69,7 @@ KNOWN BUGS:
 -----------
 Bug#  Status  Version  Description
 0001  Closed  3.0.7    Spirals,Life or Snowstorm effects are blank on any exported file
-0002  Open    3.0.0    HLS export file is jumbled
+0002  Closed  3.0.7    HLS export file is jumbled
 0003  Closed  3.0.4    Vixen VIR files has RED and BLUE swapped
 0004  Closed  3.0.5    LCB colors swapped.
 0005  Closed  3.0.7    On effect 1, Palette 3 button is not being picked up.
