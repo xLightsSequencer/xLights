@@ -1,9 +1,10 @@
 /***************************************************************
- * Name:      RgbEffects.cpp
- * Purpose:   Implements RGB effects
- * Author:    Matt Brown (dowdybrown@yahoo.com)
+ * Name:      RenderFireworks.cpp
+ * Purpose:   Implements Fireworks and Explosions effects
+ * Author:    Dave Pitts (dowdybrown@yahoo.com)
+ *            Sean Meighan
  * Created:   2012-12-23
- * Copyright: 2012 by Matt Brown
+ * Copyright: 2013 by Sean Meighan
  * License:
  This file is part of xLights.
 
@@ -24,7 +25,7 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity)
+void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
 {
 	int idxFlakes=0;
 	int i=0,x,y,mod100;
@@ -33,8 +34,15 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity)
 	//float velocity = 3.5;
 	int startX;
 	int startY;
+	float v;
 	wxImage::HSVValue hsv;
 	wxColour color,rgbcolor;
+
+if(state==0)
+    for(i=0;i<maxFlakes;i++)
+		{
+	fireworkBursts[i]._bActive = false;
+		}
 
 	mod100 = state%((101-Number_Explosions)*10);
 	if(mod100 == 0)
@@ -49,10 +57,7 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity)
 		startX = x25 + rand()%(x75-x25);
 		startY = y25 + rand()%(y75-y25);
 		// turn off all bursts
-		for(i=0;i<maxFlakes;i++)
-		{
-			fireworkBursts[i]._bActive = false;
-		}
+
 		// Create new bursts
 		for(i=0;i<Count;i++)
 		{
@@ -76,7 +81,7 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity)
 				fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
 				// If this flake run for more than maxCycle, time to switch it off
 				fireworkBursts[i]._cycles+=20;
-				if (1000 == fireworkBursts[i]._cycles) // if (10000 == fireworkBursts[i]._cycles)
+				if (10000 == fireworkBursts[i]._cycles) // if (10000 == fireworkBursts[i]._cycles)
 				{
 					fireworkBursts[i]._bActive = false;
 					continue;
@@ -127,6 +132,10 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity)
 	{
 		if(fireworkBursts[i]._bActive == true)
 		{
+		    v = ((Fade*10.0)-fireworkBursts[i]._cycles)/(Fade*10.0);
+		    if(v<0) v=0.0;
+
+                    hsv.value=v;
 			SetPixel(fireworkBursts[i]._x,fireworkBursts[i]._y,hsv);
 		}
 	}

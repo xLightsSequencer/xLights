@@ -268,8 +268,8 @@ void RgbEffects::ClearWaveBuffer2()
 //#include "RenderText.cpp"
 //#include "RenderTwinkle.cpp"
 //#include "RenderTree.cpp"
-////#include "RenderSpirograph.cpp"
-//#include "RenderSean.cpp"
+//#include "RenderSpirograph.cpp"
+//#include "RenderFireworks.cpp"
 
 
 

@@ -701,7 +701,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderFireworks(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Number_Explosions")]),
                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Count")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]));
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]),
+                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Fade")]));
     }
 }
 
@@ -808,9 +809,10 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                 CheckBox_Spirograph1_Animate->GetValue());
         break;
     case 16:
-        buffer.RenderFireworks(Slider_Sean1_Number_Explosions->GetValue(),
-                               Slider_Sean1_Count->GetValue(),
-         Slider_Sean1_Velocity->GetValue());
+        buffer.RenderFireworks(Slider_Fireworks1_Number_Explosions->GetValue(),
+                               Slider_Fireworks1_Count->GetValue(),
+                        Slider_Fireworks1_Velocity->GetValue(),
+                               Slider_Fireworks1_Fade->GetValue());
         break;
 
     }

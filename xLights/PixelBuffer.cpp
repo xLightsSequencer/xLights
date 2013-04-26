@@ -325,7 +325,7 @@ void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
 }
 
 
-void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity)
+void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
 {
-    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity);
+    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
 }

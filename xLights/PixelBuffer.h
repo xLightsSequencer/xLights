@@ -77,7 +77,7 @@ public:
     void RenderTwinkle(int Count);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d, bool Animate);
-    void RenderFireworks(int Number_Explosions,int Count,float Velocity);
+    void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void CalcOutput();
 };
 

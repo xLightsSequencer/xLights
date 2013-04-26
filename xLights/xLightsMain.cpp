@@ -289,11 +289,13 @@ const long xLightsFrame::ID_CHECKBOX_Spirograph1_Animate = wxNewId();
 const long xLightsFrame::ID_STATICTEXT91 = wxNewId();
 const long xLightsFrame::ID_PANEL35 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT95 = wxNewId();
-const long xLightsFrame::ID_SLIDER8 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Fireworks1_Number_Explosions = wxNewId();
 const long xLightsFrame::ID_STATICTEXT92 = wxNewId();
-const long xLightsFrame::ID_SLIDER_Sean1_Count = wxNewId();
+const long xLightsFrame::ID_SLIDER_Fireworks1_Count = wxNewId();
 const long xLightsFrame::ID_STATICTEXT94 = wxNewId();
-const long xLightsFrame::ID_SLIDER3 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Fireworks1_Velocity = wxNewId();
+const long xLightsFrame::ID_STATICTEXT96 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Fireworks1_Fade = wxNewId();
 const long xLightsFrame::ID_PANEL36 = wxNewId();
 const long xLightsFrame::ID_CHOICEBOOK1 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette1 = wxNewId();
@@ -1294,16 +1296,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer73 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText94 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
     FlexGridSizer73->Add(StaticText94, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Sean1_Number_Explosions = new wxSlider(Panel1_Fireworks, ID_SLIDER8, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER8"));
-    FlexGridSizer73->Add(Slider_Sean1_Number_Explosions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Fireworks1_Number_Explosions = new wxSlider(Panel1_Fireworks, ID_SLIDER_Fireworks1_Number_Explosions, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks1_Number_Explosions"));
+    FlexGridSizer73->Add(Slider_Fireworks1_Number_Explosions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText91 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT92, _("Particles in Explosion"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT92"));
     FlexGridSizer73->Add(StaticText91, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Sean1_Count = new wxSlider(Panel1_Fireworks, ID_SLIDER_Sean1_Count, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Sean1_Count"));
-    FlexGridSizer73->Add(Slider_Sean1_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Fireworks1_Count = new wxSlider(Panel1_Fireworks, ID_SLIDER_Fireworks1_Count, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks1_Count"));
+    FlexGridSizer73->Add(Slider_Fireworks1_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText93 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT94, _("Velocity of Particles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT94"));
     FlexGridSizer73->Add(StaticText93, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Sean1_Velocity = new wxSlider(Panel1_Fireworks, ID_SLIDER3, 2, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER3"));
-    FlexGridSizer73->Add(Slider_Sean1_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Fireworks1_Velocity = new wxSlider(Panel1_Fireworks, ID_SLIDER_Fireworks1_Velocity, 2, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks1_Velocity"));
+    FlexGridSizer73->Add(Slider_Fireworks1_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText95 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT96, _("Particle Fade"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT96"));
+    FlexGridSizer73->Add(StaticText95, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Fireworks1_Fade = new wxSlider(Panel1_Fireworks, ID_SLIDER_Fireworks1_Fade, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks1_Fade"));
+    FlexGridSizer73->Add(Slider_Fireworks1_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Fireworks->SetSizer(FlexGridSizer73);
     FlexGridSizer73->Fit(Panel1_Fireworks);
     FlexGridSizer73->SetSizeHints(Panel1_Fireworks);
@@ -1887,6 +1893,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_BUTTON_PICTURES1_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Pictures1_FilenameClick);
+    Connect(ID_SLIDER_Spirals1_Count,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Spirals1_CountCmdScroll);
     Connect(ID_BUTTON_TEXT1_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text1_FontClick);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnChoicebookEffectPageChanged);
     Connect(ID_BUTTON_Palette1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Palette1Click);
@@ -2378,3 +2385,7 @@ void xLightsFrame::OnButton_ColorClick(wxCommandEvent& event)
 #include "TabSequence.cpp"
 
 
+
+void xLightsFrame::OnSlider_Spirals1_CountCmdScroll(wxScrollEvent& event)
+{
+}
