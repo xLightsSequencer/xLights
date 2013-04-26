@@ -638,18 +638,18 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderLife(wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Count")]),
 
-                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Seed")]));
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Seed")]));
     }
     else if (effect == wxT("Meteors"))
     {
-      buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
-                            wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
-                        wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]));
+        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]));
 
-              //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
-               //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
-                //            wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Length")]));
-   }
+        //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
+        //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
+        //            wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Length")]));
+    }
     else if (effect == wxT("Pictures"))
     {
         buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
@@ -663,7 +663,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     else if (effect == wxT("Snowstorm"))
     {
         buffer.RenderSnowstorm(wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Count")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Length")]));
+                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Length")]));
     }
     else if (effect == wxT("Spirals"))
     {
@@ -701,7 +701,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderFireworks(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Number_Explosions")]),
                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Count")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]),
+                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]),
                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Fade")]));
     }
 }
@@ -811,7 +811,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     case 16:
         buffer.RenderFireworks(Slider_Fireworks1_Number_Explosions->GetValue(),
                                Slider_Fireworks1_Count->GetValue(),
-                        Slider_Fireworks1_Velocity->GetValue(),
+                               Slider_Fireworks1_Velocity->GetValue(),
                                Slider_Fireworks1_Fade->GetValue());
         break;
 

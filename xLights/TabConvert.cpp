@@ -325,20 +325,20 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     _gauge->Show(true);
 
     for (ch=0; ch < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
-   {
+    {
         _gauge->SetValue((ch * 100.0) / SeqNumChannels);
         buff=wxT("");
 
         for (p=0; p < SeqNumPeriods; p++, seqidx++)
         {
-         //    rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+(2*SeqNumPeriods)]& 0xff); // we want a 24bit value for HLS
-          //  buff += wxString::Format(wxT("%d (%d:%d %d %d)"),rgb,seqidx,SeqData[seqidx],SeqData[seqidx+SeqNumPeriods],SeqData[seqidx+2*SeqNumPeriods]);
-          rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
-           if(p<SeqNumPeriods-1)
-            buff += wxString::Format(wxT("%d "),rgb);
-          else
-            buff += wxString::Format(wxT("%d"),rgb);
-       }
+            //    rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+(2*SeqNumPeriods)]& 0xff); // we want a 24bit value for HLS
+            //  buff += wxString::Format(wxT("%d (%d:%d %d %d)"),rgb,seqidx,SeqData[seqidx],SeqData[seqidx+SeqNumPeriods],SeqData[seqidx+2*SeqNumPeriods]);
+            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+            if(p<SeqNumPeriods-1)
+                buff += wxString::Format(wxT("%d "),rgb);
+            else
+                buff += wxString::Format(wxT("%d"),rgb);
+        }
         buff += wxString::Format(wxT("\n"));
         f.Write(buff);
     }
@@ -406,7 +406,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
     f.Write(wxT("<ArrayOfPattern xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n"));
     f.Write(wxT("\t<Pattern>\n"));
     f.Write(wxT("\t<GroupName>Nutcracker-1</GroupName>\n"));
-f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
+    f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
     f.Write(wxT("\t<Image>\n"));
     f.Write(wxT("\t\t<Width>999</Width>\n"));
     f.Write(wxT("\t\t<Height>200</Height>\n"));
@@ -418,7 +418,7 @@ f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
         _gauge->SetValue((ch * 100.0) / SeqNumChannels);
-       f.Write(wxT("\t<Track>\n"));
+        f.Write(wxT("\t<Track>\n"));
         f.Write(wxT("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n"));
         f.Write(wxT("\t\t<IsHidden>false</IsHidden>\n"));
         f.Write(wxT("\t\t<IsPrimaryTrack>false</IsPrimaryTrack>\n"));
@@ -426,7 +426,7 @@ f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
         f.Write(wxT("\t\t<TrackColorARGB>-2302756</TrackColorARGB>\n"));
         f.Write(wxT("\t\t<TrackID>0</TrackID>\n"));
         f.Write(wxT("\t\t<TrackType>0</TrackType>\n"));
-    //    f.Write(wxT("\t\t<WiiMapping inv=\"0\" ibn=\"\" inbn=\"\" ani=\"0\" ain=\"\" hty=\"-1\" fed=\"0"\ wind=\"-1\" wibt=\"0\" cint=\"False\" ceff=\"False\" hefsd=\"True\" lef=\"3\" lefl=\"1\" intb=\"0\" efd=\"0\" />\n"));
+        //    f.Write(wxT("\t\t<WiiMapping inv=\"0\" ibn=\"\" inbn=\"\" ani=\"0\" ain=\"\" hty=\"-1\" fed=\"0"\ wind=\"-1\" wibt=\"0\" cint=\"False\" ceff=\"False\" hefsd=\"True\" lef=\"3\" lefl=\"1\" intb=\"0\" efd=\"0\" />\n"));
         f.Write(wxT("\t\t<Name />\n"));
         f.Write(wxT("\t\t<Intervals>\n"));
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
@@ -434,32 +434,32 @@ f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
             seconds = (p*50)/1000.0;
             pos = seconds * 88200;
             byte = SeqData[seqidx];
-             rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
 
             if(rgb>0)
             {
                 bst=rgb;
                 ben=rgb;
-                 // 4410 = 1/20th of a second. 88200/20
-        f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos,bst,ben));
-        bst=ben=0;
-        f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos+4410,bst,ben));
+                // 4410 = 1/20th of a second. 88200/20
+                f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos,bst,ben));
+                bst=ben=0;
+                f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos+4410,bst,ben));
             }
-           else
-           {
+            else
+            {
 
 
-  //  f.Write(wxString::Format(wxT("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n"),pos));
-           }
+                //  f.Write(wxString::Format(wxT("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n"),pos));
+            }
         }
-         f.Write(wxT("</Intervals>\n"));
-  f.Write(wxT("</Track>\n"));
-           }
+        f.Write(wxT("</Intervals>\n"));
+        f.Write(wxT("</Track>\n"));
+    }
 
 
-     f.Write(wxT("\t\t</Tracks>\n"));
-   f.Write(wxT("\t</Pattern>\n"));
-f.Write(wxT("</ArrayOfPattern>\n"));
+    f.Write(wxT("\t\t</Tracks>\n"));
+    f.Write(wxT("\t</Pattern>\n"));
+    f.Write(wxT("</ArrayOfPattern>\n"));
     f.Close();
     _gauge->SetValue(100);
     _gauge->Show(false);
