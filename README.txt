@@ -42,7 +42,8 @@ It is our goal to remove the need for WAMP or XAMPP
 
 NUTCRACKER RELEASES
 -------------------
-
+3.0.8: Apr 25,2013 - Added export for LSP to create UserPatterns.xml
+                     The actual fiel created will have a *.user extension. rename it to use it
 3.0.7: Apr 23,2013 - Fixed Pallet 3 button. It was not picking up color when it was clicked.
                    - Fixed export of Meteors. This effected all sequencers
 				   - Fixed export of Life. This effected all sequencers

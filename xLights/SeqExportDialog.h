@@ -35,6 +35,7 @@ protected:
 private:
 
     //(*Handlers(SeqExportDialog)
+    void OnChoiceFormatSelect(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

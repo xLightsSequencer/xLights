@@ -38,6 +38,36 @@ typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 
 
+class RgbFireworks
+{
+public:
+//static const float velocity = 2.5;
+    static const int maxCycle = 4096;
+    static const int maxNewBurstFlakes = 10;
+    float _x;
+    float _y;
+    float _dx;
+    float _dy;
+    float vel;
+    float angle;
+    bool _bActive;
+    int _cycles;
+
+    void Reset(int x, int y, bool active, float velocity)
+    {
+        _x = x;
+        _y = y;
+        vel = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
+        angle = 2*M_PI*rand()/RAND_MAX;
+        _dx = vel*cos(angle);
+        _dy = vel*sin(angle);
+        _bActive = active;
+        _cycles = 0;
+    }
+protected:
+private:
+};
+
 // for meteor effect
 class MeteorClass
 {
@@ -163,7 +193,7 @@ public:
     void RenderTwinkle(int Count);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d,bool Animate);
-    void RenderSean(int Count);
+    void RenderFireworks(int Number_Explosions,int Count,float Velocity);
 
 
 protected:
@@ -215,35 +245,9 @@ protected:
     long LastLifeState;
     int speed;
     int lastperiod;
+    RgbFireworks fireworkBursts[1000];
 
-    struct debris
-    {
-        float _x;
-        float _y;
-        float _dx;
-        float _dy;
-        bool _bActive;
-        int _cycles;
 
-        debris(int x=0, int y=0)
-        {
-            reset(x,y);
-        }
-        void reset(int x, int y, bool active = false)
-        {
-            const float velocity = 0.2;
-
-            _x = x;
-            _y = y;
-            float vel = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-            float angle = 2*M_PI*rand()/RAND_MAX;
-            _dx = vel*cos(angle);
-            _dy = vel*sin(angle);
-            _bActive = active;
-            _cycles = 0;
-        }
-    };
-debris flakes[100000];
 private:
 };
 

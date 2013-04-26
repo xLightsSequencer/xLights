@@ -24,11 +24,12 @@
 								<item>Lcb, LOR Clipboard *.lcb</item>
 								<item>Vixen, Vixen sequence file *.vix</item>
 								<item>Vir, Vixen Routine file. *.vir</item>
-								<item>LSP, Light Show Pro (NOT IMPLEMENTED YET)</item>
+								<item>LSP, Light Show Pro </item>
 								<item>HLS, Hinkle Lighte Sequencer *.hlsnc</item>
 								<item>xLights, *.xseq</item>
 							</content>
 							<selection>0</selection>
+							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

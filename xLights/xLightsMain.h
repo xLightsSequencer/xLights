@@ -177,7 +177,6 @@ public:
         PLAYLIST_LOGIC,
         REMOVE_SCRIPT_BUTTON
     };
-
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt;
     xOutput* xout;
@@ -491,8 +490,12 @@ private:
     static const long ID_CHECKBOX_Spirograph1_Animate;
     static const long ID_STATICTEXT91;
     static const long ID_PANEL35;
+    static const long ID_STATICTEXT95;
+    static const long ID_SLIDER8;
     static const long ID_STATICTEXT92;
     static const long ID_SLIDER_Sean1_Count;
+    static const long ID_STATICTEXT94;
+    static const long ID_SLIDER3;
     static const long ID_PANEL36;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
@@ -662,6 +665,7 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxCheckBox* CheckBox_Palette2_6;
     wxButton* Button_Palette2_6;
+    wxPanel* Panel1_Fireworks;
     wxCheckBox* CheckBox_Spirals2_3D;
     wxButton* ButtonChangeDir;
     wxNotebook* Notebook1;
@@ -817,6 +821,7 @@ private:
     wxChoice* Choice_Meteors2_Type;
     wxTimer Timer1;
     wxRadioButton* RadioButtonRgbChase;
+    wxSlider* Slider_Sean1_Number_Explosions;
     wxButton* ButtonUpdateShow;
     wxStaticText* StaticText70;
     wxStaticText* StaticText35;
@@ -842,7 +847,6 @@ private:
     wxSlider* Slider_Spirals2_Rotation;
     wxButton* ButtonStartConversion;
     wxStatusBar* StatusBar1;
-    wxPanel* Panel1_Sean;
     wxStaticText* StaticText40;
     wxButton* Button_Palette2_5;
     wxStaticText* StaticText21;
@@ -856,11 +860,13 @@ private:
     wxRadioButton* RadioButtonChase3;
     wxStaticText* StaticText90;
     wxButton* ButtonSaveLog;
+    wxStaticText* StaticText93;
     wxCheckBox* CheckBox_Spirograph1_Animate;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText61;
     wxStaticText* StaticText62;
     wxPanel* PanelRgbCycle;
+    wxSlider* Slider_Sean1_Velocity;
     wxButton* Button_PresetUpdate;
     wxStaticText* StaticText54;
     wxCheckBox* CheckBox_Palette1_5;
@@ -994,6 +1000,7 @@ private:
     wxButton* Button_Palette2_2;
     wxStaticText* StaticTextSequenceFileName;
     wxButton* Button_Palette2;
+    wxStaticText* StaticText94;
     wxStaticText* StaticText46;
     wxStaticText* StaticText77;
     wxStaticText* StaticText83;

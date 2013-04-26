@@ -697,9 +697,11 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                                 wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]),
                                 wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_Animate")]));
     }
-    else if (effect == wxT("Sean"))
+    else if (effect == wxT("Fireworks"))
     {
-        buffer.RenderSean(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]));
+        buffer.RenderFireworks(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Number_Explosions")]),
+                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Count")]),
+                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]));
     }
 }
 
@@ -806,7 +808,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                 CheckBox_Spirograph1_Animate->GetValue());
         break;
     case 16:
-        buffer.RenderSean(Slider_Sean1_Count->GetValue());
+        buffer.RenderFireworks(Slider_Sean1_Number_Explosions->GetValue(),
+                               Slider_Sean1_Count->GetValue(),
+         Slider_Sean1_Velocity->GetValue());
         break;
 
     }
@@ -1847,7 +1851,9 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     }
     else if (Out3 == wxT("LSP"))
     {
-        wxMessageBox(wxT("Light Show Pro export not implemented yet"));
+        oName.SetExt(_("user"));
+        fullpath=oName.GetFullPath();
+        WriteLSPFile(fullpath);
         return;
     }
     else if (Out3 == wxT("HLS"))

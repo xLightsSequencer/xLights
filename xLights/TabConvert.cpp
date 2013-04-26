@@ -383,7 +383,9 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
     int32_t ChannelColor;
     int ch,p,csec,StartCSec;
     int seqidx=0;
-    int intensity,LastIntensity;
+    int pos,bst,ben,byte;
+    unsigned long rgb;
+    float seconds;
     wxFile f;
     if (!f.Create(filename,true))
     {
@@ -402,97 +404,62 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
     f.Write(wxT("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"));
 
     f.Write(wxT("<ArrayOfPattern xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n"));
-    f.Write(wxT("<Pattern>\n"));
-    f.Write(wxT("<GroupName>Nutcracker-1</GroupName>\n"));
+    f.Write(wxT("\t<Pattern>\n"));
+    f.Write(wxT("\t<GroupName>Nutcracker-1</GroupName>\n"));
+f.Write(wxT("\t<Name>" + filename + "</Name>\n"));
+    f.Write(wxT("\t<Image>\n"));
+    f.Write(wxT("\t\t<Width>999</Width>\n"));
+    f.Write(wxT("\t\t<Height>200</Height>\n"));
+    f.Write(wxT("\t</Image>\n"));
+    f.Write(wxT("\t<Tracks>\n"));
 
-    f.Write(wxT("<Image>\n"));
-    f.Write(wxT("\t<Width>999</Width>\n"));
-    f.Write(wxT("\t<Height>200</Height>\n"));
-    f.Write(wxT("</Image>\n"));
 
-    f.Write(wxT("<Tracks>\n"));
+
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
         _gauge->SetValue((ch * 100.0) / SeqNumChannels);
-        if (ch < CheckListBoxTestChannels->GetCount())
-        {
-            TestName=CheckListBoxTestChannels->GetString(ch);
-        }
-        else
-        {
-            TestName=wxString::Format(wxT("Ch: %d"),ch);
-        }
-        if (ch < ChannelNames.size() && !ChannelNames[ch].IsEmpty())
-        {
-            ChannelName = ChannelNames[ch];
-        }
-        else
-        {
-            ChannelName = TestName;
-        }
-        // LOR is BGR with high bits=0
-        // Vix is RGB with high bits=1
-        if (ch < ChannelColors.size() && ChannelColors[ch] > 0)
-        {
-            ChannelColor = ChannelColors[ch];
-        }
-        else if (TestName.Last() == 'R')
-        {
-            ChannelColor = 0x000000ff;
-        }
-        else if (TestName.Last() == 'G')
-        {
-            ChannelColor = 0x0000ff00;
-        }
-        else if (TestName.Last() == 'B')
-        {
-            ChannelColor = 0x00ff0000;
-        }
-        else
-        {
-            // default to white
-            ChannelColor = 0x00ffffff;
-        }
-        f.Write(wxT("\t\t<channel name=\"")+ChannelName+wxString::Format(wxT("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n"),ChannelColor,centiseconds,ch));
-        // write intensity values for this channel
-        LastIntensity=0;
+       f.Write(wxT("\t<Track>\n"));
+        f.Write(wxT("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n"));
+        f.Write(wxT("\t\t<IsHidden>false</IsHidden>\n"));
+        f.Write(wxT("\t\t<IsPrimaryTrack>false</IsPrimaryTrack>\n"));
+        f.Write(wxT("\t\t<TrackColorName>Gainsboro</TrackColorName>\n"));
+        f.Write(wxT("\t\t<TrackColorARGB>-2302756</TrackColorARGB>\n"));
+        f.Write(wxT("\t\t<TrackID>0</TrackID>\n"));
+        f.Write(wxT("\t\t<TrackType>0</TrackType>\n"));
+    //    f.Write(wxT("\t\t<WiiMapping inv=\"0\" ibn=\"\" inbn=\"\" ani=\"0\" ain=\"\" hty=\"-1\" fed=\"0"\ wind=\"-1\" wibt=\"0\" cint=\"False\" ceff=\"False\" hefsd=\"True\" lef=\"3\" lefl=\"1\" intb=\"0\" efd=\"0\" />\n"));
+        f.Write(wxT("\t\t<Name />\n"));
+        f.Write(wxT("\t\t<Intervals>\n"));
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
         {
-            intensity=SeqData[seqidx] * 100 / 255;
-            if (intensity != LastIntensity)
+            seconds = (p*50)/1000.0;
+            pos = seconds * 88200;
+            byte = SeqData[seqidx];
+             rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+
+            if(rgb>0)
             {
-                if (LastIntensity != 0)
-                {
-                    f.Write(wxString::Format(wxT("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n"),StartCSec,csec,LastIntensity));
-                }
-                StartCSec=csec;
+                bst=rgb;
+                ben=rgb;
+                 // 4410 = 1/20th of a second. 88200/20
+        f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos,bst,ben));
+        bst=ben=0;
+        f.Write(wxString::Format(wxT("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n"),pos+4410,bst,ben));
             }
-            LastIntensity=intensity;
+           else
+           {
+
+
+  //  f.Write(wxString::Format(wxT("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n"),pos));
+           }
         }
-        if (LastIntensity != 0)
-        {
-            f.Write(wxString::Format(wxT("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n"),StartCSec,csec,LastIntensity));
-        }
-        f.Write(wxT("\t\t</channel>\n"));
-    }
-    f.Write(wxT("\t</channels>\n"));
-    f.Write(wxT("\t<tracks>\n"));
-    f.Write(wxString::Format(wxT("\t\t<track totalCentiseconds=\"%ld\">\n"),centiseconds));
-    f.Write(wxT("\t\t\t<channels>\n"));
-    for (ch=0; ch < SeqNumChannels; ch++ )
-    {
-        f.Write(wxString::Format(wxT("\t\t\t\t<channel savedIndex=\"%d\"/>\n"),ch));
-    }
-    f.Write(wxT("\t\t\t</channels>\n"));
-    f.Write(wxT("\t\t\t<timings>\n"));
-    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval)
-    {
-        f.Write(wxString::Format(wxT("\t\t\t\t<timing centisecond=\"%d\"/>\n"),csec));
-    }
-    f.Write(wxT("\t\t\t</timings>\n"));
-    f.Write(wxT("\t\t</track>\n"));
-    f.Write(wxT("\t</tracks>\n"));
-    f.Write(wxT("</sequence>\n"));
+         f.Write(wxT("</Intervals>\n"));
+  f.Write(wxT("</Track>\n"));
+           }
+
+
+     f.Write(wxT("\t\t</Tracks>\n"));
+   f.Write(wxT("\t</Pattern>\n"));
+f.Write(wxT("</ArrayOfPattern>\n"));
     f.Close();
     _gauge->SetValue(100);
     _gauge->Show(false);

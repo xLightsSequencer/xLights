@@ -37,7 +37,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     ChoiceFormat->Append(_("Lcb, LOR Clipboard *.lcb"));
     ChoiceFormat->Append(_("Vixen, Vixen sequence file *.vix"));
     ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
-    ChoiceFormat->Append(_("LSP, Light Show Pro (NOT IMPLEMENTED YET)"));
+    ChoiceFormat->Append(_("LSP, Light Show Pro "));
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights, *.xseq"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -54,6 +54,8 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqExportDialog::OnChoiceFormatSelect);
     //*)
 }
 
@@ -63,3 +65,7 @@ SeqExportDialog::~SeqExportDialog()
     //*)
 }
 
+
+void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
+{
+}

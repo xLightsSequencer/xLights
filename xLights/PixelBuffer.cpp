@@ -325,7 +325,7 @@ void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
 }
 
 
-void PixelBufferClass::RenderSean(int Count)
+void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity)
 {
-    Effect[CurrentLayer].RenderSean(Count);
+    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity);
 }
