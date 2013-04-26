@@ -247,7 +247,6 @@ protected:
     int lastperiod;
     RgbFireworks fireworkBursts[20000];
 
-
 private:
 };
 

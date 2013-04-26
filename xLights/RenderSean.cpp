@@ -33,10 +33,11 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
 	const int maxFlakes = 1000;
 	//float velocity = 3.5;
 	int startX;
-	int startY;
+	int startY,ColorIdx;
 	float v;
 	wxImage::HSVValue hsv;
 	wxColour color,rgbcolor;
+	 size_t colorcnt=GetColorCount();
 
 if(state==0)
     for(i=0;i<maxFlakes;i++)
@@ -122,12 +123,20 @@ if(state==0)
 		}
 	}
 	// Draw bursts with fixed color
-
-	if(state%300<=300) rgbcolor = wxColour(255,0,255);
-	if(state%300<=200) rgbcolor = wxColour(255,255,0);
+    if(state%300<=300) rgbcolor = wxColour(0,255,0);
+	if(state%300<=250) rgbcolor = wxColour(255,0,255);
+	if(state%300<=150) rgbcolor = wxColour(255,255,0);
 	if(state%300<=100) rgbcolor = wxColour(255,0,0);
-
+	if(state%300<=50) rgbcolor = wxColour(255,255,255);
 	Color2HSV(rgbcolor,hsv);
+
+
+	//ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+            //ColorIdx=0;
+     //       palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+
+
+
 	for(i=0; i < 1000; i++)
 	{
 		if(fireworkBursts[i]._bActive == true)
