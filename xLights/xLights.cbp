@@ -130,11 +130,11 @@
 		<Unit filename="RenderButterfly.cpp" />
 		<Unit filename="RenderColorWash.cpp" />
 		<Unit filename="RenderFire.cpp" />
+		<Unit filename="RenderFireworks.cpp" />
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPictures.cpp" />
-		<Unit filename="RenderSean.cpp" />
 		<Unit filename="RenderSnowflakes.cpp" />
 		<Unit filename="RenderSnowstorm.cpp" />
 		<Unit filename="RenderSpirals.cpp" />
