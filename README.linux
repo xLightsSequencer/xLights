@@ -98,3 +98,16 @@ to run cbp2make is:
 
 cbp2make -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir
 
+After creating xLights.cbp.mak, the following change are also made to the
+file to make compilation a little cleaner for now.
+
+- Add the following line near the top of the file:
+  IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch
+  Once some of these issues are fixed, these warnings can be reenabled.
+- Add $(IGNORE_WARNINGS) to the end of the definition of CFLAGS_DEBUGLINUX and
+  CFLAGS_RELEASELINUX
+- Change the definition of OBJDIR_DEBUGLINUX to .objs_debug
+- Change the 'all' target to only compile releaselinux instead of both
+  releaselinux and debuglinux since the bin/xLights binary is the target of
+  both of these.
+

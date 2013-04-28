@@ -18,19 +18,21 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
+IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-parentheses -Wno-unused-but-set-variable -Wno-maybe-uninitialized
+
 INC_DEBUGLINUX =  $(INC)
-CFLAGS_DEBUGLINUX =  $(CFLAGS) -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -D__WXDEBUG__
+CFLAGS_DEBUGLINUX =  $(CFLAGS) -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -D__WXDEBUG__ $(IGNORE_WARNINGS)
 RESINC_DEBUGLINUX =  $(RESINC)
-RCFLAGS_DEBUGLINUX = $(RCFLAGS)
+RCFLAGS_DEBUGLINUX =  $(RCFLAGS)
 LIBDIR_DEBUGLINUX =  $(LIBDIR)
-LIB_DEBUGLINUX =     $(LIB)
+LIB_DEBUGLINUX = $(LIB)
 LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` $(LDFLAGS)
-OBJDIR_DEBUGLINUX = .objs
+OBJDIR_DEBUGLINUX = .objs_debug
 DEP_DEBUGLINUX = 
 OUT_DEBUGLINUX = ../bin/xLights
 
 INC_RELEASELINUX =  $(INC)
-CFLAGS_RELEASELINUX =  $(CFLAGS) -O2 -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG
+CFLAGS_RELEASELINUX =  $(CFLAGS) -O2 -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG $(IGNORE_WARNINGS)
 RESINC_RELEASELINUX =  $(RESINC)
 RCFLAGS_RELEASELINUX =  $(RCFLAGS)
 LIBDIR_RELEASELINUX =  $(LIBDIR)
@@ -40,11 +42,12 @@ OBJDIR_RELEASELINUX = .objs
 DEP_RELEASELINUX = 
 OUT_RELEASELINUX = ../bin/xLights
 
-OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderSean.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o
+OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o
 
-OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderSean.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o
+OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o
 
-all: debuglinux releaselinux
+all: releaselinux
+#all: debuglinux releaselinux
 
 clean: clean_debuglinux clean_releaselinux
 
@@ -122,8 +125,8 @@ $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_DEBUGLINUX)/RenderLife.o: RenderLife.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderLife.cpp -o $(OBJDIR_DEBUGLINUX)/RenderLife.o
+$(OBJDIR_DEBUGLINUX)/RenderGarlands.o: RenderGarlands.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderGarlands.cpp -o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o
 
 $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderTwinkle.cpp -o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o
@@ -146,20 +149,20 @@ $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o: RenderSnowstorm.cpp
 $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o: RenderSnowflakes.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderSnowflakes.cpp -o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o
 
-$(OBJDIR_DEBUGLINUX)/RenderSean.o: RenderSean.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderSean.cpp -o $(OBJDIR_DEBUGLINUX)/RenderSean.o
-
 $(OBJDIR_DEBUGLINUX)/RenderPictures.o: RenderPictures.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderPictures.cpp -o $(OBJDIR_DEBUGLINUX)/RenderPictures.o
 
 $(OBJDIR_DEBUGLINUX)/RenderMeteors.o: RenderMeteors.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderMeteors.cpp -o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o
 
+$(OBJDIR_DEBUGLINUX)/RenderLife.o: RenderLife.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderLife.cpp -o $(OBJDIR_DEBUGLINUX)/RenderLife.o
+
 $(OBJDIR_DEBUGLINUX)/AddShowDialog.o: AddShowDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c AddShowDialog.cpp -o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o
 
-$(OBJDIR_DEBUGLINUX)/RenderGarlands.o: RenderGarlands.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderGarlands.cpp -o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o
+$(OBJDIR_DEBUGLINUX)/RenderFireworks.o: RenderFireworks.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFireworks.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o
 
 $(OBJDIR_DEBUGLINUX)/RenderFire.o: RenderFire.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFire.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFire.o
@@ -256,8 +259,8 @@ $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_RELEASELINUX)/RenderLife.o: RenderLife.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderLife.cpp -o $(OBJDIR_RELEASELINUX)/RenderLife.o
+$(OBJDIR_RELEASELINUX)/RenderGarlands.o: RenderGarlands.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderGarlands.cpp -o $(OBJDIR_RELEASELINUX)/RenderGarlands.o
 
 $(OBJDIR_RELEASELINUX)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderTwinkle.cpp -o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o
@@ -280,20 +283,20 @@ $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o: RenderSnowstorm.cpp
 $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o: RenderSnowflakes.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderSnowflakes.cpp -o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o
 
-$(OBJDIR_RELEASELINUX)/RenderSean.o: RenderSean.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderSean.cpp -o $(OBJDIR_RELEASELINUX)/RenderSean.o
-
 $(OBJDIR_RELEASELINUX)/RenderPictures.o: RenderPictures.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderPictures.cpp -o $(OBJDIR_RELEASELINUX)/RenderPictures.o
 
 $(OBJDIR_RELEASELINUX)/RenderMeteors.o: RenderMeteors.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderMeteors.cpp -o $(OBJDIR_RELEASELINUX)/RenderMeteors.o
 
+$(OBJDIR_RELEASELINUX)/RenderLife.o: RenderLife.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderLife.cpp -o $(OBJDIR_RELEASELINUX)/RenderLife.o
+
 $(OBJDIR_RELEASELINUX)/AddShowDialog.o: AddShowDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c AddShowDialog.cpp -o $(OBJDIR_RELEASELINUX)/AddShowDialog.o
 
-$(OBJDIR_RELEASELINUX)/RenderGarlands.o: RenderGarlands.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderGarlands.cpp -o $(OBJDIR_RELEASELINUX)/RenderGarlands.o
+$(OBJDIR_RELEASELINUX)/RenderFireworks.o: RenderFireworks.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFireworks.cpp -o $(OBJDIR_RELEASELINUX)/RenderFireworks.o
 
 $(OBJDIR_RELEASELINUX)/RenderFire.o: RenderFire.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFire.cpp -o $(OBJDIR_RELEASELINUX)/RenderFire.o
@@ -370,7 +373,7 @@ ChannelMapDialog.cpp: ChannelMapDialog.h
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
-RenderLife.cpp: RgbEffects.h
+RenderGarlands.cpp: RgbEffects.h
 
 RenderTwinkle.cpp: RgbEffects.h
 
@@ -386,15 +389,15 @@ RenderSnowstorm.cpp: RgbEffects.h
 
 RenderSnowflakes.cpp: RgbEffects.h
 
-RenderSean.cpp: RgbEffects.h
-
 RenderPictures.cpp: RgbEffects.h
 
 RenderMeteors.cpp: RgbEffects.h
 
+RenderLife.cpp: RgbEffects.h
+
 AddShowDialog.cpp: AddShowDialog.h
 
-RenderGarlands.cpp: RgbEffects.h
+RenderFireworks.cpp: RgbEffects.h
 
 RenderFire.cpp: RgbEffects.h
 
