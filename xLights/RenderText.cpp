@@ -47,7 +47,8 @@ void RgbEffects::RenderText(int Top, const wxString& Line1, const wxString& Line
     {
     case 0:
         // left
-        dc.DrawText(msg,BufferWi-state % xlimit/8,dctop);
+      dc.DrawText(msg,BufferWi-state % xlimit/8,dctop);
+
         break;
     case 1:
         // right
