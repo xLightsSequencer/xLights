@@ -274,6 +274,7 @@ private:
     void OnButtonSeqExportClick(wxCommandEvent& event);
     void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void OnSlider_Spirals1_CountCmdScroll(wxScrollEvent& event);
+    void OnPanel1_NonePaint(wxPaintEvent& event);
     //*)
 
     //(*Identifiers(xLightsFrame)

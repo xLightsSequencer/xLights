@@ -2089,6 +2089,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         Notebook1->ChangeSelection(SETUPTAB);
         EnableNetworkChanges();
     }
+    wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
 }
 

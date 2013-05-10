@@ -234,7 +234,11 @@ protected:
     MeteorList meteors;
     SnowstormList SnowstormItems;
     PaletteClass palette;
+
     wxImage image;
+    int imageCount;
+    int imageIndex;
+
     wxString PictureName;
     int LastSnowflakeCount;
     int LastSnowflakeType;

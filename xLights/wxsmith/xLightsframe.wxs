@@ -1509,6 +1509,7 @@
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes">
 																									<pos>0,6</pos>
+																									<handler function="OnPanel1_NonePaint" entry="EVT_PAINT" />
 																								</object>
 																								<label>None</label>
 																							</object>
