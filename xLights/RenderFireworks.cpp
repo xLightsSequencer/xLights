@@ -53,80 +53,80 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
     mod100 = state%((101-Number_Explosions)*10);
 //        mod100 = (int)(state/stateChunk);
 //        mod100 = mod100%10;
-        if(mod100 == 0)
+    if(mod100 == 0)
     {
 
         x25=(int)BufferWi*0.25;
-            x75=(int)BufferWi*0.75;
-            y25=(int)BufferHt*0.25;
-            y75=(int)BufferHt*0.75;
-            startX=(int)BufferWi/2;
-            startY=(int)BufferHt/2;
-            startX = x25 + rand()%(x75-x25);
-            startY = y25 + rand()%(y75-y25);
-            // turn off all bursts
+        x75=(int)BufferWi*0.75;
+        y25=(int)BufferHt*0.25;
+        y75=(int)BufferHt*0.75;
+        startX=(int)BufferWi/2;
+        startY=(int)BufferHt/2;
+        startX = x25 + rand()%(x75-x25);
+        startY = y25 + rand()%(y75-y25);
+        // turn off all bursts
 
-            // Create new bursts
-            for(i=0; i<Count; i++)
-            {
-                do
-                {
-                    idxFlakes = (idxFlakes + 1) % maxFlakes;
-                }
-                while (fireworkBursts[idxFlakes]._bActive);
-                fireworkBursts[idxFlakes].Reset(startX, startY, true,Velocity);
-            }
-        }
-        else
+        // Create new bursts
+        for(i=0; i<Count; i++)
         {
-            for (i=0; i<maxFlakes; i++)
+            do
             {
-                // ... active flakes:
-                if (fireworkBursts[i]._bActive)
+                idxFlakes = (idxFlakes + 1) % maxFlakes;
+            }
+            while (fireworkBursts[idxFlakes]._bActive);
+            fireworkBursts[idxFlakes].Reset(startX, startY, true,Velocity);
+        }
+    }
+    else
+    {
+        for (i=0; i<maxFlakes; i++)
+        {
+            // ... active flakes:
+            if (fireworkBursts[i]._bActive)
+            {
+                // Update position
+                fireworkBursts[i]._x += fireworkBursts[i]._dx;
+                fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
+                // If this flake run for more than maxCycle, time to switch it off
+                fireworkBursts[i]._cycles+=20;
+                if (10000 == fireworkBursts[i]._cycles) // if (10000 == fireworkBursts[i]._cycles)
                 {
-                    // Update position
-                    fireworkBursts[i]._x += fireworkBursts[i]._dx;
-                    fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
-                    // If this flake run for more than maxCycle, time to switch it off
-                    fireworkBursts[i]._cycles+=20;
-                    if (10000 == fireworkBursts[i]._cycles) // if (10000 == fireworkBursts[i]._cycles)
+                    fireworkBursts[i]._bActive = false;
+                    continue;
+                }
+                // If this flake hit the earth, time to switch it off
+                if (fireworkBursts[i]._y>=BufferHt)
+                {
+                    fireworkBursts[i]._bActive = false;
+                    continue;
+                }
+                // Draw the flake, if its X-pos is within frame
+                if (fireworkBursts[i]._x>=0. && fireworkBursts[i]._x<BufferWi)
+                {
+                    // But only if it is "under" the roof!
+                    if (fireworkBursts[i]._y>=0.)
                     {
-                        fireworkBursts[i]._bActive = false;
-                        continue;
+                        // sean we need to set color here
                     }
-                    // If this flake hit the earth, time to switch it off
-                    if (fireworkBursts[i]._y>=BufferHt)
-                    {
-                        fireworkBursts[i]._bActive = false;
-                        continue;
-                    }
-                    // Draw the flake, if its X-pos is within frame
-                    if (fireworkBursts[i]._x>=0. && fireworkBursts[i]._x<BufferWi)
-                    {
-                        // But only if it is "under" the roof!
-                        if (fireworkBursts[i]._y>=0.)
-                        {
-                            // sean we need to set color here
-                        }
-                    }
-                    else
-                    {
-                        // otherwise it just got outside the valid X-pos, so switch it off
-                        fireworkBursts[i]._bActive = false;
-                        continue;
-                    }
+                }
+                else
+                {
+                    // otherwise it just got outside the valid X-pos, so switch it off
+                    fireworkBursts[i]._bActive = false;
+                    continue;
                 }
             }
         }
+    }
 
     // Clear all Pixels
     color = wxColour(0,0,0);
     Color2HSV(color,hsv);
     for(y=0;
-y < BufferHt;
-y++)
-{
-    for(x=0; x < BufferWi; x++)
+            y < BufferHt;
+            y++)
+    {
+        for(x=0; x < BufferWi; x++)
         {
             SetPixel(x,y,hsv);
         }
@@ -140,25 +140,25 @@ y++)
 
     if(mod100==0)  rgbcolor = wxColour(0,255,255);
     else if(mod100==1)  rgbcolor = wxColour(255,0,0);
-        else if(mod100==2)  rgbcolor = wxColour(0,255,0);
-            else     if(mod100==3)  rgbcolor = wxColour(0,0,255);
-                else if(mod100==4)  rgbcolor = wxColour(255,255,0);
-                    else if(mod100==5)  rgbcolor = wxColour(0,255,0);
-                        else rgbcolor = wxColour(255,255,255);
-                            Color2HSV(rgbcolor,hsv);
+    else if(mod100==2)  rgbcolor = wxColour(0,255,0);
+    else     if(mod100==3)  rgbcolor = wxColour(0,0,255);
+    else if(mod100==4)  rgbcolor = wxColour(255,255,0);
+    else if(mod100==5)  rgbcolor = wxColour(0,255,0);
+    else rgbcolor = wxColour(255,255,255);
+    Color2HSV(rgbcolor,hsv);
 
 
-                            //ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-                            //ColorIdx=0;
-                            //       palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+    //ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+    //ColorIdx=0;
+    //       palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 
 
 
-                            for(i=0;
-i < 1000;
-i++)
-{
-    if(fireworkBursts[i]._bActive == true)
+    for(i=0;
+            i < 1000;
+            i++)
+    {
+        if(fireworkBursts[i]._bActive == true)
         {
             v = ((Fade*10.0)-fireworkBursts[i]._cycles)/(Fade*10.0);
             if(v<0) v=0.0;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker   (Ver 3.0.8)</title>
+		<title>xLights/Nutcracker   (Ver 3.0.11)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -1509,7 +1509,6 @@
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes">
 																									<pos>0,6</pos>
-																									<handler function="OnPanel1_NonePaint" entry="EVT_PAINT" />
 																								</object>
 																								<label>None</label>
 																							</object>
@@ -1923,6 +1922,25 @@
 																													<border>5</border>
 																													<option>1</option>
 																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT97" variable="StaticText96" member="yes">
+																														<label>Animated Gif Speed</label>
+																														<size>107,13</size>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDER_Pictures1_GifSpeed" variable="Slider_Pictures1_GifSpeed" member="yes">
+																														<value>20</value>
+																														<min>1</min>
+																														<max>20</max>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
 																											</object>
 																											<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2134,7 +2152,7 @@
 																												</object>
 																												<object class="sizeritem">
 																													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text1_Line1" variable="TextCtrl_Text1_Line1" member="yes">
-																														<maxlength>32</maxlength>
+																														<maxlength>256</maxlength>
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
@@ -2150,7 +2168,7 @@
 																												</object>
 																												<object class="sizeritem">
 																													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text1_Line2" variable="TextCtrl_Text1_Line2" member="yes">
-																														<maxlength>32</maxlength>
+																														<maxlength>256</maxlength>
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
@@ -2167,8 +2185,26 @@
 																												<object class="sizeritem">
 																													<object class="wxSlider" name="ID_SLIDER_Text1_Top" variable="Slider_Text1_Top" member="yes">
 																														<value>50</value>
+																														<size>172,24</size>
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>2</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT101" variable="StaticText100" member="yes">
+																														<label>Left</label>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDER_Text1_Left" variable="Slider_Text1_Left" member="yes">
+																														<value>50</value>
+																														<size>172,24</size>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
 																													<option>1</option>
 																												</object>
@@ -2209,6 +2245,22 @@
 																												<object class="sizeritem">
 																													<object class="wxChoice" name="ID_CHOICE_Text1_Dir" variable="Choice_Text1_Dir" member="yes">
 																														<selection>0</selection>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT99" variable="StaticText98" member="yes">
+																														<label>Rotation Degrees&#x0A;(0,90,180,270)</label>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDER_Text1_TextRotation" variable="Slider_Text1_TextRotation" member="yes">
+																														<max>3</max>
 																													</object>
 																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>5</border>
@@ -3028,7 +3080,7 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxFlexGridSizer" variable="FlexGridSizer64" member="no">
-																												<cols>3</cols>
+																												<cols>2</cols>
 																												<object class="sizeritem">
 																													<object class="wxStaticText" name="ID_STATICTEXT67" variable="StaticText65" member="yes">
 																														<label>Direction</label>
@@ -3040,6 +3092,24 @@
 																												<object class="sizeritem">
 																													<object class="wxChoice" name="ID_CHOICE_Pictures2_Direction" variable="Choice_Pictures2_Direction" member="yes">
 																														<selection>0</selection>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT98" variable="StaticText97" member="yes">
+																														<label>Animated Gif Speed</label>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDER_Pictures2_GifSpeed" variable="Slider_Pictures2_GifSpeed" member="yes">
+																														<value>20</value>
+																														<min>1</min>
+																														<max>20</max>
 																													</object>
 																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>5</border>
@@ -3256,7 +3326,7 @@
 																												</object>
 																												<object class="sizeritem">
 																													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text2_Line1" variable="TextCtrl_Text2_Line1" member="yes">
-																														<maxlength>32</maxlength>
+																														<maxlength>256</maxlength>
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
@@ -3272,7 +3342,7 @@
 																												</object>
 																												<object class="sizeritem">
 																													<object class="wxTextCtrl" name="ID_TEXTCTRL_Text2_Line2" variable="TextCtrl_Text2_Line2" member="yes">
-																														<maxlength>32</maxlength>
+																														<maxlength>256</maxlength>
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
@@ -3292,6 +3362,23 @@
 																													</object>
 																													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>2</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText101" member="yes">
+																														<label>Left</label>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDER_Text2_Left" variable="Slider_Text2_Left" member="yes">
+																														<value>50</value>
+																														<size>149,24</size>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
 																													<option>1</option>
 																												</object>
 																											</object>
@@ -3331,6 +3418,22 @@
 																												<object class="sizeritem">
 																													<object class="wxChoice" name="ID_CHOICE_Text2_Dir" variable="Choice_Text2_Dir" member="yes">
 																														<selection>0</selection>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxStaticText" name="ID_STATICTEXT100" variable="StaticText99" member="yes">
+																														<label>Rotation Degrees&#x0A;(0,90,180,270)</label>
+																													</object>
+																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																													<border>5</border>
+																													<option>1</option>
+																												</object>
+																												<object class="sizeritem">
+																													<object class="wxSlider" name="ID_SLIDERText2_TextRotation" variable="Slider_Text2_TextRotation" member="yes">
+																														<max>3</max>
 																													</object>
 																													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																													<border>5</border>

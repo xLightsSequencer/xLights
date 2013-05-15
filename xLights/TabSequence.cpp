@@ -653,7 +653,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     else if (effect == wxT("Pictures"))
     {
         buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
-                              SettingsMap[wxT("ID_TEXTCTRL_Pictures")+LayerStr+wxT("_Filename")]);
+                              SettingsMap[wxT("ID_TEXTCTRL_Pictures")+LayerStr+wxT("_Filename")],
+                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Pictures")+LayerStr+wxT("_GifType")]));
     }
     else if (effect == wxT("Snowflakes"))
     {
@@ -677,10 +678,12 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     else if (effect == wxT("Text"))
     {
         buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_Top")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_Left")]),
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Font")],
-                          EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_Dir")]));
+                          EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_Dir")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_TextRotation")]));
     }
     else if (effect == wxT("Twinkle"))
     {
@@ -771,7 +774,8 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
     case 8:
         buffer.RenderPictures(Choice_Pictures1_Direction->GetSelection(),
-                              TextCtrl_Pictures1_Filename->GetValue());
+                              TextCtrl_Pictures1_Filename->GetValue(),
+                              Slider_Pictures1_GifSpeed->GetValue());
         break;
     case 9:
         buffer.RenderSnowflakes(Slider_Snowflakes1_Count->GetValue(),
@@ -791,10 +795,12 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
     case 12:
         buffer.RenderText(Slider_Text1_Top->GetValue(),
+                          Slider_Text1_Left->GetValue(),
                           TextCtrl_Text1_Line1->GetValue(),
                           TextCtrl_Text1_Line2->GetValue(),
                           TextCtrl_Text1_Font->GetValue(),
-                          Choice_Text1_Dir->GetSelection());
+                          Choice_Text1_Dir->GetSelection(),
+                          Slider_Text1_TextRotation->GetValue());
         break;
     case 13:
         buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue());
@@ -859,7 +865,8 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
     case 8:
         buffer.RenderPictures(Choice_Pictures2_Direction->GetSelection(),
-                              TextCtrl_Pictures2_Filename->GetValue());
+                              TextCtrl_Pictures2_Filename->GetValue(),
+                              Slider_Pictures2_GifSpeed->GetValue());
         break;
     case 9:
         buffer.RenderSnowflakes(Slider_Snowflakes2_Count->GetValue(),
@@ -879,10 +886,12 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
     case 12:
         buffer.RenderText(Slider_Text2_Top->GetValue(),
+                          Slider_Text2_Left->GetValue(),
                           TextCtrl_Text2_Line1->GetValue(),
                           TextCtrl_Text2_Line2->GetValue(),
                           TextCtrl_Text2_Font->GetValue(),
-                          Choice_Text2_Dir->GetSelection());
+                          Choice_Text2_Dir->GetSelection(),
+                          Slider_Text2_TextRotation->GetValue());
         break;
 
     }

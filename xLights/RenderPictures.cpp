@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
 {
     const int speedfactor=4;
     if (NewPictureName != PictureName)
@@ -42,9 +42,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName)
     }
     if(imageCount>1)
     {
-         // The 10 could be animation speed. I did notice that state is jumping numbers
-         // so state%someNumber == 0 may not hit every time. There could be a better way.
-        if(state%10==0)
+        // The 10 could be animation speed. I did notice that state is jumping numbers
+        // so state%someNumber == 0 may not hit every time. There could be a better way.
+        if(state%(21-GifSpeed)==0)  // change 1-20 in Gimspeed to be 20 to 1. This makes right hand slider fastest
         {
             if(imageIndex == imageCount-1)
             {
@@ -63,7 +63,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName)
             }
             if (!image.IsOk())
                 return;
-            }
+        }
     }
 
     int imgwidth=image.GetWidth();

@@ -284,9 +284,9 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length)
     Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName)
+void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
 {
-    Effect[CurrentLayer].RenderPictures(dir,NewPictureName);
+    Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)
@@ -304,9 +304,9 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotat
     Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D);
 }
 
-void PixelBufferClass::RenderText(int Top, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir)
+void PixelBufferClass::RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextDirection)
 {
-    Effect[CurrentLayer].RenderText(Top,Line1,Line2,FontString,dir);
+    Effect[CurrentLayer].RenderText(Top,Left,Line1,Line2,FontString,dir,TextDirection);
 }
 
 void PixelBufferClass::RenderTwinkle(int Count)

@@ -23,48 +23,82 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderText(int Top, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir)
+void RgbEffects::RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextRotation)
 {
     wxColour c;
     wxBitmap bitmap(BufferWi,BufferHt);
     wxMemoryDC dc(bitmap);
     wxFont font;
+    int ColorIdx,itmp;
+    size_t colorcnt=GetColorCount();
+    srand(1); // always have the same random numbers for each frame (state)
+    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+
+    ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+
     font.SetNativeFontInfoUserDesc(FontString);
     dc.SetFont(font);
     palette.GetColor(0,c);
     dc.SetTextForeground(c);
     wxString msg = Line1;
-    if (!Line2.IsEmpty()) msg+=wxT("\n")+Line2;
+
+
+
+    if (!Line2.IsEmpty())
+    {
+        if(colorcnt>1)
+        {
+          //  palette.GetColor(1,c);
+        }
+        msg+=wxT("\n")+Line2;
+        //      dc.SetTextForeground(c);
+    }
     wxSize sz1 = dc.GetTextExtent(Line1);
     wxSize sz2 = dc.GetTextExtent(Line2);
     int maxwidth=sz1.GetWidth() > sz2.GetWidth() ? sz1.GetWidth() : sz2.GetWidth();
     int maxht=sz1.GetHeight() > sz2.GetHeight() ? sz1.GetHeight() : sz2.GetHeight();
+    if(TextRotation==1)
+    {
+        itmp=maxwidth;
+        maxwidth=maxht;
+        maxht=itmp;
+    }
     int dctop=Top * BufferHt / 50 - BufferHt/2;
     int xlimit=(BufferWi+maxwidth)*8 + 1;
     int ylimit=(BufferHt+maxht)*8 + 1;
-    int xcentered=(BufferWi-maxwidth)/2;
+//  int xcentered=(BufferWi-maxwidth)/2;  // original way
+    int xcentered=Left * BufferWi / 50 - BufferWi/2;
+
+
+    TextRotation *=90.0;
     switch (dir)
     {
     case 0:
         // left
-      dc.DrawText(msg,BufferWi-state % xlimit/8,dctop);
+        // dc.DrawText(msg,BufferWi-state % xlimit/8,dctop);
 
+        dc.DrawRotatedText(msg,BufferWi-state % xlimit/8,dctop,TextRotation);
         break;
     case 1:
         // right
-        dc.DrawText(msg,state % xlimit/8-BufferWi,dctop);
+        // dc.DrawText(msg,state % xlimit/8-BufferWi,dctop);
+        dc.DrawRotatedText(msg,state % xlimit/8-BufferWi,dctop,TextRotation);
         break;
     case 2:
         // up
-        dc.DrawText(msg,xcentered,BufferHt-state % ylimit/8);
+        //  dc.DrawText(msg,xcentered,BufferHt-state % ylimit/8);
+        dc.DrawRotatedText(msg,xcentered,BufferHt-state % ylimit/8,TextRotation);
         break;
     case 3:
         // down
-        dc.DrawText(msg,xcentered,state % ylimit / 8 - BufferHt);
+        //  dc.DrawText(msg,xcentered,state % ylimit / 8 - BufferHt);
+        dc.DrawRotatedText(msg,xcentered,state % ylimit / 8 - BufferHt,TextRotation);
         break;
     default:
         // no movement - centered
-        dc.DrawText(msg,xcentered,dctop);
+        //   dc.DrawText(msg,xcentered,dctop);
+        dc.DrawRotatedText(msg,xcentered,dctop,TextRotation);
         break;
     }
 
@@ -75,6 +109,10 @@ void RgbEffects::RenderText(int Top, const wxString& Line1, const wxString& Line
         {
             dc.GetPixel(x,BufferHt-y-1,&c);
             SetPixel(x,y,c);
+
+//        ColorIdx=(n % BlockHt) / BarHt;
+//        palette.GetHSV(ColorIdx, hsv);
+
         }
     }
 }

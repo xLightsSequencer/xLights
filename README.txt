@@ -10,6 +10,8 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.10: May 12,2013 - Changed 32 character limit in the Text effect to be 256 characters
+3.0.9: May 11,2013 - Animated Gifs added to the Pictures effect
 3.0.8: Apr 25,2013 - Added export for LSP to create UserPatterns.xml
                      The actual file created will have a *.user extension. rename it to use it
 				   - New Effect, Fireworks!. Dave Pitts coded up this new effect. 

@@ -185,11 +185,11 @@ public:
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Type);
     void RenderMeteors(int MeteorType, int Count, int Length);
-    void RenderPictures(int dir, const wxString& NewPictureName);
+    void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
     void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
-    void RenderText(int Top, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir);
+    void RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextDirection);
     void RenderTwinkle(int Count);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d,bool Animate);
