@@ -876,6 +876,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer26->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceOutputFormat = new wxChoice(PanelConvert, ID_CHOICE_OUTPUT_FORMAT, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_OUTPUT_FORMAT"));
     ChoiceOutputFormat->SetSelection( ChoiceOutputFormat->Append(_("xLights Sequence, *.xseq")) );
+    ChoiceOutputFormat->Append(_("Falcon Pi Player, *.pseq"));
     ChoiceOutputFormat->Append(_("Lynx Conductor, *.seq"));
     ChoiceOutputFormat->Append(_("Vix,Vixen 2.1 *.vix sequence file"));
     ChoiceOutputFormat->Append(_("Vir, Vixen 2.1 *.vir routine file"));

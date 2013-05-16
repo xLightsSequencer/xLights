@@ -347,6 +347,92 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
     _gauge->Show(false);
 }
 
+
+void xLightsFrame::WriteFalconPiFile(const wxString& filename)
+{
+    wxUint8 vMinor = 0;
+    wxUint8 vMajor = 1;
+    wxUint32 dataOffset = 28;
+    wxUint16 fixedHeaderLength = 28;
+    wxUint32 stepSize = SeqNumChannels + (SeqNumChannels%4);
+    wxUint32 stepLength = SeqNumPeriods;
+    // Fixed 50 Milliseconds
+    wxUint16 stepTime = 50;
+    // Ignored by Pi Player
+    wxUint16 numUniverses = 0;
+    // Ignored by Pi Player
+    wxUint16 universeSize = 0;
+    // Gamma 0=encoded 1=linear
+    wxUint8 gamma = 1;
+    // Gamma 0=unknown 1=mono 2=RGB
+    wxUint8 colorEncoding = 2;
+
+    wxFile f;
+    // Step Size must be multiple of 4
+    wxUint8 buf[stepSize];
+
+    size_t ch,i,j;
+    if (!f.Create(filename,true))
+    {
+        ConversionError(_("Unable to create file: ")+filename);
+        return;
+    }
+
+    // Header Information
+    // Format Identifier
+    buf[0] = 'P';
+    buf[1] = 'S';
+    buf[2] = 'E';
+    buf[3] = 'Q';
+    // Data offset
+    buf[4] = (wxUint8)(dataOffset%256);
+    buf[5] = (wxUint8)(dataOffset/256);
+    // Data offset
+    buf[6] = vMinor;
+    buf[7] = vMajor;
+    // Fixed header length
+    buf[8] = (wxUint8)(fixedHeaderLength%256);
+    buf[9] = (wxUint8)(fixedHeaderLength/256);
+    // Step Size
+    buf[10] = (wxUint8)(stepSize & 0xFF);
+    buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
+    buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
+    buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
+    // Number of Steps
+    buf[14] = (wxUint8)(SeqNumPeriods & 0xFF);
+    buf[15] = (wxUint8)((SeqNumPeriods >> 8) & 0xFF);
+    buf[16] = (wxUint8)((SeqNumPeriods >> 16) & 0xFF);
+    buf[17] = (wxUint8)((SeqNumPeriods >> 24) & 0xFF);
+    // Step time in ms
+    buf[18] = (wxUint8)(stepTime & 0xFF);
+    buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
+    // universe count
+    buf[20] = (wxUint8)(numUniverses & 0xFF);
+    buf[21] = (wxUint8)((numUniverses >> 8) & 0xFF);
+    // universe Size
+    buf[22] = (wxUint8)(universeSize & 0xFF);
+    buf[23] = (wxUint8)((universeSize >> 8) & 0xFF);
+    // universe Size
+    buf[24] = gamma;
+    // universe Size
+    buf[25] = colorEncoding;
+    buf[26] =0;
+    buf[27] = 0;
+    f.Write(buf,fixedHeaderLength);
+
+    for (long period=0; period < SeqNumPeriods; period++)
+    {
+        //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format(wxT("Writing time period %ld\n"),period+1));
+        wxYield();
+        for(ch=0;ch<stepSize;ch++)
+        {
+          buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
+        }
+        f.Write(buf,stepSize);
+    }
+    f.Close();
+}
+
 void xLightsFrame::WriteXLightsFile(const wxString& filename)
 {
     wxFile f;
@@ -1258,6 +1344,14 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing xLights sequence\n"));
         WriteXLightsFile(fullpath);
+        TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
+    }
+    else if (Out3 == wxT("Fal"))
+    {
+        oName.SetExt(_("pseq"));
+        fullpath=oName.GetFullPath();
+        TextCtrlConversionStatus->AppendText(_("Writing Falcon Pi Player sequence\n"));
+        WriteFalconPiFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
     }
     else if (Out3 == wxT("Lyn"))

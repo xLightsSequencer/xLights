@@ -1059,6 +1059,7 @@
 																		<object class="wxChoice" name="ID_CHOICE_OUTPUT_FORMAT" variable="ChoiceOutputFormat" member="yes">
 																			<content>
 																				<item>xLights Sequence, *.xseq</item>
+																				<item>Falcon Pi Player, *.pseq</item>
 																				<item>Lynx Conductor, *.seq</item>
 																				<item>Vix,Vixen 2.1 *.vix sequence file</item>
 																				<item>Vir, Vixen 2.1 *.vir routine file</item>
@@ -3959,7 +3960,7 @@
 		</object>
 		<object class="wxFileDialog" variable="FileDialogConvert" member="yes">
 			<message>Select file</message>
-			<wildcard>LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|xLights Sequences(*.xseq)|*.xseq|Lynx Conductor Sequences (*.seq)|*.seq</wildcard>
+			<wildcard>LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|xLights Sequences(*.xseq)|*.xseq|Falcon Pi Player Sequences (*.pseq)|*.pseq|Lynx Conductor Sequences (*.seq)|*.seq</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 		<object class="wxColourDialog" variable="ColourDialog1" member="yes" />

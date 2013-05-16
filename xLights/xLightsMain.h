@@ -1111,6 +1111,7 @@ private:
     void WriteVirFile(const wxString& filename); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
+    void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
