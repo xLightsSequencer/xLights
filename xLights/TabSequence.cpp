@@ -677,13 +677,16 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Text"))
     {
-        buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_Top")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_Left")]),
+        buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
+                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Font")],
-                          EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_TextRotation")]));
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
+                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
     }
     else if (effect == wxT("Twinkle"))
     {
@@ -794,13 +797,17 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals1_3D->GetValue());
         break;
     case 12:
-        buffer.RenderText(Slider_Text1_Top->GetValue(),
-                          Slider_Text1_Left->GetValue(),
-                          TextCtrl_Text1_Line1->GetValue(),
-                          TextCtrl_Text1_Line2->GetValue(),
-                          TextCtrl_Text1_Font->GetValue(),
-                          Choice_Text1_Dir->GetSelection(),
-                          Slider_Text1_TextRotation->GetValue());
+         buffer.RenderText(Slider_Text1_1_Position->GetValue(),
+                           TextCtrl_Text1_Line1->GetValue(),
+                           TextCtrl_Text1_1_Font->GetValue(),
+                           Choice_Text1_1_Dir->GetSelection(),
+                           Slider_Text1_1_TextRotation->GetValue(),
+                           Slider_Text1_2_Position->GetValue(),
+                           TextCtrl_Text1_Line2->GetValue(),
+                           TextCtrl_Text1_2_Font->GetValue(),
+                           Choice_Text1_2_Dir->GetSelection(),
+                           Slider_Text1_2_TextRotation->GetValue());
+
         break;
     case 13:
         buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue());
@@ -885,13 +892,19 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals2_3D->GetValue());
         break;
     case 12:
-        buffer.RenderText(Slider_Text2_Top->GetValue(),
-                          Slider_Text2_Left->GetValue(),
-                          TextCtrl_Text2_Line1->GetValue(),
-                          TextCtrl_Text2_Line2->GetValue(),
-                          TextCtrl_Text2_Font->GetValue(),
-                          Choice_Text2_Dir->GetSelection(),
-                          Slider_Text2_TextRotation->GetValue());
+/*
+         buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
+                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
+                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
+                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
+
+*/
         break;
 
     }
@@ -1040,14 +1053,20 @@ void xLightsFrame::UpdateFont(wxTextCtrl* FontCtrl)
     }
 }
 
-void xLightsFrame::OnButton_Text1_FontClick(wxCommandEvent& event)
+void xLightsFrame::OnButton_Text1_1_FontClick(wxCommandEvent& event)
 {
-    UpdateFont(TextCtrl_Text1_Font);
+    UpdateFont(TextCtrl_Text1_1_Font);
+}
+
+
+void xLightsFrame::OnButton_Text1_2_FontClick(wxCommandEvent& event)
+{
+    UpdateFont(TextCtrl_Text1_2_Font);
 }
 
 void xLightsFrame::OnButton_Text2_FontClick(wxCommandEvent& event)
 {
-    UpdateFont(TextCtrl_Text2_Font);
+    //UpdateFont(TextCtrl_Text2_Font);
 }
 
 void xLightsFrame::OnButton_Pictures1_FilenameClick(wxCommandEvent& event)

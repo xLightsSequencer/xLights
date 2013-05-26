@@ -304,9 +304,10 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotat
     Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D);
 }
 
-void PixelBufferClass::RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextDirection)
+void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,
+                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2)
 {
-    Effect[CurrentLayer].RenderText(Top,Left,Line1,Line2,FontString,dir,TextDirection);
+    Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,TextRotation1,Position2,Line2,FontString2,dir2,TextRotation2);
 }
 
 void PixelBufferClass::RenderTwinkle(int Count)
