@@ -32,6 +32,7 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
     int limit=BufferHt*PixelSpacing*4;
     int GarlandsState=(limit - (state % limit))/4;
     // ring=0 is the top ring
+    int up=2;
     for (ring=0; ring<BufferHt; ring++)
     {
         ratio=double(ring)/double(BufferHt);
@@ -47,11 +48,13 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
                 switch (x%5)
                 {
                 case 2:
-                    yadj-=2;
+                    if(up==1) yadj-=2;
+                    else yadj+=2;
                     break;
                 case 1:
                 case 3:
-                    yadj-=1;
+                    if(up==1)yadj-=1;
+                    else yadj+=1;
                     break;
                 }
                 break;
@@ -59,11 +62,13 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
                 switch (x%5)
                 {
                 case 2:
-                    yadj-=4;
+                    if(up==1)yadj-=4;
+                    else yadj+=4;
                     break;
                 case 1:
                 case 3:
-                    yadj-=2;
+                    if(up==1)yadj-=2;
+                    else yadj+=2;
                     break;
                 }
                 break;
@@ -71,15 +76,18 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
                 switch (x%6)
                 {
                 case 3:
-                    yadj-=6;
+                    if(up==1)yadj-=6;
+                    else yadj+=6;
                     break;
                 case 2:
                 case 4:
-                    yadj-=4;
+                    if(up==1)yadj-=4;
+                    else yadj+=4;
                     break;
                 case 1:
                 case 5:
-                    yadj-=2;
+                    if(up==1)yadj-=2;
+                    else yadj+=2;
                     break;
                 }
                 break;
@@ -88,7 +96,8 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
                 {
                 case 1:
                 case 3:
-                    yadj-=2;
+                    if(up==1)yadj-=2;
+                    else yadj+=2;
                     break;
                 }
                 break;

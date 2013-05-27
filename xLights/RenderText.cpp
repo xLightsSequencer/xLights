@@ -222,7 +222,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     msg="";
     font.SetNativeFontInfoUserDesc(FontString2);
     dc.SetFont(font);
-    palette.GetColor(0,c);
+    palette.GetColor(1,c);
     dc.SetTextForeground(c);
     wxSize sz2 = dc.GetTextExtent(Line2);
     maxwidth=sz2.GetWidth();
