@@ -482,7 +482,7 @@ private:
     static const long ID_SLIDER_Text1_1_Position;
     static const long ID_STATICTEXT99;
     static const long ID_SLIDER_Text1_1_TextRotation;
-    static const long ID_PANEL38;
+    static const long ID_PANEL_Text1_1;
     static const long ID_BUTTON_TEXT1_2_FONT;
     static const long ID_TEXTCTRL_Text1_2_Font;
     static const long ID_STATICTEXT57;
@@ -491,8 +491,8 @@ private:
     static const long ID_SLIDER_Text1_2_Position;
     static const long ID_STATICTEXT104;
     static const long ID_SLIDER_Text1_2_TextRotation;
-    static const long ID_PANEL37;
-    static const long ID_NOTEBOOK2;
+    static const long ID_PANEL_Text1_2;
+    static const long ID_NOTEBOOK_Text1;
     static const long ID_PANEL7;
     static const long ID_STATICTEXT86;
     static const long ID_SLIDER_Twinkle1_Count;
@@ -715,6 +715,7 @@ private:
     wxCheckBox* CheckBox_Bars1_3D;
     wxStaticText* StaticText91;
     wxSlider* Slider_Butterfly1_Chunks;
+    wxNotebook* Notebook_Text1;
     wxRadioButton* RadioButtonRgbDim;
     wxSplitterWindow* SplitterWindow2;
     wxBitmapButton* BitmapButtonOpenSeq;
@@ -748,7 +749,6 @@ private:
     wxSlider* Slider_Life1_Seed;
     wxStaticText* StaticText22;
     wxStaticText* StaticTextShowStart;
-    wxPanel* Panel6;
     wxStaticText* StaticText87;
     wxStaticText* StaticText92;
     wxSlider* Slider_ColorWash1_Count;
@@ -860,6 +860,7 @@ private:
     wxStaticText* StaticText27;
     wxPanel* PanelTest;
     wxFileDialog* FileDialogConvert;
+    wxPanel* Panel_Text1_2;
     wxChoice* Choice_Meteors2_Type;
     wxTimer Timer1;
     wxRadioButton* RadioButtonRgbChase;
@@ -868,7 +869,6 @@ private:
     wxStaticText* StaticText35;
     wxButton* ButtonShowDatesChange;
     wxStaticText* StaticText85;
-    wxNotebook* Notebook2;
     wxChoice* Choice_Text1_2_Dir;
     wxPanel* Panel1_Garlands;
     wxTextCtrl* TextCtrl_Text2_Font;
@@ -954,7 +954,6 @@ private:
     wxSlider* Slider_Butterfly1_Style;
     wxPanel* PanelCal;
     wxSlider* SliderFgColorA;
-    wxPanel* Panel7;
     wxStaticText* StaticText100;
     wxButton* ButtonClearLog;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
@@ -976,6 +975,7 @@ private:
     wxSlider* Slider_Life2_Count;
     wxStaticText* StaticText17;
     wxCheckBox* CheckBox_ColorWash1_HFade;
+    wxPanel* Panel_Text1_1;
     wxCheckBox* CheckBox_Bars2_Highlight;
     wxPanel* Panel1_None;
     wxSlider* Slider_Bars1_BarCount;

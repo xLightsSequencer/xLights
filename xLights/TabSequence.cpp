@@ -278,6 +278,11 @@ wxString xLightsFrame::CreateEffectString()
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
     s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));
+    if(PageIdx1==12)
+    {
+        s+=PageControlsToString(Notebook_Text1->GetPage(0));
+        s+=PageControlsToString(Notebook_Text1->GetPage(1));
+    }
     s+=SizerControlsToString(FlexGridSizer_Palette1);
     s+=PageControlsToString(Choicebook2->GetPage(PageIdx2));
     s+=SizerControlsToString(FlexGridSizer_Palette2);

@@ -2181,10 +2181,10 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+																											<object class="wxNotebook" name="ID_NOTEBOOK_Text1" variable="Notebook_Text1" member="yes">
 																												<size>267,162</size>
 																												<object class="notebookpage">
-																													<object class="wxPanel" name="ID_PANEL38" variable="Panel7" member="yes">
+																													<object class="wxPanel" name="ID_PANEL_Text1_1" variable="Panel_Text1_1" member="yes">
 																														<object class="wxFlexGridSizer" variable="FlexGridSizer69" member="no">
 																															<cols>2</cols>
 																															<object class="sizeritem">
@@ -2263,7 +2263,7 @@
 																													<label>Line 1 Details</label>
 																												</object>
 																												<object class="notebookpage">
-																													<object class="wxPanel" name="ID_PANEL37" variable="Panel6" member="yes">
+																													<object class="wxPanel" name="ID_PANEL_Text1_2" variable="Panel_Text1_2" member="yes">
 																														<object class="wxFlexGridSizer" variable="FlexGridSizer74" member="no">
 																															<cols>2</cols>
 																															<object class="sizeritem">
