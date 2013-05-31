@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker   (Ver 3.0.12)</title>
+		<title>xLights/Nutcracker   (Ver 3.0.13)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -2362,9 +2362,36 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Twinkle1_Count" variable="Slider_Twinkle1_Count" member="yes">
-																												<value>10</value>
+																												<value>3</value>
 																												<min>2</min>
 																												<size>117,24</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT105" variable="StaticText104" member="yes">
+																												<label>Twinkle Steps</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Twinkle1_Steps" variable="Slider_Twinkle1_Steps" member="yes">
+																												<value>3</value>
+																												<min>1</min>
+																												<max>200</max>
+																												<size>119,24</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle1_Strobe" variable="CheckBox_Twinkle1_Strobe" member="yes">
+																												<label>Strobe</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>

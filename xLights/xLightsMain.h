@@ -496,6 +496,9 @@ private:
     static const long ID_PANEL7;
     static const long ID_STATICTEXT86;
     static const long ID_SLIDER_Twinkle1_Count;
+    static const long ID_STATICTEXT105;
+    static const long ID_SLIDER_Twinkle1_Steps;
+    static const long ID_CHECKBOX_Twinkle1_Strobe;
     static const long ID_PANEL33;
     static const long ID_STATICTEXT87;
     static const long ID_SLIDER_Tree1_Branches;
@@ -707,6 +710,7 @@ private:
     wxPanel* Panel1_Life;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
+    wxSlider* Slider_Twinkle1_Steps;
     wxSlider* Slider_Meteors1_Count;
     wxPanel* PanelSequence2;
     wxRadioButton* RadioButtonDim;
@@ -772,6 +776,7 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxSlider* Slider_Text1_1_Position;
     wxStaticText* StaticText24;
+    wxStaticText* StaticText104;
     wxButton* ButtonDisplayElements;
     wxButton* ButtonTestClear;
     wxChoice* Choice_Meteors1_Type;
@@ -834,6 +839,7 @@ private:
     wxChoice* ChoiceOutputFormat;
     wxSlider* Slider_Text2_Left;
     wxPanel* PanelConvert;
+    wxCheckBox* CheckBox_Twinkle1_Strobe;
     wxButton* Button_Palette1_3;
     wxStaticText* StaticText39;
     wxSlider* Slider_Meteors1_Length;

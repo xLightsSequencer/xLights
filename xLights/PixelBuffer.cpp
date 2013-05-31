@@ -310,9 +310,9 @@ void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wx
     Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,TextRotation1,Position2,Line2,FontString2,dir2,TextRotation2);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count)
+void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
 {
-    Effect[CurrentLayer].RenderTwinkle(Count);
+    Effect[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
 }
 
 void PixelBufferClass::RenderTree(int Branches)

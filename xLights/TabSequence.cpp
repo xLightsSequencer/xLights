@@ -695,7 +695,9 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Twinkle"))
     {
-        buffer.RenderTwinkle(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]));
+        buffer.RenderTwinkle(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]),
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Steps")]),
+                             SettingsMap[wxT("ID_CHECKBOX_Twinkle")+LayerStr+wxT("_Strobe")]==wxT("1"));
     }
     else if (effect == wxT("Tree"))
     {
@@ -802,20 +804,22 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals1_3D->GetValue());
         break;
     case 12:
-         buffer.RenderText(Slider_Text1_1_Position->GetValue(),
-                           TextCtrl_Text1_Line1->GetValue(),
-                           TextCtrl_Text1_1_Font->GetValue(),
-                           Choice_Text1_1_Dir->GetSelection(),
-                           Slider_Text1_1_TextRotation->GetValue(),
-                           Slider_Text1_2_Position->GetValue(),
-                           TextCtrl_Text1_Line2->GetValue(),
-                           TextCtrl_Text1_2_Font->GetValue(),
-                           Choice_Text1_2_Dir->GetSelection(),
-                           Slider_Text1_2_TextRotation->GetValue());
+        buffer.RenderText(Slider_Text1_1_Position->GetValue(),
+                          TextCtrl_Text1_Line1->GetValue(),
+                          TextCtrl_Text1_1_Font->GetValue(),
+                          Choice_Text1_1_Dir->GetSelection(),
+                          Slider_Text1_1_TextRotation->GetValue(),
+                          Slider_Text1_2_Position->GetValue(),
+                          TextCtrl_Text1_Line2->GetValue(),
+                          TextCtrl_Text1_2_Font->GetValue(),
+                          Choice_Text1_2_Dir->GetSelection(),
+                          Slider_Text1_2_TextRotation->GetValue());
 
         break;
     case 13:
-        buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue());
+        buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue(),
+                             Slider_Twinkle1_Steps->GetValue(),
+                             CheckBox_Twinkle1_Strobe->GetValue());
         break;
     case 14:
         buffer.RenderTree(Slider_Tree1_Branches->GetValue());
@@ -897,19 +901,19 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals2_3D->GetValue());
         break;
     case 12:
-/*
-         buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
-                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
-                          TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
+        /*
+                 buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
+                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
+                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
+                                  TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
+                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
+                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
+                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
+                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
+                                  TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
+                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
 
-*/
+        */
         break;
 
     }

@@ -10,6 +10,8 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.13: May 30,2013 - New Strobe Effect now available in the Twinkle Effect Class
+                    - Twinkle Effect Class now allows different steps of twinkle.
 3.0.12: May 26,2013 - New type of vertical text where letters are not rotated but stacked on
                       top of each other. Finally we have Line 1 one color, line 2 second color.
 					  Each line of text can have a different font, a different direction.

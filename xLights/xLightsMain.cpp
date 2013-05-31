@@ -289,6 +289,9 @@ const long xLightsFrame::ID_NOTEBOOK_Text1 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT86 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Twinkle1_Count = wxNewId();
+const long xLightsFrame::ID_STATICTEXT105 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Twinkle1_Steps = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Twinkle1_Strobe = wxNewId();
 const long xLightsFrame::ID_PANEL33 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT87 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Tree1_Branches = wxNewId();
@@ -587,7 +590,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker   (Ver 3.0.12)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker   (Ver 3.0.13)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1314,8 +1317,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText85 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT86, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT86"));
     FlexGridSizer3->Add(StaticText85, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Twinkle1_Count = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Count, 10, 2, 100, wxDefaultPosition, wxSize(117,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Count"));
+    Slider_Twinkle1_Count = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Count, 3, 2, 100, wxDefaultPosition, wxSize(117,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Count"));
     FlexGridSizer3->Add(Slider_Twinkle1_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText104 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT105, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT105"));
+    FlexGridSizer3->Add(StaticText104, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Twinkle1_Steps = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Steps, 3, 1, 200, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Steps"));
+    FlexGridSizer3->Add(Slider_Twinkle1_Steps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Twinkle1_Strobe = new wxCheckBox(Panel1_Twinkle, ID_CHECKBOX_Twinkle1_Strobe, _("Strobe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle1_Strobe"));
+    CheckBox_Twinkle1_Strobe->SetValue(false);
+    FlexGridSizer3->Add(CheckBox_Twinkle1_Strobe, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Twinkle->SetSizer(FlexGridSizer3);
     FlexGridSizer3->Fit(Panel1_Twinkle);
     FlexGridSizer3->SetSizeHints(Panel1_Twinkle);

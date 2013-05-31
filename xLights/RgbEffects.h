@@ -192,7 +192,7 @@ public:
     void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,
                     int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2);
 //    void RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextDirection);
-    void RenderTwinkle(int Count);
+    void RenderTwinkle(int Count,int Steps,bool Strobe);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d,bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);

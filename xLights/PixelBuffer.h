@@ -75,7 +75,7 @@ public:
     void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
     void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,
                     int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2);
-    void RenderTwinkle(int Count);
+    void RenderTwinkle(int Count,int Steps, bool Strobe);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d, bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
