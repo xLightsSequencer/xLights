@@ -39,9 +39,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     wxString sPicture,NewPictureName;
 
-    sPicture = wxString::Format(wxT("C:\Vixen.2.1.1\Sequences\o_44e917b9ebba5a8d-%d"),frame);
+   sPicture = wxString::Format(wxT("C:\\Vixen.2.1.1\\Sequences\\movies\\o_44e917b9ebba5a8d-%d"),frame);
     NewPictureName=NewPictureName2;
-    NewPictureName=sPicture;
+ //   NewPictureName=sPicture;
     //  I was just hard coding path. I am tring to get the frame to increment and be used
     //  <== END NEW CODE
 
