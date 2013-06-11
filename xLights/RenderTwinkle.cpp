@@ -34,8 +34,8 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 
 
     if(step<1) step=1;
-    // srand (time(NULL));
-    srand(1); // always have the same random numbers for each frame (state)
+    if(Strobe) srand (time(NULL)); // for strobe effect, make lights be random
+    else srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
 
     size_t colorcnt=GetColorCount();

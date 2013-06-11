@@ -23,9 +23,29 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
+
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
     const int speedfactor=4;
+
+    //  <== BEGIN NEW CODE
+    //  This is the little new code I added Dave;
+    //  Note teh original call was
+    //  void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
+    //  i modified NewPictureName and called it NewPictureName2, just trying to see if i could see the
+    //  string values. Now you explained why i cant
+
+    int frame = state%900;
+
+    wxString sPicture,NewPictureName;
+
+    sPicture = wxString::Format(wxT("C:\Vixen.2.1.1\Sequences\o_44e917b9ebba5a8d-%d"),frame);
+    NewPictureName=NewPictureName2;
+    NewPictureName=sPicture;
+    //  I was just hard coding path. I am tring to get the frame to increment and be used
+    //  <== END NEW CODE
+
+
     if (NewPictureName != PictureName)
     {
         imageCount = wxImage::GetImageCount(NewPictureName);
@@ -53,6 +73,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName,int GifS
             else
             {
                 imageIndex++;
+
             }
 
 

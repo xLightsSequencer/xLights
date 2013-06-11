@@ -50,7 +50,7 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
     if(stateChunk<1) stateChunk=1;
 
 
-    mod100 = state%((101-Number_Explosions)*10);
+    mod100 = state%((101-Number_Explosions)*20);
 //        mod100 = (int)(state/stateChunk);
 //        mod100 = mod100%10;
     if(mod100 == 0)
@@ -76,6 +76,13 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
             while (fireworkBursts[idxFlakes]._bActive);
             fireworkBursts[idxFlakes].Reset(startX, startY, true,Velocity);
         }
+    }
+    else if (mod100<10)
+    {
+        rgbcolor = wxColour(0,255,255);
+          Color2HSV(color,hsv);
+        y=(int)(startY-startY*(1.0/(mod100+1)));
+        SetPixel(startX,y,hsv);
     }
     else
     {
@@ -131,6 +138,8 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
             SetPixel(x,y,hsv);
         }
     }
+
+
     // Draw bursts with fixed color
 //    if(state%300<=300) rgbcolor = wxColour(0,255,0);
 //    if(state%300<=250) rgbcolor = wxColour(255,0,255);
