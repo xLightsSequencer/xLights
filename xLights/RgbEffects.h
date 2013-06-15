@@ -252,6 +252,7 @@ protected:
     int speed;
     int lastperiod;
     RgbFireworks fireworkBursts[20000];
+    int maxmovieframes;
 
 private:
 };

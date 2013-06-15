@@ -659,7 +659,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
                               SettingsMap[wxT("ID_TEXTCTRL_Pictures")+LayerStr+wxT("_Filename")],
-                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Pictures")+LayerStr+wxT("_GifType")]));
+                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Pictures")+LayerStr+wxT("_GifType")])
+                              );
     }
     else if (effect == wxT("Snowflakes"))
     {

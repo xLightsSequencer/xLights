@@ -22,29 +22,78 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
-
+#include "wx/log.h"
+#include <wx/file.h>
+#include <wx/utils.h>
 
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
     const int speedfactor=4;
+    //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
+    int maxframes;
+    if(state==0 ) maxmovieframes=10;
+    maxframes=maxmovieframes;
+    int frame = state%maxframes;
+    wxString suffix,BasePicture,sPicture,NewPictureName,buff;
+    wxString filename = "RenderPictures.log";
+    int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
+    wxFile f;
 
-    //  <== BEGIN NEW CODE
-    //  This is the little new code I added Dave;
-    //  Note teh original call was
-    //  void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
-    //  i modified NewPictureName and called it NewPictureName2, just trying to see if i could see the
-    //  string values. Now you explained why i cant
 
-    int frame = state%900;
+//  Look at ending of the filename passed in. If we have it ending as *-1.jog then we will assume
+//  we have a bunch of jpg files made by ffmpeg
+//  movie files can be converted into jpg frames by this command
+//      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
+//      ffmpeg -i XXXX.avi -s 16x50 XXXX-%d.jpg
+//      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
+//      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-    wxString sPicture,NewPictureName;
 
-   sPicture = wxString::Format(wxT("C:\\Vixen.2.1.1\\Sequences\\movies\\o_44e917b9ebba5a8d-%d"),frame);
-    NewPictureName=NewPictureName2;
- //   NewPictureName=sPicture;
-    //  I was just hard coding path. I am tring to get the frame to increment and be used
-    //  <== END NEW CODE
+    sPicture = NewPictureName2;
+    suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
+    if( suffix =="-1") // do ew have amovie file?
+    {
+        //    yes
+        BasePicture= NewPictureName2.substr (0,NewPictureName2.length()-6) ;
 
+        //  build the next filename. the frame counter is incrementing through all frames
+
+        sPicture = wxString::Format(wxT("%s-%d.jpg"),BasePicture,frame);
+        if(state==0) // only once, try 10000 files to find how high is frame count
+        {
+            for (frame=1; frame<=9999; frame++)
+            {
+                sPicture = wxString::Format(wxT("%s-%d.jpg"),BasePicture,frame);
+                if(wxFileExists(sPicture))
+                {
+                    maxmovieframes=frame+1;
+                }
+            }
+        }
+
+    }
+
+
+    NewPictureName=sPicture;
+    if(!wxFileExists(NewPictureName))
+    {
+        maxframes=frame-1;
+        return;
+    }
+    if(createlog==1)
+    {
+
+
+        wxRemoveFile(filename);
+        if (!f.Create(filename,false))
+        {
+            // ConversionError(_("Unable to create file: ")+filename);
+            return;
+        }
+
+        buff = wxString::Format(wxT("NewPictureName %s, PictureName %s, NewPictureName2=%s, suffix=%s, frame=%d\n"),NewPictureName,PictureName,NewPictureName2,suffix,frame);
+        f.Write(buff);
+    }
 
     if (NewPictureName != PictureName)
     {
@@ -94,9 +143,11 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int limit=(dir < 2) ? imgwidth+BufferWi : imght+BufferHt;
     int movement=(state % (limit*speedfactor)) / speedfactor;
 
-    // copy image to buffer
+// copy image to buffer
     wxColour c;
-    for(int x=0; x<imgwidth; x++)
+    for(int x=0;
+            x<imgwidth;
+            x++)
     {
         for(int y=0; y<imght; y++)
         {

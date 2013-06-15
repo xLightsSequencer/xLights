@@ -180,6 +180,7 @@ public:
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt;
     xOutput* xout;
+
     void BasicPrompt(char* prompt, char* buff, int size);
     void BasicOutput(char *msg);
     void BasicError(const char *msg);

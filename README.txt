@@ -10,6 +10,9 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.14: Jun 13,2013 - New movie files added to Picture Effect
+                      Use web page to change your movies into jpg files. http://image.online-convert.com/convert-to-jpg
+                    - Strobe in Twinkle Effect is now random lights
 3.0.13: May 30,2013 - New Strobe Effect now available in the Twinkle Effect Class
                     - Twinkle Effect Class now allows different steps of twinkle.
 3.0.12: May 26,2013 - New type of vertical text where letters are not rotated but stacked on
