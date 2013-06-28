@@ -649,7 +649,8 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     {
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]));
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]),
+                             SettingsMap[wxT("ID_CHECKBOX_Meteors")+LayerStr+wxT("_FallUp")]==wxT("1"));
 
         //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
         //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
@@ -781,7 +782,8 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     case 7:
         buffer.RenderMeteors(Choice_Meteors1_Type->GetSelection(),
                              Slider_Meteors1_Count->GetValue(),
-                             Slider_Meteors1_Length->GetValue());
+                             Slider_Meteors1_Length->GetValue(),
+                             CheckBox_Meteors1_FallUp->GetValue());
         break;
     case 8:
         buffer.RenderPictures(Choice_Pictures1_Direction->GetSelection(),
@@ -878,7 +880,8 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     case 7:
         buffer.RenderMeteors(Choice_Meteors2_Type->GetSelection(),
                              Slider_Meteors2_Count->GetValue(),
-                             Slider_Meteors2_Length->GetValue());
+                             Slider_Meteors2_Length->GetValue(),
+                             CheckBox_Meteors2_FallUp->GetValue());
         break;
     case 8:
         buffer.RenderPictures(Choice_Pictures2_Direction->GetSelection(),

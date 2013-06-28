@@ -442,6 +442,8 @@ private:
     static const long ID_SLIDER_Meteors1_Count;
     static const long ID_STATICTEXT43;
     static const long ID_SLIDER_Meteors1_Length;
+    static const long ID_STATICTEXT106;
+    static const long ID_CHECKBOX_Meteors1_FallUp;
     static const long ID_PANEL18;
     static const long ID_BUTTON_PICTURES1_FILENAME;
     static const long ID_TEXTCTRL_Pictures1_Filename;
@@ -582,6 +584,8 @@ private:
     static const long ID_SLIDER_Meteors2_Count;
     static const long ID_STATICTEXT66;
     static const long ID_SLIDER_Meteors2_Length;
+    static const long ID_STATICTEXT107;
+    static const long ID_CHECKBOX_Meteors2_FallUp;
     static const long ID_PANEL21;
     static const long ID_BUTTON_PICTURES2_FILENAME;
     static const long ID_TEXTCTRL_Pictures2_Filename;
@@ -735,6 +739,7 @@ private:
     wxStaticText* StaticText18;
     wxStaticText* StaticText30;
     wxPanel* Panel1;
+    wxStaticText* StaticText106;
     wxSlider* Slider_Spirograph1_R;
     wxStaticText* StaticText103;
     wxSlider* Slider_Text1_2_TextRotation;
@@ -793,6 +798,7 @@ private:
     wxCheckBox* CheckBox_Spirals1_Blend;
     wxStaticText* StaticText13;
     wxPanel* Panel2_Fire;
+    wxCheckBox* CheckBox_Meteors2_FallUp;
     wxStaticText* StaticText65;
     wxStaticText* StaticText60;
     wxRadioButton* RadioButtonRgbAlt;
@@ -943,6 +949,7 @@ private:
     wxStaticText* StaticText95;
     wxStaticText* StaticText98;
     wxSlider* Slider_Spirals2_Thickness;
+    wxStaticText* StaticText105;
     wxSlider* Slider_Snowstorm2_Length;
     wxStaticText* StaticText88;
     wxNotebook* NotebookTest;
@@ -984,6 +991,7 @@ private:
     wxCheckBox* CheckBox_ColorWash1_HFade;
     wxPanel* Panel_Text1_1;
     wxCheckBox* CheckBox_Bars2_Highlight;
+    wxCheckBox* CheckBox_Meteors1_FallUp;
     wxPanel* Panel1_None;
     wxSlider* Slider_Bars1_BarCount;
     wxSlider* SliderRgbChaseSpeed;

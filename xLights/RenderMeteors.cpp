@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderMeteors(int MeteorType, int Count, int Length)
+void RgbEffects::RenderMeteors(int MeteorType, int Count, int Length,bool FallUp)
 {
     if (state == 0) meteors.clear();
     int mspeed=state/4;
@@ -35,15 +35,17 @@ void RgbEffects::RenderMeteors(int MeteorType, int Count, int Length)
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
     size_t colorcnt=GetColorCount();
+  //  bool FallUp=true;
     Count=BufferWi * Count / 100;
     int TailLength=(BufferHt < 10) ? Length / 10 : BufferHt * Length / 100;
     if (TailLength < 1) TailLength=1;
     int TailStart=BufferHt - TailLength;
     if (TailStart < 1) TailStart=1;
-    for(int i=0; i<Count; i++)
+    for(int i=0; i<Count; i++) // go through Count of Meteors
     {
-        m.x=rand() % BufferWi;
+        m.x=rand() % BufferWi; // assign start x,y for each meteor head
         m.y=BufferHt - 1 - rand() % TailStart;
+
         switch (MeteorType)
         {
         case 1:
@@ -73,9 +75,15 @@ void RgbEffects::RenderMeteors(int MeteorType, int Count, int Length)
                 break;
             }
             hsv.value*=1.0 - double(ph)/TailLength;
-            SetPixel(it->x,it->y+ph,hsv);
+            if(FallUp)
+                SetPixel(it->x,it->y-ph,hsv);
+            else
+                SetPixel(it->x,it->y+ph,hsv);
         }
-        it->y -= mspeed;
+        if(FallUp)
+            it->y += mspeed;
+        else
+            it->y -= mspeed;
     }
 
     // delete old meteors

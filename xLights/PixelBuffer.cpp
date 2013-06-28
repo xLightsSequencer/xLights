@@ -279,9 +279,9 @@ void PixelBufferClass::RenderLife(int Count, int Seed)
     Effect[CurrentLayer].RenderLife(Count,Seed);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length)
+void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, bool FallUp)
 {
-    Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length);
+    Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length, FallUp);
 }
 
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)

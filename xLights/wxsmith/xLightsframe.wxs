@@ -1876,6 +1876,22 @@
 																											<border>2</border>
 																											<option>1</option>
 																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
+																												<label>Meteors Fall Up?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors1_FallUp" variable="CheckBox_Meteors1_FallUp" member="yes">
+																												<label>Yes</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
 																									</object>
 																								</object>
 																								<label>Meteors</label>
@@ -3147,6 +3163,23 @@
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT107" variable="StaticText106" member="yes">
+																												<label>Meteors Fall Up?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors2_FallUp" variable="CheckBox_Meteors2_FallUp" member="yes">
+																												<label>Yes</label>
+																												<size>46,13</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
 																											<option>1</option>
 																										</object>
 																									</object>
