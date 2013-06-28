@@ -590,7 +590,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker   (Ver 3.0.14)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.15)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -2345,6 +2345,7 @@ bool xLightsFrame::EnableOutputs()
     {
         xout = new xOutput();
 
+
         for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=NULL && ok; e=e->GetNext() )
         {
             wxString tagname=e->GetName();
@@ -2418,6 +2419,7 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
     EnableOutputs();
     CheckChannelList=true;  // cause status bar to be updated if in test mode
 }
+
 
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
 {

@@ -26,6 +26,7 @@
 #include <wx/file.h>
 #include <wx/utils.h>
 
+
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
     const int speedfactor=4;
@@ -39,6 +40,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
     wxFile f;
 
+
+    if(NewPictureName2.length()==0) return;
 
 //  Look at ending of the filename passed in. If we have it ending as *-1.jog then we will assume
 //  we have a bunch of jpg files made by ffmpeg

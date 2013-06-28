@@ -127,6 +127,7 @@ void ModelClass::SetTreeCoord(int degrees)
     double angle,x0;
     TreeDegrees=degrees;
     if (BufferWi < 2) return;
+    if(BufferHt<1) return; // June 27,2013. added check to not divide by zero
     int factor=1000/BufferHt;
     RenderHt=BufferHt*factor;
     RenderWi=RenderHt/2;

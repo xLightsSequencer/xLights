@@ -10,6 +10,7 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.15: Jun 27,2013 - Added check to make it so empty picture selection does not cause hundreds of pop up windows
 3.0.14: Jun 13,2013 - New movie files added to Picture Effect
                       Use web page to change your movies into jpg files. http://image.online-convert.com/convert-to-jpg
                     - Strobe in Twinkle Effect is now random lights
