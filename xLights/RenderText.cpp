@@ -22,10 +22,11 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
+#include <wx/time.h>
 
 
-void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,
-                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2)
+void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,bool COUNTDOWN1,
+                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,bool COUNTDOWN2)
 {
     wxColour c;
     wxString vertMsg;
@@ -34,6 +35,9 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
     wxFont font;
     int ColorIdx,itmp,i;
+    long L1,longsecs1,longsecs2;
+    bool COUNTDOWN=true;
+
 
     size_t colorcnt=GetColorCount();
     srand(1); // always have the same random numbers for each frame (state)
@@ -50,31 +54,52 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     int maxwidth=sz1.GetWidth();
     int maxht=sz1.GetHeight();
 
+    L1=0;
+    if(state==0 and COUNTDOWN1 and Line1.ToLong(&L1))
+    {
+        timer_countdown1=L1+1;
+    }
+    if(state==0 and COUNTDOWN2 and Line2.ToLong(&L1))
+    {
+        timer_countdown2=L1+1;
+    }
+
+
+
     if(dir1==4)
     {
         maxht = maxht*Line1.length();
-        for(i=0;i<Line1.length();i++)
+        for(i=0; i<Line1.length(); i++)
         {
-          msg = msg + Line1.GetChar(i) + "\n";
+            msg = msg + Line1.GetChar(i) + "\n";
         }
     }
     else if(dir1==5)
     {
         maxht = maxht*Line1.length();
-        for(i=0;i<Line1.length();i++)
+        for(i=0; i<Line1.length(); i++)
         {
-          msg = msg + Line1.GetChar(Line1.length()-i-1) + "\n";
+            msg = msg + Line1.GetChar(Line1.length()-i-1) + "\n";
         }
     }
     else
     {
-      msg = Line1;
-      if(TextRotation1==1)
-      {
-          itmp=maxwidth;
-          maxwidth=maxht;
-          maxht=itmp;
-      }
+        msg = Line1;
+        if(COUNTDOWN1)
+        {
+            longsecs1=wxGetUTCTime	()	;
+            if(longsecs1 != old_longsecs1)  timer_countdown1--;
+            old_longsecs1=longsecs1;
+            if(timer_countdown1 < 0) timer_countdown1=0;
+            msg=wxString::Format(wxT("%i"),timer_countdown1);
+
+        }
+        if(TextRotation1==1)
+        {
+            itmp=maxwidth;
+            maxwidth=maxht;
+            maxht=itmp;
+        }
     }
 
 
@@ -138,28 +163,37 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     if(dir2==4)
     {
         maxht = maxht*Line2.length();
-        for(i=0;i<Line2.length();i++)
+        for(i=0; i<Line2.length(); i++)
         {
-          msg = msg + Line2.GetChar(i) + "\n";
+            msg = msg + Line2.GetChar(i) + "\n";
         }
     }
     else if(dir2==5)
     {
         maxht = maxht*Line2.length();
-        for(i=0;i<Line2.length();i++)
+        for(i=0; i<Line2.length(); i++)
         {
-          msg = msg + Line2.GetChar(Line2.length()-i-1) + "\n";
+            msg = msg + Line2.GetChar(Line2.length()-i-1) + "\n";
         }
     }
     else
     {
-      msg = Line2;
-      if(TextRotation2==1)
-      {
-          itmp=maxwidth;
-          maxwidth=maxht;
-          maxht=itmp;
-      }
+        msg = Line2;
+        if(COUNTDOWN2)
+        {
+            longsecs2=wxGetUTCTime	()	;
+            if(longsecs2 != old_longsecs2)  timer_countdown2--;
+            old_longsecs2=longsecs2;
+            if(timer_countdown2 < 0) timer_countdown2=0;
+            msg=wxString::Format(wxT("%i"),timer_countdown2);
+
+        }
+        if(TextRotation2==1)
+        {
+            itmp=maxwidth;
+            maxwidth=maxht;
+            maxht=itmp;
+        }
     }
 
 

@@ -10,6 +10,7 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.16: Jun 28,2013 - New option added to the Text effect, Countdown timer.
 3.0.15: Jun 27,2013 - Added check to make it so empty picture selection does not cause hundreds of pop up windows
                     - fixed LOR lms and lcb export
 					- added check to make sure model's have at least 1 pixel wide and high

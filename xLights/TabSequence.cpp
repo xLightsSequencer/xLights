@@ -661,7 +661,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
         buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
                               SettingsMap[wxT("ID_TEXTCTRL_Pictures")+LayerStr+wxT("_Filename")],
                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Pictures")+LayerStr+wxT("_GifType")])
-                              );
+                             );
     }
     else if (effect == wxT("Snowflakes"))
     {
@@ -689,11 +689,13 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
                           TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
                           wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
+                          SettingsMap[wxT("ID_CHECKBOX_Text")+LayerStr+wxT("_COUNTDOWN1")]==wxT("1"),
                           wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
                           TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]),
+                          SettingsMap[wxT("ID_CHECKBOX_Text")+LayerStr+wxT("_COUNTDOWN2")]==wxT("1"));
     }
     else if (effect == wxT("Twinkle"))
     {
@@ -812,11 +814,13 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           TextCtrl_Text1_1_Font->GetValue(),
                           Choice_Text1_1_Dir->GetSelection(),
                           Slider_Text1_1_TextRotation->GetValue(),
+                          CheckBox_Text1_COUNTDOWN1->GetValue(),
                           Slider_Text1_2_Position->GetValue(),
                           TextCtrl_Text1_Line2->GetValue(),
                           TextCtrl_Text1_2_Font->GetValue(),
                           Choice_Text1_2_Dir->GetSelection(),
-                          Slider_Text1_2_TextRotation->GetValue());
+                          Slider_Text1_2_TextRotation->GetValue(),
+                          CheckBox_Text1_COUNTDOWN2->GetValue());
 
         break;
     case 13:
