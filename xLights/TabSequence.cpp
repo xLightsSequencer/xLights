@@ -909,19 +909,18 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals2_3D->GetValue());
         break;
     case 12:
-        /*
-                 buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
-                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
-                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
-                                  TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
-                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
-                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
-                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
-                                  SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
-                                  TextEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
-                                  wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]));
-
-        */
+        buffer.RenderText(Slider_Text2_1_Position->GetValue(),
+                          TextCtrl_Text2_Line1->GetValue(),
+                          TextCtrl_Text2_1_Font->GetValue(),
+                          Choice_Text2_1_Dir->GetSelection(),
+                          Slider_Text2_1_TextRotation->GetValue(),
+                          CheckBox_Text2_COUNTDOWN1->GetValue(),
+                          Slider_Text2_2_Position->GetValue(),
+                          TextCtrl_Text2_Line2->GetValue(),
+                          TextCtrl_Text2_2_Font->GetValue(),
+                          Choice_Text2_2_Dir->GetSelection(),
+                          Slider_Text2_2_TextRotation->GetValue(),
+                          CheckBox_Text2_COUNTDOWN2->GetValue());
         break;
 
     }

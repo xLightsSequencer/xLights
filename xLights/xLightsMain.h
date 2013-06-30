@@ -280,6 +280,10 @@ private:
     void OnButton_Text1_1_FontClick(wxCommandEvent& event);
     void OnButton_Text1_2_FontClick(wxCommandEvent& event);
     void OnListBox1Select(wxCommandEvent& event);
+    void OnChoice_Text1_2_DirSelect(wxCommandEvent& event);
+    void OnSlider1CmdScroll(wxScrollEvent& event);
+    void OnTextCtrl5Text(wxCommandEvent& event);
+    void OnSlider_Text1_1_PositionCmdScroll(wxScrollEvent& event);
     //*)
 
     //(*Identifiers(xLightsFrame)
@@ -479,7 +483,7 @@ private:
     static const long ID_STATICTEXT54;
     static const long ID_TEXTCTRL_Text1_Line2;
     static const long ID_BUTTON_TEXT1_1_FONT;
-    static const long ID_TEXTCTRL_Text1_1_Font;
+    static const long ID_TEXTCTRL4;
     static const long ID_STATICTEXT79;
     static const long ID_CHOICE_Text1_1_Dir;
     static const long ID_STATICTEXT101;
@@ -624,16 +628,30 @@ private:
     static const long ID_TEXTCTRL_Text2_Line1;
     static const long ID_STATICTEXT75;
     static const long ID_TEXTCTRL_Text2_Line2;
-    static const long ID_BUTTON4;
+    static const long ID_BUTTON_TEXT2_1_FONT;
+    static const long ID_TEXTCTRL5;
     static const long ID_STATICTEXT76;
+    static const long ID_CHOICE_Text2_1_Dir;
     static const long ID_STATICTEXT78;
-    static const long ID_CHOICE1;
+    static const long ID_SLIDER_Text2_1_Position;
     static const long ID_STATICTEXT100;
-    static const long ID_SLIDER3;
+    static const long ID_SLIDER_Text2_1_TextRotation;
     static const long ID_STATICTEXT102;
-    static const long ID_SLIDER8;
+    static const long ID_CHECKBOX1;
     static const long ID_PANEL37;
-    static const long ID_BUTTON5;
+    static const long ID_BUTTON_TEXT2_2_FONT;
+    static const long ID_STATICTEXT111;
+    static const long ID_STATICTEXT112;
+    static const long ID_CHOICE_Text2_2_Dir;
+    static const long ID_STATICTEXT113;
+    static const long ID_SLIDER_Text2_2_Position;
+    static const long ID_STATICTEXT114;
+    static const long ID_SLIDER_Text2_2_TextRotation;
+    static const long ID_STATICTEXT115;
+    static const long ID_CHECKBOX_Text2_COUNTDOWN2;
+    static const long ID_TEXTCTRL1;
+    static const long ID_TEXTCTRL2;
+    static const long ID_TEXTCTRL3;
     static const long ID_PANEL38;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL29;
@@ -700,7 +718,9 @@ private:
     wxCheckBox* CheckBox_Palette1_1;
     wxSlider* Slider_Spirograph1_d;
     wxFlexGridSizer* FlexGridSizer_Palette1;
+    wxTextCtrl* TextCtrl3;
     wxSlider* Slider_Spirals1_Thickness;
+    wxStaticText* StaticText114;
     wxGrid* Grid1;
     wxStaticText* StaticText19;
     wxRadioButton* RadioButtonOff;
@@ -729,6 +749,7 @@ private:
     wxSlider* Slider_Spirals1_Rotation;
     wxButton* ButtonLightsOff;
     wxCheckBox* CheckBox_Bars1_3D;
+    wxTextCtrl* TextCtrl5;
     wxStaticText* StaticText91;
     wxSlider* Slider_Butterfly1_Chunks;
     wxNotebook* Notebook_Text1;
@@ -749,7 +770,9 @@ private:
     wxStaticText* StaticText106;
     wxSlider* Slider_Spirograph1_R;
     wxStaticText* StaticText103;
+    wxTextCtrl* TextCtrl4;
     wxSlider* Slider_Text1_2_TextRotation;
+    wxSlider* Slider_Text2_1_TextRotation;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText48;
@@ -857,6 +880,7 @@ private:
     wxButton* Button_Palette1_3;
     wxStaticText* StaticText39;
     wxSlider* Slider_Meteors1_Length;
+    wxSlider* Slider_Text2_2_TextRotation;
     wxCheckBox* CheckBox_Palette1_6;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButtonTabInfo;
@@ -864,6 +888,7 @@ private:
     wxButton* ButtonAddDongle;
     wxButton* Button_Palette1_1;
     wxPanel* Panel1_ColorWash;
+    wxSlider* Slider_Text2_1_Position;
     wxCheckBox* CheckBox_Bars1_Highlight;
     wxSlider* Slider_Butterfly2_Chunks;
     wxTextCtrl* TextCtrl_Text1_Line2;
@@ -872,26 +897,27 @@ private:
     wxSlider* Slider_Meteors2_Length;
     wxStaticText* StaticText108;
     wxPanel* Panel1_Bars;
-    wxTextCtrl* TextCtrl_Text1_1_Font;
     wxPanel* Panel1_Twinkle;
     wxChoice* Choice_Text1_1_Dir;
     wxChoice* Choice_Pictures2_Direction;
     wxStaticText* StaticTextDirName;
-    wxButton* Button2;
     wxButton* Button_ChannelMap;
     wxStaticText* StaticText27;
     wxPanel* PanelTest;
+    wxSlider* Slider_Text2_2_Position;
     wxFileDialog* FileDialogConvert;
     wxPanel* Panel_Text1_2;
     wxChoice* Choice_Meteors2_Type;
     wxTimer Timer1;
     wxRadioButton* RadioButtonRgbChase;
     wxButton* ButtonUpdateShow;
+    wxStaticText* StaticText110;
     wxStaticText* StaticText70;
     wxStaticText* StaticText35;
     wxButton* ButtonShowDatesChange;
     wxNotebook* Notebook2;
     wxStaticText* StaticText85;
+    wxButton* ButtonText2_2_Font;
     wxChoice* Choice_Text1_2_Dir;
     wxPanel* Panel1_Garlands;
     wxSlider* Slider_Fire1_Height;
@@ -918,6 +944,7 @@ private:
     wxRadioButton* RadioButtonRgbCycle4;
     wxButton* Button_Palette1_4;
     wxStaticText* StaticText57;
+    wxStaticText* StaticText112;
     wxStaticText* StaticText84;
     wxRadioButton* RadioButtonChase3;
     wxStaticText* StaticText90;
@@ -926,9 +953,12 @@ private:
     wxCheckBox* CheckBox_Spirograph1_Animate;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText61;
+    wxStaticText* StaticText113;
     wxStaticText* StaticText62;
     wxPanel* PanelRgbCycle;
     wxButton* Button_PresetUpdate;
+    wxChoice* Choice_Text2_2_Dir;
+    wxTextCtrl* TextCtrl1;
     wxStaticText* StaticText54;
     wxStaticText* StaticText107;
     wxCheckBox* CheckBox_Palette1_5;
@@ -949,6 +979,7 @@ private:
     wxButton* Button_Palette1_5;
     wxPanel* Panel2_Butterfly;
     wxTextCtrl* TextCtrl_Text1_2_Font;
+    wxCheckBox* CheckBox_Text2_COUNTDOWN1;
     wxSlider* Slider_Meteors2_Count;
     wxCheckBox* CheckBox_Palette2_5;
     wxMenuItem* MenuItemRefresh;
@@ -983,6 +1014,7 @@ private:
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxCheckBox* CheckBox_Palette2_1;
     wxSlider* Slider_Garlands2_Spacing;
+    wxTextCtrl* TextCtrl2;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxPanel* Panel1_Meteors;
     wxStaticText* StaticText26;
@@ -993,6 +1025,7 @@ private:
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxStaticText* StaticText50;
+    wxChoice* Choice_Text2_1_Dir;
     wxStaticText* StaticText81;
     wxStaticText* StaticText58;
     wxSlider* Slider_Life2_Count;
@@ -1017,7 +1050,6 @@ private:
     wxStaticText* StaticText47;
     wxStaticText* StaticText69;
     wxStaticText* StaticText3;
-    wxSlider* Slider2;
     wxButton* Button_Palette2_3;
     wxPanel* Panel2_Meteors;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
@@ -1031,16 +1063,14 @@ private:
     wxStaticText* StaticText12;
     wxStaticText* StaticText31;
     wxChoice* Choice_Pictures1_Direction;
+    wxStaticText* StaticText111;
     wxCheckBox* CheckBox_Palette1_4;
     wxPanel* Panel2_ColorWash;
     wxSlider* Slider_Life1_Count;
     wxButton* ButtonTestLoad;
     wxMenu* MenuFile;
-    wxChoice* Choice1;
     wxSlider* SliderFgIntensity;
-    wxButton* Button1;
     wxButton* Button_Palette2_4;
-    wxSlider* Slider1;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;
     wxSlider* Slider_Twinkle1_Count;
@@ -1060,6 +1090,7 @@ private:
     wxStaticText* StaticTextSetup1;
     wxButton* Button_PlayRgbSeq;
     wxStaticText* StaticText5;
+    wxCheckBox* CheckBox_Text2_COUNTDOWN2;
     wxPanel* Panel1_Tree;
     wxSplitterWindow* SplitterWindow1;
     wxCheckBox* CheckBox_Palette2_4;
@@ -1071,6 +1102,7 @@ private:
     wxBitmapButton* BitmapButtonInsertRow;
     wxSlider* Slider_Text1_2_Position;
     wxCheckBox* CheckBox_Palette1_3;
+    wxButton* Button_Text2_1_Font;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* Slider_Fireworks1_Velocity;
     wxMessageDialog* MessageDialog1;

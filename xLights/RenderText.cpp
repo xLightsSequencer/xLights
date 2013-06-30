@@ -24,7 +24,6 @@
 #include "RgbEffects.h"
 #include <wx/time.h>
 
-
 void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,bool COUNTDOWN1,
                             int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,bool COUNTDOWN2)
 {
