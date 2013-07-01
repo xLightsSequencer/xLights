@@ -1080,9 +1080,15 @@ void xLightsFrame::OnButton_Text1_2_FontClick(wxCommandEvent& event)
     UpdateFont(TextCtrl_Text1_2_Font);
 }
 
-void xLightsFrame::OnButton_Text2_FontClick(wxCommandEvent& event)
+void xLightsFrame::OnButton_Text2_1_FontClick(wxCommandEvent& event)
 {
-    //UpdateFont(TextCtrl_Text2_Font);
+    UpdateFont(TextCtrl_Text2_1_Font);
+}
+
+
+void xLightsFrame::OnButton_Text2_2_FontClick(wxCommandEvent& event)
+{
+    UpdateFont(TextCtrl_Text2_2_Font);
 }
 
 void xLightsFrame::OnButton_Pictures1_FilenameClick(wxCommandEvent& event)

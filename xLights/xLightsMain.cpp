@@ -290,7 +290,7 @@ const long xLightsFrame::ID_STATICTEXT104 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Text1_2_TextRotation = wxNewId();
 const long xLightsFrame::ID_STATICTEXT109 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Text1_COUNTDOWN2 = wxNewId();
-const long xLightsFrame::ID_PANEL_Text1_2 = wxNewId();
+const long xLightsFrame::ID_PANEL39 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK_Text1 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT86 = wxNewId();
@@ -424,21 +424,18 @@ const long xLightsFrame::ID_SLIDER_Text2_1_Position = wxNewId();
 const long xLightsFrame::ID_STATICTEXT100 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Text2_1_TextRotation = wxNewId();
 const long xLightsFrame::ID_STATICTEXT102 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Text2_COUNTDOWN1 = wxNewId();
 const long xLightsFrame::ID_PANEL37 = wxNewId();
 const long xLightsFrame::ID_BUTTON_TEXT2_2_FONT = wxNewId();
-const long xLightsFrame::ID_STATICTEXT111 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT112 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Text2_2_Font = wxNewId();
+const long xLightsFrame::ID_STATICTEXT110 = wxNewId();
 const long xLightsFrame::ID_CHOICE_Text2_2_Dir = wxNewId();
-const long xLightsFrame::ID_STATICTEXT113 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT111 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Text2_2_Position = wxNewId();
-const long xLightsFrame::ID_STATICTEXT114 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT112 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Text2_2_TextRotation = wxNewId();
-const long xLightsFrame::ID_STATICTEXT115 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT113 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Text2_COUNTDOWN2 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL1 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL3 = wxNewId();
 const long xLightsFrame::ID_PANEL38 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK2 = wxNewId();
 const long xLightsFrame::ID_PANEL29 = wxNewId();
@@ -1298,15 +1295,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Text1_1_Font = new wxButton(Panel_Text1_1, ID_BUTTON_TEXT1_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_1_FONT"));
     Button_Text1_1_Font->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer69->Add(Button_Text1_1_Font, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl4 = new wxTextCtrl(Panel_Text1_1, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxSize(172,23), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL4"));
-    FlexGridSizer69->Add(TextCtrl4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Text1_1_Font = new wxTextCtrl(Panel_Text1_1, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxSize(172,23), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+    FlexGridSizer69->Add(TextCtrl_Text1_1_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText78 = new wxStaticText(Panel_Text1_1, ID_STATICTEXT79, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT79"));
     FlexGridSizer69->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text1_1_Dir = new wxChoice(Panel_Text1_1, ID_CHOICE_Text1_1_Dir, wxDefaultPosition, wxSize(160,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text1_1_Dir"));
     FlexGridSizer69->Add(Choice_Text1_1_Dir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText100 = new wxStaticText(Panel_Text1_1, ID_STATICTEXT101, _("Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT101"));
     FlexGridSizer69->Add(StaticText100, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Text1_1_Position = new wxSlider(Panel_Text1_1, ID_SLIDER_Text1_1_Position, 50, 0, 100, wxDefaultPosition, wxSize(117,24), 0, wxDefaultValidator, _T("ID_SLIDER_Text1_1_Position"));
+    Slider_Text1_1_Position = new wxSlider(Panel_Text1_1, ID_SLIDER_Text1_1_Position, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text1_1_Position"));
     FlexGridSizer69->Add(Slider_Text1_1_Position, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText98 = new wxStaticText(Panel_Text1_1, ID_STATICTEXT99, _("Rotation Degrees"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT99"));
     FlexGridSizer69->Add(StaticText98, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1320,11 +1317,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel_Text1_1->SetSizer(FlexGridSizer69);
     FlexGridSizer69->Fit(Panel_Text1_1);
     FlexGridSizer69->SetSizeHints(Panel_Text1_1);
-    Panel_Text1_2 = new wxPanel(Notebook_Text1, ID_PANEL_Text1_2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text1_2"));
+    Panel_Text1_2 = new wxPanel(Notebook_Text1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL39"));
     FlexGridSizer74 = new wxFlexGridSizer(0, 2, 0, 0);
-    ButtonText1_2_Font = new wxButton(Panel_Text1_2, ID_BUTTON_TEXT1_2_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_2_FONT"));
-    ButtonText1_2_Font->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer74->Add(ButtonText1_2_Font, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Text1_2_Font = new wxButton(Panel_Text1_2, ID_BUTTON_TEXT1_2_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_2_FONT"));
+    Button_Text1_2_Font->SetBackgroundColour(wxColour(224,224,224));
+    FlexGridSizer74->Add(Button_Text1_2_Font, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Text1_2_Font = new wxTextCtrl(Panel_Text1_2, ID_TEXTCTRL_Text1_2_Font, wxEmptyString, wxDefaultPosition, wxSize(159,23), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text1_2_Font"));
     FlexGridSizer74->Add(TextCtrl_Text1_2_Font, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText57 = new wxStaticText(Panel_Text1_2, ID_STATICTEXT57, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT57"));
@@ -1717,8 +1714,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer67 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Text2_1_Font = new wxButton(Panel6, ID_BUTTON_TEXT2_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT2_1_FONT"));
     FlexGridSizer67->Add(Button_Text2_1_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl5 = new wxTextCtrl(Panel6, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
-    FlexGridSizer67->Add(TextCtrl5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Text2_1_Font = new wxTextCtrl(Panel6, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+    FlexGridSizer67->Add(TextCtrl_Text2_1_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText74 = new wxStaticText(Panel6, ID_STATICTEXT76, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT76"));
     FlexGridSizer67->Add(StaticText74, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Text2_1_Dir = new wxChoice(Panel6, ID_CHOICE_Text2_1_Dir, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text2_1_Dir"));
@@ -1733,7 +1730,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer67->Add(Slider_Text2_1_TextRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText101 = new wxStaticText(Panel6, ID_STATICTEXT102, _("Countdown Timer\?"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT102"));
     FlexGridSizer67->Add(StaticText101, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Text2_COUNTDOWN1 = new wxCheckBox(Panel6, ID_CHECKBOX1, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBox_Text2_COUNTDOWN1 = new wxCheckBox(Panel6, ID_CHECKBOX_Text2_COUNTDOWN1, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Text2_COUNTDOWN1"));
     CheckBox_Text2_COUNTDOWN1->SetValue(false);
     CheckBox_Text2_COUNTDOWN1->SetFocus();
     FlexGridSizer67->Add(CheckBox_Text2_COUNTDOWN1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1742,33 +1739,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Layout();
     Panel7 = new wxPanel(Notebook2, ID_PANEL38, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL38"));
     FlexGridSizer75 = new wxFlexGridSizer(0, 2, 0, 0);
-    ButtonText2_2_Font = new wxButton(Panel7, ID_BUTTON_TEXT2_2_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT2_2_FONT"));
-    FlexGridSizer75->Add(ButtonText2_2_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText110 = new wxStaticText(Panel7, ID_STATICTEXT111, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT111"));
-    FlexGridSizer75->Add(StaticText110, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText111 = new wxStaticText(Panel7, ID_STATICTEXT112, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT112"));
-    FlexGridSizer75->Add(StaticText111, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Text2_2_Font = new wxButton(Panel7, ID_BUTTON_TEXT2_2_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT2_2_FONT"));
+    FlexGridSizer75->Add(Button_Text2_2_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Text2_2_Font = new wxTextCtrl(Panel7, ID_TEXTCTRL_Text2_2_Font, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text2_2_Font"));
+    FlexGridSizer75->Add(TextCtrl_Text2_2_Font, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText109 = new wxStaticText(Panel7, ID_STATICTEXT110, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT110"));
+    FlexGridSizer75->Add(StaticText109, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Text2_2_Dir = new wxChoice(Panel7, ID_CHOICE_Text2_2_Dir, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text2_2_Dir"));
     FlexGridSizer75->Add(Choice_Text2_2_Dir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText112 = new wxStaticText(Panel7, ID_STATICTEXT113, _("Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT113"));
-    FlexGridSizer75->Add(StaticText112, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Text2_2_Position = new wxSlider(Panel7, ID_SLIDER_Text2_2_Position, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text2_2_Position"));
+    StaticText110 = new wxStaticText(Panel7, ID_STATICTEXT111, _("Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT111"));
+    FlexGridSizer75->Add(StaticText110, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Text2_2_Position = new wxSlider(Panel7, ID_SLIDER_Text2_2_Position, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text2_2_Position"));
     FlexGridSizer75->Add(Slider_Text2_2_Position, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText113 = new wxStaticText(Panel7, ID_STATICTEXT114, _("Rotation Degrees"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT114"));
-    FlexGridSizer75->Add(StaticText113, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText111 = new wxStaticText(Panel7, ID_STATICTEXT112, _("Rotation Degrees"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT112"));
+    FlexGridSizer75->Add(StaticText111, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Text2_2_TextRotation = new wxSlider(Panel7, ID_SLIDER_Text2_2_TextRotation, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Text2_2_TextRotation"));
     FlexGridSizer75->Add(Slider_Text2_2_TextRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText114 = new wxStaticText(Panel7, ID_STATICTEXT115, _("Countdown Timer\?"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT115"));
-    FlexGridSizer75->Add(StaticText114, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText112 = new wxStaticText(Panel7, ID_STATICTEXT113, _("Countdown Timer\?"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT113"));
+    FlexGridSizer75->Add(StaticText112, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Text2_COUNTDOWN2 = new wxCheckBox(Panel7, ID_CHECKBOX_Text2_COUNTDOWN2, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Text2_COUNTDOWN2"));
     CheckBox_Text2_COUNTDOWN2->SetValue(false);
-    FlexGridSizer75->Add(CheckBox_Text2_COUNTDOWN2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl1 = new wxTextCtrl(Panel7, ID_TEXTCTRL1, _("Text"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer75->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl2 = new wxTextCtrl(Panel7, ID_TEXTCTRL2, _("Text"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer75->Add(TextCtrl2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl3 = new wxTextCtrl(Panel7, ID_TEXTCTRL3, _("Text"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    FlexGridSizer75->Add(TextCtrl3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer75->Add(CheckBox_Text2_COUNTDOWN2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     Panel7->SetSizer(FlexGridSizer75);
     FlexGridSizer75->Fit(Panel7);
     FlexGridSizer75->SetSizeHints(Panel7);
@@ -2066,6 +2057,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_SLIDER_Text1_1_Position,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Text1_1_PositionCmdScroll);
     Connect(ID_BUTTON_TEXT1_2_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text1_2_FontClick);
     Connect(ID_CHOICE_Text1_2_Dir,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_Text1_2_DirSelect);
+    Connect(ID_NOTEBOOK_Text1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook_Text1PageChanged);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnChoicebookEffectPageChanged);
     Connect(ID_BUTTON_Palette1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Palette1Click);
     Connect(ID_CHECKBOX_Palette1_1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_PaletteClick);
@@ -2081,8 +2073,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_CHECKBOX_Palette1_6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_PaletteClick);
     Connect(ID_BUTTON_Palette1_6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ColorClick);
     Connect(ID_BUTTON_PICTURES2_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Pictures2_FilenameClick);
+    Connect(ID_BUTTON_TEXT2_1_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text2_1_FontClick);
     Connect(ID_TEXTCTRL5,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl5Text);
     Connect(ID_SLIDER_Text2_1_Position,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider1CmdScroll);
+    Connect(ID_BUTTON_TEXT2_2_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text2_2_FontClick);
     Connect(ID_CHOICEBOOK2,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnChoicebookEffectPageChanged);
     Connect(ID_BUTTON_Palette2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Palette2Click);
     Connect(ID_CHECKBOX_Palette2_1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_PaletteClick);
@@ -2222,6 +2216,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_Pictures1_Direction->SetSelection(0);
     Choice_Pictures2_Direction->Set(EffectDirections);
     Choice_Pictures2_Direction->SetSelection(0);
+
+
     Choice_Text1_1_Dir->Set(EffectDirections);
     Choice_Text1_1_Dir->SetSelection(0);
     Choice_Text1_2_Dir->Set(EffectDirections);
@@ -2242,8 +2238,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_Text1_2_Dir->SetSelection(0);
 
     // Line 2 of each effect
-    //Choice_Text2_1_Dir->Set(TextEffectDirections);
-    //Choice_Text2_1_Dir->SetSelection(0);
+    Choice_Text2_1_Dir->Set(TextEffectDirections);
+    Choice_Text2_1_Dir->SetSelection(0);
+    Choice_Text2_2_Dir->Set(TextEffectDirections);
+    Choice_Text2_2_Dir->SetSelection(0);
 
 
 
@@ -2608,3 +2606,19 @@ void xLightsFrame::OnTextCtrl5Text(wxCommandEvent& event)
 void xLightsFrame::OnSlider_Text1_1_PositionCmdScroll(wxScrollEvent& event)
 {
 }
+
+void xLightsFrame::OnNotebook_Text1PageChanged(wxNotebookEvent& event)
+{
+}
+
+//void xLightsFrame::OnButton_Text2_1_FontClick(wxCommandEvent& event)
+//{
+//}
+//
+//void xLightsFrame::OnButtonText2_2_FontClick(wxCommandEvent& event)
+//{
+//}
+//
+//void xLightsFrame::OnButton_Text2_2_FontClick(wxCommandEvent& event)
+//{
+//}
