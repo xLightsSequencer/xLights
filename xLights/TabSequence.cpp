@@ -922,6 +922,26 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           Slider_Text2_2_TextRotation->GetValue(),
                           CheckBox_Text2_COUNTDOWN2->GetValue());
         break;
+    case 13:
+        buffer.RenderTwinkle(Slider_Twinkle2_Count->GetValue(),
+                             Slider_Twinkle2_Steps->GetValue(),
+                             CheckBox_Twinkle2_Strobe->GetValue());
+        break;
+    case 14:
+        buffer.RenderTree(Slider_Tree2_Branches->GetValue());
+        break;
+    case 15:
+        buffer.RenderSpirograph(Slider_Spirograph2_R->GetValue(),
+                                Slider_Spirograph2_r->GetValue(),
+                                Slider_Spirograph2_d->GetValue(),
+                                CheckBox_Spirograph2_Animate->GetValue());
+        break;
+    case 16:
+        buffer.RenderFireworks(Slider_Fireworks2_Number_Explosions->GetValue(),
+                               Slider_Fireworks2_Count->GetValue(),
+                               Slider_Fireworks2_Velocity->GetValue(),
+                               Slider_Fireworks2_Fade->GetValue());
+        break;
 
     }
     buffer.CalcOutput();
