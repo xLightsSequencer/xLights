@@ -47,6 +47,7 @@ class PixelBufferClass : public ModelClass
 private:
 
     int sparkle_count;
+    int brightness;
     int CurrentLayer;  // 0 or 1
     MixTypes MixType;
     RgbEffects Effect[2];
@@ -62,6 +63,7 @@ public:
     void SetPalette(int layer, wxColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
     void SetSparkle(int freq);
+    void SetBrightness(int value);
     void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
     void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip);
     void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);

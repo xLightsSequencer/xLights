@@ -733,6 +733,10 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
     buffer.SetSparkle(freq);
 
+    int brightness=Slider_Brightness->GetValue();
+    buffer.SetBrightness(brightness);
+
+
     if (PaletteChanged)
     {
         UpdateBufferPalette();
@@ -1508,6 +1512,10 @@ void xLightsFrame::RenderGridToSeqData()
                 int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
                 if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
                 buffer.SetSparkle(freq);
+
+                int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                buffer.SetBrightness(brightness);
+
                 NextGridRowToPlay++;
             }
             RenderEffectFromString(0, p, SettingsMap);

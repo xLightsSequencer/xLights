@@ -396,6 +396,8 @@ private:
     static const long ID_CHOICE_LayerMethod;
     static const long ID_STATICTEXT24;
     static const long ID_SLIDER_SparkleFrequency;
+    static const long ID_STATICTEXT127;
+    static const long ID_SLIDER_Slider_Brightness;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
@@ -1090,6 +1092,7 @@ private:
     wxCheckBox* CheckBox_Text1_COUNTDOWN1;
     wxSlider* SliderChaseSpeed;
     wxStaticText* StaticText119;
+    wxSlider* Slider_Brightness;
     wxPanel* Panel1_Snowstorm;
     wxStaticText* StaticText117;
     wxPanel* Panel2_Snowstorm;
@@ -1113,6 +1116,7 @@ private:
     wxTextCtrl* TextCtrl_Pictures1_Filename;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxButton* ButtonGracefulStop;
+    wxStaticText* StaticText126;
     wxDirDialog* DirDialog1;
     wxStaticText* StaticText12;
     wxStaticText* StaticText31;
