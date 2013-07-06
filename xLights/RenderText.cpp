@@ -34,8 +34,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
     wxFont font;
     int ColorIdx,itmp,i;
-    long L1,longsecs1,longsecs2;
+    long L1,longsecs1,longsecs2,seconds;
     bool COUNTDOWN=true;
+    int days,hours,minutes;
+    bool DAYS_STRING=true;
 
 
     size_t colorcnt=GetColorCount();
@@ -56,11 +58,11 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     L1=0;
     if(state==0 and COUNTDOWN1 and Line1.ToLong(&L1))
     {
-        timer_countdown1=L1+1;
+        timer_countdown1=L1+1; // set their counter one higher since teh first thing we do it subtract one from it.
     }
     if(state==0 and COUNTDOWN2 and Line2.ToLong(&L1))
     {
-        timer_countdown2=L1+1;
+        timer_countdown2=L1+1; // we can have concurrent timers, one for each line of text
     }
 
 
@@ -184,8 +186,18 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
             if(longsecs2 != old_longsecs2)  timer_countdown2--;
             old_longsecs2=longsecs2;
             if(timer_countdown2 < 0) timer_countdown2=0;
-            msg=wxString::Format(wxT("%i"),timer_countdown2);
-
+            if(DAYS_STRING)
+            {
+                days = timer_countdown2 / 60 / 60 / 24;
+                hours = (timer_countdown2 / 60 / 60) % 24;
+                minutes = (timer_countdown2 / 60) % 60;
+                seconds = timer_countdown2 % 60;
+                msg=wxString::Format(wxT("%i d %i h %i m %i s"),days,hours,minutes,seconds);
+            }
+            else
+                {
+                    msg=wxString::Format(wxT("%i"),timer_countdown2);
+                }
         }
         if(TextRotation2==1)
         {

@@ -1830,8 +1830,11 @@ void xLightsFrame::DisplayEffectOnWindow()
         buffer.Nodes[i].GetColor(color);
         pen.SetColour(color);
         dc.SetPen(pen);
-        //dc.DrawCircle(Nodes[i].screenX, Nodes[i].screenY,1);
+    //   dc.DrawCircle(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY,1);
         dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
+         dc.DrawPoint(buffer.Nodes[i].screenX*1.10, buffer.Nodes[i].screenY);
+          dc.DrawPoint(buffer.Nodes[i].screenX*1.1, buffer.Nodes[i].screenY*1.1);
+           dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY*1.1);
     }
 }
 

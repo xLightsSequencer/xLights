@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.16)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.17)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -1360,7 +1360,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
-																					<cols>9</cols>
+																					<cols>10</cols>
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
 																							<label>Play</label>
@@ -1532,6 +1532,7 @@
 																												<value>1</value>
 																												<min>1</min>
 																												<max>5</max>
+																												<style>wxSL_VERTICAL</style>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>2</border>
