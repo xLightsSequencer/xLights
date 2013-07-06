@@ -736,6 +736,8 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     int brightness=Slider_Brightness->GetValue();
     buffer.SetBrightness(brightness);
 
+    int contrast=Slider_Contrast->GetValue();
+    buffer.SetContrast(contrast);
 
     if (PaletteChanged)
     {
@@ -1516,6 +1518,10 @@ void xLightsFrame::RenderGridToSeqData()
                 int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
                 buffer.SetBrightness(brightness);
 
+
+                int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+                buffer.SetContrast(contrast);
+
                 NextGridRowToPlay++;
             }
             RenderEffectFromString(0, p, SettingsMap);
@@ -1838,11 +1844,9 @@ void xLightsFrame::DisplayEffectOnWindow()
         buffer.Nodes[i].GetColor(color);
         pen.SetColour(color);
         dc.SetPen(pen);
-    //   dc.DrawCircle(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY,1);
+
         dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
-         dc.DrawPoint(buffer.Nodes[i].screenX*1.10, buffer.Nodes[i].screenY);
-          dc.DrawPoint(buffer.Nodes[i].screenX*1.1, buffer.Nodes[i].screenY*1.1);
-           dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY*1.1);
+
     }
 }
 

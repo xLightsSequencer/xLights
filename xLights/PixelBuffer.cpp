@@ -202,6 +202,10 @@ void PixelBufferClass::SetBrightness(int value)
     brightness=value;
 }
 
+void PixelBufferClass::SetContrast(int value)
+{
+    contrast=value;
+}
 
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetState)
 {
@@ -256,6 +260,21 @@ void PixelBufferClass::CalcOutput()
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
             hsv = wxImage::RGBtoHSV(rgb);
             hsv.value = hsv.value * ((double)brightness/(double)100);
+
+            // Apply Contrast
+            if(hsv.value< 0.5) // reduce brightness when below 0.5 in the V value or increase if > 0.5
+            {
+                hsv.value = hsv.value - (hsv.value* ((double)contrast/(double)100));
+            }
+            else
+            {
+
+                hsv.value = hsv.value + (hsv.value* ((double)contrast/(double)100));
+            }
+            if(hsv.value < 0.0) hsv.value=0.0;
+            if(hsv.value > 1.0) hsv.value=1.0;
+
+
             rgb = wxImage::HSVtoRGB(hsv);
             color = wxColor(rgb.red,rgb.green,rgb.blue);
 

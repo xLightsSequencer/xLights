@@ -10,6 +10,8 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.18: Jul 06,2013 - Added new Brightness and Comtrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
+                      Contrast will make brights brighter and sim colors go towards black.
 3.0.17: Jul 01,2013 - Fixed text in Effect2. Added Twinkle, Tree, Spirograph and Fireworks to Effect2
 3.0.16: Jun 28,2013 - New option added to the Text effect, Countdown timer.
 3.0.15: Jun 27,2013 - Added check to make it so empty picture selection does not cause hundreds of pop up windows

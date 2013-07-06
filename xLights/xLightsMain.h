@@ -398,6 +398,8 @@ private:
     static const long ID_SLIDER_SparkleFrequency;
     static const long ID_STATICTEXT127;
     static const long ID_SLIDER_Slider_Brightness;
+    static const long ID_STATICTEXT128;
+    static const long ID_SLIDER_Slider_Contrast;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
@@ -966,6 +968,8 @@ private:
     wxStaticText* StaticText85;
     wxChoice* Choice_Text1_2_Dir;
     wxPanel* Panel1_Garlands;
+    wxStaticText* StaticText127;
+    wxSlider* Slider_Contrast;
     wxSlider* Slider_Fire1_Height;
     wxStaticText* StaticText109;
     wxSlider* SliderRgbCycleSpeed;
