@@ -1004,7 +1004,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer30->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, Panel5, _("Combined Effect"));
-    FlexGridSizer33 = new wxFlexGridSizer(7, 2, 0, 0);
+    FlexGridSizer33 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_PlayEffect = new wxButton(Panel5, ID_BUTTON13, _("Play Effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
     Button_PlayEffect->Disable();
     Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
@@ -1051,7 +1051,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText127 = new wxStaticText(Panel5, ID_STATICTEXT128, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT128"));
     FlexGridSizer33->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Contrast = new wxSlider(Panel5, ID_SLIDER_Slider_Contrast, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Slider_Contrast"));
-    FlexGridSizer33->Add(Slider_Contrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer33->Add(Slider_Contrast, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer6->Add(StaticBoxSizer3, 0, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel5->SetSizer(BoxSizer6);

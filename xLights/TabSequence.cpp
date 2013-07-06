@@ -275,6 +275,8 @@ wxString xLightsFrame::CreateEffectString()
     wxString s=Choicebook1->GetPageText(PageIdx1)+wxT(",")+Choicebook2->GetPageText(PageIdx2);
     s+=wxT(",")+Choice_LayerMethod->GetStringSelection();
     s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
+    s+=wxT(",ID_SLIDER_Slider_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
+    s+=wxT(",ID_SLIDER_Slider_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
     s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));

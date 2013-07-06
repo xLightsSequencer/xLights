@@ -1200,7 +1200,6 @@
 																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer33" member="no">
 																			<cols>2</cols>
-																			<rows>7</rows>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
 																					<label>Play Effect</label>
@@ -1353,7 +1352,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_Slider_Contrast" variable="Slider_Contrast" member="yes" />
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
