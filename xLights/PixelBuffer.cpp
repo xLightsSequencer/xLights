@@ -197,6 +197,12 @@ void PixelBufferClass::SetSparkle(int freq)
     sparkle_count=freq;
 }
 
+void PixelBufferClass::SetBrightness(int value)
+{
+    brightness=value;
+}
+
+
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetState)
 {
     CurrentLayer=newlayer & 1;  // only 0 or 1 is allowed
@@ -206,6 +212,9 @@ void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetS
 void PixelBufferClass::CalcOutput()
 {
     wxColour color;
+    wxImage::HSVValue hsv;
+
+
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)
@@ -243,6 +252,13 @@ void PixelBufferClass::CalcOutput()
                 }
                 Nodes[i].sparkle++;
             }
+            // Apply brightness
+            wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
+            hsv = wxImage::RGBtoHSV(rgb);
+            hsv.value = hsv.value * ((double)brightness/(double)100);
+            rgb = wxImage::HSVtoRGB(hsv);
+            color = wxColor(rgb.red,rgb.green,rgb.blue);
+
             // set color for physical output
             Nodes[i].SetColor(color);
         }

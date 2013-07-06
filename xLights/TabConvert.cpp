@@ -1348,7 +1348,7 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
     }
     else if (Out3 == wxT("Fal"))
     {
-        oName.SetExt(_("pseq"));
+        oName.SetExt(_("fseq"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing Falcon Pi Player sequence\n"));
         WriteFalconPiFile(fullpath);
