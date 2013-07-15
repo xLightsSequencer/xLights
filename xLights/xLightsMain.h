@@ -274,19 +274,9 @@ private:
     void OnChoicebookEffectPageChanged(wxChoicebookEvent& event);
     void OnButtonSeqExportClick(wxCommandEvent& event);
     void OnCheckBox_PaletteClick(wxCommandEvent& event);
-    void OnSlider_Spirals1_CountCmdScroll(wxScrollEvent& event);
-    void OnPanel1_NonePaint(wxPaintEvent& event);
-    void OnTextCtrl_Text1_FontText(wxCommandEvent& event);
     void OnButton_Text1_1_FontClick(wxCommandEvent& event);
     void OnButton_Text1_2_FontClick(wxCommandEvent& event);
-    void OnListBox1Select(wxCommandEvent& event);
-    void OnChoice_Text1_2_DirSelect(wxCommandEvent& event);
-    void OnSlider1CmdScroll(wxScrollEvent& event);
-    void OnTextCtrl5Text(wxCommandEvent& event);
-    void OnSlider_Text1_1_PositionCmdScroll(wxScrollEvent& event);
-    void OnNotebook_Text1PageChanged(wxNotebookEvent& event);
     void OnButton_Text2_1_FontClick(wxCommandEvent& event);
-    void OnButtonText2_2_FontClick(wxCommandEvent& event);
     void OnButton_Text2_2_FontClick(wxCommandEvent& event);
     //*)
 
@@ -511,7 +501,7 @@ private:
     static const long ID_SLIDER_Text1_2_TextRotation;
     static const long ID_STATICTEXT109;
     static const long ID_CHECKBOX_Text1_COUNTDOWN2;
-    static const long ID_PANEL39;
+    static const long ID_PANEL_Text1_2;
     static const long ID_NOTEBOOK_Text1;
     static const long ID_PANEL7;
     static const long ID_STATICTEXT86;
@@ -646,7 +636,7 @@ private:
     static const long ID_SLIDER_Text2_1_TextRotation;
     static const long ID_STATICTEXT102;
     static const long ID_CHECKBOX_Text2_COUNTDOWN1;
-    static const long ID_PANEL37;
+    static const long ID_PANEL_Text2_1;
     static const long ID_BUTTON_TEXT2_2_FONT;
     static const long ID_TEXTCTRL_Text2_2_Font;
     static const long ID_STATICTEXT110;
@@ -657,7 +647,7 @@ private:
     static const long ID_SLIDER_Text2_2_TextRotation;
     static const long ID_STATICTEXT113;
     static const long ID_CHECKBOX_Text2_COUNTDOWN2;
-    static const long ID_PANEL38;
+    static const long ID_PANEL_Text2_2;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL29;
     static const long ID_STATICTEXT114;
@@ -766,6 +756,7 @@ private:
     wxCheckBox* CheckBox_Spirals2_3D;
     wxButton* ButtonChangeDir;
     wxNotebook* Notebook1;
+    wxPanel* Panel_Text2_1;
     wxSlider* Slider_Speed1;
     wxButton* ButtonNetworkChange;
     wxRadioButton* RadioButtonTwinkle50;
@@ -823,7 +814,6 @@ private:
     wxSlider* Slider_Life1_Seed;
     wxStaticText* StaticText22;
     wxStaticText* StaticTextShowStart;
-    wxPanel* Panel6;
     wxStaticText* StaticText115;
     wxStaticText* StaticText87;
     wxStaticText* StaticText118;
@@ -986,6 +976,7 @@ private:
     wxMenuItem* MenuItemSavePlaylists;
     wxButton* ButtonAddE131;
     wxSlider* Slider_Spirals2_Rotation;
+    wxPanel* Panel_Text2_2;
     wxButton* ButtonStartConversion;
     wxStatusBar* StatusBar1;
     wxStaticText* StaticText40;
@@ -1062,7 +1053,6 @@ private:
     wxStaticText* StaticText66;
     wxSlider* Slider_Butterfly1_Style;
     wxPanel* PanelCal;
-    wxPanel* Panel7;
     wxSlider* SliderFgColorA;
     wxStaticText* StaticText100;
     wxButton* ButtonClearLog;
