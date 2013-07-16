@@ -1452,6 +1452,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
         }
         duration*=1000;  // convert to milliseconds
     }
+
     SeqData.clear();
     SeqNumChannels=NetInfo.GetTotChannels();
     int interval=Timer1.GetInterval();
