@@ -1335,7 +1335,7 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxSlider" name="ID_SLIDER_Slider_Brightness" variable="Slider_Brightness" member="yes">
+																				<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 																					<value>100</value>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1351,7 +1351,7 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxSlider" name="ID_SLIDER_Slider_Contrast" variable="Slider_Contrast" member="yes" />
+																				<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes" />
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
