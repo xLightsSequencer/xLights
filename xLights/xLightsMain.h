@@ -278,6 +278,7 @@ private:
     void OnButton_Text1_2_FontClick(wxCommandEvent& event);
     void OnButton_Text2_1_FontClick(wxCommandEvent& event);
     void OnButton_Text2_2_FontClick(wxCommandEvent& event);
+    void OnChoice_ModelsSelect(wxCommandEvent& event);
     //*)
 
     //(*Identifiers(xLightsFrame)

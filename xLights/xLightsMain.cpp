@@ -1118,13 +1118,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticBoxSizer4 = new wxStaticBoxSizer(wxVERTICAL, Panel4, _("Effect 1"));
     FlexGridSizer34 = new wxFlexGridSizer(0, 3, 0, 0);
     Choicebook1 = new wxChoicebook(Panel4, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-    Panel1_None = new wxPanel(Choicebook1, ID_PANEL4, wxPoint(0,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    Panel1_Bars = new wxPanel(Choicebook1, ID_PANEL8, wxPoint(30,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
+    Panel1_None = new wxPanel(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    Panel1_Bars = new wxPanel(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer35->AddGrowableCol(1);
     StaticText23 = new wxStaticText(Panel1_Bars, ID_STATICTEXT25, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
     FlexGridSizer35->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Bars1_BarCount = new wxSlider(Panel1_Bars, ID_SLIDER_Bars1_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL, wxDefaultValidator, _T("ID_SLIDER_Bars1_BarCount"));
+    Slider_Bars1_BarCount = new wxSlider(Panel1_Bars, ID_SLIDER_Bars1_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars1_BarCount"));
     FlexGridSizer35->Add(Slider_Bars1_BarCount, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText24 = new wxStaticText(Panel1_Bars, ID_STATICTEXT26, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT26"));
     FlexGridSizer35->Add(StaticText24, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1139,7 +1139,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Bars->SetSizer(FlexGridSizer35);
     FlexGridSizer35->Fit(Panel1_Bars);
     FlexGridSizer35->SetSizeHints(Panel1_Bars);
-    Panel1_Butterfly = new wxPanel(Choicebook1, ID_PANEL10, wxPoint(41,11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL10"));
+    Panel1_Butterfly = new wxPanel(Choicebook1, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL10"));
     FlexGridSizer36 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText25 = new wxStaticText(Panel1_Butterfly, ID_STATICTEXT27, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
     FlexGridSizer36->Add(StaticText25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1180,7 +1180,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_ColorWash->SetSizer(FlexGridSizer37);
     FlexGridSizer37->Fit(Panel1_ColorWash);
     FlexGridSizer37->SetSizeHints(Panel1_ColorWash);
-    Panel1_Fire = new wxPanel(Choicebook1, ID_PANEL12, wxPoint(11,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL12"));
+    Panel1_Fire = new wxPanel(Choicebook1, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL12"));
     FlexGridSizer38 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer38->AddGrowableCol(1);
     StaticText83 = new wxStaticText(Panel1_Fire, ID_STATICTEXT84, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT84"));
@@ -1190,7 +1190,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Fire->SetSizer(FlexGridSizer38);
     FlexGridSizer38->Fit(Panel1_Fire);
     FlexGridSizer38->SetSizeHints(Panel1_Fire);
-    Panel1_Garlands = new wxPanel(Choicebook1, ID_PANEL14, wxPoint(16,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL14"));
+    Panel1_Garlands = new wxPanel(Choicebook1, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL14"));
     FlexGridSizer39 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer39->AddGrowableCol(1);
     StaticText32 = new wxStaticText(Panel1_Garlands, ID_STATICTEXT34, _("Garland Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT34"));
@@ -1204,7 +1204,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Garlands->SetSizer(FlexGridSizer39);
     FlexGridSizer39->Fit(Panel1_Garlands);
     FlexGridSizer39->SetSizeHints(Panel1_Garlands);
-    Panel1_Life = new wxPanel(Choicebook1, ID_PANEL16, wxPoint(30,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL16"));
+    Panel1_Life = new wxPanel(Choicebook1, ID_PANEL16, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL16"));
     FlexGridSizer40 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer40->AddGrowableCol(1);
     StaticText35 = new wxStaticText(Panel1_Life, ID_STATICTEXT36, _("Cells to start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT36"));
@@ -1218,7 +1218,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Life->SetSizer(FlexGridSizer40);
     FlexGridSizer40->Fit(Panel1_Life);
     FlexGridSizer40->SetSizeHints(Panel1_Life);
-    Panel1_Meteors = new wxPanel(Choicebook1, ID_PANEL18, wxPoint(29,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL18"));
+    Panel1_Meteors = new wxPanel(Choicebook1, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL18"));
     FlexGridSizer41 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer41->AddGrowableCol(1);
     StaticText39 = new wxStaticText(Panel1_Meteors, ID_STATICTEXT39, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
@@ -1241,7 +1241,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Meteors->SetSizer(FlexGridSizer41);
     FlexGridSizer41->Fit(Panel1_Meteors);
     FlexGridSizer41->SetSizeHints(Panel1_Meteors);
-    Panel1_Pictures = new wxPanel(Choicebook1, ID_PANEL20, wxPoint(18,7), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL20"));
+    Panel1_Pictures = new wxPanel(Choicebook1, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL20"));
     FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer42->AddGrowableCol(0);
     Button_Pictures1_Filename = new wxButton(Panel1_Pictures, ID_BUTTON_PICTURES1_FILENAME, _("File name"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PICTURES1_FILENAME"));
@@ -1262,7 +1262,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Pictures->SetSizer(FlexGridSizer42);
     FlexGridSizer42->Fit(Panel1_Pictures);
     FlexGridSizer42->SetSizeHints(Panel1_Pictures);
-    Panel1_Snowflakes = new wxPanel(Choicebook1, ID_PANEL22, wxPoint(17,17), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL22"));
+    Panel1_Snowflakes = new wxPanel(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL22"));
     FlexGridSizer43 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer43->AddGrowableCol(1);
     StaticText79 = new wxStaticText(Panel1_Snowflakes, ID_STATICTEXT80, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT80"));
@@ -1276,7 +1276,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Snowflakes->SetSizer(FlexGridSizer43);
     FlexGridSizer43->Fit(Panel1_Snowflakes);
     FlexGridSizer43->SetSizeHints(Panel1_Snowflakes);
-    Panel1_Snowstorm = new wxPanel(Choicebook1, ID_PANEL24, wxPoint(10,13), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL24"));
+    Panel1_Snowstorm = new wxPanel(Choicebook1, ID_PANEL24, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL24"));
     FlexGridSizer44 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer44->AddGrowableCol(1);
     StaticText45 = new wxStaticText(Panel1_Snowstorm, ID_STATICTEXT45, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT45"));
@@ -1396,7 +1396,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Text->SetSizer(FlexGridSizer46);
     FlexGridSizer46->Fit(Panel1_Text);
     FlexGridSizer46->SetSizeHints(Panel1_Text);
-    Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxPoint(130,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
+    Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText85 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT86, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT86"));
     FlexGridSizer3->Add(StaticText85, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1412,7 +1412,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Twinkle->SetSizer(FlexGridSizer3);
     FlexGridSizer3->Fit(Panel1_Twinkle);
     FlexGridSizer3->SetSizeHints(Panel1_Twinkle);
-    Panel1_Tree = new wxPanel(Choicebook1, ID_PANEL34, wxPoint(99,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL34"));
+    Panel1_Tree = new wxPanel(Choicebook1, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL34"));
     FlexGridSizer71 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText86 = new wxStaticText(Panel1_Tree, ID_STATICTEXT87, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT87"));
     FlexGridSizer71->Add(StaticText86, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1421,7 +1421,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Tree->SetSizer(FlexGridSizer71);
     FlexGridSizer71->Fit(Panel1_Tree);
     FlexGridSizer71->SetSizeHints(Panel1_Tree);
-    Panel1_Spirograph = new wxPanel(Choicebook1, ID_PANEL35, wxPoint(82,12), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL35"));
+    Panel1_Spirograph = new wxPanel(Choicebook1, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL35"));
     FlexGridSizer72 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText87 = new wxStaticText(Panel1_Spirograph, ID_STATICTEXT88, _("R - Radius of outer circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT88"));
     FlexGridSizer72->Add(StaticText87, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1445,7 +1445,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Spirograph->SetSizer(FlexGridSizer72);
     FlexGridSizer72->Fit(Panel1_Spirograph);
     FlexGridSizer72->SetSizeHints(Panel1_Spirograph);
-    Panel1_Fireworks = new wxPanel(Choicebook1, ID_PANEL36, wxPoint(76,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL36"));
+    Panel1_Fireworks = new wxPanel(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL36"));
     FlexGridSizer73 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText94 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
     FlexGridSizer73->Add(StaticText94, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1539,7 +1539,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer49 = new wxFlexGridSizer(0, 3, 0, 0);
     Choicebook2 = new wxChoicebook(Panel4, ID_CHOICEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK2"));
     Panel2_None = new wxPanel(Choicebook2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-    Panel2_Bars = new wxPanel(Choicebook2, ID_PANEL9, wxPoint(1,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL9"));
+    Panel2_Bars = new wxPanel(Choicebook2, ID_PANEL9, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL9"));
     FlexGridSizer50 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer50->AddGrowableCol(1);
     StaticText42 = new wxStaticText(Panel2_Bars, ID_STATICTEXT47, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT47"));
@@ -1559,7 +1559,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Bars->SetSizer(FlexGridSizer50);
     FlexGridSizer50->Fit(Panel2_Bars);
     FlexGridSizer50->SetSizeHints(Panel2_Bars);
-    Panel2_Butterfly = new wxPanel(Choicebook2, ID_PANEL11, wxPoint(71,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL11"));
+    Panel2_Butterfly = new wxPanel(Choicebook2, ID_PANEL11, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL11"));
     FlexGridSizer51 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer51->AddGrowableCol(1);
     StaticText47 = new wxStaticText(Panel2_Butterfly, ID_STATICTEXT49, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT49"));
@@ -1601,7 +1601,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_ColorWash->SetSizer(FlexGridSizer52);
     FlexGridSizer52->Fit(Panel2_ColorWash);
     FlexGridSizer52->SetSizeHints(Panel2_ColorWash);
-    Panel2_Fire = new wxPanel(Choicebook2, ID_PANEL15, wxPoint(13,7), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL15"));
+    Panel2_Fire = new wxPanel(Choicebook2, ID_PANEL15, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL15"));
     FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer53->AddGrowableCol(1);
     StaticText84 = new wxStaticText(Panel2_Fire, ID_STATICTEXT85, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT85"));
@@ -1611,7 +1611,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Fire->SetSizer(FlexGridSizer53);
     FlexGridSizer53->Fit(Panel2_Fire);
     FlexGridSizer53->SetSizeHints(Panel2_Fire);
-    Panel2_Garlands = new wxPanel(Choicebook2, ID_PANEL17, wxPoint(6,16), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
+    Panel2_Garlands = new wxPanel(Choicebook2, ID_PANEL17, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
     FlexGridSizer54 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer54->AddGrowableCol(1);
     StaticText56 = new wxStaticText(Panel2_Garlands, ID_STATICTEXT59, _("Garland Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT59"));
@@ -1625,7 +1625,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Garlands->SetSizer(FlexGridSizer54);
     FlexGridSizer54->Fit(Panel2_Garlands);
     FlexGridSizer54->SetSizeHints(Panel2_Garlands);
-    Panel2_Life = new wxPanel(Choicebook2, ID_PANEL19, wxPoint(21,11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL19"));
+    Panel2_Life = new wxPanel(Choicebook2, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL19"));
     FlexGridSizer55 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer55->AddGrowableCol(1);
     StaticText60 = new wxStaticText(Panel2_Life, ID_STATICTEXT62, _("Cells to start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT62"));
@@ -1639,7 +1639,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Life->SetSizer(FlexGridSizer55);
     FlexGridSizer55->Fit(Panel2_Life);
     FlexGridSizer55->SetSizeHints(Panel2_Life);
-    Panel2_Meteors = new wxPanel(Choicebook2, ID_PANEL21, wxPoint(3,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
+    Panel2_Meteors = new wxPanel(Choicebook2, ID_PANEL21, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
     FlexGridSizer56 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer56->AddGrowableCol(1);
     StaticText62 = new wxStaticText(Panel2_Meteors, ID_STATICTEXT64, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
@@ -1662,7 +1662,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Meteors->SetSizer(FlexGridSizer56);
     FlexGridSizer56->Fit(Panel2_Meteors);
     FlexGridSizer56->SetSizeHints(Panel2_Meteors);
-    Panel2_Pictures = new wxPanel(Choicebook2, ID_PANEL23, wxPoint(3,25), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL23"));
+    Panel2_Pictures = new wxPanel(Choicebook2, ID_PANEL23, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL23"));
     FlexGridSizer57 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer57->AddGrowableCol(0);
     Button_Pictures2_Filename = new wxButton(Panel2_Pictures, ID_BUTTON_PICTURES2_FILENAME, _("File name"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PICTURES2_FILENAME"));
@@ -1683,7 +1683,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Pictures->SetSizer(FlexGridSizer57);
     FlexGridSizer57->Fit(Panel2_Pictures);
     FlexGridSizer57->SetSizeHints(Panel2_Pictures);
-    Panel2_Snowflakes = new wxPanel(Choicebook2, ID_PANEL25, wxPoint(10,21), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL25"));
+    Panel2_Snowflakes = new wxPanel(Choicebook2, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL25"));
     FlexGridSizer58 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer58->AddGrowableCol(1);
     StaticText81 = new wxStaticText(Panel2_Snowflakes, ID_STATICTEXT82, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT82"));
@@ -1697,7 +1697,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Snowflakes->SetSizer(FlexGridSizer58);
     FlexGridSizer58->Fit(Panel2_Snowflakes);
     FlexGridSizer58->SetSizeHints(Panel2_Snowflakes);
-    Panel2_Snowstorm = new wxPanel(Choicebook2, ID_PANEL27, wxPoint(21,15), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL27"));
+    Panel2_Snowstorm = new wxPanel(Choicebook2, ID_PANEL27, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL27"));
     FlexGridSizer59 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer59->AddGrowableCol(1);
     StaticText66 = new wxStaticText(Panel2_Snowstorm, ID_STATICTEXT68, _("Max flakes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
@@ -1739,7 +1739,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Spirals->SetSizer(FlexGridSizer60);
     FlexGridSizer60->Fit(Panel2_Spirals);
     FlexGridSizer60->SetSizeHints(Panel2_Spirals);
-    Panel2_Text = new wxPanel(Choicebook2, ID_PANEL29, wxPoint(31,4), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL29"));
+    Panel2_Text = new wxPanel(Choicebook2, ID_PANEL29, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL29"));
     FlexGridSizer61 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer61->AddGrowableCol(0);
     FlexGridSizer66 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -1818,7 +1818,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Text->SetSizer(FlexGridSizer61);
     FlexGridSizer61->Fit(Panel2_Text);
     FlexGridSizer61->SetSizeHints(Panel2_Text);
-    Panel2_Twinkle = new wxPanel(Choicebook2, ID_PANEL40, wxPoint(113,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL40"));
+    Panel2_Twinkle = new wxPanel(Choicebook2, ID_PANEL40, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL40"));
     FlexGridSizer76 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText113 = new wxStaticText(Panel2_Twinkle, ID_STATICTEXT114, _("Number Lights"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT114"));
     FlexGridSizer76->Add(StaticText113, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1836,7 +1836,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Twinkle->SetSizer(FlexGridSizer76);
     FlexGridSizer76->Fit(Panel2_Twinkle);
     FlexGridSizer76->SetSizeHints(Panel2_Twinkle);
-    Panel2_Tree = new wxPanel(Choicebook2, ID_PANEL41, wxPoint(93,12), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL41"));
+    Panel2_Tree = new wxPanel(Choicebook2, ID_PANEL41, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL41"));
     FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText116 = new wxStaticText(Panel2_Tree, ID_STATICTEXT117, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT117"));
     FlexGridSizer77->Add(StaticText116, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1848,7 +1848,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Tree->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel2_Tree);
     FlexGridSizer77->SetSizeHints(Panel2_Tree);
-    Panel2_Spirograph = new wxPanel(Choicebook2, ID_PANEL42, wxPoint(89,7), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL42"));
+    Panel2_Spirograph = new wxPanel(Choicebook2, ID_PANEL42, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL42"));
     FlexGridSizer78 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText117 = new wxStaticText(Panel2_Spirograph, ID_STATICTEXT118, _("R - Radius of outer circle"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT118"));
     FlexGridSizer78->Add(StaticText117, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1872,7 +1872,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Spirograph->SetSizer(FlexGridSizer78);
     FlexGridSizer78->Fit(Panel2_Spirograph);
     FlexGridSizer78->SetSizeHints(Panel2_Spirograph);
-    Panel2_Fireworks = new wxPanel(Choicebook2, ID_PANEL43, wxPoint(88,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
+    Panel2_Fireworks = new wxPanel(Choicebook2, ID_PANEL43, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL43"));
     FlexGridSizer79 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText122 = new wxStaticText(Panel2_Fireworks, ID_STATICTEXT123, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT123"));
     FlexGridSizer79->Add(StaticText122, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -2697,3 +2697,7 @@ void xLightsFrame::OnButton_ColorClick(wxCommandEvent& event)
 #include "TabConvert.cpp"
 #include "TabSchedule.cpp"
 #include "TabSequence.cpp"
+
+void xLightsFrame::OnChoice_ModelsSelect(wxCommandEvent& event)
+{
+}

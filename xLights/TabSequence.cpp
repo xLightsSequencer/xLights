@@ -1257,6 +1257,66 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
     SeqChanCtrlColor=dialog.CheckBox_EnableColor->GetValue();
 }
 
+#include <wx/textfile.h>
+#include <wx/string.h>
+void fix_version_differences(wxString file)
+{
+    wxString        str,fileout;
+    wxTextFile      tfile;
+    wxFile f;
+    bool modified=false;
+    fileout = file + ".out";
+// open the file
+
+    if (!f.Create(fileout,true))
+    {
+        return;
+    }
+
+    tfile.Open(file); // open input file
+// read the first line
+    str =  tfile.GetFirstLine() + "\n";
+
+
+    f.Write(str);
+    int pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast;
+
+// read all lines one by one
+// until the end of the file
+    while(!tfile.Eof())
+    {
+        str = tfile.GetNextLine();
+        str.Replace(wxT("SLIDER_Slider"),wxT("SLIDER"));
+        pos=str.find("ID_SLIDER",0);
+        if(pos>0) // are we on the xml line containg the effect?
+        {
+            //  Yes
+            pos_ID_SLIDER_Brightness=str.find("ID_SLIDER_Brightness",0);
+            if(pos_ID_SLIDER_Brightness<=0)
+            {
+                modified=true;
+                str.Replace(wxT("ID_SLIDER_Speed1"),wxT("ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_Speed1"));
+            }
+
+            // ID_TEXTCTRL_Text1_2_Font
+
+            // ID_TEXTCTRL_Text1_Line1=99,ID_TEXTCTRL_Text1_Line2=gfdssdfg,ID_TEXTCTRL4=,ID_CHOICE_Text1_1_Dir=right,ID_SLIDER_Text1_1_Position=50,ID_SLIDER_Text1_1_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN1=1,
+            // ID_TEXTCTRL_Text1_2_Font=,ID_CHOICE_Text1_2_Dir=left,ID_SLIDER_Text1_2_Position=50,ID_SLIDER_Text1_2_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN2=0,
+        //
+        //  ID_TEXTCTRL_Text2_Line1=Merry Christmas,ID_TEXTCTRL_Text2_Line2=,ID_SLIDER_Text2_Top=53,ID_SLIDER_Text2_Left=50,ID_TEXTCTRL_Text2_Font=arial 18 windows-1252,ID_CHOICE_Text2_Dir=left,ID_SLIDERText2_TextRotation=0
+
+
+
+          pos_ID_SLIDER_Contrast=str.find("ID_SLIDER_Contrast",0);
+        //    if(pos_ID_SLIDER_Contrast>0) str = str + wxString::Format(wxT("ID_SLIDER_Contrast %d "),pos_ID_SLIDER_Contrast);
+        }
+        str = str + "\n";
+        f.Write(str); // placeholder, do whatever you want with the string
+    }
+
+    if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
+}
+
 void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 {
     // read xlights file
@@ -1277,6 +1337,10 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     }
 
     // read xml
+    //  first fix any version specific changes
+    fix_version_differences(SeqXmlFileName);
+
+
     wxXmlDocument doc;
     if (!doc.Load(SeqXmlFileName))
     {

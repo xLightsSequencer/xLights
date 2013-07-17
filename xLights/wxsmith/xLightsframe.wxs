@@ -1538,14 +1538,11 @@
 																						<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
 																							<handler function="OnChoicebookEffectPageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 																							<object class="choicebookpage">
-																								<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes">
-																									<pos>0,6</pos>
-																								</object>
+																								<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes" />
 																								<label>None</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
-																									<pos>30,18</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -1562,7 +1559,6 @@
 																												<value>1</value>
 																												<min>1</min>
 																												<max>5</max>
-																												<style>wxSL_VERTICAL</style>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>2</border>
@@ -1606,7 +1602,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL10" variable="Panel1_Butterfly" member="yes">
-																									<pos>41,11</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer36" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -1744,7 +1739,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
-																									<pos>11,13</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -1771,7 +1765,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
-																									<pos>16,15</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -1811,7 +1804,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL16" variable="Panel1_Life" member="yes">
-																									<pos>30,13</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -1853,7 +1845,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL18" variable="Panel1_Meteors" member="yes">
-																									<pos>29,14</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -1929,7 +1920,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL20" variable="Panel1_Pictures" member="yes">
-																									<pos>18,7</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
 																										<cols>1</cols>
 																										<growablecols>0</growablecols>
@@ -2000,7 +1990,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL22" variable="Panel1_Snowflakes" member="yes">
-																									<pos>17,17</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer43" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -2045,7 +2034,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL24" variable="Panel1_Snowstorm" member="yes">
-																									<pos>10,13</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -2423,7 +2411,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
-																									<pos>130,6</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -2477,7 +2464,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
-																									<pos>99,9</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -2504,7 +2490,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
-																									<pos>82,12</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -2589,7 +2574,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
-																									<pos>76,10</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -2861,7 +2845,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL9" variable="Panel2_Bars" member="yes">
-																									<pos>1,9</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer50" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -2921,7 +2904,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL11" variable="Panel2_Butterfly" member="yes">
-																									<pos>71,18</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3060,7 +3042,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL15" variable="Panel2_Fire" member="yes">
-																									<pos>13,7</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3087,7 +3068,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL17" variable="Panel2_Garlands" member="yes">
-																									<pos>6,16</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer54" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3127,7 +3107,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL19" variable="Panel2_Life" member="yes">
-																									<pos>21,11</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3169,7 +3148,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL21" variable="Panel2_Meteors" member="yes">
-																									<pos>3,14</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3246,7 +3224,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL23" variable="Panel2_Pictures" member="yes">
-																									<pos>3,25</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer57" member="no">
 																										<cols>1</cols>
 																										<growablecols>0</growablecols>
@@ -3316,7 +3293,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL25" variable="Panel2_Snowflakes" member="yes">
-																									<pos>10,21</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3361,7 +3337,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL27" variable="Panel2_Snowstorm" member="yes">
-																									<pos>21,15</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer59" member="no">
 																										<cols>2</cols>
 																										<growablecols>1</growablecols>
@@ -3498,7 +3473,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL29" variable="Panel2_Text" member="yes">
-																									<pos>31,4</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
 																										<cols>1</cols>
 																										<growablecols>0</growablecols>
@@ -3729,7 +3703,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL40" variable="Panel2_Twinkle" member="yes">
-																									<pos>113,10</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer76" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -3789,7 +3762,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL41" variable="Panel2_Tree" member="yes">
-																									<pos>93,12</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
 																										<cols>3</cols>
 																										<object class="sizeritem">
@@ -3816,7 +3788,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL42" variable="Panel2_Spirograph" member="yes">
-																									<pos>89,7</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
@@ -3900,7 +3871,6 @@
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL43" variable="Panel2_Fireworks" member="yes">
-																									<pos>88,10</pos>
 																									<object class="wxFlexGridSizer" variable="FlexGridSizer79" member="no">
 																										<cols>2</cols>
 																										<object class="sizeritem">
