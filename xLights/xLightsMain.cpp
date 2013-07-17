@@ -1404,7 +1404,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer3->Add(Slider_Twinkle1_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText104 = new wxStaticText(Panel1_Twinkle, ID_STATICTEXT105, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT105"));
     FlexGridSizer3->Add(StaticText104, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Twinkle1_Steps = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Steps, 3, 1, 200, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Steps"));
+    Slider_Twinkle1_Steps = new wxSlider(Panel1_Twinkle, ID_SLIDER_Twinkle1_Steps, 30, 2, 200, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle1_Steps"));
     FlexGridSizer3->Add(Slider_Twinkle1_Steps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Twinkle1_Strobe = new wxCheckBox(Panel1_Twinkle, ID_CHECKBOX_Twinkle1_Strobe, _("Strobe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle1_Strobe"));
     CheckBox_Twinkle1_Strobe->SetValue(false);
@@ -1826,7 +1826,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer76->Add(Slider_Twinkle2_Count, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText114 = new wxStaticText(Panel2_Twinkle, ID_STATICTEXT115, _("Twinkle Steps"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT115"));
     FlexGridSizer76->Add(StaticText114, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Twinkle2_Steps = new wxSlider(Panel2_Twinkle, ID_SLIDER_Twinkle2_Steps, 3, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle2_Steps"));
+    Slider_Twinkle2_Steps = new wxSlider(Panel2_Twinkle, ID_SLIDER_Twinkle2_Steps, 30, 2, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Twinkle2_Steps"));
     FlexGridSizer76->Add(Slider_Twinkle2_Steps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Twinkle2_Strobe = new wxCheckBox(Panel2_Twinkle, ID_CHECKBOX_Twinkle2_Strobe, _("Strobe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Twinkle2_Strobe"));
     CheckBox_Twinkle2_Strobe->SetValue(false);

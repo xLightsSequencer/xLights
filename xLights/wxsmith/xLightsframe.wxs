@@ -2441,8 +2441,8 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Twinkle1_Steps" variable="Slider_Twinkle1_Steps" member="yes">
-																												<value>3</value>
-																												<min>1</min>
+																												<value>30</value>
+																												<min>2</min>
 																												<max>200</max>
 																												<size>119,24</size>
 																											</object>
@@ -3732,8 +3732,8 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Twinkle2_Steps" variable="Slider_Twinkle2_Steps" member="yes">
-																												<value>3</value>
-																												<min>1</min>
+																												<value>30</value>
+																												<min>2</min>
 																												<max>200</max>
 																											</object>
 																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

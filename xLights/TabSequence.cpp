@@ -1279,18 +1279,25 @@ void fix_version_differences(wxString file)
 
 
     f.Write(str);
-    int pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast;
+    int pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast,pos_SLIDER_Slider;
 
 // read all lines one by one
 // until the end of the file
     while(!tfile.Eof())
     {
         str = tfile.GetNextLine();
-        str.Replace(wxT("SLIDER_Slider"),wxT("SLIDER"));
-        pos=str.find("ID_SLIDER",0);
+
+        pos=str.find("ID_SLIDER",0); // is this line a Effect?
         if(pos>0) // are we on the xml line containg the effect?
         {
             //  Yes
+            pos_SLIDER_Slider=str.find("SLIDER_Slider",0);
+            if(pos_SLIDER_Slider>0) // if we have SLIDER_Slider bad text,
+            {
+                modified=true;  // fix it
+                str.Replace(wxT("SLIDER_Slider"),wxT("SLIDER"));
+            }
+
             pos_ID_SLIDER_Brightness=str.find("ID_SLIDER_Brightness",0);
             if(pos_ID_SLIDER_Brightness<=0)
             {
@@ -1302,18 +1309,19 @@ void fix_version_differences(wxString file)
 
             // ID_TEXTCTRL_Text1_Line1=99,ID_TEXTCTRL_Text1_Line2=gfdssdfg,ID_TEXTCTRL4=,ID_CHOICE_Text1_1_Dir=right,ID_SLIDER_Text1_1_Position=50,ID_SLIDER_Text1_1_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN1=1,
             // ID_TEXTCTRL_Text1_2_Font=,ID_CHOICE_Text1_2_Dir=left,ID_SLIDER_Text1_2_Position=50,ID_SLIDER_Text1_2_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN2=0,
-        //
-        //  ID_TEXTCTRL_Text2_Line1=Merry Christmas,ID_TEXTCTRL_Text2_Line2=,ID_SLIDER_Text2_Top=53,ID_SLIDER_Text2_Left=50,ID_TEXTCTRL_Text2_Font=arial 18 windows-1252,ID_CHOICE_Text2_Dir=left,ID_SLIDERText2_TextRotation=0
+            //
+            //  ID_TEXTCTRL_Text2_Line1=Merry Christmas,ID_TEXTCTRL_Text2_Line2=,ID_SLIDER_Text2_Top=53,ID_SLIDER_Text2_Left=50,ID_TEXTCTRL_Text2_Font=arial 18 windows-1252,ID_CHOICE_Text2_Dir=left,ID_SLIDERText2_TextRotation=0
 
 
 
-          pos_ID_SLIDER_Contrast=str.find("ID_SLIDER_Contrast",0);
-        //    if(pos_ID_SLIDER_Contrast>0) str = str + wxString::Format(wxT("ID_SLIDER_Contrast %d "),pos_ID_SLIDER_Contrast);
+            pos_ID_SLIDER_Contrast=str.find("ID_SLIDER_Contrast",0);
+            //    if(pos_ID_SLIDER_Contrast>0) str = str + wxString::Format(wxT("ID_SLIDER_Contrast %d "),pos_ID_SLIDER_Contrast);
         }
         str = str + "\n";
         f.Write(str); // placeholder, do whatever you want with the string
     }
-
+    tfile.Close();
+    f.Close();
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
 }
 
