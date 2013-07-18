@@ -2,8 +2,8 @@
 <wxsmith>
 	<object class="wxDialog" name="SeqOpenDialog">
 		<title>Open Sequence</title>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<size>298,262</size>
+		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<object class="sizeritem">
@@ -13,6 +13,7 @@
 						<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButtonXlights" member="yes">
 							<label>xLights Sequence</label>
 							<selected>1</selected>
+							<handler function="OnRadioButtonXlightsSelect" entry="EVT_RADIOBUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -65,6 +66,27 @@
 						<object class="wxChoice" name="ID_CHOICE2" variable="ChoiceMediaFiles" member="yes">
 							<style>wxCB_SORT</style>
 							<handler function="OnChoiceMediaFilesSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxRadioBox" name="ID_RADIOBOX1" variable="RadioBoxTimmingChoice" member="yes">
+							<label>Timming Import</label>
+							<content>
+								<item>None</item>
+								<item>Audacity</item>
+								<item>Xlights XML</item>
+							</content>
+							<default>-1</default>
+							<enabled>0</enabled>
+							<handler function="OnRadioBox1Select1" entry="EVT_RADIOBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

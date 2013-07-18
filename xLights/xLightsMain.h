@@ -1362,6 +1362,9 @@ private:
     void SeqLoadXlightsFile(const wxString& filename);
     void RenderGridToSeqData();
     void ResetEffectsXml();
+    void ImportAudacityTimmings();
+    void ProcessAudacityTimmingFile(const wxString& filename);
+    void ImportxLightsXMLTimmings();
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;

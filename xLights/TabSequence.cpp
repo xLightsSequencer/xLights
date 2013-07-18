@@ -1406,6 +1406,54 @@ void fix_version_differences(wxString file)
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
 }
 
+void xLightsFrame::ProcessAudacityTimmingFile(const wxString& filename)
+{
+    wxTextFile f;
+    wxString line;
+
+    double timeMark;
+    int spacePos, r;
+
+    if (!f.Open(filename.c_str()))
+    {
+        //Add error dialog if open file failed
+        return;
+    }
+    for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
+    {
+        wxStringTokenizer tkz(line, wxT("\t"));
+        wxString token = tkz.GetNextToken();
+
+        Grid1->AppendRows();
+        Grid1->SetCellValue(r,0,token);
+    }
+}
+
+void xLightsFrame::ImportAudacityTimmings()
+{
+    wxFileDialog* OpenDialog = new wxFileDialog(
+		this, _("Choose Audacity timmings file"), CurrentDir, wxEmptyString,
+		_("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
+    wxString fName;
+
+	if (OpenDialog->ShowModal() == wxID_OK)
+	{
+		fName =	OpenDialog->GetPath();
+		ProcessAudacityTimmingFile(fName);
+	}
+	else
+    {
+
+    }
+
+	// Clean up after ourselves
+	OpenDialog->Destroy();
+}
+
+void xLightsFrame::ImportxLightsXMLTimmings()
+{
+
+}
 void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 {
     // read xlights file
@@ -1594,6 +1642,22 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
             wxMessageBox(wxT("Unable to determine the length of:\n")+mediaFilename,wxT("ERROR"));
             return;
         }
+        switch (dialog.RadioBoxTimmingChoice->GetSelection())
+        {
+        case 0:
+            // No Timming mark import selected
+            break;
+        case 1:
+            // Audacity File import
+            ImportAudacityTimmings();
+            break;
+        case 2:
+            // Xlights XML timing import
+            ImportxLightsXMLTimmings();
+            break;
+        }
+
+
     }
     else if (dialog.RadioButtonNewAnim->GetValue())
     {

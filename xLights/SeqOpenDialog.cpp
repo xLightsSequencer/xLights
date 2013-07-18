@@ -13,6 +13,7 @@ const long SeqOpenDialog::ID_CHOICE1 = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON2 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT2 = wxNewId();
 const long SeqOpenDialog::ID_CHOICE2 = wxNewId();
+const long SeqOpenDialog::ID_RADIOBOX1 = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT3 = wxNewId();
 const long SeqOpenDialog::ID_SPINCTRL1 = wxNewId();
@@ -30,9 +31,8 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-    Create(parent, id, _("Open Sequence"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
-    SetClientSize(wxDefaultSize);
-    Move(wxDefaultPosition);
+    Create(parent, wxID_ANY, _("Open Sequence"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    SetClientSize(wxSize(298,262));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     RadioButtonXlights = new wxRadioButton(this, ID_RADIOBUTTON1, _("xLights Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
@@ -50,6 +50,16 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceMediaFiles = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE2"));
     FlexGridSizer2->Add(ChoiceMediaFiles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxString __wxRadioBoxChoices_1[3] =
+    {
+    	_("None"),
+    	_("Audacity"),
+    	_("Xlights XML")
+    };
+    RadioBoxTimmingChoice = new wxRadioBox(this, ID_RADIOBOX1, _("Timming Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX1"));
+    RadioBoxTimmingChoice->Disable();
+    FlexGridSizer2->Add(RadioBoxTimmingChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonNewAnim = new wxRadioButton(this, ID_RADIOBUTTON3, _("New animation sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     FlexGridSizer2->Add(RadioButtonNewAnim, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -65,11 +75,15 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     StdDialogButtonSizer1->Realize();
     FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    SetSizer(FlexGridSizer1);
+    Layout();
 
+    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonXlightsSelect);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceSeqFilesSelect);
+    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewMusicSelect);
     Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceMediaFilesSelect);
+    Connect(ID_RADIOBOX1,wxEVT_COMMAND_RADIOBOX_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioBox1Select1);
+    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewAnimSelect);
     //*)
 }
 
@@ -79,13 +93,34 @@ SeqOpenDialog::~SeqOpenDialog()
     //*)
 }
 
+void SeqOpenDialog::OnRadioBox1Select1(wxCommandEvent& event)
+{
 
+}
 void SeqOpenDialog::OnChoiceSeqFilesSelect(wxCommandEvent& event)
 {
     RadioButtonXlights->SetValue(true);
+
 }
 
 void SeqOpenDialog::OnChoiceMediaFilesSelect(wxCommandEvent& event)
 {
     RadioButtonNewMusic->SetValue(true);
+
+
+}
+
+void SeqOpenDialog::OnRadioButtonXlightsSelect(wxCommandEvent& event)
+{
+    RadioBoxTimmingChoice->Disable();
+}
+
+void SeqOpenDialog::OnRadioButtonNewMusicSelect(wxCommandEvent& event)
+{
+    RadioBoxTimmingChoice->Enable();
+}
+
+void SeqOpenDialog::OnRadioButtonNewAnimSelect(wxCommandEvent& event)
+{
+    RadioBoxTimmingChoice->Disable();
 }
