@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.18)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.19)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -2234,7 +2234,7 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
-																																<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl_Text1_1_Font" member="yes">
+																																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text1_1_Font" variable="TextCtrl_Text1_1_Font" member="yes">
 																																	<style>wxTE_READONLY</style>
 																																</object>
 																																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -3535,7 +3535,7 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
-																																<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="TextCtrl_Text2_1_Font" member="yes" />
+																																<object class="wxTextCtrl" name="ID_TEXTCTRL_Text2_1_Font" variable="TextCtrl_Text2_1_Font" member="yes" />
 																																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																																<border>2</border>
 																																<option>1</option>

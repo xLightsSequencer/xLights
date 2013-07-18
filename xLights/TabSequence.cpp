@@ -4,6 +4,7 @@ void xLightsFrame::CreateDefaultEffectsXml()
     EffectsXml.SetRoot( root );
 }
 
+
 wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 {
     wxXmlNode* e;
@@ -1259,6 +1260,27 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 
 #include <wx/textfile.h>
 #include <wx/string.h>
+#include <wx/tokenzr.h>
+
+wxString insert_missing(wxString str,wxString missing_array)
+{
+    int pos;
+    wxStringTokenizer tkz(missing_array, wxT("|"));
+    wxString replacement;
+    wxString token1 = tkz.GetNextToken(); // get first two dummy tokens out
+    wxString token2 = tkz.GetNextToken();
+    while ( tkz.HasMoreTokens() )
+    {
+        token1 = tkz.GetNextToken();
+        token2 = tkz.GetNextToken();
+        pos=str.find(token1,0);
+        replacement = wxT(",") + token2 + wxT("</td>");
+        if(pos<=0) str.Replace(wxT("</td>"),replacement);
+
+    }
+    return str;
+}
+
 void fix_version_differences(wxString file)
 {
     wxString        str,fileout;
@@ -1267,6 +1289,42 @@ void fix_version_differences(wxString file)
     bool modified=false;
     fileout = file + ".out";
 // open the file
+    wxString missing = "xdummy|xdummy";
+    wxString Text1   = "xdummy|xdummy";
+    wxString Text2   = "xdummy|xdummy";
+    wxString Meteors1 = "xdummy|xdummy";
+    wxString Meteors2 = "xdummy|xdummy";
+    //
+    missing = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
+    missing = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
+    //
+    Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
+    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
+
+    // Lots of variables to check for  text effect
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+
+    //
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+
 
     if (!f.Create(fileout,true))
     {
@@ -1279,7 +1337,7 @@ void fix_version_differences(wxString file)
 
 
     f.Write(str);
-    int pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast,pos_SLIDER_Slider;
+    int p,pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast,pos_SLIDER_Slider,pos_ID_TEXTCTRL4;
 
 // read all lines one by one
 // until the end of the file
@@ -1291,31 +1349,54 @@ void fix_version_differences(wxString file)
         if(pos>0) // are we on the xml line containg the effect?
         {
             //  Yes
+
+            //  do we have the bad SILDER_slider token?
             pos_SLIDER_Slider=str.find("SLIDER_Slider",0);
             if(pos_SLIDER_Slider>0) // if we have SLIDER_Slider bad text,
             {
-                modified=true;  // fix it
+                modified=true;  // yes,fix it
                 str.Replace(wxT("SLIDER_Slider"),wxT("SLIDER"));
             }
 
-            pos_ID_SLIDER_Brightness=str.find("ID_SLIDER_Brightness",0);
-            if(pos_ID_SLIDER_Brightness<=0)
+// do we have the old text1 font token?
+            pos_ID_TEXTCTRL4=str.find("ID_TEXTCTRL4",0);
+            if(pos_ID_TEXTCTRL4>0) // if we have ID_TEXTCTRL4 bad text,
             {
-                modified=true;
-                str.Replace(wxT("ID_SLIDER_Speed1"),wxT("ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_Speed1"));
+                modified=true;  // yes,fix it
+                str.Replace(wxT("ID_TEXTCTRL4"),wxT("ID_TEXTCTRL_Text1_1_Font"));
             }
 
-            // ID_TEXTCTRL_Text1_2_Font
-
-            // ID_TEXTCTRL_Text1_Line1=99,ID_TEXTCTRL_Text1_Line2=gfdssdfg,ID_TEXTCTRL4=,ID_CHOICE_Text1_1_Dir=right,ID_SLIDER_Text1_1_Position=50,ID_SLIDER_Text1_1_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN1=1,
-            // ID_TEXTCTRL_Text1_2_Font=,ID_CHOICE_Text1_2_Dir=left,ID_SLIDER_Text1_2_Position=50,ID_SLIDER_Text1_2_TextRotation=0,ID_CHECKBOX_Text1_COUNTDOWN2=0,
-            //
-            //  ID_TEXTCTRL_Text2_Line1=Merry Christmas,ID_TEXTCTRL_Text2_Line2=,ID_SLIDER_Text2_Top=53,ID_SLIDER_Text2_Left=50,ID_TEXTCTRL_Text2_Font=arial 18 windows-1252,ID_CHOICE_Text2_Dir=left,ID_SLIDERText2_TextRotation=0
-
-
-
-            pos_ID_SLIDER_Contrast=str.find("ID_SLIDER_Contrast",0);
-            //    if(pos_ID_SLIDER_Contrast>0) str = str + wxString::Format(wxT("ID_SLIDER_Contrast %d "),pos_ID_SLIDER_Contrast);
+//  now look to fill in any missing tokens
+            p=str.find("ID_SLIDER",0);
+            if(p>0) // Look for lines that should have brightness and contrast, in other words all
+            {
+                modified=true;
+                str=insert_missing(str,missing);
+            }
+            p=str.find("ID_TEXTCTRL_Text1_Line1",0);
+            if(p>0) // Is this a text 1 line?
+            {
+                modified=true;
+                str=insert_missing(str,Text1);
+            }
+            p=str.find("ID_TEXTCTRL_Text2_Line1",0);
+            if(p>0) // is this a text 2 line?
+            {
+                modified=true;
+                str=insert_missing(str,Text2);
+            }
+            p=str.find("ID_CHOICE_Meteors1",0);
+            if(p>0) // is there a meteors 1 effect on this line?
+            {
+                modified=true;
+                str=insert_missing(str,Meteors1); // fix any missing values
+            }
+            p=str.find("ID_CHOICE_Meteors2",0);
+            if(p>0) // is there a meteors 1 effect on this line?
+            {
+                modified=true;
+                str=insert_missing(str,Meteors2);
+            }
         }
         str = str + "\n";
         f.Write(str); // placeholder, do whatever you want with the string

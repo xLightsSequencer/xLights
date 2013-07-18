@@ -274,7 +274,7 @@ const long xLightsFrame::ID_TEXTCTRL_Text1_Line1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT54 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_Text1_Line2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_TEXT1_1_FONT = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL4 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Text1_1_Font = wxNewId();
 const long xLightsFrame::ID_STATICTEXT79 = wxNewId();
 const long xLightsFrame::ID_CHOICE_Text1_1_Dir = wxNewId();
 const long xLightsFrame::ID_STATICTEXT101 = wxNewId();
@@ -420,7 +420,7 @@ const long xLightsFrame::ID_TEXTCTRL_Text2_Line1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT75 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_Text2_Line2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_TEXT2_1_FONT = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL5 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Text2_1_Font = wxNewId();
 const long xLightsFrame::ID_STATICTEXT76 = wxNewId();
 const long xLightsFrame::ID_CHOICE_Text2_1_Dir = wxNewId();
 const long xLightsFrame::ID_STATICTEXT78 = wxNewId();
@@ -649,7 +649,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.18)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.19)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1341,7 +1341,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Text1_1_Font = new wxButton(Panel_Text1_1, ID_BUTTON_TEXT1_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_1_FONT"));
     Button_Text1_1_Font->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer69->Add(Button_Text1_1_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text1_1_Font = new wxTextCtrl(Panel_Text1_1, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL4"));
+    TextCtrl_Text1_1_Font = new wxTextCtrl(Panel_Text1_1, ID_TEXTCTRL_Text1_1_Font, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Text1_1_Font"));
     FlexGridSizer69->Add(TextCtrl_Text1_1_Font, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText78 = new wxStaticText(Panel_Text1_1, ID_STATICTEXT79, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT79"));
     FlexGridSizer69->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1762,7 +1762,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Text2_1_Font = new wxButton(Panel_Text2_1, ID_BUTTON_TEXT2_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT2_1_FONT"));
     Button_Text2_1_Font->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer67->Add(Button_Text2_1_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text2_1_Font = new wxTextCtrl(Panel_Text2_1, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+    TextCtrl_Text2_1_Font = new wxTextCtrl(Panel_Text2_1, ID_TEXTCTRL_Text2_1_Font, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text2_1_Font"));
     FlexGridSizer67->Add(TextCtrl_Text2_1_Font, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText74 = new wxStaticText(Panel_Text2_1, ID_STATICTEXT76, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT76"));
     FlexGridSizer67->Add(StaticText74, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);

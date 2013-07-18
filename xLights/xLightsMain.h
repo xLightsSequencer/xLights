@@ -482,7 +482,7 @@ private:
     static const long ID_STATICTEXT54;
     static const long ID_TEXTCTRL_Text1_Line2;
     static const long ID_BUTTON_TEXT1_1_FONT;
-    static const long ID_TEXTCTRL4;
+    static const long ID_TEXTCTRL_Text1_1_Font;
     static const long ID_STATICTEXT79;
     static const long ID_CHOICE_Text1_1_Dir;
     static const long ID_STATICTEXT101;
@@ -628,7 +628,7 @@ private:
     static const long ID_STATICTEXT75;
     static const long ID_TEXTCTRL_Text2_Line2;
     static const long ID_BUTTON_TEXT2_1_FONT;
-    static const long ID_TEXTCTRL5;
+    static const long ID_TEXTCTRL_Text2_1_Font;
     static const long ID_STATICTEXT76;
     static const long ID_CHOICE_Text2_1_Dir;
     static const long ID_STATICTEXT78;
