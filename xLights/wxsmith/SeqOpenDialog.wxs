@@ -44,6 +44,7 @@
 					<object class="sizeritem">
 						<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButtonNewMusic" member="yes">
 							<label>New Musical Sequence</label>
+							<handler function="OnRadioButtonNewMusicSelect" entry="EVT_RADIOBUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -95,6 +96,7 @@
 					<object class="sizeritem">
 						<object class="wxRadioButton" name="ID_RADIOBUTTON3" variable="RadioButtonNewAnim" member="yes">
 							<label>New animation sequence</label>
+							<handler function="OnRadioButtonNewAnimSelect" entry="EVT_RADIOBUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

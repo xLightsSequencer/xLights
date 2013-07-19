@@ -1450,8 +1450,90 @@ void xLightsFrame::ImportAudacityTimmings()
 	OpenDialog->Destroy();
 }
 
+void xLightsFrame::ProcessxLightsXMLTimmingsFile(const wxString& filename)
+{
+    SeqBaseChannel=1;
+    SeqChanCtrlBasic=false;
+    SeqChanCtrlColor=false;
+
+    // read xml sequence info
+    wxFileName FileObj(filename);
+    SeqXmlFileName=FileObj.GetFullPath();
+
+    if (!FileObj.FileExists())
+    {
+        ChooseModelsForSequence();
+        return;
+    }
+
+    // read xml
+    //  first fix any version specific changes
+    fix_version_differences(SeqXmlFileName);
+
+
+    wxXmlDocument doc;
+    if (!doc.Load(SeqXmlFileName))
+    {
+        wxMessageBox(_("Error loading: ")+SeqXmlFileName);
+        return;
+    }
+    wxXmlNode* root=doc.GetRoot();
+
+    wxXmlNode *tr, *td;
+    wxString ColName;
+    wxArrayInt DeleteCols;
+    /*wxArrayString ModelNames;
+    GetModelNames(ModelNames);
+    SeqElementMismatchDialog dialog(this);
+    dialog.ChoiceModels->Set(ModelNames);
+    if (ModelNames.Count() > 0) dialog.ChoiceModels->SetSelection(0);
+    */
+    int r,c; // row 0=heading, >=1 are data rows
+    for(tr=root->GetChildren(), r=0; tr!=NULL; tr=tr->GetNext(), r++ )
+    {
+        if (tr->GetName() != wxT("tr") || r == 0) continue;
+
+        Grid1->AppendRows();
+
+        for(td=tr->GetChildren(), c=0; td!=NULL; td=td->GetNext(), c++ )
+        {
+            if (td->GetName() != wxT("td")) continue;
+            if ( c == 0)
+            {
+                Grid1->SetCellValue(r-1,c,td->GetNodeContent());
+            }
+        }
+    }
+
+    // make new columns read-only
+    wxGridCellAttr* readonly=new wxGridCellAttr;
+    readonly->SetReadOnly();
+    for (c=2; c < Grid1->GetNumberCols(); c++)
+    {
+        Grid1->SetColAttr(c,readonly);
+    }
+    EnableSequenceControls(true);
+}
+
 void xLightsFrame::ImportxLightsXMLTimmings()
 {
+    wxFileDialog* OpenDialog = new wxFileDialog(
+		this, _("Choose Audacity timmings file"), CurrentDir, wxEmptyString,
+		_("Text files (*.xml)|*.xml"),		wxFD_OPEN, wxDefaultPosition);
+    wxString fName;
+
+	if (OpenDialog->ShowModal() == wxID_OK)
+	{
+		fName =	OpenDialog->GetPath();
+		ProcessxLightsXMLTimmingsFile(fName);
+	}
+	else
+    {
+
+    }
+
+	// Clean up after ourselves
+	OpenDialog->Destroy();
 
 }
 void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)

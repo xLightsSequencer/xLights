@@ -1365,6 +1365,7 @@ private:
     void ImportAudacityTimmings();
     void ProcessAudacityTimmingFile(const wxString& filename);
     void ImportxLightsXMLTimmings();
+    void ProcessxLightsXMLTimmingsFile(const wxString& filename);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
