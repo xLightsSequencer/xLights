@@ -1482,12 +1482,12 @@ void xLightsFrame::ProcessxLightsXMLTimmingsFile(const wxString& filename)
     wxXmlNode *tr, *td;
     wxString ColName;
     wxArrayInt DeleteCols;
-    /*wxArrayString ModelNames;
+    wxArrayString ModelNames;
     GetModelNames(ModelNames);
     SeqElementMismatchDialog dialog(this);
     dialog.ChoiceModels->Set(ModelNames);
     if (ModelNames.Count() > 0) dialog.ChoiceModels->SetSelection(0);
-    */
+
     int r,c; // row 0=heading, >=1 are data rows
     for(tr=root->GetChildren(), r=0; tr!=NULL; tr=tr->GetNext(), r++ )
     {
@@ -1525,7 +1525,7 @@ void xLightsFrame::ImportxLightsXMLTimmings()
 	if (OpenDialog->ShowModal() == wxID_OK)
 	{
 		fName =	OpenDialog->GetPath();
-		ProcessxLightsXMLTimmingsFile(fName);
+		SeqLoadXlightsFile(fName);
 	}
 	else
     {
@@ -1536,7 +1536,7 @@ void xLightsFrame::ImportxLightsXMLTimmings()
 	OpenDialog->Destroy();
 
 }
-void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
+void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
     ReadXlightsFile(filename);
@@ -1544,7 +1544,9 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     SeqBaseChannel=1;
     SeqChanCtrlBasic=false;
     SeqChanCtrlColor=false;
-
+}
+void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
+{
     // read xml sequence info
     wxFileName FileObj(filename);
     FileObj.SetExt("xml");
@@ -1699,6 +1701,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     long duration;
     if (dialog.RadioButtonXlights->GetValue())
     {
+        SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
         SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection());
         return;
     }
@@ -1775,7 +1778,7 @@ void xLightsFrame::RenderGridToSeqData()
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
     LoadEffectFromString(wxT("None,None,Effect 1"), SettingsMap);
-    for (int c=2; c<colcnt; c++)
+    for (int c=2; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
         ModelNode=GetModelNode(ColName);
