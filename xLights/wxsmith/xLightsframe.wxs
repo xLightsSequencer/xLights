@@ -2107,8 +2107,8 @@
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Spirals1_Rotation" variable="Slider_Spirals1_Rotation" member="yes">
 																												<value>20</value>
-																												<min>-50</min>
-																												<max>50</max>
+																												<min>-500</min>
+																												<max>500</max>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>2</border>
@@ -3410,8 +3410,8 @@
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Spirals2_Rotation" variable="Slider_Spirals2_Rotation" member="yes">
 																												<value>20</value>
-																												<min>-50</min>
-																												<max>50</max>
+																												<min>-500</min>
+																												<max>500</max>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>2</border>

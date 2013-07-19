@@ -24,6 +24,7 @@
 #include "RgbEffects.h"
 #include <wx/time.h>
 
+
 void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,bool COUNTDOWN1,
                             int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,bool COUNTDOWN2)
 {
@@ -48,6 +49,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
     font.SetNativeFontInfoUserDesc(FontString1);
     dc.SetFont(font);
+
+
     palette.GetColor(0,c);
     dc.SetTextForeground(c);
     wxString msg;
@@ -155,7 +158,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     msg="";
     font.SetNativeFontInfoUserDesc(FontString2);
     dc.SetFont(font);
-    palette.GetColor(1,c);
+    if(colorcnt>1) palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
     dc.SetTextForeground(c);
     wxSize sz2 = dc.GetTextExtent(Line2);
     maxwidth=sz2.GetWidth();
