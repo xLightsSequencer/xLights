@@ -1206,6 +1206,10 @@ private:
     play_modes play_mode;
     NetInfoClass NetInfo;
 
+    int effGridPrevX;
+    int effGridPrevY;
+
+
     void SetPlayMode(play_modes newmode);
     double rand01();
     bool EnableOutputs();

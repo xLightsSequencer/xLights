@@ -1545,6 +1545,7 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
     SeqChanCtrlBasic=false;
     SeqChanCtrlColor=false;
 }
+
 void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 {
     // read xml sequence info
@@ -1651,10 +1652,13 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     // get list of media files
     wxFileName oName;
     wxString filename;
+    wxString nullString;
     char filetype;
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
+    nullString.Clear();
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+
     while ( cont )
     {
         oName.SetFullName(filename);
@@ -1709,6 +1713,9 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     {
         // determine media file length
         mediaFilename=dialog.ChoiceMediaFiles->GetStringSelection();
+
+        DisplayXlightsFilename(nullString);
+
         if (!PlayerDlg->Play(mediaFilename))
         {
             wxMessageBox(wxT("Unable to load:\n")+mediaFilename,wxT("ERROR"));
@@ -1741,12 +1748,13 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
             ImportxLightsXMLTimmings();
             break;
         }
-
+        //Clear xlights filename
 
     }
     else if (dialog.RadioButtonNewAnim->GetValue())
     {
         duration=dialog.SpinCtrlDuration->GetValue();  // seconds
+        DisplayXlightsFilename(nullString);
         if (duration <= 0)
         {
             wxMessageBox(wxT("Invalid value for duration"),wxT("ERROR"));
@@ -1887,7 +1895,8 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
         wxFileName oName(NewFilename);
         oName.SetPath( CurrentDir );
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
-        xlightsFilename=oName.GetFullPath();
+        DisplayXlightsFilename(oName.GetFullPath());
+
         oName.SetExt("xml");
         SeqXmlFileName=oName.GetFullPath();
     }
@@ -2081,6 +2090,16 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
 {
     int row = event.GetRow(),
         col = event.GetCol();
+
+    if ( row != effGridPrevY || col != effGridPrevX)
+    {
+        //set selected cell background
+        Grid1->SetCellBackgroundColour( *wxYELLOW, row, col);
+        Grid1->SetCellBackgroundColour(Grid1->GetDefaultCellBackgroundColour(), effGridPrevY, effGridPrevX);
+    }
+    effGridPrevY = row;
+    effGridPrevX = col;
+
     if (col >= 2)
     {
         wxString EffectString=Grid1->GetCellValue(row,col);
@@ -2090,6 +2109,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
             SetEffectControls(EffectString);
         }
     }
+    Grid1->ForceRefresh();
     event.Skip();
 }
 

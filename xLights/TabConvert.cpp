@@ -872,7 +872,7 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
     char hdr[512],filetype[10];
     int fileversion,numch,numper,scancnt;
     size_t readcnt;
-    xlightsFilename=FileName;
+
     ConversionInit();
     if (!f.Open(FileName.c_str()))
     {
