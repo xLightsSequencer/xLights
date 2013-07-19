@@ -218,7 +218,7 @@ void PixelBufferClass::CalcOutput()
     wxColour color;
     wxImage::HSVValue hsv;
 
-
+http://nutcracker123.com/nutcracker/images/falcon_pi.pdf
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)
@@ -271,6 +271,11 @@ void PixelBufferClass::CalcOutput()
 
                 hsv.value = hsv.value + (hsv.value* ((double)contrast/(double)100));
             }
+
+            //
+            //  fade in
+            if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
+
             if(hsv.value < 0.0) hsv.value=0.0;
             if(hsv.value > 1.0) hsv.value=1.0;
 

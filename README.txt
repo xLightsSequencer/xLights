@@ -13,7 +13,9 @@ NUTCRACKER RELEASES
 3.0.19: Jul 17,2013 - Bug Fix: Crash on exit fixed
                     - Bug fix: Empty export files (LOR, hls,vixen,conductor) fixed
 					- Enhancement: When reading in your sequence, missing attributes will be added if your file is from pre ver 18.
-						NOTE!! Please make a backup of all your xml files. This release will be fixing your sequences, protect yourself.
+					- Enhancement: Changed rotation slider in Spirals so it does ten times more rotations.
+					- Bug fix: If you have two lines of text but only one color selected, both lines will be same color
+	NOTE!! Please make a backup of all your xml files. This release will be fixing your sequences, protect yourself.
 3.0.18: Jul 06,2013 - Added new Brightness and Comtrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
                       Contrast will make brights brighter and sim colors go towards black.
 3.0.17: Jul 01,2013 - Fixed text in Effect2. Added Twinkle, Tree, Spirograph and Fireworks to Effect2
