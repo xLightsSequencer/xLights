@@ -1254,6 +1254,10 @@ void xLightsFrame::ChooseModelsForSequence()
                 int colnum=Grid1->GetNumberCols()-1;
                 Grid1->SetColLabelValue(colnum,name);
                 Grid1->SetColAttr(colnum,readonly);  // this only sets cells to ro that already exist (not insterted rows)
+                for(int j = 0; j < Grid1->GetNumberRows(); j++)
+                {
+                    Grid1->SetCellOverflow(j,colnum, false);
+                }
             }
             else
             {
@@ -1604,8 +1608,11 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
             }
             else if (DeleteCols.Index(c) == wxNOT_FOUND)
             {
+
                 Grid1->SetCellValue(r-1,gridCol,td->GetNodeContent());
                 gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
+                Grid1->SetCellOverflow(r-1,gridCol, false);
+
             }
         }
     }
@@ -2062,14 +2069,13 @@ void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
         NumericSort();
         Grid1->EnableEditing(true);
     }
+    event.Skip();
 }
 
 void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
 {
     int row = event.GetRow(),
         col = event.GetCol();
-
-    /*Grid1->SetGridCursor(row, col);*/
 
     if ( row != effGridPrevY || col != effGridPrevX)
     {
