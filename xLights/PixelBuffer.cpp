@@ -99,10 +99,14 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
 void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
 {
     wxColour c0,c1;
-     wxImage::HSVValue hsv,hsv0,hsv1;
+    wxImage::HSVValue hsv,hsv0,hsv1;
+    wxImage::RGBValue rgbVal;
 
     Effect[0].GetPixel(x,y,c0);
     Effect[1].GetPixel(x,y,c1);
+    hsv0 = wxImage::RGBtoHSV(c0.GetRGB());
+    hsv1 = wxImage::RGBtoHSV(c1.GetRGB());
+
     switch (MixType)
     {
     case Mix_Effect1:
@@ -137,19 +141,10 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         // first unmasks second
         if (c0.GetRGB() != 0) // if effect 1 is non black
         {
-            c=c1;   // set color to whatever effect 2 has
-//
-//  new code to be added here
-//  we need to get the HSV value of effect 2 pixel
-//  hsv0 = rgbtohsv(c0);
-//  hsv1 = rgbtohsv(c1);
-//
-//  now we want the color and saturation from effect 2 but the brightness from effect 1.
-//
-//    hsv1.value = hsv0.value
-//      now convert hsv back
-//      c = hsvtorgb(hsv1);
 
+            hsv1.value = hsv0.value;
+            rgbVal = wxImage::HSVtoRGB(hsv1);
+            c.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
         }
         else
         {
@@ -160,7 +155,9 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         // second unmasks first
         if (c1.GetRGB() != 0)  // if effect 2 is non black
         {
-            c=c0;    // set color to whatever effect 1 has
+            hsv0.value = hsv1.value;
+            rgbVal = wxImage::HSVtoRGB(hsv0);
+            c.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
         }
         else
         {

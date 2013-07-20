@@ -324,6 +324,40 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
+    v.Clear();
+
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        int nCols = Grid1->GetNumberCols();
+        for (r=0; r<nRows; r++)
+        {
+            for (c=2; c<nCols; c++)
+            {
+                if (Grid1->IsInSelection(r,c))
+                {
+                    Grid1->SetCellValue(r,c,v);
+                }
+            }
+        }
+    }
+    else
+    {
+        // copy to current cell
+        r=Grid1->GetGridCursorRow();
+        c=Grid1->GetGridCursorCol();
+        if (c >=2)
+        {
+            Grid1->SetCellValue(r,c,v);
+        }
+    }
+}
+
 void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
 {
     int NameIdx=Choice_Presets->GetSelection();
@@ -1453,67 +1487,7 @@ void xLightsFrame::ImportAudacityTimmings()
 
 void xLightsFrame::ProcessxLightsXMLTimmingsFile(const wxString& filename)
 {
-    SeqBaseChannel=1;
-    SeqChanCtrlBasic=false;
-    SeqChanCtrlColor=false;
 
-    // read xml sequence info
-    wxFileName FileObj(filename);
-    SeqXmlFileName=FileObj.GetFullPath();
-
-    if (!FileObj.FileExists())
-    {
-        ChooseModelsForSequence();
-        return;
-    }
-
-    // read xml
-    //  first fix any version specific changes
-    fix_version_differences(SeqXmlFileName);
-
-
-    wxXmlDocument doc;
-    if (!doc.Load(SeqXmlFileName))
-    {
-        wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return;
-    }
-    wxXmlNode* root=doc.GetRoot();
-
-    wxXmlNode *tr, *td;
-    wxString ColName;
-    wxArrayInt DeleteCols;
-    wxArrayString ModelNames;
-    GetModelNames(ModelNames);
-    SeqElementMismatchDialog dialog(this);
-    dialog.ChoiceModels->Set(ModelNames);
-    if (ModelNames.Count() > 0) dialog.ChoiceModels->SetSelection(0);
-
-    int r,c; // row 0=heading, >=1 are data rows
-    for(tr=root->GetChildren(), r=0; tr!=NULL; tr=tr->GetNext(), r++ )
-    {
-        if (tr->GetName() != wxT("tr") || r == 0) continue;
-
-        Grid1->AppendRows();
-
-        for(td=tr->GetChildren(), c=0; td!=NULL; td=td->GetNext(), c++ )
-        {
-            if (td->GetName() != wxT("td")) continue;
-            if ( c == 0)
-            {
-                Grid1->SetCellValue(r-1,c,td->GetNodeContent());
-            }
-        }
-    }
-
-    // make new columns read-only
-    wxGridCellAttr* readonly=new wxGridCellAttr;
-    readonly->SetReadOnly();
-    for (c=2; c < Grid1->GetNumberCols(); c++)
-    {
-        Grid1->SetColAttr(c,readonly);
-    }
-    EnableSequenceControls(true);
 }
 
 void xLightsFrame::ImportxLightsXMLTimmings()
@@ -1553,6 +1527,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     wxFileName FileObj(filename);
     FileObj.SetExt("xml");
     SeqXmlFileName=FileObj.GetFullPath();
+    int gridCol;
     if (!FileObj.FileExists())
     {
         ChooseModelsForSequence();
@@ -1594,7 +1569,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
         {
             Grid1->AppendRows();
         }
-        for(td=tr->GetChildren(), c=0; td!=NULL; td=td->GetNext(), c++ )
+        for(td=tr->GetChildren(), c=0, gridCol=0; td!=NULL; td=td->GetNext(), c++ )
         {
             if (td->GetName() != wxT("td")) continue;
             if (r==0)
@@ -1630,7 +1605,8 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
             }
             else if (DeleteCols.Index(c) == wxNOT_FOUND)
             {
-                Grid1->SetCellValue(r-1,c,td->GetNodeContent());
+                Grid1->SetCellValue(r-1,gridCol,td->GetNodeContent());
+                gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
             }
         }
     }
@@ -1679,6 +1655,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     {
         dialog.RadioButtonXlights->Enable(false);
         dialog.ChoiceSeqFiles->Enable(false);
+        dialog.RadioBoxTimmingChoice->Enable();
         dialog.RadioButtonNewMusic->SetValue(true);
     }
     if (MediaFiles.Count() > 0)
@@ -1690,6 +1667,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     {
         dialog.RadioButtonNewMusic->Enable(false);
         dialog.ChoiceMediaFiles->Enable(false);
+        dialog.RadioBoxTimmingChoice->Disable();
         dialog.RadioButtonNewAnim->SetValue(true);
     }
     dialog.Fit();
@@ -2092,6 +2070,8 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
     int row = event.GetRow(),
         col = event.GetCol();
 
+    /*Grid1->SetGridCursor(row, col);*/
+
     if ( row != effGridPrevY || col != effGridPrevX)
     {
         //set selected cell background
@@ -2282,4 +2262,25 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     }
 
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+}
+
+void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
+{
+
+ 	wxMenu mnu;
+ 	//mnu.SetClientData( data );
+ 	mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
+ 	mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+ 	mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
+ 	PopupMenu(&mnu);
+}
+
+void xLightsFrame::OnPopupClick(wxCommandEvent &event)
+{
+	void *data=static_cast<wxMenu *>(event.GetEventObject())->GetClientData();
+
+ 	if(event.GetId() == ID_DELETE_EFFECT)
+ 	{
+        DeleteSelectedEffects(event);
+ 	}
 }
