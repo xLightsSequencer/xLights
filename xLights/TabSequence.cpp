@@ -726,6 +726,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
 }
 
+
 void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 {
     wxString s;
