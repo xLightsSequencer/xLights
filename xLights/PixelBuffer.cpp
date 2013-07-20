@@ -22,7 +22,7 @@
 **************************************************************/
 
 #include "PixelBuffer.h"
-
+#include <wx/image.h>
 PixelBufferClass::PixelBufferClass()
 {
 }
@@ -99,6 +99,8 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
 void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
 {
     wxColour c0,c1;
+     wxImage::HSVValue hsv,hsv0,hsv1;
+
     Effect[0].GetPixel(x,y,c0);
     Effect[1].GetPixel(x,y,c1);
     switch (MixType)
@@ -111,9 +113,9 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Mask1:
         // first masks second
-        if (c0.GetRGB() == 0)
+        if (c0.GetRGB() == 0) // only if effect 1 is black
         {
-            c=c1;
+            c=c1;  // then show the color of effect 2
         }
         else
         {
@@ -133,9 +135,21 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Unmask1:
         // first unmasks second
-        if (c0.GetRGB() != 0)
+        if (c0.GetRGB() != 0) // if effect 1 is non black
         {
-            c=c1;
+            c=c1;   // set color to whatever effect 2 has
+//
+//  new code to be added here
+//  we need to get the HSV value of effect 2 pixel
+//  hsv0 = rgbtohsv(c0);
+//  hsv1 = rgbtohsv(c1);
+//
+//  now we want the color and saturation from effect 2 but the brightness from effect 1.
+//
+//    hsv1.value = hsv0.value
+//      now convert hsv back
+//      c = hsvtorgb(hsv1);
+
         }
         else
         {
@@ -144,9 +158,9 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Unmask2:
         // second unmasks first
-        if (c1.GetRGB() != 0)
+        if (c1.GetRGB() != 0)  // if effect 2 is non black
         {
-            c=c0;
+            c=c0;    // set color to whatever effect 1 has
         }
         else
         {
@@ -274,7 +288,7 @@ http://nutcracker123.com/nutcracker/images/falcon_pi.pdf
 
             //
             //  fade in
-            if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
+        //    if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
 
             if(hsv.value < 0.0) hsv.value=0.0;
             if(hsv.value > 1.0) hsv.value=1.0;

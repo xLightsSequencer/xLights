@@ -187,6 +187,7 @@ void RgbEffects::GetPixel(int x, int y, wxColour &color)
     }
 }
 
+
 // 0,0 is lower left
 void RgbEffects::SetTempPixel(int x, int y, const wxColour &color)
 {
