@@ -13,7 +13,7 @@ const long SeqOpenDialog::ID_CHOICE1 = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON2 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT2 = wxNewId();
 const long SeqOpenDialog::ID_CHOICE2 = wxNewId();
-const long SeqOpenDialog::ID_RADIOBOX1 = wxNewId();
+const long SeqOpenDialog::ID_RADIOBOX_Timing_Choice = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT3 = wxNewId();
 const long SeqOpenDialog::ID_SPINCTRL1 = wxNewId();
@@ -57,9 +57,9 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     	_("Audacity"),
     	_("Xlights XML")
     };
-    RadioBoxTimmingChoice = new wxRadioBox(this, ID_RADIOBOX1, _("Timming Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX1"));
-    RadioBoxTimmingChoice->Disable();
-    FlexGridSizer2->Add(RadioBoxTimmingChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioBoxTimingChoice = new wxRadioBox(this, ID_RADIOBOX_Timing_Choice, _("Timing Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX_Timing_Choice"));
+    RadioBoxTimingChoice->Disable();
+    FlexGridSizer2->Add(RadioBoxTimingChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonNewAnim = new wxRadioButton(this, ID_RADIOBUTTON3, _("New animation sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     FlexGridSizer2->Add(RadioButtonNewAnim, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -82,7 +82,7 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceSeqFilesSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewMusicSelect);
     Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceMediaFilesSelect);
-    Connect(ID_RADIOBOX1,wxEVT_COMMAND_RADIOBOX_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioBox1Select1);
+    Connect(ID_RADIOBOX_Timing_Choice,wxEVT_COMMAND_RADIOBOX_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioBox1Select1);
     Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewAnimSelect);
     //*)
 }
@@ -112,15 +112,15 @@ void SeqOpenDialog::OnChoiceMediaFilesSelect(wxCommandEvent& event)
 
 void SeqOpenDialog::OnRadioButtonXlightsSelect(wxCommandEvent& event)
 {
-    RadioBoxTimmingChoice->Disable();
+    RadioBoxTimingChoice->Disable();
 }
 
 void SeqOpenDialog::OnRadioButtonNewMusicSelect(wxCommandEvent& event)
 {
-    RadioBoxTimmingChoice->Enable();
+    RadioBoxTimingChoice->Enable();
 }
 
 void SeqOpenDialog::OnRadioButtonNewAnimSelect(wxCommandEvent& event)
 {
-    RadioBoxTimmingChoice->Disable();
+    RadioBoxTimingChoice->Disable();
 }

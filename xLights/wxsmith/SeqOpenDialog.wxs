@@ -78,8 +78,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxRadioBox" name="ID_RADIOBOX1" variable="RadioBoxTimmingChoice" member="yes">
-							<label>Timming Import</label>
+						<object class="wxRadioBox" name="ID_RADIOBOX_Timing_Choice" variable="RadioBoxTimingChoice" member="yes">
+							<label>Timing Import</label>
 							<content>
 								<item>None</item>
 								<item>Audacity</item>

@@ -1445,7 +1445,7 @@ void fix_version_differences(wxString file)
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
 }
 
-void xLightsFrame::ProcessAudacityTimmingFile(const wxString& filename)
+void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 {
     wxTextFile f;
     wxString line;
@@ -1468,17 +1468,17 @@ void xLightsFrame::ProcessAudacityTimmingFile(const wxString& filename)
     }
 }
 
-void xLightsFrame::ImportAudacityTimmings()
+void xLightsFrame::ImportAudacityTimings()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(
-		this, _("Choose Audacity timmings file"), CurrentDir, wxEmptyString,
+		this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
 		_("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
 	if (OpenDialog->ShowModal() == wxID_OK)
 	{
 		fName =	OpenDialog->GetPath();
-		ProcessAudacityTimmingFile(fName);
+		ProcessAudacityTimingFile(fName);
 	}
 	else
     {
@@ -1489,15 +1489,15 @@ void xLightsFrame::ImportAudacityTimmings()
 	OpenDialog->Destroy();
 }
 
-void xLightsFrame::ProcessxLightsXMLTimmingsFile(const wxString& filename)
+void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
 {
 
 }
 
-void xLightsFrame::ImportxLightsXMLTimmings()
+void xLightsFrame::ImportxLightsXMLTimings()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(
-		this, _("Choose Audacity timmings file"), CurrentDir, wxEmptyString,
+		this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
 		_("Text files (*.xml)|*.xml"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
@@ -1662,7 +1662,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     {
         dialog.RadioButtonXlights->Enable(false);
         dialog.ChoiceSeqFiles->Enable(false);
-        dialog.RadioBoxTimmingChoice->Enable();
+        dialog.RadioBoxTimingChoice->Enable();
         dialog.RadioButtonNewMusic->SetValue(true);
     }
     if (MediaFiles.Count() > 0)
@@ -1674,7 +1674,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     {
         dialog.RadioButtonNewMusic->Enable(false);
         dialog.ChoiceMediaFiles->Enable(false);
-        dialog.RadioBoxTimmingChoice->Disable();
+        dialog.RadioBoxTimingChoice->Disable();
         dialog.RadioButtonNewAnim->SetValue(true);
     }
     dialog.Fit();
@@ -1720,18 +1720,18 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
             wxMessageBox(wxT("Unable to determine the length of:\n")+mediaFilename,wxT("ERROR"));
             return;
         }
-        switch (dialog.RadioBoxTimmingChoice->GetSelection())
+        switch (dialog.RadioBoxTimingChoice->GetSelection())
         {
         case 0:
-            // No Timming mark import selected
+            // No Timing mark import selected
             break;
         case 1:
             // Audacity File import
-            ImportAudacityTimmings();
+            ImportAudacityTimings();
             break;
         case 2:
             // Xlights XML timing import
-            ImportxLightsXMLTimmings();
+            ImportxLightsXMLTimings();
             break;
         }
         //Clear xlights filename
