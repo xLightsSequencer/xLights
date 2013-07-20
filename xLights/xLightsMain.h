@@ -279,7 +279,11 @@ private:
     void OnButton_Text2_1_FontClick(wxCommandEvent& event);
     void OnButton_Text2_2_FontClick(wxCommandEvent& event);
     void OnChoice_ModelsSelect(wxCommandEvent& event);
+    void OnGrid1CellRightClick(wxGridEvent& event);
     //*)
+    void OnPopupClick(wxCommandEvent &evt);
+    void DeleteSelectedEffects(wxCommandEvent &evt);
+
 
     //(*Identifiers(xLightsFrame)
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -737,6 +741,8 @@ private:
     //*)
 
     static const long ID_PLAYER_DIALOG;
+    static const long ID_DELETE_EFFECT;
+    static const long ID_IGNORE_CLICK;
 
     //(*Declarations(xLightsFrame)
     wxStaticText* StaticText6;

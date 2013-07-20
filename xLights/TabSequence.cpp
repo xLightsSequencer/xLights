@@ -324,6 +324,40 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
+    v.Clear();
+
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        int nCols = Grid1->GetNumberCols();
+        for (r=0; r<nRows; r++)
+        {
+            for (c=2; c<nCols; c++)
+            {
+                if (Grid1->IsInSelection(r,c))
+                {
+                    Grid1->SetCellValue(r,c,v);
+                }
+            }
+        }
+    }
+    else
+    {
+        // copy to current cell
+        r=Grid1->GetGridCursorRow();
+        c=Grid1->GetGridCursorCol();
+        if (c >=2)
+        {
+            Grid1->SetCellValue(r,c,v);
+        }
+    }
+}
+
 void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
 {
     int NameIdx=Choice_Presets->GetSelection();
@@ -2091,6 +2125,8 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
     int row = event.GetRow(),
         col = event.GetCol();
 
+    /*Grid1->SetGridCursor(row, col);*/
+
     if ( row != effGridPrevY || col != effGridPrevX)
     {
         //set selected cell background
@@ -2281,4 +2317,25 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     }
 
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+}
+
+void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
+{
+
+ 	wxMenu mnu;
+ 	//mnu.SetClientData( data );
+ 	mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
+ 	mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+ 	mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
+ 	PopupMenu(&mnu);
+}
+
+void xLightsFrame::OnPopupClick(wxCommandEvent &event)
+{
+	void *data=static_cast<wxMenu *>(event.GetEventObject())->GetClientData();
+
+ 	if(event.GetId() == ID_DELETE_EFFECT)
+ 	{
+        DeleteSelectedEffects(event);
+ 	}
 }
