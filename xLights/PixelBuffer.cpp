@@ -104,8 +104,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
 
     Effect[0].GetPixel(x,y,c0);
     Effect[1].GetPixel(x,y,c1);
-    hsv0 = wxImage::RGBtoHSV(c0.GetRGB());
-    hsv1 = wxImage::RGBtoHSV(c1.GetRGB());
+    hsv0 = wxImage::RGBtoHSV( wxImage::RGBValue( c0.Red(), c0.Green(), c0.Blue()));
+    hsv1 = wxImage::RGBtoHSV(wxImage::RGBValue( c1.Red(), c1.Green(), c1.Blue()));
 
     switch (MixType)
     {
