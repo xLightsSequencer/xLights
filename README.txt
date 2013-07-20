@@ -12,7 +12,12 @@ NUTCRACKER RELEASES
 -------------------
 3.0.20: Jul 19,2013 - Enhancement: Highlight cell you are editing in so you know where "update" will apply 
                     - Bug: Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
-					- Enhanceent: Abilioty to read an Audacity or a XML file when creating a blank sequence froma music file
+					- Enhancement: Ability to read an Audacity or a XML file when creating a blank sequence from a music file
+					- Enhancement: 1 is Unmask, 2 is Unmask now keeps the brightness value of the mask. This is big! Use a picture as a mask on a colorwash.
+					  The new picture will be a mono tone version. Use text as a mask, the edges will feather but in a solid color. 
+					  This fixes the antio-aliasing issue of text. To fix use text as effect 1, color wash as effect2. set effect 2 color what you want your text
+					  to look like
+					- Bug: Deleting some models caused crash, fixed.
 3.0.19: Jul 17,2013 - Bug Fix: Crash on exit fixed
                     - Bug fix: Empty export files (LOR, hls,vixen,conductor) fixed
 					- Enhancement: When reading in your sequence, missing attributes will be added if your file is from pre ver 18.
@@ -72,7 +77,7 @@ Bug#  Status  Version  Description
 0003  Closed  3.0.4    Vixen VIR files has RED and BLUE swapped
 0004  Closed  3.0.5    LCB colors swapped.
 0005  Closed  3.0.7    On effect 1, Palette 3 button is not being picked up.
-0006  Open    3.0.10   If using Effect 1 and you select on Effect 2, it changes Effect 1.
+0006  Closed  3.0.10   If using Effect 1 and you select on Effect 2, it changes Effect 1.
   
 
 
