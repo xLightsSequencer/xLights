@@ -145,7 +145,6 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
             hsv1.value = hsv0.value;
             rgbVal = wxImage::HSVtoRGB(hsv1);
             c.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
-             c=c1;
         }
         else
         {
