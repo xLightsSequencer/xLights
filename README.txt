@@ -10,6 +10,9 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.20: Jul 19,2013 - Enhancement: Highlight cell you are editing in so you know where "update" will apply 
+                    - Bug: Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
+					- Enhanceent: Abilioty to read an Audacity or a XML file when creating a blank sequence froma music file
 3.0.19: Jul 17,2013 - Bug Fix: Crash on exit fixed
                     - Bug fix: Empty export files (LOR, hls,vixen,conductor) fixed
 					- Enhancement: When reading in your sequence, missing attributes will be added if your file is from pre ver 18.

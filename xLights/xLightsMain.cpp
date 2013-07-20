@@ -649,7 +649,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.19)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.20)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -2178,7 +2178,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
-    Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
     Connect(ID_BUTTON_PICTURES1_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Pictures1_FilenameClick);
     Connect(ID_BUTTON_TEXT1_1_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text1_1_FontClick);
     Connect(ID_BUTTON_TEXT1_2_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text1_2_FontClick);
