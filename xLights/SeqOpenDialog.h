@@ -22,11 +22,11 @@ public:
     wxChoice* ChoiceMediaFiles;
     wxRadioButton* RadioButtonNewMusic;
     wxStaticText* StaticText2;
+    wxRadioBox* RadioBoxTimingChoice;
     wxRadioButton* RadioButtonXlights;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     wxSpinCtrl* SpinCtrlDuration;
-    wxRadioBox* RadioBoxTimmingChoice;
     wxRadioButton* RadioButtonNewAnim;
     wxChoice* ChoiceSeqFiles;
     //*)
@@ -40,7 +40,7 @@ protected:
     static const long ID_RADIOBUTTON2;
     static const long ID_STATICTEXT2;
     static const long ID_CHOICE2;
-    static const long ID_RADIOBOX1;
+    static const long ID_RADIOBOX_Timing_Choice;
     static const long ID_RADIOBUTTON3;
     static const long ID_STATICTEXT3;
     static const long ID_SPINCTRL1;
