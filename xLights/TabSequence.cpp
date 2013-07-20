@@ -1664,6 +1664,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
             else if (DeleteCols.Index(c) == wxNOT_FOUND)
             {
                 Grid1->SetCellValue(r-1,c,td->GetNodeContent());
+                Grid1->SetCellOverflow(r-1,c, false);
             }
         }
     }
@@ -2118,14 +2119,13 @@ void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
         NumericSort();
         Grid1->EnableEditing(true);
     }
+    event.Skip();
 }
 
 void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
 {
     int row = event.GetRow(),
         col = event.GetCol();
-
-    /*Grid1->SetGridCursor(row, col);*/
 
     if ( row != effGridPrevY || col != effGridPrevX)
     {
