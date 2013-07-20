@@ -2237,7 +2237,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     //*)
 
-    Grid1->SetDefaultCellOverflow(FALSE);
+
 
     SetIcon(wxIcon(xlights_xpm));
     wxStandardPathsBase& stdp = wxStandardPaths::Get();
