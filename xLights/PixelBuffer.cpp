@@ -23,6 +23,8 @@
 
 #include "PixelBuffer.h"
 #include <wx/image.h>
+#include <wx/tokenzr.h>
+
 PixelBufferClass::PixelBufferClass()
 {
 }
@@ -229,7 +231,6 @@ void PixelBufferClass::CalcOutput()
     wxColour color;
     wxImage::HSVValue hsv;
 
-http://nutcracker123.com/nutcracker/images/falcon_pi.pdf
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)

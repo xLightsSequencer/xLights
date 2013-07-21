@@ -1239,6 +1239,7 @@ void xLightsFrame::ChooseModelsForSequence()
     if (dialog.ShowModal() != wxID_OK) return;
 
     // add checked models to grid
+
     size_t cnt = dialog.CheckListBox1->GetCount();
     for (size_t i=0; i < cnt; i++)
     {
@@ -1252,6 +1253,7 @@ void xLightsFrame::ChooseModelsForSequence()
                 Grid1->AppendCols();
                 int colnum=Grid1->GetNumberCols()-1;
                 Grid1->SetColLabelValue(colnum,name);
+
                 for(int j = 0; j < Grid1->GetNumberRows(); j++)
                 {
                     Grid1->SetCellOverflow(j,colnum, false);
@@ -1613,6 +1615,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
                 gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
                 Grid1->SetCellOverflow(r-1,gridCol, false);
                 Grid1->SetReadOnly(r-1,gridCol,false);
+
             }
         }
     }

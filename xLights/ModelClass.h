@@ -40,6 +40,7 @@ public:
     wxCoord bufX, bufY, screenX, screenY;
     size_t bufIdx;
     int sparkle;
+    int ActChan;
     int StringNum; // node is part of this string # - used only for reporting purposes
 
     void SetColor(wxColour& color)
@@ -80,7 +81,7 @@ public:
 };
 
 typedef std::vector<RgbNodeClass> RgbNodeVector;
-
+typedef std::vector<long> StartChannelVector_t;
 
 class ModelClass
 {
@@ -93,7 +94,7 @@ private:
     void SetRenderSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NewCount);
     void CopyBufCoord2ScreenCoord();
-    void SetTreeCoord(int degrees);
+    void SetTreeCoord(long degrees);
     void SetLineCoord();
     void SetArchCoord();
     static const double PI  =3.141592653589793238462;
@@ -112,6 +113,8 @@ public:
     int TreeDegrees,FrameWidth;
     RgbNodeVector Nodes;
     bool MyDisplay;
+
+    StartChannelVector_t stringStartChan;
 
     void SetFromXml(wxXmlNode* ModelNode);
     size_t GetNodeCount();

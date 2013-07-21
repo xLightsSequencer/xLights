@@ -23,10 +23,12 @@
 
 #include "ModelClass.h"
 #include <wx/msgdlg.h>
+#include <wx/tokenzr.h>
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode)
 {
     wxString tempstr;
+    long degrees;
     name=ModelNode->GetAttribute(wxT("name"));
     DisplayAs=ModelNode->GetAttribute(wxT("DisplayAs"));
     RGBorder=ModelNode->GetAttribute(wxT("Order"),wxT("RGB"));
@@ -45,25 +47,15 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     AliasFactor=1 << Antialias;
     MyDisplay=(ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
 
-    if (DisplayAs == wxT("Tree 360"))
+    wxStringTokenizer tkz(DisplayAs, wxT(" "));
+    wxString token = tkz.GetNextToken();
+
+    if (token == wxT("Tree"))
     {
         InitVMatrix();
-        SetTreeCoord(360);
-    }
-    else if (DisplayAs == wxT("Tree 270"))
-    {
-        InitVMatrix();
-        SetTreeCoord(270);
-    }
-    else if (DisplayAs == wxT("Tree 180"))
-    {
-        InitVMatrix();
-        SetTreeCoord(180);
-    }
-    else if (DisplayAs == wxT("Tree 90"))
-    {
-        InitVMatrix();
-        SetTreeCoord(90);
+        token = tkz.GetNextToken();
+        token.ToLong(&degrees);
+        SetTreeCoord(degrees);
     }
     else if (DisplayAs == wxT("Vert Matrix"))
     {
@@ -121,7 +113,7 @@ void ModelClass::InitVMatrix()
 }
 
 // initialize screen coordinates for tree
-void ModelClass::SetTreeCoord(int degrees)
+void ModelClass::SetTreeCoord(long degrees)
 {
     int bufferX, bufferY;
     double angle,x0;

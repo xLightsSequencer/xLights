@@ -29,16 +29,20 @@
 #include "ModelClass.h"
 #include "RgbEffects.h"
 
+/**
+ * \brief enumeration of the different techniques used in layering effects
+ */
+
 enum MixTypes
 {
-    Mix_Effect1,
-    Mix_Effect2,
-    Mix_Mask1,
-    Mix_Mask2,
-    Mix_Unmask1,
-    Mix_Unmask2,
-    Mix_Layered,
-    Mix_Average,
+    Mix_Effect1, /**<  Effect 1 only */
+    Mix_Effect2, /**<  Effect 2 only */
+    Mix_Mask1,   /**<  Effect 2 color shows where Effect 1 is black */
+    Mix_Mask2,   /**<  Effect 1 color shows where Effect 2 is black */
+    Mix_Unmask1, /**<  Effect 2 color shows where Effect 1 is not black */
+    Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is black */
+    Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */
+    Mix_Average, /**<  Average color value between effects per pixel */
 };
 
 
