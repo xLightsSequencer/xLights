@@ -18,6 +18,7 @@ NUTCRACKER RELEASES
 					  This fixes the antio-aliasing issue of text. To fix use text as effect 1, color wash as effect2. set effect 2 color what you want your text
 					  to look like
 					- Bug: Deleting some models caused crash, fixed.
+					- Bug: If you had multiple models attached to a sequence, deleting anything other than 1st model caused crash. fixed
 3.0.19: Jul 17,2013 - Bug Fix: Crash on exit fixed
                     - Bug fix: Empty export files (LOR, hls,vixen,conductor) fixed
 					- Enhancement: When reading in your sequence, missing attributes will be added if your file is from pre ver 18.
