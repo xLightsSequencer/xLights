@@ -1239,8 +1239,6 @@ void xLightsFrame::ChooseModelsForSequence()
     if (dialog.ShowModal() != wxID_OK) return;
 
     // add checked models to grid
-    wxGridCellAttr* readonly=new wxGridCellAttr;
-    readonly->SetReadOnly();
     size_t cnt = dialog.CheckListBox1->GetCount();
     for (size_t i=0; i < cnt; i++)
     {
@@ -1254,10 +1252,10 @@ void xLightsFrame::ChooseModelsForSequence()
                 Grid1->AppendCols();
                 int colnum=Grid1->GetNumberCols()-1;
                 Grid1->SetColLabelValue(colnum,name);
-                Grid1->SetColAttr(colnum,readonly);  // this only sets cells to ro that already exist (not insterted rows)
                 for(int j = 0; j < Grid1->GetNumberRows(); j++)
                 {
                     Grid1->SetCellOverflow(j,colnum, false);
+                    Grid1->SetReadOnly(j,colnum,false);
                 }
             }
             else
@@ -1613,17 +1611,9 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
                 Grid1->SetCellValue(r-1,gridCol,td->GetNodeContent());
                 gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
                 Grid1->SetCellOverflow(r-1,gridCol, false);
-
+                Grid1->SetReadOnly(r-1,gridCol,false);
             }
         }
-    }
-
-    // make new columns read-only
-    wxGridCellAttr* readonly=new wxGridCellAttr;
-    readonly->SetReadOnly();
-    for (c=2; c < Grid1->GetNumberCols(); c++)
-    {
-        Grid1->SetColAttr(c,readonly);
     }
     EnableSequenceControls(true);
 }
