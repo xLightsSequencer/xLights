@@ -992,16 +992,14 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     DisplayEffectOnWindow();
     if (CheckBoxLightOutput->IsChecked() && xout)
     {
-        size_t ChannelNum=buffer.StartChannel-1;
         size_t NodeCnt=buffer.GetNodeCount();
         for(size_t i=0; i<NodeCnt; i++)
         {
-            xout->SetIntensity(ChannelNum,buffer.Nodes[i].GetChannel(0));
-            ChannelNum++;
-            xout->SetIntensity(ChannelNum,buffer.Nodes[i].GetChannel(1));
-            ChannelNum++;
-            xout->SetIntensity(ChannelNum,buffer.Nodes[i].GetChannel(2));
-            ChannelNum++;
+            xout->SetIntensity((buffer.Nodes[i].getChanNum(0)),buffer.Nodes[i].GetChannelColorVal(0));
+
+            xout->SetIntensity((buffer.Nodes[i].getChanNum(1),buffer.Nodes[i].GetChannelColorVal(1));
+
+            xout->SetIntensity((buffer.Nodes[i].getChanNum(2),buffer.Nodes[i].GetChannelColorVal(2));
         }
     }
 }
@@ -1820,15 +1818,14 @@ void xLightsFrame::RenderGridToSeqData()
             RenderEffectFromString(1, p, SettingsMap);
             buffer.CalcOutput();
             // update SeqData with contents of buffer
-            ChannelNum=buffer.StartChannel-1;
             for(int n=0; n<NodeCnt; n++)
             {
-                SeqData[ChannelNum*SeqNumPeriods+p]=buffer.Nodes[n].GetChannel(0);
-                ChannelNum++;
-                SeqData[ChannelNum*SeqNumPeriods+p]=buffer.Nodes[n].GetChannel(1);
-                ChannelNum++;
-                SeqData[ChannelNum*SeqNumPeriods+p]=buffer.Nodes[n].GetChannel(2);
-                ChannelNum++;
+                SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
+
+                SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
+
+                SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
+
             }
         }
     }

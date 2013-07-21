@@ -69,9 +69,14 @@ public:
     }
 
     // chnum should be 0-2
-    uint8_t GetChannel(size_t chnum)
+    uint8_t GetChannelColorVal(size_t chnum)
     {
         return c[offset[chnum]];
+    }
+
+    int getChanNum(size_t chnum)
+    {
+        return ActChan+chnum;
     }
 
     void GetColor(wxColour& color)
@@ -97,6 +102,7 @@ private:
     void SetTreeCoord(long degrees);
     void SetLineCoord();
     void SetArchCoord();
+    void SetFromXmlAdvanced(wxXmlNode* ModelNode);
     static const double PI  =3.141592653589793238462;
 
 public:
@@ -104,7 +110,9 @@ public:
     wxString DisplayAs; // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     wxString RGBorder;  // RGB, RBG, GBR, GRB, BGR, BRG
     bool IsLtoR;        // true=left to right, false=right to left
-    long parm1,parm2,parm3;
+    long parm1;         /**< Number of strings in the model */
+    long parm2;         /**< Number of nodes per string in the model */
+    long parm3;         /**< Number of strands per string in the model */
     long StartChannel;      // start channel for output (1 is first channel)
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
