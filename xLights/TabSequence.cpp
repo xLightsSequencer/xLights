@@ -997,9 +997,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         {
             xout->SetIntensity((buffer.Nodes[i].getChanNum(0)),buffer.Nodes[i].GetChannelColorVal(0));
 
-            xout->SetIntensity((buffer.Nodes[i].getChanNum(1),buffer.Nodes[i].GetChannelColorVal(1));
+            xout->SetIntensity((buffer.Nodes[i].getChanNum(1)),buffer.Nodes[i].GetChannelColorVal(1));
 
-            xout->SetIntensity((buffer.Nodes[i].getChanNum(2),buffer.Nodes[i].GetChannelColorVal(2));
+            xout->SetIntensity((buffer.Nodes[i].getChanNum(2)),buffer.Nodes[i].GetChannelColorVal(2));
         }
     }
 }

@@ -52,45 +52,60 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     wxString token = tkz.GetNextToken();
 
     tempstr = ModelNode->GetContent();
+    modelv2 = ModelNode->HasAttribute(wxT("Advanced"));
 
-    if( ModelNode->HasAttribute(wxT("Advanced"))  )
+    if( modelv2 )
     {
             SetFromXmlAdvanced(ModelNode);
     }
     else
     {
-        if (token == wxT("Tree"))
-        {
-            InitVMatrix();
-            token = tkz.GetNextToken();
-            token.ToLong(&degrees);
-            SetTreeCoord(degrees);
-        }
-        else if (DisplayAs == wxT("Vert Matrix"))
-        {
-            InitVMatrix();
-            CopyBufCoord2ScreenCoord();
-        }
-        else if (DisplayAs == wxT("Horiz Matrix"))
-        {
-            InitHMatrix();
-            CopyBufCoord2ScreenCoord();
-        }
-        else if (DisplayAs == wxT("Single Line"))
-        {
-            InitLine();
-            SetLineCoord();
-        }
-        else if (DisplayAs == wxT("Arches"))
-        {
-            InitLine();
-            SetArchCoord();
-        }
-        else if (DisplayAs == wxT("Window Frame"))
-        {
-            InitFrame();
-            CopyBufCoord2ScreenCoord();
-        }
+        InitializeStringStartNum();
+    }
+
+
+    if (token == wxT("Tree"))
+    {
+        InitVMatrix();
+        token = tkz.GetNextToken();
+        token.ToLong(&degrees);
+        SetTreeCoord(degrees);
+    }
+    else if (DisplayAs == wxT("Vert Matrix"))
+    {
+        InitVMatrix();
+        CopyBufCoord2ScreenCoord();
+    }
+    else if (DisplayAs == wxT("Horiz Matrix"))
+    {
+        InitHMatrix();
+        CopyBufCoord2ScreenCoord();
+    }
+    else if (DisplayAs == wxT("Single Line"))
+    {
+        InitLine();
+        SetLineCoord();
+    }
+    else if (DisplayAs == wxT("Arches"))
+    {
+        InitLine();
+        SetArchCoord();
+    }
+    else if (DisplayAs == wxT("Window Frame"))
+    {
+        InitFrame();
+        CopyBufCoord2ScreenCoord();
+    }
+
+}
+void ModelClass::InitializeStringStartNum()
+{
+    int i;
+    stringStartChan.clear();
+    stringStartChan.resize(parm1);
+    for (i=0; i<parm1; i++)
+    {
+        stringStartChan[i] = StartChannel-1 + (i)*parm2*3;
     }
 }
 void ModelClass::SetFromXmlAdvanced(wxXmlNode* ModelNode)
@@ -139,7 +154,7 @@ void ModelClass::InitVMatrix()
         for(y=0; y < PixelsPerStrand; y++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + y;
-            Nodes[idx].ActChan = idx;
+            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand + y;
             Nodes[idx].bufX=IsLtoR ? x : NumStrands-x-1;
             Nodes[idx].bufY=(segmentnum % 2 == 0) ? y : PixelsPerStrand-y-1;
             Nodes[idx].StringNum=stringnum;
@@ -169,7 +184,6 @@ void ModelClass::SetTreeCoord(long degrees)
         bufferX=Nodes[idx].bufX;
         bufferY=Nodes[idx].bufY;
         angle=StartAngle + double(bufferX) * AngleIncr;
-        Nodes[idx].ActChan = idx;
         x0=radius * sin(angle);
         Nodes[idx].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
         Nodes[idx].screenY=bufferY * factor;
@@ -200,7 +214,7 @@ void ModelClass::InitHMatrix()
         for(x=0; x<PixelsPerStrand; x++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + x;
-            Nodes[idx].ActChan = idx;
+            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand + x;
             Nodes[idx].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=stringnum;
