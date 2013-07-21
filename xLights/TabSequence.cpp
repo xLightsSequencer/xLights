@@ -1465,6 +1465,7 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 
         Grid1->AppendRows();
         Grid1->SetCellValue(r,0,token);
+
     }
 }
 
