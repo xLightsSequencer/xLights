@@ -103,7 +103,9 @@ private:
     void SetLineCoord();
     void SetArchCoord();
     void SetFromXmlAdvanced(wxXmlNode* ModelNode);
+    void InitializeStringStartNum();
     static const double PI  =3.141592653589793238462;
+    bool modelv2;
 
 public:
     wxString name;      // user-designated model name
