@@ -449,6 +449,7 @@ void xLightsFrame::UpdateEffectsList()
 
 void xLightsFrame::UpdateModelsList()
 {
+    //TODO: Add code to read in model list with v2 values
     wxString name;
     wxString SelectedStr=Choice_Models->GetStringSelection();
     Choice_Models->Clear();

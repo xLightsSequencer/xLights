@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
+#include <wx/grid.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 //*)
@@ -19,8 +20,11 @@ public:
     ModelDialog(wxWindow* parent,wxWindowID id=wxID_ANY);
     virtual ~ModelDialog();
     void UpdateLabels();
+    void UpdateStartChannels();
 
     //(*Declarations(ModelDialog)
+    wxStaticText* StaticText9;
+    wxRadioButton* RadioButton1;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
@@ -28,6 +32,8 @@ public:
     wxStaticText* StaticText2;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
+    wxStaticText* StaticText8;
+    wxRadioButton* btBottom;
     wxRadioButton* RadioButton_RtoL;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
@@ -35,7 +41,9 @@ public:
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
     wxChoice* Choice_Order;
+    wxCheckBox* cbIndividualStartNumbers;
     wxChoice* Choice_Antialias;
+    wxGrid* gridStartChannels;
     wxChoice* Choice_DisplayAs;
     wxStaticText* StaticText4;
     wxSpinCtrl* SpinCtrl_StartChannel;
@@ -64,18 +72,30 @@ protected:
     static const long ID_STATICTEXT8;
     static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON2;
+    static const long ID_STATICTEXT11;
+    static const long ID_RADIOBUTTON4;
+    static const long ID_RADIOBUTTON3;
     static const long ID_STATICTEXT9;
     static const long ID_CHOICE3;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
+    static const long ID_STATICTEXT12;
+    static const long ID_CHECKBOX2;
+    static const long ID_GRID1;
     //*)
 
 private:
 
     //(*Handlers(ModelDialog)
     void OnChoice_DisplayAsSelect(wxCommandEvent& event);
+    void OncbIndividualStartNumbersClick(wxCommandEvent& event);
+    void OnSpinCtrl_parm1Change(wxSpinEvent& event);
+    void OnSpinCtrl_parm2Change(wxSpinEvent& event);
     //*)
+    void SetDefaultStartChannels();
+    void UpdateRowCount();
 
+    void SetReadOnly(bool);
     DECLARE_EVENT_TABLE()
 };
 

@@ -123,7 +123,12 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 
 void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
 {
+    int ii;
+    wxString strText;
+    strText = wxT("String");
     int sel=ListBox1->GetSelection();
+    long numStrings;
+    wxString tempStr;
     if (sel == wxNOT_FOUND)
     {
         wxMessageBox(_("Select an item before clicking the Modify button"));
@@ -147,6 +152,20 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     antialias.ToLong(&n);
     dialog.Choice_Antialias->SetSelection(n);
     direction=e->GetAttribute(wxT("Dir"));
+    if(e->HasAttribute(wxT("Advanced")))
+    {
+        dialog.cbIndividualStartNumbers->SetValue(true);
+        dialog.UpdateStartChannels();
+        tempStr = e->GetAttribute(wxT("parm1"));
+        tempStr.ToLong(&numStrings);
+        for(ii=0; ii < numStrings; ii++)
+        {
+            dialog.gridStartChannels->SetCellValue(ii,0,
+                                e->GetAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1)))));
+        }
+    }
+
+
     if (direction == wxT("R"))
     {
         //dialog.RadioButton_LtoR->SetValue(false);
@@ -163,6 +182,26 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
             // validate inputs
             if (ok)
             {
+                if(e->HasAttribute(wxT("Advanced")))
+                {
+                    e->DeleteAttribute(wxT("Advanced"));
+                    tempStr = e->GetAttribute(wxT("parm1"));
+                    tempStr.ToLong(&numStrings);
+                    for(ii=0; ii < numStrings; ii++)
+                    {
+                        e->DeleteAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))));
+                    }
+                }
+
+                if (dialog.cbIndividualStartNumbers->IsChecked())
+                {
+                    e->AddAttribute(wxT("Advanced"), wxT("1"));
+                    for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
+                    {
+                        e->AddAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))),
+                                        dialog.gridStartChannels->GetCellValue(ii,0));
+                    }
+                }
                 e->DeleteAttribute(wxT("DisplayAs"));
                 e->DeleteAttribute(wxT("parm1"));
                 e->DeleteAttribute(wxT("parm2"));
@@ -181,6 +220,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                 e->AddAttribute(wxT("Dir"), dialog.RadioButton_LtoR->GetValue() ? wxT("L") : wxT("R"));
                 e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
+
             }
         }
     }
