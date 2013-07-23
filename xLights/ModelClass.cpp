@@ -27,7 +27,6 @@
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode)
 {
-    char str[2048];
     wxString tempstr;
     long degrees;
     name=ModelNode->GetAttribute(wxT("name"));
@@ -51,9 +50,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     wxStringTokenizer tkz(DisplayAs, wxT(" "));
     wxString token = tkz.GetNextToken();
 
-    tempstr = ModelNode->GetContent();
     modelv2 = ModelNode->HasAttribute(wxT("Advanced"));
-
     if( modelv2 )
     {
             SetFromXmlAdvanced(ModelNode);

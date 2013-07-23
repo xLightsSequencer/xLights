@@ -24,10 +24,16 @@ const long ModelDialog::ID_CHOICE2 = wxNewId();
 const long ModelDialog::ID_STATICTEXT8 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON1 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON2 = wxNewId();
+const long ModelDialog::ID_STATICTEXT11 = wxNewId();
+const long ModelDialog::ID_RADIOBUTTON4 = wxNewId();
+const long ModelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT9 = wxNewId();
 const long ModelDialog::ID_CHOICE3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
+const long ModelDialog::ID_STATICTEXT12 = wxNewId();
+const long ModelDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelDialog::ID_GRID1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
@@ -38,18 +44,21 @@ END_EVENT_TABLE()
 ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(ModelDialog)
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer2;
+    wxBoxSizer* BoxSizer2;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-    Create(parent, id, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+    Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
+    SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
+    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Name = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer2->Add(TextCtrl_Name, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(TextCtrl_Name, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Display As"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_DisplayAs = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -62,7 +71,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Single Line"));
     Choice_DisplayAs->Append(_("Arches"));
     Choice_DisplayAs->Append(_("Window Frame"));
-    FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_Strings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_parm1 = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxSize(60,21), 0, 1, 100, 1, _T("ID_SPINCTRL1"));
@@ -94,15 +103,24 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_Order->Append(_("BRG"));
     Choice_Order->Append(_("BGR"));
     FlexGridSizer2->Add(Choice_Order, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText3 = new wxStaticText(this, ID_STATICTEXT8, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    StaticText3 = new wxStaticText(this, ID_STATICTEXT8, _("Starting Corner"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    RadioButton_LtoR = new wxRadioButton(this, ID_RADIOBUTTON1, _("L to R"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+    RadioButton_LtoR = new wxRadioButton(this, ID_RADIOBUTTON1, _("Top Left"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     RadioButton_LtoR->SetValue(true);
     BoxSizer1->Add(RadioButton_LtoR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    RadioButton_RtoL = new wxRadioButton(this, ID_RADIOBUTTON2, _("R to L"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
+    RadioButton_RtoL = new wxRadioButton(this, ID_RADIOBUTTON2, _("Top Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
     BoxSizer1->Add(RadioButton_RtoL, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText8 = new wxStaticText(this, ID_STATICTEXT11, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+    FlexGridSizer2->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer2 = new wxBoxSizer(wxHORIZONTAL);
+    btBottom = new wxRadioButton(this, ID_RADIOBUTTON4, _("Bottom Left"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
+    BoxSizer2->Add(btBottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButton1 = new wxRadioButton(this, ID_RADIOBUTTON3, _("Bottom Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
+    BoxSizer2->Add(RadioButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Edges (antialias)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Antialias = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
@@ -114,7 +132,24 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_MyDisplay->SetValue(true);
     FlexGridSizer2->Add(CheckBox_MyDisplay, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Individual Start Chans"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+    FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    cbIndividualStartNumbers->SetValue(false);
+    FlexGridSizer2->Add(cbIndividualStartNumbers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+    gridStartChannels = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxSize(150,348), wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
+    gridStartChannels->CreateGrid(0,1);
+    gridStartChannels->EnableEditing(true);
+    gridStartChannels->EnableGridLines(true);
+    gridStartChannels->SetRowLabelSize(25);
+    gridStartChannels->SetDefaultColSize(90, true);
+    gridStartChannels->SetColLabelValue(0, _("Start Channel"));
+    gridStartChannels->SetDefaultCellFont( gridStartChannels->GetFont() );
+    gridStartChannels->SetDefaultCellTextColour( gridStartChannels->GetForegroundColour() );
+    FlexGridSizer3->Add(gridStartChannels, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -126,7 +161,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Center();
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_DisplayAsSelect);
+    Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm1Change);
+    Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     //*)
+    UpdateStartChannels();
 }
 
 ModelDialog::~ModelDialog()
@@ -170,6 +209,7 @@ void ModelDialog::UpdateLabels()
         StaticText_Nodes->SetLabelText(_("# of RGB Nodes per String"));
         StaticText_Strands->SetLabelText(_("# of Strands per String"));
         SpinCtrl_parm3->Enable(true);
+        UpdateStartChannels();
     }
 }
 
@@ -177,4 +217,81 @@ void ModelDialog::UpdateLabels()
 void ModelDialog::OnChoice_DisplayAsSelect(wxCommandEvent& event)
 {
     UpdateLabels();
+}
+
+void ModelDialog::OncbIndividualStartNumbersClick(wxCommandEvent& event)
+{
+    UpdateStartChannels();
+}
+
+void ModelDialog::UpdateStartChannels()
+{
+    int stringnum;
+    int strings = SpinCtrl_parm1->GetValue();
+    int startchan = SpinCtrl_StartChannel->GetValue();
+    int nodesPerString = SpinCtrl_parm2->GetValue();
+    int curRowCnt = gridStartChannels->GetNumberRows();
+
+    UpdateRowCount();
+
+    if(!cbIndividualStartNumbers->IsChecked())
+    {
+        SetDefaultStartChannels();
+        SetReadOnly(true);
+    }
+    else
+    {
+        SetReadOnly(false);
+    }
+
+}
+
+void ModelDialog::SetReadOnly(bool readonly)
+{
+    int ii;
+
+    for(ii=0; ii < gridStartChannels->GetNumberRows(); ii++)
+    {
+        gridStartChannels->SetReadOnly(ii,0,readonly);
+    }
+}
+void ModelDialog::OnSpinCtrl_parm1Change(wxSpinEvent& event)
+{
+    UpdateStartChannels();
+}
+
+void ModelDialog::UpdateRowCount()
+{
+    int stringnum;
+    int strings = SpinCtrl_parm1->GetValue();
+    int startchan = SpinCtrl_StartChannel->GetValue();
+    int nodesPerString = SpinCtrl_parm2->GetValue();
+    int curRowCnt = gridStartChannels->GetNumberRows();
+
+    if (strings > curRowCnt )
+    {
+        gridStartChannels->AppendRows(strings - curRowCnt);
+    }
+    else if ( strings < curRowCnt )
+    {
+        gridStartChannels->DeleteRows(strings, curRowCnt - strings);
+    }
+}
+void ModelDialog::SetDefaultStartChannels()
+{
+    int stringnum;
+    int strings = SpinCtrl_parm1->GetValue();
+    int startchan = SpinCtrl_StartChannel->GetValue();
+    int nodesPerString = SpinCtrl_parm2->GetValue();
+    int curRowCnt = gridStartChannels->GetNumberRows();
+
+    for (stringnum=0; stringnum<strings; stringnum++)
+    {
+        gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*nodesPerString*3)));
+    }
+}
+
+void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
+{
+     UpdateStartChannels();
 }
