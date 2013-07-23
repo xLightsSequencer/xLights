@@ -151,7 +151,7 @@ void ModelClass::InitVMatrix()
         for(y=0; y < PixelsPerStrand; y++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + y;
-            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand + y;
+            Nodes[idx].ActChan = stringStartChan[stringnum]-1 + segmentnum * PixelsPerStrand*3 + y*3;
             Nodes[idx].bufX=IsLtoR ? x : NumStrands-x-1;
             Nodes[idx].bufY=(segmentnum % 2 == 0) ? y : PixelsPerStrand-y-1;
             Nodes[idx].StringNum=stringnum;
@@ -211,7 +211,7 @@ void ModelClass::InitHMatrix()
         for(x=0; x<PixelsPerStrand; x++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + x;
-            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand + x;
+            Nodes[idx].ActChan = stringStartChan[stringnum]-1 + segmentnum * PixelsPerStrand*3 + x*3;
             Nodes[idx].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=stringnum;
