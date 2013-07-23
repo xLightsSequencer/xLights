@@ -10,6 +10,8 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.21: Jul 23,2013 - Enhancement: In the Model setup screen, you can now set teh starting channel for each string
+                    - Enhancement: In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
 3.0.20: Jul 19,2013 - Enhancement: Highlight cell you are editing in so you know where "update" will apply 
                     - Bug: Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
 					- Enhancement: Ability to read an Audacity or a XML file when creating a blank sequence from a music file
