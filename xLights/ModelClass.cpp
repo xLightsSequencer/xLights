@@ -221,7 +221,7 @@ void ModelClass::InitHMatrix()
         for(x=0; x<PixelsPerStrand; x++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + x;
-            Nodes[idx].ActChan = stringStartChan[stringnum]-1 + segmentnum * PixelsPerStrand*3 + x*3;
+            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + x*3;
             Nodes[idx].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
             Nodes[idx].bufY= isBotToTop ? y :NumStrands-y-1;
             Nodes[idx].StringNum=stringnum;
