@@ -91,6 +91,7 @@ private:
     void OncbIndividualStartNumbersClick(wxCommandEvent& event);
     void OnSpinCtrl_parm1Change(wxSpinEvent& event);
     void OnSpinCtrl_parm2Change(wxSpinEvent& event);
+    void OnSpinCtrl_StartChannelChange(wxSpinEvent& event);
     //*)
     void SetDefaultStartChannels();
     void UpdateRowCount();
