@@ -42,6 +42,16 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     tempstr.ToLong(&StartChannel);
     tempstr=ModelNode->GetAttribute(wxT("Dir"));
     IsLtoR=tempstr != wxT("R");
+    if (ModelNode->HasAttribute(wxT("StartSide")))
+    {
+        tempstr=ModelNode->GetAttribute(wxT("StartSide"));
+        isBotToTop = (tempstr == wxT("B"));
+    }
+    else
+    {
+        isBotToTop=true;
+    }
+
     tempstr=ModelNode->GetAttribute(wxT("Antialias"),wxT("0"));
     tempstr.ToLong(&Antialias);
     AliasFactor=1 << Antialias;
@@ -122,7 +132,7 @@ void ModelClass::SetFromXmlAdvanced(wxXmlNode* ModelNode)
         stringNum++, idxString = strText.Left(6).Append((wxString::Format(wxT("%i"),stringNum+1))))
     {
         tmpStr.ToLong(&val);
-        stringStartChan[stringNum] = val;
+        stringStartChan[stringNum] = val-1;
     }
     if (stringNum != parm1)
     {
@@ -151,9 +161,9 @@ void ModelClass::InitVMatrix()
         for(y=0; y < PixelsPerStrand; y++)
         {
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + y;
-            Nodes[idx].ActChan = stringStartChan[stringnum]-1 + segmentnum * PixelsPerStrand*3 + y*3;
+            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
             Nodes[idx].bufX=IsLtoR ? x : NumStrands-x-1;
-            Nodes[idx].bufY=(segmentnum % 2 == 0) ? y : PixelsPerStrand-y-1;
+            Nodes[idx].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
             Nodes[idx].StringNum=stringnum;
         }
     }
@@ -213,7 +223,7 @@ void ModelClass::InitHMatrix()
             idx=stringnum * parm2 + segmentnum * PixelsPerStrand + x;
             Nodes[idx].ActChan = stringStartChan[stringnum]-1 + segmentnum * PixelsPerStrand*3 + x*3;
             Nodes[idx].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
-            Nodes[idx].bufY=y;
+            Nodes[idx].bufY= isBotToTop ? y :NumStrands-y-1;
             Nodes[idx].StringNum=stringnum;
         }
     }

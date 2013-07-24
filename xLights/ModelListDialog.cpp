@@ -85,6 +85,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
     do
     {
         ok=true;
+        dialog.RadioButton_BotLeft->SetValue(true);
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -111,7 +112,14 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
                 e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm3->GetValue()));
                 e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),dialog.SpinCtrl_StartChannel->GetValue()));
                 e->AddAttribute(wxT("Order"), dialog.Choice_Order->GetStringSelection());
-                e->AddAttribute(wxT("Dir"), dialog.RadioButton_LtoR->GetValue() ? wxT("L") : wxT("R"));
+                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_TopRight->GetValue() )
+                    e->AddAttribute(wxT("StartSide"),wxT("T"));
+                else
+                    e->AddAttribute(wxT("StartSide"),wxT("B"));
+                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_BotLeft->GetValue() )
+                    e->AddAttribute(wxT("Dir"),wxT("L"));
+                else
+                    e->AddAttribute(wxT("Dir"),wxT("R"));
                 e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
                 ListBox1->Append(name,e);
@@ -138,7 +146,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     int DlgResult;
     long n;
     bool ok;
-    wxString name,direction,antialias;
+    wxString name,direction,antialias, startSide;
     ModelDialog dialog(this);
     dialog.TextCtrl_Name->SetValue(e->GetAttribute(wxT("name")));
     dialog.TextCtrl_Name->Enable(false);
@@ -152,6 +160,14 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     antialias.ToLong(&n);
     dialog.Choice_Antialias->SetSelection(n);
     direction=e->GetAttribute(wxT("Dir"));
+    if(e->HasAttribute(wxT("StartSide")))
+    {
+        startSide=e->GetAttribute(wxT("StartSide"));
+    }
+    else
+    {
+        startSide = wxT("B");
+    }
     if(e->HasAttribute(wxT("Advanced")))
     {
         dialog.cbIndividualStartNumbers->SetValue(true);
@@ -165,11 +181,19 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
         }
     }
 
-
-    if (direction == wxT("R"))
+    if (direction == wxT("R") )
     {
-        //dialog.RadioButton_LtoR->SetValue(false);
-        dialog.RadioButton_RtoL->SetValue(true);
+        if(startSide == wxT("B"))
+            dialog.RadioButton_BotRight->SetValue(true);
+        else
+            dialog.RadioButton_TopRight->SetValue(true);
+    }
+    else
+    {
+        if(startSide == wxT("B"))
+            dialog.RadioButton_BotLeft->SetValue(true);
+        else
+            dialog.RadioButton_TopLeft->SetValue(true);
     }
     dialog.CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
     dialog.UpdateLabels();
@@ -202,6 +226,8 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                                         dialog.gridStartChannels->GetCellValue(ii,0));
                     }
                 }
+                if (e->HasAttribute(wxT("StartSide")))
+                    e->DeleteAttribute(wxT("StartSide"));
                 e->DeleteAttribute(wxT("DisplayAs"));
                 e->DeleteAttribute(wxT("parm1"));
                 e->DeleteAttribute(wxT("parm2"));
@@ -217,7 +243,15 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                 e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm3->GetValue()));
                 e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),dialog.SpinCtrl_StartChannel->GetValue()));
                 e->AddAttribute(wxT("Order"), dialog.Choice_Order->GetStringSelection());
-                e->AddAttribute(wxT("Dir"), dialog.RadioButton_LtoR->GetValue() ? wxT("L") : wxT("R"));
+                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_TopRight->GetValue() )
+                    e->AddAttribute(wxT("StartSide"),wxT("T"));
+                else
+                    e->AddAttribute(wxT("StartSide"),wxT("B"));
+                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_BotLeft->GetValue() )
+                    e->AddAttribute(wxT("Dir"),wxT("L"));
+                else
+                    e->AddAttribute(wxT("Dir"),wxT("R"));
+
                 e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
 
@@ -304,12 +338,22 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     model.SetFromXml(ModelNode);
     size_t NodeCount=model.GetNodeCount();
     chmap.resize(model.BufferHt * model.BufferWi);
-    wxString direction=wxT("left to right");
-    if (!model.IsLtoR) direction=wxT("right to left");
+    wxString direction;
+    if (!model.IsLtoR)
+        if(!model.isBotToTop)
+            direction=wxT("Top Right");
+        else
+            direction=wxT("Bottom Right");
+    else
+        if (!model.isBotToTop)
+            direction=wxT("Top Left");
+        else
+            direction=wxT("Bottom Left");
+
     wxString html = wxT("<html><body><table border=0>");
     html+=wxT("<tr><td>Name:</td><td>")+model.name+wxT("</td></tr>");
     html+=wxT("<tr><td>Display As:</td><td>")+model.DisplayAs+wxT("</td></tr>");
-    html+=wxT("<tr><td>Direction:</td><td>")+direction+wxT("</td></tr>");
+    html+=wxT("<tr><td>Start Corner:</td><td>")+direction+wxT("</td></tr>");
     html+=wxString::Format(wxT("<tr><td>Total nodes:</td><td>%d</td></tr>"),NodeCount);
     html+=wxString::Format(wxT("<tr><td>Height:</td><td>%d</td></tr>"),model.BufferHt);
     html+=wxT("</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>");

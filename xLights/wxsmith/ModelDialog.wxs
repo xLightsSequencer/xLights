@@ -124,6 +124,7 @@
 							<min>1</min>
 							<max>99999</max>
 							<size>90,21</size>
+							<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -165,7 +166,7 @@
 					<object class="sizeritem">
 						<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButton_LtoR" member="yes">
+								<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButton_TopLeft" member="yes">
 									<label>Top Left</label>
 									<selected>1</selected>
 								</object>
@@ -174,7 +175,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButton_RtoL" member="yes">
+								<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButton_TopRight" member="yes">
 									<label>Top Right</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -197,7 +198,7 @@
 					<object class="sizeritem">
 						<object class="wxBoxSizer" variable="BoxSizer2" member="no">
 							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON4" variable="btBottom" member="yes">
+								<object class="wxRadioButton" name="ID_RADIOBUTTON4" variable="RadioButton_BotLeft" member="yes">
 									<label>Bottom Left</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -205,7 +206,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxRadioButton" name="ID_RADIOBUTTON3" variable="RadioButton1" member="yes">
+								<object class="wxRadioButton" name="ID_RADIOBUTTON3" variable="RadioButton_BotRight" member="yes">
 									<label>Bottom Right</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

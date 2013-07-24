@@ -24,7 +24,6 @@ public:
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText9;
-    wxRadioButton* RadioButton1;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
@@ -33,10 +32,10 @@ public:
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
-    wxRadioButton* btBottom;
-    wxRadioButton* RadioButton_RtoL;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxRadioButton* RadioButton_TopLeft;
+    wxRadioButton* RadioButton_BotLeft;
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
@@ -46,10 +45,11 @@ public:
     wxGrid* gridStartChannels;
     wxChoice* Choice_DisplayAs;
     wxStaticText* StaticText4;
+    wxRadioButton* RadioButton_BotRight;
     wxSpinCtrl* SpinCtrl_StartChannel;
+    wxRadioButton* RadioButton_TopRight;
     wxStaticText* StaticText_Strands;
     wxStaticText* StaticText_Nodes;
-    wxRadioButton* RadioButton_LtoR;
     //*)
 
 protected:

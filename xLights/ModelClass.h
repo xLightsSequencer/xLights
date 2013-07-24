@@ -112,6 +112,7 @@ public:
     wxString DisplayAs; // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     wxString RGBorder;  // RGB, RBG, GBR, GRB, BGR, BRG
     bool IsLtoR;        // true=left to right, false=right to left
+    bool isBotToTop;
     long parm1;         /**< Number of strings in the model */
     long parm2;         /**< Number of nodes per string in the model */
     long parm3;         /**< Number of strands per string in the model */
