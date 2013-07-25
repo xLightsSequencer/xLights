@@ -452,6 +452,10 @@ private:
     static const long ID_SLIDER_Meteors1_Length;
     static const long ID_STATICTEXT106;
     static const long ID_CHECKBOX_Meteors1_FallUp;
+    static const long ID_STATICTEXT129;
+    static const long ID_CHOICE_Meteors1_Effect;
+    static const long ID_STATICTEXT131;
+    static const long ID_SLIDER_Meteors1_Swirl_Intensity;
     static const long ID_PANEL18;
     static const long ID_BUTTON_PICTURES1_FILENAME;
     static const long ID_TEXTCTRL_Pictures1_Filename;
@@ -598,6 +602,10 @@ private:
     static const long ID_SLIDER_Meteors2_Length;
     static const long ID_STATICTEXT107;
     static const long ID_CHECKBOX_Meteors2_FallUp;
+    static const long ID_STATICTEXT130;
+    static const long ID_CHOICE_Meteors2_Effect;
+    static const long ID_STATICTEXT132;
+    static const long ID_SLIDER_Meteors2_Swirl_Intensity;
     static const long ID_PANEL21;
     static const long ID_BUTTON_PICTURES2_FILENAME;
     static const long ID_TEXTCTRL_Pictures2_Filename;
@@ -792,10 +800,12 @@ private:
     wxChoice* Choice_Models;
     wxPanel* Panel3;
     wxStaticText* StaticText45;
+    wxSlider* Slider_Meteors2_Swirl_Intensity;
     wxStaticText* StaticText11;
     wxPanel* PanelTestRgb;
     wxSlider* Slider_Spirals1_Count;
     wxStaticText* StaticText18;
+    wxStaticText* StaticText131;
     wxStaticText* StaticText30;
     wxPanel* Panel1;
     wxStaticText* StaticText106;
@@ -808,8 +818,8 @@ private:
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
-    wxSlider* SliderBgColorC;
     wxSlider* Slider_Snowflakes2_Count;
+    wxSlider* SliderBgColorC;
     wxCheckBox* CheckBoxSaveChannelNames;
     wxButton* Button_Pictures1_Filename;
     wxSlider* Slider_Snowflakes1_Count;
@@ -899,6 +909,7 @@ private:
     wxStaticText* StaticText23;
     wxStaticText* StaticText63;
     wxSlider* Slider_Butterfly1_Skip;
+    wxStaticText* StaticText130;
     wxRadioButton* RadioButtonRgbShimmer;
     wxStaticText* StaticText55;
     wxStaticText* StaticText15;
@@ -924,8 +935,8 @@ private:
     wxSlider* Slider_Text2_2_TextRotation;
     wxCheckBox* CheckBox_Palette1_6;
     wxStaticText* StaticText78;
-    wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText67;
+    wxBitmapButton* BitmapButtonTabInfo;
     wxButton* ButtonAddDongle;
     wxButton* Button_Palette1_1;
     wxPanel* Panel1_ColorWash;
@@ -984,6 +995,7 @@ private:
     wxButton* ButtonAddE131;
     wxSlider* Slider_Spirals2_Rotation;
     wxPanel* Panel_Text2_2;
+    wxStaticText* StaticText129;
     wxButton* ButtonStartConversion;
     wxStatusBar* StatusBar1;
     wxStaticText* StaticText40;
@@ -1008,6 +1020,7 @@ private:
     wxStaticText* StaticText113;
     wxStaticText* StaticText62;
     wxPanel* PanelRgbCycle;
+    wxSlider* Slider_Meteors1_Swirl_Intensity;
     wxButton* Button_PresetUpdate;
     wxChoice* Choice_Text2_2_Dir;
     wxStaticText* StaticText54;
@@ -1036,6 +1049,7 @@ private:
     wxMenuItem* MenuItemRefresh;
     wxSlider* Slider_ColorWash2_Count;
     wxButton* ButtonTestSelectAll;
+    wxStaticText* StaticText128;
     wxStaticText* StaticText44;
     wxStaticText* StaticText95;
     wxStaticText* StaticText98;
@@ -1097,6 +1111,7 @@ private:
     wxPanel* Panel1_Snowstorm;
     wxStaticText* StaticText117;
     wxPanel* Panel2_Snowstorm;
+    wxChoice* Choice_Meteors1_Effect;
     wxTextCtrl* TextCtrl_Text2_Line1;
     wxButton* Button_Pictures2_Filename;
     wxSlider* Slider_Fire2_Height;
@@ -1109,6 +1124,7 @@ private:
     wxSlider* Slider_Fireworks2_Velocity;
     wxSlider* Slider_Tree2_Branches;
     wxSlider* Slider_Twinkle2_Count;
+    wxChoice* Choice_Meteors2_Effect;
     wxPanel* Panel2_Meteors;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxStaticText* StaticText80;
@@ -1177,8 +1193,8 @@ private:
     wxStaticText* StaticText77;
     wxStaticText* StaticText83;
     wxStaticText* StaticText74;
-    wxStaticText* StaticText41;
     wxSlider* Slider_Snowstorm2_Count;
+    wxStaticText* StaticText41;
     wxChoicebook* Choicebook2;
     wxStaticText* StaticText29;
     wxStaticText* StaticText34;
@@ -1396,6 +1412,7 @@ private:
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString MeteorsEffectTypes;
+       wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString TextEffectDirections;
 

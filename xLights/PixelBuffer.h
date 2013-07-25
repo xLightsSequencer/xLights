@@ -76,7 +76,7 @@ public:
     void RenderFire(int HeightPct);
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Seed);
-    void RenderMeteors(int MeteorType, int Count, int Length, bool FallUp);
+    void RenderMeteors(int MeteorType, int Count, int Length, bool FallUp,int MeteorsEffect,int SwirlIntensity);
     void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);

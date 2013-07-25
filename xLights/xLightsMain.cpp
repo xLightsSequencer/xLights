@@ -240,6 +240,10 @@ const long xLightsFrame::ID_STATICTEXT43 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Meteors1_Length = wxNewId();
 const long xLightsFrame::ID_STATICTEXT106 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Meteors1_FallUp = wxNewId();
+const long xLightsFrame::ID_STATICTEXT129 = wxNewId();
+const long xLightsFrame::ID_CHOICE_Meteors1_Effect = wxNewId();
+const long xLightsFrame::ID_STATICTEXT131 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Meteors1_Swirl_Intensity = wxNewId();
 const long xLightsFrame::ID_PANEL18 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PICTURES1_FILENAME = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_Pictures1_Filename = wxNewId();
@@ -386,6 +390,10 @@ const long xLightsFrame::ID_STATICTEXT66 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Meteors2_Length = wxNewId();
 const long xLightsFrame::ID_STATICTEXT107 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Meteors2_FallUp = wxNewId();
+const long xLightsFrame::ID_STATICTEXT130 = wxNewId();
+const long xLightsFrame::ID_CHOICE_Meteors2_Effect = wxNewId();
+const long xLightsFrame::ID_STATICTEXT132 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Meteors2_Swirl_Intensity = wxNewId();
 const long xLightsFrame::ID_PANEL21 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PICTURES2_FILENAME = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_Pictures2_Filename = wxNewId();
@@ -1241,6 +1249,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBox_Meteors1_FallUp = new wxCheckBox(Panel1_Meteors, ID_CHECKBOX_Meteors1_FallUp, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Meteors1_FallUp"));
     CheckBox_Meteors1_FallUp->SetValue(false);
     FlexGridSizer41->Add(CheckBox_Meteors1_FallUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText128 = new wxStaticText(Panel1_Meteors, ID_STATICTEXT129, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT129"));
+    FlexGridSizer41->Add(StaticText128, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Meteors1_Effect = new wxChoice(Panel1_Meteors, ID_CHOICE_Meteors1_Effect, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Meteors1_Effect"));
+    FlexGridSizer41->Add(Choice_Meteors1_Effect, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText130 = new wxStaticText(Panel1_Meteors, ID_STATICTEXT131, _("Swirl Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT131"));
+    FlexGridSizer41->Add(StaticText130, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Meteors1_Swirl_Intensity = new wxSlider(Panel1_Meteors, ID_SLIDER_Meteors1_Swirl_Intensity, 0, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors1_Swirl_Intensity"));
+    FlexGridSizer41->Add(Slider_Meteors1_Swirl_Intensity, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Meteors->SetSizer(FlexGridSizer41);
     FlexGridSizer41->Fit(Panel1_Meteors);
     FlexGridSizer41->SetSizeHints(Panel1_Meteors);
@@ -1662,6 +1678,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBox_Meteors2_FallUp = new wxCheckBox(Panel2_Meteors, ID_CHECKBOX_Meteors2_FallUp, _("Yes"), wxDefaultPosition, wxSize(46,13), 0, wxDefaultValidator, _T("ID_CHECKBOX_Meteors2_FallUp"));
     CheckBox_Meteors2_FallUp->SetValue(false);
     FlexGridSizer56->Add(CheckBox_Meteors2_FallUp, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText129 = new wxStaticText(Panel2_Meteors, ID_STATICTEXT130, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT130"));
+    FlexGridSizer56->Add(StaticText129, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Meteors2_Effect = new wxChoice(Panel2_Meteors, ID_CHOICE_Meteors2_Effect, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Meteors2_Effect"));
+    FlexGridSizer56->Add(Choice_Meteors2_Effect, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText131 = new wxStaticText(Panel2_Meteors, ID_STATICTEXT132, _("Swirl Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT132"));
+    FlexGridSizer56->Add(StaticText131, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Meteors2_Swirl_Intensity = new wxSlider(Panel2_Meteors, ID_SLIDER_Meteors2_Swirl_Intensity, 0, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Meteors2_Swirl_Intensity"));
+    FlexGridSizer56->Add(Slider_Meteors2_Swirl_Intensity, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel2_Meteors->SetSizer(FlexGridSizer56);
     FlexGridSizer56->Fit(Panel2_Meteors);
     FlexGridSizer56->SetSizeHints(Panel2_Meteors);
@@ -2328,6 +2352,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_Butterfly2_Colors->Set(ButterflyEffectColors);
     Choice_Butterfly2_Colors->SetSelection(0);
 
+
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
     MeteorsEffectTypes.Add("Palette");
@@ -2335,6 +2360,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_Meteors1_Type->SetSelection(0);
     Choice_Meteors2_Type->Set(MeteorsEffectTypes);
     Choice_Meteors2_Type->SetSelection(0);
+    MeteorsEffect.Add("Meteor");
+    MeteorsEffect.Add("Swirl1");
+    MeteorsEffect.Add("Swirl2");
+    MeteorsEffect.Add("StarField");
+    Choice_Meteors1_Effect->Set(MeteorsEffect);
+    Choice_Meteors1_Effect->SetSelection(0);
+    Choice_Meteors2_Effect->Set(MeteorsEffect);
+    Choice_Meteors2_Effect->SetSelection(0);
 
     EffectDirections.Add("left");
     EffectDirections.Add("right");

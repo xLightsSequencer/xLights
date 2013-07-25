@@ -688,7 +688,9 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Meteors")+LayerStr+wxT("_FallUp")]==wxT("1"));
+                             SettingsMap[wxT("ID_CHECKBOX_Meteors")+LayerStr+wxT("_FallUp")]==wxT("1"),
+                             MeteorsEffect.Index(SettingsMap[wxT("ID_CHOICE_MeteorsEffect")+LayerStr+wxT("_Type")]),
+                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Swirl_Intensity")]));
 
         //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
         //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
@@ -830,7 +832,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderMeteors(Choice_Meteors1_Type->GetSelection(),
                              Slider_Meteors1_Count->GetValue(),
                              Slider_Meteors1_Length->GetValue(),
-                             CheckBox_Meteors1_FallUp->GetValue());
+                             CheckBox_Meteors1_FallUp->GetValue(),
+                             Choice_Meteors1_Effect->GetSelection(),
+                             Slider_Meteors1_Swirl_Intensity->GetValue());
         break;
     case 8:
         buffer.RenderPictures(Choice_Pictures1_Direction->GetSelection(),
@@ -930,8 +934,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderMeteors(Choice_Meteors2_Type->GetSelection(),
                              Slider_Meteors2_Count->GetValue(),
                              Slider_Meteors2_Length->GetValue(),
-                             CheckBox_Meteors2_FallUp->GetValue());
-        break;
+                             CheckBox_Meteors2_FallUp->GetValue(),
+                             Choice_Meteors2_Effect->GetSelection(),
+                             Slider_Meteors2_Swirl_Intensity->GetValue());
     case 8:
         buffer.RenderPictures(Choice_Pictures2_Direction->GetSelection(),
                               TextCtrl_Pictures2_Filename->GetValue(),
@@ -1469,22 +1474,22 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 void xLightsFrame::ImportAudacityTimings()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(
-		this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
-		_("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
+        this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
+        _("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
-	if (OpenDialog->ShowModal() == wxID_OK)
-	{
-		fName =	OpenDialog->GetPath();
-		ProcessAudacityTimingFile(fName);
-	}
-	else
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fName =	OpenDialog->GetPath();
+        ProcessAudacityTimingFile(fName);
+    }
+    else
     {
 
     }
 
-	// Clean up after ourselves
-	OpenDialog->Destroy();
+    // Clean up after ourselves
+    OpenDialog->Destroy();
 }
 
 void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
@@ -1495,22 +1500,22 @@ void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
 void xLightsFrame::ImportxLightsXMLTimings()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(
-		this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
-		_("Text files (*.xml)|*.xml"),		wxFD_OPEN, wxDefaultPosition);
+        this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
+        _("Text files (*.xml)|*.xml"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
-	if (OpenDialog->ShowModal() == wxID_OK)
-	{
-		fName =	OpenDialog->GetPath();
-		SeqLoadXlightsFile(fName);
-	}
-	else
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fName =	OpenDialog->GetPath();
+        SeqLoadXlightsFile(fName);
+    }
+    else
     {
 
     }
 
-	// Clean up after ourselves
-	OpenDialog->Destroy();
+    // Clean up after ourselves
+    OpenDialog->Destroy();
 
 }
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
@@ -2263,20 +2268,20 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
 {
 
- 	wxMenu mnu;
- 	//mnu.SetClientData( data );
- 	mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
- 	mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
- 	mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
- 	PopupMenu(&mnu);
+    wxMenu mnu;
+    //mnu.SetClientData( data );
+    mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
+    mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
+    PopupMenu(&mnu);
 }
 
 void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 {
-	void *data=static_cast<wxMenu *>(event.GetEventObject())->GetClientData();
+    void *data=static_cast<wxMenu *>(event.GetEventObject())->GetClientData();
 
- 	if(event.GetId() == ID_DELETE_EFFECT)
- 	{
+    if(event.GetId() == ID_DELETE_EFFECT)
+    {
         DeleteSelectedEffects(event);
- 	}
+    }
 }
