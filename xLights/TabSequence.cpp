@@ -2144,14 +2144,18 @@ void xLightsFrame::DisplayEffectOnWindow()
     */
     // layer calculation and map to output
     size_t NodeCount=buffer.Nodes.size();
+    double sx,sy;
+
     for(size_t i=0; i<NodeCount; i++)
     {
         // draw node on screen
         buffer.Nodes[i].GetColor(color);
         pen.SetColour(color);
         dc.SetPen(pen);
-
-        dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
+        sx=buffer.Nodes[i].screenX;
+        sy=buffer.Nodes[i].screenY;
+   //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
+                dc.DrawPoint(sx,sy);
 
     }
 }

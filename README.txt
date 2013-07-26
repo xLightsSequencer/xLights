@@ -10,8 +10,13 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
-3.0.21: Jul 23,2013 - Enhancement: In the Model setup screen, you can now set teh starting channel for each string
+3.0.21: Jul 25,2013 - Enhancement: In the Model setup screen, you can now set teh starting channel for each string
                     - Enhancement: In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
+					  bottom left, upper left, upper right, bottom right
+					- Enhancement: Meteor Effect class has 3 new effects
+					  1) Swirl1. As meteors fall they are moved in a sine wave
+					  2) Swirl2. Same as Swirl 1 excep odd strands move one way, even strands move the other
+					  3) Strarfield. Meteor effect starts in center of your display and moves outwards
 3.0.20: Jul 19,2013 - Enhancement: Highlight cell you are editing in so you know where "update" will apply 
                     - Bug: Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
 					- Enhancement: Ability to read an Audacity or a XML file when creating a blank sequence from a music file

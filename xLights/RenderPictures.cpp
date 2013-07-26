@@ -35,7 +35,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     if(state==0 ) maxmovieframes=10;
     maxframes=maxmovieframes;
     int frame = state%maxframes;
-    wxString suffix,BasePicture,sPicture,NewPictureName,buff;
+    wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
     int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
     wxFile f;
@@ -54,6 +54,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
+    extension = NewPictureName2.substr (NewPictureName2.length()-3,3);
     if( suffix =="-1") // do ew have amovie file?
     {
         //    yes
@@ -61,12 +62,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
         //  build the next filename. the frame counter is incrementing through all frames
 
-        sPicture = wxString::Format(wxT("%s-%d.jpg"),BasePicture,frame);
+        sPicture = wxString::Format(wxT("%s-%d.%s"),BasePicture,frame,extension);
         if(state==0) // only once, try 10000 files to find how high is frame count
         {
             for (frame=1; frame<=9999; frame++)
             {
-                sPicture = wxString::Format(wxT("%s-%d.jpg"),BasePicture,frame);
+                sPicture = wxString::Format(wxT("%s-%d.%s"),BasePicture,frame,extension);
                 if(wxFileExists(sPicture))
                 {
                     maxmovieframes=frame+1;
@@ -184,62 +185,3 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         }
     }
 }
-
-
-/*void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName)
-{
-    const int speedfactor=4;
-    if (NewPictureName != PictureName)
-    {
-        if (!image.LoadFile(NewPictureName))
-        {
-            //wxMessageBox("Error loading image file: "+NewPictureName);
-            image.Clear();
-        }
-        PictureName=NewPictureName;
-    }
-    if (!image.IsOk()) return;
-    int imgwidth=image.GetWidth();
-    int imght=image.GetHeight();
-    int yoffset=(BufferHt+imght)/2;
-    int xoffset=(imgwidth-BufferWi)/2;
-    int limit=(dir < 2) ? imgwidth+BufferWi : imght+BufferHt;
-    int movement=(state % (limit*speedfactor)) / speedfactor;
-
-    // copy image to buffer
-    wxColour c;
-    for(int x=0; x<imgwidth; x++)
-    {
-        for(int y=0; y<imght; y++)
-        {
-            if (!image.IsTransparent(x,y))
-            {
-                c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
-                switch (dir)
-                {
-                case 0:
-                    // left
-                    SetPixel(x+BufferWi-movement,yoffset-y,c);
-                    break;
-                case 1:
-                    // right
-                    SetPixel(x+movement-imgwidth,yoffset-y,c);
-                    break;
-                case 2:
-                    // up
-                    SetPixel(x-xoffset,movement-y,c);
-                    break;
-                case 3:
-                    // down
-                    SetPixel(x-xoffset,BufferHt+imght-y-movement,c);
-                    break;
-                default:
-                    // no movement - centered
-                    SetPixel(x-xoffset,yoffset-y,c);
-                    break;
-                }
-            }
-        }
-    }
-}
-*/
