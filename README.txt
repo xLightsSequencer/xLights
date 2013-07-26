@@ -10,6 +10,10 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+3.0.22: Jul 26,2013 - Enhancement: New button to randomly create effects for every row in your sequence
+                    - Enhancement: Brightness slider now goes to 200% (Old value was 100%). This will allow improving movies
+					- Bug: If Tree effect was selected for Effect2 and slider was all the way to left, clights crashed. fixed
+					- Bug: Removed the gauge that was next to Export button. The gauge library does not work in Unix.
 3.0.21: Jul 25,2013 - Enhancement: In the Model setup screen, you can now set teh starting channel for each string
                     - Enhancement: In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
 					  bottom left, upper left, upper right, bottom right

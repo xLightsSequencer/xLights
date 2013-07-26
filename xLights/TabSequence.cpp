@@ -805,7 +805,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]),
                              SettingsMap[wxT("ID_CHECKBOX_Meteors")+LayerStr+wxT("_FallUp")]==wxT("1"),
                              MeteorsEffect.Index(SettingsMap[wxT("ID_CHOICE_MeteorsEffect")+LayerStr+wxT("_Type")]),
-                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Swirl_Intensity")]));
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Swirl_Intensity")]));
 
         //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
         //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
@@ -1396,6 +1396,7 @@ void xLightsFrame::ChooseModelsForSequence()
     EnableSequenceControls(true);
 }
 
+
 void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
@@ -1451,11 +1452,20 @@ void fix_version_differences(wxString file)
     wxString Meteors1 = "xdummy|xdummy";
     wxString Meteors2 = "xdummy|xdummy";
     //
+    //
+    //  list all new tags that might have occured in previous versions
+    //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
+    //
     missing = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
     missing = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
     //
     Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
     Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
+    Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
+    Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
+    Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
+    Meteors2 = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+
 
     // Lots of variables to check for  text effect
     Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
@@ -2269,8 +2279,8 @@ void xLightsFrame::DisplayEffectOnWindow()
         dc.SetPen(pen);
         sx=buffer.Nodes[i].screenX;
         sy=buffer.Nodes[i].screenY;
-   //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
-                dc.DrawPoint(sx,sy);
+        //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
+        dc.DrawPoint(sx,sy);
 
     }
 }

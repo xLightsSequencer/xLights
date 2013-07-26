@@ -193,6 +193,7 @@ const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
@@ -1107,6 +1108,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonSeqExport = new wxButton(Panel4, ID_BUTTON_SeqExport, _("Export"), wxDefaultPosition, wxSize(52,23), 0, wxDefaultValidator, _T("ID_BUTTON_SeqExport"));
     ButtonSeqExport->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(Panel4, ID_BUTTON4, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer68->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(Panel4, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
@@ -1431,7 +1434,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText86 = new wxStaticText(Panel1_Tree, ID_STATICTEXT87, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT87"));
     FlexGridSizer71->Add(StaticText86, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Tree1_Branches = new wxSlider(Panel1_Tree, ID_SLIDER_Tree1_Branches, 3, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree1_Branches"));
-    FlexGridSizer71->Add(Slider_Tree1_Branches, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer71->Add(Slider_Tree1_Branches, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Tree->SetSizer(FlexGridSizer71);
     FlexGridSizer71->Fit(Panel1_Tree);
     FlexGridSizer71->SetSizeHints(Panel1_Tree);
@@ -1862,11 +1865,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText116 = new wxStaticText(Panel2_Tree, ID_STATICTEXT117, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT117"));
     FlexGridSizer77->Add(StaticText116, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Tree2_Branches = new wxSlider(Panel2_Tree, ID_SLIDER_Tree2_Branches, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree2_Branches"));
+    Slider_Tree2_Branches = new wxSlider(Panel2_Tree, ID_SLIDER_Tree2_Branches, 3, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree2_Branches"));
     Slider_Tree2_Branches->SetThumbLength(3);
     Slider_Tree2_Branches->SetTick(1);
     Slider_Tree2_Branches->SetSelection(10, 0);
-    FlexGridSizer77->Add(Slider_Tree2_Branches, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer77->Add(Slider_Tree2_Branches, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel2_Tree->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel2_Tree);
     FlexGridSizer77->SetSizeHints(Panel2_Tree);
@@ -2198,6 +2201,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonDeleteRowClick);
     Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);

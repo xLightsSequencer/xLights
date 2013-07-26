@@ -445,6 +445,7 @@ private:
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
     static const long ID_BUTTON_SeqExport;
+    static const long ID_BUTTON4;
     static const long ID_GRID1;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT25;
@@ -858,8 +859,8 @@ private:
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
-    wxSlider* SliderBgColorC;
     wxSlider* Slider_Snowflakes2_Count;
+    wxSlider* SliderBgColorC;
     wxCheckBox* CheckBoxSaveChannelNames;
     wxButton* Button_Pictures1_Filename;
     wxSlider* Slider_Snowflakes1_Count;
@@ -1186,6 +1187,7 @@ private:
     wxMenu* MenuFile;
     wxButton* Button_Text2_2_Font;
     wxSlider* SliderFgIntensity;
+    wxButton* Button1;
     wxButton* Button_Palette2_4;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;

@@ -37,7 +37,8 @@ void RgbEffects::RenderTree(int Branches)
     pixels_per_branch=(int)(0.5+BufferHt/Branches);
     maxFrame=(Branches+1) *BufferWi;
     size_t colorcnt=GetColorCount();
-    frame = (state/4)%maxFrame;
+    if(state>0 and maxFrame>0) frame = (state/4)%maxFrame;
+    else frame=1;
 
     i=0;
 
@@ -45,7 +46,8 @@ void RgbEffects::RenderTree(int Branches)
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
-            mod=y%pixels_per_branch;
+            if(pixels_per_branch>0) mod=y%pixels_per_branch;
+            else mod=0;
             if(mod==0) mod=pixels_per_branch;
             V=1-(1.0*mod/pixels_per_branch)*0.70;
             i++;

@@ -1486,6 +1486,15 @@
 																						<border>5</border>
 																						<option>1</option>
 																					</object>
+																					<object class="sizeritem">
+																						<object class="wxButton" name="ID_BUTTON4" variable="Button1" member="yes">
+																							<label>Create Random Effects</label>
+																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
 																				</object>
 																				<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -2503,7 +2512,7 @@
 																												<min>1</min>
 																												<max>10</max>
 																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
 																											<option>1</option>
 																										</object>
@@ -3827,11 +3836,14 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Tree2_Branches" variable="Slider_Tree2_Branches" member="yes">
+																												<value>3</value>
+																												<min>1</min>
+																												<max>10</max>
 																												<thumb>3</thumb>
 																												<tick>1</tick>
 																												<selmin>10</selmin>
 																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
 																											<option>1</option>
 																										</object>
