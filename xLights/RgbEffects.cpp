@@ -178,6 +178,38 @@ void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv)
     SetPixel(x,y,color);
 }
 
+void RgbEffects::DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv)
+{
+    int x, y, p;
+    x=0;y=r;
+    p=1-r;
+    CirclePlot(xc,yc,x,y, hsv);
+    while(x<y)
+    {
+        x++;
+        if(p<0)
+            p+=2*x+1;
+        else
+        {
+            y--;
+            p+=2*(x-y)+1;
+        }
+        CirclePlot(xc,yc,x,y, hsv);
+    }
+}
+
+void RgbEffects::CirclePlot(int xc, int yc, int x, int y, const wxImage::HSVValue& hsv)
+{
+    SetPixel(xc+x,yc+y,hsv);
+    SetPixel(xc-x,yc+y,hsv);
+    SetPixel(xc+x,yc-y,hsv);
+    SetPixel(xc-x,yc-y,hsv);
+    SetPixel(xc+y,yc+x,hsv);
+    SetPixel(xc-y,yc+x,hsv);
+    SetPixel(xc+y,yc-x,hsv);
+    SetPixel(xc-y,yc-x,hsv);
+}
+
 // 0,0 is lower left
 void RgbEffects::GetPixel(int x, int y, wxColour &color)
 {
