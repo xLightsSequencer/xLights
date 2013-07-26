@@ -281,7 +281,8 @@ wxString xLightsFrame::CreateEffectStringRandom()
 
     layerOp = rand() % LASTLAYER;
     s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
-    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),0);
+    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetMax()); // max is actually all teh way left, ie no sparkles
+
     s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
     s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),0);
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),rand()%Slider_Speed1->GetMax()+Slider_Speed1->GetMin());
