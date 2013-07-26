@@ -37,7 +37,6 @@
 #include <wx/frame.h>
 #include <wx/timer.h>
 #include <wx/choicebk.h>
-#include <wx/gauge.h>
 #include <wx/statusbr.h>
 //*)
 
@@ -49,7 +48,7 @@
 #include <wx/fontdlg.h>
 #include <wx/dir.h>
 
-#include <wx/gauge.h>
+
 #ifdef LINUX
 #include <unistd.h>
 #endif
@@ -446,8 +445,6 @@ private:
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
     static const long ID_BUTTON_SeqExport;
-    static const long ID_GAUGE1;
-    static const long ID_BUTTON4;
     static const long ID_GRID1;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT25;
@@ -861,8 +858,8 @@ private:
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText116;
     wxStaticText* StaticText48;
-    wxSlider* Slider_Snowflakes2_Count;
     wxSlider* SliderBgColorC;
+    wxSlider* Slider_Snowflakes2_Count;
     wxCheckBox* CheckBoxSaveChannelNames;
     wxButton* Button_Pictures1_Filename;
     wxSlider* Slider_Snowflakes1_Count;
@@ -928,7 +925,6 @@ private:
     wxButton* ButtonChooseFile;
     wxStaticText* StaticText64;
     wxSlider* Slider_Snowstorm1_Length;
-    wxGauge* Gauge1;
     wxCheckBox* CheckBoxRunSchedule;
     wxStaticText* StaticText32;
     wxSlider* SliderFgColorC;
@@ -1197,7 +1193,6 @@ private:
     wxButton* Button_PresetAdd;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxStaticText* StaticText82;
-    wxButton* btRandomEffect;
     wxButton* ButtonSeqExport;
     wxStaticText* StaticText51;
     wxSlider* Slider_Spirograph1_r;

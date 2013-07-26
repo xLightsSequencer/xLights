@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.21)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.22)</title>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -1337,6 +1337,8 @@
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 																					<value>100</value>
+																					<max>200</max>
+																					<style>wxSL_LABELS</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1479,25 +1481,6 @@
 																							<size>52,23</size>
 																							<bg>#E0E0E0</bg>
 																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxGauge" name="ID_GAUGE1" variable="Gauge1" member="yes">
-																							<shadow>3</shadow>
-																							<bezel>1</bezel>
-																							<size>100,20</size>
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON4" variable="btRandomEffect" member="yes">
-																							<label>Random Sequence</label>
-																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
@@ -3844,7 +3827,6 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Tree2_Branches" variable="Slider_Tree2_Branches" member="yes">
-																												<min>1</min>
 																												<thumb>3</thumb>
 																												<tick>1</tick>
 																												<selmin>10</selmin>

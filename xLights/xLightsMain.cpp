@@ -193,8 +193,6 @@ const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
-const long xLightsFrame::ID_GAUGE1 = wxNewId();
-const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
@@ -661,7 +659,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.21)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.22)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1058,7 +1056,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText126 = new wxStaticText(Panel5, ID_STATICTEXT127, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
     FlexGridSizer33->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Brightness = new wxSlider(Panel5, ID_SLIDER_Brightness, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
+    Slider_Brightness = new wxSlider(Panel5, ID_SLIDER_Brightness, 100, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
     FlexGridSizer33->Add(Slider_Brightness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText127 = new wxStaticText(Panel5, ID_STATICTEXT128, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT128"));
     FlexGridSizer33->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1109,12 +1107,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonSeqExport = new wxButton(Panel4, ID_BUTTON_SeqExport, _("Export"), wxDefaultPosition, wxSize(52,23), 0, wxDefaultValidator, _T("ID_BUTTON_SeqExport"));
     ButtonSeqExport->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Gauge1 = new wxGauge(Panel4, ID_GAUGE1, 100, wxDefaultPosition, wxSize(100,20), 0, wxDefaultValidator, _T("ID_GAUGE1"));
-    Gauge1->SetShadowWidth(3);
-    Gauge1->SetBezelFace(1);
-    FlexGridSizer68->Add(Gauge1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    btRandomEffect = new wxButton(Panel4, ID_BUTTON4, _("Random Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer68->Add(btRandomEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(Panel4, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
@@ -1870,7 +1862,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText116 = new wxStaticText(Panel2_Tree, ID_STATICTEXT117, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT117"));
     FlexGridSizer77->Add(StaticText116, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Tree2_Branches = new wxSlider(Panel2_Tree, ID_SLIDER_Tree2_Branches, 0, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree2_Branches"));
+    Slider_Tree2_Branches = new wxSlider(Panel2_Tree, ID_SLIDER_Tree2_Branches, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Tree2_Branches"));
     Slider_Tree2_Branches->SetThumbLength(3);
     Slider_Tree2_Branches->SetTick(1);
     Slider_Tree2_Branches->SetSelection(10, 0);
@@ -2206,7 +2198,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonDeleteRowClick);
     Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);

@@ -273,7 +273,9 @@ void PixelBufferClass::CalcOutput()
             hsv = wxImage::RGBtoHSV(rgb);
             hsv.value = hsv.value * ((double)brightness/(double)100);
 
+
             // Apply Contrast
+
             if(hsv.value< 0.5) // reduce brightness when below 0.5 in the V value or increase if > 0.5
             {
                 hsv.value = hsv.value - (hsv.value* ((double)contrast/(double)100));
@@ -286,7 +288,7 @@ void PixelBufferClass::CalcOutput()
 
             //
             //  fade in
-        //    if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
+            //    if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
 
             if(hsv.value < 0.0) hsv.value=0.0;
             if(hsv.value > 1.0) hsv.value=1.0;
