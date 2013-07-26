@@ -92,6 +92,7 @@ private:
     void OnSpinCtrl_parm1Change(wxSpinEvent& event);
     void OnSpinCtrl_parm2Change(wxSpinEvent& event);
     void OnSpinCtrl_StartChannelChange(wxSpinEvent& event);
+    void OngridStartChannelsCellChange(wxGridEvent& event);
     //*)
     void SetDefaultStartChannels();
     void UpdateRowCount();

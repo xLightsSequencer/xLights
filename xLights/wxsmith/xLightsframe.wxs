@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
 		<title>xLights/Nutcracker  (Ver 3.0.21)</title>
-		<pos>-1,-1</pos>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -1490,6 +1489,14 @@
 																							<shadow>3</shadow>
 																							<bezel>1</bezel>
 																							<size>100,20</size>
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxButton" name="ID_BUTTON4" variable="Button1" member="yes">
+																							<label>Label</label>
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>

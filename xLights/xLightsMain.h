@@ -93,6 +93,7 @@ static wxCriticalSection gs_xoutCriticalSection;
 
 typedef std::map<wxString,wxString> MapStringString;
 typedef std::vector<wxUint8> SeqDataType;
+typedef std::vector<wxString> EffectNamesVector;
 
 enum play_modes
 {
@@ -191,6 +192,29 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
+
+    enum RGB_EFFECTS_e
+    {
+        NONE,
+        BARS,
+        BUTTERFLY,
+        COLORWASH,
+        FIRE,
+        GARLANDS,
+        LIFE,
+        METEORS,
+        PICTURES,
+        SNOWFLAKES,
+        SNOWSTORM,
+        SPIRALS,
+        TEXT,
+        TWINKLEEFF,
+        TREE,
+        SPIROGRAPH,
+        FIREWORKS,
+        LASTEFFECT //Always the last entry
+    };
+    EffectNamesVector EffectNames;
 
 private:
 
@@ -406,6 +430,7 @@ private:
     static const long ID_BITMAPBUTTON4;
     static const long ID_BUTTON_SeqExport;
     static const long ID_GAUGE1;
+    static const long ID_BUTTON4;
     static const long ID_GRID1;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT25;
@@ -1147,6 +1172,7 @@ private:
     wxMenu* MenuFile;
     wxButton* Button_Text2_2_Font;
     wxSlider* SliderFgIntensity;
+    wxButton* Button1;
     wxButton* Button_Palette2_4;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;

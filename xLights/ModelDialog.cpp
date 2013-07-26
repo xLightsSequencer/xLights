@@ -1,4 +1,5 @@
 #include "ModelDialog.h"
+#include <wx/msgdlg.h>
 
 //(*InternalHeaders(ModelDialog)
 #include <wx/intl.h>
@@ -165,6 +166,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
+    Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     //*)
     UpdateStartChannels();
 }
@@ -300,4 +302,23 @@ void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
 void ModelDialog::OnSpinCtrl_StartChannelChange(wxSpinEvent& event)
 {
     UpdateStartChannels();
+}
+
+void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
+{
+    int row = event.GetRow(),
+        col = event.GetCol();
+    wxString tmpStr;
+    long val;
+
+    if (col==0)
+    {
+        tmpStr = gridStartChannels->GetCellValue(row,col);
+        if ( (!tmpStr.ToLong(&val) || val < 0) )
+        {
+            wxMessageBox(_("Cell value must be a positive numeric value"));
+            gridStartChannels->SetCellValue(row,col,wxT("0"));
+        }
+    }
+    event.Skip();
 }

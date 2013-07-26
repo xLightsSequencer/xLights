@@ -194,6 +194,7 @@ const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
 const long xLightsFrame::ID_GAUGE1 = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
@@ -659,8 +660,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.21)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
-    Move(wxPoint(-1,-1));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.20)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1112,6 +1112,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Gauge1->SetShadowWidth(3);
     Gauge1->SetBezelFace(1);
     FlexGridSizer68->Add(Gauge1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(Panel4, ID_BUTTON4, _("Label"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer68->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(Panel4, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
@@ -2426,6 +2428,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     HtmlEasyPrint=new wxHtmlEasyPrinting(wxT("xLights Printing"), this);
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
+
+    /* The whol registration of effects is kind of a kludge but without moving all
+     * of the unique panels out of wxSmith there really isn't a better way to do
+     * this that I can think of.  This extension is to enable random effect generation
+     */
+    EffectNames.clear();
+    EffectNames.resize(14); // -3 for text pictures and none.
+    EffectNames[0]=wxT("Bars");
+    EffectNames[1]=wxT("Butterfly");
+    EffectNames[2]=wxT("Color Wash");
+    EffectNames[3]=wxT("Fire");
+    EffectNames[4]=wxT("Garlands");
+    EffectNames[5]=wxT("Life");
+    EffectNames[6]=wxT("Meteors");
+    EffectNames[7]=wxT("Snowflakes");
+    EffectNames[8]=wxT("Snowstorm");
+    EffectNames[9]=wxT("Spirals");
+    EffectNames[10]=wxT("Twinkle");
+    EffectNames[11]=wxT("Tree");
+    EffectNames[12]=wxT("Spirograph");
+    EffectNames[13]=wxT("Fireworks");
 
     if (RunFlag && !ShowEvents.IsEmpty())
     {
