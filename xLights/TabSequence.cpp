@@ -268,6 +268,87 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     return NewXml;
 }
 
+wxString xLightsFrame::CreateEffectStringRandom()
+{
+    int eff1, eff2, layerOp;
+    wxString s;
+    s.clear();
+
+    eff1 = rand() % LASTEFFECT;
+    eff2 = rand() % LASTEFFECT;
+    eff1 = (NONE == eff1|| TEXT == eff1 || PICTURES == eff1)? eff1+1:eff1;
+    eff2 = (NONE == eff2|| TEXT == eff2 || PICTURES == eff2)? eff2+1:eff2;
+
+    layerOp = rand() % LASTLAYER;
+    s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
+    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),0);
+    s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
+    s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),0);
+    s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),rand()%Slider_Speed1->GetMax()+Slider_Speed1->GetMin());
+    s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),rand()%Slider_Speed2->GetMax()+Slider_Speed2->GetMin());
+    s+=PageControlsToStringRandom(Choicebook1->GetPage(eff1));
+    s+=SizerControlsToStringRandom(FlexGridSizer_Palette1);
+    s+=PageControlsToStringRandom(Choicebook1->GetPage(eff2));
+    s+=SizerControlsToStringRandom(FlexGridSizer_Palette2);
+    return s;
+
+}
+
+wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
+{
+    wxString s;
+    wxWindowList &ChildList = page->GetChildren();
+    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
+    {
+        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        wxString ChildName=ChildWin->GetName();
+        if (ChildName.StartsWith(wxT("ID_SLIDER")))
+        {
+            wxSlider* ctrl=(wxSlider*)ChildWin;
+            s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
+        }
+        else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
+        {
+            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
+            s+=","+ChildName+"="+ctrl->GetValue();
+        }
+        else if (ChildName.StartsWith(wxT("ID_CHOICE")))
+        {
+            wxChoice* ctrl=(wxChoice*)ChildWin;
+            s+=","+ChildName+"="+ctrl->GetString(rand()%ctrl->GetCount());
+        }
+        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
+        {
+            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
+            wxString v=(rand()%2) ? wxT("1") : wxT("0");
+            s+=","+ChildName+"="+v;
+        }
+    }
+    return s;
+}
+wxString xLightsFrame::SizerControlsToStringRandom(wxSizer* sizer)
+{
+    wxString s;
+    wxSizerItemList &ChildList = sizer->GetChildren();
+    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    {
+        if (!(*it)->IsWindow()) continue;
+        wxWindow *ChildWin = (*it)->GetWindow();
+        wxString ChildName=ChildWin->GetName();
+        if (ChildName.StartsWith(wxT("ID_BUTTON")))
+        {
+            wxColour color=ChildWin->GetBackgroundColour();
+            s+=","+ChildName+"="+color.GetAsString(wxC2S_HTML_SYNTAX);
+        }
+        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
+        {
+            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
+            wxString v=(rand() % 2) ? wxT("1") : wxT("0");
+            s+=","+ChildName+"="+v;
+        }
+    }
+    return s;
+}
 wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=Choicebook1->GetSelection();
@@ -281,7 +362,7 @@ wxString xLightsFrame::CreateEffectString()
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
     s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));
-    if(PageIdx1==12)
+    if(PageIdx1==TEXT)
     {
         s+=PageControlsToString(Notebook_Text1->GetPage(0));
         s+=PageControlsToString(Notebook_Text1->GetPage(1));
@@ -323,7 +404,40 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         }
     }
 }
+void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
 
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        int nCols = Grid1->GetNumberCols();
+        for (r=0; r<nRows; r++)
+        {
+            for (c=2; c<nCols; c++)
+            {
+                if (Grid1->IsInSelection(r,c))
+                {
+                    v = CreateEffectStringRandom();
+                    Grid1->SetCellValue(r,c,v);
+                }
+            }
+        }
+    }
+    else
+    {
+        // copy to current cell
+        r=Grid1->GetGridCursorRow();
+        c=Grid1->GetGridCursorCol();
+        if (c >=2)
+        {
+            v = CreateEffectStringRandom();
+            Grid1->SetCellValue(r,c,v);
+        }
+    }
+}
 void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
 {
     int r,c;
@@ -2276,6 +2390,7 @@ void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
     //mnu.SetClientData( data );
     mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
     mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+    mnu.Append(ID_RANDOM_EFFECT, 	"Create Random Effect");
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
     PopupMenu(&mnu);
 }
@@ -2287,5 +2402,27 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     if(event.GetId() == ID_DELETE_EFFECT)
     {
         DeleteSelectedEffects(event);
+    }
+    if(event.GetId() == ID_RANDOM_EFFECT)
+    {
+        InsertRandomEffects(event);
+    }
+}
+
+void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
+
+    int nRows = Grid1->GetNumberRows();
+    int nCols = Grid1->GetNumberCols();
+
+    for (c=2; c<nCols; c++)
+    {
+        for (r=0; r<nRows; r++)
+        {
+            v=CreateEffectStringRandom();
+            Grid1->SetCellValue(r,c,v);
+        }
     }
 }

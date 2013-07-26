@@ -288,6 +288,7 @@
 							</collabels>
 							<size>150,348</size>
 							<style>wxVSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
+							<handler function="OngridStartChannelsCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>5</border>

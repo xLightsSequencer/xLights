@@ -1495,8 +1495,9 @@
 																						<option>1</option>
 																					</object>
 																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON4" variable="Button1" member="yes">
-																							<label>Label</label>
+																						<object class="wxButton" name="ID_BUTTON4" variable="btRandomEffect" member="yes">
+																							<label>Random Sequence</label>
+																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
@@ -3843,6 +3844,7 @@
 																										</object>
 																										<object class="sizeritem">
 																											<object class="wxSlider" name="ID_SLIDER_Tree2_Branches" variable="Slider_Tree2_Branches" member="yes">
+																												<min>1</min>
 																												<thumb>3</thumb>
 																												<tick>1</tick>
 																												<selmin>10</selmin>

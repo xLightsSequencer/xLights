@@ -94,6 +94,7 @@ static wxCriticalSection gs_xoutCriticalSection;
 typedef std::map<wxString,wxString> MapStringString;
 typedef std::vector<wxUint8> SeqDataType;
 typedef std::vector<wxString> EffectNamesVector;
+typedef std::vector<wxString> EffectLayerOptionsVector;
 
 enum play_modes
 {
@@ -214,7 +215,21 @@ public:
         FIREWORKS,
         LASTEFFECT //Always the last entry
     };
+
+    enum LAYER_OPTIONS_e
+    {
+        EFFECT1,
+        EFFECT2,
+        EFF1MASK,
+        EFF2MASK,
+        EFF1UNMASK,
+        EFF2UNMASK,
+        EFFLAYERED,
+        EFFAVERAGED,
+        LASTLAYER
+    };
     EffectNamesVector EffectNames;
+    EffectLayerOptionsVector EffectLayerOptions;
 
 private:
 
@@ -304,9 +319,11 @@ private:
     void OnButton_Text2_2_FontClick(wxCommandEvent& event);
     void OnChoice_ModelsSelect(wxCommandEvent& event);
     void OnGrid1CellRightClick(wxGridEvent& event);
+    void OnbtRandomEffectClick(wxCommandEvent& event);
     //*)
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);
+    void InsertRandomEffects(wxCommandEvent &evt);
 
 
     //(*Identifiers(xLightsFrame)
@@ -776,6 +793,7 @@ private:
     static const long ID_PLAYER_DIALOG;
     static const long ID_DELETE_EFFECT;
     static const long ID_IGNORE_CLICK;
+    static const long ID_RANDOM_EFFECT;
 
     //(*Declarations(xLightsFrame)
     wxStaticText* StaticText6;
@@ -1172,7 +1190,6 @@ private:
     wxMenu* MenuFile;
     wxButton* Button_Text2_2_Font;
     wxSlider* SliderFgIntensity;
-    wxButton* Button1;
     wxButton* Button_Palette2_4;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;
@@ -1180,6 +1197,7 @@ private:
     wxButton* Button_PresetAdd;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxStaticText* StaticText82;
+    wxButton* btRandomEffect;
     wxButton* ButtonSeqExport;
     wxStaticText* StaticText51;
     wxSlider* Slider_Spirograph1_r;
@@ -1419,6 +1437,9 @@ private:
     void ImportxLightsXMLTimings();
     void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
+    wxString CreateEffectStringRandom();
+    wxString SizerControlsToStringRandom(wxSizer* sizer);
+    wxString PageControlsToStringRandom(wxWindow* page);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
