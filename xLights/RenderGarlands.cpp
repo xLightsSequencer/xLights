@@ -29,6 +29,7 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
     double ratio;
     wxColour color;
     int PixelSpacing=Spacing*BufferHt/100+3;
+    if(PixelSpacing<1) PixelSpacing=1;
     int limit=BufferHt*PixelSpacing*4;
     int GarlandsState=(limit - (state % limit))/4;
     // ring=0 is the top ring

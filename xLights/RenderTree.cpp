@@ -34,7 +34,10 @@ void RgbEffects::RenderTree(int Branches)
     number_garlands=1;
     srand(1); // always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+
+    if(Branches<1)  Branches=1;
     pixels_per_branch=(int)(0.5+BufferHt/Branches);
+
     maxFrame=(Branches+1) *BufferWi;
     size_t colorcnt=GetColorCount();
     if(state>0 and maxFrame>0) frame = (state/4)%maxFrame;

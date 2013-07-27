@@ -30,9 +30,12 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
+    if(BarCount<1) BarCount=1;
     int BarHt = BufferHt/BarCount+1;
+    if(BarHt<1) BarHt=1;
     int HalfHt = BufferHt/2;
     int BlockHt=colorcnt * BarHt;
+    if(BlockHt<1) BlockHt=1;
     int f_offset = state/4 % BlockHt;
     for (y=0; y<BufferHt; y++)
     {

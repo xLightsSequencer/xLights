@@ -28,12 +28,14 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 
     int x,y,i,i7,r,ColorIdx;
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
-    int step=BufferHt*BufferWi/lights;
+    int step;
+    if(lights>0) step=BufferHt*BufferWi/lights;
+    else step=1;
     int mod_number,max_modulo;
     max_modulo=Steps;
     if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
     int max_modulo2=max_modulo/2;
-
+if(max_modulo2<1) max_modulo2=1;
 
     if(step<1) step=1;
     if(Strobe) srand (time(NULL)); // for strobe effect, make lights be random
@@ -69,10 +71,15 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 //                if(i7==4)  hsv.value = 1.0;
 //                else  hsv.value = 0.0;
 
-                if(i7<=max_modulo2) hsv.value = (1.0*i7)/max_modulo2;
+                if(i7<=max_modulo2)
+                {
+                   if(max_modulo2>0) hsv.value = (1.0*i7)/max_modulo2;
+                   else  hsv.value =0;
+                }
                 else
                 {
-                    hsv.value = (max_modulo-i7)*1.0/(max_modulo2);
+                    if(max_modulo2>0) hsv.value = (max_modulo-i7)*1.0/(max_modulo2);
+                    else hsv.value = 0;
                 }
                 if(hsv.value<0.0) hsv.value=0.0;
 

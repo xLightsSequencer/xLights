@@ -1924,6 +1924,8 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
+                StatusBar1->SetStatusText(_(wxString::Format(wxT("Saving row %ld"),NextGridRowToPlay+1)));
+
                 LoadEffectFromString(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
                 // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
                 UpdateBufferPaletteFromMap(1,SettingsMap);
