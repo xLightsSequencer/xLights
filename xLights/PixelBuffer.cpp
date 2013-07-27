@@ -358,11 +358,11 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotat
     Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D);
 }
 
-void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,bool COUNTDOWN1,
-                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,bool COUNTDOWN2)
+void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,int Effect1,
+                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,int Effect2)
 {
-    Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,TextRotation1,COUNTDOWN1,
-                                    Position2,Line2,FontString2,dir2,TextRotation2,COUNTDOWN2);
+    Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,TextRotation1,Effect1,
+                                    Position2,Line2,FontString2,dir2,TextRotation2,Effect2);
 }
 
 void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)

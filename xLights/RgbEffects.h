@@ -189,9 +189,8 @@ public:
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
     void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
-    void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,bool COUNTDOWN1,
-                    int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,bool COUNTDOWN2);
-//    void RenderText(int Top, int Left, const wxString& Line1, const wxString& Line2, const wxString& FontString, int dir,int TextDirection);
+    void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,int Effect1,
+                    int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,int Effect2);
     void RenderTwinkle(int Count,int Steps,bool Strobe);
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d,bool Animate);
@@ -224,6 +223,7 @@ protected:
     void ClearWaveBuffer1();
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
+    void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int TextRotation, int Effect);
 
     int BufferHt,BufferWi;  // size of the buffer
     wxColourVector pixels; // this is the calculation buffer
@@ -253,8 +253,7 @@ protected:
     int lastperiod;
     RgbFireworks fireworkBursts[20000];
     int maxmovieframes;
-    long old_longsecs1,timer_countdown1;
-    long old_longsecs2,timer_countdown2;
+    long old_longsecs[1],timer_countdown[1];
 
 private:
 };

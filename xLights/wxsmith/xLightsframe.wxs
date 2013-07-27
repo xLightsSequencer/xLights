@@ -1862,8 +1862,22 @@
 																											<object class="wxChoice" name="ID_CHOICE_Meteors1_Type" variable="Choice_Meteors1_Type" member="yes">
 																												<selection>2</selection>
 																											</object>
-																											<flag>wxTOP|wxBOTTOM|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT129" variable="StaticText128" member="yes">
+																												<label>Effect</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxChoice" name="ID_CHOICE_Meteors1_Effect" variable="Choice_Meteors1_Effect" member="yes" />
+																											<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
@@ -1901,41 +1915,11 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
-																												<label>Meteors Fall Up?</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>2</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors1_FallUp" variable="CheckBox_Meteors1_FallUp" member="yes">
-																												<label>Yes</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>2</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxStaticText" name="ID_STATICTEXT129" variable="StaticText128" member="yes">
-																												<label>Effect</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxChoice" name="ID_CHOICE_Meteors1_Effect" variable="Choice_Meteors1_Effect" member="yes" />
-																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
 																											<object class="wxStaticText" name="ID_STATICTEXT131" variable="StaticText130" member="yes">
 																												<label>Swirl Intensity</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
@@ -1943,7 +1927,23 @@
 																												<min>10</min>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
+																												<label>Meteors Fall Up?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors1_FallUp" variable="CheckBox_Meteors1_FallUp" member="yes">
+																												<label>Yes</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																									</object>
@@ -2290,6 +2290,20 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
+																																<object class="wxStaticText" name="ID_STATICTEXT108" variable="StaticText107" member="yes">
+																																	<label>Effect</label>
+																																</object>
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
+																																<object class="wxChoice" name="ID_CHOICE_Text1_1_Effect" variable="Choice_Text1_1_Effect" member="yes" />
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
 																																<object class="wxStaticText" name="ID_STATICTEXT101" variable="StaticText100" member="yes">
 																																	<label>Position</label>
 																																</object>
@@ -2319,22 +2333,6 @@
 																																	<size>107,24</size>
 																																</object>
 																																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxStaticText" name="ID_STATICTEXT108" variable="StaticText107" member="yes">
-																																	<label>Countdown Timer?</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxCheckBox" name="ID_CHECKBOX_Text1_COUNTDOWN1" variable="CheckBox_Text1_COUNTDOWN1" member="yes">
-																																	<label>Yes</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																																<border>2</border>
 																																<option>1</option>
 																															</object>
@@ -2381,6 +2379,20 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
+																																<object class="wxStaticText" name="ID_STATICTEXT109" variable="StaticText108" member="yes">
+																																	<label>Effect</label>
+																																</object>
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
+																																<object class="wxChoice" name="ID_CHOICE_Text1_2_Effect" variable="Choice_Text1_2_Effect" member="yes" />
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
 																																<object class="wxStaticText" name="ID_STATICTEXT103" variable="StaticText102" member="yes">
 																																	<label>Position</label>
 																																</object>
@@ -2411,22 +2423,6 @@
 																																	<size>99,24</size>
 																																</object>
 																																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxStaticText" name="ID_STATICTEXT109" variable="StaticText108" member="yes">
-																																	<label>Countdown Timer?</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxCheckBox" name="ID_CHECKBOX_Text1_COUNTDOWN2" variable="CheckBox_Text1_COUNTDOWN2" member="yes">
-																																	<label>Yes</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																																<border>2</border>
 																																<option>1</option>
 																															</object>
@@ -3195,8 +3191,22 @@
 																											<object class="wxChoice" name="ID_CHOICE_Meteors2_Type" variable="Choice_Meteors2_Type" member="yes">
 																												<selection>2</selection>
 																											</object>
-																											<flag>wxTOP|wxBOTTOM|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT130" variable="StaticText129" member="yes">
+																												<label>Effect</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxChoice" name="ID_CHOICE_Meteors2_Effect" variable="Choice_Meteors2_Effect" member="yes" />
+																											<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
@@ -3234,42 +3244,11 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxStaticText" name="ID_STATICTEXT107" variable="StaticText106" member="yes">
-																												<label>Meteors Fall Up?</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors2_FallUp" variable="CheckBox_Meteors2_FallUp" member="yes">
-																												<label>Yes</label>
-																												<size>46,13</size>
-																											</object>
-																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxStaticText" name="ID_STATICTEXT130" variable="StaticText129" member="yes">
-																												<label>Effect</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxChoice" name="ID_CHOICE_Meteors2_Effect" variable="Choice_Meteors2_Effect" member="yes" />
-																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
 																											<object class="wxStaticText" name="ID_STATICTEXT132" variable="StaticText131" member="yes">
 																												<label>Swirl Intensity</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
@@ -3277,7 +3256,24 @@
 																												<min>10</min>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT107" variable="StaticText106" member="yes">
+																												<label>Meteors Fall Up?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Meteors2_FallUp" variable="CheckBox_Meteors2_FallUp" member="yes">
+																												<label>Yes</label>
+																												<size>46,13</size>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
 																											<option>1</option>
 																										</object>
 																									</object>
@@ -3619,6 +3615,20 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
+																																<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText101" member="yes">
+																																	<label>Effect</label>
+																																</object>
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
+																																<object class="wxChoice" name="ID_CHOICE_Text2_1_Effect" variable="Choice_Text2_1_Effect" member="yes" />
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
 																																<object class="wxStaticText" name="ID_STATICTEXT78" variable="StaticText77" member="yes">
 																																	<label>Position</label>
 																																</object>
@@ -3647,23 +3657,6 @@
 																																	<max>3</max>
 																																</object>
 																																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText101" member="yes">
-																																	<label>Countdown Timer?</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxCheckBox" name="ID_CHECKBOX_Text2_COUNTDOWN1" variable="CheckBox_Text2_COUNTDOWN1" member="yes">
-																																	<label>Yes</label>
-																																	<focused>1</focused>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																																<border>2</border>
 																																<option>1</option>
 																															</object>
@@ -3706,6 +3699,20 @@
 																																<option>1</option>
 																															</object>
 																															<object class="sizeritem">
+																																<object class="wxStaticText" name="ID_STATICTEXT113" variable="StaticText112" member="yes">
+																																	<label>Effect</label>
+																																</object>
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
+																																<object class="wxChoice" name="ID_CHOICE_Text2_2_Effect" variable="Choice_Text2_2_Effect" member="yes" />
+																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																																<border>2</border>
+																																<option>1</option>
+																															</object>
+																															<object class="sizeritem">
 																																<object class="wxStaticText" name="ID_STATICTEXT111" variable="StaticText110" member="yes">
 																																	<label>Position</label>
 																																</object>
@@ -3732,22 +3739,6 @@
 																															<object class="sizeritem">
 																																<object class="wxSlider" name="ID_SLIDER_Text2_2_TextRotation" variable="Slider_Text2_2_TextRotation" member="yes" />
 																																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxStaticText" name="ID_STATICTEXT113" variable="StaticText112" member="yes">
-																																	<label>Countdown Timer?</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																																<border>2</border>
-																																<option>1</option>
-																															</object>
-																															<object class="sizeritem">
-																																<object class="wxCheckBox" name="ID_CHECKBOX_Text2_COUNTDOWN2" variable="CheckBox_Text2_COUNTDOWN2" member="yes">
-																																	<label>Yes</label>
-																																</object>
-																																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																																<border>2</border>
 																																<option>1</option>
 																															</object>
