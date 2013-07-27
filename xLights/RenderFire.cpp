@@ -80,6 +80,9 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 void RgbEffects::RenderFire(int HeightPct)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
+    wxColour color;
+    wxImage::HSVValue hsv;
+
     if (state == 0)
     {
         for (i=0; i < FireBuffer.size(); i++)
@@ -132,6 +135,11 @@ void RgbEffects::RenderFire(int HeightPct)
                 if (new_index < 0) new_index=0;
                 if (new_index >= FirePalette.size()) new_index = FirePalette.size()-1;
             }
+
+
+
+
+
             SetFireBuffer(x,y,new_index);
         }
     }
@@ -140,7 +148,19 @@ void RgbEffects::RenderFire(int HeightPct)
         for (x=0; x<BufferWi; x++)
         {
             //SetPixel(x,y,FirePalette[y]);
-            SetPixel(x,y,FirePalette[GetFireBuffer(x,y)]);
+            //  first get the calculated color fo normal fire.
+
+            color=FirePalette[GetFireBuffer(x,y)];
+            wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
+            hsv = wxImage::RGBtoHSV(rgb);
+            hsv.hue = hsv.hue +state/100.0;
+            if (hsv.hue>1.0) hsv.hue=1.0;
+            rgb = wxImage::HSVtoRGB(hsv);
+          //  color = wxColor(rgb.red,rgb.green,rgb.blue);
+
+
+
+            SetPixel(x,y,color);
         }
     }
 }
