@@ -274,10 +274,10 @@ wxString xLightsFrame::CreateEffectStringRandom()
     wxString s;
     s.clear();
 
-    eff1 = rand() % LASTEFFECT;
-    eff2 = rand() % LASTEFFECT;
-    eff1 = (NONE == eff1|| TEXT == eff1 || PICTURES == eff1)? eff1+1:eff1;
-    eff2 = (NONE == eff2|| TEXT == eff2 || PICTURES == eff2)? eff2+1:eff2;
+    eff1 = rand() % eff_LASTEFFECT-1; //Temporarily prevent choosing to do a circle.
+    eff2 = rand() % eff_LASTEFFECT-1;
+    eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
+    eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
 
     layerOp = rand() % LASTLAYER;
     s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
@@ -370,7 +370,7 @@ wxString xLightsFrame::CreateEffectString()
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
     s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));
-    if(PageIdx1==TEXT)
+    if(PageIdx1==eff_TEXT)
     {
         s+=PageControlsToString(Notebook_Text1->GetPage(0));
         s+=PageControlsToString(Notebook_Text1->GetPage(1));
@@ -923,39 +923,39 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     ResetEffectState[0]=false;
     switch (Choicebook1->GetSelection())
     {
-    case 0:
+    case eff_NONE:
         break;   // none
-    case 1:
+    case eff_BARS:
         buffer.RenderBars(Slider_Bars1_BarCount->GetValue(),
                           Choice_Bars1_Direction->GetSelection(),
                           CheckBox_Bars1_Highlight->GetValue(),
                           CheckBox_Bars1_3D->GetValue());
         break;
-    case 2:
+    case eff_BUTTERFLY:
         buffer.RenderButterfly(Choice_Butterfly1_Colors->GetSelection(),
                                Slider_Butterfly1_Style->GetValue(),
                                Slider_Butterfly1_Chunks->GetValue(),
                                Slider_Butterfly1_Skip->GetValue());
         break;
-    case 3:
+    case eff_COLORWASH:
         buffer.RenderColorWash(CheckBox_ColorWash1_HFade->GetValue(),
                                CheckBox_ColorWash1_VFade->GetValue(),
                                Slider_ColorWash1_Count->GetValue());
         break;
-    case 4:
+    case eff_FIRE:
         buffer.RenderFire(Slider_Fire1_Height->GetValue(),
                           Slider_Fire1_HueShift->GetValue(),
                           CheckBox_Fire1_GrowFire->GetValue());
         break;
-    case 5:
+    case eff_GARLANDS:
         buffer.RenderGarlands(Slider_Garlands1_Type->GetValue(),
                               Slider_Garlands1_Spacing->GetValue());
         break;
-    case 6:
+    case eff_LIFE:
         buffer.RenderLife(Slider_Life1_Count->GetValue(),
                           Slider_Life1_Seed->GetValue());
         break;
-    case 7:
+    case eff_METEORS:
         buffer.RenderMeteors(Choice_Meteors1_Type->GetSelection(),
                              Slider_Meteors1_Count->GetValue(),
                              Slider_Meteors1_Length->GetValue(),
@@ -963,20 +963,20 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              Choice_Meteors1_Effect->GetSelection(),
                              Slider_Meteors1_Swirl_Intensity->GetValue());
         break;
-    case 8:
+    case eff_PICTURES:
         buffer.RenderPictures(Choice_Pictures1_Direction->GetSelection(),
                               TextCtrl_Pictures1_Filename->GetValue(),
                               Slider_Pictures1_GifSpeed->GetValue());
         break;
-    case 9:
+    case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(Slider_Snowflakes1_Count->GetValue(),
                                 Slider_Snowflakes1_Type->GetValue());
         break;
-    case 10:
+    case eff_SNOWSTORM:
         buffer.RenderSnowstorm(Slider_Snowstorm1_Count->GetValue(),
                                Slider_Snowstorm1_Length->GetValue());
         break;
-    case 11:
+    case eff_SPIRALS:
         buffer.RenderSpirals(Slider_Spirals1_Count->GetValue(),
                              Slider_Spirals1_Direction->GetValue(),
                              Slider_Spirals1_Rotation->GetValue(),
@@ -984,7 +984,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals1_Blend->GetValue(),
                              CheckBox_Spirals1_3D->GetValue());
         break;
-    case 12:
+    case eff_TEXT:
         buffer.RenderText(Slider_Text1_1_Position->GetValue(),
                           TextCtrl_Text1_Line1->GetValue(),
                           TextCtrl_Text1_1_Font->GetValue(),
@@ -999,21 +999,21 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           Choice_Text1_2_Count->GetSelection());
 
         break;
-    case 13:
+    case eff_TWINKLE:
         buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue(),
                              Slider_Twinkle1_Steps->GetValue(),
                              CheckBox_Twinkle1_Strobe->GetValue());
         break;
-    case 14:
+    case eff_TREE:
         buffer.RenderTree(Slider_Tree1_Branches->GetValue());
         break;
-    case 15:
+    case eff_SPIROGRAPH:
         buffer.RenderSpirograph(Slider_Spirograph1_R->GetValue(),
                                 Slider_Spirograph1_r->GetValue(),
                                 Slider_Spirograph1_d->GetValue(),
                                 CheckBox_Spirograph1_Animate->GetValue());
         break;
-    case 16:
+    case eff_FIREWORKS:
         buffer.RenderFireworks(Slider_Fireworks1_Number_Explosions->GetValue(),
                                Slider_Fireworks1_Count->GetValue(),
                                Slider_Fireworks1_Velocity->GetValue(),
@@ -1027,59 +1027,59 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     ResetEffectState[1]=false;
     switch (Choicebook2->GetSelection())
     {
-    case 0:
+    case eff_NONE:
         break;   // none
-    case 1:
+    case eff_BARS:
         buffer.RenderBars(Slider_Bars2_BarCount->GetValue(),
                           Choice_Bars2_Direction->GetSelection(),
                           CheckBox_Bars2_Highlight->GetValue(),
                           CheckBox_Bars2_3D->GetValue());
         break;
-    case 2:
+    case eff_BUTTERFLY:
         buffer.RenderButterfly(Choice_Butterfly2_Colors->GetSelection(),
                                Slider_Butterfly2_Style->GetValue(),
                                Slider_Butterfly2_Chunks->GetValue(),
                                Slider_Butterfly2_Skip->GetValue());
         break;
-    case 3:
+    case eff_COLORWASH:
         buffer.RenderColorWash(CheckBox_ColorWash2_HFade->GetValue(),
                                CheckBox_ColorWash2_VFade->GetValue(),
                                Slider_ColorWash2_Count->GetValue());
         break;
-    case 4:
+    case eff_FIRE:
         buffer.RenderFire(Slider_Fire2_Height->GetValue(),
                           Slider_Fire2_HueShift->GetValue(),
                           CheckBox_Fire2_GrowFire->GetValue());
         break;
-    case 5:
+    case eff_GARLANDS:
         buffer.RenderGarlands(Slider_Garlands2_Type->GetValue(),
                               Slider_Garlands2_Spacing->GetValue());
         break;
-    case 6:
+    case eff_LIFE:
         buffer.RenderLife(Slider_Life2_Count->GetValue(),
                           Slider_Life2_Seed->GetValue());
         break;
-    case 7:
+    case eff_METEORS:
         buffer.RenderMeteors(Choice_Meteors2_Type->GetSelection(),
                              Slider_Meteors2_Count->GetValue(),
                              Slider_Meteors2_Length->GetValue(),
                              CheckBox_Meteors2_FallUp->GetValue(),
                              Choice_Meteors2_Effect->GetSelection(),
                              Slider_Meteors2_Swirl_Intensity->GetValue());
-    case 8:
+    case eff_PICTURES:
         buffer.RenderPictures(Choice_Pictures2_Direction->GetSelection(),
                               TextCtrl_Pictures2_Filename->GetValue(),
                               Slider_Pictures2_GifSpeed->GetValue());
         break;
-    case 9:
+    case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(Slider_Snowflakes2_Count->GetValue(),
                                 Slider_Snowflakes2_Type->GetValue());
         break;
-    case 10:
+    case eff_SNOWSTORM:
         buffer.RenderSnowstorm(Slider_Snowstorm2_Count->GetValue(),
                                Slider_Snowstorm2_Length->GetValue());
         break;
-    case 11:
+    case eff_SPIRALS:
         buffer.RenderSpirals(Slider_Spirals2_Count->GetValue(),
                              Slider_Spirals2_Direction->GetValue(),
                              Slider_Spirals2_Rotation->GetValue(),
@@ -1087,7 +1087,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Spirals2_Blend->GetValue(),
                              CheckBox_Spirals2_3D->GetValue());
         break;
-    case 12:
+    case eff_TEXT:
         buffer.RenderText(Slider_Text2_1_Position->GetValue(),
                           TextCtrl_Text2_Line1->GetValue(),
                           TextCtrl_Text2_1_Font->GetValue(),
@@ -1101,21 +1101,21 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           Choice_Text2_2_Effect->GetSelection(),
                           Choice_Text2_2_Count->GetSelection());
         break;
-    case 13:
+    case eff_TWINKLE:
         buffer.RenderTwinkle(Slider_Twinkle2_Count->GetValue(),
                              Slider_Twinkle2_Steps->GetValue(),
                              CheckBox_Twinkle2_Strobe->GetValue());
         break;
-    case 14:
+    case eff_TREE:
         buffer.RenderTree(Slider_Tree2_Branches->GetValue());
         break;
-    case 15:
+    case eff_SPIROGRAPH:
         buffer.RenderSpirograph(Slider_Spirograph2_R->GetValue(),
                                 Slider_Spirograph2_r->GetValue(),
                                 Slider_Spirograph2_d->GetValue(),
                                 CheckBox_Spirograph2_Animate->GetValue());
         break;
-    case 16:
+    case eff_FIREWORKS:
         buffer.RenderFireworks(Slider_Fireworks2_Number_Explosions->GetValue(),
                                Slider_Fireworks2_Count->GetValue(),
                                Slider_Fireworks2_Velocity->GetValue(),
