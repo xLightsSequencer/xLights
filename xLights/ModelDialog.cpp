@@ -401,4 +401,5 @@ void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
         }
         customChannelData = base64_encode(chanData,numRows*numCols*2);
     }
+    free(chanData);
 }
