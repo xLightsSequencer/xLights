@@ -10,6 +10,7 @@
 #include <wx/radiobut.h>
 #include <wx/grid.h>
 #include <wx/choice.h>
+#include <wx/button.h>
 #include <wx/dialog.h>
 //*)
 
@@ -23,6 +24,7 @@ public:
     void UpdateStartChannels();
 
     //(*Declarations(ModelDialog)
+    wxStaticText* StaticText10;
     wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
@@ -36,6 +38,7 @@ public:
     wxStaticText* StaticText3;
     wxRadioButton* RadioButton_TopLeft;
     wxRadioButton* RadioButton_BotLeft;
+    wxButton* btCustomModelConfig;
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
@@ -81,6 +84,8 @@ protected:
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT12;
     static const long ID_CHECKBOX2;
+    static const long ID_STATICTEXT13;
+    static const long ID_BUTTON1;
     static const long ID_GRID1;
     //*)
 
@@ -93,6 +98,7 @@ private:
     void OnSpinCtrl_parm2Change(wxSpinEvent& event);
     void OnSpinCtrl_StartChannelChange(wxSpinEvent& event);
     void OngridStartChannelsCellChange(wxGridEvent& event);
+    void OnbtCustomModleConfigClick(wxCommandEvent& event);
     //*)
     void SetDefaultStartChannels();
     void UpdateRowCount();

@@ -1,9 +1,9 @@
 #include "ModelDialog.h"
+#include "CustomModelDialog.h"
 #include <wx/msgdlg.h>
 
 //(*InternalHeaders(ModelDialog)
 #include <wx/intl.h>
-#include <wx/button.h>
 #include <wx/string.h>
 //*)
 
@@ -34,6 +34,8 @@ const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT12 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelDialog::ID_STATICTEXT13 = wxNewId();
+const long ModelDialog::ID_BUTTON1 = wxNewId();
 const long ModelDialog::ID_GRID1 = wxNewId();
 //*)
 
@@ -72,6 +74,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Single Line"));
     Choice_DisplayAs->Append(_("Arches"));
     Choice_DisplayAs->Append(_("Window Frame"));
+    Choice_DisplayAs->Append(_("Custom"));
     FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_Strings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -138,6 +141,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     cbIndividualStartNumbers->SetValue(false);
     FlexGridSizer2->Add(cbIndividualStartNumbers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT13, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
+    FlexGridSizer2->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    btCustomModelConfig = new wxButton(this, ID_BUTTON1, _("Configure Custom Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    btCustomModelConfig->Disable();
+    FlexGridSizer2->Add(btCustomModelConfig, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     gridStartChannels = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxSize(150,348), wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
@@ -166,6 +174,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnbtCustomModleConfigClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     //*)
     UpdateStartChannels();
@@ -182,6 +191,7 @@ void ModelDialog::UpdateLabels()
 {
     wxString choice;
     choice=Choice_DisplayAs->GetStringSelection();
+    btCustomModelConfig->Enable(false);
     if (choice == wxT("Arches"))
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
@@ -204,6 +214,15 @@ void ModelDialog::UpdateLabels()
         StaticText_Strands->SetLabelText(_("n/a"));
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
+    }
+    else if (choice == wxT("Custom"))
+    {
+        StaticText_Strings->SetLabelText(_("Model Width"));
+        StaticText_Nodes->SetLabelText(_("Model Height"));
+        StaticText_Strands->SetLabelText(_("n/a"));
+        SpinCtrl_parm3->SetValue(1);
+        SpinCtrl_parm3->Enable(false);
+        btCustomModelConfig->Enable(true);
     }
     else
     {
@@ -321,4 +340,24 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
         }
     }
     event.Skip();
+}
+
+void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
+{
+    CustomModelDialog dialog(this);
+    int numRows, numCols, row, col;
+
+    numCols=SpinCtrl_parm1->GetValue();
+    numRows=SpinCtrl_parm2->GetValue();
+
+    dialog.gdModelChans->AppendCols(numCols - dialog.gdModelChans->GetNumberCols());
+    dialog.gdModelChans->AppendRows(numRows - dialog.gdModelChans->GetNumberRows());
+    for(row=0; row<numRows; row++)
+    {
+        for( col=0; col<numCols; col++)
+        {
+
+        }
+    }
+    dialog.ShowModal();
 }
