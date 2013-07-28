@@ -1950,7 +1950,7 @@ void xLightsFrame::RenderGridToSeqData()
                 buffer.SetContrast(contrast);
 
                 NextGridRowToPlay++;
-            }
+            } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             RenderEffectFromString(0, p, SettingsMap);
             RenderEffectFromString(1, p, SettingsMap);
             buffer.CalcOutput();
@@ -1963,8 +1963,8 @@ void xLightsFrame::RenderGridToSeqData()
 
                 SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
 
-            }
-        }
+            } // for(int n=0; n<NodeCnt; n++)
+        } //for (int p=0; p<SeqNumPeriods; p++)
     }
 }
 

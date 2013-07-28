@@ -668,7 +668,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.22)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.23)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1371,7 +1371,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook_Text1 = new wxNotebook(Panel1_Text, ID_NOTEBOOK_Text1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Text1"));
     Notebook_Text1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     Panel_Text1_1 = new wxPanel(Notebook_Text1, ID_PANEL_Text1_1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text1_1"));
-    FlexGridSizer69 = new wxFlexGridSizer(5, 2, 0, 0);
+    FlexGridSizer69 = new wxFlexGridSizer(5, 3, 0, 0);
     Button_Text1_1_Font = new wxButton(Panel_Text1_1, ID_BUTTON_TEXT1_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_1_FONT"));
     Button_Text1_1_Font->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer69->Add(Button_Text1_1_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
