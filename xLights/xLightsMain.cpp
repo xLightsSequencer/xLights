@@ -2509,11 +2509,6 @@ xLightsFrame::~xLightsFrame()
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
-    if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
-                             "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
-    {
-        return;
-    }
     Close();
 }
 
@@ -2813,5 +2808,5 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     {
         return;
     }
-    Close();
+    Destroy();
 }
