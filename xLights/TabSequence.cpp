@@ -846,14 +846,14 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
                           EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_TextRotation")]),
                           TextEffects.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Effect")]),
+                          TextCountDown.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Count")]),
                           wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
                           SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
                           EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_TextRotation")]),
-                          TextEffects.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Effect")]));
+                          TextEffects.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Effect")]),
+                          TextCountDown.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Count")]));
     }
     else if (effect == wxT("Twinkle"))
     {
@@ -982,14 +982,14 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           TextCtrl_Text1_Line1->GetValue(),
                           TextCtrl_Text1_1_Font->GetValue(),
                           Choice_Text1_1_Dir->GetSelection(),
-                          Slider_Text1_1_TextRotation->GetValue(),
                           Choice_Text1_1_Effect->GetSelection(),
+                          Choice_Text1_1_Count->GetSelection(),
                           Slider_Text1_2_Position->GetValue(),
                           TextCtrl_Text1_Line2->GetValue(),
                           TextCtrl_Text1_2_Font->GetValue(),
                           Choice_Text1_2_Dir->GetSelection(),
-                          Slider_Text1_2_TextRotation->GetValue(),
-                          Choice_Text1_2_Effect->GetSelection());
+                          Choice_Text1_2_Effect->GetSelection(),
+                          Choice_Text1_2_Count->GetSelection());
 
         break;
     case 13:
@@ -1085,14 +1085,14 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                           TextCtrl_Text2_Line1->GetValue(),
                           TextCtrl_Text2_1_Font->GetValue(),
                           Choice_Text2_1_Dir->GetSelection(),
-                          Slider_Text2_1_TextRotation->GetValue(),
                           Choice_Text2_1_Effect->GetSelection(),
+                          Choice_Text2_1_Count->GetSelection(),
                           Slider_Text2_2_Position->GetValue(),
                           TextCtrl_Text2_Line2->GetValue(),
                           TextCtrl_Text2_2_Font->GetValue(),
                           Choice_Text2_2_Dir->GetSelection(),
-                          Slider_Text2_2_TextRotation->GetValue(),
-                          Choice_Text2_2_Effect->GetSelection());
+                          Choice_Text2_2_Effect->GetSelection(),
+                          Choice_Text2_2_Count->GetSelection());
         break;
     case 13:
         buffer.RenderTwinkle(Slider_Twinkle2_Count->GetValue(),
