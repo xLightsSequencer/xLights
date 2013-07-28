@@ -1458,6 +1458,8 @@ void fix_version_differences(wxString file)
     wxString Text2   = "xdummy|xdummy";
     wxString Meteors1 = "xdummy|xdummy";
     wxString Meteors2 = "xdummy|xdummy";
+    wxString Fire1   = "xdummy|xdummy";
+    wxString Fire2   = "xdummy|xdummy";
     //
     //
     //  list all new tags that might have occured in previous versions
@@ -1472,6 +1474,11 @@ void fix_version_differences(wxString file)
     Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
     Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
     Meteors2 = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+
+    Fire1 = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
+    Fire2 = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
+    Fire1 = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
+    Fire2 = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
 
 
     // Lots of variables to check for  text effect
@@ -1546,6 +1553,7 @@ void fix_version_differences(wxString file)
                 modified=true;
                 str=insert_missing(str,missing);
             }
+
             p=str.find("ID_TEXTCTRL_Text1_Line1",0);
             if(p>0) // Is this a text 1 line?
             {
@@ -1558,6 +1566,7 @@ void fix_version_differences(wxString file)
                 modified=true;
                 str=insert_missing(str,Text2);
             }
+
             p=str.find("ID_CHOICE_Meteors1",0);
             if(p>0) // is there a meteors 1 effect on this line?
             {
@@ -1569,6 +1578,19 @@ void fix_version_differences(wxString file)
             {
                 modified=true;
                 str=insert_missing(str,Meteors2);
+            }
+
+            p=str.find("ID_CHOICE_Fire11",0);
+            if(p>0) // is there a meteors 1 effect on this line?
+            {
+                modified=true;
+                str=insert_missing(str,Fire1); // fix any missing values
+            }
+            p=str.find("ID_CHOICE_Fire2",0);
+            if(p>0) // is there a meteors 1 effect on this line?
+            {
+                modified=true;
+                str=insert_missing(str,Fire2); // fix any missing values
             }
         }
         str = str + "\n";
@@ -1772,7 +1794,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
 
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+            "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
