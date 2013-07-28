@@ -307,8 +307,12 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
             if(ChildName.Contains(wxT("Spirograph1_r")) || ChildName.Contains(wxT("Spirograph2_r")))
-            {
+            { // always set little radius, r, to its minimum value
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
+            }
+            else if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
+            { // always animate spirograph
+                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
             }
             else
             {

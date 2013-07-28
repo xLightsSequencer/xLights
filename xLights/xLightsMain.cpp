@@ -1203,11 +1203,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText83 = new wxStaticText(Panel1_Fire, ID_STATICTEXT84, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT84"));
     FlexGridSizer38->Add(StaticText83, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Fire1_Height = new wxSlider(Panel1_Fire, ID_SLIDER_Fire1_Height, 50, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire1_Height"));
-    FlexGridSizer38->Add(Slider_Fire1_Height, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38->Add(Slider_Fire1_Height, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText132 = new wxStaticText(Panel1_Fire, ID_STATICTEXT133, _("Hue Shift"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT133"));
     FlexGridSizer38->Add(StaticText132, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Fire1_HueShift = new wxSlider(Panel1_Fire, ID_SLIDER_Fire1_HueShift, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire1_HueShift"));
-    FlexGridSizer38->Add(Slider_Fire1_HueShift, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38->Add(Slider_Fire1_HueShift, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText134 = new wxStaticText(Panel1_Fire, ID_STATICTEXT135, _("Grow Fire\?"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT135"));
     FlexGridSizer38->Add(StaticText134, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Fire1_GrowFire = new wxCheckBox(Panel1_Fire, ID_CHECKBOX_Fire1_GrowFire, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fire1_GrowFire"));
@@ -1371,7 +1371,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook_Text1 = new wxNotebook(Panel1_Text, ID_NOTEBOOK_Text1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Text1"));
     Notebook_Text1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     Panel_Text1_1 = new wxPanel(Notebook_Text1, ID_PANEL_Text1_1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Text1_1"));
-    FlexGridSizer69 = new wxFlexGridSizer(5, 3, 0, 0);
+    FlexGridSizer69 = new wxFlexGridSizer(5, 2, 0, 0);
     Button_Text1_1_Font = new wxButton(Panel_Text1_1, ID_BUTTON_TEXT1_1_FONT, _("Font"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_TEXT1_1_FONT"));
     Button_Text1_1_Font->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer69->Add(Button_Text1_1_Font, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1639,11 +1639,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText84 = new wxStaticText(Panel2_Fire, ID_STATICTEXT85, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT85"));
     FlexGridSizer53->Add(StaticText84, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Fire2_Height = new wxSlider(Panel2_Fire, ID_SLIDER_Fire2_Height, 50, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire2_Height"));
-    FlexGridSizer53->Add(Slider_Fire2_Height, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer53->Add(Slider_Fire2_Height, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText133 = new wxStaticText(Panel2_Fire, ID_STATICTEXT134, _("Hue Shift"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT134"));
     FlexGridSizer53->Add(StaticText133, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Fire2_HueShift = new wxSlider(Panel2_Fire, ID_SLIDER_Fire2_HueShift, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire2_HueShift"));
-    FlexGridSizer53->Add(Slider_Fire2_HueShift, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer53->Add(Slider_Fire2_HueShift, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText135 = new wxStaticText(Panel2_Fire, ID_STATICTEXT136, _("Grow Fire\?"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT136"));
     FlexGridSizer53->Add(StaticText135, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Fire2_GrowFire = new wxCheckBox(Panel2_Fire, ID_CHECKBOX_Fire2_GrowFire, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fire2_GrowFire"));

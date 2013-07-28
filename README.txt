@@ -10,40 +10,48 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
-3.0.22: Jul 26,2013 - Enhancement: New button to randomly create effects for every row in your sequence
-                    - Enhancement: Brightness slider now goes to 200% (Old value was 100%). This will allow improving movies
-					- Bug: If Tree effect was selected for Effect2 and slider was all the way to left, xlights crashed. fixed
-					- Bug: Removed the gauge that was next to Export button. The gauge library does not work in Unix.
-3.0.21: Jul 25,2013 - Enhancement: In the Model setup screen, you can now set teh starting channel for each string
-                    - Enhancement: In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
+3.0.23: Jul 28,2013 - Enhancement: (sean) Fire effect now allows hue shift. You can now have green, blue fire. 
+                    - Enhancement: (sean) Fire effect now has a "Grow Fire?". If you click yes, the height of the fire will grow over time
+					- Enhancement: (frankr) Before if you changed or created a sequence and then clicked exit, program would just exit and you would lose your
+					  change. Now, you will be prompted if you want to save before exit.
+					- Enhancement: (frankr) Random effect generation. When creating a Spirograph, the Animate button will always be set and the little radius will be
+					  set to its minimum value. By setting r to zero and setiing animate to true, random spirographs will now always produce an animation.
+					- Enhancement: (frankr) New choice in model generation. You can now select custom. We are not quite done with this but it will support having
+					  coro snowflakes, stars, strings wrapped around a car, fire sticks, candles,. Basically any model. Watch this space for a future tutorial.
+3.0.22: Jul 26,2013 - Enhancement: (frankr) New button to randomly create effects for every row in your sequence
+                    - Enhancement: (sean) Brightness slider now goes to 200% (Old value was 100%). This will allow improving movies
+					- Bug: (sean) If Tree effect was selected for Effect2 and slider was all the way to left, xlights crashed. fixed
+					- Bug: (sean) Removed the gauge that was next to Export button. The gauge library does not work in Unix.
+3.0.21: Jul 25,2013 - Enhancement: (frankr) In the Model setup screen, you can now set the starting channel for each string
+                    - Enhancement: (frankr) In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
 					  bottom left, upper left, upper right, bottom right
-					- Enhancement: Meteor Effect class has 3 new effects
+					- Enhancement: (sean) Meteor Effect class has 3 new effects
 					  1) Swirl1. As meteors fall they are moved in a sine wave
 					  2) Swirl2. Same as Swirl 1 excep odd strands move one way, even strands move the other
 					  3) Strarfield. Meteor effect starts in center of your display and moves outwards
-3.0.20: Jul 19,2013 - Enhancement: Highlight cell you are editing in so you know where "update" will apply 
-                    - Bug: Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
-					- Enhancement: Ability to read an Audacity or a XML file when creating a blank sequence from a music file
-					- Enhancement: 1 is Unmask, 2 is Unmask now keeps the brightness value of the mask. This is big! Use a picture as a mask on a colorwash.
+3.0.20: Jul 19,2013 - Enhancement: (frankr) Highlight cell you are editing in so you know where "update" will apply 
+                    - Bug: (frankr) Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
+					- Enhancement: (frankr) Ability to read an Audacity or a XML file when creating a blank sequence from a music file
+					- Enhancement: (frankr) 1 is Unmask, 2 is Unmask now keeps the brightness value of the mask. This is big! Use a picture as a mask on a colorwash.
 					  The new picture will be a mono tone version. Use text as a mask, the edges will feather but in a solid color. 
 					  This fixes the antio-aliasing issue of text. To fix use text as effect 1, color wash as effect2. set effect 2 color what you want your text
 					  to look like
-					- Bug: Deleting some models caused crash, fixed.
-					- Bug: If you had multiple models attached to a sequence, deleting anything other than 1st model caused crash. fixed
-3.0.19: Jul 17,2013 - Bug Fix: Crash on exit fixed
-                    - Bug fix: Empty export files (LOR, hls,vixen,conductor) fixed
-					- Enhancement: When reading in your sequence, missing attributes will be added if your file is from pre ver 18.
-					- Enhancement: Changed rotation slider in Spirals so it does ten times more rotations.
-					- Bug fix: If you have two lines of text but only one color selected, both lines will be same color
+					- Bug: (frankr) Deleting some models caused crash, fixed.
+					- Bug: (frankr) If you had multiple models attached to a sequence, deleting anything other than 1st model caused crash. fixed
+3.0.19: Jul 17,2013 - Bug Fix: (matt) Crash on exit fixed
+                    - Bug fix: (matt) Empty export files (LOR, hls,vixen,conductor) fixed
+					- Enhancement: (sean) When reading in your sequence, missing attributes will be added if your file is from pre ver 18.
+					- Enhancement: (sean) Changed rotation slider in Spirals so it does ten times more rotations.
+					- Bug fix: (matt) If you have two lines of text but only one color selected, both lines will be same color
 	NOTE!! Please make a backup of all your xml files. This release will be fixing your sequences, protect yourself.
-3.0.18: Jul 06,2013 - Added new Brightness and Comtrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
+3.0.18: Jul 06,2013 - (sean) Added new Brightness and Comtrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
                       Contrast will make brights brighter and sim colors go towards black.
-3.0.17: Jul 01,2013 - Fixed text in Effect2. Added Twinkle, Tree, Spirograph and Fireworks to Effect2
-3.0.16: Jun 28,2013 - New option added to the Text effect, Countdown timer.
-3.0.15: Jun 27,2013 - Added check to make it so empty picture selection does not cause hundreds of pop up windows
-                    - fixed LOR lms and lcb export
-					- added check to make sure model's have at least 1 pixel wide and high
-					-- new feature in Meteors effect. Meteors can now fall up
+3.0.17: Jul 01,2013 - (sean) Fixed text in Effect2. Added Twinkle, Tree, Spirograph and Fireworks to Effect2
+3.0.16: Jun 28,2013 - (sean) New option added to the Text effect, Countdown timer.
+3.0.15: Jun 27,2013 - (sean) Added check to make it so empty picture selection does not cause hundreds of pop up windows
+                    - (sean) fixed LOR lms and lcb export
+					- (sean) added check to make sure model's have at least 1 pixel wide and high
+					- (sean) new feature in Meteors effect. Meteors can now fall up
 3.0.14: Jun 13,2013 - New movie files added to Picture Effect
                       Use web page to change your movies into jpg files. http://image.online-convert.com/convert-to-jpg
                     - Strobe in Twinkle Effect is now random lights
