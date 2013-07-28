@@ -306,7 +306,14 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
         if (ChildName.StartsWith(wxT("ID_SLIDER")))
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
+            if(ChildName.Contains(wxT("Spirograph1_r")) || ChildName.Contains(wxT("Spirograph2_r")))
+            {
+                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
+            }
+            else
+            {
+                s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
+            }
         }
         else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
         {
