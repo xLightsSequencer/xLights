@@ -1,3 +1,5 @@
 bin/xLights
 bin/*.dll
 bin/*.exe
+*.bak
+thumbs.db
