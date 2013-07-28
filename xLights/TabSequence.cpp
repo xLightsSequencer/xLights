@@ -289,7 +289,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),rand()%Slider_Speed2->GetMax()+Slider_Speed2->GetMin());
     s+=PageControlsToStringRandom(Choicebook1->GetPage(eff1));
     s+=SizerControlsToStringRandom(FlexGridSizer_Palette1);
-    s+=PageControlsToStringRandom(Choicebook1->GetPage(eff2));
+    s+=PageControlsToStringRandom(Choicebook2->GetPage(eff2));
     s+=SizerControlsToStringRandom(FlexGridSizer_Palette2);
     return s;
 
