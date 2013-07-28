@@ -1761,6 +1761,36 @@
 																											<border>5</border>
 																											<option>1</option>
 																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT133" variable="StaticText132" member="yes">
+																												<label>Hue Shift</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Fire1_HueShift" variable="Slider_Fire1_HueShift" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT135" variable="StaticText134" member="yes">
+																												<label>Grow Fire?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Fire1_GrowFire" variable="CheckBox_Fire1_GrowFire" member="yes">
+																												<label>Yes</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
 																									</object>
 																								</object>
 																								<label>Fire</label>
@@ -3087,6 +3117,36 @@
 																												<min>10</min>
 																											</object>
 																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT134" variable="StaticText133" member="yes">
+																												<label>Hue Shift</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxSlider" name="ID_SLIDER_Fire2_HueShift" variable="Slider_Fire2_HueShift" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxStaticText" name="ID_STATICTEXT136" variable="StaticText135" member="yes">
+																												<label>Grow Fire?</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Fire2_GrowFire" variable="CheckBox_Fire2_GrowFire" member="yes">
+																												<label>Yes</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
 																											<option>1</option>
 																										</object>

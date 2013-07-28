@@ -318,9 +318,9 @@ void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int Repeat
     Effect[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
 }
 
-void PixelBufferClass::RenderFire(int HeightPct)
+void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
-    Effect[CurrentLayer].RenderFire(HeightPct);
+    Effect[CurrentLayer].RenderFire(HeightPct,HueShift,GrowFire);
 }
 
 void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing)

@@ -181,7 +181,7 @@ public:
     void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
     void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip);
     void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
-    void RenderFire(int HeightPct);
+    void RenderFire(int HeightPct,int HueShift,bool GrowFire);
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Type);
     void RenderMeteors(int MeteorType, int Count, int Length,bool FallUp,int MeteorsEffect,int SwirlIntensity);

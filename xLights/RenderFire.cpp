@@ -78,13 +78,15 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 
 
 // 10 <= HeightPct <= 100
-void RgbEffects::RenderFire(int HeightPct)
+void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
     wxColour color;
     wxImage::HSVValue hsv;
 
+
     if(HeightPct<1) HeightPct=1;
+    if(GrowFire) HeightPct+=(state%500)/10;
 
     if (state == 0)
     {
@@ -154,14 +156,18 @@ void RgbEffects::RenderFire(int HeightPct)
             //  first get the calculated color fo normal fire.
 
             color=FirePalette[GetFireBuffer(x,y)];
-       /*
-            wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
-            hsv = wxImage::RGBtoHSV(rgb);
-            hsv.hue = hsv.hue +state/100.0;
-            if (hsv.hue>1.0) hsv.hue=1.0;
-            rgb = wxImage::HSVtoRGB(hsv);
-            */
-          //  color = wxColor(rgb.red,rgb.green,rgb.blue);
+
+            if(HueShift>0)
+            {
+                wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
+                hsv = wxImage::RGBtoHSV(rgb);
+                hsv.hue = hsv.hue +(HueShift/100.0);
+                if (hsv.hue>1.0) hsv.hue=1.0;
+                rgb = wxImage::HSVtoRGB(hsv);
+                color = wxColor(rgb.red,rgb.green,rgb.blue);
+            }
+
+
 
 
 

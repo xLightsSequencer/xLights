@@ -52,7 +52,7 @@ private:
 
     int sparkle_count;
     int brightness;
-     int contrast;
+    int contrast;
     int CurrentLayer;  // 0 or 1
     MixTypes MixType;
     RgbEffects Effect[2];
@@ -73,7 +73,7 @@ public:
     void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
     void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip);
     void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
-    void RenderFire(int HeightPct);
+    void RenderFire(int HeightPct,int HueShift,bool GrowFire);
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Seed);
     void RenderMeteors(int MeteorType, int Count, int Length, bool FallUp,int MeteorsEffect,int SwirlIntensity);

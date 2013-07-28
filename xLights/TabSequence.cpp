@@ -785,7 +785,9 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Fire"))
     {
-        buffer.RenderFire(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fire")+LayerStr+wxT("_Height")]));
+        buffer.RenderFire(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fire")+LayerStr+wxT("_Height")]),
+                          wxAtoi(SettingsMap[wxT("ID_SLIDER_HueShift")+LayerStr+wxT("_HueShift")]),
+                          SettingsMap[wxT("ID_CHECKBOX_Fire")+LayerStr+wxT("_GrowFire")]==wxT("1"));
     }
     else if (effect == wxT("Garlands"))
     {
@@ -933,7 +935,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                Slider_ColorWash1_Count->GetValue());
         break;
     case 4:
-        buffer.RenderFire(Slider_Fire1_Height->GetValue());
+        buffer.RenderFire(Slider_Fire1_Height->GetValue(),
+                          Slider_Fire1_HueShift->GetValue(),
+                          CheckBox_Fire1_GrowFire->GetValue());
         break;
     case 5:
         buffer.RenderGarlands(Slider_Garlands1_Type->GetValue(),
@@ -1035,7 +1039,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                Slider_ColorWash2_Count->GetValue());
         break;
     case 4:
-        buffer.RenderFire(Slider_Fire2_Height->GetValue());
+        buffer.RenderFire(Slider_Fire2_Height->GetValue(),
+                          Slider_Fire2_HueShift->GetValue(),
+                          CheckBox_Fire2_GrowFire->GetValue());
         break;
     case 5:
         buffer.RenderGarlands(Slider_Garlands2_Type->GetValue(),
