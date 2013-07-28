@@ -319,6 +319,7 @@ private:
     void OnChoice_ModelsSelect(wxCommandEvent& event);
     void OnGrid1CellRightClick(wxGridEvent& event);
     void OnbtRandomEffectClick(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
     //*)
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);

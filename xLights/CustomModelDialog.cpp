@@ -1,4 +1,5 @@
 #include "CustomModelDialog.h"
+#include <wx/clipbrd.h>
 
 //(*InternalHeaders(CustomModel)
 #include <wx/intl.h>
@@ -42,6 +43,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent,wxWindowID id)
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+
+	gdModelChans->Connect(wxID_ANY, wxEVT_KEY_DOWN, wxKeyEventHandler(CustomModelDialog::onKeyDown_gdModelChans),
+                          (wxObject*) NULL, this);
 }
 
 CustomModelDialog::~CustomModelDialog()
@@ -50,3 +54,77 @@ CustomModelDialog::~CustomModelDialog()
 	//*)
 }
 
+void CustomModelDialog::onKeyDown_gdModelChans(wxKeyEvent& event)
+{
+
+    if ((event.GetUnicodeKey() == 'C') && (event.ControlDown() == true))
+    {
+        CopyData( (wxCommandEvent&) event);
+    }
+    else if ((event.GetUnicodeKey() == 'V') && (event.ControlDown() == true))
+    {
+        PasteData( (wxCommandEvent&) event );
+    }
+    event.Skip();
+}
+
+
+
+void CustomModelDialog::CopyData( wxCommandEvent& WXUNUSED(ev) )
+{
+int i,k;
+wxString copy_data;
+bool something_in_this_line;
+
+    copy_data.Clear();
+
+    for (i=0; i< gdModelChans->GetRows(); i++) {     // step through all lines
+        something_in_this_line = false;     // nothing found yet
+        for (k=0; k<gdModelChans->GetCols(); k++) { // step through all colums
+            if (gdModelChans->IsInSelection(i,k)) { // this field is selected!!!
+                if (something_in_this_line == false) {  // first field in this line => may need a linefeed
+                    if (copy_data.IsEmpty() == false) {     // ... if it is not the very first field
+                        copy_data = copy_data + wxT("\n");  // next LINE
+                    }
+                    something_in_this_line = true;
+                } else {                                // if not the first field in this line we need a field seperator (TAB)
+                    copy_data = copy_data + wxT("\t");  // next COLUMN
+                }
+                copy_data = copy_data + gdModelChans->GetCellValue(i,k);    // finally we need the field value :-)
+            }
+        }
+    }
+    wxOpenClipboard();          // now copy all these things into the clipbord
+    wxEmptyClipboard();
+    wxSetClipboardData(wxDF_TEXT,copy_data.c_str(),0,0);
+    wxCloseClipboard();
+}
+
+void CustomModelDialog::PasteData( wxCommandEvent& WXUNUSED(ev) )
+{
+    wxString copy_data;
+    wxString cur_field;
+    wxString cur_line;
+    int i,k,k2;
+
+    wxOpenClipboard();          // now copy all these things into the clipbord
+    copy_data = (char *)wxGetClipboardData(wxDF_TEXT);
+    wxCloseClipboard();
+
+    i = gdModelChans->GetGridCursorRow();
+    k = gdModelChans->GetGridCursorCol();
+    k2= k;
+
+    do {
+        cur_line = copy_data.BeforeFirst('\n');
+        copy_data = copy_data.AfterFirst('\n');
+        do {
+            cur_field = cur_line.BeforeFirst('\t');
+            cur_line  = cur_line.AfterFirst ('\t');
+            gdModelChans->SetCellValue(i,k,cur_field);
+            k++;
+        } while(cur_line.IsEmpty() == false);
+        i++;
+        k = k2;
+    } while (copy_data.IsEmpty() == false);
+}

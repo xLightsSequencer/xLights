@@ -2280,6 +2280,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
+    Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
 
@@ -2799,3 +2800,13 @@ void xLightsFrame::OnChoice_ModelsSelect(wxCommandEvent& event)
 }
 
 
+
+void xLightsFrame::OnClose(wxCloseEvent& event)
+{
+    if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
+                             "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
+    {
+        return;
+    }
+    Destroy();
+}

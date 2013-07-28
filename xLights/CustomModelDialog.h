@@ -25,7 +25,9 @@ class CustomModelDialog: public wxDialog
 		//*)
 
 	private:
-
+        void onKeyDown_gdModelChans(wxKeyEvent& event);
+        void CopyData( wxCommandEvent& WXUNUSED(ev) );
+        void PasteData( wxCommandEvent& WXUNUSED(ev) );
 		//(*Handlers(CustomModel)
 		//*)
 
