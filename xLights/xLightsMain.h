@@ -540,10 +540,10 @@ private:
     static const long ID_CHOICE_Text1_1_Dir;
     static const long ID_STATICTEXT108;
     static const long ID_CHOICE_Text1_1_Effect;
+    static const long ID_STATICTEXT99;
+    static const long ID_CHOICE_Text1_1_Count;
     static const long ID_STATICTEXT101;
     static const long ID_SLIDER_Text1_1_Position;
-    static const long ID_STATICTEXT99;
-    static const long ID_SLIDER_Text1_1_TextRotation;
     static const long ID_PANEL_Text1_1;
     static const long ID_BUTTON_TEXT1_2_FONT;
     static const long ID_TEXTCTRL_Text1_2_Font;
@@ -551,10 +551,10 @@ private:
     static const long ID_CHOICE_Text1_2_Dir;
     static const long ID_STATICTEXT109;
     static const long ID_CHOICE_Text1_2_Effect;
+    static const long ID_STATICTEXT104;
+    static const long ID_CHOICE_Text1_2_Count;
     static const long ID_STATICTEXT103;
     static const long ID_SLIDER_Text1_2_Position;
-    static const long ID_STATICTEXT104;
-    static const long ID_SLIDER_Text1_2_TextRotation;
     static const long ID_PANEL_Text1_2;
     static const long ID_NOTEBOOK_Text1;
     static const long ID_PANEL7;
@@ -694,10 +694,10 @@ private:
     static const long ID_CHOICE_Text2_1_Dir;
     static const long ID_STATICTEXT102;
     static const long ID_CHOICE_Text2_1_Effect;
+    static const long ID_STATICTEXT100;
+    static const long ID_CHOICE_Text2_1_Count;
     static const long ID_STATICTEXT78;
     static const long ID_SLIDER_Text2_1_Position;
-    static const long ID_STATICTEXT100;
-    static const long ID_SLIDER_Text2_1_TextRotation;
     static const long ID_PANEL_Text2_1;
     static const long ID_BUTTON_TEXT2_2_FONT;
     static const long ID_TEXTCTRL_Text2_2_Font;
@@ -705,10 +705,10 @@ private:
     static const long ID_CHOICE_Text2_2_Dir;
     static const long ID_STATICTEXT113;
     static const long ID_CHOICE_Text2_2_Effect;
+    static const long ID_STATICTEXT112;
+    static const long ID_CHOICE_Text2_2_Count;
     static const long ID_STATICTEXT111;
     static const long ID_SLIDER_Text2_2_Position;
-    static const long ID_STATICTEXT112;
-    static const long ID_SLIDER_Text2_2_TextRotation;
     static const long ID_PANEL_Text2_2;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL29;
@@ -863,8 +863,6 @@ private:
     wxSlider* Slider_Spirograph1_R;
     wxStaticText* StaticText103;
     wxTextCtrl* TextCtrl_Text2_1_Font;
-    wxSlider* Slider_Text1_2_TextRotation;
-    wxSlider* Slider_Text2_1_TextRotation;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxPanel* Panel1_Fire;
     wxStaticText* StaticText116;
@@ -975,7 +973,6 @@ private:
     wxSlider* Slider_Spirograph2_d;
     wxButton* Button_Palette2_1;
     wxChoice* Choice_LayerMethod;
-    wxSlider* Slider_Text1_1_TextRotation;
     wxChoice* ChoiceOutputFormat;
     wxPanel* PanelConvert;
     wxCheckBox* CheckBox_Twinkle1_Strobe;
@@ -983,7 +980,6 @@ private:
     wxStaticText* StaticText39;
     wxStaticText* StaticText124;
     wxSlider* Slider_Meteors1_Length;
-    wxSlider* Slider_Text2_2_TextRotation;
     wxCheckBox* CheckBox_Palette1_6;
     wxStaticText* StaticText78;
     wxStaticText* StaticText67;
@@ -1119,6 +1115,7 @@ private:
     wxPanel* Panel2_Bars;
     wxRadioButton* RadioButtonShimmer;
     wxSlider* Slider_Tree1_Branches;
+    wxChoice* Choice_Text1_1_Count;
     wxStaticText* StaticText68;
     wxPanel* Panel1_Pictures;
     wxPanel* Panel2_Tree;
@@ -1136,6 +1133,7 @@ private:
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxCheckBox* CheckBox_Palette2_1;
     wxSlider* Slider_Garlands2_Spacing;
+    wxChoice* Choice_Text1_2_Count;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxPanel* Panel1_Meteors;
     wxStaticText* StaticText26;
@@ -1212,6 +1210,7 @@ private:
     wxSlider* Slider_Twinkle1_Count;
     wxButton* Button_PresetAdd;
     wxRadioButton* RadioButtonRgbChaseOff;
+    wxChoice* Choice_Text2_1_Count;
     wxStaticText* StaticText82;
     wxButton* ButtonSeqExport;
     wxStaticText* StaticText51;
@@ -1246,6 +1245,7 @@ private:
     wxButton* Button_Palette2_2;
     wxStaticText* StaticTextSequenceFileName;
     wxButton* Button_Palette2;
+    wxChoice* Choice_Text2_2_Count;
     wxStaticText* StaticText94;
     wxStaticText* StaticText46;
     wxStaticText* StaticText77;
@@ -1473,9 +1473,10 @@ private:
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
     wxArrayString MeteorsEffectTypes;
-       wxArrayString MeteorsEffect;
+    wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString TextEffects;
+    wxArrayString TextCountDown;
 
 
     DECLARE_EVENT_TABLE()
