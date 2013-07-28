@@ -535,10 +535,19 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
     int32_t ChannelColor;
-    int ch,p,csec,StartCSec;
+    int ch,p,csec,StartCSec, ii;
     int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
+    int* savedIndexes;
+    int savedIndexCount = 0;
+    savedIndexes = (int *)calloc(SeqNumChannels, sizeof(int));
+
+    int index = 0;
+    bool rgbProcDone = false;
+    int rgbChanIndexes[3] = {0,0,0};
+    int curRgbChanCount = 0;
+
     if (!f.Create(filename,true))
     {
         ConversionError(_("Unable to create file: ")+filename);
@@ -546,9 +555,6 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     }
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
     long centiseconds=SeqNumPeriods * interval;
-
-
-
 
     f.Write(wxT("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"));
     f.Write(wxT("<sequence saveFileVersion=\"3\""));
@@ -600,7 +606,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
             // default to white
             ChannelColor = 0x00ffffff;
         }
-        f.Write(wxT("\t\t<channel name=\"")+ChannelName+wxString::Format(wxT("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n"),ChannelColor,centiseconds,ch));
+        f.Write(wxT("\t\t<channel name=\"")+ChannelName+wxString::Format(wxT("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n"),ChannelColor,centiseconds,index));
         // write intensity values for this channel
         LastIntensity=0;
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
@@ -621,14 +627,38 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
             f.Write(wxString::Format(wxT("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n"),StartCSec,csec,LastIntensity));
         }
         f.Write(wxT("\t\t</channel>\n"));
+        if ( ch < CheckListBoxTestChannels->GetCount() &&
+             (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
+        {
+            rgbChanIndexes[curRgbChanCount++]= index;
+            if (curRgbChanCount == 3)
+            {   index++;
+                f.Write(wxT("\t\t<rgbChannel name=\"")+ChannelName.Left(ChannelName.size()-1)+
+                        wxString::Format(wxT("(RGB)\" totalCentiseconds=\"%d\" savedIndex=\"%d\">\n"), centiseconds, index));
+                savedIndexes[savedIndexCount++] = index;
+                f.Write(wxT("\t\t\t<channels>\n"));
+                for ( ii =0; ii <3 ; ii++)
+                {
+                    f.Write(wxString::Format(wxT("\t\t\t\t<channel savedIndex=\"%d\"/>\n"),rgbChanIndexes[ii]));
+                }
+                f.Write(wxT("\t\t\t</channels>\n"));
+                f.Write(wxT("\t\t</rgbChannel>\n"));
+                curRgbChanCount = 0;
+            }
+        }
+        else
+        {
+            savedIndexes[savedIndexCount++] = index;
+        }
+        index++;
     }
     f.Write(wxT("\t</channels>\n"));
     f.Write(wxT("\t<tracks>\n"));
     f.Write(wxString::Format(wxT("\t\t<track totalCentiseconds=\"%ld\">\n"),centiseconds));
     f.Write(wxT("\t\t\t<channels>\n"));
-    for (ch=0; ch < SeqNumChannels; ch++ )
+    for (ii=0; ii < savedIndexCount; ii++ )
     {
-        f.Write(wxString::Format(wxT("\t\t\t\t<channel savedIndex=\"%d\"/>\n"),ch));
+        f.Write(wxString::Format(wxT("\t\t\t\t<channel savedIndex=\"%d\"/>\n"),savedIndexes[ii]));
     }
     f.Write(wxT("\t\t\t</channels>\n"));
     f.Write(wxT("\t\t\t<timings>\n"));
@@ -641,6 +671,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write(wxT("\t</tracks>\n"));
     f.Write(wxT("</sequence>\n"));
     f.Close();
+    free(savedIndexes);
 
 }
 
