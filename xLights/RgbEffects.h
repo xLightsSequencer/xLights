@@ -223,7 +223,7 @@ protected:
     void ClearWaveBuffer1();
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
-    void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int TextRotation, int Effect);
+    void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown);
 
     int BufferHt,BufferWi;  // size of the buffer
     wxColourVector pixels; // this is the calculation buffer
