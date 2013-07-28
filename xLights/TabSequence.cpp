@@ -404,6 +404,7 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
             Grid1->SetCellValue(r,c,v);
         }
     }
+    UnsavedChanges = true;
 }
 void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
 {
@@ -1770,6 +1771,12 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     nullString.Clear();
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
 
+    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+                             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    {
+        return;
+    }
+
     while ( cont )
     {
         oName.SetFullName(filename);
@@ -1824,6 +1831,8 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     }
     else if (dialog.RadioButtonNewMusic->GetValue())
     {
+        UnsavedChanges = true;
+
         // determine media file length
         mediaFilename=dialog.ChoiceMediaFiles->GetStringSelection();
 
@@ -1866,6 +1875,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     }
     else if (dialog.RadioButtonNewAnim->GetValue())
     {
+        UnsavedChanges = true;
         duration=dialog.SpinCtrlDuration->GetValue();  // seconds
         DisplayXlightsFilename(nullString);
         if (duration <= 0)
@@ -2049,6 +2059,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 
     RenderGridToSeqData();  // incorporate effects into xseq file
     WriteXLightsFile(xlightsFilename);
+    UnsavedChanges = false;
     StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
 }
 
@@ -2098,6 +2109,7 @@ void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
     {
         Grid1->SetReadOnly(r,c);
     }
+    UnsavedChanges = true;
 }
 
 void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
@@ -2118,6 +2130,7 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
                 n++;
         }
     }
+    UnsavedChanges = true;
 }
 
 void xLightsFrame::OnButtonDisplayElementsClick(wxCommandEvent& event)
@@ -2198,6 +2211,7 @@ void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
         NumericSort();
         Grid1->EnableEditing(true);
     }
+    UnsavedChanges = true;
     event.Skip();
 }
 
@@ -2444,4 +2458,5 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
             Grid1->SetCellValue(r,c,v);
         }
     }
+    UnsavedChanges = true;
 }

@@ -3,6 +3,7 @@
 	<object class="wxFrame" name="xLightsFrame">
 		<title>xLights/Nutcracker  (Ver 3.0.22)</title>
 		<id_arg>0</id_arg>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<rows>2</rows>
