@@ -195,24 +195,25 @@ public:
 
     enum RGB_EFFECTS_e
     {
-        NONE,
-        BARS,
-        BUTTERFLY,
-        COLORWASH,
-        FIRE,
-        GARLANDS,
-        LIFE,
-        METEORS,
-        PICTURES,
-        SNOWFLAKES,
-        SNOWSTORM,
-        SPIRALS,
-        TEXT,
-        TWINKLEEFF,
-        TREE,
-        SPIROGRAPH,
-        FIREWORKS,
-        LASTEFFECT //Always the last entry
+        eff_NONE,
+        eff_BARS,
+        eff_BUTTERFLY,
+        eff_COLORWASH,
+        eff_FIRE,
+        eff_GARLANDS,
+        eff_LIFE,
+        eff_METEORS,
+        eff_PICTURES,
+        eff_SNOWFLAKES,
+        eff_SNOWSTORM,
+        eff_SPIRALS,
+        eff_TEXT,
+        eff_TWINKLE,
+        eff_TREE,
+        eff_SPIROGRAPH,
+        eff_FIREWORKS,
+        eff_CIRCLES,
+        eff_LASTEFFECT //Always the last entry
     };
 
     enum LAYER_OPTIONS_e
@@ -586,6 +587,15 @@ private:
     static const long ID_STATICTEXT96;
     static const long ID_SLIDER_Fireworks1_Fade;
     static const long ID_PANEL36;
+    static const long ID_STATICTEXT137;
+    static const long ID_SLIDER_Circles1_Count;
+    static const long ID_STATICTEXT138;
+    static const long ID_SLIDER_Circles1_Size;
+    static const long ID_CHECKBOX_Circles1_Bounce;
+    static const long ID_CHECKBOX_Circles1_Collide;
+    static const long ID_CHECKBOX_Circles1_Random_m;
+    static const long ID_CHECKBOX_Circles1_Radial;
+    static const long ID_PANEL37;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
     static const long ID_CHECKBOX_Palette1_1;
@@ -741,6 +751,15 @@ private:
     static const long ID_STATICTEXT126;
     static const long ID_SLIDER_Fireworks2_Fade;
     static const long ID_PANEL43;
+    static const long ID_STATICTEXT139;
+    static const long ID_SLIDER_Circles2_count;
+    static const long ID_STATICTEXT140;
+    static const long ID_SLIDER_Circles2;
+    static const long ID_CHECKBOX_Circle2_Bounce;
+    static const long ID_CHECKBOX_Circles2_Collide;
+    static const long ID_CHECKBOX_Circles2_Random_m;
+    static const long ID_CHECKBOX_Circle2_Radial;
+    static const long ID_PANEL38;
     static const long ID_CHOICEBOOK2;
     static const long ID_BUTTON_Palette2;
     static const long ID_CHECKBOX_Palette2_1;
@@ -830,6 +849,7 @@ private:
     wxStaticText* StaticText4;
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
+    wxSlider* Slider_Circles2_Size;
     wxPanel* Panel1_Life;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
@@ -850,15 +870,16 @@ private:
     wxRadioButton* RadioButtonRgbChase4;
     wxChoice* Choice_Models;
     wxPanel* Panel3;
-    wxStaticText* StaticText45;
     wxSlider* Slider_Meteors2_Swirl_Intensity;
+    wxStaticText* StaticText45;
     wxStaticText* StaticText11;
     wxPanel* PanelTestRgb;
     wxSlider* Slider_Spirals1_Count;
-    wxStaticText* StaticText18;
     wxStaticText* StaticText131;
+    wxStaticText* StaticText18;
     wxStaticText* StaticText30;
     wxPanel* Panel1;
+    wxCheckBox* CheckBox_Circle2_Random_m;
     wxStaticText* StaticText106;
     wxSlider* Slider_Spirograph1_R;
     wxStaticText* StaticText103;
@@ -872,6 +893,7 @@ private:
     wxCheckBox* CheckBoxSaveChannelNames;
     wxButton* Button_Pictures1_Filename;
     wxSlider* Slider_Snowflakes1_Count;
+    wxCheckBox* CheckBox_Circles1_Random_m;
     wxStaticText* StaticText37;
     wxSlider* Slider_Spirals2_Direction;
     wxRadioButton* RadioButtonTwinkle05;
@@ -908,6 +930,7 @@ private:
     wxSlider* Slider_Text1_1_Position;
     wxStaticText* StaticText24;
     wxStaticText* StaticText104;
+    wxStaticText* StaticText137;
     wxButton* ButtonDisplayElements;
     wxTextCtrl* TextCtrl_Text2_2_Font;
     wxButton* ButtonTestClear;
@@ -950,6 +973,7 @@ private:
     wxCheckBox* CheckBoxOffAtEnd;
     wxStaticText* StaticText8;
     wxSlider* Slider_Spirals2_Count;
+    wxSlider* Slider_Circles1_Count;
     wxStaticText* StaticText25;
     wxStaticText* StaticText28;
     wxStaticText* StaticText123;
@@ -973,7 +997,10 @@ private:
     wxSlider* Slider_Spirograph2_d;
     wxButton* Button_Palette2_1;
     wxChoice* Choice_LayerMethod;
+    wxCheckBox* CheckBox_Circles1_Radial;
     wxChoice* ChoiceOutputFormat;
+    wxCheckBox* CheckBox_Circle2_Bounce;
+    wxPanel* Panel2_Circles;
     wxPanel* PanelConvert;
     wxCheckBox* CheckBox_Twinkle1_Strobe;
     wxButton* Button_Palette1_3;
@@ -992,8 +1019,8 @@ private:
     wxSlider* Slider_Butterfly2_Chunks;
     wxTextCtrl* TextCtrl_Text1_Line2;
     wxSlider* Slider_Garlands1_Type;
-    wxSlider* Slider_Bars2_BarCount;
     wxSlider* Slider_Meteors2_Length;
+    wxSlider* Slider_Bars2_BarCount;
     wxStaticText* StaticText108;
     wxPanel* Panel1_Bars;
     wxTextCtrl* TextCtrl_Text1_1_Font;
@@ -1034,7 +1061,9 @@ private:
     wxSlider* Slider_Garlands1_Spacing;
     wxStaticText* StaticText72;
     wxRadioButton* RadioButtonChase;
+    wxCheckBox* CheckBox_Circles1_Collide;
     wxStaticText* StaticText125;
+    wxCheckBox* CheckBox_Circles2_Collide;
     wxRadioButton* RadioButtonRgbChase3;
     wxPanel* Panel4;
     wxStaticText* StaticText53;
@@ -1049,6 +1078,7 @@ private:
     wxStatusBar* StatusBar1;
     wxChoice* Choice_Text2_2_Effect;
     wxStaticText* StaticText40;
+    wxCheckBox* CheckBox_Circles1_Bounce;
     wxButton* Button_Palette2_5;
     wxStaticText* StaticText21;
     wxListCtrl* GridNetwork;
@@ -1074,6 +1104,7 @@ private:
     wxSlider* Slider_Meteors1_Swirl_Intensity;
     wxButton* Button_PresetUpdate;
     wxChoice* Choice_Text2_2_Dir;
+    wxSlider* Slider_Circles1_Size;
     wxStaticText* StaticText54;
     wxStaticText* StaticText107;
     wxCheckBox* CheckBox_Palette1_5;
@@ -1094,8 +1125,8 @@ private:
     wxButton* Button_Palette1_5;
     wxPanel* Panel2_Butterfly;
     wxTextCtrl* TextCtrl_Text1_2_Font;
-    wxStaticText* StaticText132;
     wxSlider* Slider_Meteors2_Count;
+    wxStaticText* StaticText132;
     wxCheckBox* CheckBox_Palette2_5;
     wxMenuItem* MenuItemRefresh;
     wxSlider* Slider_ColorWash2_Count;
@@ -1110,6 +1141,7 @@ private:
     wxStaticText* StaticText88;
     wxNotebook* NotebookTest;
     wxStaticText* StaticText135;
+    wxCheckBox* CheckBox_Circle2_Radial;
     wxSlider* Slider_Spirograph2_R;
     wxStaticText* StaticText59;
     wxPanel* Panel2_Bars;
@@ -1138,6 +1170,7 @@ private:
     wxPanel* Panel1_Meteors;
     wxStaticText* StaticText26;
     wxSlider* SliderBgColorA;
+    wxStaticText* StaticText139;
     wxTextCtrl* TextCtrlFilename;
     wxSlider* Slider_Snowflakes2_Type;
     wxTextCtrl* TextCtrl_Pictures2_Filename;
@@ -1153,6 +1186,7 @@ private:
     wxStaticText* StaticText17;
     wxCheckBox* CheckBox_ColorWash1_HFade;
     wxPanel* Panel_Text1_1;
+    wxPanel* Panel1_Circles;
     wxCheckBox* CheckBox_Bars2_Highlight;
     wxCheckBox* CheckBox_Meteors1_FallUp;
     wxPanel* Panel1_None;
@@ -1179,8 +1213,8 @@ private:
     wxSlider* Slider_Fireworks2_Velocity;
     wxSlider* Slider_Tree2_Branches;
     wxSlider* Slider_Twinkle2_Count;
-    wxChoice* Choice_Meteors2_Effect;
     wxPanel* Panel2_Meteors;
+    wxChoice* Choice_Meteors2_Effect;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxStaticText* StaticText80;
     wxStaticText* StaticText2;
@@ -1210,6 +1244,7 @@ private:
     wxSlider* Slider_Twinkle1_Count;
     wxButton* Button_PresetAdd;
     wxRadioButton* RadioButtonRgbChaseOff;
+    wxStaticText* StaticText136;
     wxChoice* Choice_Text2_1_Count;
     wxStaticText* StaticText82;
     wxButton* ButtonSeqExport;
@@ -1219,6 +1254,7 @@ private:
     wxPanel* Panel2_Pictures;
     wxChoice* Choice_Butterfly1_Colors;
     wxSlider* SliderBgIntensity;
+    wxSlider* Slider_Circles2_Count;
     wxPanel* Panel1_Text;
     wxCheckBox* CheckBox_Spirals2_Blend;
     wxButton* Button_Palette1_2;
@@ -1238,6 +1274,7 @@ private:
     wxCheckBox* CheckBox_Palette1_3;
     wxButton* Button_Text2_1_Font;
     wxTextCtrl* TextCtrlConversionStatus;
+    wxStaticText* StaticText138;
     wxSlider* Slider_Fireworks1_Velocity;
     wxMessageDialog* MessageDialog1;
     wxSlider* Slider_Pictures1_GifSpeed;

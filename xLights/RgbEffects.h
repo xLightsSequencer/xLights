@@ -210,6 +210,9 @@ protected:
     void SetWaveBuffer2(int x, int y, int value);
     int GetWaveBuffer2(int x, int y);
 
+    void DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv);
+    void CirclePlot(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
+
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
     void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, wxColour &color);
