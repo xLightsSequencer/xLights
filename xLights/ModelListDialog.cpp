@@ -196,9 +196,9 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
         else
             dialog.RadioButton_TopLeft->SetValue(true);
     }
-    if (e->HasAttribute(wxT("Custom")))
+    if (e->HasAttribute(wxT("CustomModel")))
     {
-        e->GetAttribute(wxT("Custom"),&customChannels);
+        e->GetAttribute(wxT("CustomModel"),&customChannels);
         dialog.customChannelData = customChannels;
     }
     dialog.CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
@@ -222,9 +222,9 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                         e->DeleteAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))));
                     }
                 }
-                if (e->HasAttribute(wxT("Custom")));
+                if (e->HasAttribute(wxT("CustomModel")));
                 {
-                    e->DeleteAttribute(wxT("Custom"));
+                    e->DeleteAttribute(wxT("CustomModel"));
                 }
                 if (dialog.cbIndividualStartNumbers->IsChecked())
                 {
@@ -263,6 +263,10 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
 
                 e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
+                if (dialog.Choice_DisplayAs->GetStringSelection() == wxT("Custom"))
+                {
+                    e->AddAttribute(wxT("CustomModel"),dialog.customChannelData);
+                }
 
             }
         }

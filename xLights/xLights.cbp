@@ -106,6 +106,8 @@
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="ChannelMapDialog.cpp" />
 		<Unit filename="ChannelMapDialog.h" />
+		<Unit filename="CustomModelDialog.cpp" />
+		<Unit filename="CustomModelDialog.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
@@ -197,6 +199,7 @@
 		</Unit>
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
+		<Unit filename="wxsmith/CustomModelDialog1.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
@@ -238,6 +241,7 @@
 					<wxDialog wxs="wxsmith/SeqElementMismatchDialog.wxs" src="SeqElementMismatchDialog.cpp" hdr="SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqExportDialog.wxs" src="SeqExportDialog.cpp" hdr="SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqOpenDialog.wxs" src="SeqOpenDialog.cpp" hdr="SeqOpenDialog.h" fwddecl="0" i18n="1" name="SeqOpenDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CustomModelDialog1.wxs" src="CustomModelDialog.cpp" hdr="CustomModelDialog.h" fwddecl="0" i18n="1" name="CustomModelDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

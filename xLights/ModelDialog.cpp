@@ -348,7 +348,7 @@ void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
     CustomModelDialog dialog(this);
     int numRows, numCols, row, col, idx;
     unsigned long val;
-    std::string chanData;
+    uint8_t *chanData;
     int dlgResult;
     wxString value;
 
@@ -358,29 +358,47 @@ void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
     dialog.gdModelChans->AppendCols(numCols - dialog.gdModelChans->GetNumberCols());
     dialog.gdModelChans->AppendRows(numRows - dialog.gdModelChans->GetNumberRows());
 
-    chanData = base64_decode(customChannelData);
-    for(row=0; row<numRows; row++)
+    if(customChannelData.size() != 0)
+    {
+        chanData = base64_decode(customChannelData, numRows, numCols);
+    }
+    else
+    {
+        chanData = (uint8_t *) calloc(numRows*numCols*2, sizeof(uint8_t));
+    }
+    idx = 0;
+    for(row=numRows-1; row >= 0 ; row--)
     {
         for( col=0; col<numCols; col++)
         {
-            idx = (row*numCols+col);
-            dialog.gdModelChans->SetCellValue(row,col,wxString::Format(wxT("%2s"),idx*2));
+            val = chanData[idx] << 8 | chanData[idx+1];
+            if (val != 0)
+                dialog.gdModelChans->SetCellValue(row,col,wxString::Format(wxT("%d"),val));
+            idx+=2;
         }
     }
     dlgResult = dialog.ShowModal();
     if ( wxID_OK == dlgResult)
     {
-        for(row=0; row<numRows; row++)
+        idx = 0;
+        for(row=numRows-1; row >= 0; row--)
         {
             for( col=0; col<numCols; col++)
             {
-                idx = row*numCols+col;
                 value = dialog.gdModelChans->GetCellValue(row,col);
-                value.ToULong(&val);
-                chanData[idx*2] = (uint8_t) (val >> 8) & 0xFF;
-                chanData[idx*2+1] = (uint8_t) val & 0xFF;
+                if (value == wxT(""))
+                {
+                    val = 0;
+                }
+                else
+                {
+                    value.ToULong(&val);
+                }
+                chanData[idx] = (uint8_t) (val >> 8) & 0xFF;
+                chanData[idx+1] = (uint8_t) val & 0xFF;
+                idx+=2;
             }
         }
-        customChannelData = base64_encode(chanData);
+        customChannelData = base64_encode(chanData,numRows*numCols*2);
     }
 }

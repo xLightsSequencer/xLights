@@ -85,8 +85,8 @@ public:
     }
 };
 
-std::string base64_decode(const wxString& encoded_string);
-wxString base64_encode(std::string chanData);
+uint8_t * base64_decode(const wxString& encoded_string, int rows, int cols);
+wxString base64_encode(uint8_t *chanData, int length);
 
 typedef std::vector<RgbNodeClass> RgbNodeVector;
 typedef std::vector<long> StartChannelVector_t;

@@ -86,6 +86,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     else if (DisplayAs == wxT("Custom"))
     {
         InitCustomMatrix(customModel);
+        CopyBufCoord2ScreenCoord();
     }
     else if (DisplayAs == wxT("Vert Matrix"))
     {
@@ -182,23 +183,22 @@ void ModelClass::InitCustomMatrix(wxString customModel)
     int width=parm1;
     int height=parm2;
     int x, y, idx;
-    std::string chBuf;
+    uint8_t * chBuf;
     uint16_t chNum;
 
     SetBufferSize(parm2,parm1);
     SetNodeCount(parm1*parm2);
     SetRenderSize(parm2,parm1);
 
-    chBuf = base64_decode(customModel);
-    for (x=0; x < width; x++)
+    chBuf = base64_decode(customModel,parm1, parm2);
+    for(y=0; y < height; y++)
     {
-        for(y=0; y < height; y++)
+        for (x=0; x < width; x++)
         {
             idx=y*width + x;
-            chNum=(uint16_t)chBuf[idx*2]  << 8 & 0xff;
-            chNum=(uint16_t)chBuf[(idx+1)*2] & 0xff;
-            Nodes[idx].ActChan = chNum;
-            Nodes[idx].bufX=x;
+            chNum=chBuf[idx*2]  << 8 | chBuf[idx*2 +1] & 0xff;
+            Nodes[idx].ActChan = chNum + StartChannel;
+            Nodes[idx].bufX=(chNum > 0) ?x:-1;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=1;
         }
@@ -516,7 +516,7 @@ static inline bool is_base64(unsigned char c)
 }
 
 // encodes contents of SeqData
-wxString base64_encode(std::string chanData)
+wxString base64_encode(uint8_t * chanData, int length)
 {
     wxString ret;
     int i = 0;
@@ -526,7 +526,7 @@ wxString base64_encode(std::string chanData)
     unsigned char char_array_4[4];
 
 
-    for(long SeqDataIdx = 0; SeqDataIdx < chanData.size() ; SeqDataIdx++)
+    for(long SeqDataIdx = 0; SeqDataIdx < length ; SeqDataIdx++)
     {
         char_array_3[i++] = chanData[SeqDataIdx];
         if (i == 3)
@@ -563,14 +563,16 @@ wxString base64_encode(std::string chanData)
 }
 
 
-std::string base64_decode(const wxString& encoded_string)
+uint8_t * base64_decode(const wxString& encoded_string, int rows, int cols)
 {
     int in_len = encoded_string.size();
     int i = 0;
     int j = 0;
     int in_ = 0;
+    int idx = 0;
     unsigned char char_array_4[4], char_array_3[3];
-    std::string ret;
+    uint8_t *ret;
+    ret = (uint8_t *) calloc(rows*cols*2, sizeof(uint8_t));
 
     while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
     {
@@ -586,7 +588,7 @@ std::string base64_decode(const wxString& encoded_string)
             char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
             for (i = 0; (i < 3); i++)
-                ret += char_array_3[i];
+                ret[idx++] = char_array_3[i];
             i = 0;
         }
     }
@@ -603,7 +605,7 @@ std::string base64_decode(const wxString& encoded_string)
         char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
         char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-        for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
+        for (j = 0; (j < i - 1); j++) ret[idx++] = char_array_3[j];
     }
     return ret;
 }
