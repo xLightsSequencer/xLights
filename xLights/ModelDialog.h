@@ -22,6 +22,7 @@ public:
     virtual ~ModelDialog();
     void UpdateLabels();
     void UpdateStartChannels();
+    wxString customChannelData;
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;

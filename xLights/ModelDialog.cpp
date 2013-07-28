@@ -1,5 +1,6 @@
 #include "ModelDialog.h"
 #include "CustomModelDialog.h"
+#include "ModelClass.h"
 #include <wx/msgdlg.h>
 
 //(*InternalHeaders(ModelDialog)
@@ -345,19 +346,41 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
 void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
 {
     CustomModelDialog dialog(this);
-    int numRows, numCols, row, col;
+    int numRows, numCols, row, col, idx;
+    unsigned long val;
+    std::string chanData;
+    int dlgResult;
+    wxString value;
 
     numCols=SpinCtrl_parm1->GetValue();
     numRows=SpinCtrl_parm2->GetValue();
 
     dialog.gdModelChans->AppendCols(numCols - dialog.gdModelChans->GetNumberCols());
     dialog.gdModelChans->AppendRows(numRows - dialog.gdModelChans->GetNumberRows());
+
+    chanData = base64_decode(customChannelData);
     for(row=0; row<numRows; row++)
     {
         for( col=0; col<numCols; col++)
         {
-
+            idx = (row*numCols+col);
+            dialog.gdModelChans->SetCellValue(row,col,wxString::Format(wxT("%2s"),idx*2));
         }
     }
-    dialog.ShowModal();
+    dlgResult = dialog.ShowModal();
+    if ( wxID_OK == dlgResult)
+    {
+        for(row=0; row<numRows; row++)
+        {
+            for( col=0; col<numCols; col++)
+            {
+                idx = row*numCols+col;
+                value = dialog.gdModelChans->GetCellValue(row,col);
+                value.ToULong(&val);
+                chanData[idx*2] = (uint8_t) (val >> 8) & 0xFF;
+                chanData[idx*2+1] = (uint8_t) val & 0xFF;
+            }
+        }
+        customChannelData = base64_encode(chanData);
+    }
 }

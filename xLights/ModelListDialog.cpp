@@ -137,6 +137,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     int sel=ListBox1->GetSelection();
     long numStrings;
     wxString tempStr;
+    wxString customChannels;
     if (sel == wxNOT_FOUND)
     {
         wxMessageBox(_("Select an item before clicking the Modify button"));
@@ -195,6 +196,11 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
         else
             dialog.RadioButton_TopLeft->SetValue(true);
     }
+    if (e->HasAttribute(wxT("Custom")))
+    {
+        e->GetAttribute(wxT("Custom"),&customChannels);
+        dialog.customChannelData = customChannels;
+    }
     dialog.CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
     dialog.UpdateLabels();
     do
@@ -216,7 +222,10 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                         e->DeleteAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))));
                     }
                 }
-
+                if (e->HasAttribute(wxT("Custom")));
+                {
+                    e->DeleteAttribute(wxT("Custom"));
+                }
                 if (dialog.cbIndividualStartNumbers->IsChecked())
                 {
                     e->AddAttribute(wxT("Advanced"), wxT("1"));

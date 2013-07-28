@@ -54,7 +54,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     }
     if (ModelNode->HasAttribute(wxT("CustomModel")))
     {
-        customModel = ModelNode->GetAttribute(wxT("CustomModel"))
+        customModel = ModelNode->GetAttribute(wxT("CustomModel"));
     }
 
     tempstr=ModelNode->GetAttribute(wxT("Antialias"),wxT("0"));
@@ -83,7 +83,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
         token.ToLong(&degrees);
         SetTreeCoord(degrees);
     }
-    else if (DisplayAs == wxT("Custom")
+    else if (DisplayAs == wxT("Custom"))
     {
         InitCustomMatrix(customModel);
     }
@@ -181,6 +181,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
 {
     int width=parm1;
     int height=parm2;
+    int x, y, idx;
     std::string chBuf;
     uint16_t chNum;
 
@@ -199,7 +200,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
             Nodes[idx].ActChan = chNum;
             Nodes[idx].bufX=x;
             Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=stringnum;
+            Nodes[idx].StringNum=1;
         }
     }
 }
@@ -515,7 +516,7 @@ static inline bool is_base64(unsigned char c)
 }
 
 // encodes contents of SeqData
-wxString ModelClass::base64_encode()
+wxString base64_encode(std::string chanData)
 {
     wxString ret;
     int i = 0;
@@ -524,9 +525,10 @@ wxString ModelClass::base64_encode()
     unsigned char char_array_3[3];
     unsigned char char_array_4[4];
 
-    for(long SeqDataIdx = 0; SeqDataIdx < SeqDataLen; SeqDataIdx++)
+
+    for(long SeqDataIdx = 0; SeqDataIdx < chanData.size() ; SeqDataIdx++)
     {
-        char_array_3[i++] = SeqData[SeqDataIdx];
+        char_array_3[i++] = chanData[SeqDataIdx];
         if (i == 3)
         {
             char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
@@ -561,7 +563,7 @@ wxString ModelClass::base64_encode()
 }
 
 
-std::string ModelClass::base64_decode(const wxString& encoded_string)
+std::string base64_decode(const wxString& encoded_string)
 {
     int in_len = encoded_string.size();
     int i = 0;

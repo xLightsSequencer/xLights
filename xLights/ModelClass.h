@@ -85,6 +85,9 @@ public:
     }
 };
 
+std::string base64_decode(const wxString& encoded_string);
+wxString base64_encode(std::string chanData);
+
 typedef std::vector<RgbNodeClass> RgbNodeVector;
 typedef std::vector<long> StartChannelVector_t;
 
@@ -102,6 +105,7 @@ private:
     void SetTreeCoord(long degrees);
     void SetLineCoord();
     void SetArchCoord();
+    void InitCustomMatrix(wxString customModel);
     void SetFromXmlAdvanced(wxXmlNode* ModelNode);
     void InitializeStringStartNum();
     static const double PI  =3.141592653589793238462;
