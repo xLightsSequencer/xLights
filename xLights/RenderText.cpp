@@ -175,29 +175,48 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
             msg = msg + tempmsg.GetChar(i) + "\n";
         }
         break;
+    }
+
+    wxSize textsize = dc.GetMultiLineTextExtent(msg);
+    int xoffset=0;
+    int yoffset=0;
+
+    switch(Effect)
+    {
     case 3:
         // rotate up 45
         TextRotation=45.0;
+        yoffset=int(0.707*double(textsize.GetHeight()));
+        i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
+        textsize.Set(i,i);
         break;
     case 4:
         // rotate up 90
         TextRotation=90.0;
+        textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
         break;
     case 5:
         // rotate down 45
         TextRotation=-45.0;
+        xoffset=int(0.707*double(textsize.GetHeight()));
+        i=int(0.707*double(textsize.GetWidth()+textsize.GetHeight()));
+        textsize.Set(i,i);
+        yoffset=i;
         break;
     case 6:
         // rotate down 90
         TextRotation=-90.0;
+        xoffset=textsize.GetHeight();
+        yoffset=textsize.GetWidth();
+        textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
         break;
     }
+    //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
 
-    wxSize textsize = dc.GetMultiLineTextExtent(msg);
-
-    int totwidth=BufferWi+textsize.GetWidth();
+    int txtwidth=textsize.GetWidth();
+    int totwidth=BufferWi+txtwidth;
     int totheight=BufferHt+textsize.GetHeight();
-    int OffsetLeft= totwidth/2 - (Position * totwidth / 100);
+    int OffsetLeft= (Position * totwidth / 100) - totwidth/2;
     int OffsetTop= totheight/2 - (Position * totheight / 100);
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
@@ -216,11 +235,11 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     } else {
         switch (dir)
         {
-        case 0: dc.DrawRotatedText(msg,BufferWi - state % xlimit/8, OffsetTop,TextRotation); break; // left
-        case 1: dc.DrawRotatedText(msg,state % xlimit/8 - BufferWi, OffsetTop,TextRotation); break; // right
-        case 2: dc.DrawRotatedText(msg,OffsetLeft, ylimit/16 - state % ylimit/8,TextRotation); break; // up
-        case 3: dc.DrawRotatedText(msg,OffsetLeft, state % ylimit/8 - ylimit/16,TextRotation); break; // down
-        default: dc.DrawRotatedText(msg,0, OffsetTop,TextRotation); break; // static
+        case 0: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation); break; // left
+        case 1: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation); break; // right
+        case 2: dc.DrawRotatedText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up
+        case 3: dc.DrawRotatedText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation); break; // down
+        default: dc.DrawRotatedText(msg, 0, OffsetTop, TextRotation); break; // static
         }
     }
 }
