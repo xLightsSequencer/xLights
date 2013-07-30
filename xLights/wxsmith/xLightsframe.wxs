@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.23)</title>
+		<title>xLights/Nutcracker  (Ver 3.0.24)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -2778,6 +2778,21 @@
 																								</object>
 																								<label>Circles</label>
 																							</object>
+																							<object class="choicebookpage">
+																								<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
+																									<object class="wxStaticText" name="ID_STATICTEXT141" variable="StaticText140" member="yes">
+																										<label>Keyboard</label>
+																										<pos>32,32</pos>
+																									</object>
+																									<object class="wxSlider" name="ID_SLIDER_Piano1_Keyboard" variable="Slider_Piano1_Keyboard" member="yes">
+																										<value>3</value>
+																										<min>1</min>
+																										<max>3</max>
+																										<pos>136,32</pos>
+																									</object>
+																								</object>
+																								<label>Piano</label>
+																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
@@ -4205,6 +4220,21 @@
 																									</object>
 																								</object>
 																								<label>Circles</label>
+																							</object>
+																							<object class="choicebookpage">
+																								<object class="wxPanel" name="ID_PANEL44" variable="Panel2_Piano" member="yes">
+																									<object class="wxStaticText" name="ID_STATICTEXT142" variable="StaticText141" member="yes">
+																										<label>Keyboard</label>
+																										<pos>24,32</pos>
+																									</object>
+																									<object class="wxSlider" name="ID_SLIDER_Piano2_Keyboard" variable="Slider_Piano2_Keyboard" member="yes">
+																										<value>3</value>
+																										<min>1</min>
+																										<max>3</max>
+																										<pos>120,32</pos>
+																									</object>
+																								</object>
+																								<label>Piano</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

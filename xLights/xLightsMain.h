@@ -213,6 +213,7 @@ public:
         eff_SPIROGRAPH,
         eff_FIREWORKS,
         eff_CIRCLES,
+        eff_PIANO,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -596,6 +597,9 @@ private:
     static const long ID_CHECKBOX_Circles1_Random_m;
     static const long ID_CHECKBOX_Circles1_Radial;
     static const long ID_PANEL37;
+    static const long ID_STATICTEXT141;
+    static const long ID_SLIDER_Piano1_Keyboard;
+    static const long ID_PANEL39;
     static const long ID_CHOICEBOOK1;
     static const long ID_BUTTON_Palette1;
     static const long ID_CHECKBOX_Palette1_1;
@@ -760,6 +764,9 @@ private:
     static const long ID_CHECKBOX_Circles2_Random_m;
     static const long ID_CHECKBOX_Circle2_Radial;
     static const long ID_PANEL38;
+    static const long ID_STATICTEXT142;
+    static const long ID_SLIDER_Piano2_Keyboard;
+    static const long ID_PANEL44;
     static const long ID_CHOICEBOOK2;
     static const long ID_BUTTON_Palette2;
     static const long ID_CHECKBOX_Palette2_1;
@@ -853,8 +860,10 @@ private:
     wxPanel* Panel1_Life;
     wxStaticText* StaticText86;
     wxStaticText* StaticText42;
+    wxPanel* Panel2_Piano;
     wxSlider* Slider_Twinkle1_Steps;
     wxSlider* Slider_Meteors1_Count;
+    wxStaticText* StaticText140;
     wxPanel* PanelSequence2;
     wxRadioButton* RadioButtonDim;
     wxSlider* Slider_Spirals1_Rotation;
@@ -1149,6 +1158,7 @@ private:
     wxSlider* Slider_Tree1_Branches;
     wxChoice* Choice_Text1_1_Count;
     wxStaticText* StaticText68;
+    wxStaticText* StaticText141;
     wxPanel* Panel1_Pictures;
     wxPanel* Panel2_Tree;
     wxStaticText* StaticText97;
@@ -1165,6 +1175,7 @@ private:
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxCheckBox* CheckBox_Palette2_1;
     wxSlider* Slider_Garlands2_Spacing;
+    wxSlider* Slider_Piano2_Keyboard;
     wxChoice* Choice_Text1_2_Count;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxPanel* Panel1_Meteors;
@@ -1238,6 +1249,7 @@ private:
     wxButton* Button_Text2_2_Font;
     wxSlider* SliderFgIntensity;
     wxButton* Button1;
+    wxPanel* Panel1_Piano;
     wxButton* Button_Palette2_4;
     wxTextCtrl* TextCtrl_Text2_Line2;
     wxSlider* Slider_Garlands2_Type;
@@ -1261,6 +1273,7 @@ private:
     wxStaticText* StaticTextSetup1;
     wxButton* Button_PlayRgbSeq;
     wxStaticText* StaticText5;
+    wxSlider* Slider_Piano1_Keyboard;
     wxPanel* Panel1_Tree;
     wxSplitterWindow* SplitterWindow1;
     wxCheckBox* CheckBox_Palette2_4;

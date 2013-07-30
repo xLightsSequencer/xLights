@@ -342,6 +342,9 @@ const long xLightsFrame::ID_CHECKBOX_Circles1_Collide = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circles1_Random_m = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circles1_Radial = wxNewId();
 const long xLightsFrame::ID_PANEL37 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT141 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Piano1_Keyboard = wxNewId();
+const long xLightsFrame::ID_PANEL39 = wxNewId();
 const long xLightsFrame::ID_CHOICEBOOK1 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Palette1_1 = wxNewId();
@@ -506,6 +509,9 @@ const long xLightsFrame::ID_CHECKBOX_Circles2_Collide = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circles2_Random_m = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circle2_Radial = wxNewId();
 const long xLightsFrame::ID_PANEL38 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT142 = wxNewId();
+const long xLightsFrame::ID_SLIDER_Piano2_Keyboard = wxNewId();
+const long xLightsFrame::ID_PANEL44 = wxNewId();
 const long xLightsFrame::ID_CHOICEBOOK2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette2 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Palette2_1 = wxNewId();
@@ -688,7 +694,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.23)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.24)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1543,6 +1549,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel1_Circles->SetSizer(FlexGridSizer80);
     FlexGridSizer80->Fit(Panel1_Circles);
     FlexGridSizer80->SetSizeHints(Panel1_Circles);
+    Panel1_Piano = new wxPanel(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL39"));
+    StaticText140 = new wxStaticText(Panel1_Piano, ID_STATICTEXT141, _("Keyboard"), wxPoint(32,32), wxDefaultSize, 0, _T("ID_STATICTEXT141"));
+    Slider_Piano1_Keyboard = new wxSlider(Panel1_Piano, ID_SLIDER_Piano1_Keyboard, 3, 1, 3, wxPoint(136,32), wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano1_Keyboard"));
     Choicebook1->AddPage(Panel1_None, _("None"), false);
     Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
     Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
@@ -1561,6 +1570,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
     Choicebook1->AddPage(Panel1_Fireworks, _("Fireworks"), false);
     Choicebook1->AddPage(Panel1_Circles, _("Circles"), false);
+    Choicebook1->AddPage(Panel1_Piano, _("Piano"), false);
     FlexGridSizer34->Add(Choicebook1, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Palette1 = new wxButton(Panel4, ID_BUTTON_Palette1, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
@@ -2010,6 +2020,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel2_Circles->SetSizer(FlexGridSizer81);
     FlexGridSizer81->Fit(Panel2_Circles);
     FlexGridSizer81->SetSizeHints(Panel2_Circles);
+    Panel2_Piano = new wxPanel(Choicebook2, ID_PANEL44, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL44"));
+    StaticText141 = new wxStaticText(Panel2_Piano, ID_STATICTEXT142, _("Keyboard"), wxPoint(24,32), wxDefaultSize, 0, _T("ID_STATICTEXT142"));
+    Slider_Piano2_Keyboard = new wxSlider(Panel2_Piano, ID_SLIDER_Piano2_Keyboard, 3, 1, 3, wxPoint(120,32), wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano2_Keyboard"));
     Choicebook2->AddPage(Panel2_None, _("None"), false);
     Choicebook2->AddPage(Panel2_Bars, _("Bars"), false);
     Choicebook2->AddPage(Panel2_Butterfly, _("Butterfly"), false);
@@ -2028,6 +2041,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook2->AddPage(Panel2_Spirograph, _("Spirograph"), false);
     Choicebook2->AddPage(Panel2_Fireworks, _("Fireworks"), false);
     Choicebook2->AddPage(Panel2_Circles, _("Circles"), false);
+    Choicebook2->AddPage(Panel2_Piano, _("Piano"), false);
     FlexGridSizer49->Add(Choicebook2, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer62 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Palette2 = new wxButton(Panel4, ID_BUTTON_Palette2, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette2"));
@@ -2561,7 +2575,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectNames[eff_TREE]=wxT("Tree");
     EffectNames[eff_SPIROGRAPH]=wxT("Spirograph");
     EffectNames[eff_FIREWORKS]=wxT("Fireworks");
-    EffectNames[eff_CIRCLES]=wxT("Circles");
+     EffectNames[eff_CIRCLES]=wxT("Circles");
+        EffectNames[eff_PIANO]=wxT("Piano");
 
     EffectLayerOptions.clear();
     EffectLayerOptions.resize(LASTLAYER);
@@ -2897,7 +2912,7 @@ void xLightsFrame::OnChoice_ModelsSelect(wxCommandEvent& event)
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
-                             "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
+            "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
     {
         return;
     }

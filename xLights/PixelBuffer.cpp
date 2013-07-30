@@ -385,3 +385,8 @@ void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Vel
 {
     Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
 }
+
+void PixelBufferClass::RenderPiano(int Keyboard)
+{
+    Effect[CurrentLayer].RenderPiano(Keyboard);
+}
