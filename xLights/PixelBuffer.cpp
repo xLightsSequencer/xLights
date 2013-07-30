@@ -395,3 +395,8 @@ void PixelBufferClass::RenderCircles(int Count,int Steps, bool Strobe)
 {
     Effect[CurrentLayer].RenderCircles( Count, Steps,  Strobe);
 }
+
+void PixelBufferClass::RenderRadial(int x, int y,int thickness, int colorCnt)
+{
+    Effect[CurrentLayer].RenderRadial(x,y,thickness,colorCnt);
+}

@@ -89,6 +89,8 @@ public:
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
     void RenderCircles(int Count,int Steps, bool Strobe);
+
+    void RenderRadial(int x, int y,int thickness, int colorCnt);
     void CalcOutput();
 };
 

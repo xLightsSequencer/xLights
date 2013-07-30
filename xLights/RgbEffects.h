@@ -37,6 +37,7 @@ typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 
+#define rgb_MAX_BALLS 20
 
 class RgbFireworks
 {
@@ -66,6 +67,34 @@ public:
     }
 protected:
 private:
+};
+
+class RgbBalls
+{
+public:
+    float _x;
+    float _y;
+    float _dx;
+    float _dy;
+    float _radius;
+    wxColor _color;
+
+    void Reset(float x, float y, float speed, float angle, float radius, wxColor color)
+    {
+        _x=x;
+        _y=y;
+        _dx=speed*cos(angle);
+        _dy=speed*sin(angle);
+        _radius = radius;
+        _color = color;
+    }
+
+    void updatePosition(float incr)
+    {
+        _x+=_dx*incr;
+        _y+=_dy*incr;
+    }
+
 };
 
 // for meteor effect
@@ -198,6 +227,12 @@ public:
     void RenderPiano(int Keyboard);
     void RenderCircles(int Count,int Steps, bool Strobe);
 
+    void RenderRadial(int x, int y,int thickness, int colorCnt);
+    void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+                        bool radial, int start_x, int start_y);
+
+
+
 protected:
     void SetPixel(int x, int y, const wxColour &color);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
@@ -256,6 +291,7 @@ protected:
     int speed;
     int lastperiod;
     RgbFireworks fireworkBursts[20000];
+    RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long old_longsecs[1],timer_countdown[1];
 

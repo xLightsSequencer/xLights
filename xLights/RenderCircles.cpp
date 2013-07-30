@@ -24,78 +24,48 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderCircles(int Count,int Steps, bool Strobe)
+void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+                               bool radial, int start_x, int start_y)
 {
-#if 0
-    int x,y,i,i7,r,ColorIdx;
-    int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
-    int step;
-    if(lights>0) step=BufferHt*BufferWi/lights;
-    else step=1;
-    int mod_number,max_modulo;
-    max_modulo=Steps;
-    if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
-    int max_modulo2=max_modulo/2;
-if(max_modulo2<1) max_modulo2=1;
+    int ii;
+    int colorIdx;
+    size_t colorCnt = palette.Size();
+    wxColor color;
 
-    if(step<1) step=1;
-    if(Strobe) srand (time(NULL)); // for strobe effect, make lights be random
-    else srand(1); // else always have the same random numbers for each frame (state)
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-
-    size_t colorcnt=GetColorCount();
-
-    i=0;
-
-    for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    if ( 0 == state )
     {
-        for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+        for(ii=0; ii<number; ii++)
         {
-            i++;
-
-            if(i%step==1 || step==1) // Should we draw a light?
-            {
-                // Yes, so now decide on what color it should be
-
-                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-                palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                //    mod_number=rand()% max_modulo;
-                //    if(mod_number<1) mod_number=1;
-                //     i7=(state/4) % mod_number; // Our twinkle is 9 steps. 4 ramping up, 5th at full brightness and then 4 more ramping down
-                //  Note that we are adding state to this calculation, this causes a different blink rate for each light
-                i7=(state+rand())% max_modulo;
-
-//                if(i7==0 || i7==8)  hsv.value = 0.1;
-//                if(i7==1 || i7==7)  hsv.value = 0.3;
-//                if(i7==2 || i7==6)  hsv.value = 0.5;
-//                if(i7==3 || i7==5)  hsv.value = 0.7;
-//                if(i7==4)  hsv.value = 1.0;
-//                else  hsv.value = 0.0;
-
-                if(i7<=max_modulo2)
-                {
-                   if(max_modulo2>0) hsv.value = (1.0*i7)/max_modulo2;
-                   else  hsv.value =0;
-                }
-                else
-                {
-                    if(max_modulo2>0) hsv.value = (max_modulo-i7)*1.0/(max_modulo2);
-                    else hsv.value = 0;
-                }
-                if(hsv.value<0.0) hsv.value=0.0;
-
-                if(Strobe)
-                {
-                    if(i7==max_modulo2)  hsv.value = 1.0;
-                    else  hsv.value = 0.0;
-                }
-
-
-                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-                SetPixel(x,y,hsv); // Turn pixel on
-            }
+            /*
+            colorIdx = ii%colorCnt;
+            palette.GetColor(colorIdx, &color);
+            balls[ii].Initialize((float) start_x, (float) start_y, spd, angle, radius, color);
+            */
         }
     }
-    #endif
+
+    if (radial)
+    {
+        RenderRadial(start_x, start_y, radius, colorCnt);
+    }
+}
+
+void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
+{
+    wxImage::HSVValue hsv;
+    int ii;
+    int colorIdx;
+    int maxRadius = state + thickness;
+
+    palette.GetHSV(0,hsv);
+    for( ii = maxRadius ; ii >= 0;  ii--)
+    {
+        if ( 0 == ii%thickness)
+        {
+            colorIdx = (colorIdx+1)%colorCnt;
+            palette.GetHSV(colorIdx,hsv);
+        }
+        DrawCircle(x, y, ii, hsv);
+    }
 }
 

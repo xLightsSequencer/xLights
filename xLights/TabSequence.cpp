@@ -901,10 +901,12 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     else if (effect == wxT("Circles"))
     {
         //  RenderCircles(int Count,int Steps, bool Strobe)
-        buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
+        /*buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Size")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"));
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"));*/
+        //buffer.RenderRadial(buffer.BufferWi/2, buffer.BufferHt/2,4, 4);
     }
+
 }
 
 
@@ -1043,11 +1045,11 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
 
     case eff_CIRCLES:
-        buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
+        /*buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
                              Slider_Circles1_Size->GetValue(),
                              CheckBox_Circles1_Bounce->GetValue());
-        break;
-
+        buffer.RenderRadial(buffer.BufferWi/2, buffer.BufferHt/2,4, 4);
+	*/
     }
 
     // render effect 2
