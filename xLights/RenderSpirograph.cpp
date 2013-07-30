@@ -30,7 +30,7 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 //x(t) = (R-r) * cos t + d*cos ((R-r/r)*t);
 //y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
 
-    mod1440=state%1440;
+    mod1440  = state%1440;
     state360 = state%360;
     d_orig=d;
     for(i=1; i<=360; i++)

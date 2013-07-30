@@ -195,7 +195,7 @@ public:
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d,bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
-
+    void RenderPiano(int Keyboard);
 
 protected:
     void SetPixel(int x, int y, const wxColour &color);

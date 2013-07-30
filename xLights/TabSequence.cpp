@@ -307,11 +307,13 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
             if(ChildName.Contains(wxT("Spirograph1_r")) || ChildName.Contains(wxT("Spirograph2_r")))
-            { // always set little radius, r, to its minimum value
+            {
+                // always set little radius, r, to its minimum value
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
             }
             else if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
-            { // always animate spirograph
+            {
+                // always animate spirograph
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
             }
             else
@@ -890,6 +892,10 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]),
                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Fade")]));
     }
+    else if (effect == wxT("Piano"))
+    {
+        buffer.RenderPiano(wxAtoi(SettingsMap[wxT("ID_SLIDER_Keyboard")+LayerStr+wxT("_Keyboard")]));
+    }
 }
 
 
@@ -1023,6 +1029,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                Slider_Fireworks1_Velocity->GetValue(),
                                Slider_Fireworks1_Fade->GetValue());
         break;
+    case eff_PIANO:
+        buffer.RenderPiano(Slider_Piano1_Keyboard->GetValue());
+        break;
 
     }
 
@@ -1124,6 +1133,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                Slider_Fireworks2_Count->GetValue(),
                                Slider_Fireworks2_Velocity->GetValue(),
                                Slider_Fireworks2_Fade->GetValue());
+        break;
+    case eff_PIANO:
+        buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
         break;
 
     }
