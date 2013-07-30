@@ -115,6 +115,9 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     long tempLong,longsecs;
     wxString msg,tempmsg;
     int i,days,hours,minutes,seconds;
+    wxDateTime dt;
+    wxTimeSpan ts;
+    wxString::const_iterator end;
     if (Line.IsEmpty()) return;
 
     switch(Countdown)
@@ -134,20 +137,27 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         break;
     case 2:
         // countdown to date
-        tempLong=0;
-        if (state==0 && Line.ToLong(&tempLong)) {
-            old_longsecs[idx]=-1;
-            timer_countdown[idx]=tempLong+1; // set their counter one higher since the first thing we do is subtract one from it.
+        if (state%20 == 0) {
+            if ( dt.ParseDateTime(Line, &end) ) {
+                // dt is valid, so calc # of seconds until then
+                ts=dt.Subtract(wxDateTime::Now());
+                wxLongLong ll=ts.GetSeconds();
+                if (ll > LONG_MAX) ll=LONG_MAX;
+                if (ll < 0) ll=0;
+                longsecs=ll.ToLong();
+            } else {
+                // invalid date/time
+                longsecs=0;
+            }
+            old_longsecs[idx]=longsecs;
+        } else {
+            longsecs=old_longsecs[idx];
         }
-        longsecs=wxGetUTCTime();
-        if(longsecs != old_longsecs[idx]) timer_countdown[idx]--;
-        old_longsecs[idx]=longsecs;
-        if(timer_countdown[idx] < 0) timer_countdown[idx]=0;
-        days = timer_countdown[idx] / 60 / 60 / 24;
-        hours = (timer_countdown[idx] / 60 / 60) % 24;
-        minutes = (timer_countdown[idx] / 60) % 60;
-        seconds = timer_countdown[idx] % 60;
-        msg=wxString::Format(wxT("%i d %i h %i m %i s"),days,hours,minutes,seconds);
+        days = longsecs / 60 / 60 / 24;
+        hours = (longsecs / 60 / 60) % 24;
+        minutes = (longsecs / 60) % 60;
+        seconds = longsecs % 60;
+        msg=wxString::Format(wxT("%dd %dh %dm %ds"),days,hours,minutes,seconds);
         break;
     default:
         msg=Line;
