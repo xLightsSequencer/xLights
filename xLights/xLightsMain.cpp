@@ -504,10 +504,10 @@ const long xLightsFrame::ID_STATICTEXT139 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Circles2_count = wxNewId();
 const long xLightsFrame::ID_STATICTEXT140 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Circles2 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_Circle2_Bounce = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Circles2_Bounce = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circles2_Collide = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Circles2_Random_m = wxNewId();
-const long xLightsFrame::ID_CHECKBOX_Circle2_Radial = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Circles2_Radial = wxNewId();
 const long xLightsFrame::ID_PANEL38 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT142 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Piano2_Keyboard = wxNewId();
@@ -694,7 +694,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.0.24)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver BETA 3.0.24)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1569,8 +1569,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
     Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
     Choicebook1->AddPage(Panel1_Fireworks, _("Fireworks"), false);
-    Choicebook1->AddPage(Panel1_Circles, _("Circles"), false);
-    Choicebook1->AddPage(Panel1_Piano, _("Piano"), false);
+    Choicebook1->AddPage(Panel1_Circles, _("Circles (Under Development)"), false);
+    Choicebook1->AddPage(Panel1_Piano, _("Piano (Under Development)"), false);
     FlexGridSizer34->Add(Choicebook1, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Palette1 = new wxButton(Panel4, ID_BUTTON_Palette1, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
@@ -2005,18 +2005,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer81->Add(StaticText139, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Circles2_Size = new wxSlider(Panel2_Circles, ID_SLIDER_Circles2, 5, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Circles2"));
     FlexGridSizer81->Add(Slider_Circles2_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Circle2_Bounce = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circle2_Bounce, _("Bounce"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circle2_Bounce"));
-    CheckBox_Circle2_Bounce->SetValue(false);
-    FlexGridSizer81->Add(CheckBox_Circle2_Bounce, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Circles2_Bounce = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circles2_Bounce, _("Bounce"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles2_Bounce"));
+    CheckBox_Circles2_Bounce->SetValue(false);
+    FlexGridSizer81->Add(CheckBox_Circles2_Bounce, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Circles2_Collide = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circles2_Collide, _("Collide"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles2_Collide"));
     CheckBox_Circles2_Collide->SetValue(false);
     FlexGridSizer81->Add(CheckBox_Circles2_Collide, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Circle2_Random_m = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circles2_Random_m, _("Random Motion"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles2_Random_m"));
-    CheckBox_Circle2_Random_m->SetValue(false);
-    FlexGridSizer81->Add(CheckBox_Circle2_Random_m, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Circle2_Radial = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circle2_Radial, _("Radial"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circle2_Radial"));
-    CheckBox_Circle2_Radial->SetValue(false);
-    FlexGridSizer81->Add(CheckBox_Circle2_Radial, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Circles2_Random_m = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circles2_Random_m, _("Random Motion"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles2_Random_m"));
+    CheckBox_Circles2_Random_m->SetValue(false);
+    FlexGridSizer81->Add(CheckBox_Circles2_Random_m, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Circles2_Radial = new wxCheckBox(Panel2_Circles, ID_CHECKBOX_Circles2_Radial, _("Radial"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles2_Radial"));
+    CheckBox_Circles2_Radial->SetValue(false);
+    FlexGridSizer81->Add(CheckBox_Circles2_Radial, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel2_Circles->SetSizer(FlexGridSizer81);
     FlexGridSizer81->Fit(Panel2_Circles);
     FlexGridSizer81->SetSizeHints(Panel2_Circles);
@@ -2040,7 +2040,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook2->AddPage(Panel2_Tree, _("Tree"), false);
     Choicebook2->AddPage(Panel2_Spirograph, _("Spirograph"), false);
     Choicebook2->AddPage(Panel2_Fireworks, _("Fireworks"), false);
-    Choicebook2->AddPage(Panel2_Circles, _("Circles"), false);
+    Choicebook2->AddPage(Panel2_Circles, _("Circles (Under Development)"), false);
     Choicebook2->AddPage(Panel2_Piano, _("Piano"), false);
     FlexGridSizer49->Add(Choicebook2, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer62 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -2575,8 +2575,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectNames[eff_TREE]=wxT("Tree");
     EffectNames[eff_SPIROGRAPH]=wxT("Spirograph");
     EffectNames[eff_FIREWORKS]=wxT("Fireworks");
-     EffectNames[eff_CIRCLES]=wxT("Circles");
-        EffectNames[eff_PIANO]=wxT("Piano");
+    EffectNames[eff_PIANO]=wxT("Piano");
+    EffectNames[eff_CIRCLES]=wxT("Circles");
 
     EffectLayerOptions.clear();
     EffectLayerOptions.resize(LASTLAYER);
@@ -2605,8 +2605,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
-    Choicebook1->RemovePage(eff_CIRCLES);
-    Choicebook2->RemovePage(eff_CIRCLES);
+//   scm, causes crash if we remove this    Choicebook1->RemovePage(eff_CIRCLES);
+//   Choicebook2->RemovePage(eff_CIRCLES);
 }
 
 xLightsFrame::~xLightsFrame()

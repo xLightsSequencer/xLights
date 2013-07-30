@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.0.24)</title>
+		<title>xLights/Nutcracker  (Ver BETA 3.0.24)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -2776,7 +2776,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles</label>
+																								<label>Circles (Under Development)</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
@@ -2791,7 +2791,7 @@
 																										<pos>136,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano</label>
+																								<label>Piano (Under Development)</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -4186,7 +4186,7 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circle2_Bounce" variable="CheckBox_Circle2_Bounce" member="yes">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles2_Bounce" variable="CheckBox_Circles2_Bounce" member="yes">
 																												<label>Bounce</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4202,7 +4202,7 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles2_Random_m" variable="CheckBox_Circle2_Random_m" member="yes">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles2_Random_m" variable="CheckBox_Circles2_Random_m" member="yes">
 																												<label>Random Motion</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4210,7 +4210,7 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circle2_Radial" variable="CheckBox_Circle2_Radial" member="yes">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles2_Radial" variable="CheckBox_Circles2_Radial" member="yes">
 																												<label>Radial</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4219,7 +4219,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles</label>
+																								<label>Circles (Under Development)</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL44" variable="Panel2_Piano" member="yes">

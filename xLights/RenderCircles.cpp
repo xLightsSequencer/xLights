@@ -23,10 +23,10 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-#if 0
+
 void RgbEffects::RenderCircles(int Count,int Steps, bool Strobe)
 {
-
+#if 0
     int x,y,i,i7,r,ColorIdx;
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
     int step;
@@ -96,5 +96,6 @@ if(max_modulo2<1) max_modulo2=1;
             }
         }
     }
+    #endif
 }
-#endif
+

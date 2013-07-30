@@ -136,6 +136,7 @@
 		<Unit filename="RenderGarlands.cpp" />
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
+		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
 		<Unit filename="RenderSnowflakes.cpp" />
 		<Unit filename="RenderSnowstorm.cpp" />

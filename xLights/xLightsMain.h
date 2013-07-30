@@ -759,10 +759,10 @@ private:
     static const long ID_SLIDER_Circles2_count;
     static const long ID_STATICTEXT140;
     static const long ID_SLIDER_Circles2;
-    static const long ID_CHECKBOX_Circle2_Bounce;
+    static const long ID_CHECKBOX_Circles2_Bounce;
     static const long ID_CHECKBOX_Circles2_Collide;
     static const long ID_CHECKBOX_Circles2_Random_m;
-    static const long ID_CHECKBOX_Circle2_Radial;
+    static const long ID_CHECKBOX_Circles2_Radial;
     static const long ID_PANEL38;
     static const long ID_STATICTEXT142;
     static const long ID_SLIDER_Piano2_Keyboard;
@@ -888,7 +888,6 @@ private:
     wxStaticText* StaticText18;
     wxStaticText* StaticText30;
     wxPanel* Panel1;
-    wxCheckBox* CheckBox_Circle2_Random_m;
     wxStaticText* StaticText106;
     wxSlider* Slider_Spirograph1_R;
     wxStaticText* StaticText103;
@@ -903,6 +902,7 @@ private:
     wxButton* Button_Pictures1_Filename;
     wxSlider* Slider_Snowflakes1_Count;
     wxCheckBox* CheckBox_Circles1_Random_m;
+    wxCheckBox* CheckBox_Circles2_Random_m;
     wxStaticText* StaticText37;
     wxSlider* Slider_Spirals2_Direction;
     wxRadioButton* RadioButtonTwinkle05;
@@ -1008,7 +1008,6 @@ private:
     wxChoice* Choice_LayerMethod;
     wxCheckBox* CheckBox_Circles1_Radial;
     wxChoice* ChoiceOutputFormat;
-    wxCheckBox* CheckBox_Circle2_Bounce;
     wxPanel* Panel2_Circles;
     wxPanel* PanelConvert;
     wxCheckBox* CheckBox_Twinkle1_Strobe;
@@ -1059,6 +1058,7 @@ private:
     wxStaticText* StaticText85;
     wxChoice* Choice_Text1_2_Dir;
     wxPanel* Panel1_Garlands;
+    wxCheckBox* CheckBox_Circles2_Bounce;
     wxStaticText* StaticText127;
     wxSlider* Slider_Contrast;
     wxSlider* Slider_Fire1_Height;
@@ -1134,6 +1134,7 @@ private:
     wxButton* Button_Palette1_5;
     wxPanel* Panel2_Butterfly;
     wxTextCtrl* TextCtrl_Text1_2_Font;
+    wxCheckBox* CheckBox_Circles2_Radial;
     wxSlider* Slider_Meteors2_Count;
     wxStaticText* StaticText132;
     wxCheckBox* CheckBox_Palette2_5;
@@ -1150,7 +1151,6 @@ private:
     wxStaticText* StaticText88;
     wxNotebook* NotebookTest;
     wxStaticText* StaticText135;
-    wxCheckBox* CheckBox_Circle2_Radial;
     wxSlider* Slider_Spirograph2_R;
     wxStaticText* StaticText59;
     wxPanel* Panel2_Bars;

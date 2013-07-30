@@ -274,10 +274,12 @@ wxString xLightsFrame::CreateEffectStringRandom()
     wxString s;
     s.clear();
 
-    eff1 = rand() % eff_LASTEFFECT-1; //Temporarily prevent choosing to do a circle.
-    eff2 = rand() % eff_LASTEFFECT-1;
+    eff1 = rand() % eff_LASTEFFECT; //Temporarily prevent choosing to do a circle.
+    eff2 = rand() % eff_LASTEFFECT;
     eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
     eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
+    if(eff_PIANO == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
+    if(eff_PIANO == eff2) eff2 = eff_BARS; //
 
     layerOp = rand() % LASTLAYER;
     s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
@@ -894,7 +896,14 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Piano"))
     {
-        buffer.RenderPiano(wxAtoi(SettingsMap[wxT("ID_SLIDER_Keyboard")+LayerStr+wxT("_Keyboard")]));
+        buffer.RenderPiano(wxAtoi(SettingsMap[wxT("ID_SLIDER_Piano")+LayerStr+wxT("_Keyboard")]));
+    }
+    else if (effect == wxT("Circles"))
+    {
+        //  RenderCircles(int Count,int Steps, bool Strobe)
+        buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
+                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Size")]),
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"));
     }
 }
 
@@ -1033,6 +1042,12 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderPiano(Slider_Piano1_Keyboard->GetValue());
         break;
 
+    case eff_CIRCLES:
+        buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
+                             Slider_Circles1_Size->GetValue(),
+                             CheckBox_Circles1_Bounce->GetValue());
+        break;
+
     }
 
     // render effect 2
@@ -1138,6 +1153,11 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
         break;
 
+    case eff_CIRCLES:
+        buffer.RenderCircles(Slider_Circles2_Count->GetValue(),
+                             Slider_Circles2_Size->GetValue(),
+                             CheckBox_Circles2_Bounce->GetValue());
+        break;
     }
     buffer.CalcOutput();
     DisplayEffectOnWindow();

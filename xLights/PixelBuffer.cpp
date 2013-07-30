@@ -390,3 +390,8 @@ void PixelBufferClass::RenderPiano(int Keyboard)
 {
     Effect[CurrentLayer].RenderPiano(Keyboard);
 }
+
+void PixelBufferClass::RenderCircles(int Count,int Steps, bool Strobe)
+{
+    Effect[CurrentLayer].RenderCircles( Count, Steps,  Strobe);
+}

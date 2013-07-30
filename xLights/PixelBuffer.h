@@ -87,7 +87,8 @@ public:
     void RenderTree(int Branches);
     void RenderSpirograph(int R, int r, int d, bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
-     void RenderPiano(int Keyboard);
+    void RenderPiano(int Keyboard);
+    void RenderCircles(int Count,int Steps, bool Strobe);
     void CalcOutput();
 };
 
