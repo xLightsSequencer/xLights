@@ -30,23 +30,60 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     int ii;
     int colorIdx;
     size_t colorCnt = palette.Size();
-    wxColor color;
+    wxImage::HSVValue hsv;
+    float spd;
+    float angle;
+
+    if (radial)
+    {
+        RenderRadial(start_x, start_y, radius, colorCnt);
+        return; //radial is the easiest case so just get out.
+    }
 
     if ( 0 == state )
     {
         for(ii=0; ii<number; ii++)
         {
-            /*
+            start_x = rand()%(BufferWi-2*radius) + radius;
+            start_y = rand()%(BufferHt-2*radius) + radius;
             colorIdx = ii%colorCnt;
-            palette.GetColor(colorIdx, &color);
-            balls[ii].Initialize((float) start_x, (float) start_y, spd, angle, radius, color);
-            */
+            palette.GetHSV(colorIdx, hsv);
+            spd = rand()%5;
+            angle = rand()%90;
+            balls[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+        }
+    }
+    else
+    {
+        RenderCirclesUpdate(number);
+    }
+
+    if (bounce)
+    {
+        //update position in case something hit a wall
+    }
+    if(collide)
+    {
+        //update position if two balls collided
+    }
+
+    for (ii=0; ii<number; ii++)
+    {
+        hsv = balls[ii].hsvcolor;
+        for(int r = balls[ii]._radius; r >= 0; r--)
+        {
+            DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
         }
     }
 
-    if (radial)
+}
+
+void RgbEffects::RenderCirclesUpdate(int ballCnt)
+{
+    int ii;
+    for (ii=0; ii <ballCnt; ii++)
     {
-        RenderRadial(start_x, start_y, radius, colorCnt);
+        balls[ii].updatePosition(speed);
     }
 }
 

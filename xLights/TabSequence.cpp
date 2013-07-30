@@ -900,11 +900,16 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Circles"))
     {
-        //  RenderCircles(int Count,int Steps, bool Strobe)
-        /*buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
+
+        buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Size")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"));*/
-        //buffer.RenderRadial(buffer.BufferWi/2, buffer.BufferHt/2,4, 4);
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"),
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Collide")]==wxT("1"),
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Random_m")]==wxT("1"),
+                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Radial")]==wxT("1"),
+                             buffer.BufferWi/2, buffer.BufferHt/2
+                             );
+
     }
 
 }
@@ -1045,11 +1050,16 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         break;
 
     case eff_CIRCLES:
-        /*buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
+        buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
                              Slider_Circles1_Size->GetValue(),
-                             CheckBox_Circles1_Bounce->GetValue());
-        buffer.RenderRadial(buffer.BufferWi/2, buffer.BufferHt/2,4, 4);
-	*/
+                             CheckBox_Circles1_Bounce->GetValue(),
+                             CheckBox_Circles1_Collide->GetValue(),
+                             CheckBox_Circles1_Random_m->GetValue(),
+                             CheckBox_Circles1_Radial->GetValue(),
+                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
+                             );
+
+        break;
     }
 
     // render effect 2
@@ -1155,10 +1165,16 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
         break;
 
+
     case eff_CIRCLES:
         buffer.RenderCircles(Slider_Circles2_Count->GetValue(),
                              Slider_Circles2_Size->GetValue(),
-                             CheckBox_Circles2_Bounce->GetValue());
+                             CheckBox_Circles2_Bounce->GetValue(),
+                             CheckBox_Circles2_Collide->GetValue(),
+                             CheckBox_Circles2_Random_m->GetValue(),
+                             CheckBox_Circles2_Radial->GetValue(),
+                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
+                             );
         break;
     }
     buffer.CalcOutput();

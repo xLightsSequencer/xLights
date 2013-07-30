@@ -77,16 +77,16 @@ public:
     float _dx;
     float _dy;
     float _radius;
-    wxColor _color;
+    wxImage::HSVValue hsvcolor;
 
-    void Reset(float x, float y, float speed, float angle, float radius, wxColor color)
+    void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
     {
         _x=x;
         _y=y;
         _dx=speed*cos(angle);
         _dy=speed*sin(angle);
         _radius = radius;
-        _color = color;
+        hsvcolor = color;
     }
 
     void updatePosition(float incr)
@@ -225,9 +225,7 @@ public:
     void RenderSpirograph(int R, int r, int d,bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
-    void RenderCircles(int Count,int Steps, bool Strobe);
 
-    void RenderRadial(int x, int y,int thickness, int colorCnt);
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                         bool radial, int start_x, int start_y);
 
@@ -296,6 +294,8 @@ protected:
     long old_longsecs[1],timer_countdown[1];
 
 private:
+    void RenderRadial(int start_x,int start_y,int radius,int colorCnt);
+    void RenderCirclesUpdate(int number);
 };
 
 #endif // XLIGHTS_RGBEFFECTS_H

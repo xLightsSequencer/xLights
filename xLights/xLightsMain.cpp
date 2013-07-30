@@ -2607,7 +2607,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
 //   scm, causes crash if we remove this    Choicebook1->RemovePage(eff_CIRCLES);
 //   Choicebook2->RemovePage(eff_CIRCLES);
->>>>>>> radial is now working.
+
 }
 
 xLightsFrame::~xLightsFrame()

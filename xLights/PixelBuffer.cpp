@@ -391,12 +391,8 @@ void PixelBufferClass::RenderPiano(int Keyboard)
     Effect[CurrentLayer].RenderPiano(Keyboard);
 }
 
-void PixelBufferClass::RenderCircles(int Count,int Steps, bool Strobe)
+void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+                               bool radial, int start_x, int start_y)
 {
-    Effect[CurrentLayer].RenderCircles( Count, Steps,  Strobe);
-}
-
-void PixelBufferClass::RenderRadial(int x, int y,int thickness, int colorCnt)
-{
-    Effect[CurrentLayer].RenderRadial(x,y,thickness,colorCnt);
+    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, start_x, start_y);
 }
