@@ -33,6 +33,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     wxImage::HSVValue hsv;
     float spd;
     float angle;
+    static int numBalls = 0;
 
     if (radial)
     {
@@ -40,8 +41,9 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         return; //radial is the easiest case so just get out.
     }
 
-    if ( 0 == state )
+    if ( 0 == state || radius != balls[ii]._radius || number != numBalls)
     {
+        numBalls = number;
         for(ii=0; ii<number; ii++)
         {
             start_x = rand()%(BufferWi-2*radius) + radius;
@@ -61,6 +63,10 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     if (bounce)
     {
         //update position in case something hit a wall
+        for(ii = 0; ii < number; ii++)
+        {
+            balls[ii].Bounce(BufferWi,BufferHt);
+        }
     }
     if(collide)
     {
@@ -72,7 +78,14 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         hsv = balls[ii].hsvcolor;
         for(int r = balls[ii]._radius; r >= 0; r--)
         {
-            DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
+            if(!bounce && !collide)
+            {
+                DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
+            }
+            else
+            {
+                DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
+            }
         }
     }
 
@@ -83,25 +96,27 @@ void RgbEffects::RenderCirclesUpdate(int ballCnt)
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        balls[ii].updatePosition(speed, BufferWi, BufferHt);
+        balls[ii].updatePosition(speed/4, BufferWi, BufferHt);
     }
 }
 
 void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
 {
     wxImage::HSVValue hsv;
-    int ii;
+    int ii,n;
     int colorIdx;
-    int maxRadius = state + thickness;
+    int barht = BufferHt/thickness+1;
+    int maxRadius = state>BufferHt?BufferHt: state/2 + thickness;
+    int blockHt = colorCnt*barht;
+    int f_offset = state/4 % blockHt+1;
 
     palette.GetHSV(0,hsv);
     for( ii = maxRadius ; ii >= 0;  ii--)
     {
-        if ( 0 == ii%thickness)
-        {
-            colorIdx = (colorIdx+1)%colorCnt;
-            palette.GetHSV(colorIdx,hsv);
-        }
+        n=ii-f_offset+blockHt;
+        colorIdx = (n)%blockHt/barht;
+        palette.GetHSV(colorIdx,hsv);
+
         DrawCircle(x, y, ii, hsv);
     }
 }

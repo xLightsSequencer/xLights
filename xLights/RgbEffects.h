@@ -99,6 +99,14 @@ public:
         _y = _y<0?height:_y;
     }
 
+    void Bounce(int width, int height)
+    {
+        _dx = _x-_radius<=0? -_dx:_dx;
+        _dx = _x+_radius>=width?-_dx:_dx;
+        _dy = _y-_radius<=0?-_dy:_dy;
+        _dy = _y+_radius>=height?-_dy:_dy;
+    }
+
 };
 
 // for meteor effect
@@ -250,6 +258,9 @@ protected:
 
     void DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv);
     void CirclePlot(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
+
+    void DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv);
+    void CirclePlotClipped(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);

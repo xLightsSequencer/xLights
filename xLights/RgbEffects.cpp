@@ -209,6 +209,36 @@ void RgbEffects::CirclePlot(int xc, int yc, int x, int y, const wxImage::HSVValu
     SetPixel((xc+y)%BufferWi,(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
     SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
 }
+void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv)
+{
+    int x, y, p;
+    x=0;y=r;
+    p=1-r;
+    CirclePlotClipped(xc,yc,x,y, hsv);
+    while(x<y)
+    {
+        x++;
+        if(p<0)
+            p+=2*x+1;
+        else
+        {
+            y--;
+            p+=2*(x-y)+1;
+        }
+        CirclePlotClipped(xc,yc,x,y, hsv);
+    }
+}
+void RgbEffects::CirclePlotClipped(int xc, int yc, int x, int y, const wxImage::HSVValue& hsv)
+{
+    SetPixel(xc+x,yc+y,hsv);
+    SetPixel(xc-x,yc+y,hsv);
+    SetPixel(xc+x,yc-y,hsv);
+    SetPixel(xc-x,yc-y,hsv);
+    SetPixel(xc+y,yc+x,hsv);
+    SetPixel(xc-y,yc+x,hsv);
+    SetPixel(xc+y,yc-x,hsv);
+    SetPixel(xc-y,yc-x,hsv);
+}
 
 // 0,0 is lower left
 void RgbEffects::GetPixel(int x, int y, wxColour &color)
