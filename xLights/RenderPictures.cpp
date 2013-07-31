@@ -144,8 +144,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int imght=image.GetHeight();
     int yoffset=(BufferHt+imght)/2;
     int xoffset=(imgwidth-BufferWi)/2;
-    int limit=(dir < 2) ? imgwidth+BufferWi : imght+BufferHt;
-    int movement=(state % (limit*speedfactor)) / speedfactor;
 
 // copy image to buffer
     wxColour c;
@@ -160,26 +158,15 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
                 switch (dir)
                 {
-                case 0:
-                    // left
-                    SetPixel(x+BufferWi-movement,yoffset-y,c);
-                    break;
-                case 1:
-                    // right
-                    SetPixel(x+movement-imgwidth,yoffset-y,c);
-                    break;
-                case 2:
-                    // up
-                    SetPixel(x-xoffset,movement-y,c);
-                    break;
-                case 3:
-                    // down
-                    SetPixel(x-xoffset,BufferHt+imght-y-movement,c);
-                    break;
-                default:
-                    // no movement - centered
-                    SetPixel(x-xoffset,yoffset-y,c);
-                    break;
+                case 0: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,yoffset-y,c); break; // left
+                case 1: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,yoffset-y,c); break; // right
+                case 2: SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up
+                case 3: SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down
+                case 5: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up-left
+                case 6: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down-left
+                case 7: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up-right
+                case 8: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down-right
+                default: SetPixel(x-xoffset,yoffset-y,c); break; // no movement - centered
                 }
             }
         }
