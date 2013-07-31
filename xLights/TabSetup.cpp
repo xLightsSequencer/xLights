@@ -254,7 +254,7 @@ void xLightsFrame::SetChannelNamesForRgbModel(wxArrayString& ChNames, wxXmlNode*
     size_t ChannelNum=model.StartChannel-1;
     size_t NodeCount=model.GetNodeCount();
     wxString FormatSpec = wxT("Ch %d: ")+model.name+wxT(" node %d %c");
-    for(size_t i=0; i < NodeCount && ChannelNum+2 < ChNames.Count(); i++)
+    for(size_t i=0; i < NodeCount && ChannelNum+2 < ChNames.Count(); i++,ChannelNum=model.Nodes[i].ActChan)
     {
         for(size_t j=0; j < 3; j++)
         {
