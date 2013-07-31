@@ -130,6 +130,7 @@
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="RenderBars.cpp" />
 		<Unit filename="RenderButterfly.cpp" />
+		<Unit filename="RenderCircles.cpp" />
 		<Unit filename="RenderColorWash.cpp" />
 		<Unit filename="RenderFire.cpp" />
 		<Unit filename="RenderFireworks.cpp" />
