@@ -41,7 +41,6 @@ void RgbEffects::RenderPiano(int Keyboard)
     case 2: // medium keyboard
     {
         width=2;
-
         height=5;
         break;
     }

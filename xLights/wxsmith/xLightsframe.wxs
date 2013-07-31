@@ -2751,8 +2751,17 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
+																												<label>Radial</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Collide" variable="CheckBox_Circles1_Collide" member="yes">
 																												<label>Collide</label>
+																												<hidden>1</hidden>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2761,14 +2770,7 @@
 																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Random_m" variable="CheckBox_Circles1_Random_m" member="yes">
 																												<label>Random Motion</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
-																												<label>Radial</label>
+																												<hidden>1</hidden>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>

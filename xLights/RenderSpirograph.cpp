@@ -21,14 +21,14 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
     d=xc*(int_d/100.0);
 
     //  palette.GetHSV(1, hsv1);
-//
-//    A hypotrochoid is a roulette traced by a point attached to a circle of radius r rolling around the inside of a fixed circle of radius R, where the point is a distance d from the center of the interior circle.
-//The parametric equations for a hypotrochoid are:[citation needed]
-//
-//  more info: http://en.wikipedia.org/wiki/Hypotrochoid
-//
-//x(t) = (R-r) * cos t + d*cos ((R-r/r)*t);
-//y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
+    //
+    //    A hypotrochoid is a roulette traced by a point attached to a circle of radius r rolling around the inside of a fixed circle of radius R, where the point is a distance d from the center of the interior circle.
+    //The parametric equations for a hypotrochoid are:[citation needed]
+    //
+    //  more info: http://en.wikipedia.org/wiki/Hypotrochoid
+    //
+    //x(t) = (R-r) * cos t + d*cos ((R-r/r)*t);
+    //y(t) = (R-r) * sin t + d*sin ((R-r/r)*t);
 
     mod1440  = state%1440;
     state360 = state%360;

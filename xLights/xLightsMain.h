@@ -593,9 +593,9 @@ private:
     static const long ID_STATICTEXT138;
     static const long ID_SLIDER_Circles1_Size;
     static const long ID_CHECKBOX_Circles1_Bounce;
+    static const long ID_CHECKBOX_Circles1_Radial;
     static const long ID_CHECKBOX_Circles1_Collide;
     static const long ID_CHECKBOX_Circles1_Random_m;
-    static const long ID_CHECKBOX_Circles1_Radial;
     static const long ID_PANEL37;
     static const long ID_STATICTEXT141;
     static const long ID_SLIDER_Piano1_Keyboard;

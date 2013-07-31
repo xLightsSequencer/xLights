@@ -37,6 +37,7 @@ typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 
+#define rgb_MAX_BALLS 20
 
 class RgbFireworks
 {
@@ -66,6 +67,46 @@ public:
     }
 protected:
 private:
+};
+
+class RgbBalls
+{
+public:
+    float _x;
+    float _y;
+    float _dx;
+    float _dy;
+    float _radius;
+    wxImage::HSVValue hsvcolor;
+
+    void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
+    {
+        _x=x;
+        _y=y;
+        _dx=speed*cos(angle);
+        _dy=speed*sin(angle);
+        _radius = radius;
+        hsvcolor = color;
+    }
+
+    void updatePosition(float incr, int width, int height)
+    {
+        _x+=_dx*incr;
+        _x = _x>width?0:_x;
+        _x = _x<0?width:_x;
+        _y+=_dy*incr;
+        _y = _y>height?0:_y;
+        _y = _y<0?height:_y;
+    }
+
+    void Bounce(int width, int height)
+    {
+        _dx = _x-_radius<=0? -_dx:_dx;
+        _dx = _x+_radius>=width?-_dx:_dx;
+        _dy = _y-_radius<=0?-_dy:_dy;
+        _dy = _y+_radius>=height?-_dy:_dy;
+    }
+
 };
 
 // for meteor effect
@@ -196,7 +237,11 @@ public:
     void RenderSpirograph(int R, int r, int d,bool Animate);
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
-    void RenderCircles(int Count,int Steps, bool Strobe);
+
+    void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+                        bool radial, int start_x, int start_y);
+
+
 
 protected:
     void SetPixel(int x, int y, const wxColour &color);
@@ -213,6 +258,9 @@ protected:
 
     void DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv);
     void CirclePlot(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
+
+    void DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv);
+    void CirclePlotClipped(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
@@ -256,10 +304,13 @@ protected:
     int speed;
     int lastperiod;
     RgbFireworks fireworkBursts[20000];
+    RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long old_longsecs[1],timer_countdown[1];
 
 private:
+    void RenderRadial(int start_x,int start_y,int radius,int colorCnt);
+    void RenderCirclesUpdate(int number);
 };
 
 #endif // XLIGHTS_RGBEFFECTS_H
