@@ -2737,6 +2737,7 @@
 																											<object class="wxSlider" name="ID_SLIDER_Circles1_Size" variable="Slider_Circles1_Size" member="yes">
 																												<value>5</value>
 																												<min>1</min>
+																												<max>20</max>
 																											</object>
 																											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2751,8 +2752,17 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
+																												<label>Radial</label>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Collide" variable="CheckBox_Circles1_Collide" member="yes">
 																												<label>Collide</label>
+																												<hidden>1</hidden>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2761,14 +2771,7 @@
 																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Random_m" variable="CheckBox_Circles1_Random_m" member="yes">
 																												<label>Random Motion</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
-																												<label>Radial</label>
+																												<hidden>1</hidden>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2776,7 +2779,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles</label>
+																								<label>Circles (Under Development)</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
@@ -2791,7 +2794,7 @@
 																										<pos>136,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano (under development)</label>
+																								<label>Piano (Under Development)</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -4219,7 +4222,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles</label>
+																								<label>Circles (Under Development)</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL44" variable="Panel2_Piano" member="yes">
@@ -4234,7 +4237,7 @@
 																										<pos>120,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano (Under Development)</label>
+																								<label>Piano</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
