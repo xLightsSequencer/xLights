@@ -21,6 +21,7 @@
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
 #include <cmath>
+#include <wx/pen.h>
 #include "RgbEffects.h"
 
 void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
@@ -37,6 +38,13 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
     int BlockHt=colorcnt * BarHt;
     if(BlockHt<1) BlockHt=1;
     int f_offset = state/4 % BlockHt;
+    wxImage img;
+    wxImage::RGBValue rgb;
+    wxBitmap bitmap(BufferWi, BufferHt);
+    wxMemoryDC dc(bitmap);
+
+    wxColor color;
+
     for (y=0; y<BufferHt; y++)
     {
         switch (Direction)
@@ -70,9 +78,28 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         palette.GetHSV(ColorIdx, hsv);
         if (Highlight && IsHighlightRow) hsv.saturation=0.0;
         if (Show3D) hsv.value *= double(pixel_ratio) / BarHt;
-        for (x=0; x<BufferWi; x++)
+        rgb = wxImage::HSVtoRGB(hsv);
+
+        dc.SetPen(wxPen(wxColor(rgb.red, rgb.green, rgb.blue),1,wxSOLID));
+        dc.DrawLine(0,y,BufferWi,y);
+
+        /*for (x=0; x<BufferWi; x++)
         {
             SetPixel(x,y,hsv);
+        }
+        */
+    }
+    bitmap  = dc.GetAsBitmap();
+    img = bitmap.ConvertToImage();
+    wxImage img2 =img.Rotate90();
+    wxBitmap bitmap2(img2);
+    wxMemoryDC dc2(bitmap2);
+    for(y=0;y<BufferHt;y++)
+    {
+        for(x=0;x<BufferWi;x++)
+        {
+            dc2.GetPixel(x,y,&color);
+            SetPixel(x,y,color);
         }
     }
 }

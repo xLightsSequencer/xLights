@@ -48,8 +48,8 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
             start_y = rand()%(BufferHt-2*radius) + radius;
             colorIdx = ii%colorCnt;
             palette.GetHSV(colorIdx, hsv);
-            spd = rand()%5;
-            angle = rand()%90;
+            spd = rand()%3 + 1;
+            angle = rand()%2?rand()%90:-rand()%90;
             balls[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
         }
     }
@@ -83,7 +83,7 @@ void RgbEffects::RenderCirclesUpdate(int ballCnt)
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        balls[ii].updatePosition(speed);
+        balls[ii].updatePosition(speed, BufferWi, BufferHt);
     }
 }
 

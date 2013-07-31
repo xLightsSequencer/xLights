@@ -200,14 +200,14 @@ void RgbEffects::DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv)
 
 void RgbEffects::CirclePlot(int xc, int yc, int x, int y, const wxImage::HSVValue& hsv)
 {
-    SetPixel(xc+x,yc+y,hsv);
-    SetPixel(xc-x,yc+y,hsv);
-    SetPixel(xc+x,yc-y,hsv);
-    SetPixel(xc-x,yc-y,hsv);
-    SetPixel(xc+y,yc+x,hsv);
-    SetPixel(xc-y,yc+x,hsv);
-    SetPixel(xc+y,yc-x,hsv);
-    SetPixel(xc-y,yc-x,hsv);
+    SetPixel((xc+x)%BufferWi,(yc+y)%BufferHt,hsv);
+    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc+y)%BufferHt,hsv);
+    SetPixel((xc+x)%BufferWi,(yc-y)<0?BufferHt+(yc-y):(yc-y),hsv);
+    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc-y)<0?BufferHt+(yc-y):(yc-y),hsv);
+    SetPixel((xc+y)%BufferWi,(yc+x)%BufferHt,hsv);
+    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc+x)%BufferHt,hsv);
+    SetPixel((xc+y)%BufferWi,(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
+    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
 }
 
 // 0,0 is lower left

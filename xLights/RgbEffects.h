@@ -89,10 +89,14 @@ public:
         hsvcolor = color;
     }
 
-    void updatePosition(float incr)
+    void updatePosition(float incr, int width, int height)
     {
         _x+=_dx*incr;
+        _x = _x>width?0:_x;
+        _x = _x<0?width:_x;
         _y+=_dy*incr;
+        _y = _y>height?0:_y;
+        _y = _y<0?height:_y;
     }
 
 };
