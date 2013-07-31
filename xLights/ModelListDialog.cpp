@@ -78,9 +78,10 @@ ModelListDialog::~ModelListDialog()
 
 void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 {
-    int DlgResult;
+    int DlgResult, ii;
     bool ok;
     wxString name;
+    wxString strText = wxT("String");
     ModelDialog dialog(this);
     do
     {
@@ -123,6 +124,15 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
                 e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
                 ListBox1->Append(name,e);
+                if (dialog.cbIndividualStartNumbers->IsChecked())
+                {
+                    e->AddAttribute(wxT("Advanced"), wxT("1"));
+                    for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
+                    {
+                        e->AddAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))),
+                                        dialog.gridStartChannels->GetCellValue(ii,0));
+                    }
+                }
             }
         }
     }

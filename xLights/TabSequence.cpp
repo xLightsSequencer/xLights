@@ -268,7 +268,6 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     return NewXml;
 }
 
-
 wxString xLightsFrame::CreateEffectStringRandom()
 {
     int eff1, eff2, layerOp;
@@ -901,6 +900,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
     }
     else if (effect == wxT("Circles"))
     {
+
         buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Size")]),
                              SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"),
@@ -909,7 +909,9 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                              SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Radial")]==wxT("1"),
                              buffer.BufferWi/2, buffer.BufferHt/2
                              );
+
     }
+
 }
 
 
@@ -942,11 +944,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         MixTypeChanged=false;
     }
 
-    int Selection;
     // render effect 1
     buffer.SetLayer(0,EffectPeriod,Slider_Speed1->GetValue(),ResetEffectState[0]);
     ResetEffectState[0]=false;
-    Selection=Choicebook1->GetSelection();
     switch (Choicebook1->GetSelection())
     {
     case eff_NONE:
@@ -1039,15 +1039,15 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                 Slider_Spirograph1_d->GetValue(),
                                 CheckBox_Spirograph1_Animate->GetValue());
         break;
-
     case eff_FIREWORKS:
         buffer.RenderFireworks(Slider_Fireworks1_Number_Explosions->GetValue(),
                                Slider_Fireworks1_Count->GetValue(),
                                Slider_Fireworks1_Velocity->GetValue(),
                                Slider_Fireworks1_Fade->GetValue());
         break;
-
-
+    case eff_PIANO:
+        buffer.RenderPiano(Slider_Piano1_Keyboard->GetValue());
+        break;
 
     case eff_CIRCLES:
         buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
@@ -1058,9 +1058,6 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Circles1_Radial->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
                              );
-        break;
-    case eff_PIANO:
-        buffer.RenderPiano(Slider_Piano1_Keyboard->GetValue());
 
         break;
     }
@@ -1164,7 +1161,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                                Slider_Fireworks2_Velocity->GetValue(),
                                Slider_Fireworks2_Fade->GetValue());
         break;
-
+    case eff_PIANO:
+        buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
+        break;
 
 
     case eff_CIRCLES:
@@ -1176,10 +1175,6 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Circles2_Radial->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
                              );
-        break;
-
-    case eff_PIANO:
-        buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
         break;
     }
     buffer.CalcOutput();
@@ -2028,8 +2023,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                ColName=Grid1->GetColLabelValue(c);
-                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
+                StatusBar1->SetStatusText(_(wxString::Format(wxT("Saving row %ld"),NextGridRowToPlay+1)));
 
                 LoadEffectFromString(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
                 // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
