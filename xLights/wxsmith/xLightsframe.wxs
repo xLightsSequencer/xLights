@@ -1397,7 +1397,6 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
 																							<label>Play</label>
-																							<size>59,23</size>
 																							<bg>#00FF00</bg>
 																							<tooltip>Play from current grid cell</tooltip>
 																							<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
@@ -1479,7 +1478,6 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
 																							<label>Export</label>
-																							<size>52,23</size>
 																							<bg>#E0E0E0</bg>
 																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
 																						</object>
@@ -1490,6 +1488,7 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON4" variable="Button1" member="yes">
 																							<label>Create Random Effects</label>
+																							<bg>#E0E0E0</bg>
 																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
