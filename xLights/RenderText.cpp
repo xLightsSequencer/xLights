@@ -239,6 +239,10 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         case 1: rect.Offset(state % xlimit/8 - xlimit/16, OffsetTop); break; // right
         case 2: rect.Offset(OffsetLeft, ylimit/16 - state % ylimit/8); break; // up
         case 3: rect.Offset(OffsetLeft, state % ylimit/8 - ylimit/16); break; // down
+        case 5: rect.Offset(xlimit/16 - state % xlimit/8, ylimit/16 - state % ylimit/8); break; // up-left
+        case 6: rect.Offset(xlimit/16 - state % xlimit/8, state % ylimit/8 - ylimit/16); break; // down-left
+        case 7: rect.Offset(state % xlimit/8 - xlimit/16, ylimit/16 - state % ylimit/8); break; // up-right
+        case 8: rect.Offset(state % xlimit/8 - xlimit/16, state % ylimit/8 - ylimit/16); break; // down-right
         default: rect.Offset(0, OffsetTop); break; // static
         }
         dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
@@ -249,6 +253,10 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         case 1: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation); break; // right
         case 2: dc.DrawRotatedText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up
         case 3: dc.DrawRotatedText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation); break; // down
+        case 5: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up-left
+        case 6: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation); break; // down-left
+        case 7: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up-right
+        case 8: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation); break; // down-right
         default: dc.DrawRotatedText(msg, 0, OffsetTop, TextRotation); break; // static
         }
     }
