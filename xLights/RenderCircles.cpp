@@ -48,8 +48,8 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         numBalls = number;
         for(ii=0; ii<number; ii++)
         {
-            start_x = rand()%(BufferWi-2*radius) + radius;
-            start_y = rand()%(BufferHt-2*radius) + radius;
+            start_x = rand()%(BufferWi);
+            start_y = rand()%(BufferHt);
             colorIdx = ii%colorCnt;
             palette.GetHSV(colorIdx, hsv);
             spd = rand()%3 + 1;
