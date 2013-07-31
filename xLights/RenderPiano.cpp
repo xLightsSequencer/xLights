@@ -64,7 +64,7 @@ void RgbEffects::RenderPiano(int Keyboard)
 
     int x_start=1;
     int x_end,y_end2;
-    y_end2 = y_start+height/2;
+    y_end2 = y_start+2*(height/3);
 
 
 
@@ -109,7 +109,7 @@ void RgbEffects::RenderPiano(int Keyboard)
             hsv.saturation=.50;
             hsv.value=.70;
 
-            if((int)(state/100)%2 == 1)
+            if((int)((state/100)+keys)%2 == 1)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
@@ -124,7 +124,7 @@ void RgbEffects::RenderPiano(int Keyboard)
                         SetPixel(x,y,hsv);
                     }
                 }
-                int y_end2 = y_start+height/2;
+
                 for (y=y_start; y<=y_end2; y++)
                 {
                     SetPixel(x_end,y,hsv);
@@ -141,7 +141,7 @@ void RgbEffects::RenderPiano(int Keyboard)
             hsv.hue=.71;
             hsv.saturation=.43;
             hsv.value=.79;
-            if((int)(state/100)%2 == 0)
+            if((int)((state/100)+keys)%2 == 0)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
@@ -155,6 +155,7 @@ void RgbEffects::RenderPiano(int Keyboard)
                 }
             }
         }
+
         case 3: // D
         case 8: // G
         case 10: // A
@@ -163,13 +164,38 @@ void RgbEffects::RenderPiano(int Keyboard)
             hsv.hue=.48;
             hsv.saturation=.73;
             hsv.value=.74;
-            if((int)(state/100)%3 == 0)
+            if((int)((state/100)+keys)%3 == 1)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
                 hsv.value=.90;
             }
-           if(Keyboard==3)
+            if(Keyboard==3)
+            {
+
+                for (y=y_start; y<=y_end; y++)
+                {
+                    SetPixel(x_start+1,y,hsv);
+                }
+
+
+                for (y=y_start; y<=y_end2; y++)
+                {
+                    SetPixel(x_start,y,hsv);
+                    SetPixel(x_end,y,hsv);
+                }
+            }
+        }
+
+        case 5: // E
+        case 0: // B
+        {
+            // hsv.hue=0.2  + (state%10)/10;
+            hsv.hue=.71;
+            hsv.saturation=.43;
+            hsv.value=.79;
+
+            if(Keyboard==3)
             {
                 for(x=x_start+1; x<=x_end; x++)
                 {
@@ -182,21 +208,6 @@ void RgbEffects::RenderPiano(int Keyboard)
                 for (y=y_start; y<=y_end2; y++)
                 {
                     SetPixel(x_start,y,hsv);
-                }
-            }
-        }
-
-        case 5: // E
-        case 0: // B
-        {
-            // hsv.hue=0.2  + (state%10)/10;
-            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
-
-            for(x=x_start; x<=x_end; x++)
-            {
-                for (y=y_start; y<=y_end; y++)
-                {
-                    SetPixel(x,y,hsv);
                 }
             }
         }
