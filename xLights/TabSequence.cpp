@@ -2353,7 +2353,7 @@ void xLightsFrame::DisplayEffectOnWindow()
     }
     else
     {
-        dc.SetDeviceOrigin(w/2,h-1); // set origin at bottom center
+        dc.SetDeviceOrigin(w/2,h); // set origin at bottom center
     }
     double scaleX = double(w) / buffer.RenderWi;
     double scaleY = double(h) / buffer.RenderHt;
@@ -2386,7 +2386,6 @@ void xLightsFrame::DisplayEffectOnWindow()
         sy=buffer.Nodes[i].screenY;
         //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
         dc.DrawPoint(sx,sy);
-
     }
 }
 
