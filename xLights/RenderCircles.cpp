@@ -28,7 +28,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
                                bool radial, int start_x, int start_y)
 {
 
-    int ii;
+    int ii=0;
     int colorIdx;
     size_t colorCnt = palette.Size();
     wxImage::HSVValue hsv;
@@ -107,10 +107,10 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
     wxImage::HSVValue hsv;
     int ii,n;
     int colorIdx;
-    int barht = BufferHt/thickness+1;
+    int barht = BufferHt/(thickness+1);
     int maxRadius = state>BufferHt?BufferHt: state/2 + thickness;
     int blockHt = colorCnt*barht;
-    int f_offset = state/4 % blockHt+1;
+    int f_offset = state/4 % (blockHt+1);
 
     palette.GetHSV(0,hsv);
     for( ii = maxRadius ; ii >= 0;  ii--)
