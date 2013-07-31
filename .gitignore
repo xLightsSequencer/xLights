@@ -3,3 +3,5 @@ bin/*.dll
 bin/*.exe
 *.bak
 thumbs.db
+*.save
+*cscope*
