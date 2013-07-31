@@ -37,6 +37,7 @@ void RgbEffects::RenderTree(int Branches)
 
     if(Branches<1)  Branches=1;
     pixels_per_branch=(int)(0.5+BufferHt/Branches);
+    if(pixels_per_branch<1) pixels_per_branch=1;
 
     maxFrame=(Branches+1) *BufferWi;
     size_t colorcnt=GetColorCount();

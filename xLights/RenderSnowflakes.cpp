@@ -39,8 +39,10 @@ void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
         for (n=0; n < Count; n++)
         {
             delta_y=BufferHt/4;
+
             y0=(n % 4)*delta_y;
             if (y0+delta_y > BufferHt) delta_y = BufferHt-y0;
+             if(delta_y<1) delta_y=1;
             // find unused space
             for (check=0; check < 20; check++)
             {

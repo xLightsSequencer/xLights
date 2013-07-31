@@ -85,8 +85,10 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
     wxImage::HSVValue hsv;
 
 
-    if(HeightPct<1) HeightPct=1;
+
     if(GrowFire) HeightPct+=(state%500)/10;
+    if(HeightPct<1) HeightPct=1;
+    if(BufferHt<1) BufferHt=1;
 
     if (state == 0)
     {

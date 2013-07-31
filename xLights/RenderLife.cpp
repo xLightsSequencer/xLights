@@ -48,6 +48,7 @@ void RgbEffects::RenderLife(int Count, int Type)
     int i,x,y,cnt;
     bool isLive;
     wxColour color;
+    if(BufferHt<1) BufferHt=1;
     Count=BufferWi * BufferHt * Count / 200 + 1;
     if (state == 0 || Count != LastLifeCount || Type != LastLifeType)
     {

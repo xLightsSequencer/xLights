@@ -62,8 +62,8 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         y75=(int)BufferHt*0.75;
         startX=(int)BufferWi/2;
         startY=(int)BufferHt/2;
-        startX = x25 + rand()%(x75-x25);
-        startY = y25 + rand()%(y75-y25);
+        if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
+        if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
         // turn off all bursts
 
         // Create new bursts
