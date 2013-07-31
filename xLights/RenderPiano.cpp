@@ -96,7 +96,7 @@ void RgbEffects::RenderPiano(int Keyboard)
         keys_mod=keys%12;
         hsv.hue=0.0;
         hsv.saturation=1.0;
-        hsv.value=1.0;
+        hsv.value=0.5;
         hsv.hue=keys/22.0;
         switch (keys_mod)
         {
@@ -105,7 +105,16 @@ void RgbEffects::RenderPiano(int Keyboard)
         {
             // hsv.hue=0.2 + (state%10)/10;
             if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
+            hsv.hue=.28;
+            hsv.saturation=.50;
+            hsv.value=.70;
 
+            if((int)(state/100)%2 == 1)
+            {
+                hsv.hue=.18;
+                hsv.saturation=.71;
+                hsv.value=.90;
+            }
             if(Keyboard==3)
             {
                 for(x=x_start; x<x_end; x++)
@@ -129,9 +138,15 @@ void RgbEffects::RenderPiano(int Keyboard)
         case 11: // Bb
         {
             //  hsv.hue=0.4  + (state%10)/10;
-            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
-            hsv.saturation=0.0;
-
+            hsv.hue=.71;
+            hsv.saturation=.43;
+            hsv.value=.79;
+            if((int)(state/100)%2 == 0)
+            {
+                hsv.hue=.18;
+                hsv.saturation=.71;
+                hsv.value=.90;
+            }
             for(x=x_start-1 ; x<=x_start; x++)
             {
                 for (y=y_start; y<=y_end2; y++)
@@ -145,13 +160,28 @@ void RgbEffects::RenderPiano(int Keyboard)
         case 10: // A
         {
             // hsv.hue=0.6  + (state%10)/10;
-            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
-
-            for(x=x_start; x<=x_end; x++)
+            hsv.hue=.48;
+            hsv.saturation=.73;
+            hsv.value=.74;
+            if((int)(state/100)%3 == 0)
             {
-                for (y=y_start; y<=y_end; y++)
+                hsv.hue=.18;
+                hsv.saturation=.71;
+                hsv.value=.90;
+            }
+           if(Keyboard==3)
+            {
+                for(x=x_start+1; x<=x_end; x++)
                 {
-                    SetPixel(x,y,hsv);
+                    for (y=y_start; y<=y_end; y++)
+                    {
+                        SetPixel(x,y,hsv);
+                    }
+                }
+                int y_end2 = y_start+height/2;
+                for (y=y_start; y<=y_end2; y++)
+                {
+                    SetPixel(x_start,y,hsv);
                 }
             }
         }
