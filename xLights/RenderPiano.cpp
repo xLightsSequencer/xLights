@@ -49,44 +49,141 @@ void RgbEffects::RenderPiano(int Keyboard)
     {
         width=3;
         height=10;
+        width=6;
+        height=20;
         break;
     }
     }
-    //  BufferWi ,BufferHt
-    int y_start = BufferHt/2 - height;
-    int y_end = y_start + height;
-    int x_start=1;
-    int x_end;
 
     ColorIdx=rand() % colorcnt;
     palette.GetColor(ColorIdx,color);
     Color2HSV(color,hsv);
-    for (keys=1; keys<=14; keys++)
+
+    //  BufferWi ,BufferHt
+    int y_start = (int) ((BufferHt/2.0) - (height/2.0));
+    int y_end = y_start+height;
+
+    int x_start=1;
+    int x_end,y_end2;
+    y_end2 = y_start+height/2;
+
+
+
+//    for(x=1; x<BufferWi; x++)
+//        for(y=0; y<BufferHt; y++)
+//        {
+//            hsv.hue=((x*y)+state)/1000;
+//            if(hsv.hue>1.0) hsv.hue=.5;
+//            hsv.saturation=1.0;
+//            hsv.value=1.0;
+//
+//            SetPixel(x,y,hsv);
+//        }
+
+    hsv.hue=0.0;
+    hsv.saturation=1.0;
+    hsv.value=1.0;
+
+    //   Keys C,F Type 1
+    //  Keys D,G,A Type 2
+    //  Keys E,B Type 3
+    //  Keys C#,D#,F#,G#,A# Type 4
+
+
+    for (keys=1; keys<=21; keys++)
     {
+        int x_start=1+((keys-1)*width);
+        x_end=x_start+width-1;
         keys_mod=keys%12;
+        hsv.hue=0.0;
+        hsv.saturation=1.0;
+        hsv.value=1.0;
+        hsv.hue=keys/22.0;
         switch (keys_mod)
         {
         case 1: // C
+        case 6: // F
         {
-            x_end=x_start+(keys*width);
-            for(x=x_start; x<=x_end; x++)
+            // hsv.hue=0.2 + (state%10)/10;
+            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
+
+            if(Keyboard==3)
             {
-                for (y=y_start; yc<=y_end; y++)
+                for(x=x_start; x<x_end; x++)
                 {
-                    SetPixel(x,y,color);
+                    for (y=y_start; y<=y_end; y++)
+                    {
+                        SetPixel(x,y,hsv);
+                    }
+                }
+                int y_end2 = y_start+height/2;
+                for (y=y_start; y<=y_end2; y++)
+                {
+                    SetPixel(x_end,y,hsv);
                 }
             }
         }
-        default:
-       {
-            x_end=x_start+(keys*width);
-            for(x=x_start; x<=x_end; x++)
+        case 2: // C#
+        case 4: // Eb
+        case 7: // F#
+        case 9: // Ab
+        case 11: // Bb
+        {
+            //  hsv.hue=0.4  + (state%10)/10;
+            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
+            hsv.saturation=0.0;
+
+            for(x=x_start-1 ; x<=x_start; x++)
             {
-                for (y=y_start; yc<=y_end; y++)
+                for (y=y_start; y<=y_end2; y++)
                 {
-                    SetPixel(x,y,color);
+                    SetPixel(x,y,hsv);
                 }
             }
+        }
+        case 3: // D
+        case 8: // G
+        case 10: // A
+        {
+            // hsv.hue=0.6  + (state%10)/10;
+            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
+
+            for(x=x_start; x<=x_end; x++)
+            {
+                for (y=y_start; y<=y_end; y++)
+                {
+                    SetPixel(x,y,hsv);
+                }
+            }
+        }
+
+        case 5: // E
+        case 0: // B
+        {
+            // hsv.hue=0.2  + (state%10)/10;
+            if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
+
+            for(x=x_start; x<=x_end; x++)
+            {
+                for (y=y_start; y<=y_end; y++)
+                {
+                    SetPixel(x,y,hsv);
+                }
+            }
+        }
+
+        default:
+        {
+            //    for(x=1; x<BufferWi; x++)
+//        for(y=0; y<BufferHt; y++)
+//        {
+//            hsv.hue=((x*y)+state)/1000;
+//            if(hsv.hue>1.0) hsv.hue=.5;
+//            hsv.saturation=1.0;
+//            hsv.value=1.0;
+//
+//            SetPixel(x,y,hsv);
+//        }
         }
         } // switch (keys_mod)
     } //  for (keys=1; keys<=14; keys++)

@@ -26,6 +26,28 @@
 
 void RgbEffects::RenderCircles(int Count,int Steps, bool Strobe)
 {
+     wxImage::HSVValue hsv;
+    wxColour color;
+    int x,y,xc,yc,n,pixel_ratio,ColorIdx;
+    size_t colorcnt=GetColorCount();
+    int keys,keys_mod,width,height;
+
+     ColorIdx=rand() % colorcnt;
+    palette.GetColor(ColorIdx,color);
+    Color2HSV(color,hsv);
+
+    for(x=1; x<BufferWi; x++)
+        for(y=0; y<BufferHt; y++)
+        {
+            hsv.hue=((x*y)+state)/1000;
+            if(hsv.hue>1.0) hsv.hue=.5;
+            hsv.saturation=1.0;
+            hsv.value=1.0;
+
+            SetPixel(x,y,hsv);
+        }
+
+
 #if 0
     int x,y,i,i7,r,ColorIdx;
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar

@@ -2776,7 +2776,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles (Under Development)</label>
+																								<label>Circles (under dev)</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
@@ -2791,7 +2791,7 @@
 																										<pos>136,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano (Under Development)</label>
+																								<label>Piano</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

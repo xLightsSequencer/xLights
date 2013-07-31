@@ -1569,8 +1569,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
     Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
     Choicebook1->AddPage(Panel1_Fireworks, _("Fireworks"), false);
-    Choicebook1->AddPage(Panel1_Circles, _("Circles (Under Development)"), false);
-    Choicebook1->AddPage(Panel1_Piano, _("Piano (Under Development)"), false);
+    Choicebook1->AddPage(Panel1_Circles, _("Circles (under dev)"), false);
+    Choicebook1->AddPage(Panel1_Piano, _("Piano"), false);
     FlexGridSizer34->Add(Choicebook1, 1, wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Palette1 = new wxButton(Panel4, ID_BUTTON_Palette1, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
@@ -2558,36 +2558,36 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
      */
     EffectNames.clear();
     EffectNames.resize(eff_LASTEFFECT); //
-    EffectNames[eff_NONE]=wxT("None");
-    EffectNames[eff_BARS]=wxT("Bars");
-    EffectNames[eff_BUTTERFLY]=wxT("Butterfly");
-    EffectNames[eff_COLORWASH]=wxT("Color Wash");
-    EffectNames[eff_FIRE]=wxT("Fire");
-    EffectNames[eff_GARLANDS]=wxT("Garlands");
-    EffectNames[eff_LIFE]=wxT("Life");
-    EffectNames[eff_METEORS]=wxT("Meteors");
-    EffectNames[eff_PICTURES]=wxT("Pictures");
+    EffectNames[eff_NONE]      =wxT("None");
+    EffectNames[eff_BARS]      =wxT("Bars");
+    EffectNames[eff_BUTTERFLY] =wxT("Butterfly");
+    EffectNames[eff_COLORWASH] =wxT("Color Wash");
+    EffectNames[eff_FIRE]      =wxT("Fire");
+    EffectNames[eff_GARLANDS]  =wxT("Garlands");
+    EffectNames[eff_LIFE]      =wxT("Life");
+    EffectNames[eff_METEORS]   =wxT("Meteors");
+    EffectNames[eff_PICTURES]  =wxT("Pictures");
     EffectNames[eff_SNOWFLAKES]=wxT("Snowflakes");
-    EffectNames[eff_SNOWSTORM]=wxT("Snowstorm");
-    EffectNames[eff_SPIRALS]=wxT("Spirals");
-    EffectNames[eff_TEXT]=wxT("Text");
-    EffectNames[eff_TWINKLE]=wxT("Twinkle");
-    EffectNames[eff_TREE]=wxT("Tree");
+    EffectNames[eff_SNOWSTORM] =wxT("Snowstorm");
+    EffectNames[eff_SPIRALS]   =wxT("Spirals");
+    EffectNames[eff_TEXT]      =wxT("Text");
+    EffectNames[eff_TWINKLE]   =wxT("Twinkle");
+    EffectNames[eff_TREE]      =wxT("Tree");
     EffectNames[eff_SPIROGRAPH]=wxT("Spirograph");
-    EffectNames[eff_FIREWORKS]=wxT("Fireworks");
-    EffectNames[eff_PIANO]=wxT("Piano");
-    EffectNames[eff_CIRCLES]=wxT("Circles");
+    EffectNames[eff_FIREWORKS] =wxT("Fireworks");
+    EffectNames[eff_CIRCLES]   =wxT("Circles");
+    EffectNames[eff_PIANO]     =wxT("Piano");
 
     EffectLayerOptions.clear();
     EffectLayerOptions.resize(LASTLAYER);
-    EffectLayerOptions[EFFECT1]=wxT("Effect 1");
-    EffectLayerOptions[EFFECT2]=wxT("Effect 2");
-    EffectLayerOptions[EFF1MASK]=wxT("1 is Mask");
-    EffectLayerOptions[EFF2MASK]=wxT("2 is Mask");
-    EffectLayerOptions[EFF1UNMASK]=wxT("1 is Unmask");
-    EffectLayerOptions[EFF2UNMASK]=wxT("2 is Unmask");
-    EffectLayerOptions[EFFLAYERED]=wxT("Layered");
-    EffectLayerOptions[EFFAVERAGED]=wxT("Average");
+    EffectLayerOptions[EFFECT1]     =wxT("Effect 1");
+    EffectLayerOptions[EFFECT2]     =wxT("Effect 2");
+    EffectLayerOptions[EFF1MASK]    =wxT("1 is Mask");
+    EffectLayerOptions[EFF2MASK]    =wxT("2 is Mask");
+    EffectLayerOptions[EFF1UNMASK]  =wxT("1 is Unmask");
+    EffectLayerOptions[EFF2UNMASK]  =wxT("2 is Unmask");
+    EffectLayerOptions[EFFLAYERED]  =wxT("Layered");
+    EffectLayerOptions[EFFAVERAGED] =wxT("Average");
 
     if (RunFlag && !ShowEvents.IsEmpty())
     {

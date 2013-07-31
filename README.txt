@@ -10,6 +10,13 @@ such as megatrees, matrices, and arches.
 
 NUTCRACKER RELEASES
 -------------------
+BETA 3.0.24: Jul 30,2013 - Enhancement: (sean) Started development of Piano Keyboard. This is not complete. Will eventually use an input file from
+                           Audacity that will identify the polyphonic notes in a song.
+						   Enhancement: (matt) Many changes to text. Ghosting is now fixed. You no longer have to use the temporary fix of using
+						   "1 is unmask, 2 is color wash". Text now has 45 degrees rotation. Countdown timer can show seconds counting down or
+						   it can show "xx d yy h zz m aa s" display. countdown text is now centered correctly.
+						   Enhacement: (frankr) New effect for cirles (under development). 
+						   Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
 3.0.23: Jul 28,2013 - Enhancement: (sean) Fire effect now allows hue shift. You can now have green, blue fire. 
                     - Enhancement: (sean) Fire effect now has a "Grow Fire?". If you click yes, the height of the fire will grow over time
 					- Enhancement: (frankr) Before if you changed or created a sequence and then clicked exit, program would just exit and you would lose your
