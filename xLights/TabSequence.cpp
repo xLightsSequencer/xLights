@@ -908,7 +908,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                              SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Random_m")]==wxT("1"),
                              SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Radial")]==wxT("1"),
                              buffer.BufferWi/2, buffer.BufferHt/2
-                             );
+                            );
 
     }
 
@@ -1057,7 +1057,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Circles1_Random_m->GetValue(),
                              CheckBox_Circles1_Radial->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
-                             );
+                            );
 
         break;
     }
@@ -1174,7 +1174,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                              CheckBox_Circles2_Random_m->GetValue(),
                              CheckBox_Circles2_Radial->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
-                             );
+                            );
         break;
     }
     buffer.CalcOutput();
@@ -1660,6 +1660,7 @@ void fix_version_differences(wxString file)
     tfile.Close();
     f.Close();
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
+    wxRemoveFile(fileout); // get rid of temporary file
 }
 
 void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
@@ -2023,7 +2024,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                StatusBar1->SetStatusText(_(wxString::Format(wxT("Saving row %ld"),NextGridRowToPlay+1)));
+                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
 
                 LoadEffectFromString(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
                 // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
