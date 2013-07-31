@@ -2751,17 +2751,8 @@
 																											<option>1</option>
 																										</object>
 																										<object class="sizeritem">
-																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
-																												<label>Radial</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Collide" variable="CheckBox_Circles1_Collide" member="yes">
 																												<label>Collide</label>
-																												<hidden>1</hidden>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2770,7 +2761,14 @@
 																										<object class="sizeritem">
 																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Random_m" variable="CheckBox_Circles1_Random_m" member="yes">
 																												<label>Random Motion</label>
-																												<hidden>1</hidden>
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxCheckBox" name="ID_CHECKBOX_Circles1_Radial" variable="CheckBox_Circles1_Radial" member="yes">
+																												<label>Radial</label>
 																											</object>
 																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																											<border>5</border>
@@ -2778,7 +2776,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles (under dev)</label>
+																								<label>Circles</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
@@ -2793,7 +2791,7 @@
 																										<pos>136,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano</label>
+																								<label>Piano (under development)</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -4221,7 +4219,7 @@
 																										</object>
 																									</object>
 																								</object>
-																								<label>Circles (Under Development)</label>
+																								<label>Circles</label>
 																							</object>
 																							<object class="choicebookpage">
 																								<object class="wxPanel" name="ID_PANEL44" variable="Panel2_Piano" member="yes">
@@ -4236,7 +4234,7 @@
 																										<pos>120,32</pos>
 																									</object>
 																								</object>
-																								<label>Piano</label>
+																								<label>Piano (Under Development)</label>
 																							</object>
 																						</object>
 																						<flag>wxTOP|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
