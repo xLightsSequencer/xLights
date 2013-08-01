@@ -275,6 +275,7 @@ protected:
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
     void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown);
+    void SetEffectDuration(int startMsec, int endMsec);
 
     int BufferHt,BufferWi;  // size of the buffer
     wxColourVector pixels; // this is the calculation buffer
@@ -306,6 +307,7 @@ protected:
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long old_longsecs[1],timer_countdown[1];
+    int curEffStartPer, curEffEndPer;
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt);

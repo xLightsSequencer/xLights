@@ -1988,6 +1988,7 @@ void xLightsFrame::RenderGridToSeqData()
     MapStringString SettingsMap;
     wxString ColName,msg;
     long msec;
+    long curEffMsec, nextEffMsec;
     size_t ChannelNum, NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
@@ -2020,7 +2021,8 @@ void xLightsFrame::RenderGridToSeqData()
         {
             msec=p * XTIMER_INTERVAL;
             buffer.Clear();
-            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            curEffMsec = GetGridStartTimeMSec(NextGridRowToPlay);
+            if (NextGridRowToPlay < rowcnt && msec >= curEffMsec)
             {
                 // start next effect
                 wxYield();
@@ -2042,6 +2044,10 @@ void xLightsFrame::RenderGridToSeqData()
 
                 int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                 buffer.SetContrast(contrast);
+
+                nextEffMsec = NextGridRowToPlay+1 < rowcnt?
+                                           GetGridStartTimeMSec(NextGridRowToPlay+1):SeqNumPeriods*XTIMER_INTERVAL;
+
 
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
@@ -2542,4 +2548,39 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
         }
     }
     UnsavedChanges = true;
+}
+
+
+void xLightsFrame::OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event)
+{
+    txtCtlEffectMix->SetValue(wxString::Format( "%d",Slider_EffectLayerMix->GetValue()));
+}
+
+void xLightsFrame::OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event)
+{
+    txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
+}
+
+void xLightsFrame::OnSlider_BrightnessCmdScroll(wxScrollEvent& event)
+{
+    txtCtlBrightness->SetValue(wxString::Format("%d",Slider_Brightness->GetValue()));
+}
+
+void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
+{
+    txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
+}
+
+void xLightsFrame::OnSlider_Speed1CmdScroll(wxScrollEvent& event)
+{
+    txtCtl_Effect1Speed->SetValue(wxString::Format("%d",Slider_Speed1->GetValue()));
+}
+
+void xLightsFrame::OnSlider_Speed2CmdScroll(wxScrollEvent& event)
+{
+    txtCtl_Effect2Speed->SetValue(wxString::Format("%d",Slider_Speed2->GetValue()));
+}
+
+void xLightsFrame::OnCheckBox_Effect1FitClick(wxCommandEvent& event)
+{
 }
