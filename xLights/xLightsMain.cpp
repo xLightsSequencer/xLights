@@ -2767,6 +2767,7 @@ void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
 #endif
     //if (newstate == NO_SEQ) SetPlayMode(play_off);
     if (xout) xout->ResetTimer();
+
     wxTimeSpan offset(0,0,0,OffsetMsec);
     starttime = wxDateTime::UNow() - offset;
 }

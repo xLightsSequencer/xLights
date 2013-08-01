@@ -241,7 +241,7 @@ void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
 }
 void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextTime)
 {
-    Effect[layer].SetEffectDuration(startTime, nextTime, endTime);
+    Effect[layer].SetEffectDuration(startTime, endTime, nextTime);
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod)
@@ -264,10 +264,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
                 curStep = EffectPeriod - Effect[ii].curEffStartPer;
                 fadeInFactor = (double)curStep/(double)fadeInSteps;
             }
-            if (EffectPeriod > (Effect[ii].curEffEndPer)-fadeOutSteps)
+            if (EffectPeriod > (Effect[ii].nextEffTimePeriod)-fadeOutSteps)
             {
-                curStep = EffectPeriod - (Effect[ii].curEffEndPer-fadeOutSteps);
-                fadeOutFactor = (double)curStep/(double)fadeOutSteps;
+                curStep = EffectPeriod - (Effect[ii].nextEffTimePeriod-fadeOutSteps);
+                fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
             }
             if(fadeInFactor < 1 && fadeOutFactor < 1)
             {

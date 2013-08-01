@@ -1526,6 +1526,7 @@ private:
     void SetTextColor(wxWindow* w);
     void LoadEffectFromString(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl();
+    void UpdateEffectDuration();
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
     void RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
