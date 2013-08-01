@@ -109,6 +109,16 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     hsv0 = wxImage::RGBtoHSV( wxImage::RGBValue( c0.Red(), c0.Green(), c0.Blue()));
     hsv1 = wxImage::RGBtoHSV(wxImage::RGBValue( c1.Red(), c1.Green(), c1.Blue()));
 
+    hsv0.value *= fadeFactor[0];
+    hsv1.value *= fadeFactor[1];
+
+    rgbVal = wxImage::HSVtoRGB(hsv0);
+    c0.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
+    rgbVal = wxImage::HSVtoRGB(hsv1);
+    c1.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
+
+
+
     switch (MixType)
     {
     case Mix_Effect1:
@@ -225,12 +235,54 @@ void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetS
     CurrentLayer=newlayer & 1;  // only 0 or 1 is allowed
     Effect[CurrentLayer].SetState(period,speed,ResetState);
 }
+void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
+{
+    Effect[layer].SetFadeTimes(inTime, outTime);
+}
+void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextTime)
+{
+    Effect[layer].SetEffectDuration(startTime, nextTime, endTime);
+}
 
-void PixelBufferClass::CalcOutput()
+void PixelBufferClass::CalcOutput(int EffectPeriod)
 {
     wxColour color;
     wxImage::HSVValue hsv;
+    int curStep, fadeInSteps, fadeOutSteps;
 
+    double fadeInFactor=1, fadeOutFactor=1;
+
+    for(int ii=0; ii<2; ii++)
+    {
+        fadeFactor[ii] = 1.0;
+        if(Effect[ii].fadein > 0 || Effect[ii].fadeout > 0)
+        {
+            fadeInSteps = Effect[ii].fadein;
+            fadeOutSteps = Effect[ii].fadeout;
+            if (EffectPeriod < (Effect[ii].curEffStartPer)+fadeInSteps)
+            {
+                curStep = EffectPeriod - Effect[ii].curEffStartPer;
+                fadeInFactor = (double)curStep/(double)fadeInSteps;
+            }
+            if (EffectPeriod > (Effect[ii].curEffEndPer)-fadeOutSteps)
+            {
+                curStep = EffectPeriod - (Effect[ii].curEffEndPer-fadeOutSteps);
+                fadeOutFactor = (double)curStep/(double)fadeOutSteps;
+            }
+            if(fadeInFactor < 1 && fadeOutFactor < 1)
+            {
+                fadeFactor[ii] = (fadeInFactor+fadeOutFactor)/(double)2.0;
+            }
+            else if (fadeInFactor<1)
+            {
+                fadeFactor[ii] = fadeInFactor;
+            }
+            else
+            {
+                fadeFactor[ii] = fadeOutFactor;
+            }
+        }
+    }
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)
@@ -244,6 +296,7 @@ void PixelBufferClass::CalcOutput()
         {
             // get blend of two effects
             GetMixedColor(Nodes[i].bufX, Nodes[i].bufY, color);
+
             // add sparkles
             if (sparkle_count > 0 && color.GetRGB()!=0)
             {
@@ -286,9 +339,6 @@ void PixelBufferClass::CalcOutput()
                 hsv.value = hsv.value + (hsv.value* ((double)contrast/(double)100));
             }
 
-            //
-            //  fade in
-            //    if(i<100)  hsv.value= hsv.value * ((double)i/(double)100.0);
 
             if(hsv.value < 0.0) hsv.value=0.0;
             if(hsv.value > 1.0) hsv.value=1.0;

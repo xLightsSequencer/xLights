@@ -1323,7 +1323,7 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxSlider" name="ID_SLIDER3" variable="Slider_EffectLayerMix" member="yes">
+																				<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
 																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL" />
 																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
 																				</object>
@@ -3061,7 +3061,7 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
-																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_Fadein" variable="TextCtrl_Effect1_FadeinTime" member="yes">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_Fadein" variable="TextCtrl_Effect1_Fadein" member="yes">
 																									<value>0.00</value>
 																									<size>30,20</size>
 																								</object>
@@ -3070,7 +3070,7 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
-																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_FadeoutTime" variable="TextCtrl_Effect1FadeoutTime" member="yes">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_Fadeout" variable="TextCtrl_Effect1_Fadeout" member="yes">
 																									<value>0.00</value>
 																									<size>30,20</size>
 																								</object>
@@ -4557,7 +4557,7 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
-																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_FadeTime" variable="TextCtrl_Effect2FadeTime" member="yes">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_Fadein" variable="TextCtrl_Effect2_Fadein" member="yes">
 																									<value>0.00</value>
 																									<size>30,20</size>
 																								</object>
@@ -4566,7 +4566,7 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
-																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_FadeoutTime" variable="TextCtrl_Effect2_FadeoutTime" member="yes">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_Fadeout" variable="TextCtrl_Effect2_Fadeout" member="yes">
 																									<value>0.00</value>
 																									<size>30,20</size>
 																								</object>

@@ -1,3 +1,5 @@
+#define SEQ_STATIC_COLUMNS 2
+
 void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("xrgb") );
@@ -26,7 +28,7 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
         return;
     }
     SeqPlayColumn=Grid1->GetGridCursorCol();
-    if (SeqPlayColumn < 2)
+    if (SeqPlayColumn < SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("Select a cell in a display element column before clicking Play"), wxT("Error"));
         return;
@@ -76,7 +78,7 @@ void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
     Button_PlayEffect->Enable(enable && Choice_Models->GetCount() > 0);
-    Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > 2);
+    Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
     Button_Models->Enable(enable && ModelsNode);
     Button_Presets->Enable(enable && EffectsNode);
     Button_PresetAdd->Enable(enable && EffectsNode);
@@ -86,7 +88,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     TextCtrl_Pictures1_Filename->Enable(enable);
     Button_Pictures2_Filename->Enable(enable);
     TextCtrl_Pictures2_Filename->Enable(enable);
-    ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > 2);
+    ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
     BitmapButtonInsertRow->Enable(enable);
@@ -197,6 +199,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
     }
     PaletteChanged=true;
     MixTypeChanged=true;
+    FadesChanged=true;
     ResetEffectStates();
 }
 
@@ -375,8 +378,15 @@ wxString xLightsFrame::CreateEffectString()
     s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
     s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
     s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
+    s+=wxT(",ID_SLIDER_EffectLayerMix=")+wxString::Format(wxT("%d"),Slider_EffectLayerMix->GetValue());
     s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
     s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
+    s+=wxT(",ID_TEXTCTRL_Effect1_Fadein=")+wxString::Format(wxT("%s"),TextCtrl_Effect1_Fadein->GetValue());
+    s+=wxT(",ID_TEXTCTRL_Effect1_Fadeout=")+wxString::Format(wxT("%s"),TextCtrl_Effect1_Fadeout->GetValue());
+    s+=wxT(",ID_TEXTCTRL_Effect2_Fadein=")+wxString::Format(wxT("%s"),TextCtrl_Effect2_Fadein->GetValue());
+    s+=wxT(",ID_TEXTCTRL_Effect2_Fadeout=")+wxString::Format(wxT("%s"),TextCtrl_Effect2_Fadeout->GetValue());
+    s+=wxT(",ID_CHECKBOX_Effect1_Fit=")+wxString::Format(wxT("%d"),CheckBox_Effect1Fit->GetValue()?1:0);
+    s+=wxT(",ID_CHECKBOX_Effect2_Fit=")+wxString::Format(wxT("%d"),CheckBox_Effect2Fit->GetValue()?1:0);
     s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));
     if(PageIdx1==eff_TEXT)
     {
@@ -400,7 +410,7 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=2; c<nCols; c++)
+            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -414,7 +424,7 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=2)
+        if (c >=SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
         }
@@ -433,7 +443,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=2; c<nCols; c++)
+            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -448,7 +458,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=2)
+        if (c >=SEQ_STATIC_COLUMNS)
         {
             v = CreateEffectStringRandom();
             Grid1->SetCellValue(r,c,v);
@@ -468,7 +478,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=2; c<nCols; c++)
+            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -482,7 +492,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=2)
+        if (c >=SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
         }
@@ -748,6 +758,36 @@ void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& S
     buffer.SetPalette(PaletteNum-1,newcolors);
 }
 
+void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap)
+{
+    wxString tmpStr;
+    double fadeIn, fadeOut;
+
+    tmpStr = SettingsMap[wxString::Format(wxT("ID_TEXTCTRL_Effect%d_Fadein"),effectNum)] ;
+    tmpStr.ToDouble(&fadeIn);
+    tmpStr = SettingsMap[wxString::Format(wxT("ID_TEXTCTRL_Effect%d_Fadeout"),effectNum)] ;
+    tmpStr.ToDouble(&fadeOut);
+
+    buffer.SetFadeTimes(effectNum, fadeIn, fadeOut);
+}
+void xLightsFrame::UpdateBufferFadesFromCtrl()
+{
+    wxString tmpStr;
+    double fadeIn, fadeOut;
+
+    tmpStr = TextCtrl_Effect1_Fadein->GetValue();
+    tmpStr.ToDouble(&fadeIn);
+    tmpStr = TextCtrl_Effect1_Fadeout->GetValue();
+    tmpStr.ToDouble(&fadeOut);
+    buffer.SetFadeTimes(0, fadeIn, fadeOut);
+
+    tmpStr = TextCtrl_Effect2_Fadein->GetValue();
+    tmpStr.ToDouble(&fadeIn);
+    tmpStr = TextCtrl_Effect2_Fadeout->GetValue();
+    tmpStr.ToDouble(&fadeOut);
+    buffer.SetFadeTimes(1, fadeIn, fadeOut);
+}
+
 void xLightsFrame::UpdateBufferPalette()
 {
     wxColourVector newcolors;
@@ -942,6 +982,11 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         s=Choice_LayerMethod->GetStringSelection();
         buffer.SetMixType(s);
         MixTypeChanged=false;
+    }
+    if(FadesChanged)
+    {
+        UpdateBufferFadesFromCtrl();
+        FadesChanged=false;
     }
 
     // render effect 1
@@ -1177,7 +1222,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
                             );
         break;
     }
-    buffer.CalcOutput();
+    buffer.CalcOutput(EffectPeriod);
     DisplayEffectOnWindow();
     if (CheckBoxLightOutput->IsChecked() && xout)
     {
@@ -1201,6 +1246,9 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype)
 void xLightsFrame::TimerRgbSeq(long msec)
 {
     long StartTime;
+    int curEffMsec, nextEffMsec, nextTimePeriodMsec, ii;
+    double val;
+    wxString tmpStr;
     int EffectPeriod;
     static int s_period=0;
     int rowcnt=Grid1->GetNumberRows();
@@ -1233,9 +1281,36 @@ void xLightsFrame::TimerRgbSeq(long msec)
             {
                 // start next effect
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
+                tmpStr = Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
+                curEffMsec =tmpStr.ToDouble(&val )?(int)val*1000:0;
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
                 SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
                 NextGridRowToPlay++;
+
+                if (NextGridRowToPlay < rowcnt)
+                {
+                    nextTimePeriodMsec = GetGridStartTimeMSec(NextGridRowToPlay);
+                    ii = 0;
+                    do{
+                        tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
+                    } while (!tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+                    //Really taking advantage of short circuit evluation here
+                    if (!tmpStr.IsEmpty())
+                    {
+                        nextEffMsec = GetGridStartTimeMSec(NextGridRowToPlay+ii);
+                    }
+                    else
+                    {
+                        nextEffMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                    }
+                }
+                else
+                {
+                    nextEffMsec = nextTimePeriodMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                }
+                buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec);
+                buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec);
+
             }
             PlayRgbEffect(EffectPeriod);
             if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,wxT("animation"));
@@ -1277,7 +1352,31 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
                 SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
+                curEffMsec = GetGridStartTimeMSec(NextGridRowToPlay);
                 NextGridRowToPlay++;
+                if (NextGridRowToPlay < rowcnt)
+                {
+                    nextTimePeriodMsec = GetGridStartTimeMSec(NextGridRowToPlay);
+                    ii = 0;
+                    do{
+                        tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
+                    } while (!tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+                    //Really taking advantage of short circuit evluation here
+                    if (!tmpStr.IsEmpty())
+                    {
+                        nextEffMsec = GetGridStartTimeMSec(NextGridRowToPlay+ii);
+                    }
+                    else
+                    {
+                        nextEffMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                    }
+                }
+                else
+                {
+                    nextEffMsec = nextTimePeriodMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                }
+                buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec);
+                buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec);
             }
             PlayRgbEffect(EffectPeriod);
             //TextCtrlLog->AppendText(wxString::Format(wxT("msec=%ld, period=%d\n"),msec,EffectPeriod));
@@ -1377,7 +1476,7 @@ void xLightsFrame::GetModelNames(wxArrayString& a)
 void xLightsFrame::GetGridColumnLabels(wxArrayString& a)
 {
     int n=Grid1->GetNumberCols();
-    for(int i=2; i < n; i++)
+    for(int i=SEQ_STATIC_COLUMNS; i < n; i++)
     {
         a.Add(Grid1->GetColLabelValue(i));
     }
@@ -1458,7 +1557,7 @@ void xLightsFrame::ChooseModelsForSequence()
     {
         if (!labels[idx].IsEmpty())
         {
-            Grid1->DeleteCols(idx+2);
+            Grid1->DeleteCols(idx+SEQ_STATIC_COLUMNS);
         }
     }
     EnableSequenceControls(true);
@@ -1797,7 +1896,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
             if (td->GetName() != wxT("td")) continue;
             if (r==0)
             {
-                if (c >= 2)
+                if (c >= SEQ_STATIC_COLUMNS)
                 {
                     ColName=td->GetNodeContent();
                     if (ModelNames.Index(ColName) == wxNOT_FOUND)
@@ -1901,7 +2000,7 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     // reset grid
     int n;
     n=Grid1->GetNumberCols();
-    if (n > 2) Grid1->DeleteCols(2, n-2);
+    if (n > SEQ_STATIC_COLUMNS) Grid1->DeleteCols(SEQ_STATIC_COLUMNS, n-SEQ_STATIC_COLUMNS);
     n=Grid1->GetNumberRows();
     if (n > 0) Grid1->DeleteRows(0, n);
     mediaFilename.Clear();
@@ -1986,15 +2085,16 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 void xLightsFrame::RenderGridToSeqData()
 {
     MapStringString SettingsMap;
-    wxString ColName,msg;
+    wxString ColName,msg, tmpStr;
     long msec;
-    long curEffMsec, nextEffMsec;
+    long curEffMsec, nextEffMsec, nextTimePeriodMsec;
     size_t ChannelNum, NodeCnt;
+    int ii;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
     LoadEffectFromString(wxT("None,None,Effect 1"), SettingsMap);
-    for (int c=2; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    for (int c=SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
         ModelNode=GetModelNode(ColName);
@@ -2044,16 +2144,39 @@ void xLightsFrame::RenderGridToSeqData()
 
                 int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                 buffer.SetContrast(contrast);
-
-                nextEffMsec = NextGridRowToPlay+1 < rowcnt?
-                                           GetGridStartTimeMSec(NextGridRowToPlay+1):SeqNumPeriods*XTIMER_INTERVAL;
-
+                UpdateBufferFadesFromMap(0, SettingsMap);
+                UpdateBufferFadesFromMap(1, SettingsMap);
 
                 NextGridRowToPlay++;
+
+                if (NextGridRowToPlay < rowcnt)
+                {
+                    nextTimePeriodMsec = GetGridStartTimeMSec(NextGridRowToPlay);
+                    ii = 0;
+                    do{
+                        tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,c);
+                    } while (!tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+                    //Really taking advantage of short circuit evluation here
+                    if (!tmpStr.IsEmpty())
+                    {
+                        nextEffMsec = GetGridStartTimeMSec(NextGridRowToPlay+ii);
+                    }
+                    else
+                    {
+                        nextEffMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                    }
+                }
+                else
+                {
+                    nextEffMsec = nextTimePeriodMsec = SeqNumPeriods*XTIMER_INTERVAL;
+                }
+                buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec);
+                buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec);
+
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             RenderEffectFromString(0, p, SettingsMap);
             RenderEffectFromString(1, p, SettingsMap);
-            buffer.CalcOutput();
+            buffer.CalcOutput(p);
             // update SeqData with contents of buffer
             for(int n=0; n<NodeCnt; n++)
             {
@@ -2081,7 +2204,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     // save Grid1 to xml
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
-    if (colcnt <= 2)
+    if (colcnt <= SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("No models in the grid!"), wxT("Warning"));
     }
@@ -2195,7 +2318,7 @@ void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
     Grid1->InsertRows( r, 1 );
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
-    for (int c=2; c < n; c++)
+    for (int c=SEQ_STATIC_COLUMNS; c < n; c++)
     {
         Grid1->SetReadOnly(r,c);
     }
@@ -2319,7 +2442,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
     effGridPrevY = row;
     effGridPrevX = col;
 
-    if (col >= 2)
+    if (col >= SEQ_STATIC_COLUMNS)
     {
         wxString EffectString=Grid1->GetCellValue(row,col);
         if (!EffectString.IsEmpty())
@@ -2408,7 +2531,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
         return;
     }
-    if (Grid1->GetNumberCols() <= 2)
+    if (Grid1->GetNumberCols() <= SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
         return;
@@ -2539,7 +2662,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
     int nRows = Grid1->GetNumberRows();
     int nCols = Grid1->GetNumberCols();
 
-    for (c=2; c<nCols; c++)
+    for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
     {
         for (r=0; r<nRows; r++)
         {

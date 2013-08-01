@@ -438,7 +438,7 @@ private:
     static const long ID_BUTTON9;
     static const long ID_BUTTON8;
     static const long ID_CHOICE_LayerMethod;
-    static const long ID_SLIDER3;
+    static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
     static const long ID_STATICTEXT24;
     static const long ID_SLIDER_SparkleFrequency;
@@ -632,7 +632,7 @@ private:
     static const long ID_SLIDER_Speed1;
     static const long ID_TEXTCTRL2;
     static const long ID_TEXTCTRL_Effect1_Fadein;
-    static const long ID_TEXTCTRL_Effect1_FadeoutTime;
+    static const long ID_TEXTCTRL_Effect1_Fadeout;
     static const long ID_PANEL6;
     static const long ID_STATICTEXT47;
     static const long ID_SLIDER_Bars2_BarCount;
@@ -804,8 +804,8 @@ private:
     static const long ID_STATICTEXT77;
     static const long ID_SLIDER_Speed2;
     static const long ID_TEXTCTRL1;
-    static const long ID_TEXTCTRL_Effect2_FadeTime;
-    static const long ID_TEXTCTRL_Effect2_FadeoutTime;
+    static const long ID_TEXTCTRL_Effect2_Fadein;
+    static const long ID_TEXTCTRL_Effect2_Fadeout;
     static const long ID_PANEL32;
     static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL30;
@@ -886,7 +886,6 @@ private:
     wxPanel* Panel2_Piano;
     wxSlider* Slider_Twinkle1_Steps;
     wxSlider* Slider_Meteors1_Count;
-    wxTextCtrl* TextCtrl_Effect1FadeoutTime;
     wxStaticText* StaticText140;
     wxPanel* PanelSequence2;
     wxRadioButton* RadioButtonDim;
@@ -958,6 +957,7 @@ private:
     wxPanel* Panel2_Text;
     wxSlider* Slider_Snowstorm1_Count;
     wxPanel* Panel2_Garlands;
+    wxTextCtrl* TextCtrl_Effect1_Fadein;
     wxChoice* Choice_Bars1_Direction;
     wxCheckBox* CheckBox_Palette2_3;
     wxSlider* Slider_Life2_Seed;
@@ -969,7 +969,6 @@ private:
     wxStaticText* StaticText104;
     wxStaticText* StaticText137;
     wxButton* ButtonDisplayElements;
-    wxTextCtrl* TextCtrl_Effect2FadeTime;
     wxTextCtrl* TextCtrl_Text2_2_Font;
     wxButton* ButtonTestClear;
     wxChoice* Choice_Meteors1_Type;
@@ -1173,6 +1172,7 @@ private:
     wxMenuItem* MenuItemRefresh;
     wxSlider* Slider_ColorWash2_Count;
     wxButton* ButtonTestSelectAll;
+    wxTextCtrl* TextCtrl_Effect2_Fadeout;
     wxStaticText* StaticText128;
     wxStaticText* StaticText44;
     wxStaticText* StaticText95;
@@ -1188,7 +1188,6 @@ private:
     wxStaticText* StaticText59;
     wxPanel* Panel2_Bars;
     wxRadioButton* RadioButtonShimmer;
-    wxTextCtrl* TextCtrl_Effect2_FadeoutTime;
     wxSlider* Slider_Tree1_Branches;
     wxChoice* Choice_Text1_1_Count;
     wxStaticText* StaticText68;
@@ -1209,6 +1208,7 @@ private:
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxCheckBox* CheckBox_Palette2_1;
     wxSlider* Slider_Garlands2_Spacing;
+    wxTextCtrl* TextCtrl_Effect2_Fadein;
     wxSlider* Slider_Piano2_Keyboard;
     wxChoice* Choice_Text1_2_Count;
     wxRadioButton* RadioButtonRgbTwinkle05;
@@ -1264,7 +1264,6 @@ private:
     wxStaticText* StaticText80;
     wxStaticText* StaticText2;
     wxRadioButton* RadioButtonRgbCycleMixed;
-    wxTextCtrl* TextCtrl_Effect1_FadeinTime;
     wxTextCtrl* TextCtrl_Pictures1_Filename;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxTextCtrl* txtCtl_Effect2Speed;
@@ -1346,6 +1345,7 @@ private:
     wxStaticText* StaticText29;
     wxStaticText* StaticText34;
     wxPanel* Panel1_Spirals;
+    wxTextCtrl* TextCtrl_Effect1_Fadeout;
     wxButton* ButtonSaveSetup;
     wxButton* Button_PlayEffect;
     wxStaticText* StaticText101;
@@ -1525,8 +1525,10 @@ private:
     void UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
     void LoadEffectFromString(wxString settings, MapStringString& SettingsMap);
+    void UpdateBufferFadesFromCtrl();
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
     void RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
+    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
     void DisplayEffectOnWindow();
     void EnableSequenceControls(bool enable);
@@ -1550,6 +1552,7 @@ private:
     wxXmlNode* PalettesNode;
     bool PaletteChanged;
     bool MixTypeChanged;
+    bool FadesChanged;
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;

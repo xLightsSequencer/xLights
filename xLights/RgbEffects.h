@@ -32,6 +32,8 @@
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 
+#include "../include/globals.h"
+
 
 typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
@@ -240,7 +242,11 @@ public:
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                         bool radial, int start_x, int start_y);
 
+    void SetFadeTimes(float fadeIn, float fadeOut );
+    void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
 
+    int fadein, fadeout;
+    int curEffStartPer, curEffEndPer, nextEffTimePeriod;
 
 protected:
     void SetPixel(int x, int y, const wxColour &color);
@@ -275,7 +281,7 @@ protected:
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
     void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown);
-    void SetEffectDuration(int startMsec, int endMsec);
+
 
     int BufferHt,BufferWi;  // size of the buffer
     wxColourVector pixels; // this is the calculation buffer
@@ -307,7 +313,8 @@ protected:
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long old_longsecs[1],timer_countdown[1];
-    int curEffStartPer, curEffEndPer;
+
+
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt);
