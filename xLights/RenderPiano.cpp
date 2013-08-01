@@ -46,9 +46,10 @@ void RgbEffects::RenderPiano(int Keyboard)
     }
     case 3: // largest keyboard
     {
-        width=3;
+        width =3;
+
         height=10;
-        width=6;
+        width =7;
         height=16;
         break;
     }
@@ -65,20 +66,8 @@ void RgbEffects::RenderPiano(int Keyboard)
 
     int x_start=1;
     int x_end,y_end2;
-    y_end2 = y_start+2*(height/3);
+    y_end2 =(int) ( y_start+(height/2));
 
-
-
-//    for(x=1; x<BufferWi; x++)
-//        for(y=0; y<BufferHt; y++)
-//        {
-//            hsv.hue=((x*y)+state)/1000;
-//            if(hsv.hue>1.0) hsv.hue=.5;
-//            hsv.saturation=1.0;
-//            hsv.value=1.0;
-//
-//            SetPixel(x,y,hsv);
-//        }
 
     hsv.hue=0.0;
     hsv.saturation=1.0;
@@ -89,25 +78,38 @@ void RgbEffects::RenderPiano(int Keyboard)
     //  Keys E,B Type 3
     //  Keys C#,D#,F#,G#,A# Type 4
 
-
-    for (keys=1; keys<=21; keys++)
+    int basex,x1,x2;
+    for (keys=1; keys<=25; keys++)
     {
-        int x_start=1+((keys-1)*width);
+        int x_start;
+        x_start=1+((keys-1)*width);
         x_end=x_start+width-1;
-        keys_mod=keys%12;
+        keys_mod=keys%12; // 12 notes per octave
 
         switch (keys_mod)
         {
         case 1: // C
         case 6: // F
         {
+            if(keys_mod==1) basex = 1;
+            if(keys_mod==6)
+            {
+                basex = 3*width+1;
+            }
+            x_start=basex+((int)((keys-1)/12))*width*7;
             // hsv.hue=0.2 + (state%10)/10;
             if(hsv.hue>1.0)  hsv.hue = (state%10)/10;
             hsv.hue=.28;
             hsv.saturation=.50;
             hsv.value=.70;
+            if(keys_mod==1)
+            {
+                hsv.hue=.60;
+                hsv.saturation=.43;
+                hsv.value=.79;
+            }
 
-            if((int)((state/100)+keys)%2 == 1)
+            if(keys>99 && (int)((state/100)+keys)%2 == 1)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
@@ -115,20 +117,54 @@ void RgbEffects::RenderPiano(int Keyboard)
             }
             if(Keyboard==3)
             {
-                for(x=x_start; x<x_end; x++)
+                if(width==7)
                 {
-                    for (y=y_start; y<=y_end; y++)
+                    for(x=x_start; x<=x_start+3; x++)
                     {
-                        SetPixel(x,y,hsv);
+                        for (y=y_start; y<=y_end; y++)
+                        {
+                            SetPixel(x,y,hsv);
+                        }
                     }
-                }
 
-                for (y=y_start; y<=y_end2; y++)
+                    for (y=y_start; y<=y_end2; y++)
+                    {
+                        SetPixel(x_start+4,y,hsv);
+                        SetPixel(x_start+5,y,hsv);
+                    }
+                    // black out around accidental key
+                    hsv.value=0.0; // black
+                    for (y=y_end2; y<=y_end; y++)
+                    {
+                        SetPixel(x_start+3,y,hsv);
+                    }
+                    for(x=x_start+3; x<=x_start+5; x++)
+                    {
+                        SetPixel(x,y_end2,hsv);
+                    }
+
+                }
+                else
                 {
-                    SetPixel(x_end,y,hsv);
+
+
+                    for(x=x_start; x<=x_end; x++)
+                    {
+                        for (y=y_start; y<=y_end; y++)
+                        {
+                            SetPixel(x,y,hsv);
+                        }
+                    }
+
+                    for (y=y_end2; y<=y_end; y++)
+                    {
+                        SetPixel(x_end,y,hsv);
+                    }
                 }
             }
         }
+        break;
+
         case 2:  // C#
         case 4:  // Eb
         case 7:  // F#
@@ -136,25 +172,49 @@ void RgbEffects::RenderPiano(int Keyboard)
         case 11: // Bb
         {
             //  hsv.hue=0.4  + (state%10)/10;
+            if(keys_mod==2) basex = width+1;
+            if(keys_mod==4) basex = 2*width+1;
+            if(keys_mod==7) basex = 4*width+1;
+            if(keys_mod==9) basex = 5*width+1;
+            if(keys_mod==11) basex = 6*width+1;
+            x_start=basex+((int)((keys-1)/12))*width*7;
             hsv.hue=.71;
             hsv.saturation=.43;
             hsv.value=.79;
-            if((int)((state/100)+keys)%2 == 0)
+
+            if(keys>99 &&  (int)((state/100)+keys)%2 == 0)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
                 hsv.value=.90;
             }
 
-            if(width==6)
+            if(width==7)
             {
-                for(x=x_start-2 ; x<=x_start+1; x++)
+                for(x=x_start-3 ; x<=x_start+1; x++)
                 {
-                    for (y=y_start; y<=y_end2; y++)
+                    for (y=y_end2; y<=y_end; y++)
                     {
                         SetPixel(x,y,hsv);
                     }
                 }
+                // black out around accidental key
+                x1=x_start-4; x2=x_start+1;
+                if(keys_mod==4 || keys_mod==9)
+                {
+                     x1=x_start-3; x2=x_start+2;
+                }
+                hsv.value=0.0; // black
+                for (y=y_end2; y<=y_end; y++)
+                {
+                    SetPixel(x1,y,hsv);
+                    SetPixel(x2,y,hsv);
+                }
+                for(x=x1; x<=x2; x++)
+                {
+                    SetPixel(x,y_end2,hsv);
+                }
+
             }
             else
             {
@@ -166,17 +226,31 @@ void RgbEffects::RenderPiano(int Keyboard)
                     }
                 }
             }
+
+
+
         }
+        break;
 
         case 3:  // D
         case 8:  // G
         case 10: // A
         {
+            if(keys_mod==3) basex = 1*width+1;
+            if(keys_mod==8) basex = 4*width+1;
+            if(keys_mod==10) basex = 5*width+1;
+            x_start=basex+((int)((keys-1)/12))*width*7;
             // hsv.hue=0.6  + (state%10)/10;
             hsv.hue=.48;
             hsv.saturation=.73;
             hsv.value=.74;
-            if((int)((state/100)+keys)%3 == 1)
+            if(keys_mod==8)
+            {
+                hsv.hue=.60;
+                hsv.saturation=.43;
+                hsv.value=.79;
+            }
+            if(keys>99 && (int)((state/100)+keys)%3 == 1)
             {
                 hsv.hue=.18;
                 hsv.saturation=.71;
@@ -186,7 +260,7 @@ void RgbEffects::RenderPiano(int Keyboard)
             {
                 for (y=y_start; y<=y_end; y++)
                 {
-                    if(width==6)
+                    if(width==7)
                     {
                         SetPixel(x_start+2,y,hsv);
                         SetPixel(x_start+3,y,hsv);
@@ -196,12 +270,12 @@ void RgbEffects::RenderPiano(int Keyboard)
                 }
                 for (y=y_start; y<=y_end2; y++)
                 {
-                    if(width==6)
+                    if(width==7)
                     {
                         SetPixel(x_start,y,hsv);
                         SetPixel(x_start+1,y,hsv);
-                        SetPixel(x_end-1,y,hsv);
-                        SetPixel(x_end,y,hsv);
+                        SetPixel(x_start+4,y,hsv);
+                        SetPixel(x_start+5,y,hsv);
                     }
                     else
                     {
@@ -209,12 +283,36 @@ void RgbEffects::RenderPiano(int Keyboard)
                         SetPixel(x_end,y,hsv);
                     }
                 }
+
+                if(width==7)
+                {
+                    // black out around accidental key
+                    hsv.value=0.0; // black
+                    for (y=y_end2; y<=y_end; y++)
+                    {
+                        SetPixel(x_start+1,y,hsv);
+                        SetPixel(x_start+4,y,hsv);
+                    }
+                    for(x=x_start; x<=x_start+1; x++)
+                    {
+                        SetPixel(x,y_end2,hsv);
+                    }
+                    for(x=x_start+4; x<=x_start+5; x++)
+                    {
+                        SetPixel(x,y_end2,hsv);
+                    }
+                }
             }
         }
+        break;
 
         case 5:   // E
         case 0:   // B
         {
+            if(keys_mod==5) basex = 2*width+1;
+            if(keys_mod==0) basex = 6*width+1;
+
+            x_start=basex+((int)((keys-1)/12))*width*7;
             // hsv.hue=0.2  + (state%10)/10;
             hsv.hue=.60;
             hsv.saturation=.43;
@@ -222,20 +320,33 @@ void RgbEffects::RenderPiano(int Keyboard)
 
             if(Keyboard==3)
             {
-                if(width==6)
+                if(width==7)
                 {
-                    for(x=x_start+2; x<=x_end; x++)
+
+                    for (y=y_start; y<=y_end; y++)
                     {
-                        for (y=y_start; y<=y_end; y++)
-                        {
-                            SetPixel(x,y,hsv);
-                        }
+                        SetPixel(x_start+2,y,hsv);
+                        SetPixel(x_start+3,y,hsv);
+                        SetPixel(x_start+4,y,hsv);
+                        SetPixel(x_start+5,y,hsv);
                     }
+
                     int y_end2 = y_start+height/2;
-                    for (y=y_end2; y<=y_end; y++)
+                    for (y=y_start; y<=y_end2; y++)
                     {
                         SetPixel(x_start,y,hsv);
-                          SetPixel(x_start+1,y,hsv);
+                        SetPixel(x_start+1,y,hsv);
+                    }
+
+                    // black out around accidental key
+                    hsv.value=0.0; // black
+                    for (y=y_end2; y<=y_end; y++)
+                    {
+                        SetPixel(x_start+2,y,hsv);
+                    }
+                    for(x=x_start; x<=x_start+2; x++)
+                    {
+                        SetPixel(x,y_end2,hsv);
                     }
                 }
                 else
@@ -256,6 +367,7 @@ void RgbEffects::RenderPiano(int Keyboard)
 
             }
         }
+        break;
 
         default:
         {
@@ -270,6 +382,7 @@ void RgbEffects::RenderPiano(int Keyboard)
                 }
                 */
         }
+        break;
         } // switch (keys_mod)
     } //  for (keys=1; keys<=14; keys++)
 }

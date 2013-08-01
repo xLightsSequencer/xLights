@@ -108,9 +108,10 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
     int ii,n;
     int colorIdx;
     int barht = BufferHt/(thickness+1);
+    if(barht<1) barht=1;
     int maxRadius = state>BufferHt?BufferHt: state/2 + thickness;
-    int blockHt = colorCnt*barht;
-    int f_offset = state/4 % (blockHt+1);
+    int blockHt   = colorCnt*barht;
+    int f_offset  = state/4 % (blockHt+1);
 
     barht = barht>0?barht:1;
     palette.GetHSV(0,hsv);
