@@ -278,8 +278,8 @@ wxString xLightsFrame::CreateEffectStringRandom()
     eff2 = rand() % eff_LASTEFFECT;
     eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
     eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
-    if(eff_PIANO == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
-    if(eff_PIANO == eff2) eff2 = eff_BARS; //
+    if(eff_PIANO == eff1 || eff_CIRCLES == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
+    if(eff_PIANO == eff2 || eff_CIRCLES == eff1) eff2 = eff_BARS; //
 
     layerOp = rand() % LASTLAYER;
     s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
