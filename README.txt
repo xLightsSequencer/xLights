@@ -17,6 +17,8 @@ BETA 3.0.24: Jul 30,2013 - Enhancement: (sean) Started development of Piano Keyb
 						   it can show "xx d yy h zz m aa s" display. countdown text is now centered correctly.
 						   Enhacement: (frankr) New effect for cirles (under development). 
 						   Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
+						   Bug: When randomly creating spirograph effects, the animate button was not being selected. fixed.
+						   
 3.0.23: Jul 28,2013 - Enhancement: (sean) Fire effect now allows hue shift. You can now have green, blue fire. 
                     - Enhancement: (sean) Fire effect now has a "Grow Fire?". If you click yes, the height of the fire will grow over time
 					- Enhancement: (frankr) Before if you changed or created a sequence and then clicked exit, program would just exit and you would lose your

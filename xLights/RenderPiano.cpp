@@ -214,7 +214,6 @@ void RgbEffects::RenderPiano(int Keyboard)
                 {
                     SetPixel(x,y_end2,hsv);
                 }
-
             }
             else
             {

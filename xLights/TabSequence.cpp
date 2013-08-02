@@ -313,11 +313,6 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
                 // always set little radius, r, to its minimum value
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
             }
-            else if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
-            {
-                // always animate spirograph
-                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
-            }
             else
             {
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
@@ -336,8 +331,16 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
         else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
         {
             wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(rand()%2) ? wxT("1") : wxT("0");
-            s+=","+ChildName+"="+v;
+            if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
+            {
+                // always animate spirograph
+                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
+            }
+            else
+            {
+                wxString v=(rand()%2) ? wxT("1") : wxT("0");
+                s+=","+ChildName+"="+v;
+            }
         }
     }
     return s;
