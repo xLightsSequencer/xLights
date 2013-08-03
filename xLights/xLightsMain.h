@@ -333,7 +333,8 @@ private:
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);
     void InsertRandomEffects(wxCommandEvent &evt);
-
+    void UnprotectSelectedEffects(wxCommandEvent& evt);
+    void ProtectSelectedEffects(wxCommandEvent& evt);
 
     //(*Identifiers(xLightsFrame)
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -604,9 +605,9 @@ private:
     static const long ID_STATICTEXT138;
     static const long ID_SLIDER_Circles1_Size;
     static const long ID_CHECKBOX_Circles1_Bounce;
-    static const long ID_CHECKBOX_Circles1_Radial;
     static const long ID_CHECKBOX_Circles1_Collide;
     static const long ID_CHECKBOX_Circles1_Random_m;
+    static const long ID_CHECKBOX_Circles1_Radial;
     static const long ID_PANEL37;
     static const long ID_STATICTEXT141;
     static const long ID_SLIDER_Piano1_Keyboard;
@@ -849,7 +850,10 @@ private:
     static const long ID_PLAYER_DIALOG;
     static const long ID_DELETE_EFFECT;
     static const long ID_IGNORE_CLICK;
+    static const long ID_PROTECT_EFFECT;
+    static const long ID_UNPROTECT_EFFECT;
     static const long ID_RANDOM_EFFECT;
+
 
     //(*Declarations(xLightsFrame)
     wxStaticText* StaticText6;

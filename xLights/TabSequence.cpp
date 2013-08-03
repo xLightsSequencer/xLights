@@ -316,11 +316,6 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
                 // always set little radius, r, to its minimum value
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
             }
-            else if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
-            {
-                // always animate spirograph
-                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
-            }
             else
             {
                 s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
@@ -339,8 +334,16 @@ wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
         else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
         {
             wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(rand()%2) ? wxT("1") : wxT("0");
-            s+=","+ChildName+"="+v;
+            if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
+            {
+                // always animate spirograph
+                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
+            }
+            else
+            {
+                wxString v=(rand()%2) ? wxT("1") : wxT("0");
+                s+=","+ChildName+"="+v;
+            }
         }
     }
     return s;
@@ -483,6 +486,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
                 if (Grid1->IsInSelection(r,c))
                 {
                     Grid1->SetCellValue(r,c,v);
+                    Grid1->SetCellTextColour(r,c,*wxBLACK);
                 }
             }
         }
@@ -495,6 +499,76 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         if (c >=SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
+            Grid1->SetCellTextColour(r,c,*wxBLACK);
+        }
+    }
+}
+
+void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
+    v.Clear();
+
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        int nCols = Grid1->GetNumberCols();
+        for (r=0; r<nRows; r++)
+        {
+            for (c=2; c<nCols; c++)
+            {
+                if (Grid1->IsInSelection(r,c))
+                {
+                    Grid1->SetCellTextColour(r,c, *wxBLUE);
+                }
+            }
+        }
+    }
+    else
+    {
+        // copy to current cell
+        r=Grid1->GetGridCursorRow();
+        c=Grid1->GetGridCursorCol();
+        if (c >=2)
+        {
+            Grid1->SetCellTextColour(r,c,*wxBLUE);
+        }
+    }
+}
+
+
+void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
+{
+    int r,c;
+    wxString v;
+    v.Clear();
+
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        int nCols = Grid1->GetNumberCols();
+        for (r=0; r<nRows; r++)
+        {
+            for (c=2; c<nCols; c++)
+            {
+                if (Grid1->IsInSelection(r,c))
+                {
+                    Grid1->SetCellTextColour(r,c, *wxBLACK);
+                }
+            }
+        }
+    }
+    else
+    {
+        // copy to current cell
+        r=Grid1->GetGridCursorRow();
+        c=Grid1->GetGridCursorCol();
+        if (c >=2)
+        {
+            Grid1->SetCellTextColour(r,c,*wxBLACK);
         }
     }
 }
@@ -2604,9 +2678,14 @@ void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
 
     wxMenu mnu;
     //mnu.SetClientData( data );
-    mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
-    mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+
+    mnu.Append(ID_PROTECT_EFFECT, 	"Protect Effect");
+    mnu.Append(ID_UNPROTECT_EFFECT, "Unprotect Effect");
+    mnu.AppendSeparator();
     mnu.Append(ID_RANDOM_EFFECT, 	"Create Random Effect");
+    mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
+    mnu.AppendSeparator();
+    mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
     PopupMenu(&mnu);
 }
@@ -2623,6 +2702,14 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     {
         InsertRandomEffects(event);
     }
+    if(event.GetId() == ID_PROTECT_EFFECT)
+    {
+        ProtectSelectedEffects(event);
+    }
+    if(event.GetId() == ID_UNPROTECT_EFFECT)
+    {
+        UnprotectSelectedEffects(event);
+    }
 }
 
 void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
@@ -2637,8 +2724,11 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
     {
         for (r=0; r<nRows; r++)
         {
-            v=CreateEffectStringRandom();
-            Grid1->SetCellValue(r,c,v);
+            if( Grid1->GetCellTextColour(r,c) == *wxBLACK )
+            {
+                v=CreateEffectStringRandom();
+                Grid1->SetCellValue(r,c,v);
+            }
         }
     }
     UnsavedChanges = true;
