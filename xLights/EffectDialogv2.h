@@ -23,6 +23,9 @@ class EffectDialogv2: public wxScrollingDialog
 		wxTreeCtrl* TreeCtrl1;
 		//*)
 
+        void EffectDialogv2::PrepItems(wxXmlNode* e);
+        wxTreeItemId treeRootID;
+
 	protected:
 
 		//(*Identifiers(EffectDialogv2)

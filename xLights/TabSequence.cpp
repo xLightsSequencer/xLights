@@ -98,6 +98,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)
 {
+    EffectTreeDialog dia(this);
+    wxXmlNode* etp=EffectsNode->GetChildren();
+    dia.InitItems(etp);
+    dia.ShowModal();
+
     EffectListDialog dialog(this);
     wxString name;
     for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )

@@ -74,6 +74,7 @@
 #include "PixelBuffer.h"
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
+#include "EffectTreeDialog.h"
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
