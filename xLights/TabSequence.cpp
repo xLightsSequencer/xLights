@@ -609,9 +609,9 @@ void xLightsFrame::UpdateModelsList()
 
 void xLightsFrame::ResetEffectsXml()
 {
-    ModelsNode=0;
-    EffectsNode=0;
-    PalettesNode=0;
+    ModelsNode=NULL;
+    EffectsNode=NULL;
+    PalettesNode=NULL;
 }
 
 void xLightsFrame::LoadEffectsFile()

@@ -8,6 +8,9 @@
 #include <wx/dialog.h>
 //*)
 #include <wx/xml/xml.h>
+#include "xLightsMain.h"
+
+#define NCCOM_FILE wxT("nutcracker_com_effects.xml")
 
 class EffectTreeDialog: public wxDialog
 {
@@ -17,12 +20,13 @@ class EffectTreeDialog: public wxDialog
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
-		wxButton* Button4;
-		wxButton* Button1;
-		wxButton* Button2;
-		wxButton* Button5;
-		wxButton* Button3;
+		wxButton* btNewPreset;
+		wxButton* btFavorite;
+		wxButton* btUpdate;
+		wxButton* btApply;
+		wxButton* btRename;
 		wxTreeCtrl* TreeCtrl1;
+		wxButton* btDelete;
 		//*)
         wxTreeItemId treeRootID;
         wxTreeItemId treeFavoritesGroupID;
@@ -33,19 +37,32 @@ class EffectTreeDialog: public wxDialog
 
 		//(*Identifiers(EffectTreeDialog)
 		static const long ID_TREECTRL1;
+		static const long ID_BUTTON6;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_BUTTON5;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
-		static const long ID_BUTTON5;
 		//*)
 
 	private:
 
 		//(*Handlers(EffectTreeDialog)
+		void OnbtApplyClick(wxCommandEvent& event);
 		//*)
-
+        wxWindow* xLightParent;
 		DECLARE_EVENT_TABLE()
+};
+
+class MyTreeItemData : public wxTreeItemData
+{
+public:
+    MyTreeItemData(wxXmlNode* desc) {element=desc; }
+
+    wxXmlNode *GetElement() { return element; }
+
+private:
+    wxXmlNode *element;
 };
 
 #endif

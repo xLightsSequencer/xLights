@@ -192,6 +192,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
+    void SetEffectControls(wxString settings);
 
     enum RGB_EFFECTS_e
     {
@@ -813,7 +814,7 @@ private:
     void PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
-    void SetEffectControls(wxString settings);
+
     wxXmlNode* CreateEffectNode(wxString& name);
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
