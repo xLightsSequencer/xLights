@@ -326,7 +326,8 @@ private:
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);
     void InsertRandomEffects(wxCommandEvent &evt);
-
+    void UnprotectSelectedEffects(wxCommandEvent& evt);
+    void ProtectSelectedEffects(wxCommandEvent& evt);
 
     //(*Identifiers(xLightsFrame)
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -826,7 +827,10 @@ private:
     static const long ID_PLAYER_DIALOG;
     static const long ID_DELETE_EFFECT;
     static const long ID_IGNORE_CLICK;
+    static const long ID_PROTECT_EFFECT;
+    static const long ID_UNPROTECT_EFFECT;
     static const long ID_RANDOM_EFFECT;
+
 
     //(*Declarations(xLightsFrame)
     wxStaticText* StaticText6;
