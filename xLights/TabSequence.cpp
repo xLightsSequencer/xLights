@@ -1820,6 +1820,7 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 
 void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 {
+    wxString tmpStr;
     // read xml sequence info
     wxFileName FileObj(filename);
     FileObj.SetExt("xml");
@@ -1904,9 +1905,13 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
             {
 
                 Grid1->SetCellValue(r-1,gridCol,td->GetNodeContent());
-                gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
+                if(td->GetAttribute(wxT("Protected"),&tmpStr) && tmpStr == wxT("1"))
+                {
+                    Grid1->SetCellTextColour(r-1, gridCol, *wxBLUE);
+                }
                 Grid1->SetCellOverflow(r-1,gridCol, false);
                 Grid1->SetReadOnly(r-1,gridCol,false);
+                gridCol++; //c does not work here since it is following the columns in the input file not the columns in the grid
 
             }
         }
@@ -2203,6 +2208,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
         {
             td=new wxXmlNode(tr, wxXML_ELEMENT_NODE, wxT("td"));
             td->AddChild(new wxXmlNode(td, wxXML_TEXT_NODE, wxEmptyString, Grid1->GetCellValue(r,c)));
+            td->AddAttribute(wxT("Protected"),(Grid1->GetCellTextColour(r,c) == *wxBLUE)?wxT("1"):wxT("0"));
         }
     }
 
