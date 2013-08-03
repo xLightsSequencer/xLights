@@ -122,14 +122,19 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     switch (MixType)
     {
     case Mix_Effect1:
-        c=c0;
+        c0.Set(c0.Red()*(1-effectMixThreshold) ,c0.Green()*(1-effectMixThreshold), c0.Blue()*(1-effectMixThreshold));
+        c1.Set(c1.Red()*(effectMixThreshold) ,c1.Green()*(effectMixThreshold), c1.Blue()*(effectMixThreshold));
+        c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
+
         break;
     case Mix_Effect2:
+        hsv0.value *= (1-effectMixThreshold);
+        hsv1.value *= effectMixThreshold;
         c=c1;
         break;
     case Mix_Mask1:
         // first masks second
-        if (c0.GetRGB() == 0) // only if effect 1 is black
+        if (hsv0.value <= effectMixThreshold) // only if effect 1 is black
         {
             c=c1;  // then show the color of effect 2
         }
@@ -140,7 +145,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Mask2:
         // second masks first
-        if (c1.GetRGB() == 0)
+        if (hsv1.value <= effectMixThreshold)
         {
             c=c0;
         }
@@ -151,7 +156,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Unmask1:
         // first unmasks second
-        if (c0.GetRGB() != 0) // if effect 1 is non black
+        if (hsv0.value > effectMixThreshold) // if effect 1 is non black
         {
 
             hsv1.value = hsv0.value;
@@ -165,7 +170,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_Unmask2:
         // second unmasks first
-        if (c1.GetRGB() != 0)  // if effect 2 is non black
+        if (hsv1.value > effectMixThreshold)  // if effect 2 is non black
         {
             hsv0.value = hsv1.value;
             rgbVal = wxImage::HSVtoRGB(hsv0);
@@ -177,7 +182,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         }
         break;
     case Mix_Layered:
-        if (c1.GetRGB() == 0)
+        if (hsv1.value <= effectMixThreshold)
         {
             c=c0;
         }
@@ -228,6 +233,11 @@ void PixelBufferClass::SetBrightness(int value)
 void PixelBufferClass::SetContrast(int value)
 {
     contrast=value;
+}
+
+void PixelBufferClass::SetMixThreshold(int value)
+{
+    effectMixThreshold= (float)value/100.0;
 }
 
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetState)

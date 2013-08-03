@@ -54,6 +54,7 @@ private:
     int brightness;
     int contrast;
     int CurrentLayer;  // 0 or 1
+    float effectMixThreshold;
     MixTypes MixType;
     RgbEffects Effect[2];
     void GetMixedColor(wxCoord x, wxCoord y, wxColour& c);
@@ -73,6 +74,7 @@ public:
     void SetSparkle(int freq);
     void SetBrightness(int value);
     void SetContrast(int value);
+    void SetMixThreshold(int value);
     void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
     void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip);
     void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);

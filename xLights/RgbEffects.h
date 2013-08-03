@@ -40,6 +40,7 @@ typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 
 #define rgb_MAX_BALLS 20
+#define PI 3.14159265
 
 class RgbFireworks
 {
@@ -79,6 +80,8 @@ public:
     float _dx;
     float _dy;
     float _radius;
+    float _t;
+    float dir;
     wxImage::HSVValue hsvcolor;
 
     void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
@@ -89,8 +92,17 @@ public:
         _dy=speed*sin(angle);
         _radius = radius;
         hsvcolor = color;
-    }
+        _t=3.14159265/6.0;
+        dir =1.0;
 
+    }
+    void updatePositionArc(int x,int y, int r)
+    {
+        _x=x+r*cos(_t);
+        _y=y+r*sin(_t);
+        _t+=dir* (PI/9.0);
+        dir *= _t < PI/6.0 || _t > (2*PI)/3?-1.0:1.0;
+    }
     void updatePosition(float incr, int width, int height)
     {
         _x+=_dx*incr;

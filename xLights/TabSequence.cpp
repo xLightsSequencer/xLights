@@ -971,6 +971,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     int contrast=Slider_Contrast->GetValue();
     buffer.SetContrast(contrast);
 
+    int effectMixThreshold=Slider_EffectLayerMix->GetValue();
+    buffer.SetMixThreshold(effectMixThreshold);
+
     if (PaletteChanged)
     {
         UpdateBufferPalette();

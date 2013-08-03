@@ -1325,7 +1325,7 @@
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
 																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL" />
-																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1355,7 +1355,7 @@
 																					<max>200</max>
 																					<style>wxSL_INVERSE</style>
 																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SCROLL" />
-																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1383,7 +1383,7 @@
 																					<value>100</value>
 																					<max>400</max>
 																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SCROLL" />
-																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1409,7 +1409,7 @@
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes">
 																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SCROLL" />
-																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -3045,7 +3045,7 @@
 																									<size>30,150</size>
 																									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 																									<handler function="OnSlider_Speed1CmdScroll" entry="EVT_COMMAND_SCROLL" />
-																									<handler function="OnSlider_Speed1CmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																									<handler function="OnSlider_Speed1CmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																								</object>
 																								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>
@@ -4541,7 +4541,7 @@
 																									<size>30,150</size>
 																									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 																									<handler function="OnSlider_Speed2CmdScroll" entry="EVT_COMMAND_SCROLL" />
-																									<handler function="OnSlider_Speed2CmdScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																									<handler function="OnSlider_Speed2CmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																								</object>
 																								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>
