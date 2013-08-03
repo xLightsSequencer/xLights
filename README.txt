@@ -15,9 +15,13 @@ BETA 3.0.24: Jul 30,2013 - Enhancement: (sean) Started development of Piano Keyb
 						   Enhancement: (matt) Many changes to text. Ghosting is now fixed. You no longer have to use the temporary fix of using
 						   "1 is unmask, 2 is color wash". Text now has 45 degrees rotation. Countdown timer can show seconds counting down or
 						   it can show "xx d yy h zz m aa s" display. countdown text is now centered correctly.
-						   Enhacement: (frankr) New effect for cirles (under development). 
+						   Enhacement: (frankr) New effect for cirles. Circles can bounce, collide. Choose radial to make a new effect
 						   Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
 						   Bug: When randomly creating spirograph effects, the animate button was not being selected. fixed.
+						   Enhancement: (frabkr) Cells in your effect grid can now be protected/un-protected. Protect a cell and
+						   press the "create random effects" and all cells will egt a new effect unless teh cell is protected.
+						   Under Development: Piano Effect. This is NOT done yet. when comp;leted it will animate a piano
+						   keyboard.
 						   
 3.0.23: Jul 28,2013 - Enhancement: (sean) Fire effect now allows hue shift. You can now have green, blue fire. 
                     - Enhancement: (sean) Fire effect now has a "Grow Fire?". If you click yes, the height of the fire will grow over time
@@ -28,7 +32,7 @@ BETA 3.0.24: Jul 30,2013 - Enhancement: (sean) Started development of Piano Keyb
 					- Enhancement: (frankr) New choice in model generation. You can now select custom. We are not quite done with this but it will support having
 					  coro snowflakes, stars, strings wrapped around a car, fire sticks, candles,. Basically any model. Watch this space for a future tutorial.
 3.0.22: Jul 26,2013 - Enhancement: (frankr) New button to randomly create effects for every row in your sequence
-                    - Enhancement: (sean) Brightness slider now goes to 200% (Old value was 100%). This will allow improving movies
+                    - Enhancement: (sean) Brightness slider now goes to 400% (Old value was 100%). This will allow improving movies
 					- Bug: (sean) If Tree effect was selected for Effect2 and slider was all the way to left, xlights crashed. fixed
 					- Bug: (sean) Removed the gauge that was next to Export button. The gauge library does not work in Unix.
 3.0.21: Jul 25,2013 - Enhancement: (frankr) In the Model setup screen, you can now set the starting channel for each string
