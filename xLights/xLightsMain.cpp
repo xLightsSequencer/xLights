@@ -571,6 +571,8 @@ const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 const long xLightsFrame::ID_PLAYER_DIALOG = wxNewId();
 const long xLightsFrame::ID_DELETE_EFFECT = wxNewId();
 const long xLightsFrame::ID_IGNORE_CLICK = wxNewId();
+const long xLightsFrame::ID_PROTECT_EFFECT = wxNewId();
+const long xLightsFrame::ID_UNPROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 
 
