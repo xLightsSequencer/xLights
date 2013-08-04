@@ -13,6 +13,7 @@
 #include <wx/dir.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
+#include <wx/valnum.h>
 
 // dialogs
 #include "SerialPortWithRate.h"
@@ -175,14 +176,18 @@ const long xLightsFrame::ID_BUTTON59 = wxNewId();
 const long xLightsFrame::ID_CHOICE2 = wxNewId();
 const long xLightsFrame::ID_BUTTON9 = wxNewId();
 const long xLightsFrame::ID_BUTTON8 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
 const long xLightsFrame::ID_CHOICE_LayerMethod = wxNewId();
+const long xLightsFrame::ID_SLIDER_EffectLayerMix = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_LayerMix = wxNewId();
 const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
 const long xLightsFrame::ID_SLIDER_SparkleFrequency = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL5 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT127 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Brightness = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL6 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT128 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Contrast = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL7 = wxNewId();
 const long xLightsFrame::ID_PANEL31 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PLAY_RGB_SEQ = wxNewId();
@@ -359,8 +364,14 @@ const long xLightsFrame::ID_CHECKBOX_Palette1_5 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette1_5 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Palette1_6 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette1_6 = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Effect1_Fit = wxNewId();
+const long xLightsFrame::ID_STATICTEXT144 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT145 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT61 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Speed1 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Effect1_Fadein = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Effect1_Fadeout = wxNewId();
 const long xLightsFrame::ID_PANEL6 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT47 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Bars2_BarCount = wxNewId();
@@ -526,8 +537,14 @@ const long xLightsFrame::ID_CHECKBOX_Palette2_5 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette2_5 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_Palette2_6 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette2_6 = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_Effect2_Fit = wxNewId();
+const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT143 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT77 = wxNewId();
 const long xLightsFrame::ID_SLIDER_Speed2 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL1 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Effect2_Fadein = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL_Effect2_Fadeout = wxNewId();
 const long xLightsFrame::ID_PANEL32 = wxNewId();
 const long xLightsFrame::ID_SPLITTERWINDOW2 = wxNewId();
 const long xLightsFrame::ID_PANEL30 = wxNewId();
@@ -697,6 +714,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer67;
 
     Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver BETA 3.0.24)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    SetClientSize(wxSize(1269,591));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1051,7 +1069,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer30->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
     BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, Panel5, _("Combined Effect"));
-    FlexGridSizer33 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer33 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_PlayEffect = new wxButton(Panel5, ID_BUTTON13, _("Play Effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
     Button_PlayEffect->Disable();
     Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
@@ -1059,25 +1077,27 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_UpdateGrid = new wxButton(Panel5, ID_BUTTON3, _("Update Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     Button_UpdateGrid->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer33->Add(Button_UpdateGrid, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Models = new wxButton(Panel5, ID_BUTTON58, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON58"));
     Button_Models->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer33->Add(Button_Models, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Models = new wxChoice(Panel5, ID_CHOICE7, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE7"));
     FlexGridSizer33->Add(Choice_Models, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Presets = new wxButton(Panel5, ID_BUTTON59, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON59"));
     Button_Presets->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer33->Add(Button_Presets, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Presets = new wxChoice(Panel5, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE2"));
     FlexGridSizer33->Add(Choice_Presets, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_PresetAdd = new wxButton(Panel5, ID_BUTTON9, _("New Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
     Button_PresetAdd->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer33->Add(Button_PresetAdd, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Button_PresetUpdate = new wxButton(Panel5, ID_BUTTON8, _("Update Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
     Button_PresetUpdate->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer33->Add(Button_PresetUpdate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText21 = new wxStaticText(Panel5, ID_STATICTEXT23, _("Layer Method"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
-    FlexGridSizer33->Add(StaticText21, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_LayerMethod = new wxChoice(Panel5, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
+    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_LayerMethod = new wxChoice(Panel5, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
     Choice_LayerMethod->SetSelection( Choice_LayerMethod->Append(_("Effect 1")) );
     Choice_LayerMethod->Append(_("Effect 2"));
     Choice_LayerMethod->Append(_("1 is Mask"));
@@ -1087,18 +1107,28 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_LayerMethod->Append(_("Layered"));
     Choice_LayerMethod->Append(_("Average"));
     FlexGridSizer33->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_EffectLayerMix = new wxSlider(Panel5, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
+    FlexGridSizer33->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtlEffectMix = new wxTextCtrl(Panel5, ID_TEXTCTRL_LayerMix, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
+    FlexGridSizer33->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText22 = new wxStaticText(Panel5, ID_STATICTEXT24, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
     FlexGridSizer33->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_SparkleFrequency = new wxSlider(Panel5, ID_SLIDER_SparkleFrequency, 200, 10, 200, wxDefaultPosition, wxDefaultSize, wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_SparkleFrequency"));
     FlexGridSizer33->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtrlSparkleFreq = new wxTextCtrl(Panel5, ID_TEXTCTRL5, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+    FlexGridSizer33->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText126 = new wxStaticText(Panel5, ID_STATICTEXT127, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
     FlexGridSizer33->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Brightness = new wxSlider(Panel5, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
+    Slider_Brightness = new wxSlider(Panel5, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
     FlexGridSizer33->Add(Slider_Brightness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtlBrightness = new wxTextCtrl(Panel5, ID_TEXTCTRL6, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL6"));
+    FlexGridSizer33->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText127 = new wxStaticText(Panel5, ID_STATICTEXT128, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT128"));
     FlexGridSizer33->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Contrast = new wxSlider(Panel5, ID_SLIDER_Contrast, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Contrast"));
     FlexGridSizer33->Add(Slider_Contrast, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtlContrast = new wxTextCtrl(Panel5, ID_TEXTCTRL7, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL7"));
+    FlexGridSizer33->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer6->Add(StaticBoxSizer3, 0, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel5->SetSizer(BoxSizer6);
@@ -1616,12 +1646,25 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Palette1_6->SetMinSize(wxSize(30,20));
     FlexGridSizer_Palette1->Add(Button_Palette1_6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     FlexGridSizer47->Add(FlexGridSizer_Palette1, 1, wxTOP|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    CheckBox_Effect1Fit = new wxCheckBox(Panel4, ID_CHECKBOX_Effect1_Fit, _("Fit to time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Effect1_Fit"));
+    CheckBox_Effect1Fit->SetValue(false);
+    FlexGridSizer47->Add(CheckBox_Effect1Fit, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText143 = new wxStaticText(Panel4, ID_STATICTEXT144, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT144"));
+    FlexGridSizer47->Add(StaticText143, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText144 = new wxStaticText(Panel4, ID_STATICTEXT145, _("FadeOut"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT145"));
+    FlexGridSizer47->Add(StaticText144, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34->Add(FlexGridSizer47, 1, wxTOP|wxBOTTOM|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer48 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticText59 = new wxStaticText(Panel4, ID_STATICTEXT61, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT61"));
     FlexGridSizer48->Add(StaticText59, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Speed1 = new wxSlider(Panel4, ID_SLIDER_Speed1, 10, 1, 20, wxDefaultPosition, wxSize(30,150), wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Speed1"));
-    FlexGridSizer48->Add(Slider_Speed1, 1, wxTOP|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer48->Add(Slider_Speed1, 1, wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtl_Effect1Speed = new wxTextCtrl(Panel4, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    FlexGridSizer48->Add(txtCtl_Effect1Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Effect1_Fadein = new wxTextCtrl(Panel4, ID_TEXTCTRL_Effect1_Fadein, _("0.00"), wxDefaultPosition, wxSize(30,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Effect1_Fadein"));
+    FlexGridSizer48->Add(TextCtrl_Effect1_Fadein, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 6);
+    TextCtrl_Effect1_Fadeout = new wxTextCtrl(Panel4, ID_TEXTCTRL_Effect1_Fadeout, _("0.00"), wxDefaultPosition, wxSize(30,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Effect1_Fadeout"));
+    FlexGridSizer48->Add(TextCtrl_Effect1_Fadeout, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     FlexGridSizer34->Add(FlexGridSizer48, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     StaticBoxSizer4->Add(FlexGridSizer34, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer5->Add(StaticBoxSizer4, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -2087,12 +2130,25 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Palette2_6->SetMinSize(wxSize(30,20));
     FlexGridSizer_Palette2->Add(Button_Palette2_6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     FlexGridSizer62->Add(FlexGridSizer_Palette2, 1, wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Effect2Fit = new wxCheckBox(Panel4, ID_CHECKBOX_Effect2_Fit, _("Fit to Time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Effect2_Fit"));
+    CheckBox_Effect2Fit->SetValue(false);
+    FlexGridSizer62->Add(CheckBox_Effect2Fit, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText21 = new wxStaticText(Panel4, ID_STATICTEXT23, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
+    FlexGridSizer62->Add(StaticText21, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText142 = new wxStaticText(Panel4, ID_STATICTEXT143, _("Fade Out"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT143"));
+    FlexGridSizer62->Add(StaticText142, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer49->Add(FlexGridSizer62, 1, wxTOP|wxBOTTOM|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer63 = new wxFlexGridSizer(0, 1, 0, 0);
     StaticText75 = new wxStaticText(Panel4, ID_STATICTEXT77, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT77"));
     FlexGridSizer63->Add(StaticText75, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Speed2 = new wxSlider(Panel4, ID_SLIDER_Speed2, 10, 1, 20, wxDefaultPosition, wxSize(30,150), wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Speed2"));
     FlexGridSizer63->Add(Slider_Speed2, 1, wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    txtCtl_Effect2Speed = new wxTextCtrl(Panel4, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer63->Add(txtCtl_Effect2Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Effect2_Fadein = new wxTextCtrl(Panel4, ID_TEXTCTRL_Effect2_Fadein, _("0.00"), wxDefaultPosition, wxSize(30,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Effect2_Fadein"));
+    FlexGridSizer63->Add(TextCtrl_Effect2_Fadein, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    TextCtrl_Effect2_Fadeout = new wxTextCtrl(Panel4, ID_TEXTCTRL_Effect2_Fadeout, _("0.00"), wxDefaultPosition, wxSize(30,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Effect2_Fadeout"));
+    FlexGridSizer63->Add(TextCtrl_Effect2_Fadeout, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     FlexGridSizer49->Add(FlexGridSizer63, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     StaticBoxSizer5->Add(FlexGridSizer49, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer5->Add(StaticBoxSizer5, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -2240,8 +2296,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|xLights Sequences(*.xseq)|*.xseq|Falcon Pi Player Sequences (*.fseq)|*.fseq|Lynx Conductor Sequences (*.seq)|*.seq"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     ColourDialog1 = new wxColourDialog(this);
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    SetSizer(FlexGridSizer1);
+    Layout();
 
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
@@ -2302,6 +2358,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PresetAddClick);
     Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PresetUpdateClick);
     Connect(ID_CHOICE_LayerMethod,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_LayerMethodSelect);
+    Connect(ID_SLIDER_EffectLayerMix,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_EffectLayerMixCmdScroll);
+    Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_EffectLayerMixCmdScroll);
+    Connect(ID_SLIDER_SparkleFrequency,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_SparkleFrequencyCmdScroll);
+    Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_SparkleFrequencyCmdScroll);
+    Connect(ID_SLIDER_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BrightnessCmdScroll);
+    Connect(ID_SLIDER_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BrightnessCmdScroll);
+    Connect(ID_SLIDER_Contrast,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_ContrastCmdScroll);
+    Connect(ID_SLIDER_Contrast,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_ContrastCmdScroll);
     Connect(ID_BUTTON_PLAY_RGB_SEQ,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayAllClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDisplayElementsClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
@@ -2331,6 +2395,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_Palette1_5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ColorClick);
     Connect(ID_CHECKBOX_Palette1_6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_PaletteClick);
     Connect(ID_BUTTON_Palette1_6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ColorClick);
+    Connect(ID_CHECKBOX_Effect1_Fit,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_Effect1FitClick);
+    Connect(ID_SLIDER_Speed1,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Speed1CmdScroll);
+    Connect(ID_SLIDER_Speed1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Speed1CmdScroll);
     Connect(ID_BUTTON_PICTURES2_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Pictures2_FilenameClick);
     Connect(ID_BUTTON_TEXT2_1_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text2_1_FontClick);
     Connect(ID_BUTTON_TEXT2_2_FONT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_Text2_2_FontClick);
@@ -2348,6 +2415,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_Palette2_5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ColorClick);
     Connect(ID_CHECKBOX_Palette2_6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBox_PaletteClick);
     Connect(ID_BUTTON_Palette2_6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ColorClick);
+    Connect(ID_SLIDER_Speed2,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Speed2CmdScroll);
+    Connect(ID_SLIDER_Speed2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_Speed2CmdScroll);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -2610,6 +2679,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 //   scm, causes crash if we remove this    Choicebook1->RemovePage(eff_CIRCLES);
 //   Choicebook2->RemovePage(eff_CIRCLES);
 
+    txtCtlEffectMix->SetValue(wxString::Format( "%d",Slider_EffectLayerMix->GetValue()));
+    txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
+    txtCtlBrightness->SetValue(wxString::Format("%d",Slider_Brightness->GetValue()));
+    txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
+    txtCtl_Effect1Speed->SetValue(wxString::Format("%d",Slider_Speed1->GetValue()));
+    txtCtl_Effect2Speed->SetValue(wxString::Format("%d",Slider_Speed2->GetValue()));
+    wxFloatingPointValidator<float>
+            val(2);
+    val.SetRange(0, 100);
+    TextCtrl_Effect1_Fadein->SetValidator(val);
+    TextCtrl_Effect1_Fadeout->SetValidator(val);
+    TextCtrl_Effect2_Fadein->SetValidator(val);
+    TextCtrl_Effect2_Fadeout->SetValidator(val);
 }
 
 xLightsFrame::~xLightsFrame()
@@ -2684,6 +2766,7 @@ void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
 #endif
     //if (newstate == NO_SEQ) SetPlayMode(play_off);
     if (xout) xout->ResetTimer();
+
     wxTimeSpan offset(0,0,0,OffsetMsec);
     starttime = wxDateTime::UNow() - offset;
 }
