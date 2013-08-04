@@ -30,6 +30,18 @@ void RgbEffects::RenderPiano(int Keyboard)
     int x,y,xc,yc,n,pixel_ratio,ColorIdx;
     size_t colorcnt=GetColorCount();
     int keys,keys_mod,width,height;
+
+
+
+
+
+
+
+
+
+
+
+
     switch (Keyboard)
     {
     case 1: // smallest keyboard

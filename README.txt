@@ -8,21 +8,24 @@ Nutcracker is a program that generates animated effects on massive RGB devices
 such as megatrees, matrices, and arches. 
 
 
-NUTCRACKER RELEASES
--------------------
-BETA 3.0.24: Jul 30,2013 - Enhancement: (sean) Started development of Piano Keyboard. This is not complete. Will eventually use an input file from
+XLIGHTS/NUTCRACKER RELEASE NOTES:
+3.0.24: Aug 4,2013 	- Enhancement: (frankr) New fade in and fade out boxes on every effect. Enter the number of seconds to either fade in/out.
+					- Enhancement: (sean) Started development of Piano Keyboard. This is not complete. Will eventually use an input file from
                            Audacity that will identify the polyphonic notes in a song.
-						   Enhancement: (matt) Many changes to text. Ghosting is now fixed. You no longer have to use the temporary fix of using
+					- Enhancement: (matt) Many changes to text. Ghosting is now fixed. You no longer have to use the temporary fix of using
 						   "1 is unmask, 2 is color wash". Text now has 45 degrees rotation. Countdown timer can show seconds counting down or
 						   it can show "xx d yy h zz m aa s" display. countdown text is now centered correctly.
-						   Enhacement: (frankr) New effect for cirles. Circles can bounce, collide. Choose radial to make a new effect
-						   Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
-						   Bug: When randomly creating spirograph effects, the animate button was not being selected. fixed.
-						   Enhancement: (frabkr) Cells in your effect grid can now be protected/un-protected. Protect a cell and
-						   press the "create random effects" and all cells will egt a new effect unless teh cell is protected.
-						   Under Development: Piano Effect. This is NOT done yet. when comp;leted it will animate a piano
+					- Enhancement: (frankr) New effect for circles. Circles can bounce, collide. Choose radial to make a new effect
+					- Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
+					- Bug: (sean) When randomly creating Spirograph effects, the animate button was not being selected. fixed.
+					- Enhancement: (frankr) Cells in your effect grid can now be protected/un-protected. Protect a cell and
+						   press the "create random effects" and all cells will get a new effect unless the cell is protected.
+						   Under Development: Piano Effect. This is NOT done yet. when completed it will animate a piano
 						   keyboard.
-						   
+					- Enhancement: (frankr) Slider next to Layer choice. This slider allows you to pick how much of effect 1 and effect 2 show
+						   through.
+					
+					- UNDER DEVELOPMENT: (sean) Piano Keyboard. Not functional yet. Will be pulled forward into release 25
 3.0.23: Jul 28,2013 - Enhancement: (sean) Fire effect now allows hue shift. You can now have green, blue fire. 
                     - Enhancement: (sean) Fire effect now has a "Grow Fire?". If you click yes, the height of the fire will grow over time
 					- Enhancement: (frankr) Before if you changed or created a sequence and then clicked exit, program would just exit and you would lose your
