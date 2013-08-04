@@ -103,6 +103,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     wxColour c0,c1;
     wxImage::HSVValue hsv,hsv0,hsv1;
     wxImage::RGBValue rgbVal;
+    double emt, emtNot, tmp;
+    int n =0; //increase to change the curve of the crossfade
 
     Effect[0].GetPixel(x,y,c0);
     Effect[1].GetPixel(x,y,c1);
@@ -122,15 +124,23 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     switch (MixType)
     {
     case Mix_Effect1:
-        c0.Set(c0.Red()*(1-effectMixThreshold) ,c0.Green()*(1-effectMixThreshold), c0.Blue()*(1-effectMixThreshold));
-        c1.Set(c1.Red()*(effectMixThreshold) ,c1.Green()*(effectMixThreshold), c1.Blue()*(effectMixThreshold));
-        c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
-
-        break;
     case Mix_Effect2:
-        hsv0.value *= (1-effectMixThreshold);
-        hsv1.value *= effectMixThreshold;
-        c=c1;
+        emt = effectMixThreshold;
+        emtNot = 1-effectMixThreshold;
+        emt = cos((PI/4)*(pow(2*emt-1,2*n+1)+1));
+        emtNot = cos((PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+
+        if (MixType == Mix_Effect2)
+        {
+            c0.Set(c0.Red()*(emtNot) ,c0.Green()*(emtNot), c0.Blue()*(emtNot));
+            c1.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
+        }
+        else
+        {
+            c0.Set(c0.Red()*(emt) ,c0.Green()*(emt), c0.Blue()*(emt));
+            c1.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
+        }
+        c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
         break;
     case Mix_Mask1:
         // first masks second

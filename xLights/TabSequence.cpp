@@ -1436,7 +1436,7 @@ void xLightsFrame::UpdateEffectDuration()
         nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
         do{
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
-        } while (!tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+        } while (tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
         //Really taking advantage of short circuit evluation here
         if (!tmpStr.IsEmpty())
         {
