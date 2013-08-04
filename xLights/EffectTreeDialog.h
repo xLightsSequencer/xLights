@@ -49,10 +49,18 @@ class EffectTreeDialog: public wxDialog
 
 		//(*Handlers(EffectTreeDialog)
 		void OnbtApplyClick(wxCommandEvent& event);
+		void OnbtNewPresetClick(wxCommandEvent& event);
+		void OnbtUpdateClick(wxCommandEvent& event);
+		void OnbtFavoriteClick(wxCommandEvent& event);
+		void OnbtRenameClick(wxCommandEvent& event);
+		void OnbtDeleteClick(wxCommandEvent& event);
 		//*)
         wxWindow* xLightParent;
 		wxXmlNode *NcEffectsNode;
 		wxXmlNode *XrgbEffectsNode;
+        void AddNCcomEffects();
+        void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
+        void EffectTreeDialog::UpdateNcEffectsList();
 
 		DECLARE_EVENT_TABLE()
 

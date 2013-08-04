@@ -40,6 +40,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON1" variable="btNewPreset" member="yes">
 									<label>New Preset</label>
+									<handler function="OnbtNewPresetClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -48,6 +49,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON2" variable="btUpdate" member="yes">
 									<label>Update Preset</label>
+									<handler function="OnbtUpdateClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -56,6 +58,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON5" variable="btFavorite" member="yes">
 									<label>Add To Favorites</label>
+									<handler function="OnbtFavoriteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -64,6 +67,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON3" variable="btRename" member="yes">
 									<label>Rename</label>
+									<handler function="OnbtRenameClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -72,6 +76,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON4" variable="btDelete" member="yes">
 									<label>Delete</label>
+									<handler function="OnbtDeleteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

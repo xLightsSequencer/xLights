@@ -59,6 +59,11 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtApplyClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtFavoriteClick);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
 	//*)
 	treeRootID = TreeCtrl1->AddRoot(wxT("Effect Presets"));
     xLightParent = (xLightsFrame *)parent;
@@ -84,6 +89,7 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     {
         if (EffectsNode->GetName() == wxT("effect"))
         {
+            //This case should only be for old format rgbeffects files
             name=EffectsNode->GetAttribute(wxT("name"));
             if (!name.IsEmpty())
             {
@@ -95,19 +101,15 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
             name=EffectsNode->GetAttribute(wxT("name"));
             if (name == wxT("Favorites"))
             {
-                curGroupID = treeFavoritesGroupID;
+                AddTreeElementsRecursive(EffectsNode, treeFavoritesGroupID);
             }
             else
             {
-                curGroupID = treeUserGroupID;
-            }
-            for( wxXmlNode *e=EffectsNode->GetChildren(); e!=NULL; e->GetNext())
-            {
-                TreeCtrl1->AppendItem(curGroupID, e->GetName(),-1,-1,new MyTreeItemData (e));
+                AddTreeElementsRecursive(EffectsNode, treeUserGroupID);
             }
         }
     }
-   // AddNCcomEffects();
+    AddNCcomEffects();
 }
 
 void EffectTreeDialog::AddNCcomEffects()
@@ -124,13 +126,17 @@ void EffectTreeDialog::AddNCcomEffects()
     wxXmlNode* root=EffectsXml.GetRoot();
     if (root->GetName() != wxT("NutcrackerEffects"))
     {
-        wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
+        wxMessageBox(_("Invalid RGB effects file. Please redownload."), _("Error"));
         return;
     }
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    wxXmlNode* e=root->GetChildren();
+    if (e->GetName() == wxT("effects")) NcEffectsNode=e;
+
+    if (e->GetNext() != NULL)
     {
-        if (e->GetName() == wxT("effects")) NcEffectsNode=e;
+        wxMessageBox(_("Only top level effect group allowed in nutcracker effect file."), _("Error"));
     }
+
     if (NcEffectsNode == 0)
     {
         wxMessageBox(_("No effects found in Nutcracker.com effects file"), _("Error"));
@@ -140,6 +146,41 @@ void EffectTreeDialog::AddNCcomEffects()
 }
 
 
+void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID)
+{
+    wxString name;
+    wxTreeItemId nextGroupID;
+
+    for(wxXmlNode *EffectsNode = NcEffectsNode->GetChildren(); EffectsNode!=NULL; EffectsNode=EffectsNode->GetNext() )
+    {
+        if (EffectsNode->GetName() == wxT("effect"))
+        {
+            name=EffectsNode->GetAttribute(wxT("name"));
+            if (!name.IsEmpty())
+            {
+                TreeCtrl1->AppendItem(curGroupID, name,-1,-1, new MyTreeItemData(EffectsNode));
+            }
+        }
+        else if (EffectsNode->GetName() == wxT("effectGroup"))
+        {
+            name=EffectsNode->GetAttribute(wxT("name"));
+            if (!name.IsEmpty())
+            {
+                nextGroupID = TreeCtrl1->AppendItem(curGroupID, EffectsNode->GetName(),-1,-1,new MyTreeItemData (EffectsNode));
+                AddTreeElementsRecursive(EffectsNode, nextGroupID);
+            }
+        }
+    }
+}
+
+void EffectTreeDialog::UpdateNcEffectsList()
+{
+    wxString name;
+    wxTreeItemId curGroupID;
+
+    treeNCcomGroupID = TreeCtrl1->AppendItem(treeRootID, "Nutcraker Shared Effects", -1,-1, NULL);
+    AddTreeElementsRecursive(NcEffectsNode, treeNCcomGroupID);
+}
 
 
 void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
@@ -165,4 +206,31 @@ void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
 
         }
     }
+}
+
+void EffectTreeDialog::CheckValidOperation()
+{
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+
+}
+
+void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
+{
+    CheckValidOperation();
+}
+
+void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnbtFavoriteClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
+{
+}
+
+void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
+{
 }
