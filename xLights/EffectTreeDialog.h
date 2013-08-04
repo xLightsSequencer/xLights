@@ -51,7 +51,11 @@ class EffectTreeDialog: public wxDialog
 		void OnbtApplyClick(wxCommandEvent& event);
 		//*)
         wxWindow* xLightParent;
+		wxXmlNode *NcEffectsNode;
+		wxXmlNode *XrgbEffectsNode;
+
 		DECLARE_EVENT_TABLE()
+
 };
 
 class MyTreeItemData : public wxTreeItemData

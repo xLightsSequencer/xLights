@@ -31,6 +31,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
 									<label>Apply Preset</label>
+									<handler function="OnbtApplyClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

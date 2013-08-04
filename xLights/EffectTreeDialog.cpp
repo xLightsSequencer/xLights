@@ -74,6 +74,8 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
 {
     wxString name;
     wxTreeItemId curGroupID;
+    XrgbEffectsNode = EffectsNode;
+
     treeFavoritesGroupID = TreeCtrl1->AppendItem(treeRootID, "Favorites", -1,-1, NULL);
     treeUserGroupID = TreeCtrl1->AppendItem(treeRootID, "User Group", -1,-1, NULL);
     TreeCtrl1->Expand(treeRootID);
@@ -107,12 +109,38 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     }
    // AddNCcomEffects();
 }
-/*
+
 void EffectTreeDialog::AddNCcomEffects()
 {
+    wxFileName effectsFile;
+    effectsFile.AssignDir( ((xLightsFrame *)xLightParent)->CurrentDir );
+    effectsFile.SetFullName(NCCOM_FILE);
 
+    if (!EffectsXml.Load( effectsFile.GetFullPath() ))
+    {
+        wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
+        return;
+    }
+    wxXmlNode* root=EffectsXml.GetRoot();
+    if (root->GetName() != wxT("NutcrackerEffects"))
+    {
+        wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
+        return;
+    }
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == wxT("effects")) NcEffectsNode=e;
+    }
+    if (NcEffectsNode == 0)
+    {
+        wxMessageBox(_("No effects found in Nutcracker.com effects file"), _("Error"));
+        return;
+    }
+    UpdateNcEffectsList();
 }
-*/
+
+
+
 
 void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
 {
