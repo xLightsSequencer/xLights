@@ -54,9 +54,11 @@ private:
     int brightness;
     int contrast;
     int CurrentLayer;  // 0 or 1
+    float effectMixThreshold;
     MixTypes MixType;
     RgbEffects Effect[2];
     void GetMixedColor(wxCoord x, wxCoord y, wxColour& c);
+    double fadeFactor[2];
 
 public:
     PixelBufferClass();
@@ -67,9 +69,12 @@ public:
     void SetMixType(const wxString& MixName);
     void SetPalette(int layer, wxColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
+    void SetTimes(int layer, int startTime, int endTime, int nextTime);
+    void SetFadeTimes(int layer, float inTime, float outTime);
     void SetSparkle(int freq);
     void SetBrightness(int value);
     void SetContrast(int value);
+    void SetMixThreshold(int value);
     void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
     void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip);
     void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
@@ -91,7 +96,8 @@ public:
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                                bool radial, int start_x, int start_y);
 
-    void CalcOutput();
+
+    void CalcOutput(int EffectPeriod);
 };
 
 #endif // PIXELBUFFER_H

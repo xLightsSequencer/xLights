@@ -2,6 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
 		<title>xLights/Nutcracker  (Ver BETA 3.0.24)</title>
+		<size>1269,591</size>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1200,7 +1201,7 @@
 																	<label>Combined Effect</label>
 																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer33" member="no">
-																			<cols>2</cols>
+																			<cols>3</cols>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
 																					<label>Play Effect</label>
@@ -1222,6 +1223,11 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON58" variable="Button_Models" member="yes">
 																					<label>Models</label>
@@ -1238,6 +1244,11 @@
 																					<style>wxCB_SORT</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1261,6 +1272,11 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON9" variable="Button_PresetAdd" member="yes">
 																					<label>New Preset</label>
@@ -1281,11 +1297,8 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
-																			<object class="sizeritem">
-																				<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText21" member="yes">
-																					<label>Layer Method</label>
-																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1302,9 +1315,28 @@
 																						<item>Average</item>
 																					</content>
 																					<selection>0</selection>
+																					<style>wxFULL_REPAINT_ON_RESIZE</style>
 																					<handler function="OnChoice_LayerMethodSelect" entry="EVT_CHOICE" />
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
+																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL" />
+																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_LayerMix" variable="txtCtlEffectMix" member="yes">
+																					<size>30,20</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1322,8 +1354,19 @@
 																					<min>10</min>
 																					<max>200</max>
 																					<style>wxSL_INVERSE</style>
+																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SCROLL" />
+																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
+																					<size>30,20</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1339,9 +1382,19 @@
 																				<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 																					<value>100</value>
 																					<max>400</max>
-																					<style>wxSL_LABELS</style>
+																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SCROLL" />
+																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
+																					<size>30,20</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1354,8 +1407,20 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes" />
+																				<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes">
+																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SCROLL" />
+																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
+																					<size>30,20</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -2929,6 +2994,31 @@
 																								<border>5</border>
 																								<option>1</option>
 																							</object>
+																							<object class="sizeritem">
+																								<object class="wxCheckBox" name="ID_CHECKBOX_Effect1_Fit" variable="CheckBox_Effect1Fit" member="yes">
+																									<label>Fit to time</label>
+																									<handler function="OnCheckBox_Effect1FitClick" entry="EVT_CHECKBOX" />
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT144" variable="StaticText143" member="yes">
+																									<label>Fade In</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT145" variable="StaticText144" member="yes">
+																									<label>FadeOut</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
 																						</object>
 																						<flag>wxTOP|wxBOTTOM|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 																						<border>5</border>
@@ -2952,9 +3042,38 @@
 																									<max>20</max>
 																									<size>30,150</size>
 																									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+																									<handler function="OnSlider_Speed1CmdScroll" entry="EVT_COMMAND_SCROLL" />
+																									<handler function="OnSlider_Speed1CmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																								</object>
-																								<flag>wxTOP|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="txtCtl_Effect1Speed" member="yes">
+																									<size>30,20</size>
+																									<style>wxTE_READONLY</style>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_Fadein" variable="TextCtrl_Effect1_Fadein" member="yes">
+																									<value>0.00</value>
+																									<size>30,20</size>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>6</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect1_Fadeout" variable="TextCtrl_Effect1_Fadeout" member="yes">
+																									<value>0.00</value>
+																									<size>30,20</size>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>3</border>
 																								<option>1</option>
 																							</object>
 																						</object>
@@ -4372,6 +4491,30 @@
 																								<border>5</border>
 																								<option>1</option>
 																							</object>
+																							<object class="sizeritem">
+																								<object class="wxCheckBox" name="ID_CHECKBOX_Effect2_Fit" variable="CheckBox_Effect2Fit" member="yes">
+																									<label>Fit to Time</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText21" member="yes">
+																									<label>Fade In</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT143" variable="StaticText142" member="yes">
+																									<label>Fade Out</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
 																						</object>
 																						<flag>wxTOP|wxBOTTOM|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 																						<border>5</border>
@@ -4395,9 +4538,38 @@
 																									<max>20</max>
 																									<size>30,150</size>
 																									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+																									<handler function="OnSlider_Speed2CmdScroll" entry="EVT_COMMAND_SCROLL" />
+																									<handler function="OnSlider_Speed2CmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																								</object>
 																								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="txtCtl_Effect2Speed" member="yes">
+																									<size>30,20</size>
+																									<style>wxTE_READONLY</style>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_Fadein" variable="TextCtrl_Effect2_Fadein" member="yes">
+																									<value>0.00</value>
+																									<size>30,20</size>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>3</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxTextCtrl" name="ID_TEXTCTRL_Effect2_Fadeout" variable="TextCtrl_Effect2_Fadeout" member="yes">
+																									<value>0.00</value>
+																									<size>30,20</size>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>3</border>
 																								<option>1</option>
 																							</object>
 																						</object>

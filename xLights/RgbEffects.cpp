@@ -313,6 +313,18 @@ void RgbEffects::ClearWaveBuffer2()
     }
 }
 
+void RgbEffects::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
+{
+    fadein = (int)(fadeInDuration*1000)/XTIMER_INTERVAL;
+    fadeout = (int)(fadeOutDuration*1000)/XTIMER_INTERVAL;
+}
+
+void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
+{
+    curEffStartPer = startMsec/XTIMER_INTERVAL;
+    curEffEndPer = endMsec/XTIMER_INTERVAL;
+    nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
+}
 
 //  Now we come to including the programs that actually do the effects.
 
