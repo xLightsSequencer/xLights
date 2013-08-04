@@ -22,7 +22,6 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
-
 void RgbEffects::RenderPiano(int Keyboard)
 {
     wxImage::HSVValue hsv;
