@@ -2449,6 +2449,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     effGridPrevX = 0;
     effGridPrevY = 0;
 
+    CheckBox_Effect1Fit->Disable();
+    CheckBox_Effect2Fit->Disable();
+
     // Load headings into network list
     wxListItem itemCol;
     itemCol.SetText(_T("Network Type"));
