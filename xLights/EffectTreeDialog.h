@@ -22,6 +22,7 @@ class EffectTreeDialog: public wxDialog
 		//(*Declarations(EffectTreeDialog)
 		wxButton* btNewPreset;
 		wxButton* btFavorite;
+		wxButton* btAddGroup;
 		wxButton* btUpdate;
 		wxButton* btApply;
 		wxButton* btRename;
@@ -41,6 +42,7 @@ class EffectTreeDialog: public wxDialog
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		static const long ID_BUTTON5;
+		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		//*)
@@ -54,13 +56,16 @@ class EffectTreeDialog: public wxDialog
 		void OnbtFavoriteClick(wxCommandEvent& event);
 		void OnbtRenameClick(wxCommandEvent& event);
 		void OnbtDeleteClick(wxCommandEvent& event);
+		void OnbtAddGroupClick(wxCommandEvent& event);
 		//*)
         wxWindow* xLightParent;
 		wxXmlNode *NcEffectsNode;
 		wxXmlNode *XrgbEffectsNode;
+		wxXmlDocument NcEffectsXml;
         void AddNCcomEffects();
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
-        void EffectTreeDialog::UpdateNcEffectsList();
+        void UpdateNcEffectsList();
+        bool CheckValidOperation(wxTreeItemId itemID);
 
 		DECLARE_EVENT_TABLE()
 

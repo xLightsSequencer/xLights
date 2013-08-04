@@ -193,6 +193,7 @@ public:
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
     void SetEffectControls(wxString settings);
+    wxXmlNode* CreateEffectNode(wxString& name);
 
     enum RGB_EFFECTS_e
     {
@@ -232,6 +233,7 @@ public:
     };
     EffectNamesVector EffectNames;
     EffectLayerOptionsVector EffectLayerOptions;
+    wxString CurrentDir;
 
 private:
 
@@ -667,7 +669,7 @@ private:
     wxStaticText* StaticTextSequenceFileName;
     //*)
 
-    wxString CurrentDir;
+
     wxFileName networkFile;
     wxFileName scheduleFile;
     PlayerFrame* PlayerDlg;
@@ -815,7 +817,7 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
 
-    wxXmlNode* CreateEffectNode(wxString& name);
+
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
     void ChooseModelsForSequence();

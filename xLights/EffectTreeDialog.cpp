@@ -11,6 +11,7 @@ const long EffectTreeDialog::ID_BUTTON6 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON1 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON2 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
+const long EffectTreeDialog::ID_BUTTON7 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
 //*)
@@ -44,6 +45,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	BoxSizer1->Add(btUpdate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	btFavorite = new wxButton(this, ID_BUTTON5, _("Add To Favorites"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
 	BoxSizer1->Add(btFavorite, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	btAddGroup = new wxButton(this, ID_BUTTON7, _("Add Group"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	BoxSizer1->Add(btAddGroup, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	btRename = new wxButton(this, ID_BUTTON3, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	BoxSizer1->Add(btRename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	btDelete = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
@@ -62,6 +65,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtNewPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtUpdateClick);
 	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtFavoriteClick);
+	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
 	//*)
@@ -118,12 +122,12 @@ void EffectTreeDialog::AddNCcomEffects()
     effectsFile.AssignDir( ((xLightsFrame *)xLightParent)->CurrentDir );
     effectsFile.SetFullName(NCCOM_FILE);
 
-    if (!EffectsXml.Load( effectsFile.GetFullPath() ))
+    if (!NcEffectsXml.Load( effectsFile.GetFullPath() ))
     {
         wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
         return;
     }
-    wxXmlNode* root=EffectsXml.GetRoot();
+    wxXmlNode* root=NcEffectsXml.GetRoot();
     if (root->GetName() != wxT("NutcrackerEffects"))
     {
         wxMessageBox(_("Invalid RGB effects file. Please redownload."), _("Error"));
@@ -134,7 +138,7 @@ void EffectTreeDialog::AddNCcomEffects()
 
     if (e->GetNext() != NULL)
     {
-        wxMessageBox(_("Only top level effect group allowed in nutcracker effect file."), _("Error"));
+        wxMessageBox(_("Only one top level effect group allowed in nutcracker effect file."), _("Error"));
     }
 
     if (NcEffectsNode == 0)
@@ -208,29 +212,133 @@ void EffectTreeDialog::OnbtApplyClick(wxCommandEvent& event)
     }
 }
 
-void EffectTreeDialog::CheckValidOperation()
+bool EffectTreeDialog::CheckValidOperation(wxTreeItemId itemID)
 {
-    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    wxTreeItemId parentID = TreeCtrl1->GetItemParent(itemID);
 
+    if (itemID == treeNCcomGroupID || itemID == treeRootID )
+    {
+        return false;
+    }
+    else if (parentID == treeFavoritesGroupID || parentID == treeUserGroupID )
+    {
+        return true;
+    }
+    return CheckValidOperation(parentID);
 }
 
 void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 {
-    CheckValidOperation();
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    wxTreeItemId parentID;
+    if ( !CheckValidOperation(itemID))
+    {
+        wxMessageBox(_("A preset cannot be added at the currently selected location"), _("ERROR"));
+        return;
+    }
+    wxTextEntryDialog dialog(this,_("Enter preset name"),_("Add New Preset"));
+    int DlgResult;
+    bool ok;
+    wxString name;
+    do
+    {
+        ok=true;
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            name=dialog.GetValue();
+            name.Trim();
+            if (name.IsEmpty())
+            {
+                ok=false;
+                wxMessageBox(_("A preset name cannot be empty"), _("ERROR"));
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    if (DlgResult != wxID_OK) return;
+
+    // update Choice_Presets
+    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(TreeCtrl1->GetItemParent(itemID));
+    wxXmlNode *node=parentData->GetElement();
+    wxXmlNode *newNode=((xLightsFrame *)xLightParent)->CreateEffectNode(name);
+    node->AddChild(newNode);
+    TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
+    //Choice_Presets->SetStringSelection(name);
+    //SaveEffectsFile();
 }
 
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
 {
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if ( !CheckValidOperation(itemID))
+    {
+        //Generate error message
+    }
 }
 
 void EffectTreeDialog::OnbtFavoriteClick(wxCommandEvent& event)
 {
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if ( TreeCtrl1->HasChildren(itemID))
+    {
+        //Generate error message
+    }
 }
 
 void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
 {
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if ( itemID == treeFavoritesGroupID || itemID == treeUserGroupID ||!CheckValidOperation(itemID))
+    {
+        //Generate error message
+    }
+    wxTextEntryDialog dialog(this,_("Enter new name"),_("Rename Preset"),TreeCtrl1->GetItemText(itemID));
+    int DlgResult;
+    bool ok;
+    wxString NewName;
+    do
+    {
+        ok=true;
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            NewName=dialog.GetValue();
+            NewName.Trim();
+            if (NewName.IsEmpty())
+            {
+                ok=false;
+                wxMessageBox(_("A preset name cannot be empty"), _("ERROR"));
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    if (DlgResult != wxID_OK) return;
+    MyTreeItemData *itemData= (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+    wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
+    e->DeleteAttribute(wxT("name"));
+    e->AddAttribute(wxT("name"),NewName);
+    delete itemData;
+    TreeCtrl1->SetItemData(itemID, new MyTreeItemData(e));
+    TreeCtrl1->SetItemText(itemID, NewName);
 }
 
 void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
 {
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if ( !CheckValidOperation(itemID))
+    {
+        //Generate error message
+    }
+}
+
+void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
+{
+    wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    if ( !CheckValidOperation(itemID))
+    {
+        //Generate error message
+    }
 }
