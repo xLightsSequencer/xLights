@@ -190,7 +190,7 @@ public:
 
     size_t Size()
     {
-        size_t colorcnt=color.Size();
+        size_t colorcnt=color.size();
         if (colorcnt < 1) colorcnt=1;
         return colorcnt;
     }
