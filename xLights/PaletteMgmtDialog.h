@@ -12,6 +12,7 @@
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
+#include "EffectsPanel.h"
 
 class PaletteMgmtDialog: public wxDialog
 {
@@ -19,18 +20,18 @@ public:
 
     PaletteMgmtDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~PaletteMgmtDialog();
-    void initialize(const wxString& id1, const wxString& id2, wxXmlNode* PalNode, wxSizer* PriSizer,wxSizer* SecSizer);
+    void initialize(wxXmlNode* PalNode, EffectsPanel* p1,EffectsPanel* p2);
 
 
     //(*Declarations(PaletteMgmtDialog)
-    wxButton* ButtonChangeOrder;
+    wxButton* ButtonLoadPalette2;
+    wxButton* ButtonSavePalette2;
     wxStaticText* StaticText14;
     wxStaticText* StaticText1;
+    wxButton* ButtonCopy12;
     wxButton* ButtonLoadPalette1;
-    wxButton* ButtonLoadPaletteBoth;
-    wxButton* ButtonSavePalette;
+    wxButton* ButtonSavePalette1;
     wxButton* ButtonDelete;
-    wxButton* ButtonCopy;
     wxListBox* ListBox1;
     //*)
 
@@ -41,8 +42,8 @@ protected:
     static const long ID_STATICTEXT1;
     static const long ID_LISTBOX1;
     static const long ID_BUTTON5;
-    static const long ID_BUTTON4;
     static const long ID_BUTTON3;
+    static const long ID_BUTTON4;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON6;
@@ -51,21 +52,21 @@ protected:
 private:
 
     //(*Handlers(PaletteMgmtDialog)
-    void OnButtonSavePaletteClick(wxCommandEvent& event);
-    void OnButtonLoadPalette1Click(wxCommandEvent& event);
-    void OnButtonLoadPaletteBothClick(wxCommandEvent& event);
     void OnButtonCopyClick(wxCommandEvent& event);
-    void OnButtonChangeOrderClick(wxCommandEvent& event);
     void OnButtonDeleteClick(wxCommandEvent& event);
+    void OnButtonLoadPalette1Click(wxCommandEvent& event);
+    void OnButtonLoadPalette2Click(wxCommandEvent& event);
+    void OnButtonSavePalette1Click(wxCommandEvent& event);
+    void OnButtonSavePalette2Click(wxCommandEvent& event);
     //*)
 
     void ReloadPaletteList();
-    void LoadPalette(wxXmlNode* PaletteNode, wxSizer* Sizer);
+    void LoadPalette(wxXmlNode* PaletteNode, EffectsPanel* panel);
+    void SavePalette(EffectsPanel* panel);
+    int GetSelectedIndex();
 
-    wxSizer* PrimarySizer;
-    wxSizer* SecondarySizer;
-    wxString PrimaryId;
-    wxString SecondaryId;
+    EffectsPanel* panel1;
+    EffectsPanel* panel2;
     wxXmlNode* PalettesNode;
 
     DECLARE_EVENT_TABLE()

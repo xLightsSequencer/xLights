@@ -84,10 +84,10 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     Button_PresetAdd->Enable(enable && EffectsNode);
     Button_PresetUpdate->Enable(enable && EffectsNode);
     Choice_Models->Enable(enable);
-    Button_Pictures1_Filename->Enable(enable);
-    TextCtrl_Pictures1_Filename->Enable(enable);
-    Button_Pictures2_Filename->Enable(enable);
-    TextCtrl_Pictures2_Filename->Enable(enable);
+    EffectsPanel1->Button_Pictures_Filename->Enable(enable);
+    EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
+    EffectsPanel2->Button_Pictures_Filename->Enable(enable);
+    EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
@@ -133,7 +133,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
 {
     long TempLong;
     wxColour color;
-    wxWindow *CtrlWin;
+    wxWindow *CtrlWin, *ContextWin;
     wxString before,after,name,value;
     int cnt=0;
     while (!settings.IsEmpty())
@@ -143,18 +143,27 @@ void xLightsFrame::SetEffectControls(wxString settings)
         switch (cnt)
         {
         case 0:
-            SetChoicebook(Choicebook1,before);
+            SetChoicebook(EffectsPanel1->Choicebook1,before);
             break;
         case 1:
-            SetChoicebook(Choicebook2,before);
+            SetChoicebook(EffectsPanel2->Choicebook1,before);
             break;
         case 2:
             Choice_LayerMethod->SetStringSelection(before);
             break;
         default:
             name=before.BeforeFirst('=');
+            if (name.StartsWith(wxT("E1_"))) {
+                ContextWin=EffectsPanel1;
+                name=wxT("ID_")+name.Mid(3);
+            } else if (name.StartsWith(wxT("E2_"))) {
+                ContextWin=EffectsPanel2;
+                name=wxT("ID_")+name.Mid(3);
+            } else {
+                ContextWin=SeqPanelLeft;
+            }
             value=before.AfterFirst('=');
-            CtrlWin=wxWindow::FindWindowByName(name);
+            CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
             if (CtrlWin)
             {
                 if (name.StartsWith(wxT("ID_SLIDER")))
@@ -176,7 +185,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
                 {
                     color.Set(value);
                     CtrlWin->SetBackgroundColour(color);
-                    SetTextColor(CtrlWin);
+                    //SetTextColor(CtrlWin);
                 }
                 else if (name.StartsWith(wxT("ID_CHECKBOX")))
                 {
@@ -197,18 +206,11 @@ void xLightsFrame::SetEffectControls(wxString settings)
         settings=after;
         cnt++;
     }
-    PaletteChanged=true;
     MixTypeChanged=true;
     FadesChanged=true;
+    EffectsPanel1->PaletteChanged=true;
+    EffectsPanel2->PaletteChanged=true;
     ResetEffectStates();
-}
-
-// Set text to a color that contrasts with background
-void xLightsFrame::SetTextColor(wxWindow* w)
-{
-    wxColour color=w->GetBackgroundColour();
-    int test=color.Red()*0.299 + color.Green()*0.587 + color.Blue()*0.114;
-    w->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
 }
 
 void xLightsFrame::PresetsSelect()
@@ -287,118 +289,27 @@ wxString xLightsFrame::CreateEffectStringRandom()
     layerOp = rand() % LASTLAYER;
     s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
     s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetMax()); // max is actually all teh way left, ie no sparkles
-
     s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
     s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),0);
-    s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),rand()%Slider_Speed1->GetMax()+Slider_Speed1->GetMin());
-    s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),rand()%Slider_Speed2->GetMax()+Slider_Speed2->GetMin());
-    s+=PageControlsToStringRandom(Choicebook1->GetPage(eff1));
-    s+=SizerControlsToStringRandom(FlexGridSizer_Palette1);
-    s+=PageControlsToStringRandom(Choicebook2->GetPage(eff2));
-    s+=SizerControlsToStringRandom(FlexGridSizer_Palette2);
+    s+=EffectsPanel1->GetRandomEffectString(eff1);
+    s+=EffectsPanel2->GetRandomEffectString(eff2);
     return s;
 
 }
 
-wxString xLightsFrame::PageControlsToStringRandom(wxWindow* page)
-{
-    wxString s;
-    wxWindowList &ChildList = page->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
-    {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
-        wxString ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_SLIDER")))
-        {
-            wxSlider* ctrl=(wxSlider*)ChildWin;
-            if(ChildName.Contains(wxT("Spirograph1_r")) || ChildName.Contains(wxT("Spirograph2_r")))
-            {
-                // always set little radius, r, to its minimum value
-                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 0 );
-            }
-            else
-            {
-                s+=","+ChildName+"="+wxString::Format(wxT("%d"),rand() % ctrl->GetMax() + ctrl->GetMin() );
-            }
-        }
-        else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
-        {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            s+=","+ChildName+"="+ctrl->GetValue();
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHOICE")))
-        {
-            wxChoice* ctrl=(wxChoice*)ChildWin;
-            s+=","+ChildName+"="+ctrl->GetString(rand()%ctrl->GetCount());
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
-        {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            if(ChildName.Contains(wxT("Spirograph1_Animate")) || ChildName.Contains(wxT("Spirograph2_Animate")))
-            {
-                // always animate spirograph
-                s+=","+ChildName+"="+wxString::Format(wxT("%d"), 1 );
-            }
-            else
-            {
-                wxString v=(rand()%2) ? wxT("1") : wxT("0");
-                s+=","+ChildName+"="+v;
-            }
-        }
-    }
-    return s;
-}
-wxString xLightsFrame::SizerControlsToStringRandom(wxSizer* sizer)
-{
-    wxString s;
-    wxSizerItemList &ChildList = sizer->GetChildren();
-    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
-    {
-        if (!(*it)->IsWindow()) continue;
-        wxWindow *ChildWin = (*it)->GetWindow();
-        wxString ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_BUTTON")))
-        {
-            wxColour color=ChildWin->GetBackgroundColour();
-            s+=","+ChildName+"="+color.GetAsString(wxC2S_HTML_SYNTAX);
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
-        {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(rand() % 2) ? wxT("1") : wxT("0");
-            s+=","+ChildName+"="+v;
-        }
-    }
-    return s;
-}
 wxString xLightsFrame::CreateEffectString()
 {
-    int PageIdx1=Choicebook1->GetSelection();
-    int PageIdx2=Choicebook2->GetSelection();
+    int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
+    int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
-    wxString s=Choicebook1->GetPageText(PageIdx1)+wxT(",")+Choicebook2->GetPageText(PageIdx2);
+    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+wxT(",")+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
     s+=wxT(",")+Choice_LayerMethod->GetStringSelection();
     s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
     s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
     s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
     s+=wxT(",ID_SLIDER_EffectLayerMix=")+wxString::Format(wxT("%d"),Slider_EffectLayerMix->GetValue());
-    s+=wxT(",ID_SLIDER_Speed1=")+wxString::Format(wxT("%d"),Slider_Speed1->GetValue());
-    s+=wxT(",ID_SLIDER_Speed2=")+wxString::Format(wxT("%d"),Slider_Speed2->GetValue());
-    s+=wxT(",ID_TEXTCTRL_Effect1_Fadein=")+wxString::Format(wxT("%s"),TextCtrl_Effect1_Fadein->GetValue());
-    s+=wxT(",ID_TEXTCTRL_Effect1_Fadeout=")+wxString::Format(wxT("%s"),TextCtrl_Effect1_Fadeout->GetValue());
-    s+=wxT(",ID_TEXTCTRL_Effect2_Fadein=")+wxString::Format(wxT("%s"),TextCtrl_Effect2_Fadein->GetValue());
-    s+=wxT(",ID_TEXTCTRL_Effect2_Fadeout=")+wxString::Format(wxT("%s"),TextCtrl_Effect2_Fadeout->GetValue());
-    s+=wxT(",ID_CHECKBOX_Effect1_Fit=")+wxString::Format(wxT("%d"),CheckBox_Effect1Fit->GetValue()?1:0);
-    s+=wxT(",ID_CHECKBOX_Effect2_Fit=")+wxString::Format(wxT("%d"),CheckBox_Effect2Fit->GetValue()?1:0);
-    s+=PageControlsToString(Choicebook1->GetPage(PageIdx1));
-    if(PageIdx1==eff_TEXT)
-    {
-        s+=PageControlsToString(Notebook_Text1->GetPage(0));
-        s+=PageControlsToString(Notebook_Text1->GetPage(1));
-    }
-    s+=SizerControlsToString(FlexGridSizer_Palette1);
-    s+=PageControlsToString(Choicebook2->GetPage(PageIdx2));
-    s+=SizerControlsToString(FlexGridSizer_Palette2);
+    s+=EffectsPanel1->GetEffectString();
+    s+=EffectsPanel2->GetEffectString();
     return s;
 }
 
@@ -517,7 +428,7 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=2; c<nCols; c++)
+            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -531,7 +442,7 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=2)
+        if (c >= SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLUE);
         }
@@ -552,7 +463,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=2; c<nCols; c++)
+            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -566,7 +477,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=2)
+        if (c >= SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLACK);
         }
@@ -632,11 +543,6 @@ void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
     EnableSequenceControls(true);
 }
 
-void xLightsFrame::OnCheckBox_PaletteClick(wxCommandEvent& event)
-{
-    PaletteChanged=true;
-}
-
 void xLightsFrame::UpdateEffectsList()
 {
     wxString name;
@@ -689,64 +595,6 @@ void xLightsFrame::UpdateModelsList()
         }
         Button_PlayEffect->Enable(play_mode == play_off);
     }
-}
-
-wxString xLightsFrame::PageControlsToString(wxWindow* page)
-{
-    wxString s;
-    wxWindowList &ChildList = page->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
-    {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
-        wxString ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_SLIDER")))
-        {
-            wxSlider* ctrl=(wxSlider*)ChildWin;
-            s+=","+ChildName+"="+wxString::Format(wxT("%d"),ctrl->GetValue());
-        }
-        else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
-        {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            s+=","+ChildName+"="+ctrl->GetValue();
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHOICE")))
-        {
-            wxChoice* ctrl=(wxChoice*)ChildWin;
-            s+=","+ChildName+"="+ctrl->GetStringSelection();
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
-        {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(ctrl->IsChecked()) ? wxT("1") : wxT("0");
-            s+=","+ChildName+"="+v;
-        }
-    }
-    return s;
-}
-
-// used to save palette
-wxString xLightsFrame::SizerControlsToString(wxSizer* sizer)
-{
-    wxString s;
-    wxSizerItemList &ChildList = sizer->GetChildren();
-    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
-    {
-        if (!(*it)->IsWindow()) continue;
-        wxWindow *ChildWin = (*it)->GetWindow();
-        wxString ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_BUTTON")))
-        {
-            wxColour color=ChildWin->GetBackgroundColour();
-            s+=","+ChildName+"="+color.GetAsString(wxC2S_HTML_SYNTAX);
-        }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
-        {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(ctrl->IsChecked()) ? wxT("1") : wxT("0");
-            s+=","+ChildName+"="+v;
-        }
-    }
-    return s;
 }
 
 void xLightsFrame::ResetEffectsXml()
@@ -824,208 +672,325 @@ void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& S
     wxColourVector newcolors;
     for (int i=1; i<=6; i++)
     {
-        if (SettingsMap[wxString::Format(wxT("ID_CHECKBOX_Palette%d_%d"),PaletteNum,i)] ==  wxT("1"))
+        if (SettingsMap[wxString::Format(wxT("E%d_CHECKBOX_Palette%d"),PaletteNum,i)] ==  wxT("1"))
         {
-            newcolors.push_back(wxColour(SettingsMap[wxString::Format(wxT("ID_BUTTON_Palette%d_%d"),PaletteNum,i)]));
+            newcolors.push_back(wxColour(SettingsMap[wxString::Format(wxT("E%d_BUTTON_Palette%d"),PaletteNum,i)]));
         }
     }
     buffer.SetPalette(PaletteNum-1,newcolors);
 }
 
+// effectNum is 1 or 2
 void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap)
 {
     wxString tmpStr;
     double fadeIn, fadeOut;
 
-    tmpStr = SettingsMap[wxString::Format(wxT("ID_TEXTCTRL_Effect%d_Fadein"),effectNum)] ;
+    tmpStr = SettingsMap[wxString::Format(wxT("E%d_TEXTCTRL_Fadein"),effectNum)] ;
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = SettingsMap[wxString::Format(wxT("ID_TEXTCTRL_Effect%d_Fadeout"),effectNum)] ;
+    tmpStr = SettingsMap[wxString::Format(wxT("E%d_TEXTCTRL_Fadeout"),effectNum)] ;
     tmpStr.ToDouble(&fadeOut);
 
-    buffer.SetFadeTimes(effectNum, fadeIn, fadeOut);
+    buffer.SetFadeTimes(effectNum-1, fadeIn, fadeOut);
 }
 void xLightsFrame::UpdateBufferFadesFromCtrl()
 {
     wxString tmpStr;
     double fadeIn, fadeOut;
 
-    tmpStr = TextCtrl_Effect1_Fadein->GetValue();
+    tmpStr = EffectsPanel1->TextCtrl_Fadein->GetValue();
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = TextCtrl_Effect1_Fadeout->GetValue();
+    tmpStr = EffectsPanel1->TextCtrl_Fadeout->GetValue();
     tmpStr.ToDouble(&fadeOut);
     buffer.SetFadeTimes(0, fadeIn, fadeOut);
 
-    tmpStr = TextCtrl_Effect2_Fadein->GetValue();
+    tmpStr = EffectsPanel2->TextCtrl_Fadein->GetValue();
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = TextCtrl_Effect2_Fadeout->GetValue();
+    tmpStr = EffectsPanel2->TextCtrl_Fadeout->GetValue();
     tmpStr.ToDouble(&fadeOut);
     buffer.SetFadeTimes(1, fadeIn, fadeOut);
 }
 
-void xLightsFrame::UpdateBufferPalette()
+// layer is 0 or 1
+void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 {
     wxColourVector newcolors;
 
-    // effect 1
-    if (CheckBox_Palette1_1->IsChecked()) newcolors.push_back(Button_Palette1_1->GetBackgroundColour());
-    if (CheckBox_Palette1_2->IsChecked()) newcolors.push_back(Button_Palette1_2->GetBackgroundColour());
-    if (CheckBox_Palette1_3->IsChecked()) newcolors.push_back(Button_Palette1_3->GetBackgroundColour());
-    if (CheckBox_Palette1_4->IsChecked()) newcolors.push_back(Button_Palette1_4->GetBackgroundColour());
-    if (CheckBox_Palette1_5->IsChecked()) newcolors.push_back(Button_Palette1_5->GetBackgroundColour());
-    if (CheckBox_Palette1_6->IsChecked()) newcolors.push_back(Button_Palette1_6->GetBackgroundColour());
-    buffer.SetPalette(0,newcolors);
-
-    // effect 2
-    newcolors.clear();
-    if (CheckBox_Palette2_1->IsChecked()) newcolors.push_back(Button_Palette2_1->GetBackgroundColour());
-    if (CheckBox_Palette2_2->IsChecked()) newcolors.push_back(Button_Palette2_2->GetBackgroundColour());
-    if (CheckBox_Palette2_3->IsChecked()) newcolors.push_back(Button_Palette2_3->GetBackgroundColour());
-    if (CheckBox_Palette2_4->IsChecked()) newcolors.push_back(Button_Palette2_4->GetBackgroundColour());
-    if (CheckBox_Palette2_5->IsChecked()) newcolors.push_back(Button_Palette2_5->GetBackgroundColour());
-    if (CheckBox_Palette2_6->IsChecked()) newcolors.push_back(Button_Palette2_6->GetBackgroundColour());
-    buffer.SetPalette(1,newcolors);
+    if (panel->CheckBox_Palette1->IsChecked()) newcolors.push_back(panel->Button_Palette1->GetBackgroundColour());
+    if (panel->CheckBox_Palette2->IsChecked()) newcolors.push_back(panel->Button_Palette2->GetBackgroundColour());
+    if (panel->CheckBox_Palette3->IsChecked()) newcolors.push_back(panel->Button_Palette3->GetBackgroundColour());
+    if (panel->CheckBox_Palette4->IsChecked()) newcolors.push_back(panel->Button_Palette4->GetBackgroundColour());
+    if (panel->CheckBox_Palette5->IsChecked()) newcolors.push_back(panel->Button_Palette5->GetBackgroundColour());
+    if (panel->CheckBox_Palette6->IsChecked()) newcolors.push_back(panel->Button_Palette6->GetBackgroundColour());
+    buffer.SetPalette(layer,newcolors);
 }
 
+// layer is 0 or 1
 void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString& SettingsMap)
 {
-    wxString LayerStr=layer==0 ? wxT("1") : wxT("2");
-    wxString SpeedStr=SettingsMap[wxT("ID_SLIDER_Speed")+LayerStr];
+    wxString LayerStr=layer==0 ? wxT("E1_") : wxT("E2_");
+    wxString SpeedStr=SettingsMap[LayerStr+wxT("SLIDER_Speed")];
     buffer.SetLayer(layer,period,wxAtoi(SpeedStr),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
-    wxString effect=SettingsMap[wxT("effect")+LayerStr];
+    wxString effect=SettingsMap[LayerStr+wxT("Effect")];
     if (effect == wxT("Bars"))
     {
-        buffer.RenderBars(wxAtoi(SettingsMap[wxT("ID_SLIDER_Bars")+LayerStr+wxT("_BarCount")]),
-                          BarEffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Bars")+LayerStr+wxT("_Direction")]),
-                          SettingsMap[wxT("ID_CHECKBOX_Bars")+LayerStr+wxT("_Highlight")]==wxT("1"),
-                          SettingsMap[wxT("ID_CHECKBOX_Bars")+LayerStr+wxT("_3D")]==wxT("1"));
+        buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Bars_BarCount")]),
+                          BarEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Bars_Direction")]),
+                          SettingsMap[LayerStr+wxT("CHECKBOX_Bars_Highlight")]==wxT("1"),
+                          SettingsMap[LayerStr+wxT("CHECKBOX_Bars_3D")]==wxT("1"));
     }
     else if (effect == wxT("Butterfly"))
     {
-        buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[wxT("ID_CHOICE_Butterfly")+LayerStr+wxT("_Colors")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Butterfly")+LayerStr+wxT("_Style")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Butterfly")+LayerStr+wxT("_Chunks")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Butterfly")+LayerStr+wxT("_Skip")]));
+        buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[LayerStr+wxT("CHOICE_Butterfly_Colors")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Style")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Chunks")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Skip")]));
     }
     else if (effect == wxT("Color Wash"))
     {
-        buffer.RenderColorWash(SettingsMap[wxT("ID_CHECKBOX_ColorWash")+LayerStr+wxT("_HFade")]==wxT("1"),
-                               SettingsMap[wxT("ID_CHECKBOX_ColorWash")+LayerStr+wxT("_VFade")]==wxT("1"),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_ColorWash")+LayerStr+wxT("_Count")]));
+        buffer.RenderColorWash(SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_HFade")]==wxT("1"),
+                               SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_VFade")]==wxT("1"),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_ColorWash_Count")]));
     }
     else if (effect == wxT("Fire"))
     {
-        buffer.RenderFire(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fire")+LayerStr+wxT("_Height")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_HueShift")+LayerStr+wxT("_HueShift")]),
-                          SettingsMap[wxT("ID_CHECKBOX_Fire")+LayerStr+wxT("_GrowFire")]==wxT("1"));
+        buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_Height")]),
+                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_HueShift_HueShift")]),
+                          SettingsMap[LayerStr+wxT("CHECKBOX_Fire_GrowFire")]==wxT("1"));
     }
     else if (effect == wxT("Garlands"))
     {
-        buffer.RenderGarlands(wxAtoi(SettingsMap[wxT("ID_SLIDER_Garlands")+LayerStr+wxT("_Type")]),
-                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Garlands")+LayerStr+wxT("_Spacing")]));
+        buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Garlands_Type")]),
+                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Garlands_Spacing")]));
     }
     else if (effect == wxT("Life"))
     {
-        buffer.RenderLife(wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Count")]),
-
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Life")+LayerStr+wxT("_Seed")]));
+        buffer.RenderLife(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Life_Count")]),
+                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Life_Seed")]));
     }
     else if (effect == wxT("Meteors"))
     {
-        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Length")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Meteors")+LayerStr+wxT("_FallUp")]==wxT("1"),
-                             MeteorsEffect.Index(SettingsMap[wxT("ID_CHOICE_MeteorsEffect")+LayerStr+wxT("_Type")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Meteors")+LayerStr+wxT("_Swirl_Intensity")]));
-
-        //                 buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[wxT("ID_CHOICE_Meteors")+LayerStr+wxT("_Type")]),
-        //              wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Count")]),
-        //            wxAtoi(SettingsMap[wxT("Slider_Meteors")+LayerStr+wxT("_Length")]));
+        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Type")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Count")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Meteors_FallUp")]==wxT("1"),
+                             MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_MeteorsEffect_Type")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
     }
     else if (effect == wxT("Pictures"))
     {
-        buffer.RenderPictures(EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Pictures")+LayerStr+wxT("_Direction")]),
-                              SettingsMap[wxT("ID_TEXTCTRL_Pictures")+LayerStr+wxT("_Filename")],
-                              wxAtoi(SettingsMap[wxT("ID_SLIDER_Pictures")+LayerStr+wxT("_GifType")])
+        buffer.RenderPictures(EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Pictures_Direction")]),
+                              SettingsMap[LayerStr+wxT("TEXTCTRL_Pictures_Filename")],
+                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
                              );
     }
     else if (effect == wxT("Snowflakes"))
     {
-        buffer.RenderSnowflakes(wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowflakes")+LayerStr+wxT("_Count")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowflakes")+LayerStr+wxT("_Type")]));
+        buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Count")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Type")]));
     }
     else if (effect == wxT("Snowstorm"))
     {
-        buffer.RenderSnowstorm(wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Count")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Snowstorm")+LayerStr+wxT("_Length")]));
+        buffer.RenderSnowstorm(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowstorm_Count")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowstorm_Length")]));
     }
     else if (effect == wxT("Spirals"))
     {
-        buffer.RenderSpirals(wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirals")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirals")+LayerStr+wxT("_Direction")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirals")+LayerStr+wxT("_Rotation")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirals")+LayerStr+wxT("_Thickness")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Spirals")+LayerStr+wxT("_Blend")]==wxT("1"),
-                             SettingsMap[wxT("ID_CHECKBOX_Spirals")+LayerStr+wxT("_3D")]==wxT("1"));
+        buffer.RenderSpirals(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Count")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Direction")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Rotation")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Thickness")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Blend")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_3D")]==wxT("1"));
     }
     else if (effect == wxT("Text"))
     {
-        buffer.RenderText(wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_1_Position")]),
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line1")],
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_1_Font")],
-                          EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Dir")]),
-                          TextEffects.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Effect")]),
-                          TextCountDown.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_1_Count")]),
-                          wxAtoi(SettingsMap[wxT("ID_SLIDER_Text")+LayerStr+wxT("_2_Position")]),
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_Line2")],
-                          SettingsMap[wxT("ID_TEXTCTRL_Text")+LayerStr+wxT("_2_Font")],
-                          EffectDirections.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Dir")]),
-                          TextEffects.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Effect")]),
-                          TextCountDown.Index(SettingsMap[wxT("ID_CHOICE_Text")+LayerStr+wxT("_2_Count")]));
+        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position1")]),
+                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line1")],
+                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font1")],
+                          EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir1")]),
+                          TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect1")]),
+                          TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count1")]),
+                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position2")]),
+                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line2")],
+                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font2")],
+                          EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir2")]),
+                          TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect2")]),
+                          TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count2")]));
     }
     else if (effect == wxT("Twinkle"))
     {
-        buffer.RenderTwinkle(wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Twinkle")+LayerStr+wxT("_Steps")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Twinkle")+LayerStr+wxT("_Strobe")]==wxT("1"));
+        buffer.RenderTwinkle(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Count")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Steps")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Twinkle_Strobe")]==wxT("1"));
     }
     else if (effect == wxT("Tree"))
     {
-        buffer.RenderTree(wxAtoi(SettingsMap[wxT("ID_SLIDER_Tree")+LayerStr+wxT("_Branches")]));
+        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Tree_Branches")]));
     }
     else if (effect == wxT("Spirograph"))
     {
-        buffer.RenderSpirograph(wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_R")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_r")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_d")]),
-                                wxAtoi(SettingsMap[wxT("ID_SLIDER_Spirograph")+LayerStr+wxT("_Animate")]));
+        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_R")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_r")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_d")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_Animate")]));
     }
     else if (effect == wxT("Fireworks"))
     {
-        buffer.RenderFireworks(wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Number_Explosions")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Count")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Velocity")]),
-                               wxAtoi(SettingsMap[wxT("ID_SLIDER_Fireworks")+LayerStr+wxT("_Fade")]));
+        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Number_Explosions")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Count")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Velocity")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Fade")]));
     }
     else if (effect == wxT("Piano"))
     {
-        buffer.RenderPiano(wxAtoi(SettingsMap[wxT("ID_SLIDER_Piano")+LayerStr+wxT("_Keyboard")]));
+        buffer.RenderPiano(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_Keyboard")]));
     }
     else if (effect == wxT("Circles"))
     {
 
-        buffer.RenderCircles(wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Count")]),
-                             wxAtoi(SettingsMap[wxT("ID_SLIDER_Circles")+LayerStr+wxT("_Size")]),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Bounce")]==wxT("1"),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Collide")]==wxT("1"),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Random_m")]==wxT("1"),
-                             SettingsMap[wxT("ID_CHECKBOX_Circles")+LayerStr+wxT("_Radial")]==wxT("1"),
+        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Count")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Size")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Bounce")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
                              buffer.BufferWi/2, buffer.BufferHt/2
                             );
 
     }
 
+}
+
+// layer is 0 or 1
+void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
+{
+    if (panel->EffectChanged) {
+        ResetEffectState[layer]=true;
+        panel->EffectChanged=false;
+    }
+    if (panel->PaletteChanged) {
+        UpdateBufferPalette(panel,layer);
+        ResetEffectState[layer]=true;
+        panel->PaletteChanged=false;
+    }
+    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
+    ResetEffectState[layer]=false;
+    switch (panel->Choicebook1->GetSelection())
+    {
+    case eff_NONE:
+        break;   // none
+    case eff_BARS:
+        buffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
+                          panel->Choice_Bars_Direction->GetSelection(),
+                          panel->CheckBox_Bars_Highlight->GetValue(),
+                          panel->CheckBox_Bars_3D->GetValue());
+        break;
+    case eff_BUTTERFLY:
+        buffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
+                               panel->Slider_Butterfly_Style->GetValue(),
+                               panel->Slider_Butterfly_Chunks->GetValue(),
+                               panel->Slider_Butterfly_Skip->GetValue());
+        break;
+    case eff_COLORWASH:
+        buffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
+                               panel->CheckBox_ColorWash_VFade->GetValue(),
+                               panel->Slider_ColorWash_Count->GetValue());
+        break;
+    case eff_FIRE:
+        buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
+                          panel->Slider_Fire_HueShift->GetValue(),
+                          panel->CheckBox_Fire_GrowFire->GetValue());
+        break;
+    case eff_GARLANDS:
+        buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
+                              panel->Slider_Garlands_Spacing->GetValue());
+        break;
+    case eff_LIFE:
+        buffer.RenderLife(panel->Slider_Life_Count->GetValue(),
+                          panel->Slider_Life_Seed->GetValue());
+        break;
+    case eff_METEORS:
+        buffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
+                             panel->Slider_Meteors_Count->GetValue(),
+                             panel->Slider_Meteors_Length->GetValue(),
+                             panel->CheckBox_Meteors_FallUp->GetValue(),
+                             panel->Choice_Meteors_Effect->GetSelection(),
+                             panel->Slider_Meteors_Swirl_Intensity->GetValue());
+        break;
+    case eff_PICTURES:
+        buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
+                              panel->TextCtrl_Pictures_Filename->GetValue(),
+                              panel->Slider_Pictures_GifSpeed->GetValue());
+        break;
+    case eff_SNOWFLAKES:
+        buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
+                                panel->Slider_Snowflakes_Type->GetValue());
+        break;
+    case eff_SNOWSTORM:
+        buffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
+                               panel->Slider_Snowstorm_Length->GetValue());
+        break;
+    case eff_SPIRALS:
+        buffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
+                             panel->Slider_Spirals_Direction->GetValue(),
+                             panel->Slider_Spirals_Rotation->GetValue(),
+                             panel->Slider_Spirals_Thickness->GetValue(),
+                             panel->CheckBox_Spirals_Blend->GetValue(),
+                             panel->CheckBox_Spirals_3D->GetValue());
+        break;
+    case eff_TEXT:
+        buffer.RenderText(panel->Slider_Text_Position1->GetValue(),
+                          panel->TextCtrl_Text_Line1->GetValue(),
+                          panel->TextCtrl_Text_Font1->GetValue(),
+                          panel->Choice_Text_Dir1->GetSelection(),
+                          panel->Choice_Text_Effect1->GetSelection(),
+                          panel->Choice_Text_Count1->GetSelection(),
+                          panel->Slider_Text_Position2->GetValue(),
+                          panel->TextCtrl_Text_Line2->GetValue(),
+                          panel->TextCtrl_Text_Font2->GetValue(),
+                          panel->Choice_Text_Dir2->GetSelection(),
+                          panel->Choice_Text_Effect2->GetSelection(),
+                          panel->Choice_Text_Count2->GetSelection());
+
+        break;
+    case eff_TWINKLE:
+        buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
+                             panel->Slider_Twinkle_Steps->GetValue(),
+                             panel->CheckBox_Twinkle_Strobe->GetValue());
+        break;
+    case eff_TREE:
+        buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
+        break;
+    case eff_SPIROGRAPH:
+        buffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
+                                panel->Slider_Spirograph_r->GetValue(),
+                                panel->Slider_Spirograph_d->GetValue(),
+                                panel->CheckBox_Spirograph_Animate->GetValue());
+        break;
+    case eff_FIREWORKS:
+        buffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
+                               panel->Slider_Fireworks_Count->GetValue(),
+                               panel->Slider_Fireworks_Velocity->GetValue(),
+                               panel->Slider_Fireworks_Fade->GetValue());
+        break;
+    case eff_PIANO:
+        buffer.RenderPiano(panel->Slider_Piano_Keyboard->GetValue());
+        break;
+
+    case eff_CIRCLES:
+        buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
+                             panel->Slider_Circles_Size->GetValue(),
+                             panel->CheckBox_Circles_Bounce->GetValue(),
+                             panel->CheckBox_Circles_Collide->GetValue(),
+                             panel->CheckBox_Circles_Random_m->GetValue(),
+                             panel->CheckBox_Circles_Radial->GetValue(),
+                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
+                            );
+
+        break;
+    }
 }
 
 
@@ -1048,12 +1013,6 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     int effectMixThreshold=Slider_EffectLayerMix->GetValue();
     buffer.SetMixThreshold(effectMixThreshold);
 
-    if (PaletteChanged)
-    {
-        UpdateBufferPalette();
-        ResetEffectStates();
-        PaletteChanged=false;
-    }
     if (MixTypeChanged)
     {
         s=Choice_LayerMethod->GetStringSelection();
@@ -1066,239 +1025,9 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
-    // render effect 1
-    buffer.SetLayer(0,EffectPeriod,Slider_Speed1->GetValue(),ResetEffectState[0]);
-    ResetEffectState[0]=false;
-    switch (Choicebook1->GetSelection())
-    {
-    case eff_NONE:
-        break;   // none
-    case eff_BARS:
-        buffer.RenderBars(Slider_Bars1_BarCount->GetValue(),
-                          Choice_Bars1_Direction->GetSelection(),
-                          CheckBox_Bars1_Highlight->GetValue(),
-                          CheckBox_Bars1_3D->GetValue());
-        break;
-    case eff_BUTTERFLY:
-        buffer.RenderButterfly(Choice_Butterfly1_Colors->GetSelection(),
-                               Slider_Butterfly1_Style->GetValue(),
-                               Slider_Butterfly1_Chunks->GetValue(),
-                               Slider_Butterfly1_Skip->GetValue());
-        break;
-    case eff_COLORWASH:
-        buffer.RenderColorWash(CheckBox_ColorWash1_HFade->GetValue(),
-                               CheckBox_ColorWash1_VFade->GetValue(),
-                               Slider_ColorWash1_Count->GetValue());
-        break;
-    case eff_FIRE:
-        buffer.RenderFire(Slider_Fire1_Height->GetValue(),
-                          Slider_Fire1_HueShift->GetValue(),
-                          CheckBox_Fire1_GrowFire->GetValue());
-        break;
-    case eff_GARLANDS:
-        buffer.RenderGarlands(Slider_Garlands1_Type->GetValue(),
-                              Slider_Garlands1_Spacing->GetValue());
-        break;
-    case eff_LIFE:
-        buffer.RenderLife(Slider_Life1_Count->GetValue(),
-                          Slider_Life1_Seed->GetValue());
-        break;
-    case eff_METEORS:
-        buffer.RenderMeteors(Choice_Meteors1_Type->GetSelection(),
-                             Slider_Meteors1_Count->GetValue(),
-                             Slider_Meteors1_Length->GetValue(),
-                             CheckBox_Meteors1_FallUp->GetValue(),
-                             Choice_Meteors1_Effect->GetSelection(),
-                             Slider_Meteors1_Swirl_Intensity->GetValue());
-        break;
-    case eff_PICTURES:
-        buffer.RenderPictures(Choice_Pictures1_Direction->GetSelection(),
-                              TextCtrl_Pictures1_Filename->GetValue(),
-                              Slider_Pictures1_GifSpeed->GetValue());
-        break;
-    case eff_SNOWFLAKES:
-        buffer.RenderSnowflakes(Slider_Snowflakes1_Count->GetValue(),
-                                Slider_Snowflakes1_Type->GetValue());
-        break;
-    case eff_SNOWSTORM:
-        buffer.RenderSnowstorm(Slider_Snowstorm1_Count->GetValue(),
-                               Slider_Snowstorm1_Length->GetValue());
-        break;
-    case eff_SPIRALS:
-        buffer.RenderSpirals(Slider_Spirals1_Count->GetValue(),
-                             Slider_Spirals1_Direction->GetValue(),
-                             Slider_Spirals1_Rotation->GetValue(),
-                             Slider_Spirals1_Thickness->GetValue(),
-                             CheckBox_Spirals1_Blend->GetValue(),
-                             CheckBox_Spirals1_3D->GetValue());
-        break;
-    case eff_TEXT:
-        buffer.RenderText(Slider_Text1_1_Position->GetValue(),
-                          TextCtrl_Text1_Line1->GetValue(),
-                          TextCtrl_Text1_1_Font->GetValue(),
-                          Choice_Text1_1_Dir->GetSelection(),
-                          Choice_Text1_1_Effect->GetSelection(),
-                          Choice_Text1_1_Count->GetSelection(),
-                          Slider_Text1_2_Position->GetValue(),
-                          TextCtrl_Text1_Line2->GetValue(),
-                          TextCtrl_Text1_2_Font->GetValue(),
-                          Choice_Text1_2_Dir->GetSelection(),
-                          Choice_Text1_2_Effect->GetSelection(),
-                          Choice_Text1_2_Count->GetSelection());
 
-        break;
-    case eff_TWINKLE:
-        buffer.RenderTwinkle(Slider_Twinkle1_Count->GetValue(),
-                             Slider_Twinkle1_Steps->GetValue(),
-                             CheckBox_Twinkle1_Strobe->GetValue());
-        break;
-    case eff_TREE:
-        buffer.RenderTree(Slider_Tree1_Branches->GetValue());
-        break;
-    case eff_SPIROGRAPH:
-        buffer.RenderSpirograph(Slider_Spirograph1_R->GetValue(),
-                                Slider_Spirograph1_r->GetValue(),
-                                Slider_Spirograph1_d->GetValue(),
-                                CheckBox_Spirograph1_Animate->GetValue());
-        break;
-    case eff_FIREWORKS:
-        buffer.RenderFireworks(Slider_Fireworks1_Number_Explosions->GetValue(),
-                               Slider_Fireworks1_Count->GetValue(),
-                               Slider_Fireworks1_Velocity->GetValue(),
-                               Slider_Fireworks1_Fade->GetValue());
-        break;
-    case eff_PIANO:
-        buffer.RenderPiano(Slider_Piano1_Keyboard->GetValue());
-        break;
-
-    case eff_CIRCLES:
-        buffer.RenderCircles(Slider_Circles1_Count->GetValue(),
-                             Slider_Circles1_Size->GetValue(),
-                             CheckBox_Circles1_Bounce->GetValue(),
-                             CheckBox_Circles1_Collide->GetValue(),
-                             CheckBox_Circles1_Random_m->GetValue(),
-                             CheckBox_Circles1_Radial->GetValue(),
-                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
-                            );
-
-        break;
-    }
-
-    // render effect 2
-    buffer.SetLayer(1,EffectPeriod,Slider_Speed2->GetValue(),ResetEffectState[1]);
-    ResetEffectState[1]=false;
-    switch (Choicebook2->GetSelection())
-    {
-    case eff_NONE:
-        break;   // none
-    case eff_BARS:
-        buffer.RenderBars(Slider_Bars2_BarCount->GetValue(),
-                          Choice_Bars2_Direction->GetSelection(),
-                          CheckBox_Bars2_Highlight->GetValue(),
-                          CheckBox_Bars2_3D->GetValue());
-        break;
-    case eff_BUTTERFLY:
-        buffer.RenderButterfly(Choice_Butterfly2_Colors->GetSelection(),
-                               Slider_Butterfly2_Style->GetValue(),
-                               Slider_Butterfly2_Chunks->GetValue(),
-                               Slider_Butterfly2_Skip->GetValue());
-        break;
-    case eff_COLORWASH:
-        buffer.RenderColorWash(CheckBox_ColorWash2_HFade->GetValue(),
-                               CheckBox_ColorWash2_VFade->GetValue(),
-                               Slider_ColorWash2_Count->GetValue());
-        break;
-    case eff_FIRE:
-        buffer.RenderFire(Slider_Fire2_Height->GetValue(),
-                          Slider_Fire2_HueShift->GetValue(),
-                          CheckBox_Fire2_GrowFire->GetValue());
-        break;
-    case eff_GARLANDS:
-        buffer.RenderGarlands(Slider_Garlands2_Type->GetValue(),
-                              Slider_Garlands2_Spacing->GetValue());
-        break;
-    case eff_LIFE:
-        buffer.RenderLife(Slider_Life2_Count->GetValue(),
-                          Slider_Life2_Seed->GetValue());
-        break;
-    case eff_METEORS:
-        buffer.RenderMeteors(Choice_Meteors2_Type->GetSelection(),
-                             Slider_Meteors2_Count->GetValue(),
-                             Slider_Meteors2_Length->GetValue(),
-                             CheckBox_Meteors2_FallUp->GetValue(),
-                             Choice_Meteors2_Effect->GetSelection(),
-                             Slider_Meteors2_Swirl_Intensity->GetValue());
-    case eff_PICTURES:
-        buffer.RenderPictures(Choice_Pictures2_Direction->GetSelection(),
-                              TextCtrl_Pictures2_Filename->GetValue(),
-                              Slider_Pictures2_GifSpeed->GetValue());
-        break;
-    case eff_SNOWFLAKES:
-        buffer.RenderSnowflakes(Slider_Snowflakes2_Count->GetValue(),
-                                Slider_Snowflakes2_Type->GetValue());
-        break;
-    case eff_SNOWSTORM:
-        buffer.RenderSnowstorm(Slider_Snowstorm2_Count->GetValue(),
-                               Slider_Snowstorm2_Length->GetValue());
-        break;
-    case eff_SPIRALS:
-        buffer.RenderSpirals(Slider_Spirals2_Count->GetValue(),
-                             Slider_Spirals2_Direction->GetValue(),
-                             Slider_Spirals2_Rotation->GetValue(),
-                             Slider_Spirals2_Thickness->GetValue(),
-                             CheckBox_Spirals2_Blend->GetValue(),
-                             CheckBox_Spirals2_3D->GetValue());
-        break;
-    case eff_TEXT:
-        buffer.RenderText(Slider_Text2_1_Position->GetValue(),
-                          TextCtrl_Text2_Line1->GetValue(),
-                          TextCtrl_Text2_1_Font->GetValue(),
-                          Choice_Text2_1_Dir->GetSelection(),
-                          Choice_Text2_1_Effect->GetSelection(),
-                          Choice_Text2_1_Count->GetSelection(),
-                          Slider_Text2_2_Position->GetValue(),
-                          TextCtrl_Text2_Line2->GetValue(),
-                          TextCtrl_Text2_2_Font->GetValue(),
-                          Choice_Text2_2_Dir->GetSelection(),
-                          Choice_Text2_2_Effect->GetSelection(),
-                          Choice_Text2_2_Count->GetSelection());
-        break;
-    case eff_TWINKLE:
-        buffer.RenderTwinkle(Slider_Twinkle2_Count->GetValue(),
-                             Slider_Twinkle2_Steps->GetValue(),
-                             CheckBox_Twinkle2_Strobe->GetValue());
-        break;
-    case eff_TREE:
-        buffer.RenderTree(Slider_Tree2_Branches->GetValue());
-        break;
-    case eff_SPIROGRAPH:
-        buffer.RenderSpirograph(Slider_Spirograph2_R->GetValue(),
-                                Slider_Spirograph2_r->GetValue(),
-                                Slider_Spirograph2_d->GetValue(),
-                                CheckBox_Spirograph2_Animate->GetValue());
-        break;
-    case eff_FIREWORKS:
-        buffer.RenderFireworks(Slider_Fireworks2_Number_Explosions->GetValue(),
-                               Slider_Fireworks2_Count->GetValue(),
-                               Slider_Fireworks2_Velocity->GetValue(),
-                               Slider_Fireworks2_Fade->GetValue());
-        break;
-    case eff_PIANO:
-        buffer.RenderPiano(Slider_Piano2_Keyboard->GetValue());
-        break;
-
-
-    case eff_CIRCLES:
-        buffer.RenderCircles(Slider_Circles2_Count->GetValue(),
-                             Slider_Circles2_Size->GetValue(),
-                             CheckBox_Circles2_Bounce->GetValue(),
-                             CheckBox_Circles2_Collide->GetValue(),
-                             CheckBox_Circles2_Random_m->GetValue(),
-                             CheckBox_Circles2_Radial->GetValue(),
-                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
-                            );
-        break;
-    }
+    PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
+    PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
     DisplayEffectOnWindow();
     if (CheckBoxLightOutput->IsChecked() && xout)
@@ -1458,69 +1187,12 @@ void xLightsFrame::UpdateEffectDuration()
     buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec);
 }
 
-void xLightsFrame::OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer)
+void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
 {
     PaletteMgmtDialog dialog(this);
-    dialog.initialize(id1,id2,PalettesNode,PrimarySizer,SecondarySizer);
+    dialog.initialize(PalettesNode,EffectsPanel1,EffectsPanel2);
     dialog.ShowModal();
     SaveEffectsFile();
-}
-
-void xLightsFrame::OnButton_Palette1Click(wxCommandEvent& event)
-{
-    OpenPaletteDialog(wxT("1"),wxT("2"),FlexGridSizer_Palette1,FlexGridSizer_Palette2);
-}
-
-void xLightsFrame::OnButton_Palette2Click(wxCommandEvent& event)
-{
-    OpenPaletteDialog(wxT("2"),wxT("1"),FlexGridSizer_Palette2,FlexGridSizer_Palette1);
-}
-
-void xLightsFrame::UpdateFont(wxTextCtrl* FontCtrl)
-{
-    wxFont oldfont,newfont;
-    oldfont.SetNativeFontInfoUserDesc(FontCtrl->GetValue());
-    newfont=wxGetFontFromUser(this,oldfont);
-    if (newfont.IsOk())
-    {
-        wxString FontDesc=newfont.GetNativeFontInfoUserDesc();
-        FontDesc.Replace(wxT(" unknown-90"),wxT(""));
-        FontCtrl->SetValue(FontDesc);
-    }
-}
-
-void xLightsFrame::OnButton_Text1_1_FontClick(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text1_1_Font);
-}
-
-
-void xLightsFrame::OnButton_Text1_2_FontClick(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text1_2_Font);
-}
-
-void xLightsFrame::OnButton_Text2_1_FontClick(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text2_1_Font);
-}
-
-
-void xLightsFrame::OnButton_Text2_2_FontClick(wxCommandEvent& event)
-{
-    UpdateFont(TextCtrl_Text2_2_Font);
-}
-
-void xLightsFrame::OnButton_Pictures1_FilenameClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector( "Choose Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
-    if (!filename.IsEmpty()) TextCtrl_Pictures1_Filename->SetValue(filename);
-}
-
-void xLightsFrame::OnButton_Pictures2_FilenameClick(wxCommandEvent& event)
-{
-    wxString filename = wxFileSelector( "Choose Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
-    if (!filename.IsEmpty()) TextCtrl_Pictures2_Filename->SetValue(filename);
 }
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
@@ -1685,67 +1357,58 @@ void fix_version_differences(wxString file)
     bool modified=false;
     fileout = file + ".out";
 // open the file
-    wxString missing     = "xdummy|xdummy";
+    wxString missing = "xdummy|xdummy";
     wxString replace_str = "xdummy|xdummy";
-    wxString Text1       = "xdummy|xdummy";
-    wxString Text2       = "xdummy|xdummy";
-    wxString Meteors1    = "xdummy|xdummy";
-    wxString Meteors2    = "xdummy|xdummy";
-    wxString Fire1       = "xdummy|xdummy";
-    wxString Fire2       = "xdummy|xdummy";
-    //
+    wxString Text1   = "xdummy|xdummy";
+    wxString Text2   = "xdummy|xdummy";
+    wxString Meteors1 = "xdummy|xdummy";
+    wxString Meteors2 = "xdummy|xdummy";
+    wxString Fire1   = "xdummy|xdummy";
+    wxString Fire2   = "xdummy|xdummy";
     //
     //
     //  list all new tags that might have occured in previous versions
     //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
     //
-    missing      = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
-    missing      = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
-    missing      = missing + wxT("|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0");
-    missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0");
-    missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0");
-    missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadein|ID_TEXTCTRL_Effect2_Fadein=0");
-    missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadeout|ID_TEXTCTRL_Effect2_Fadeout=0");
-    missing      = missing + wxT("|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0");
-    missing      = missing + wxT("|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0");
-
+    missing = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
+    missing = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
     //
-    Meteors1     = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
-    Meteors2     = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
-    Meteors1     = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
-    Meteors2     = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
-    Meteors1     = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
-    Meteors2     = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+    Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
+    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
+    Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
+    Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
+    Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
+    Meteors2 = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
 
-    Fire1        = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
-    Fire2        = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
-    Fire1        = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
-    Fire2        = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
+    Fire1 = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
+    Fire2 = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
+    Fire1 = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
+    Fire2 = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
 
 
     // Lots of variables to check for  text effect
-    Text1        = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
-    Text1        = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
-    Text1        = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
-    Text1        = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
-    Text1        = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
-    Text1        = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
-    Text1        = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
-    Text1        = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
-    Text1        = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
-    Text1        = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
 
     //
-    Text2        = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
-    Text2        = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
-    Text2        = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
-    Text2        = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
-    Text2        = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
-    Text2        = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
-    Text2        = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
-    Text2        = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
-    Text2        = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
-    Text2        = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
 
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1");
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2");
@@ -1913,8 +1576,12 @@ void fix_version_differences(wxString file)
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_2_Font|E2_TEXTCTRL_Text_Font2");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line1|E2_TEXTCTRL_Text_Line1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line2|E2_TEXTCTRL_Text_Line2");
-
-
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadeout|E2_TEXTCTRL_Fadeout");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Effect1_Fit|E1_CHECKBOX_FitToTime");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Effect2_Fit|E2_CHECKBOX_FitToTime");
 
     if (!f.Create(fileout,true))
     {
@@ -2398,8 +2065,8 @@ void xLightsFrame::RenderGridToSeqData()
 
                 int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                 buffer.SetContrast(contrast);
-                UpdateBufferFadesFromMap(0, SettingsMap);
                 UpdateBufferFadesFromMap(1, SettingsMap);
+                UpdateBufferFadesFromMap(2, SettingsMap);
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
@@ -2410,7 +2077,9 @@ void xLightsFrame::RenderGridToSeqData()
             for(int n=0; n<NodeCnt; n++)
             {
                 SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
+
                 SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
+
                 SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
 
             } // for(int n=0; n<NodeCnt; n++)
@@ -2516,10 +2185,10 @@ void xLightsFrame::LoadEffectFromString(wxString settings, MapStringString& Sett
         {
         case 0:
             SettingsMap.clear();
-            SettingsMap["effect1"]=before;
+            SettingsMap["E1_Effect"]=before;
             break;
         case 1:
-            SettingsMap["effect2"]=before;
+            SettingsMap["E2_Effect"]=before;
             break;
         case 2:
             SettingsMap["LayerMethod"]=before;
@@ -2747,11 +2416,6 @@ void xLightsFrame::DisplayEffectOnWindow()
     }
 }
 
-void xLightsFrame::OnChoicebookEffectPageChanged(wxChoicebookEvent& event)
-{
-    ResetEffectStates();
-}
-
 void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
@@ -2936,18 +2600,4 @@ void xLightsFrame::OnSlider_BrightnessCmdScroll(wxScrollEvent& event)
 void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 {
     txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
-}
-
-void xLightsFrame::OnSlider_Speed1CmdScroll(wxScrollEvent& event)
-{
-    txtCtl_Effect1Speed->SetValue(wxString::Format("%d",Slider_Speed1->GetValue()));
-}
-
-void xLightsFrame::OnSlider_Speed2CmdScroll(wxScrollEvent& event)
-{
-    txtCtl_Effect2Speed->SetValue(wxString::Format("%d",Slider_Speed2->GetValue()));
-}
-
-void xLightsFrame::OnCheckBox_Effect1FitClick(wxCommandEvent& event)
-{
 }

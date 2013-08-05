@@ -1,0 +1,1509 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="EffectsPanel">
+		<id_arg>0</id_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>3</cols>
+			<object class="sizeritem">
+				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
+					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes" />
+						<label>None</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticText23" member="yes">
+										<label>Palette Rep</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Bars_BarCount" variable="Slider_Bars_BarCount" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<max>5</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT26" variable="StaticText24" member="yes">
+										<label>Direction</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Bars_Direction" variable="Choice_Bars_Direction" member="yes">
+										<selection>0</selection>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" variable="CheckBox_Bars_Highlight" member="yes">
+										<label>Highlight</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Bars_3D" variable="CheckBox_Bars_3D" member="yes">
+										<label>3D</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Bars</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL10" variable="Panel1_Butterfly" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer36" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText25" member="yes">
+										<label>Colors</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Butterfly_Colors" variable="Choice_Butterfly_Colors" member="yes">
+										<selection>0</selection>
+									</object>
+									<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT28" variable="StaticText26" member="yes">
+										<label>Style</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<max>3</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT30" variable="StaticText27" member="yes">
+										<label>Bkgrd Chunks</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Chunks" variable="Slider_Butterfly_Chunks" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText28" member="yes">
+										<label>Bkgrd Skip</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Butterfly_Skip" variable="Slider_Butterfly_Skip" member="yes">
+										<value>2</value>
+										<min>2</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Butterfly</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL5" variable="Panel1_ColorWash" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT21" variable="StaticText5" member="yes">
+										<label>Count</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_ColorWash_Count" variable="Slider_ColorWash_Count" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
+										<label>Horizontal</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_HFade" variable="CheckBox_ColorWash_HFade" member="yes">
+										<label>Fade</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText31" member="yes">
+										<label>Vertical</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" variable="CheckBox_ColorWash_VFade" member="yes">
+										<label>Fade</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Color Wash</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT84" variable="StaticText83" member="yes">
+										<label>Height</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fire_Height" variable="Slider_Fire_Height" member="yes">
+										<value>50</value>
+										<min>10</min>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT133" variable="StaticText132" member="yes">
+										<label>Hue Shift</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fire_HueShift" variable="Slider_Fire_HueShift" member="yes" />
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT135" variable="StaticText134" member="yes">
+										<label>Grow Fire?</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Fire_GrowFire" variable="CheckBox_Fire_GrowFire" member="yes">
+										<label>Yes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Fire</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
+										<label>Garland Type</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Garlands_Type" variable="Slider_Garlands_Type" member="yes">
+										<max>4</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT35" variable="StaticText33" member="yes">
+										<label>Spacing</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Garlands_Spacing" variable="Slider_Garlands_Spacing" member="yes" />
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Garlands</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL16" variable="Panel1_Life" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT36" variable="StaticText35" member="yes">
+										<label>Cells to start</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Life_Count" variable="Slider_Life_Count" member="yes">
+										<value>50</value>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT37" variable="StaticText37" member="yes">
+										<label>Type</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Life_Seed" variable="Slider_Life_Seed" member="yes">
+										<max>4</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Life</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL18" variable="Panel1_Meteors" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText39" member="yes">
+										<label>Type</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Meteors_Type" variable="Choice_Meteors_Type" member="yes">
+										<selection>2</selection>
+									</object>
+									<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT129" variable="StaticText128" member="yes">
+										<label>Effect</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Meteors_Effect" variable="Choice_Meteors_Effect" member="yes" />
+									<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT41" variable="StaticText41" member="yes">
+										<label>Count</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Meteors_Count" variable="Slider_Meteors_Count" member="yes">
+										<value>10</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT43" variable="StaticText43" member="yes">
+										<label>Trail Length</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Meteors_Length" variable="Slider_Meteors_Length" member="yes">
+										<value>25</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT131" variable="StaticText130" member="yes">
+										<label>Swirl Intensity</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Meteors_Swirl_Intensity" variable="Slider_Meteors_Swirl_Intensity" member="yes">
+										<min>10</min>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
+										<label>Meteors Fall Up?</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Meteors_FallUp" variable="CheckBox_Meteors_FallUp" member="yes">
+										<label>Yes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Meteors</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL20" variable="Panel1_Pictures" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_PICTURES_FILENAME" variable="Button_Pictures_Filename" member="yes">
+										<label>File name</label>
+										<bg>#E0E0E0</bg>
+										<handler function="OnButton_Pictures_FilenameClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_Filename" variable="TextCtrl_Pictures_Filename" member="yes">
+										<style>wxTE_READONLY</style>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
+										<cols>2</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText46" member="yes">
+												<label>Movement</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE_Pictures_Direction" variable="Choice_Pictures_Direction" member="yes">
+												<selection>0</selection>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT97" variable="StaticText96" member="yes">
+												<label>Anim Gif Speed</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Pictures_GifSpeed" variable="Slider_Pictures_GifSpeed" member="yes">
+												<value>20</value>
+												<min>1</min>
+												<max>20</max>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Pictures</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL22" variable="Panel1_Snowflakes" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer43" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT80" variable="StaticText79" member="yes">
+										<label>Max flakes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Snowflakes_Count" variable="Slider_Snowflakes_Count" member="yes">
+										<value>5</value>
+										<min>1</min>
+										<max>20</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT81" variable="StaticText80" member="yes">
+										<label>Type</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Snowflakes_Type" variable="Slider_Snowflakes_Type" member="yes">
+										<value>1</value>
+										<max>5</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Snowflakes</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL24" variable="Panel1_Snowstorm" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT45" variable="StaticText45" member="yes">
+										<label>Max flakes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Snowstorm_Count" variable="Slider_Snowstorm_Count" member="yes">
+										<value>50</value>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT51" variable="StaticText51" member="yes">
+										<label>Trail Length</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Snowstorm_Length" variable="Slider_Snowstorm_Length" member="yes">
+										<value>50</value>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Snowstorm</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText34" member="yes">
+										<label>Palette Rep</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirals_Count" variable="Slider_Spirals_Count" member="yes">
+										<value>1</value>
+										<min>1</min>
+										<max>5</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT40" variable="StaticText36" member="yes">
+										<label>Rotations</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirals_Rotation" variable="Slider_Spirals_Rotation" member="yes">
+										<value>20</value>
+										<min>-500</min>
+										<max>500</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT42" variable="StaticText38" member="yes">
+										<label>Thickness</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirals_Thickness" variable="Slider_Spirals_Thickness" member="yes">
+										<value>50</value>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT44" variable="StaticText40" member="yes">
+										<label>Direction</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirals_Direction" variable="Slider_Spirals_Direction" member="yes">
+										<value>1</value>
+										<min>-1</min>
+										<max>1</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirals_Blend" variable="CheckBox_Spirals_Blend" member="yes">
+										<label>Blend</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirals_3D" variable="CheckBox_Spirals_3D" member="yes">
+										<label>3D</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Spirals</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL7" variable="Panel1_Text" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer46" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer65" member="no">
+										<cols>2</cols>
+										<rows>2</rows>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
+												<label>Line 1</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
+												<maxlength>256</maxlength>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
+												<label>Line 2</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
+												<maxlength>256</maxlength>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK_Text1" variable="Notebook_Text1" member="yes">
+										<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_Text1" variable="Panel_Text1" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer69" member="no">
+													<cols>2</cols>
+													<rows>5</rows>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON_TEXT_FONT1" variable="Button_Text_Font1" member="yes">
+															<label>Font</label>
+															<bg>#E0E0E0</bg>
+															<handler function="OnButton_Text_Font1Click" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font1" variable="TextCtrl_Text_Font1" member="yes">
+															<style>wxTE_READONLY</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT79" variable="StaticText78" member="yes">
+															<label>Movement</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Dir1" variable="Choice_Text_Dir1" member="yes">
+															<selection>0</selection>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT108" variable="StaticText107" member="yes">
+															<label>Effect</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Effect1" variable="Choice_Text_Effect1" member="yes" />
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT99" variable="StaticText98" member="yes">
+															<label>Count down</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Count1" variable="Choice_Text_Count1" member="yes" />
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT101" variable="StaticText100" member="yes">
+															<label>Position</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Text_Position1" variable="Slider_Text_Position1" member="yes">
+															<value>50</value>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Line 1 Details</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL_Text2" variable="Panel_Text2" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer74" member="no">
+													<cols>2</cols>
+													<object class="sizeritem">
+														<object class="wxButton" name="ID_BUTTON_TEXT_FONT2" variable="Button_Text_Font2" member="yes">
+															<label>Font</label>
+															<bg>#E0E0E0</bg>
+															<handler function="OnButton_Text_Font2Click" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Font2" variable="TextCtrl_Text_Font2" member="yes">
+															<style>wxTE_READONLY</style>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT57" variable="StaticText57" member="yes">
+															<label>Movement</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Dir2" variable="Choice_Text_Dir2" member="yes">
+															<selection>0</selection>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT109" variable="StaticText108" member="yes">
+															<label>Effect</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Effect2" variable="Choice_Text_Effect2" member="yes" />
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT104" variable="StaticText103" member="yes">
+															<label>Count down</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Text_Count2" variable="Choice_Text_Count2" member="yes" />
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT103" variable="StaticText102" member="yes">
+															<label>Position</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Text_Position2" variable="Slider_Text_Position2" member="yes">
+															<value>50</value>
+															<size>118,24</size>
+														</object>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Line 2 Details</label>
+										</object>
+									</object>
+									<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+								</object>
+							</object>
+						</object>
+						<label>Text</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT86" variable="StaticText85" member="yes">
+										<label>Number Lights</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Twinkle_Count" variable="Slider_Twinkle_Count" member="yes">
+										<value>3</value>
+										<min>2</min>
+										<size>117,24</size>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT105" variable="StaticText104" member="yes">
+										<label>Twinkle Steps</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Twinkle_Steps" variable="Slider_Twinkle_Steps" member="yes">
+										<value>30</value>
+										<min>2</min>
+										<max>200</max>
+										<size>119,24</size>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_Strobe" variable="CheckBox_Twinkle_Strobe" member="yes">
+										<label>Strobe</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Twinkle</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
+										<label>Number Branches</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Tree_Branches" variable="Slider_Tree_Branches" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Tree</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
+										<label>R - Radius of outer circle</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
+										<value>20</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT89" variable="StaticText88" member="yes">
+										<label>r - Radius of inner circle</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
+										<value>10</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
+										<label>d - Distance</label>
+										<size>84,13</size>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
+										<value>30</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT93" variable="StaticText92" member="yes">
+										<label>Should distance&#x0A;be animated?</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirograph_Animate" variable="CheckBox_Spirograph_Animate" member="yes">
+										<label>Yes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT91" variable="StaticText90" member="yes">
+										<label>Note: r should be &lt;= R</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Spirograph</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
+										<label>Number of Explosions</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Number_Explosions" variable="Slider_Fireworks_Number_Explosions" member="yes">
+										<value>10</value>
+										<min>1</min>
+										<max>95</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT92" variable="StaticText91" member="yes">
+										<label>Particles in Explosion</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
+										<value>50</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT94" variable="StaticText93" member="yes">
+										<label>Velocity of Particles</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" variable="Slider_Fireworks_Velocity" member="yes">
+										<value>2</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT96" variable="StaticText95" member="yes">
+										<label>Particle Fade</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
+										<value>50</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Fireworks</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
+										<label>Number of Circles</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT138" variable="StaticText137" member="yes">
+										<label>Size</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="yes">
+										<value>5</value>
+										<min>1</min>
+										<max>20</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" variable="CheckBox_Circles_Bounce" member="yes">
+										<label>Bounce</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" variable="CheckBox_Circles_Radial" member="yes">
+										<label>Radial</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
+										<label>Collide</label>
+										<hidden>1</hidden>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" variable="CheckBox_Circles_Random_m" member="yes">
+										<label>Random Motion</label>
+										<hidden>1</hidden>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Circles (Under Development)</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+										<label>Keyboard</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Piano_Keyboard" variable="Slider_Piano_Keyboard" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<max>3</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Piano (Under Development)</label>
+					</object>
+				</object>
+				<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer_Palette" member="yes">
+									<cols>2</cols>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette1" variable="CheckBox_Palette1" member="yes">
+											<checked>1</checked>
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
+											<label>1</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette2" variable="CheckBox_Palette2" member="yes">
+											<checked>1</checked>
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
+											<label>2</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette3" variable="CheckBox_Palette3" member="yes">
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
+											<label>3</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette4" variable="CheckBox_Palette4" member="yes">
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
+											<label>4</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette5" variable="CheckBox_Palette5" member="yes">
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
+											<label>5</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX_Palette6" variable="CheckBox_Palette6" member="yes">
+											<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
+											<label>6</label>
+											<minsize>30,20</minsize>
+											<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>3</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
+									<label>Fit to time</label>
+									<enabled>0</enabled>
+								</object>
+								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>8</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT61" variable="StaticText59" member="yes">
+									<label>Speed</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Speed" variable="Slider_Speed" member="yes">
+									<value>10</value>
+									<min>1</min>
+									<max>20</max>
+									<size>30,150</size>
+									<style>wxSL_VERTICAL|wxSL_INVERSE</style>
+									<handler function="OnSlider_SpeedCmdScroll" entry="EVT_COMMAND_SCROLL" />
+									<handler function="OnSlider_SpeedCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+								</object>
+								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Speed" variable="TextCtrl_Speed" member="yes">
+									<value>10</value>
+									<size>30,20</size>
+									<style>wxTE_READONLY</style>
+								</object>
+								<flag>wxBOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxLEFT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>Fade In</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
+							<value>0.00</value>
+							<maxlength>4</maxlength>
+							<size>30,20</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+							<label>Fade Out</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
+							<value>0.00</value>
+							<maxlength>4</maxlength>
+							<size>30,20</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+		<object class="wxColourDialog" variable="ColourDialog1" member="yes" />
+	</object>
+</wxsmith>

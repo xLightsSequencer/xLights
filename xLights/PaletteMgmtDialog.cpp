@@ -11,8 +11,8 @@ const long PaletteMgmtDialog::ID_STATICTEXT14 = wxNewId();
 const long PaletteMgmtDialog::ID_STATICTEXT1 = wxNewId();
 const long PaletteMgmtDialog::ID_LISTBOX1 = wxNewId();
 const long PaletteMgmtDialog::ID_BUTTON5 = wxNewId();
-const long PaletteMgmtDialog::ID_BUTTON4 = wxNewId();
 const long PaletteMgmtDialog::ID_BUTTON3 = wxNewId();
+const long PaletteMgmtDialog::ID_BUTTON4 = wxNewId();
 const long PaletteMgmtDialog::ID_BUTTON1 = wxNewId();
 const long PaletteMgmtDialog::ID_BUTTON2 = wxNewId();
 const long PaletteMgmtDialog::ID_BUTTON6 = wxNewId();
@@ -48,16 +48,16 @@ PaletteMgmtDialog::PaletteMgmtDialog(wxWindow* parent,wxWindowID id,const wxPoin
     ListBox1 = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE|wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX1"));
     FlexGridSizer3->Add(ListBox1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-    ButtonCopy = new wxButton(this, ID_BUTTON5, _("Copy primary to secondary"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    BoxSizer1->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonChangeOrder = new wxButton(this, ID_BUTTON4, _("Change palette order"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    BoxSizer1->Add(ButtonChangeOrder, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSavePalette = new wxButton(this, ID_BUTTON3, _("Save palette as..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    BoxSizer1->Add(ButtonSavePalette, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonLoadPalette1 = new wxButton(this, ID_BUTTON1, _("Load saved palette to primary"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    ButtonCopy12 = new wxButton(this, ID_BUTTON5, _("Copy palette 1 to palette 2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(ButtonCopy12, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSavePalette1 = new wxButton(this, ID_BUTTON3, _("Save palette 1 as..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    BoxSizer1->Add(ButtonSavePalette1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSavePalette2 = new wxButton(this, ID_BUTTON4, _("Save palette 2 as..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    BoxSizer1->Add(ButtonSavePalette2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonLoadPalette1 = new wxButton(this, ID_BUTTON1, _("Load saved palette to palette 1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     BoxSizer1->Add(ButtonLoadPalette1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonLoadPaletteBoth = new wxButton(this, ID_BUTTON2, _("Load saved palette to effects 1 and 2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    BoxSizer1->Add(ButtonLoadPaletteBoth, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonLoadPalette2 = new wxButton(this, ID_BUTTON2, _("Load saved palette to palette 2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    BoxSizer1->Add(ButtonLoadPalette2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ButtonDelete = new wxButton(this, ID_BUTTON6, _("Delete saved palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
     BoxSizer1->Add(ButtonDelete, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -71,10 +71,10 @@ PaletteMgmtDialog::PaletteMgmtDialog(wxWindow* parent,wxWindowID id,const wxPoin
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonCopyClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonChangeOrderClick);
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonSavePaletteClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonSavePalette1Click);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonSavePalette2Click);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonLoadPalette1Click);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonLoadPaletteBothClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonLoadPalette2Click);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PaletteMgmtDialog::OnButtonDeleteClick);
     //*)
 }
@@ -85,16 +85,10 @@ PaletteMgmtDialog::~PaletteMgmtDialog()
     //*)
 }
 
-void PaletteMgmtDialog::initialize(const wxString& id1, const wxString& id2, wxXmlNode* PalNode, wxSizer* PriSizer,wxSizer* SecSizer)
+void PaletteMgmtDialog::initialize(wxXmlNode* PalNode, EffectsPanel* p1,EffectsPanel* p2)
 {
-    ButtonSavePalette->SetLabel(_("Save palette ")+id1+_(" as..."));
-    ButtonLoadPalette1->SetLabel(_("Load saved palette to effect ")+id1);
-    ButtonCopy->SetLabel(_("Copy palette for effect ")+id1+_(" to effect ")+id2);
-    ButtonChangeOrder->SetLabel(_("Change palette ")+id1+_(" order"));
-    PrimarySizer=PriSizer;
-    SecondarySizer=SecSizer;
-    PrimaryId=id1;
-    SecondaryId=id2;
+    panel1=p1;
+    panel2=p2;
     PalettesNode=PalNode;
     ReloadPaletteList();
 }
@@ -116,108 +110,88 @@ void PaletteMgmtDialog::ReloadPaletteList()
     }
 }
 
-void PaletteMgmtDialog::OnButtonSavePaletteClick(wxCommandEvent& event)
+void PaletteMgmtDialog::LoadPalette(wxXmlNode* PaletteNode, EffectsPanel* panel)
+{
+    wxString AttrName;
+    wxColour color;
+    if (!PaletteNode) return;
+    for (int i=1; i<=6; i++) {
+        AttrName.Printf(wxT("color%d"),i);
+        color.Set(PaletteNode->GetAttribute(AttrName));
+        panel->SetPaletteColor(i,&color);
+    }
+}
+
+int PaletteMgmtDialog::GetSelectedIndex()
+{
+    int NameIdx=ListBox1->GetSelection();
+    if (NameIdx == wxNOT_FOUND)
+    {
+        wxMessageBox(_("You must select a saved palette first!"));
+    }
+    return NameIdx;
+}
+
+void PaletteMgmtDialog::OnButtonLoadPalette1Click(wxCommandEvent& event)
+{
+    int NameIdx=GetSelectedIndex();
+    if (NameIdx != wxNOT_FOUND) {
+        LoadPalette((wxXmlNode*)ListBox1->GetClientData(NameIdx),panel1);
+    }
+}
+
+void PaletteMgmtDialog::OnButtonLoadPalette2Click(wxCommandEvent& event)
+{
+    int NameIdx=GetSelectedIndex();
+    if (NameIdx != wxNOT_FOUND) {
+        LoadPalette((wxXmlNode*)ListBox1->GetClientData(NameIdx),panel2);
+    }
+}
+
+void PaletteMgmtDialog::OnButtonCopyClick(wxCommandEvent& event)
+{
+    wxColour c;
+    for (int i=1; i<=6; i++) {
+        c=panel1->GetPaletteColor(i);
+        panel2->SetPaletteColor(i,&c);
+    }
+}
+
+void PaletteMgmtDialog::OnButtonDeleteClick(wxCommandEvent& event)
+{
+    int NameIdx=GetSelectedIndex();
+    if (NameIdx == wxNOT_FOUND) return;
+    wxXmlNode* PaletteNode=(wxXmlNode*)ListBox1->GetClientData(NameIdx);
+    PalettesNode->RemoveChild(PaletteNode);
+    delete PaletteNode;
+    ReloadPaletteList();
+}
+
+
+void PaletteMgmtDialog::SavePalette(EffectsPanel* panel)
 {
     wxString ChildName,AttrName;
+    wxColour color;
     wxString name = wxGetTextFromUser(_("Enter name for palette"), _("Save Color Palette"));
     name.Trim(true);
     if (name.IsEmpty()) return; // user pressed cancel
     wxXmlNode* NewPalette = new wxXmlNode(wxXML_ELEMENT_NODE, _("palette"));
     NewPalette->AddAttribute(wxT("name"), name);
-    wxSizerItemList &ChildList = PrimarySizer->GetChildren();
-    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
-    {
-        if (!(*it)->IsWindow()) continue;
-        wxWindow *ChildWin = (*it)->GetWindow();
-        ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_BUTTON")))
-        {
-            wxColour color=ChildWin->GetBackgroundColour();
-            AttrName=_("color")+ChildName.Right(1);
-            NewPalette->AddAttribute(AttrName, color.GetAsString(wxC2S_HTML_SYNTAX));
-        }
+    for (int i=1; i<=6; i++) {
+        color=panel->GetPaletteColor(i);
+        AttrName.Printf(wxT("color%d"),i);
+        NewPalette->AddAttribute(AttrName, color.GetAsString(wxC2S_HTML_SYNTAX));
     }
     PalettesNode->AddChild(NewPalette);
     ReloadPaletteList();
 }
 
-void PaletteMgmtDialog::LoadPalette(wxXmlNode* PaletteNode, wxSizer* Sizer)
+void PaletteMgmtDialog::OnButtonSavePalette1Click(wxCommandEvent& event)
 {
-    wxString ChildName,AttrName;
-    if (!PaletteNode) return;
-    wxSizerItemList &ChildList = Sizer->GetChildren();
-    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
-    {
-        if (!(*it)->IsWindow()) continue;
-        wxWindow *ChildWin = (*it)->GetWindow();
-        ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_BUTTON")))
-        {
-            AttrName=_("color")+ChildName.Right(1);
-            ChildWin->SetBackgroundColour(PaletteNode->GetAttribute(AttrName));
-        }
-    }
+    SavePalette(panel1);
 }
 
-void PaletteMgmtDialog::OnButtonLoadPalette1Click(wxCommandEvent& event)
+void PaletteMgmtDialog::OnButtonSavePalette2Click(wxCommandEvent& event)
 {
-    int NameIdx=ListBox1->GetSelection();
-    if (NameIdx == wxNOT_FOUND)
-    {
-        wxMessageBox(_("You must select a saved palette first!"));
-        return;
-    }
-    wxXmlNode* PaletteNode=(wxXmlNode*)ListBox1->GetClientData(NameIdx);
-    LoadPalette(PaletteNode,PrimarySizer);
-}
-
-void PaletteMgmtDialog::OnButtonLoadPaletteBothClick(wxCommandEvent& event)
-{
-    int NameIdx=ListBox1->GetSelection();
-    if (NameIdx == wxNOT_FOUND)
-    {
-        wxMessageBox(_("You must select a saved palette first!"));
-        return;
-    }
-    wxXmlNode* PaletteNode=(wxXmlNode*)ListBox1->GetClientData(NameIdx);
-    LoadPalette(PaletteNode,PrimarySizer);
-    LoadPalette(PaletteNode,SecondarySizer);
-}
-
-void PaletteMgmtDialog::OnButtonCopyClick(wxCommandEvent& event)
-{
-    wxString ChildName;
-    wxSizerItemList &ChildList = PrimarySizer->GetChildren();
-    for ( wxSizerItemList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
-    {
-        if (!(*it)->IsWindow()) continue;
-        wxWindow *ChildWin = (*it)->GetWindow();
-        ChildName=ChildWin->GetName();
-        if (ChildName.StartsWith(wxT("ID_BUTTON")))
-        {
-            wxColour color=ChildWin->GetBackgroundColour();
-            ChildName.Replace(_("_Palette")+PrimaryId, _("_Palette")+SecondaryId);
-            wxWindow *CtrlWin=wxWindow::FindWindowByName(ChildName);
-            if (CtrlWin != NULL) CtrlWin->SetBackgroundColour(color);
-        }
-    }
-}
-
-void PaletteMgmtDialog::OnButtonChangeOrderClick(wxCommandEvent& event)
-{
-
-}
-
-void PaletteMgmtDialog::OnButtonDeleteClick(wxCommandEvent& event)
-{
-    int NameIdx=ListBox1->GetSelection();
-    if (NameIdx == wxNOT_FOUND)
-    {
-        wxMessageBox(_("You must select a saved palette first!"));
-        return;
-    }
-    wxXmlNode* PaletteNode=(wxXmlNode*)ListBox1->GetClientData(NameIdx);
-    PalettesNode->RemoveChild(PaletteNode);
-    delete PaletteNode;
-    ReloadPaletteList();
+    SavePalette(panel2);
 }
