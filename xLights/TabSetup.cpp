@@ -132,34 +132,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
     DisplaySchedule();
 
     // load sequence effects
-    wxWindow* w;
-    int ColorIdx;
-    for(i=0; i<12; i++)
-    {
-        w=wxWindow::FindWindowByName(wxString::Format(wxT("ID_BUTTON_Palette%d_%d"),int(i/6+1),int(i%6+1)));
-        switch (i%6)
-        {
-        case 0:
-            w->SetBackgroundColour(*wxRED);
-            break;
-        case 1:
-            w->SetBackgroundColour(*wxGREEN);
-            break;
-        case 2:
-            w->SetBackgroundColour(*wxBLUE);
-            break;
-        case 3:
-            w->SetBackgroundColour(*wxYELLOW);
-            break;
-        case 4:
-            w->SetBackgroundColour(*wxWHITE);
-            break;
-        case 5:
-            w->SetBackgroundColour(*wxBLACK);
-            break;
-        }
-        SetTextColor(w);
-    }
+    EffectsPanel1->SetDefaultPalette();
+    EffectsPanel2->SetDefaultPalette();
     LoadEffectsFile();
     PresetsSelect();
     EnableSequenceControls(true);
