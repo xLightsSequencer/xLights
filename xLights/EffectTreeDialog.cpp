@@ -84,36 +84,73 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
     wxString name;
     wxTreeItemId curGroupID;
     XrgbEffectsNode = EffectsNode;
+    bool foundFavs = false;
+    bool foundUser = false;
+
 
     treeFavoritesGroupID = TreeCtrl1->AppendItem(treeRootID, "Favorites", -1,-1, NULL);
     treeUserGroupID = TreeCtrl1->AppendItem(treeRootID, "User Group", -1,-1, NULL);
     TreeCtrl1->Expand(treeRootID);
 
-    for(; EffectsNode!=NULL; EffectsNode=EffectsNode->GetNext() )
+    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=NULL; ele=ele->GetNext() )
     {
-        if (EffectsNode->GetName() == wxT("effect"))
+        if (ele->GetName() == wxT("effect"))
         {
             //This case should only be for old format rgbeffects files
-            name=EffectsNode->GetAttribute(wxT("name"));
+            name=ele->GetAttribute(wxT("name"));
             if (!name.IsEmpty())
             {
-                TreeCtrl1->AppendItem(treeUserGroupID, name,-1,-1, new MyTreeItemData(EffectsNode));
+                TreeCtrl1->AppendItem(treeUserGroupID, name,-1,-1, new MyTreeItemData(ele));
             }
         }
-        else if (EffectsNode->GetName() == wxT("effectGroup"))
+        else if (ele->GetName() == wxT("effectGroup"))
         {
-            name=EffectsNode->GetAttribute(wxT("name"));
+            name=ele->GetAttribute(wxT("name"));
             if (name == wxT("Favorites"))
             {
-                AddTreeElementsRecursive(EffectsNode, treeFavoritesGroupID);
+                AddTreeElementsRecursive(ele, treeFavoritesGroupID);
+                foundFavs=true;
             }
             else
             {
-                AddTreeElementsRecursive(EffectsNode, treeUserGroupID);
+                AddTreeElementsRecursive(ele, treeUserGroupID);
+                foundUser=true;
             }
         }
     }
+    if (!foundFavs)
+    {
+        wxString name = wxT("Favorites");
+        wxXmlNode *newNode = CreateEffectGroupNode(name);
+        TreeCtrl1->SetItemData(treeFavoritesGroupID,new MyTreeItemData(newNode));
+        XrgbEffectsNode->AddChild(newNode);
+    }
+    if (!foundUser)
+    {
+        wxString name = wxT("User Group");
+        wxXmlNode *newNode = CreateEffectGroupNode(name);
+        TreeCtrl1->SetItemData(treeUserGroupID,new MyTreeItemData(newNode));
+        FixupEffectsPresets(newNode);
+        XrgbEffectsNode->AddChild(newNode);
+    }
     AddNCcomEffects();
+}
+
+void EffectTreeDialog::FixupEffectsPresets(wxXmlNode *UserGroupNode)
+{
+    wxTreeItemIdValue cookie;
+    wxTreeItemId curItemID = TreeCtrl1->GetFirstChild(treeUserGroupID, cookie);
+    wxXmlNode *ele, p;
+    MyTreeItemData *treeData;
+    while (curItemID.IsOk())
+    {
+        treeData = (MyTreeItemData*)TreeCtrl1->GetItemData(curItemID);
+        ele=treeData->GetElement();
+        wxXmlNode* p=ele->GetParent();
+        if (p) p->RemoveChild(ele);
+        UserGroupNode->AddChild(ele);
+        curItemID = TreeCtrl1->GetNextChild(treeUserGroupID, cookie);
+    }
 }
 
 void EffectTreeDialog::AddNCcomEffects()
@@ -155,23 +192,23 @@ void EffectTreeDialog::AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeIt
     wxString name;
     wxTreeItemId nextGroupID;
 
-    for(wxXmlNode *EffectsNode = NcEffectsNode->GetChildren(); EffectsNode!=NULL; EffectsNode=EffectsNode->GetNext() )
+    for(wxXmlNode *ele = EffectsNode->GetChildren(); ele!=NULL; ele=ele->GetNext() )
     {
-        if (EffectsNode->GetName() == wxT("effect"))
+        if (ele->GetName() == wxT("effect"))
         {
-            name=EffectsNode->GetAttribute(wxT("name"));
+            name=ele->GetAttribute(wxT("name"));
             if (!name.IsEmpty())
             {
-                TreeCtrl1->AppendItem(curGroupID, name,-1,-1, new MyTreeItemData(EffectsNode));
+                TreeCtrl1->AppendItem(curGroupID, name,-1,-1, new MyTreeItemData(ele));
             }
         }
-        else if (EffectsNode->GetName() == wxT("effectGroup"))
+        else if (ele->GetName() == wxT("effectGroup"))
         {
-            name=EffectsNode->GetAttribute(wxT("name"));
+            name=ele->GetAttribute(wxT("name"));
             if (!name.IsEmpty())
             {
-                nextGroupID = TreeCtrl1->AppendItem(curGroupID, EffectsNode->GetName(),-1,-1,new MyTreeItemData (EffectsNode));
-                AddTreeElementsRecursive(EffectsNode, nextGroupID);
+                nextGroupID = TreeCtrl1->AppendItem(curGroupID, ele->GetName(),-1,-1,new MyTreeItemData (ele));
+                AddTreeElementsRecursive(ele, nextGroupID);
             }
         }
     }
@@ -227,6 +264,13 @@ bool EffectTreeDialog::CheckValidOperation(wxTreeItemId itemID)
     return CheckValidOperation(parentID);
 }
 
+wxXmlNode* EffectTreeDialog::CreateEffectGroupNode(wxString& name)
+{
+    wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("effectGroup"));
+    NewXml->AddAttribute(wxT("name"), name);
+    return NewXml;
+}
+
 void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
@@ -260,7 +304,8 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     if (DlgResult != wxID_OK) return;
 
     // update Choice_Presets
-    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(TreeCtrl1->GetItemParent(itemID));
+    parentID = TreeCtrl1->GetItemParent(itemID);
+    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
     wxXmlNode *node=parentData->GetElement();
     wxXmlNode *newNode=((xLightsFrame *)xLightParent)->CreateEffectNode(name);
     node->AddChild(newNode);
@@ -272,10 +317,25 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
+    wxTreeItemId parentID;
     if ( !CheckValidOperation(itemID))
     {
         //Generate error message
     }
+    parentID = TreeCtrl1->GetItemParent(itemID);
+    MyTreeItemData *parentData=(MyTreeItemData *)TreeCtrl1->GetItemData(parentID);
+    wxXmlNode *pnode=parentData->GetElement();
+
+    MyTreeItemData *selData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+    wxXmlNode *oldXml=selData->GetElement();
+    pnode->RemoveChild(oldXml);
+    delete oldXml;
+    delete selData;
+
+    wxString name(TreeCtrl1->GetItemText(itemID));
+    wxXmlNode *newNode=((xLightsFrame *)xLightParent)->CreateEffectNode(name);
+    pnode->AddChild(newNode);
+    TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode));
 }
 
 void EffectTreeDialog::OnbtFavoriteClick(wxCommandEvent& event)
@@ -285,6 +345,14 @@ void EffectTreeDialog::OnbtFavoriteClick(wxCommandEvent& event)
     {
         //Generate error message
     }
+    wxXmlNode *copyNode = ((MyTreeItemData*)(TreeCtrl1->GetItemData(itemID)))->GetElement();
+    wxXmlNode *newNode= new wxXmlNode(*copyNode);
+    wxXmlNode *favs = ((MyTreeItemData*)(TreeCtrl1->GetItemData(treeFavoritesGroupID)))->GetElement();
+    TreeCtrl1->AppendItem(treeFavoritesGroupID, TreeCtrl1->GetItemText(itemID),-1,-1,
+                          new MyTreeItemData (newNode));
+    favs->AddChild(newNode);
+
+
 }
 
 void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)

@@ -66,6 +66,8 @@ class EffectTreeDialog: public wxDialog
         void AddTreeElementsRecursive(wxXmlNode *EffectsNode, wxTreeItemId curGroupID);
         void UpdateNcEffectsList();
         bool CheckValidOperation(wxTreeItemId itemID);
+        wxXmlNode* CreateEffectGroupNode(wxString& name);
+        void FixupEffectsPresets(wxXmlNode *UserGroupNode);
 
 		DECLARE_EVENT_TABLE()
 
