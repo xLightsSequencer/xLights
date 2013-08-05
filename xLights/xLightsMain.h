@@ -12,7 +12,30 @@
 
 
 //(*Headers(xLightsFrame)
+#include <wx/listctrl.h>
+#include <wx/scrolwin.h>
+#include <wx/treectrl.h>
+#include <wx/notebook.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/menu.h>
+#include <wx/textctrl.h>
+#include <wx/checklst.h>
+#include <wx/msgdlg.h>
+#include <wx/checkbox.h>
+#include <wx/splitter.h>
+#include <wx/radiobut.h>
+#include <wx/slider.h>
+#include <wx/panel.h>
+#include <wx/grid.h>
+#include <wx/filedlg.h>
+#include <wx/choice.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
+#include <wx/dirdlg.h>
 #include <wx/frame.h>
+#include <wx/timer.h>
+#include <wx/statusbr.h>
 //*)
 
 #include <wx/config.h>
@@ -300,6 +323,173 @@ private:
 
 
     //(*Identifiers(xLightsFrame)
+    static const long ID_BITMAPBUTTON_TAB_INFO;
+    static const long ID_BUTTON_STOP_NOW;
+    static const long ID_BUTTON_GRACEFUL_STOP;
+    static const long ID_BUTTON_LIGHTS_OFF;
+    static const long ID_CHECKBOX_LIGHT_OUTPUT;
+    static const long ID_STATICTEXT_SETUP1;
+    static const long ID_STATICTEXT_DIRNAME;
+    static const long ID_BUTTON_CHANGEDIR;
+    static const long ID_BUTTON_SAVE_SETUP;
+    static const long ID_BUTTON_ADD_DONGLE;
+    static const long ID_BUTTON_ADD_E131;
+    static const long ID_BUTTON_NETWORK_CHANGE;
+    static const long ID_BUTTON_NETWORK_DELETE;
+    static const long ID_BUTTON_NETWORK_DELETE_ALL;
+    static const long ID_BITMAPBUTTON1;
+    static const long ID_BITMAPBUTTON2;
+    static const long ID_LISTCTRL_NETWORKS;
+    static const long ID_PANEL_SETUP;
+    static const long ID_BUTTON_SELECT_ALL;
+    static const long ID_BUTTON_CLEAR_ALL;
+    static const long ID_BUTTON_LOAD;
+    static const long ID_BUTTON_SAVE;
+    static const long ID_STATICTEXT6;
+    static const long ID_CHECKLISTBOX_TEST_CHANNELS;
+    static const long ID_STATICTEXT8;
+    static const long ID_RADIOBUTTON14;
+    static const long ID_RADIOBUTTON15;
+    static const long ID_RADIOBUTTON16;
+    static const long ID_RADIOBUTTON17;
+    static const long ID_RADIOBUTTON19;
+    static const long ID_RADIOBUTTON18;
+    static const long ID_RADIOBUTTON7;
+    static const long ID_RADIOBUTTON31;
+    static const long ID_RADIOBUTTON30;
+    static const long ID_RADIOBUTTON29;
+    static const long ID_RADIOBUTTON8;
+    static const long ID_RADIOBUTTON6;
+    static const long ID_STATICTEXT9;
+    static const long ID_SLIDER4;
+    static const long ID_STATICTEXT10;
+    static const long ID_SLIDER5;
+    static const long ID_STATICTEXT11;
+    static const long ID_SLIDER6;
+    static const long ID_PANEL_TEST_STANDARD;
+    static const long ID_STATICTEXT29;
+    static const long ID_RADIOBUTTON3;
+    static const long ID_RADIOBUTTON4;
+    static const long ID_RADIOBUTTON5;
+    static const long ID_RADIOBUTTON9;
+    static const long ID_RADIOBUTTON25;
+    static const long ID_RADIOBUTTON10;
+    static const long ID_RADIOBUTTON12;
+    static const long ID_RADIOBUTTON28;
+    static const long ID_RADIOBUTTON11;
+    static const long ID_RADIOBUTTON13;
+    static const long ID_RADIOBUTTON20;
+    static const long ID_RADIOBUTTON21;
+    static const long ID_SLIDER12;
+    static const long ID_SLIDER11;
+    static const long ID_SLIDER1;
+    static const long ID_SLIDER14;
+    static const long ID_SLIDER13;
+    static const long ID_SLIDER9;
+    static const long ID_STATICTEXT7;
+    static const long ID_SLIDER2;
+    static const long ID_PANEL_TEST_RGB;
+    static const long ID_STATICTEXT12;
+    static const long ID_RADIOBUTTON22;
+    static const long ID_RADIOBUTTON23;
+    static const long ID_RADIOBUTTON24;
+    static const long ID_RADIOBUTTON26;
+    static const long ID_RADIOBUTTON27;
+    static const long ID_STATICTEXT13;
+    static const long ID_SLIDER7;
+    static const long ID_PANEL_RGB_CYCLE;
+    static const long ID_NOTEBOOK_TEST;
+    static const long ID_PANEL_TEST;
+    static const long ID_STATICTEXT14;
+    static const long ID_STATICTEXT19;
+    static const long ID_STATICTEXT15;
+    static const long ID_BUTTON_CHOOSE_FILE;
+    static const long ID_TEXTCTRL_FILENAME;
+    static const long ID_STATICTEXT16;
+    static const long ID_CHOICE_OUTPUT_FORMAT;
+    static const long ID_STATICTEXT20;
+    static const long ID_CHECKBOX_SAVE_CHANNEL_NAMES;
+    static const long ID_STATICTEXT17;
+    static const long ID_CHECKBOX_OFF_AT_END;
+    static const long ID_BUTTON_START_CONVERSION;
+    static const long ID_STATICTEXT18;
+    static const long ID_TEXTCTRL_CONVERSION_STATUS;
+    static const long ID_PANEL_CONVERT;
+    static const long ID_SCROLLEDWINDOW1;
+    static const long ID_BUTTON13;
+    static const long ID_BUTTON3;
+    static const long ID_BUTTON_Palette;
+    static const long ID_BUTTON58;
+    static const long ID_CHOICE7;
+    static const long ID_BUTTON59;
+    static const long ID_CHOICE2;
+    static const long ID_BUTTON9;
+    static const long ID_BUTTON8;
+    static const long ID_CHOICE_LayerMethod;
+    static const long ID_SLIDER_EffectLayerMix;
+    static const long ID_TEXTCTRL_LayerMix;
+    static const long ID_STATICTEXT24;
+    static const long ID_SLIDER_SparkleFrequency;
+    static const long ID_TEXTCTRL5;
+    static const long ID_STATICTEXT127;
+    static const long ID_SLIDER_Brightness;
+    static const long ID_TEXTCTRL6;
+    static const long ID_STATICTEXT128;
+    static const long ID_SLIDER_Contrast;
+    static const long ID_TEXTCTRL7;
+    static const long ID_PANEL31;
+    static const long ID_STATICTEXT4;
+    static const long ID_BUTTON_PLAY_RGB_SEQ;
+    static const long ID_BUTTON2;
+    static const long ID_BUTTON1;
+    static const long ID_BITMAPBUTTON7;
+    static const long ID_BITMAPBUTTON9;
+    static const long ID_BITMAPBUTTON3;
+    static const long ID_BITMAPBUTTON4;
+    static const long ID_BUTTON_SeqExport;
+    static const long ID_BUTTON4;
+    static const long ID_GRID1;
+    static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL32;
+    static const long ID_SPLITTERWINDOW2;
+    static const long ID_PANEL30;
+    static const long ID_TREECTRL1;
+    static const long ID_CHECKBOX_RUN_SCHEDULE;
+    static const long ID_BUTTON_SAVE_SCHEDULE;
+    static const long ID_BUTTON_ADD_SHOW;
+    static const long ID_BUTTON_UPDATE_SHOW;
+    static const long ID_BUTTON_DELETE_SHOW;
+    static const long ID_STATICTEXT2;
+    static const long ID_BUTTON_SHOW_DATES_CHANGE;
+    static const long ID_STATICTEXT3;
+    static const long ID_STATICTEXT_SHOWSTART;
+    static const long ID_STATICTEXT5;
+    static const long ID_STATICTEXT_SHOWEND;
+    static const long ID_PANEL3;
+    static const long ID_STATICTEXT1;
+    static const long ID_TEXTCTRL_LOG;
+    static const long ID_BUTTON_CLEARLOG;
+    static const long ID_BUTTON_SAVELOG;
+    static const long ID_PANEL2;
+    static const long ID_SPLITTERWINDOW1;
+    static const long ID_PANEL_CAL;
+    static const long ID_NOTEBOOK1;
+    static const long ID_PANEL1;
+    static const long ID_MENUITEM2;
+    static const long ID_FILE_BACKUP;
+    static const long idMenuQuit;
+    static const long idMenuSaveSched;
+    static const long idMenuAddList;
+    static const long idMenuRenameList;
+    static const long idMenuDelList;
+    static const long ID_MENUITEM1;
+    static const long idCustomScript;
+    static const long idMenuHelpContent;
+    static const long idMenuAbout;
+    static const long ID_STATUSBAR1;
+    static const long ID_TIMER1;
+    static const long ID_MESSAGEDIALOG1;
     //*)
 
     static const long ID_PLAYER_DIALOG;
@@ -310,6 +500,169 @@ private:
     static const long ID_RANDOM_EFFECT;
 
     //(*Declarations(xLightsFrame)
+    wxButton* Button_UpdateGrid;
+    wxStaticText* StaticText10;
+    wxRadioButton* RadioButtonChase5;
+    wxBitmapButton* BitmapButtonOpenSeq;
+    wxStaticText* StaticText22;
+    wxStaticText* StaticText9;
+    wxRadioButton* RadioButtonRgbCycle4;
+    wxPanel* SeqPanelRight;
+    wxTextCtrl* TextCtrlFilename;
+    wxRadioButton* RadioButtonRgbChaseOff;
+    wxStaticText* StaticText20;
+    wxRadioButton* RadioButtonRgbCycleOff;
+    wxButton* Button_Models;
+    wxRadioButton* RadioButtonRgbChase;
+    wxButton* ButtonAddE131;
+    wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
+    wxRadioButton* RadioButtonRgbChase5;
+    wxRadioButton* RadioButtonRgbChase3;
+    wxStaticText* StaticText29;
+    wxRadioButton* RadioButtonShimmer;
+    wxCheckBox* CheckBoxRunSchedule;
+    wxNotebook* Notebook1;
+    wxButton* ButtonClearLog;
+    wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxButton* ButtonSeqExport;
+    wxStaticText* StaticText13;
+    wxStaticText* StaticText2;
+    wxBitmapButton* BitmapButtonSaveSeq;
+    wxSlider* SliderFgColorC;
+    wxFileDialog* FileDialogConvert;
+    wxSlider* SliderRgbChaseSpeed;
+    wxStaticText* StaticText14;
+    wxButton* ButtonLightsOff;
+    wxButton* ButtonTestLoad;
+    wxStaticText* StaticTextShowEnd;
+    wxScrolledWindow* ScrolledWindow1;
+    wxButton* ButtonGracefulStop;
+    wxButton* Button1;
+    wxRadioButton* RadioButtonRgbCycle3;
+    wxChoice* ChoiceOutputFormat;
+    wxTextCtrl* TextCtrlLog;
+    wxStaticText* StaticText6;
+    wxChoice* Choice_Presets;
+    wxSplitterWindow* SplitterWindow2;
+    wxMenuItem* MenuItemRefresh;
+    wxRadioButton* RadioButtonDim;
+    wxRadioButton* RadioButtonChase4;
+    wxButton* Button_PlayRgbSeq;
+    wxButton* Button_Presets;
+    wxRadioButton* RadioButtonRgbTwinkle10;
+    wxRadioButton* RadioButtonChase3;
+    wxStaticText* StaticText19;
+    wxSlider* SliderChaseSpeed;
+    wxStaticText* StaticText8;
+    wxButton* ButtonNetworkDeleteAll;
+    wxButton* ButtonStartConversion;
+    wxStaticText* StaticText11;
+    wxStaticText* StaticText18;
+    EffectsPanel* EffectsPanel1;
+    wxSlider* SliderFgColorA;
+    wxStaticText* StaticTextShowStart;
+    wxPanel* PanelTestRgb;
+    wxPanel* Panel1;
+    wxStaticText* StaticText1;
+    wxSlider* Slider_EffectLayerMix;
+    wxButton* ButtonDisplayElements;
+    wxStaticText* StaticText3;
+    wxButton* Button_PresetAdd;
+    wxGrid* Grid1;
+    wxPanel* PanelRgbCycle;
+    wxRadioButton* RadioButtonRgbAlt;
+    wxButton* ButtonSaveLog;
+    wxStaticText* StaticText127;
+    wxButton* ButtonChangeDir;
+    wxStaticText* StaticTextDirName;
+    wxTextCtrl* txtCtlBrightness;
+    wxNotebook* NotebookTest;
+    wxPanel* Panel3;
+    wxTextCtrl* txtCtlContrast;
+    wxSlider* SliderRgbCycleSpeed;
+    wxButton* ButtonAddDongle;
+    wxRadioButton* RadioButtonTwinkle50;
+    wxBitmapButton* BitmapButtonMoveNetworkUp;
+    wxMenuItem* MenuItemBackup;
+    wxButton* Button_Palette;
+    wxRadioButton* RadioButtonRgbCycleMixed;
+    wxButton* ButtonNetworkChange;
+    wxSlider* SliderBgColorA;
+    wxRadioButton* RadioButtonRgbTwinkle50;
+    wxStaticText* StaticTextSetup1;
+    wxPanel* PanelSequence2;
+    wxSlider* SliderBgColorC;
+    wxRadioButton* RadioButtonRgbTwinkle05;
+    wxButton* ButtonNetworkDelete;
+    EffectsPanel* EffectsPanel2;
+    wxTreeCtrl* ListBoxSched;
+    wxStaticText* StaticText7;
+    wxSlider* Slider_Brightness;
+    wxPanel* PanelTest;
+    wxListCtrl* GridNetwork;
+    wxBitmapButton* BitmapButtonDeleteRow;
+    wxPanel* PanelCal;
+    wxStatusBar* StatusBar1;
+    wxMenu* MenuFile;
+    wxChoice* Choice_LayerMethod;
+    wxDirDialog* DirDialog1;
+    wxButton* ButtonTestClear;
+    wxBitmapButton* BitmapButtonTabInfo;
+    wxButton* ButtonDeleteShow;
+    wxStaticText* StaticText126;
+    wxSlider* Slider_SparkleFrequency;
+    wxButton* ButtonShowDatesChange;
+    wxRadioButton* RadioButtonRgbTwinkle25;
+    wxButton* Button_PresetUpdate;
+    wxRadioButton* RadioButtonRgbShimmer;
+    wxCheckBox* CheckBoxLightOutput;
+    wxStaticText* StaticText15;
+    wxStaticText* StaticText12;
+    wxCheckListBox* CheckListBoxTestChannels;
+    wxPanel* PanelConvert;
+    wxRadioButton* RadioButtonTwinkle10;
+    wxPanel* PanelSetup;
+    wxChoice* Choice_Models;
+    wxSlider* SliderBgColorB;
+    wxButton* ButtonSaveSetup;
+    wxPanel* SeqPanelLeft;
+    wxRadioButton* RadioButtonRgbDim;
+    wxRadioButton* RadioButtonTwinkle25;
+    wxPanel* Panel2;
+    wxMenuItem* MenuItemSavePlaylists;
+    wxRadioButton* RadioButtonChase;
+    wxBitmapButton* BitmapButtonInsertRow;
+    wxTextCtrl* txtCtrlSparkleFreq;
+    wxButton* ButtonUpdateShow;
+    wxSlider* Slider_Contrast;
+    wxMessageDialog* MessageDialog1;
+    wxPanel* PanelTestStandard;
+    wxSlider* SliderBgIntensity;
+    wxTextCtrl* TextCtrlConversionStatus;
+    wxRadioButton* RadioButtonTwinkle05;
+    wxSplitterWindow* SplitterWindow1;
+    wxButton* ButtonChooseFile;
+    wxRadioButton* RadioButtonOff;
+    wxCheckBox* CheckBoxSaveChannelNames;
+    wxStaticText* StaticText4;
+    wxStaticText* StaticText17;
+    wxRadioButton* RadioButtonRgbCycle5;
+    wxTextCtrl* txtCtlEffectMix;
+    wxRadioButton* RadioButtonRgbChase4;
+    wxButton* Button_ChannelMap;
+    wxButton* ButtonTestSelectAll;
+    wxButton* Button_PlayEffect;
+    wxButton* ButtonSaveSchedule;
+    wxButton* ButtonAddShow;
+    wxButton* ButtonTestSave;
+    wxSlider* SliderFgIntensity;
+    wxStaticText* StaticText16;
+    wxSlider* SliderFgColorB;
+    wxTimer Timer1;
+    wxCheckBox* CheckBoxOffAtEnd;
+    wxRadioButton* RadioButtonAlt;
+    wxButton* ButtonStopNow;
+    wxStaticText* StaticTextSequenceFileName;
     //*)
 
     wxString CurrentDir;

@@ -307,7 +307,6 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)
     {
-   //       StatusBar1->SetStatusText(_(wxString::Format(wxT("CalcOutput: %ld of %ld nodes"),i,NodeCount)));
         if (Nodes[i].bufX < 0)
         {
             // unmapped pixel - set to black

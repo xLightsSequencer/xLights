@@ -153,13 +153,18 @@ void xLightsFrame::SetEffectControls(wxString settings)
             break;
         default:
             name=before.BeforeFirst('=');
-            if (name.StartsWith(wxT("E1_"))) {
+            if (name.StartsWith(wxT("E1_")))
+            {
                 ContextWin=EffectsPanel1;
                 name=wxT("ID_")+name.Mid(3);
-            } else if (name.StartsWith(wxT("E2_"))) {
+            }
+            else if (name.StartsWith(wxT("E2_")))
+            {
                 ContextWin=EffectsPanel2;
                 name=wxT("ID_")+name.Mid(3);
-            } else {
+            }
+            else
+            {
                 ContextWin=SeqPanelLeft;
             }
             value=before.AfterFirst('=');
@@ -866,11 +871,13 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
 // layer is 0 or 1
 void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {
-    if (panel->EffectChanged) {
+    if (panel->EffectChanged)
+    {
         ResetEffectState[layer]=true;
         panel->EffectChanged=false;
     }
-    if (panel->PaletteChanged) {
+    if (panel->PaletteChanged)
+    {
         UpdateBufferPalette(panel,layer);
         ResetEffectState[layer]=true;
         panel->PaletteChanged=false;
@@ -1330,7 +1337,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 #include <wx/string.h>
 #include <wx/tokenzr.h>
 
-wxString insert_missing(wxString str,wxString missing_array)
+wxString insert_missing(wxString str,wxString missing_array,bool INSERT)
 {
     int pos;
     wxStringTokenizer tkz(missing_array, wxT("|"));
@@ -1343,8 +1350,14 @@ wxString insert_missing(wxString str,wxString missing_array)
         token2 = tkz.GetNextToken();
         pos=str.find(token1,0);
         replacement = wxT(",") + token2 + wxT("</td>");
-        if(pos<=0) str.Replace(wxT("</td>"),replacement);
-
+        if(pos<=0 and INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
+        {
+            str.Replace(wxT("</td>"),replacement);
+        }
+        else if(pos>0 and !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
+        {
+            str.Replace(token1,token2);
+        }
     }
     return str;
 }
@@ -1357,22 +1370,39 @@ void fix_version_differences(wxString file)
     bool modified=false;
     fileout = file + ".out";
 // open the file
-    wxString missing = "xdummy|xdummy";
+    wxString missing     = "xdummy|xdummy";
     wxString replace_str = "xdummy|xdummy";
-    wxString Text1   = "xdummy|xdummy";
-    wxString Text2   = "xdummy|xdummy";
-    wxString Meteors1 = "xdummy|xdummy";
-    wxString Meteors2 = "xdummy|xdummy";
-    wxString Fire1   = "xdummy|xdummy";
-    wxString Fire2   = "xdummy|xdummy";
+    wxString Text1       = "xdummy|xdummy";
+    wxString Text2       = "xdummy|xdummy";
+    wxString Meteors1    = "xdummy|xdummy";
+    wxString Meteors2    = "xdummy|xdummy";
+    wxString Fire1       = "xdummy|xdummy";
+    wxString Fire2       = "xdummy|xdummy";
     //
     //
     //  list all new tags that might have occured in previous versions
     //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
     //
-    missing = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
-    missing = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
+    missing      = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
+    missing      = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
+
+    /*  missing      = missing + wxT("|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0");
+      missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0");
+      missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0");
+      missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadein|ID_TEXTCTRL_Effect2_Fadein=0");
+      missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadeout|ID_TEXTCTRL_Effect2_Fadeout=0");
+      missing      = missing + wxT("|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0");
+      missing      = missing + wxT("|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0");
+      */
+
+    /*
+    ID_SLIDER_EffectLayerMix=0,E1_TEXTCTRL_Fadein=0,E1_TEXTCTRL_Fadeout=0,E2_TEXTCTRL_Fadein=0
+    ,E2_TEXTCTRL_Fadeout=0,E1_CHECKBOX_FitToTime=0,E2_CHECKBOX_FitToTime=0,ID_TEXTCTRL_Effect1_Fadein=0
+    ,ID_TEXTCTRL_Effect1_Fadeout=0,ID_TEXTCTRL_Effect2_Fadein=0,ID_TEXTCTRL_Effect2_Fadeout=0
+    ,ID_CHECKBOX_Effect1_Fit=0,ID_CHECKBOX_Effect2_Fit=0
+    */
     //
+
     Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
     Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
     Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
@@ -1623,61 +1653,71 @@ void fix_version_differences(wxString file)
                 str.Replace(wxT("ID_TEXTCTRL4"),wxT("ID_TEXTCTRL_Text1_1_Font"));
             }
 
+//  166 tokens
+            modified=true;
+            str=insert_missing(str,replace_str,false);
+
 //  now look to fill in any missing tokens
-            p=str.find("ID_SLIDER",0);
-            if(p>0) // Look for lines that should have brightness and contrast, in other words all
-            {
-                modified=true;
-                str=insert_missing(str,missing);
-            }
 
-            p=str.find("ID_TEXTCTRL_Text1_Line1",0);
-            if(p>0) // Is this a text 1 line?
-            {
-                modified=true;
-                str=insert_missing(str,Text1);
-            }
-            p=str.find("ID_TEXTCTRL_Text2_Line1",0);
-            if(p>0) // is this a text 2 line?
-            {
-                modified=true;
-                str=insert_missing(str,Text2);
-            }
+            /* comment out now with ver 25
+                   p=str.find("ID_SLIDER",0);
+                   if(p>0) // Look for lines that should have brightness and contrast, in other words all
+                   {
+                       modified=true;
+                       str=insert_missing(str,missing,true);
+                   }
 
-            p=str.find("ID_CHOICE_Meteors1",0);
-            if(p>0) // is there a meteors 1 effect on this line?
-            {
-                modified=true;
-                str=insert_missing(str,Meteors1); // fix any missing values
-            }
-            p=str.find("ID_CHOICE_Meteors2",0);
-            if(p>0) // is there a meteors 1 effect on this line?
-            {
-                modified=true;
-                str=insert_missing(str,Meteors2);
-            }
+                   p=str.find("ID_TEXTCTRL_Text1_Line1",0);
+                   if(p>0) // Is this a text 1 line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Text1,true);
+                   }
+                   p=str.find("ID_TEXTCTRL_Text2_Line1",0);
+                   if(p>0) // is this a text 2 line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Text2,true);
+                   }
 
-            p=str.find("ID_CHOICE_Fire11",0);
-            if(p>0) // is there a meteors 1 effect on this line?
-            {
-                modified=true;
-                str=insert_missing(str,Fire1); // fix any missing values
-            }
-            p=str.find("ID_CHOICE_Fire2",0);
-            if(p>0) // is there a meteors 1 effect on this line?
-            {
-                modified=true;
-                str=insert_missing(str,Fire2); // fix any missing values
-            }
-        }
-        str = str + "\n";
-        f.Write(str); // placeholder, do whatever you want with the string
+                   p=str.find("ID_CHOICE_Meteors1",0);
+                   if(p>0) // is there a meteors 1 effect on this line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Meteors1,true); // fix any missing values
+                   }
+                   p=str.find("ID_CHOICE_Meteors2",0);
+                   if(p>0) // is there a meteors 1 effect on this line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Meteors2,true);
+                   }
+
+                   p=str.find("ID_CHOICE_Fire11",0);
+                   if(p>0) // is there a meteors 1 effect on this line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Fire1,true); // fix any missing values
+                   }
+                   p=str.find("ID_CHOICE_Fire2",0);
+                   if(p>0) // is there a meteors 1 effect on this line?
+                   {
+                       modified=true;
+                       str=insert_missing(str,Fire2,true); // fix any missing values
+                   }
+                     */
+
+}
+            str = str + "\n";
+            f.Write(str); // placeholder, do whatever you want with the string
+
     }
     tfile.Close();
     f.Close();
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
-    wxRemoveFile(fileout); // get rid of temporary file
+    //  wxRemoveFile(fileout); // get rid of temporary file
 }
+
 
 void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 {
