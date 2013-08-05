@@ -2337,7 +2337,6 @@ void xLightsFrame::RenderGridToSeqData()
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
-    long curEffMsec;
 
     LoadEffectFromString(wxT("None,None,Effect 1"), SettingsMap);
     for (int c=SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
@@ -2367,8 +2366,8 @@ void xLightsFrame::RenderGridToSeqData()
         {
             msec=p * XTIMER_INTERVAL;
             buffer.Clear();
-            curEffMsec = GetGridStartTimeMSec(NextGridRowToPlay);
-            if (NextGridRowToPlay < rowcnt && msec >= curEffMsec)
+
+            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
                 wxYield();

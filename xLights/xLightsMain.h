@@ -329,6 +329,7 @@ private:
     void OnSlider_Speed1CmdScroll(wxScrollEvent& event);
     void OnSlider_Speed2CmdScroll(wxScrollEvent& event);
     void OnCheckBox_Effect1FitClick(wxCommandEvent& event);
+    void OnButtonBackupDataClick(wxCommandEvent& event);
     //*)
     void OnPopupClick(wxCommandEvent &evt);
     void DeleteSelectedEffects(wxCommandEvent &evt);
@@ -461,6 +462,7 @@ private:
     static const long ID_BITMAPBUTTON4;
     static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON4;
+    static const long ID_BUTTON5;
     static const long ID_GRID1;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT25;
@@ -1108,6 +1110,7 @@ private:
     wxCheckBox* CheckBox_Circles1_Collide;
     wxStaticText* StaticText125;
     wxCheckBox* CheckBox_Circles2_Collide;
+    wxButton* ButtonBackupData;
     wxRadioButton* RadioButtonRgbChase3;
     wxPanel* Panel4;
     wxStaticText* StaticText53;
