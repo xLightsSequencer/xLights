@@ -609,7 +609,7 @@ void xLightsFrame::ResetEffectsXml()
     PalettesNode=0;
 }
 
-void xLightsFrame::LoadEffectsFile()
+wxString xLightsFrame::LoadEffectsFileNoCheck()
 {
     ResetEffectsXml();
     wxFileName effectsFile;
@@ -645,6 +645,7 @@ void xLightsFrame::LoadEffectsFile()
     if (EffectsNode == 0)
     {
         EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("effects") );
+        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
         root->AddChild( EffectsNode );
     }
     if (PalettesNode == 0)
@@ -652,6 +653,26 @@ void xLightsFrame::LoadEffectsFile()
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("palettes") );
         root->AddChild( PalettesNode );
     }
+    return effectsFile.GetFullPath();
+}
+
+void xLightsFrame::LoadEffectsFile()
+{
+    wxString filename=LoadEffectsFileNoCheck();
+    // check version, do we need to convert?
+    wxString version=EffectsNode->GetAttribute(wxT("version"), wxT("0000"));
+    if (version < wxT(XLIGHTS_RGBEFFECTS_VERSION)) {
+        // convert file
+        FixVersionDifferences( filename );
+        // load converted file
+        LoadEffectsFileNoCheck();
+        // update version
+        EffectsNode->DeleteAttribute(wxT("version"));
+        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
+        // re-save
+        EffectsXml.Save( filename );
+    }
+
     UpdateModelsList();
     UpdateEffectsList();
 }
@@ -1337,7 +1358,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 #include <wx/string.h>
 #include <wx/tokenzr.h>
 
-wxString insert_missing(wxString str,wxString missing_array,bool INSERT)
+wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool INSERT)
 {
     int pos;
     wxStringTokenizer tkz(missing_array, wxT("|"));
@@ -1362,7 +1383,8 @@ wxString insert_missing(wxString str,wxString missing_array,bool INSERT)
     return str;
 }
 
-void fix_version_differences(wxString file)
+// file should be full path
+void xLightsFrame::FixVersionDifferences(wxString file)
 {
     wxString        str,fileout;
     wxTextFile      tfile;
@@ -1655,7 +1677,7 @@ void fix_version_differences(wxString file)
 
 //  166 tokens
             modified=true;
-            str=insert_missing(str,replace_str,false);
+            str=InsertMissing(str,replace_str,false);
 
 //  now look to fill in any missing tokens
 
@@ -1664,46 +1686,46 @@ void fix_version_differences(wxString file)
                    if(p>0) // Look for lines that should have brightness and contrast, in other words all
                    {
                        modified=true;
-                       str=insert_missing(str,missing,true);
+                       str=InsertMissing(str,missing,true);
                    }
 
                    p=str.find("ID_TEXTCTRL_Text1_Line1",0);
                    if(p>0) // Is this a text 1 line?
                    {
                        modified=true;
-                       str=insert_missing(str,Text1,true);
+                       str=InsertMissing(str,Text1,true);
                    }
                    p=str.find("ID_TEXTCTRL_Text2_Line1",0);
                    if(p>0) // is this a text 2 line?
                    {
                        modified=true;
-                       str=insert_missing(str,Text2,true);
+                       str=InsertMissing(str,Text2,true);
                    }
 
                    p=str.find("ID_CHOICE_Meteors1",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Meteors1,true); // fix any missing values
+                       str=InsertMissing(str,Meteors1,true); // fix any missing values
                    }
                    p=str.find("ID_CHOICE_Meteors2",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Meteors2,true);
+                       str=InsertMissing(str,Meteors2,true);
                    }
 
                    p=str.find("ID_CHOICE_Fire11",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Fire1,true); // fix any missing values
+                       str=InsertMissing(str,Fire1,true); // fix any missing values
                    }
                    p=str.find("ID_CHOICE_Fire2",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Fire2,true); // fix any missing values
+                       str=InsertMissing(str,Fire2,true); // fix any missing values
                    }
                      */
 
@@ -1816,7 +1838,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 
     // read xml
     //  first fix any version specific changes
-    fix_version_differences(SeqXmlFileName);
+    FixVersionDifferences(SeqXmlFileName);
 
 
     wxXmlDocument doc;
