@@ -1695,6 +1695,7 @@ void fix_version_differences(wxString file)
     wxString Fire2       = "xdummy|xdummy";
     //
     //
+    //
     //  list all new tags that might have occured in previous versions
     //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
     //
@@ -2409,9 +2410,7 @@ void xLightsFrame::RenderGridToSeqData()
             for(int n=0; n<NodeCnt; n++)
             {
                 SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
-
                 SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
-
                 SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
 
             } // for(int n=0; n<NodeCnt; n++)

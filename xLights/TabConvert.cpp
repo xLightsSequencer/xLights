@@ -190,6 +190,8 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     for (int ch=0; ch < SeqNumChannels; ch++ )
     {
 
+        StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for Vixen *.vix: Channel %d "),ch)));
+
         node = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("Channel") );
         node->AddAttribute( wxT("output"), wxString::Format(wxT("%d"),ch));
         node->AddAttribute( wxT("id"), wxT("0"));
@@ -280,7 +282,7 @@ void xLightsFrame::WriteVirFile(const wxString& filename)
 
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
-
+         StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for Vixen *.vir: Channel %d "),ch)));
         buff=wxT("");
         for (p=0; p < SeqNumPeriods; p++, seqidx++)
         {
@@ -315,7 +317,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
 
     for (ch=0; ch < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
-
+         StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for HLS *.hlsnc: Channel %d "),ch)));
         buff=wxT("");
 
         for (p=0; p < SeqNumPeriods; p++, seqidx++)
@@ -412,9 +414,9 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format(wxT("Writing time period %ld\n"),period+1));
         wxYield();
-        for(ch=0;ch<stepSize;ch++)
+        for(ch=0; ch<stepSize; ch++)
         {
-          buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
+            buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
         }
         f.Write(buf,stepSize);
     }
@@ -483,7 +485,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
 
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
-
+         StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for LSP UserPatterns.xml: Channel %d "),ch)));
         f.Write(wxT("\t<Track>\n"));
         f.Write(wxT("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n"));
         f.Write(wxT("\t\t<IsHidden>false</IsHidden>\n"));
@@ -566,7 +568,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write(wxT("\t<channels>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
-
+        StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for LOR *.lms: Channel %d "),ch)));
         if (ch < CheckListBoxTestChannels->GetCount())
         {
             TestName=CheckListBoxTestChannels->GetString(ch);
@@ -628,11 +630,12 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
         }
         f.Write(wxT("\t\t</channel>\n"));
         if ( ch < CheckListBoxTestChannels->GetCount() &&
-             (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
+                (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
         {
             rgbChanIndexes[curRgbChanCount++]= index;
             if (curRgbChanCount == 3)
-            {   index++;
+            {
+                index++;
                 f.Write(wxT("\t\t<rgbChannel name=\"")+ChannelName.Left(ChannelName.size()-1)+
                         wxString::Format(wxT("(RGB)\" totalCentiseconds=\"%d\" savedIndex=\"%d\">\n"), centiseconds, index));
                 savedIndexes[savedIndexCount++] = index;
@@ -715,6 +718,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
     f.Write(wxT("<channels>\n"));
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
+        StatusBar1->SetStatusText(_(wxString::Format(wxT("Starting Export for LOR *.lcb: Channel %d "),ch)));
         f.Write(wxT("\t<channel>\n"));
         LastIntensity=0;
         for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
