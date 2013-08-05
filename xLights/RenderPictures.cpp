@@ -55,7 +55,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
     extension = NewPictureName2.substr (NewPictureName2.length()-3,3);
-    if( suffix =="-1") // do ew have amovie file?
+    if( suffix =="-1") // do we have a movie file?
     {
         //    yes
         BasePicture= NewPictureName2.substr (0,NewPictureName2.length()-6) ;
