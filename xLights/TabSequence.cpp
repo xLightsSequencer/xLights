@@ -1685,58 +1685,66 @@ void fix_version_differences(wxString file)
     bool modified=false;
     fileout = file + ".out";
 // open the file
-    wxString missing = "xdummy|xdummy";
+    wxString missing     = "xdummy|xdummy";
     wxString replace_str = "xdummy|xdummy";
-    wxString Text1   = "xdummy|xdummy";
-    wxString Text2   = "xdummy|xdummy";
-    wxString Meteors1 = "xdummy|xdummy";
-    wxString Meteors2 = "xdummy|xdummy";
-    wxString Fire1   = "xdummy|xdummy";
-    wxString Fire2   = "xdummy|xdummy";
+    wxString Text1       = "xdummy|xdummy";
+    wxString Text2       = "xdummy|xdummy";
+    wxString Meteors1    = "xdummy|xdummy";
+    wxString Meteors2    = "xdummy|xdummy";
+    wxString Fire1       = "xdummy|xdummy";
+    wxString Fire2       = "xdummy|xdummy";
     //
     //
     //  list all new tags that might have occured in previous versions
     //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
     //
-    missing = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
-    missing = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
-    //
-    Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
-    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
-    Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
-    Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
-    Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
-    Meteors2 = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+    missing      = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
+    missing      = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
+    missing      = missing + wxT("|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0");
+    missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0");
+    missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0");
+    missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadein|ID_TEXTCTRL_Effect2_Fadein=0");
+    missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadeout|ID_TEXTCTRL_Effect2_Fadeout=0");
+    missing      = missing + wxT("|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0");
+    missing      = missing + wxT("|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0");
 
-    Fire1 = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
-    Fire2 = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
-    Fire1 = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
-    Fire2 = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
+    //
+    Meteors1     = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
+    Meteors2     = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
+    Meteors1     = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
+    Meteors2     = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
+    Meteors1     = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
+    Meteors2     = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+
+    Fire1        = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
+    Fire2        = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
+    Fire1        = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
+    Fire2        = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
 
 
     // Lots of variables to check for  text effect
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+    Text1        = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
+    Text1        = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
+    Text1        = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
+    Text1        = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
+    Text1        = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
+    Text1        = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
+    Text1        = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
+    Text1        = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
+    Text1        = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
+    Text1        = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
 
     //
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+    Text2        = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
+    Text2        = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
+    Text2        = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
+    Text2        = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
+    Text2        = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
+    Text2        = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
+    Text2        = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
+    Text2        = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
+    Text2        = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
+    Text2        = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
 
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1");
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2");
