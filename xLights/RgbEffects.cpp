@@ -87,9 +87,7 @@ void RgbEffects::SetPalette(wxColourVector& newcolors)
 
 size_t RgbEffects::GetColorCount()
 {
-    size_t colorcnt=palette.Size();
-    if (colorcnt < 1) colorcnt=1;
-    return colorcnt;
+    return palette.Size();
 }
 
 // return a random number between 0 and 1 inclusive

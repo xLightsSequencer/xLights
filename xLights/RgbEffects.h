@@ -190,7 +190,9 @@ public:
 
     size_t Size()
     {
-        return color.size();
+        size_t colorcnt=color.Size();
+        if (colorcnt < 1) colorcnt=1;
+        return colorcnt;
     }
 
     void GetColor(size_t idx, wxColour& c)

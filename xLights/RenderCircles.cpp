@@ -30,7 +30,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
 
     int ii=0;
     int colorIdx;
-    size_t colorCnt = palette.Size();
+    size_t colorCnt=GetColorCount();
     wxImage::HSVValue hsv;
     float spd;
     float angle;
