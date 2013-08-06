@@ -1591,18 +1591,18 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 
 //  first make sure there is a Backup sub directory
-    wxString newDirBackup = "Backup";
-    if (!newDirH.Mkdir(newDirBackup))
+    wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+wxT("Backup");
+    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        wxMessageBox(wxT("Unable to create directory Backup!"),"Error", wxICON_ERROR);
+        wxMessageBox(wxT("Unable to create directory Backup!"),"Error", wxICON_ERROR|wxOK);
         return;
     }
 
  //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
 
-    wxString newDir = wxString::Format(wxT("Backup/%s-%s"),curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
+    wxString newDir = wxString::Format(wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(), curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
 
-    if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxT("\\")+
+    if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxFileName::GetPathSeparator()+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
     {
         return;
