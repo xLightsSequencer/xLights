@@ -1588,7 +1588,19 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     time(&cur);
     wxFileName newDirH;
     wxDateTime curTime(cur);
-    wxString newDir = wxString::Format(wxT("Backup-%s-%s"),curTime.FormatISODate(),curTime.FormatISOTime());
+
+
+//  first make sure there is a Backup sub directory
+    wxString newDirBackup = "Backup";
+    if (!newDirH.Mkdir(newDirBackup))
+    {
+        wxMessageBox(wxT("Unable to create directory Backup!"),"Error", wxICON_ERROR);
+        return;
+    }
+
+ //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
+
+    wxString newDir = wxString::Format(wxT("Backup/%s-%s"),curTime.FormatISODate(),curTime.FormatISOTime());
 
     if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxT("\\")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
