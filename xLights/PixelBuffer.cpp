@@ -462,7 +462,7 @@ void PixelBufferClass::RenderPiano(int Keyboard)
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, int start_x, int start_y)
+                               bool radial, bool radial_3D,  int start_x, int start_y)
 {
-    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, start_x, start_y);
+    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y);
 }

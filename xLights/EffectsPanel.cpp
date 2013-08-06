@@ -151,6 +151,7 @@ const long EffectsPanel::ID_STATICTEXT138 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Circles_Size = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Bounce = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Radial = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Collide = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Random_m = wxNewId();
 const long EffectsPanel::ID_PANEL37 = wxNewId();
@@ -602,6 +603,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	CheckBox_Circles_Radial = new wxCheckBox(Panel1_Circles, ID_CHECKBOX_Circles_Radial, _("Radial"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles_Radial"));
 	CheckBox_Circles_Radial->SetValue(false);
 	FlexGridSizer80->Add(CheckBox_Circles_Radial, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Circles_Radial_3D = new wxCheckBox(Panel1_Circles, ID_CHECKBOX_Circles_Radial_3D, _("Radial 3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles_Radial_3D"));
+	CheckBox_Circles_Radial_3D->SetValue(false);
+	FlexGridSizer80->Add(CheckBox_Circles_Radial_3D, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Circles_Collide = new wxCheckBox(Panel1_Circles, ID_CHECKBOX_Circles_Collide, _("Collide"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles_Collide"));
 	CheckBox_Circles_Collide->SetValue(false);
 	CheckBox_Circles_Collide->Hide();
@@ -640,7 +644,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
 	Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
 	Choicebook1->AddPage(Panel1_Fireworks, _("Fireworks"), false);
-	Choicebook1->AddPage(Panel1_Circles, _("Circles (Under Development)"), false);
+	Choicebook1->AddPage(Panel1_Circles, _("Circles"), false);
 	Choicebook1->AddPage(Panel1_Piano, _("Piano (Under Development)"), false);
 	FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);

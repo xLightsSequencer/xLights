@@ -66,6 +66,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText46;
 		wxCheckBox* CheckBox_Circles_Collide;
 		wxSlider* Slider_Butterfly_Skip;
+		wxCheckBox* CheckBox_Circles_Radial_3D;
 		wxStaticText* StaticText92;
 		wxStaticText* StaticText5;
 		wxPanel* Panel_Text1;
@@ -357,6 +358,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_SLIDER_Circles_Size;
 		static const long ID_CHECKBOX_Circles_Bounce;
 		static const long ID_CHECKBOX_Circles_Radial;
+		static const long ID_CHECKBOX_Circles_Radial_3D;
 		static const long ID_CHECKBOX_Circles_Collide;
 		static const long ID_CHECKBOX_Circles_Random_m;
 		static const long ID_PANEL37;

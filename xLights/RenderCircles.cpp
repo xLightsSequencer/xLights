@@ -25,7 +25,7 @@
 
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, int start_x, int start_y)
+                               bool radial, bool radial_3D, int start_x, int start_y)
 {
 
     int ii=0;
@@ -38,7 +38,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
 
     if (radial)
     {
-        RenderRadial(start_x, start_y, radius, colorCnt);
+        RenderRadial(start_x, start_y, radius, colorCnt, number, radial_3D);
         return; //radial is the easiest case so just get out.
     }
 
@@ -102,7 +102,7 @@ void RgbEffects::RenderCirclesUpdate(int ballCnt)
     }
 }
 
-void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
+void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int number,bool radial_3D)
 {
     wxImage::HSVValue hsv;
     int ii,n;
@@ -121,6 +121,13 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
         colorIdx = (n)%blockHt/barht;
         palette.GetHSV(colorIdx,hsv);
 
+        if(radial_3D)
+        {
+            hsv.hue = 1.0*(ii+state)/(maxRadius/number);
+            if(hsv.hue>1.0) hsv.hue=hsv.hue-(long)hsv.hue;
+            hsv.saturation=1.0;
+            hsv.value=1.0;
+        }
         DrawCircle(x, y, ii, hsv);
     }
 }

@@ -882,6 +882,7 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
                              buffer.BufferWi/2, buffer.BufferHt/2
                             );
 
@@ -1014,6 +1015,7 @@ void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Circles_Collide->GetValue(),
                              panel->CheckBox_Circles_Random_m->GetValue(),
                              panel->CheckBox_Circles_Radial->GetValue(),
+                             panel->CheckBox_Circles_Radial_3D->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
                             );
 
