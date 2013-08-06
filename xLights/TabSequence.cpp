@@ -912,7 +912,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         ResetEffectState[layer]=true;
         panel->PaletteChanged=false;
     }
-    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
+    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),resetState && ResetEffectState[layer]);
     ResetEffectState[layer]=false;
     switch (panel->Choicebook1->GetSelection())
     {
@@ -1127,9 +1127,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
+                resetState=true;
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
                 SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
+                if(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn) == wxT(""))
+                {
+                    resetState=false;
+                }
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 

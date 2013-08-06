@@ -861,6 +861,7 @@ private:
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
+    bool resetState;
     wxString SeqXmlFileName;
     PixelBufferClass buffer;
     wxHtmlEasyPrinting* HtmlEasyPrint;
