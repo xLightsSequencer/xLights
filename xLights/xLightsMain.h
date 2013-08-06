@@ -153,6 +153,7 @@ public:
     xLightsFrame(wxWindow* parent,wxWindowID id = -1);
     virtual ~xLightsFrame();
 
+
     // these are added to 1000*pagenum to get the control id
     enum PlayListIds
     {
@@ -810,7 +811,7 @@ private:
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
     void PlayRgbEffect(int EffectPeriod);
-    void PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
+    bool PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
     void SetEffectControls(wxString settings);
@@ -833,7 +834,7 @@ private:
     void UpdateEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    void RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
+    bool RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
     void DisplayEffectOnWindow();
@@ -873,7 +874,7 @@ private:
     wxArrayString EffectDirections;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
-
+    wxGridCellCoords *curCell;
 
     DECLARE_EVENT_TABLE()
 };
