@@ -1600,7 +1600,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
  //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
 
-    wxString newDir = wxString::Format(wxT("Backup/%s-%s"),curTime.FormatISODate(),curTime.FormatISOTime());
+    wxString newDir = wxString::Format(wxT("Backup/%s-%s"),curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
 
     if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxT("\\")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
