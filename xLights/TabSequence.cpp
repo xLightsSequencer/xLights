@@ -2451,6 +2451,7 @@ void xLightsFrame::ClearEffectWindow()
 void xLightsFrame::DisplayEffectOnWindow()
 {
     wxPen pen;
+    wxBrush brush;
     wxClientDC dc(ScrolledWindow1);
     wxColour color;
     wxCoord w, h;
@@ -2476,7 +2477,18 @@ void xLightsFrame::DisplayEffectOnWindow()
     double scaleY = double(h) / buffer.RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
     //scale=0.25;
-    dc.SetUserScale(scale,scale);
+    int radius=1;
+    int factor=8;
+    if (scale < 0.5) {
+        radius=int(1.0/scale+0.5);
+        factor=1;
+    } else if (scale < 8.0) {
+        factor=int(scale+0.5);
+    }
+    dc.SetUserScale(scale/factor,scale/factor);
+
+    // if the radius/factor are not yielding good results, uncomment the next line
+    //StatusBar1->SetStatusText(wxString::Format(wxT("Scale=%5.3f, radius=%d, factor=%d"),scale,radius,factor));
 
     /*
             // check that origin is in the right place
@@ -2498,11 +2510,15 @@ void xLightsFrame::DisplayEffectOnWindow()
         // draw node on screen
         buffer.Nodes[i].GetColor(color);
         pen.SetColour(color);
+        brush.SetColour(color);
+        brush.SetStyle(wxBRUSHSTYLE_SOLID);
         dc.SetPen(pen);
+        dc.SetBrush(brush);
         sx=buffer.Nodes[i].screenX;
         sy=buffer.Nodes[i].screenY;
         //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
-        dc.DrawPoint(sx,sy);
+        //dc.DrawPoint(sx,sy);
+        dc.DrawCircle(sx*factor,sy*factor,radius);  // 4 is good for high number of nodes
     }
 }
 

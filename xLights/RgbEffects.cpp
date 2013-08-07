@@ -324,29 +324,3 @@ void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
     nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
 }
 
-//  Now we come to including the programs that actually do the effects.
-
-
-//#include "RenderBars.cpp"
-//#include "RenderButterfly.cpp"
-//#include "RenderColorWash.cpp"
-//#include "RenderFire.cpp"
-//#include "RenderGarlands.cpp"
-//#include "RenderLife.cpp"
-//#include "RenderMeteors.cpp"
-//#include "RenderPictures.cpp"
-//#include "RenderSnowflakes.cpp"
-//#include "RenderSnowstorm.cpp"
-//#include "RenderSpirals.cpp"
-//#include "RenderText.cpp"
-//#include "RenderTwinkle.cpp"
-//#include "RenderTree.cpp"
-//#include "RenderSpirograph.cpp"
-//#include "RenderFireworks.cpp"
-
-
-
-
-
-
-
