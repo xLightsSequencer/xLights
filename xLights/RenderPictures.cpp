@@ -31,10 +31,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 {
     const int speedfactor=4;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
-    int maxframes;
-    if(state==0 ) maxmovieframes=10;
-    maxframes=maxmovieframes;
-    int frame = state%maxframes;
+    int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
     int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
@@ -51,6 +48,10 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
 //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
+
+    if(state==0 || maxmovieframes <= 0) maxmovieframes=10;
+    maxframes=maxmovieframes;
+    frame = state%maxframes;
 
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
@@ -147,9 +148,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
 // copy image to buffer
     wxColour c;
-    for(int x=0;
-            x<imgwidth;
-            x++)
+    for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
         {
