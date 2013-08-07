@@ -1600,19 +1600,60 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
  //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
 
-    wxString newDir = wxString::Format(wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(), curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
+    wxString newDir = CurrentDir+wxFileName::GetPathSeparator()+wxString::Format(
+                                 wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
+                                 curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
 
-    if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxFileName::GetPathSeparator()+
+    if ( wxNO == wxMessageBox(wxT("All xml files under 64MB in your xlights directory will be backed up to \"")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox(wxT("Unable to create directory!"),"Error", wxICON_ERROR);
+        wxMessageBox(wxT("Unable to create directory!"),"Error", wxICON_ERROR|wxOK);
+        return;
+    }
+    BackupDirectory(newDir);
+
+    //CurrentDir
+}
+
+void xLightsFrame::BackupDirectory(wxString targetDirName)
+{
+    wxDir srcDir(CurrentDir);
+    wxString fname;
+    bool success;
+    wxString srcDirName = CurrentDir+wxFileName::GetPathSeparator();
+    wxFileName srcFile;
+    srcFile.SetPath(CurrentDir);
+
+    if(!srcDir.IsOpened())
+    {
         return;
     }
 
+    bool cont = srcDir.GetFirst(&fname, wxT("*.xml"), wxDIR_FILES);
 
-    //CurrentDir
+    while (cont)
+    {
+        srcFile.SetFullName(fname);
+
+        wxULongLong fsize=srcFile.GetSize();
+        if(fsize > 64*1024*1024)
+        {
+            srcDir.GetNext(&fname);
+            continue;
+        }
+        StatusBar1->SetStatusText(wxT("Copying File \"")+srcFile.GetFullPath());
+        success = wxCopyFile(srcDirName+fname,
+                              targetDirName+wxFileName::GetPathSeparator()+fname);
+        if (!success)
+        {
+            wxMessageBox(wxT("Unable to copy file \"") + CurrentDir+wxFileName::GetPathSeparator()+fname+wxT("\""),
+                         "Error", wxICON_ERROR|wxOK);
+        }
+        cont = srcDir.GetNext(&fname);
+    }
+    StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }
