@@ -67,6 +67,8 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         // turn off all bursts
 
         // Create new bursts
+        ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+        palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
         for(i=0; i<Count; i++)
         {
             do
@@ -74,7 +76,7 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
                 idxFlakes = (idxFlakes + 1) % maxFlakes;
             }
             while (fireworkBursts[idxFlakes]._bActive);
-            fireworkBursts[idxFlakes].Reset(startX, startY, true,Velocity);
+            fireworkBursts[idxFlakes].Reset(startX, startY, true, Velocity, hsv);
         }
     }
     else if (mod100<10)
@@ -126,54 +128,15 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         }
     }
 
-    // Clear all Pixels
-    color = wxColour(0,0,0);
-    Color2HSV(color,hsv);
-    for(y=0;
-            y < BufferHt;
-            y++)
-    {
-        for(x=0; x < BufferWi; x++)
-        {
-            SetPixel(x,y,hsv);
-        }
-    }
-
-
-    // Draw bursts with fixed color
-//    if(state%300<=300) rgbcolor = wxColour(0,255,0);
-//    if(state%300<=250) rgbcolor = wxColour(255,0,255);
-//    if(state%300<=150) rgbcolor = wxColour(255,255,0);
-//    if(state%300<=100) rgbcolor = wxColour(255,0,0);
-//    if(state%300<=50) rgbcolor = wxColour(255,255,255);
-
-    if(mod100==0)  rgbcolor = wxColour(0,255,255);
-    else if(mod100==1)  rgbcolor = wxColour(255,0,0);
-    else if(mod100==2)  rgbcolor = wxColour(0,255,0);
-    else     if(mod100==3)  rgbcolor = wxColour(0,0,255);
-    else if(mod100==4)  rgbcolor = wxColour(255,255,0);
-    else if(mod100==5)  rgbcolor = wxColour(0,255,0);
-    else rgbcolor = wxColour(255,255,255);
-    Color2HSV(rgbcolor,hsv);
-
-
-    //ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-    //ColorIdx=0;
-    //       palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-
-
-
-    for(i=0;
-            i < 1000;
-            i++)
+    for(i=0; i < 1000; i++)
     {
         if(fireworkBursts[i]._bActive == true)
         {
             v = ((Fade*10.0)-fireworkBursts[i]._cycles)/(Fade*10.0);
             if(v<0) v=0.0;
-
+            hsv=fireworkBursts[i]._hsv;
             hsv.value=v;
-            SetPixel(fireworkBursts[i]._x,fireworkBursts[i]._y,hsv);
+            SetPixel(fireworkBursts[i]._x, fireworkBursts[i]._y, hsv);
         }
     }
 }
