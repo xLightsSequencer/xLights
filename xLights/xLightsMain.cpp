@@ -325,7 +325,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver BETA 3.1.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.1.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1604,7 +1604,7 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
                                  wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
                                  curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
 
-    if ( wxNO == wxMessageBox(wxT("All xml files under 64MB in your xlights directory will be backed up to \"")+
+    if ( wxNO == wxMessageBox(wxT("All xml files under 10MB in your xlights directory will be backed up to \"")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
     {
         return;
@@ -1640,7 +1640,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         srcFile.SetFullName(fname);
 
         wxULongLong fsize=srcFile.GetSize();
-        if(fsize > 64*1024*1024)
+        if(fsize > 10*1024*1024) // skip any xml files > 10 mbytes, they are something other than xml files
         {
             srcDir.GetNext(&fname);
             continue;

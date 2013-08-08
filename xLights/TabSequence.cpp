@@ -663,7 +663,8 @@ void xLightsFrame::LoadEffectsFile()
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?
     wxString version=EffectsNode->GetAttribute(wxT("version"), wxT("0000"));
-    if (version < wxT(XLIGHTS_RGBEFFECTS_VERSION)) {
+    if (version < wxT(XLIGHTS_RGBEFFECTS_VERSION))
+    {
         // convert file
         FixVersionDifferences( filename );
         // load converted file
@@ -1456,28 +1457,15 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 
 
     // Lots of variables to check for  text effect
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+//    ,E1_TEXTCTRL_Text_Line1=God Bless the USA
+//	,E1_TEXTCTRL_Text_Line2=God Bless The USA
+//	,E1_TEXTCTRL_Text_Font1=
+//	,E1_CHOICE_Text_Dir1=left
+//	,E1_CHOICE_Text_Effect1=normal
+//	,E1_CHOICE_Text_Count1=none
+//	,E1_SLIDER_Text_Position1=45
 
-    //
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+
 
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1");
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2");
@@ -1542,18 +1530,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_CHOICE_Meteors2_Type|E2_CHOICE_Meteors_Type");
     replace_str = replace_str + wxT("|ID_CHOICE_Pictures1_Direction|E1_CHOICE_Pictures_Direction");
     replace_str = replace_str + wxT("|ID_CHOICE_Pictures2_Direction|E2_CHOICE_Pictures_Direction");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
+
     replace_str = replace_str + wxT("|ID_SLIDER_Bars1_BarCount|E1_SLIDER_Bars_BarCount");
     replace_str = replace_str + wxT("|ID_SLIDER_Bars2_BarCount|E2_SLIDER_Bars_BarCount");
     replace_str = replace_str + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness");
@@ -1625,10 +1602,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_d|E2_SLIDER_Spirograph_d");
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_R|E2_SLIDER_Spirograph_R");
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_r|E2_SLIDER_Spirograph_r");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2");
+
     replace_str = replace_str + wxT("|ID_SLIDER_Tree1_Branches|E1_SLIDER_Tree_Branches");
     replace_str = replace_str + wxT("|ID_SLIDER_Tree2_Branches|E2_SLIDER_Tree_Branches");
     replace_str = replace_str + wxT("|ID_SLIDER_Twinkle1_Count|E1_SLIDER_Twinkle_Count");
@@ -1637,14 +1611,71 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_SLIDER_Twinkle2_Steps|E2_SLIDER_Twinkle_Steps");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures1_Filename|E1_TEXTCTRL_Pictures_Filename");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures2_Filename|E2_TEXTCTRL_Pictures_Filename");
+
+
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_1_Font|E1_TEXTCTRL_Text_Font1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_2_Font|E1_TEXTCTRL_Text_Font2");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_1_Font|E2_TEXTCTRL_Text_Font1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_2_Font|E2_TEXTCTRL_Text_Font2");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line1|E2_TEXTCTRL_Text_Line1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line2|E2_TEXTCTRL_Text_Line2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
+    //
+    //  this set will convert old, unsed tokens into a new not used token. this eliminates the error messages
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_TextRotation|E2_SLIDER_Text_Rotation1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_TextRotation|E2_SLIDER_Text_Rotation2");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|E1_Text1_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|E1_Text2_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|E2_Text1_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|E2_Text2_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation1|E1_SLIDER_Text_Rotation");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation2|E2_SLIDER_Text_Rotation");
+    replace_str = replace_str + wxT("|ID_Text1_Countdown|E1_Text_Countdown");
+    replace_str = replace_str + wxT("|ID_Text2_Countdown|E2_Text_Countdown");
+    replace_str = replace_str + wxT("|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN");
+
+
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein");
@@ -1746,9 +1777,9 @@ void xLightsFrame::FixVersionDifferences(wxString file)
                    }
                      */
 
-}
-            str = str + "\n";
-            f.Write(str); // placeholder, do whatever you want with the string
+        }
+        str = str + "\n";
+        f.Write(str); // placeholder, do whatever you want with the string
 
     }
     tfile.Close();
@@ -2479,10 +2510,13 @@ void xLightsFrame::DisplayEffectOnWindow()
     //scale=0.25;
     int radius=1;
     int factor=8;
-    if (scale < 0.5) {
+    if (scale < 0.5)
+    {
         radius=int(1.0/scale+0.5);
         factor=1;
-    } else if (scale < 8.0) {
+    }
+    else if (scale < 8.0)
+    {
         factor=int(scale+0.5);
     }
     dc.SetUserScale(scale/factor,scale/factor);

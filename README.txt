@@ -9,6 +9,7 @@ such as megatrees, matrices, and arches.
 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+3.1.00: Aug 7,2013 	- Lots of stuff. ill update when i get back from store
 3.0.24: Aug 4,2013 	- Enhancement: (frankr) New fade in and fade out boxes on every effect. Enter the number of seconds to either fade in/out.
 					- Enhancement: (sean) Started development of Piano Keyboard. This is not complete. Will eventually use an input file from
                            Audacity that will identify the polyphonic notes in a song.
