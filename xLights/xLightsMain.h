@@ -832,6 +832,7 @@ private:
     void LoadEffectFromString(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl();
     void UpdateEffectDuration();
+    void ResetEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
     bool RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);

@@ -1065,7 +1065,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
-
+    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
@@ -1194,6 +1194,11 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 }
 
+void xLightsFrame::ResetEffectDuration()
+{
+    buffer.SetTimes(0, 0, 0, 0);
+    buffer.SetTimes(1, 0, 0, 0);
+}
 void xLightsFrame::UpdateEffectDuration()
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
@@ -1202,12 +1207,12 @@ void xLightsFrame::UpdateEffectDuration()
     wxString tmpStr;
 
     tmpStr = Grid1->GetCellValue(NextGridRowToPlay,0);
-    curEffMsec =tmpStr.ToDouble(&val )?(int)val*1000:0;
+    curEffMsec =tmpStr.ToDouble(&val )?(int)(val*1000):0;
     ii = 1;
     if (NextGridRowToPlay+ii < rowcnt)
     {
         tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
@@ -1217,7 +1222,7 @@ void xLightsFrame::UpdateEffectDuration()
         if (!tmpStr.IsEmpty())
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-            nextEffMsec = tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         }
         else
         {

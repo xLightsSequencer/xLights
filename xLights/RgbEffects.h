@@ -324,7 +324,7 @@ protected:
     long state;
     long LastLifeState;
     int speed;
-    int lastperiod;
+    int lastperiod, curPeriod;
     RgbFireworks fireworkBursts[20000];
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;

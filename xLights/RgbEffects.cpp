@@ -286,7 +286,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState)
         state+=(period-lastperiod) * NewSpeed;
     }
     speed=NewSpeed;
-    lastperiod=period;
+    lastperiod=curPeriod=period;
 }
 void RgbEffects::ClearTempBuf()
 {
