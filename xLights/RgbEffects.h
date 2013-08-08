@@ -56,17 +56,19 @@ public:
     float angle;
     bool _bActive;
     int _cycles;
+    wxImage::HSVValue _hsv;
 
-    void Reset(int x, int y, bool active, float velocity)
+    void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv)
     {
-        _x = x;
-        _y = y;
-        vel = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-        angle = 2*M_PI*rand()/RAND_MAX;
-        _dx = vel*cos(angle);
-        _dy = vel*sin(angle);
+        _x       = x;
+        _y       = y;
+        vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
+        angle    = 2*M_PI*rand()/RAND_MAX;
+        _dx      = vel*cos(angle);
+        _dy      = vel*sin(angle);
         _bActive = active;
-        _cycles = 0;
+        _cycles  = 0;
+        _hsv     = hsv;
     }
 protected:
 private:
