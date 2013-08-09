@@ -296,6 +296,33 @@ void RgbEffects::ClearTempBuf()
     }
 }
 
+double RgbEffects::GetEffectPeriodPosition()
+{
+    double retval;
+    if (curEffEndPer == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/curEffEndPer;
+    }
+    return retval;
+}
+
+double RgbEffects::GetEffectTimeIntervalPosition()
+{
+    double retval;
+    if (nextEffTimePeriod == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/nextEffTimePeriod;
+    }
+    return retval;
+}
 void RgbEffects::ClearWaveBuffer1()
 {
     for (size_t i=0; i < WaveBuffer1.size(); i++)

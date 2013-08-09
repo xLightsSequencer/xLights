@@ -331,6 +331,9 @@ protected:
     long old_longsecs[1],timer_countdown[1];
     int textStartPeriod;
 
+    double GetEffectPeriodPosition();
+    double GetEffectTimeIntervalPosition();
+
 
 
 private:
