@@ -18,21 +18,19 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-maybe-uninitialized
-
 INC_DEBUGLINUX = $(INC)
-CFLAGS_DEBUGLINUX = $(CFLAGS) -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -D__WXDEBUG__ $(IGNORE_WARNINGS)
+CFLAGS_DEBUGLINUX = $(CFLAGS) -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -D__WXDEBUG__
 RESINC_DEBUGLINUX = $(RESINC)
 RCFLAGS_DEBUGLINUX = $(RCFLAGS)
 LIBDIR_DEBUGLINUX = $(LIBDIR)
 LIB_DEBUGLINUX = $(LIB)
 LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` $(LDFLAGS)
-OBJDIR_DEBUGLINUX = .objs_debug
+OBJDIR_DEBUGLINUX = .objs
 DEP_DEBUGLINUX = 
 OUT_DEBUGLINUX = ../bin/xLights
 
 INC_RELEASELINUX = $(INC)
-CFLAGS_RELEASELINUX = $(CFLAGS) -O2 -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG $(IGNORE_WARNINGS)
+CFLAGS_RELEASELINUX = $(CFLAGS) -O2 -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG
 RESINC_RELEASELINUX = $(RESINC)
 RCFLAGS_RELEASELINUX = $(RCFLAGS)
 LIBDIR_RELEASELINUX = $(LIBDIR)
@@ -46,13 +44,13 @@ OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/ShowDatesDia
 
 OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/EffectsPanel.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/CustomModelDialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderPiano.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderCircles.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o
 
-all: releaselinux
+all: debuglinux releaselinux
 
 clean: clean_debuglinux clean_releaselinux
 
 before_debuglinux: 
-	test -d ../bin || mkdir -p ../bin
-	test -d $(OBJDIR_DEBUGLINUX) || mkdir -p $(OBJDIR_DEBUGLINUX)
+	@test -d ../bin || mkdir -p ../bin
+	@test -d $(OBJDIR_DEBUGLINUX) || mkdir -p $(OBJDIR_DEBUGLINUX)
 
 after_debuglinux: 
 
@@ -197,8 +195,8 @@ clean_debuglinux:
 	rm -f $(OBJ_DEBUGLINUX) $(OUT_DEBUGLINUX)
 
 before_releaselinux: 
-	test -d ../bin || mkdir -p ../bin
-	test -d $(OBJDIR_RELEASELINUX) || mkdir -p $(OBJDIR_RELEASELINUX)
+	@test -d ../bin || mkdir -p ../bin
+	@test -d $(OBJDIR_RELEASELINUX) || mkdir -p $(OBJDIR_RELEASELINUX)
 
 after_releaselinux: 
 
