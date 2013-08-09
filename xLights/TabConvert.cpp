@@ -1020,6 +1020,139 @@ void xLightsFrame::ReadVixFile(const char* filename)
     }
 }
 
+void xLightsFrame::ReadHLSFile(const wxString& filename)
+{
+    long timeCells = 0;
+    long msPerCell = 50;
+    long channels = 0;
+    long cnt = 0;
+    long tmp;
+    wxString NodeName, NodeValue, Data, ChannelName;
+    wxArrayString context;
+    IrrXMLReader* xml = createIrrXMLReader(filename);
+    
+    // pass one, get the metadata
+    while(xml && xml->read())
+    {
+        switch(xml->getNodeType())
+        {
+            case EXN_TEXT:
+                NodeValue = wxString::FromAscii( xml->getNodeData() );
+                if (context[cnt - 1] == _("MilliSecPerTimeUnit")) NodeValue.ToLong(&msPerCell);
+                if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
+                if (context[cnt - 1] == _("AudioSourcePcmFile")) mediaFilename = NodeValue;
+                if (context[cnt - 1] == _("ChannelsInUniverse")) {
+                    NodeValue.ToLong(&tmp);
+                    channels += tmp;
+                }
+                break;
+            case EXN_ELEMENT:
+                NodeName = wxString::FromAscii( xml->getNodeName() );
+                context.Add(NodeName);
+                cnt++;
+                
+                if (xml->isEmptyElement())
+                {
+                    context.RemoveAt(cnt-1);
+                    cnt--;
+                }
+
+                break;
+            case EXN_ELEMENT_END:
+                NodeName = wxString::FromAscii( xml->getNodeName() );
+                if (cnt > 0) context.RemoveAt(cnt-1);
+                cnt = context.GetCount();
+                break;
+            default:
+                break;
+        }
+    }
+    delete xml;
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("msPerCell = %d ms\n"), msPerCell));
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels = %d\n"), channels));
+    SeqNumChannels = channels;
+    if (SeqNumChannels == 0) return;
+    SeqNumPeriods = timeCells * msPerCell / XTIMER_INTERVAL;
+    SeqDataLen = SeqNumPeriods * SeqNumChannels;
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("New # of time periods=%ld\n"),SeqNumPeriods));
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("New data len=%ld\n"),SeqDataLen));
+    if (SeqDataLen == 0) return;
+    SeqData.resize(SeqDataLen);
+
+    xml = createIrrXMLReader(filename);
+    ChannelNames.resize(channels);
+    ChannelColors.resize(channels);
+    channels = 0;
+    //pass2 read the sequence data
+    while(xml && xml->read())
+    {
+        switch(xml->getNodeType())
+        {
+            case EXN_TEXT:
+                if (context[cnt - 1] == _("ChanInfo")) {
+                    //channel name and type
+                    ChannelName = wxString::FromAscii( xml->getNodeData() );
+                }
+                if (context[cnt - 1] == _("Block")) {
+                    NodeValue = wxString::FromAscii( xml->getNodeData() );
+                    
+                    int idx = NodeValue.Find("-");
+                    Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
+                }
+                break;
+            case EXN_ELEMENT:
+                NodeName = wxString::FromAscii( xml->getNodeName() );
+                context.Add(NodeName);
+                cnt++;
+                
+                if (xml->isEmptyElement())
+                {
+                    context.RemoveAt(cnt-1);
+                    cnt--;
+                }
+                
+                break;
+            case EXN_ELEMENT_END:
+                NodeName = wxString::FromAscii( xml->getNodeName() );
+                if (NodeName == _("ChannelData")) {
+                    //finished reading this channel, map the data
+                    int idx = ChannelName.find(", ");
+                    wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
+                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Channel type %d  : -%s-\n"), channels, type));
+
+                    if (type == _("RGB-R")) {
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Red");
+                        ChannelColors[channels] = 0x00FF0000;
+                    } else if (type == _("RGB-G")) {
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Green");
+                        ChannelColors[channels] = 0x0000FF00;
+                    } else if (type == _("RGB-B")) {
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Blue");
+                        ChannelColors[channels] = 0x000000FF;
+                    } else {
+                        ChannelNames[channels] = ChannelName.Left(idx);
+                        ChannelColors[channels] = 0x00FFFFFF;
+                    }
+                    for (long newper = 0; newper < SeqNumPeriods; newper++) {
+                        int hlsper = newper * timeCells / SeqNumPeriods;
+                        long intensity;
+                        Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
+                        SeqData[channels * SeqNumPeriods + newper] = intensity;
+                    }
+                    Data.Clear();
+                    channels++;
+                }
+                if (cnt > 0) context.RemoveAt(cnt-1);
+                cnt = context.GetCount();
+                break;
+            default:
+                break;
+        }
+    }
+    delete xml;
+}
+
 // returns length of first track in centiseconds
 int xLightsFrame::GetLorTrack1Length(const char* filename)
 {
@@ -1307,6 +1440,10 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
             return;
         }
         ReadConductorFile(Filename);
+    }
+    else if (ext == _("hlsIdata"))
+    {
+        ReadHLSFile(Filename);
     }
     else if (ext == _("lms") || ext == _("las"))
     {
