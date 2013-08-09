@@ -126,12 +126,14 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         // countdown seconds
         tempLong=0;
         if (state==0 && Line.ToLong(&tempLong)) {
-            old_longsecs[idx]=-1;
+           // old_longsecs[idx]=-1;
             timer_countdown[idx]=tempLong+1; // set their counter one higher since the first thing we do is subtract one from it.
+            textStartPeriod = curPeriod;
         }
-        longsecs=wxGetUTCTime();
-        if(longsecs != old_longsecs[idx]) timer_countdown[idx]--;
-        old_longsecs[idx]=longsecs;
+        if ((curPeriod-textStartPeriod)%20 == 0) timer_countdown[idx]--;
+        //longsecs=wxGetUTCTime();
+        //if(longsecs != old_longsecs[idx])
+        //old_longsecs[idx]=longsecs;
         if(timer_countdown[idx] < 0) timer_countdown[idx]=0;
         msg=wxString::Format(wxT("%i"),timer_countdown[idx]);
         break;

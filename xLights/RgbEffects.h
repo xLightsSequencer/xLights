@@ -329,6 +329,7 @@ protected:
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long old_longsecs[1],timer_countdown[1];
+    int textStartPeriod;
 
 
 
