@@ -94,10 +94,12 @@ bool something_in_this_line;
             }
         }
     }
+#ifndef __WXOSX__
     wxOpenClipboard();          // now copy all these things into the clipbord
     wxEmptyClipboard();
     wxSetClipboardData(wxDF_TEXT,copy_data.c_str(),0,0);
     wxCloseClipboard();
+#endif
 }
 
 void CustomModelDialog::PasteData( wxCommandEvent& WXUNUSED(ev) )
@@ -107,9 +109,11 @@ void CustomModelDialog::PasteData( wxCommandEvent& WXUNUSED(ev) )
     wxString cur_line;
     int i,k,k2;
 
+#ifndef __WXOSX__
     wxOpenClipboard();          // now copy all these things into the clipbord
     copy_data = (char *)wxGetClipboardData(wxDF_TEXT);
     wxCloseClipboard();
+#endif
 
     i = gdModelChans->GetGridCursorRow();
     k = gdModelChans->GetGridCursorCol();
