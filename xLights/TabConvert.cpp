@@ -1119,17 +1119,16 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                     //finished reading this channel, map the data
                     int idx = ChannelName.find(", ");
                     wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
-                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Channel type %d  : -%s-\n"), channels, type));
 
                     if (type == _("RGB-R")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Red");
-                        ChannelColors[channels] = 0x00FF0000;
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
+                        ChannelColors[channels] = 0x000000FF;
                     } else if (type == _("RGB-G")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Green");
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
                         ChannelColors[channels] = 0x0000FF00;
                     } else if (type == _("RGB-B")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-Blue");
-                        ChannelColors[channels] = 0x000000FF;
+                        ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
+                        ChannelColors[channels] = 0x00FF0000;
                     } else {
                         ChannelNames[channels] = ChannelName.Left(idx);
                         ChannelColors[channels] = 0x00FFFFFF;
