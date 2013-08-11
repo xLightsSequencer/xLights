@@ -829,12 +829,13 @@ private:
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
-    void LoadEffectFromString(wxString settings, MapStringString& SettingsMap);
+    void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl();
     void UpdateEffectDuration();
+    void ResetEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    bool RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
+    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
     void DisplayEffectOnWindow();
@@ -862,7 +863,6 @@ private:
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
-    bool resetState;
     wxString SeqXmlFileName;
     PixelBufferClass buffer;
     wxHtmlEasyPrinting* HtmlEasyPrint;

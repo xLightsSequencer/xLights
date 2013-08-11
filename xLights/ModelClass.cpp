@@ -291,9 +291,9 @@ void ModelClass::InitLine()
 void ModelClass::SetLineCoord()
 {
     size_t NodeCount=GetNodeCount();
-    int xoffset=RenderWi/2;
     int idx=0;
     SetRenderSize(1,NodeCount);
+    int xoffset=RenderWi/2;
     for(size_t x=0; x<NodeCount; x++)
     {
         Nodes[idx].screenX=(IsLtoR ? idx : NodeCount-idx-1) - xoffset;

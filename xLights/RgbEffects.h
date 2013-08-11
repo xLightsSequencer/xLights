@@ -324,11 +324,14 @@ protected:
     long state;
     long LastLifeState;
     int speed;
-    int lastperiod;
+    int lastperiod, curPeriod;
     RgbFireworks fireworkBursts[20000];
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
-    long old_longsecs[1],timer_countdown[1];
+    long timer_countdown[1];
+
+    double GetEffectPeriodPosition();
+    double GetEffectTimeIntervalPosition();
 
 
 

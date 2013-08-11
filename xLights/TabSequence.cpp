@@ -755,7 +755,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 }
 
 // layer is 0 or 1
-bool xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString& SettingsMap)
+bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
     wxString LayerStr=layer==0 ? wxT("E1_") : wxT("E2_");
@@ -913,7 +913,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         ResetEffectState[layer]=true;
         panel->PaletteChanged=false;
     }
-    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),resetState && ResetEffectState[layer]);
+    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
     switch (panel->Choicebook1->GetSelection())
     {
@@ -1066,7 +1066,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
-
+    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
@@ -1096,6 +1096,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     int EffectPeriod;
     static int s_period=0;
     int rowcnt=Grid1->GetNumberRows();
+    wxString EffectStr;
     switch (SeqPlayerState)
     {
     case PLAYING_EFFECT:
@@ -1128,13 +1129,13 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
-                resetState=true;
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
-                SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
-                if(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn) == wxT(""))
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
+                EffectStr.Trim();
+                if(!EffectStr.IsEmpty())
                 {
-                    resetState=false;
+                    SetEffectControls(EffectStr);
                 }
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
@@ -1182,7 +1183,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 // start next effect
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
-                SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
+                EffectStr.Trim();
+                if(!EffectStr.IsEmpty())
+                {
+                    SetEffectControls(EffectStr);
+                }
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 
@@ -1195,6 +1201,11 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 }
 
+void xLightsFrame::ResetEffectDuration()
+{
+    buffer.SetTimes(0, 0, 0, 0);
+    buffer.SetTimes(1, 0, 0, 0);
+}
 void xLightsFrame::UpdateEffectDuration()
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
@@ -1203,12 +1214,12 @@ void xLightsFrame::UpdateEffectDuration()
     wxString tmpStr;
 
     tmpStr = Grid1->GetCellValue(NextGridRowToPlay,0);
-    curEffMsec =tmpStr.ToDouble(&val )?(int)val*1000:0;
+    curEffMsec =tmpStr.ToDouble(&val )?(int)(val*1000):0;
     ii = 1;
     if (NextGridRowToPlay+ii < rowcnt)
     {
         tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
@@ -1218,7 +1229,7 @@ void xLightsFrame::UpdateEffectDuration()
         if (!tmpStr.IsEmpty())
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-            nextEffMsec = tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         }
         else
         {
@@ -2141,14 +2152,14 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 void xLightsFrame::RenderGridToSeqData()
 {
     MapStringString SettingsMap;
-    wxString ColName,msg, tmpStr;
+    wxString ColName,msg, EffectStr;
     long msec;
     size_t ChannelNum, NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
 
-    LoadEffectFromString(wxT("None,None,Effect 1"), SettingsMap);
+    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
     for (int c=SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
@@ -2185,34 +2196,35 @@ void xLightsFrame::RenderGridToSeqData()
                 wxYield();
                 StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
 
-                LoadEffectFromString(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
-                // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
-                UpdateBufferPaletteFromMap(1,SettingsMap);
-                UpdateBufferPaletteFromMap(2,SettingsMap);
-                buffer.SetMixType(SettingsMap["LayerMethod"]);
-                if (Grid1->GetCellValue(NextGridRowToPlay,c) != wxT(""))
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                EffectStr.Trim();
+                if (!EffectStr.IsEmpty())
                 {
-                    //If the new cell is nto empty we will let the state variable keep ticking so that effects do not jump
+                    //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
+                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    UpdateBufferPaletteFromMap(1,SettingsMap);
+                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    buffer.SetMixType(SettingsMap["LayerMethod"]);
                     ResetEffectStates();
+                    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
+                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    buffer.SetSparkle(freq);
+
+                    int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                    buffer.SetBrightness(brightness);
+
+                    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+                    buffer.SetContrast(contrast);
+                    UpdateBufferFadesFromMap(1, SettingsMap);
+                    UpdateBufferFadesFromMap(2, SettingsMap);
                 }
 
-                // update SparkleFrequency
-                int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
-                buffer.SetSparkle(freq);
-
-                int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
-                buffer.SetBrightness(brightness);
-
-                int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
-                buffer.SetContrast(contrast);
-                UpdateBufferFadesFromMap(1, SettingsMap);
-                UpdateBufferFadesFromMap(2, SettingsMap);
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromString(0, p, SettingsMap);
-            effectsToUpdate |= RenderEffectFromString(1, p, SettingsMap);
+            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
 
             if (effectsToUpdate)
             {
@@ -2318,7 +2330,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
 }
 
-void xLightsFrame::LoadEffectFromString(wxString settings, MapStringString& SettingsMap)
+void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
 {
     wxString before,after,name,value;
     int cnt=0;

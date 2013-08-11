@@ -286,7 +286,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState)
         state+=(period-lastperiod) * NewSpeed;
     }
     speed=NewSpeed;
-    lastperiod=period;
+    lastperiod=curPeriod=period;
 }
 void RgbEffects::ClearTempBuf()
 {
@@ -296,6 +296,33 @@ void RgbEffects::ClearTempBuf()
     }
 }
 
+double RgbEffects::GetEffectPeriodPosition()
+{
+    double retval;
+    if (curEffEndPer == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/(curEffEndPer-curEffStartPer);
+    }
+    return retval;
+}
+
+double RgbEffects::GetEffectTimeIntervalPosition()
+{
+    double retval;
+    if (nextEffTimePeriod == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer);
+    }
+    return retval;
+}
 void RgbEffects::ClearWaveBuffer1()
 {
     for (size_t i=0; i < WaveBuffer1.size(); i++)
