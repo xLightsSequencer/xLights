@@ -1334,7 +1334,7 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
-    wxCriticalSectionLocker locker(gs_xoutCriticalSection);
+    if (!gs_xoutCriticalSection.TryEnter()) return;
     if (CheckBoxRunSchedule->IsChecked()) CheckSchedule();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
@@ -1352,6 +1352,7 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
         break;
     }
     if (xout) xout->TimerEnd();
+    gs_xoutCriticalSection.Leave();
 }
 
 void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)

@@ -124,18 +124,13 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     {
     case 1:
         // countdown seconds
-        tempLong=0;
-        if (state==0 && Line.ToLong(&tempLong)) {
-           // old_longsecs[idx]=-1;
-            timer_countdown[idx]=tempLong+1; // set their counter one higher since the first thing we do is subtract one from it.
-            textStartPeriod = curPeriod;
+        if (state==0) {
+            if (!Line.ToLong(&tempLong)) tempLong=0;
+            timer_countdown[idx] = curPeriod+tempLong*20+19;  // capture 0 period
         }
-        if ((curPeriod-textStartPeriod)%20 == 0) timer_countdown[idx]--;
-        //longsecs=wxGetUTCTime();
-        //if(longsecs != old_longsecs[idx])
-        //old_longsecs[idx]=longsecs;
-        if(timer_countdown[idx] < 0) timer_countdown[idx]=0;
-        msg=wxString::Format(wxT("%i"),timer_countdown[idx]);
+        seconds=(timer_countdown[idx]-curPeriod)/20;
+        if(seconds < 0) seconds=0;
+        msg=wxString::Format(wxT("%i"),seconds);
         break;
     case 2:
         // countdown to date
@@ -151,9 +146,9 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
                 // invalid date/time
                 longsecs=0;
             }
-            old_longsecs[idx]=longsecs;
+            timer_countdown[idx]=longsecs;
         } else {
-            longsecs=old_longsecs[idx];
+            longsecs=timer_countdown[idx];
         }
         days = longsecs / 60 / 60 / 24;
         hours = (longsecs / 60 / 60) % 24;
