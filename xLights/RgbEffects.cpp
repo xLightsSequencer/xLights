@@ -305,7 +305,7 @@ double RgbEffects::GetEffectPeriodPosition()
     }
     else
     {
-        retval = (double)(curPeriod-curEffStartPer)/curEffEndPer;
+        retval = (double)(curPeriod-curEffStartPer)/(curEffEndPer-curEffStartPer);
     }
     return retval;
 }
@@ -319,7 +319,7 @@ double RgbEffects::GetEffectTimeIntervalPosition()
     }
     else
     {
-        retval = (double)(curPeriod-curEffStartPer)/nextEffTimePeriod;
+        retval = (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer);
     }
     return retval;
 }
