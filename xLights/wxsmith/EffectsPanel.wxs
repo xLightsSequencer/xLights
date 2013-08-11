@@ -1419,7 +1419,6 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
 									<label>Fit to time</label>
-									<enabled>0</enabled>
 								</object>
 								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>8</border>

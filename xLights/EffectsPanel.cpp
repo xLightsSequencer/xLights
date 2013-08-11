@@ -689,7 +689,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer2->Add(FlexGridSizer_Palette, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	CheckBox_FitToTime = new wxCheckBox(this, ID_CHECKBOX_FitToTime, _("Fit to time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FitToTime"));
 	CheckBox_FitToTime->SetValue(false);
-	CheckBox_FitToTime->Disable();
 	FlexGridSizer2->Add(CheckBox_FitToTime, 1, wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 8);
 	FlexGridSizer6->Add(FlexGridSizer2, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);

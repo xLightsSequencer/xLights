@@ -1659,6 +1659,31 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
     replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
     //
+
+//    E1_TEXTCTRL_Text_Font1=
+//	,E1_CHOICE_Text_Dir1=left
+//	,E1_CHOICE_Text_Effect1=normal
+//	,E1_CHOICE_Text_Count1=none
+//	,E1_SLIDER_Text_Position1=50
+//	,E1_TEXTCTRL_Text_Font2=
+//	,E1_CHOICE_Text_Dir2=left
+//	,E1_CHOICE_Text_Effect2=normal
+//	,E1_CHOICE_Text_Count2=none
+//	,E1_SLIDER_Text_Position2=50
+//	,E1_BUTTON_Palette1=#FF0000
+//	,E1_CHECKBOX_Palette1=0
+//	,E1_BUTTON_Palette2=#00FF00
+//	,E1_CHECKBOX_Palette2=0
+//	,E1_BUTTON_Palette3=#0000FF
+//	,E1_CHECKBOX_Palette3=1
+//	,E1_BUTTON_Palette4=#FFFF00
+//	,E1_CHECKBOX_Palette4=0
+//	,E1_BUTTON_Palette5=#FFFFFF
+//	,E1_CHECKBOX_Palette5=0
+//	,E1_BUTTON_Palette6=#000000
+//	,E1_CHECKBOX_Palette6=1
+
+
     //  this set will convert old, unsed tokens into a new not used token. this eliminates the error messages
     replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1");
     replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2");
@@ -1674,7 +1699,6 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_Text2_Countdown|E2_Text_Countdown");
     replace_str = replace_str + wxT("|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN");
     replace_str = replace_str + wxT("|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN");
-
 
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout");

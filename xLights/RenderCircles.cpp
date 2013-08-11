@@ -36,6 +36,11 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     float angle;
     static int numBalls = 0;
 
+    int i1=curEffStartPer;
+    int i2=curEffEndPer;
+    int i3=nextEffTimePeriod;
+
+
     if (radial)
     {
         RenderRadial(start_x, start_y, radius, colorCnt, number, radial_3D);
@@ -114,7 +119,6 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
     int f_offset  = state/4 % (blockHt+1);
 
 //  int curEffStartPer, curEffEndPer, nextEffTimePeriod;
-    int i1=curEffStartPer; int i2=curEffEndPer; int i3=nextEffTimePeriod;
 
     barht = barht>0?barht:1;
     palette.GetHSV(0,hsv);
