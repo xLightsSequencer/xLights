@@ -1153,10 +1153,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffectTypes.Add("Range");
     MeteorsEffectTypes.Add("Palette");
 
-    MeteorsEffect.Add("Meteor");
-    MeteorsEffect.Add("Swirl1");
-    MeteorsEffect.Add("Swirl2");
-    MeteorsEffect.Add("StarField");
+    MeteorsEffect.Add("Down");
+    MeteorsEffect.Add("Up");
+    MeteorsEffect.Add("Left");
+    MeteorsEffect.Add("Right");
+    MeteorsEffect.Add("Implode");
+    MeteorsEffect.Add("Explode");
 
     EffectDirections.Add("left");
     EffectDirections.Add("right");

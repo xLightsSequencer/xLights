@@ -7,6 +7,7 @@
 #define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
 
 #define XTIMER_INTERVAL 50
+#define M_PI 3.14159265358979323846
 
 #define XLIGHTS_ANIMATION_FILE     "xlights_animation.xml"
 #define XLIGHTS_NETWORK_FILE       "xlights_networks.xml"

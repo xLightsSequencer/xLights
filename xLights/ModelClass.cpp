@@ -215,7 +215,7 @@ void ModelClass::SetTreeCoord(long degrees)
     int factor=1000/BufferHt;
     RenderHt=BufferHt*factor;
     RenderWi=RenderHt/2;
-    double radians=2.0*PI*double(degrees)/360.0;
+    double radians=2.0*M_PI*double(degrees)/360.0;
     double radius=RenderWi/2.0;
     double StartAngle=-radians/2.0;
     double AngleIncr=radians/double(BufferWi-1);
@@ -320,10 +320,10 @@ void ModelClass::SetArchCoord()
     }
     SetRenderSize(parm2,NodeCount*2);
     double midpt=parm2;
-    double AngleIncr=PI / parm2;
+    double AngleIncr=M_PI / parm2;
     for (ns=0; ns < parm1; ns++)
     {
-        angle=-1.0*PI/2.0;
+        angle=-1.0*M_PI/2.0;
         xoffset=ns*parm2*2 - NodeCount;
         for(x=0; x<parm2; x++)
         {

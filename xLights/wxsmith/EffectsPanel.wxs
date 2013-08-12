@@ -515,7 +515,7 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText39" member="yes">
-										<label>Type</label>
+										<label>Colors</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -587,25 +587,9 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Meteors_Swirl_Intensity" variable="Slider_Meteors_Swirl_Intensity" member="yes">
-										<min>10</min>
+										<max>20</max>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
-										<label>Meteors Fall Up?</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Meteors_FallUp" variable="CheckBox_Meteors_FallUp" member="yes">
-										<label>Yes</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
