@@ -807,7 +807,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Type")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Count")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Meteors_FallUp")]==wxT("1"),
                              MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_MeteorsEffect_Type")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
     }
@@ -953,7 +952,6 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
                              panel->Slider_Meteors_Count->GetValue(),
                              panel->Slider_Meteors_Length->GetValue(),
-                             panel->CheckBox_Meteors_FallUp->GetValue(),
                              panel->Choice_Meteors_Effect->GetSelection(),
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;

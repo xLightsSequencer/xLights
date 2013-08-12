@@ -64,9 +64,8 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
         startY=(int)BufferHt/2;
         if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
         if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
-        // turn off all bursts
 
-        // Create new bursts
+        // Create a new burst
         ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
         palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
         for(i=0; i<Count; i++)
@@ -82,7 +81,7 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
     else if (mod100<10)
     {
         rgbcolor = wxColour(0,255,255);
-          Color2HSV(color,hsv);
+        Color2HSV(color,hsv);
         y=(int)(startY-startY*(1.0/(mod100+1)));
         SetPixel(startX,y,hsv);
     }
@@ -96,31 +95,11 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
                 // Update position
                 fireworkBursts[i]._x += fireworkBursts[i]._dx;
                 fireworkBursts[i]._y += (-fireworkBursts[i]._dy - fireworkBursts[i]._cycles*fireworkBursts[i]._cycles/10000000.0);
-                // If this flake run for more than maxCycle, time to switch it off
+                // If this flake run for more than maxCycle or this flake is out of bounds, time to switch it off
                 fireworkBursts[i]._cycles+=20;
-                if (10000 == fireworkBursts[i]._cycles) // if (10000 == fireworkBursts[i]._cycles)
+                if (fireworkBursts[i]._cycles >= 10000 || fireworkBursts[i]._y >= BufferHt ||
+                    fireworkBursts[i]._x < 0. || fireworkBursts[i]._x >= BufferWi)
                 {
-                    fireworkBursts[i]._bActive = false;
-                    continue;
-                }
-                // If this flake hit the earth, time to switch it off
-                if (fireworkBursts[i]._y>=BufferHt)
-                {
-                    fireworkBursts[i]._bActive = false;
-                    continue;
-                }
-                // Draw the flake, if its X-pos is within frame
-                if (fireworkBursts[i]._x>=0. && fireworkBursts[i]._x<BufferWi)
-                {
-                    // But only if it is "under" the roof!
-                    if (fireworkBursts[i]._y>=0.)
-                    {
-                        // sean we need to set color here
-                    }
-                }
-                else
-                {
-                    // otherwise it just got outside the valid X-pos, so switch it off
                     fireworkBursts[i]._bActive = false;
                     continue;
                 }

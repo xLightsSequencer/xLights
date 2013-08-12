@@ -40,7 +40,6 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText93;
 		wxSlider* Slider_Fireworks_Number_Explosions;
 		wxStaticText* StaticText79;
-		wxCheckBox* CheckBox_Meteors_FallUp;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxSlider* Slider_Speed;
 		wxStaticText* StaticText100;
@@ -131,7 +130,6 @@ class EffectsPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Text_Line1;
 		wxStaticText* StaticText86;
 		wxButton* Button_Palette4;
-		wxStaticText* StaticText105;
 		wxStaticText* StaticText37;
 		wxCheckBox* CheckBox_Palette1;
 		wxStaticText* StaticText51;
@@ -284,8 +282,6 @@ class EffectsPanel: public wxPanel
 		static const long ID_SLIDER_Meteors_Length;
 		static const long ID_STATICTEXT131;
 		static const long ID_SLIDER_Meteors_Swirl_Intensity;
-		static const long ID_STATICTEXT106;
-		static const long ID_CHECKBOX_Meteors_FallUp;
 		static const long ID_PANEL18;
 		static const long ID_BUTTON_PICTURES_FILENAME;
 		static const long ID_TEXTCTRL_Pictures_Filename;
