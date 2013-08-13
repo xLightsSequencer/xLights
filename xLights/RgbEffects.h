@@ -292,9 +292,10 @@ protected:
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
     void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown);
-    void RenderMeteorsPolar(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
+    void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
+    void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
 
 
     int BufferHt,BufferWi;  // size of the buffer

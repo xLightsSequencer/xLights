@@ -24,6 +24,36 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+
+
+// ColorScheme: 0=rainbow, 1=range, 2=palette
+// MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
+void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+{
+    switch (MeteorsEffect) {
+        case 0:
+        case 1:
+            RenderMeteorsVertical(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            break;
+        case 2:
+        case 3:
+            RenderMeteorsHorizontal(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            break;
+        case 4:
+            RenderMeteorsImplode(ColorScheme, Count, Length, SwirlIntensity);
+            break;
+        case 5:
+            RenderMeteorsExplode(ColorScheme, Count, Length, SwirlIntensity);
+            break;
+    }
+}
+
+/*
+ * *************************************************************
+ *  Horizontal
+ * *************************************************************
+ */
+
 class MeteorHasExpiredX
 {
     int TailLength;
@@ -38,34 +68,6 @@ public:
         return obj.x + TailLength < 0;
     }
 };
-
-class MeteorHasExpiredY
-{
-    int TailLength;
-public:
-    MeteorHasExpiredY(int t)
-        : TailLength(t)
-    {}
-
-    // operator() is what's called when you do MeteorHasExpired()
-    bool operator()(const MeteorClass& obj)
-    {
-        return obj.y + TailLength < 0;
-    }
-};
-
-// ColorScheme: 0=rainbow, 1=range, 2=palette
-// MeteorsEffect: 0=fall down, 1=shoot up, 2=implode, 3=explode
-void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
-{
-    if (MeteorsEffect < 2) {
-        RenderMeteorsVertical(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
-    } else if (MeteorsEffect < 4) {
-        RenderMeteorsHorizontal(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
-    } else {
-        RenderMeteorsPolar(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
-    }
-}
 
 void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
@@ -106,8 +108,6 @@ void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length,
     // render meteors
 
     int x,y,dy,n=0;
-    int MeteorHeadType=0;
-    //int x1,y1,r,phi,xp,yp;
     for (MeteorList::iterator it=meteors.begin(); it!=meteors.end(); ++it)
     {
         n++;
@@ -141,6 +141,27 @@ void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length,
     // delete old meteors
     meteors.remove_if(MeteorHasExpiredX(TailLength));
 }
+
+/*
+ * *************************************************************
+ *  Vertical
+ * *************************************************************
+ */
+
+class MeteorHasExpiredY
+{
+    int TailLength;
+public:
+    MeteorHasExpiredY(int t)
+        : TailLength(t)
+    {}
+
+    // operator() is what's called when you do MeteorHasExpired()
+    bool operator()(const MeteorClass& obj)
+    {
+        return obj.y + TailLength < 0;
+    }
+};
 
 void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
@@ -181,8 +202,6 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
     // render meteors
 
     int x,y,dx,n=0;
-    int MeteorHeadType=0;
-    //int x1,y1,r,phi,xp,yp;
     for (MeteorList::iterator it=meteors.begin(); it!=meteors.end(); ++it)
     {
         n++;
@@ -219,11 +238,142 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
     meteors.remove_if(MeteorHasExpiredY(TailLength));
 }
 
-void RgbEffects::RenderMeteorsPolar(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+/*
+ * *************************************************************
+ *  Implode
+ * *************************************************************
+ */
+
+class MeteorHasExpiredImplode
+{
+    int cx, cy;
+public:
+    MeteorHasExpiredImplode(int centerX, int centerY)
+    { cx=centerX; cy=centerY; }
+
+    // operator() is what's called when you do MeteorHasExpired()
+    bool operator()(const MeteorRadialClass& obj)
+    {
+        return (abs(obj.y - cy) < 2) && (abs(obj.x - cx) < 2);
+    }
+};
+
+void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity)
 {
     if (state == 0) meteorsRadial.clear();
-    int mspeed=state/4;
-    state-=mspeed*4;
+    double mspeed=state/4;
+    state-=int(mspeed)*4;
+    double swirl_phase,angle;
+    int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
+    int centerX=BufferWi/2;
+    int centerY=BufferHt/2;
+
+    MeteorRadialClass m;
+    wxImage::HSVValue hsv,hsv0,hsv1;
+    palette.GetHSV(0,hsv0);
+    palette.GetHSV(1,hsv1);
+    size_t colorcnt=GetColorCount();
+    int TailLength=(halfdiag < 10) ? Length / 10 : halfdiag * Length / 100;
+    if (TailLength < 1) TailLength=1;
+    int MinDimension = BufferHt < BufferWi ? BufferHt : BufferWi;
+
+    // create new meteors
+
+    m.cnt=1;
+    for(int i=0; i<MinDimension; i++)
+    {
+        if (rand() % 200 < Count) {
+            if (BufferHt==1) {
+                angle=double(rand() % 2) * M_PI;
+            } else if (BufferWi==1) {
+                angle=double(rand() % 2) * M_PI - (M_PI/2.0);
+            } else {
+                angle=rand01()*2.0*M_PI;
+            }
+            m.dx=cos(angle);
+            m.dy=sin(angle);
+            m.x=centerX+double(halfdiag+TailLength)*m.dx;
+            m.y=centerY+double(halfdiag+TailLength)*m.dy;
+
+            switch (ColorScheme)
+            {
+            case 1:
+                SetRangeColor(hsv0,hsv1,m.hsv);
+                break;
+            case 2:
+                palette.GetHSV(rand()%colorcnt, m.hsv);
+                break;
+            }
+            meteorsRadial.push_back(m);
+        }
+    }
+
+    // render meteors
+
+    int x,y,dx,n=0;
+    for (MeteorRadialList::iterator it=meteorsRadial.begin(); it!=meteorsRadial.end(); ++it)
+    {
+        n++;
+        for(int ph=0; ph<=TailLength; ph++)
+        {
+            switch (ColorScheme)
+            {
+            case 0:
+                hsv.hue=double(rand() % 1000) / 1000.0;
+                hsv.saturation=1.0;
+                hsv.value=1.0;
+                break;
+            default:
+                hsv=it->hsv;
+                break;
+            }
+            hsv.value*= double(ph)/TailLength;
+
+            // if we were to swirl, it would need to alter the angle here
+
+            x=int(it->x-it->dx*double(ph));
+            y=int(it->y-it->dy*double(ph));
+
+            // the next line cannot test for exact center! Some lines miss by 1 because of rounding.
+            if ((abs(y - centerY) < 2) && (abs(x - centerX) < 2)) break;
+
+            SetPixel(x,y,hsv);
+        }
+
+        it->x -= it->dx*mspeed;
+        it->y -= it->dy*mspeed;
+        it->cnt++;
+    }
+
+    // delete old meteors
+    meteorsRadial.remove_if(MeteorHasExpiredImplode(BufferWi/2,BufferHt/2));
+}
+
+/*
+ * *************************************************************
+ *  Explode
+ * *************************************************************
+ */
+
+class MeteorHasExpiredExplode
+{
+    int ht, wi;
+public:
+    MeteorHasExpiredExplode(int h, int w)
+    { ht=h; wi=w; }
+
+    // operator() is what's called when you do MeteorHasExpired()
+    bool operator()(const MeteorRadialClass& obj)
+    {
+        return obj.y < 0 || obj.x < 0 || obj.y > ht || obj.x > wi;
+    }
+};
+
+void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity)
+{
+    if (state == 0) meteorsRadial.clear();
+    double mspeed=state/4;
+    state-=int(mspeed)*4;
     double swirl_phase,angle;
     int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
 
@@ -238,14 +388,21 @@ void RgbEffects::RenderMeteorsPolar(int ColorScheme, int Count, int Length, int 
 
     // create new meteors
 
+    m.x=BufferWi/2;
+    m.y=BufferHt/2;
+    m.cnt=1;
     for(int i=0; i<MinDimension; i++)
     {
         if (rand() % 200 < Count) {
-            angle=rand01()*2.0*M_PI;
+            if (BufferHt==1) {
+                angle=double(rand() % 2) * M_PI;
+            } else if (BufferWi==1) {
+                angle=double(rand() % 2) * M_PI - (M_PI/2.0);
+            } else {
+                angle=rand01()*2.0*M_PI;
+            }
             m.dx=cos(angle);
             m.dy=sin(angle);
-            m.x=i;
-            m.y=BufferHt - 1;
 
             switch (ColorScheme)
             {
@@ -256,14 +413,46 @@ void RgbEffects::RenderMeteorsPolar(int ColorScheme, int Count, int Length, int 
                 palette.GetHSV(rand()%colorcnt, m.hsv);
                 break;
             }
-            //meteorsRadial.push_back(m);
+            meteorsRadial.push_back(m);
         }
     }
 
     // render meteors
 
     int x,y,dx,n=0;
-    int MeteorHeadType=0;
+    for (MeteorRadialList::iterator it=meteorsRadial.begin(); it!=meteorsRadial.end(); ++it)
+    {
+        n++;
+        for(int ph=0; ph<=TailLength; ph++)
+        {
+            if (ph >= it->cnt) continue;
+            switch (ColorScheme)
+            {
+            case 0:
+                hsv.hue=double(rand() % 1000) / 1000.0;
+                hsv.saturation=1.0;
+                hsv.value=1.0;
+                break;
+            default:
+                hsv=it->hsv;
+                break;
+            }
+            hsv.value*= double(ph)/TailLength;
+
+            // if we were to swirl, it would need to alter the angle here
+
+            x=int(it->x+it->dx*double(ph));
+            y=int(it->y+it->dy*double(ph));
+            SetPixel(x,y,hsv);
+        }
+
+        it->x += it->dx*mspeed;
+        it->y += it->dy*mspeed;
+        it->cnt++;
+    }
+
+    // delete old meteors
+    meteorsRadial.remove_if(MeteorHasExpiredExplode(BufferHt,BufferWi));
 }
 
 
