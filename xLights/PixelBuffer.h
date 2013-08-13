@@ -81,7 +81,7 @@ public:
     void RenderFire(int HeightPct,int HueShift,bool GrowFire);
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Seed);
-    void RenderMeteors(int MeteorType, int Count, int Length, bool FallUp,int MeteorsEffect,int SwirlIntensity);
+    void RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
@@ -94,7 +94,7 @@ public:
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, int start_x, int start_y);
+                               bool radial,  bool radial_3D, int start_x, int start_y);
 
 
     void CalcOutput(int EffectPeriod);

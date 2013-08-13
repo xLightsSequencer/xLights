@@ -150,6 +150,92 @@
 						<label>Butterfly</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
+										<label>Number of Circles</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT138" variable="StaticText137" member="yes">
+										<label>Size</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="yes">
+										<value>5</value>
+										<min>1</min>
+										<max>20</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" variable="CheckBox_Circles_Bounce" member="yes">
+										<label>Bounce</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" variable="CheckBox_Circles_Radial" member="yes">
+										<label>Radial</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial_3D" variable="CheckBox_Circles_Radial_3D" member="yes">
+										<label>Radial 3D</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
+										<label>Collide</label>
+										<hidden>1</hidden>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" variable="CheckBox_Circles_Random_m" member="yes">
+										<label>Random Motion</label>
+										<hidden>1</hidden>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Circles</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL5" variable="Panel1_ColorWash" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
 								<cols>2</cols>
@@ -265,6 +351,84 @@
 						<label>Fire</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
+										<label>Number of Explosions</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Number_Explosions" variable="Slider_Fireworks_Number_Explosions" member="yes">
+										<value>10</value>
+										<min>1</min>
+										<max>95</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT92" variable="StaticText91" member="yes">
+										<label>Particles in Explosion</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
+										<value>50</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT94" variable="StaticText93" member="yes">
+										<label>Velocity of Particles</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" variable="Slider_Fireworks_Velocity" member="yes">
+										<value>2</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT96" variable="StaticText95" member="yes">
+										<label>Particle Fade</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
+										<value>50</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Fireworks</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 								<cols>2</cols>
@@ -351,7 +515,7 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText39" member="yes">
-										<label>Type</label>
+										<label>Colors</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -423,25 +587,9 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Meteors_Swirl_Intensity" variable="Slider_Meteors_Swirl_Intensity" member="yes">
-										<min>10</min>
+										<max>20</max>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText105" member="yes">
-										<label>Meteors Fall Up?</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Meteors_FallUp" variable="CheckBox_Meteors_FallUp" member="yes">
-										<label>Yes</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -700,6 +848,91 @@
 						<label>Spirals</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
+										<label>R - Radius of outer circle</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
+										<value>20</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT89" variable="StaticText88" member="yes">
+										<label>r - Radius of inner circle</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
+										<value>10</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
+										<label>d - Distance</label>
+										<size>84,13</size>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
+										<value>30</value>
+										<min>1</min>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT93" variable="StaticText92" member="yes">
+										<label>Should distance&#x0A;be animated?</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirograph_Animate" variable="CheckBox_Spirograph_Animate" member="yes">
+										<label>Yes</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT91" variable="StaticText90" member="yes">
+										<label>Note: r should be &lt;= R</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Spirograph</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL7" variable="Panel1_Text" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer46" member="no">
 								<cols>1</cols>
@@ -931,6 +1164,33 @@
 						<label>Text</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
+										<label>Number Branches</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxSlider" name="ID_SLIDER_Tree_Branches" variable="Slider_Tree_Branches" member="yes">
+										<value>3</value>
+										<min>1</min>
+										<max>10</max>
+									</object>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Tree</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 								<cols>2</cols>
@@ -983,274 +1243,6 @@
 							</object>
 						</object>
 						<label>Twinkle</label>
-					</object>
-					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
-								<cols>2</cols>
-								<growablecols>1</growablecols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
-										<label>Number Branches</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Tree_Branches" variable="Slider_Tree_Branches" member="yes">
-										<value>3</value>
-										<min>1</min>
-										<max>10</max>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Tree</label>
-					</object>
-					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
-								<cols>2</cols>
-								<growablecols>1</growablecols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
-										<label>R - Radius of outer circle</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_R" variable="Slider_Spirograph_R" member="yes">
-										<value>20</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT89" variable="StaticText88" member="yes">
-										<label>r - Radius of inner circle</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_r" variable="Slider_Spirograph_r" member="yes">
-										<value>10</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
-										<label>d - Distance</label>
-										<size>84,13</size>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Spirograph_d" variable="Slider_Spirograph_d" member="yes">
-										<value>30</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT93" variable="StaticText92" member="yes">
-										<label>Should distance&#x0A;be animated?</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Spirograph_Animate" variable="CheckBox_Spirograph_Animate" member="yes">
-										<label>Yes</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT91" variable="StaticText90" member="yes">
-										<label>Note: r should be &lt;= R</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Spirograph</label>
-					</object>
-					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
-								<cols>2</cols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
-										<label>Number of Explosions</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fireworks_Number_Explosions" variable="Slider_Fireworks_Number_Explosions" member="yes">
-										<value>10</value>
-										<min>1</min>
-										<max>95</max>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT92" variable="StaticText91" member="yes">
-										<label>Particles in Explosion</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fireworks_Count" variable="Slider_Fireworks_Count" member="yes">
-										<value>50</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT94" variable="StaticText93" member="yes">
-										<label>Velocity of Particles</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fireworks_Velocity" variable="Slider_Fireworks_Velocity" member="yes">
-										<value>2</value>
-										<min>1</min>
-										<max>10</max>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT96" variable="StaticText95" member="yes">
-										<label>Particle Fade</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" variable="Slider_Fireworks_Fade" member="yes">
-										<value>50</value>
-										<min>1</min>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Fireworks</label>
-					</object>
-					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
-								<cols>2</cols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
-										<label>Number of Circles</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Circles_Count" variable="Slider_Circles_Count" member="yes">
-										<value>3</value>
-										<min>1</min>
-										<max>10</max>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT138" variable="StaticText137" member="yes">
-										<label>Size</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Circles_Size" variable="Slider_Circles_Size" member="yes">
-										<value>5</value>
-										<min>1</min>
-										<max>20</max>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bounce" variable="CheckBox_Circles_Bounce" member="yes">
-										<label>Bounce</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Radial" variable="CheckBox_Circles_Radial" member="yes">
-										<label>Radial</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
-										<label>Collide</label>
-										<hidden>1</hidden>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Random_m" variable="CheckBox_Circles_Random_m" member="yes">
-										<label>Random Motion</label>
-										<hidden>1</hidden>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Circles (Under Development)</label>
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
@@ -1411,7 +1403,6 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
 									<label>Fit to time</label>
-									<enabled>0</enabled>
 								</object>
 								<flag>wxTOP|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>8</border>

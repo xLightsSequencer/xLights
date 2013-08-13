@@ -127,8 +127,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     case Mix_Effect2:
         emt = effectMixThreshold;
         emtNot = 1-effectMixThreshold;
-        emt = cos((PI/4)*(pow(2*emt-1,2*n+1)+1));
-        emtNot = cos((PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+        emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
+        emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
 
         if (MixType == Mix_Effect2)
         {
@@ -403,9 +403,9 @@ void PixelBufferClass::RenderLife(int Count, int Seed)
     Effect[CurrentLayer].RenderLife(Count,Seed);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, bool FallUp,int MeteorsEffect,int SwirlIntensity)
+void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
-    Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length, FallUp,MeteorsEffect,SwirlIntensity);
+    Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
@@ -462,7 +462,7 @@ void PixelBufferClass::RenderPiano(int Keyboard)
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, int start_x, int start_y)
+                               bool radial, bool radial_3D,  int start_x, int start_y)
 {
-    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, start_x, start_y);
+    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y);
 }

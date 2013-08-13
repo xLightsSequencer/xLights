@@ -5,6 +5,7 @@
 #include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/string.h>
+#include <wx/msgdlg.h>
 //*)
 
 //(*IdInit(CustomModel)
@@ -94,10 +95,20 @@ bool something_in_this_line;
             }
         }
     }
-    wxOpenClipboard();          // now copy all these things into the clipbord
-    wxEmptyClipboard();
-    wxSetClipboardData(wxDF_TEXT,copy_data.c_str(),0,0);
-    wxCloseClipboard();
+
+    if (wxTheClipboard->Open()) {
+        wxTextDataObject *clipboard_data = new wxTextDataObject();
+
+        clipboard_data->SetData(wxDF_TEXT,strlen(copy_data.c_str()), copy_data.c_str());
+
+        wxTheClipboard->Clear();
+        if (!wxTheClipboard->SetData(clipboard_data)) {
+            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+    }
 }
 
 void CustomModelDialog::PasteData( wxCommandEvent& WXUNUSED(ev) )
@@ -107,9 +118,23 @@ void CustomModelDialog::PasteData( wxCommandEvent& WXUNUSED(ev) )
     wxString cur_line;
     int i,k,k2;
 
-    wxOpenClipboard();          // now copy all these things into the clipbord
-    copy_data = (char *)wxGetClipboardData(wxDF_TEXT);
-    wxCloseClipboard();
+    if (wxTheClipboard->Open()) {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+            wxTextDataObject data;
+
+            if (wxTheClipboard->GetData(data)) {
+                copy_data = data.GetText();
+            } else {
+                wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+            }
+        } else {
+            wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+        return;
+    }
 
     i = gdModelChans->GetGridCursorRow();
     k = gdModelChans->GetGridCursorCol();

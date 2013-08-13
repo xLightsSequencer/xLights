@@ -379,8 +379,8 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
     else
     {
         // copy to current cell
-        r=Grid1->GetGridCursorRow();
-        c=Grid1->GetGridCursorCol();
+        r=curCell->GetRow();
+        c=curCell->GetCol();
         if (c >=SEQ_STATIC_COLUMNS)
         {
             v = CreateEffectStringRandom();
@@ -414,8 +414,8 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
     else
     {
         // copy to current cell
-        r=Grid1->GetGridCursorRow();
-        c=Grid1->GetGridCursorCol();
+        r=curCell->GetRow();
+        c=curCell->GetCol();
         if (c >=SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
@@ -449,13 +449,14 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
     else
     {
         // copy to current cell
-        r=Grid1->GetGridCursorRow();
-        c=Grid1->GetGridCursorCol();
+        r=curCell->GetRow();
+        c=curCell->GetCol();
         if (c >= SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLUE);
         }
     }
+    Grid1->ForceRefresh();
 }
 
 
@@ -484,13 +485,14 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
     else
     {
         // copy to current cell
-        r=Grid1->GetGridCursorRow();
-        c=Grid1->GetGridCursorCol();
+        r=curCell->GetRow();
+        c=curCell->GetCol();
         if (c >= SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLACK);
         }
     }
+    Grid1->ForceRefresh();
 }
 
 void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
@@ -613,7 +615,7 @@ void xLightsFrame::ResetEffectsXml()
     PalettesNode=NULL;
 }
 
-void xLightsFrame::LoadEffectsFile()
+wxString xLightsFrame::LoadEffectsFileNoCheck()
 {
     ResetEffectsXml();
     wxFileName effectsFile;
@@ -649,6 +651,7 @@ void xLightsFrame::LoadEffectsFile()
     if (EffectsNode == 0)
     {
         EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("effects") );
+        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
         root->AddChild( EffectsNode );
     }
     if (PalettesNode == 0)
@@ -656,6 +659,27 @@ void xLightsFrame::LoadEffectsFile()
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("palettes") );
         root->AddChild( PalettesNode );
     }
+    return effectsFile.GetFullPath();
+}
+
+void xLightsFrame::LoadEffectsFile()
+{
+    wxString filename=LoadEffectsFileNoCheck();
+    // check version, do we need to convert?
+    wxString version=EffectsNode->GetAttribute(wxT("version"), wxT("0000"));
+    if (version < wxT(XLIGHTS_RGBEFFECTS_VERSION))
+    {
+        // convert file
+        FixVersionDifferences( filename );
+        // load converted file
+        LoadEffectsFileNoCheck();
+        // update version
+        EffectsNode->DeleteAttribute(wxT("version"));
+        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
+        // re-save
+        EffectsXml.Save( filename );
+    }
+
     UpdateModelsList();
     UpdateEffectsList();
 }
@@ -735,14 +759,19 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 }
 
 // layer is 0 or 1
-void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString& SettingsMap)
+bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
+    bool retval=true;
     wxString LayerStr=layer==0 ? wxT("E1_") : wxT("E2_");
     wxString SpeedStr=SettingsMap[LayerStr+wxT("SLIDER_Speed")];
     buffer.SetLayer(layer,period,wxAtoi(SpeedStr),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
     wxString effect=SettingsMap[LayerStr+wxT("Effect")];
-    if (effect == wxT("Bars"))
+    if (effect == wxT("None"))
+    {
+        retval = false;
+    }
+    else if (effect == wxT("Bars"))
     {
         buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Bars_BarCount")]),
                           BarEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Bars_Direction")]),
@@ -783,7 +812,6 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Type")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Count")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Meteors_FallUp")]==wxT("1"),
                              MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_MeteorsEffect_Type")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
     }
@@ -865,16 +893,18 @@ void xLightsFrame::RenderEffectFromString(int layer, int period, MapStringString
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
                              buffer.BufferWi/2, buffer.BufferHt/2
                             );
 
     }
-
+    return retval;
 }
 
 // layer is 0 or 1
-void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
+bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {
+    bool retval = true;
     if (panel->EffectChanged)
     {
         ResetEffectState[layer]=true;
@@ -891,6 +921,7 @@ void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     switch (panel->Choicebook1->GetSelection())
     {
     case eff_NONE:
+        retval = false;
         break;   // none
     case eff_BARS:
         buffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
@@ -926,7 +957,6 @@ void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
                              panel->Slider_Meteors_Count->GetValue(),
                              panel->Slider_Meteors_Length->GetValue(),
-                             panel->CheckBox_Meteors_FallUp->GetValue(),
                              panel->Choice_Meteors_Effect->GetSelection(),
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;
@@ -997,11 +1027,13 @@ void xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Circles_Collide->GetValue(),
                              panel->CheckBox_Circles_Random_m->GetValue(),
                              panel->CheckBox_Circles_Radial->GetValue(),
+                             panel->CheckBox_Circles_Radial_3D->GetValue(),
                              buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
                             );
 
         break;
     }
+    return retval;
 }
 
 
@@ -1036,7 +1068,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
-
+    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
@@ -1066,6 +1098,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     int EffectPeriod;
     static int s_period=0;
     int rowcnt=Grid1->GetNumberRows();
+    wxString EffectStr;
     switch (SeqPlayerState)
     {
     case PLAYING_EFFECT:
@@ -1100,7 +1133,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 // start next effect
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
-                SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
+                EffectStr.Trim();
+                if(!EffectStr.IsEmpty())
+                {
+                    SetEffectControls(EffectStr);
+                }
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 
@@ -1147,7 +1185,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 // start next effect
                 Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
-                SetEffectControls(Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn));
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
+                EffectStr.Trim();
+                if(!EffectStr.IsEmpty())
+                {
+                    SetEffectControls(EffectStr);
+                }
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 
@@ -1160,6 +1203,11 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 }
 
+void xLightsFrame::ResetEffectDuration()
+{
+    buffer.SetTimes(0, 0, 0, 0);
+    buffer.SetTimes(1, 0, 0, 0);
+}
 void xLightsFrame::UpdateEffectDuration()
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
@@ -1168,12 +1216,12 @@ void xLightsFrame::UpdateEffectDuration()
     wxString tmpStr;
 
     tmpStr = Grid1->GetCellValue(NextGridRowToPlay,0);
-    curEffMsec =tmpStr.ToDouble(&val )?(int)val*1000:0;
+    curEffMsec =tmpStr.ToDouble(&val )?(int)(val*1000):0;
     ii = 1;
     if (NextGridRowToPlay+ii < rowcnt)
     {
         tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
@@ -1183,7 +1231,7 @@ void xLightsFrame::UpdateEffectDuration()
         if (!tmpStr.IsEmpty())
         {
             tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
-            nextEffMsec = tmpStr.ToDouble(&val )?(int)val*1000:SeqNumPeriods*XTIMER_INTERVAL;
+            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         }
         else
         {
@@ -1341,7 +1389,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 #include <wx/string.h>
 #include <wx/tokenzr.h>
 
-wxString insert_missing(wxString str,wxString missing_array,bool INSERT)
+wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool INSERT)
 {
     int pos;
     wxStringTokenizer tkz(missing_array, wxT("|"));
@@ -1366,7 +1414,8 @@ wxString insert_missing(wxString str,wxString missing_array,bool INSERT)
     return str;
 }
 
-void fix_version_differences(wxString file)
+// file should be full path
+void xLightsFrame::FixVersionDifferences(wxString file)
 {
     wxString        str,fileout;
     wxTextFile      tfile;
@@ -1421,28 +1470,15 @@ void fix_version_differences(wxString file)
 
 
     // Lots of variables to check for  text effect
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+//    ,E1_TEXTCTRL_Text_Line1=God Bless the USA
+//	,E1_TEXTCTRL_Text_Line2=God Bless The USA
+//	,E1_TEXTCTRL_Text_Font1=
+//	,E1_CHOICE_Text_Dir1=left
+//	,E1_CHOICE_Text_Effect1=normal
+//	,E1_CHOICE_Text_Count1=none
+//	,E1_SLIDER_Text_Position1=45
 
-    //
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+
 
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1");
     replace_str = replace_str + wxT("|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2");
@@ -1507,18 +1543,7 @@ void fix_version_differences(wxString file)
     replace_str = replace_str + wxT("|ID_CHOICE_Meteors2_Type|E2_CHOICE_Meteors_Type");
     replace_str = replace_str + wxT("|ID_CHOICE_Pictures1_Direction|E1_CHOICE_Pictures_Direction");
     replace_str = replace_str + wxT("|ID_CHOICE_Pictures2_Direction|E2_CHOICE_Pictures_Direction");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
+
     replace_str = replace_str + wxT("|ID_SLIDER_Bars1_BarCount|E1_SLIDER_Bars_BarCount");
     replace_str = replace_str + wxT("|ID_SLIDER_Bars2_BarCount|E2_SLIDER_Bars_BarCount");
     replace_str = replace_str + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness");
@@ -1590,10 +1615,7 @@ void fix_version_differences(wxString file)
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_d|E2_SLIDER_Spirograph_d");
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_R|E2_SLIDER_Spirograph_R");
     replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_r|E2_SLIDER_Spirograph_r");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2");
+
     replace_str = replace_str + wxT("|ID_SLIDER_Tree1_Branches|E1_SLIDER_Tree_Branches");
     replace_str = replace_str + wxT("|ID_SLIDER_Tree2_Branches|E2_SLIDER_Tree_Branches");
     replace_str = replace_str + wxT("|ID_SLIDER_Twinkle1_Count|E1_SLIDER_Twinkle_Count");
@@ -1602,14 +1624,95 @@ void fix_version_differences(wxString file)
     replace_str = replace_str + wxT("|ID_SLIDER_Twinkle2_Steps|E2_SLIDER_Twinkle_Steps");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures1_Filename|E1_TEXTCTRL_Pictures_Filename");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures2_Filename|E2_TEXTCTRL_Pictures_Filename");
+
+
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
+    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
+    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
+    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
+    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
+    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
+    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
+    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_1_Font|E1_TEXTCTRL_Text_Font1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_2_Font|E1_TEXTCTRL_Text_Font2");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_1_Font|E2_TEXTCTRL_Text_Font1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_2_Font|E2_TEXTCTRL_Text_Font2");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1");
+    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line1|E2_TEXTCTRL_Text_Line1");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line2|E2_TEXTCTRL_Text_Line2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
+    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
+    //
+
+//    E1_TEXTCTRL_Text_Font1=
+//	,E1_CHOICE_Text_Dir1=left
+//	,E1_CHOICE_Text_Effect1=normal
+//	,E1_CHOICE_Text_Count1=none
+//	,E1_SLIDER_Text_Position1=50
+//	,E1_TEXTCTRL_Text_Font2=
+//	,E1_CHOICE_Text_Dir2=left
+//	,E1_CHOICE_Text_Effect2=normal
+//	,E1_CHOICE_Text_Count2=none
+//	,E1_SLIDER_Text_Position2=50
+//	,E1_BUTTON_Palette1=#FF0000
+//	,E1_CHECKBOX_Palette1=0
+//	,E1_BUTTON_Palette2=#00FF00
+//	,E1_CHECKBOX_Palette2=0
+//	,E1_BUTTON_Palette3=#0000FF
+//	,E1_CHECKBOX_Palette3=1
+//	,E1_BUTTON_Palette4=#FFFF00
+//	,E1_CHECKBOX_Palette4=0
+//	,E1_BUTTON_Palette5=#FFFFFF
+//	,E1_CHECKBOX_Palette5=0
+//	,E1_BUTTON_Palette6=#000000
+//	,E1_CHECKBOX_Palette6=1
+
+
+    //  this set will convert old, unsed tokens into a new not used token. this eliminates the error messages
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_TextRotation|E2_SLIDER_Text_Rotation1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_TextRotation|E2_SLIDER_Text_Rotation2");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|E1_Text1_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|E1_Text2_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|E2_Text1_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|E2_Text2_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation1|E1_SLIDER_Text_Rotation");
+    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation2|E2_SLIDER_Text_Rotation");
+    replace_str = replace_str + wxT("|ID_Text1_Countdown|E1_Text_Countdown");
+    replace_str = replace_str + wxT("|ID_Text2_Countdown|E2_Text_Countdown");
+    replace_str = replace_str + wxT("|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN");
+    replace_str = replace_str + wxT("|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN");
+
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout");
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein");
@@ -1659,7 +1762,7 @@ void fix_version_differences(wxString file)
 
 //  166 tokens
             modified=true;
-            str=insert_missing(str,replace_str,false);
+            str=InsertMissing(str,replace_str,false);
 
 //  now look to fill in any missing tokens
 
@@ -1668,52 +1771,52 @@ void fix_version_differences(wxString file)
                    if(p>0) // Look for lines that should have brightness and contrast, in other words all
                    {
                        modified=true;
-                       str=insert_missing(str,missing,true);
+                       str=InsertMissing(str,missing,true);
                    }
 
                    p=str.find("ID_TEXTCTRL_Text1_Line1",0);
                    if(p>0) // Is this a text 1 line?
                    {
                        modified=true;
-                       str=insert_missing(str,Text1,true);
+                       str=InsertMissing(str,Text1,true);
                    }
                    p=str.find("ID_TEXTCTRL_Text2_Line1",0);
                    if(p>0) // is this a text 2 line?
                    {
                        modified=true;
-                       str=insert_missing(str,Text2,true);
+                       str=InsertMissing(str,Text2,true);
                    }
 
                    p=str.find("ID_CHOICE_Meteors1",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Meteors1,true); // fix any missing values
+                       str=InsertMissing(str,Meteors1,true); // fix any missing values
                    }
                    p=str.find("ID_CHOICE_Meteors2",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Meteors2,true);
+                       str=InsertMissing(str,Meteors2,true);
                    }
 
                    p=str.find("ID_CHOICE_Fire11",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Fire1,true); // fix any missing values
+                       str=InsertMissing(str,Fire1,true); // fix any missing values
                    }
                    p=str.find("ID_CHOICE_Fire2",0);
                    if(p>0) // is there a meteors 1 effect on this line?
                    {
                        modified=true;
-                       str=insert_missing(str,Fire2,true); // fix any missing values
+                       str=InsertMissing(str,Fire2,true); // fix any missing values
                    }
                      */
 
-}
-            str = str + "\n";
-            f.Write(str); // placeholder, do whatever you want with the string
+        }
+        str = str + "\n";
+        f.Write(str); // placeholder, do whatever you want with the string
 
     }
     tfile.Close();
@@ -1820,7 +1923,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
 
     // read xml
     //  first fix any version specific changes
-    fix_version_differences(SeqXmlFileName);
+    FixVersionDifferences(SeqXmlFileName);
 
 
     wxXmlDocument doc;
@@ -2051,14 +2154,14 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 void xLightsFrame::RenderGridToSeqData()
 {
     MapStringString SettingsMap;
-    wxString ColName,msg, tmpStr;
+    wxString ColName,msg, EffectStr;
     long msec;
     size_t ChannelNum, NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
 
-    LoadEffectFromString(wxT("None,None,Effect 1"), SettingsMap);
+    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
     for (int c=SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
@@ -2068,6 +2171,8 @@ void xLightsFrame::RenderGridToSeqData()
         if (!buffer.MyDisplay) continue;
         NodeCnt=buffer.GetNodeCount();
         ChannelNum=buffer.StartChannel-1+NodeCnt*3; // last channel
+        bool effectsToUpdate;
+
         if (ChannelNum > SeqNumChannels)
         {
             // need to add more channels to existing sequence
@@ -2093,40 +2198,50 @@ void xLightsFrame::RenderGridToSeqData()
                 wxYield();
                 StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
 
-                LoadEffectFromString(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
-                // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
-                UpdateBufferPaletteFromMap(1,SettingsMap);
-                UpdateBufferPaletteFromMap(2,SettingsMap);
-                buffer.SetMixType(SettingsMap["LayerMethod"]);
-                ResetEffectStates();
-                // update SparkleFrequency
-                int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
-                buffer.SetSparkle(freq);
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                EffectStr.Trim();
+                if (!EffectStr.IsEmpty())
+                {
+                    //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
+                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    UpdateBufferPaletteFromMap(1,SettingsMap);
+                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    buffer.SetMixType(SettingsMap["LayerMethod"]);
+                    ResetEffectStates();
+                    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
+                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    buffer.SetSparkle(freq);
 
-                int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
-                buffer.SetBrightness(brightness);
+                    int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                    buffer.SetBrightness(brightness);
 
-                int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
-                buffer.SetContrast(contrast);
-                UpdateBufferFadesFromMap(1, SettingsMap);
-                UpdateBufferFadesFromMap(2, SettingsMap);
+                    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+                    buffer.SetContrast(contrast);
+                    UpdateBufferFadesFromMap(1, SettingsMap);
+                    UpdateBufferFadesFromMap(2, SettingsMap);
+                }
+
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            RenderEffectFromString(0, p, SettingsMap);
-            RenderEffectFromString(1, p, SettingsMap);
-            buffer.CalcOutput(p);
-            // update SeqData with contents of buffer
-            for(int n=0; n<NodeCnt; n++)
+            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+
+            if (effectsToUpdate)
             {
-                SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
+                buffer.CalcOutput(p);
+                // update SeqData with contents of buffer
+                for(int n=0; n<NodeCnt; n++)
+                {
+                    SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
 
-                SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
+                    SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
 
-                SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
+                    SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
 
-            } // for(int n=0; n<NodeCnt; n++)
+                } // for(int n=0; n<NodeCnt; n++)
+            }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
     }
 }
@@ -2217,7 +2332,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
 }
 
-void xLightsFrame::LoadEffectFromString(wxString settings, MapStringString& SettingsMap)
+void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
 {
     wxString before,after,name,value;
     int cnt=0;
@@ -2405,6 +2520,7 @@ void xLightsFrame::ClearEffectWindow()
 void xLightsFrame::DisplayEffectOnWindow()
 {
     wxPen pen;
+    wxBrush brush;
     wxClientDC dc(ScrolledWindow1);
     wxColour color;
     wxCoord w, h;
@@ -2430,7 +2546,21 @@ void xLightsFrame::DisplayEffectOnWindow()
     double scaleY = double(h) / buffer.RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
     //scale=0.25;
-    dc.SetUserScale(scale,scale);
+    int radius=1;
+    int factor=8;
+    if (scale < 0.5)
+    {
+        radius=int(1.0/scale+0.5);
+        factor=1;
+    }
+    else if (scale < 8.0)
+    {
+        factor=int(scale+0.5);
+    }
+    dc.SetUserScale(scale/factor,scale/factor);
+
+    // if the radius/factor are not yielding good results, uncomment the next line
+    //StatusBar1->SetStatusText(wxString::Format(wxT("Scale=%5.3f, radius=%d, factor=%d"),scale,radius,factor));
 
     /*
             // check that origin is in the right place
@@ -2452,11 +2582,15 @@ void xLightsFrame::DisplayEffectOnWindow()
         // draw node on screen
         buffer.Nodes[i].GetColor(color);
         pen.SetColour(color);
+        brush.SetColour(color);
+        brush.SetStyle(wxBRUSHSTYLE_SOLID);
         dc.SetPen(pen);
+        dc.SetBrush(brush);
         sx=buffer.Nodes[i].screenX;
         sy=buffer.Nodes[i].screenY;
         //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
-        dc.DrawPoint(sx,sy);
+        //dc.DrawPoint(sx,sy);
+        dc.DrawCircle(sx*factor,sy*factor,radius);  // 4 is good for high number of nodes
     }
 }
 
@@ -2566,9 +2700,8 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 
 void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
 {
-
     wxMenu mnu;
-    //mnu.SetClientData( data );
+    curCell->Set(event.GetRow(), event.GetCol());
 
     mnu.Append(ID_PROTECT_EFFECT, 	"Protect Effect");
     mnu.Append(ID_UNPROTECT_EFFECT, "Unprotect Effect");

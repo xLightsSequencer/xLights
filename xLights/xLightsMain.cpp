@@ -325,7 +325,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver BETA 3.0.25)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.1.1)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1153,10 +1153,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffectTypes.Add("Range");
     MeteorsEffectTypes.Add("Palette");
 
-    MeteorsEffect.Add("Meteor");
-    MeteorsEffect.Add("Swirl1");
-    MeteorsEffect.Add("Swirl2");
-    MeteorsEffect.Add("StarField");
+    MeteorsEffect.Add("Down");
+    MeteorsEffect.Add("Up");
+    MeteorsEffect.Add("Left");
+    MeteorsEffect.Add("Right");
+    MeteorsEffect.Add("Implode");
+    MeteorsEffect.Add("Explode");
 
     EffectDirections.Add("left");
     EffectDirections.Add("right");
@@ -1255,6 +1257,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         Notebook1->ChangeSelection(SETUPTAB);
         EnableNetworkChanges();
     }
+    curCell = new wxGridCellCoords(0,0);
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
 //   scm, causes crash if we remove this    Choicebook1->RemovePage(eff_CIRCLES);
@@ -1333,7 +1336,7 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
-    wxCriticalSectionLocker locker(gs_xoutCriticalSection);
+    if (!gs_xoutCriticalSection.TryEnter()) return;
     if (CheckBoxRunSchedule->IsChecked()) CheckSchedule();
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
     long curtime = ts.GetMilliseconds().ToLong();
@@ -1351,6 +1354,7 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
         break;
     }
     if (xout) xout->TimerEnd();
+    gs_xoutCriticalSection.Leave();
 }
 
 void xLightsFrame::ResetTimer(SeqPlayerStates newstate, long OffsetMsec)
@@ -1587,19 +1591,72 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     time(&cur);
     wxFileName newDirH;
     wxDateTime curTime(cur);
-    wxString newDir = wxString::Format(wxT("Backup-%s-%s"),curTime.FormatISODate(),curTime.FormatISOTime());
 
-    if ( wxNO == wxMessageBox(wxT("All xml files in your xlights directory will be backed up to \"")+CurrentDir+wxT("\\")+
+
+//  first make sure there is a Backup sub directory
+    wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+wxT("Backup");
+    if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
+    {
+        wxMessageBox(wxT("Unable to create directory Backup!"),"Error", wxICON_ERROR|wxOK);
+        return;
+    }
+
+ //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
+
+    wxString newDir = CurrentDir+wxFileName::GetPathSeparator()+wxString::Format(
+                                 wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
+                                 curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
+
+    if ( wxNO == wxMessageBox(wxT("All xml files under 10MB in your xlights directory will be backed up to \"")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox(wxT("Unable to create directory!"),"Error", wxICON_ERROR);
+        wxMessageBox(wxT("Unable to create directory!"),"Error", wxICON_ERROR|wxOK);
+        return;
+    }
+    BackupDirectory(newDir);
+
+    //CurrentDir
+}
+
+void xLightsFrame::BackupDirectory(wxString targetDirName)
+{
+    wxDir srcDir(CurrentDir);
+    wxString fname;
+    bool success;
+    wxString srcDirName = CurrentDir+wxFileName::GetPathSeparator();
+    wxFileName srcFile;
+    srcFile.SetPath(CurrentDir);
+
+    if(!srcDir.IsOpened())
+    {
         return;
     }
 
+    bool cont = srcDir.GetFirst(&fname, wxT("*.xml"), wxDIR_FILES);
 
-    //CurrentDir
+    while (cont)
+    {
+        srcFile.SetFullName(fname);
+
+        wxULongLong fsize=srcFile.GetSize();
+        if(fsize > 10*1024*1024) // skip any xml files > 10 mbytes, they are something other than xml files
+        {
+            srcDir.GetNext(&fname);
+            continue;
+        }
+        StatusBar1->SetStatusText(wxT("Copying File \"")+srcFile.GetFullPath());
+        success = wxCopyFile(srcDirName+fname,
+                              targetDirName+wxFileName::GetPathSeparator()+fname);
+        if (!success)
+        {
+            wxMessageBox(wxT("Unable to copy file \"") + CurrentDir+wxFileName::GetPathSeparator()+fname+wxT("\""),
+                         "Error", wxICON_ERROR|wxOK);
+        }
+        cont = srcDir.GetNext(&fname);
+    }
+    StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }

@@ -62,6 +62,7 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
 {
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
+    DiagLen=sqrt(BufferHt*BufferHt + BufferWi*BufferWi);
     int NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
@@ -87,9 +88,7 @@ void RgbEffects::SetPalette(wxColourVector& newcolors)
 
 size_t RgbEffects::GetColorCount()
 {
-    size_t colorcnt=palette.Size();
-    if (colorcnt < 1) colorcnt=1;
-    return colorcnt;
+    return palette.Size();
 }
 
 // return a random number between 0 and 1 inclusive
@@ -288,7 +287,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState)
         state+=(period-lastperiod) * NewSpeed;
     }
     speed=NewSpeed;
-    lastperiod=period;
+    lastperiod=curPeriod=period;
 }
 void RgbEffects::ClearTempBuf()
 {
@@ -298,6 +297,33 @@ void RgbEffects::ClearTempBuf()
     }
 }
 
+double RgbEffects::GetEffectPeriodPosition()
+{
+    double retval;
+    if (curEffEndPer == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/(curEffEndPer-curEffStartPer);
+    }
+    return retval;
+}
+
+double RgbEffects::GetEffectTimeIntervalPosition()
+{
+    double retval;
+    if (nextEffTimePeriod == 0)
+    {
+        retval = 1;
+    }
+    else
+    {
+        retval = (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer);
+    }
+    return retval;
+}
 void RgbEffects::ClearWaveBuffer1()
 {
     for (size_t i=0; i < WaveBuffer1.size(); i++)
@@ -325,30 +351,4 @@ void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
     curEffEndPer = endMsec/XTIMER_INTERVAL;
     nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
 }
-
-//  Now we come to including the programs that actually do the effects.
-
-
-//#include "RenderBars.cpp"
-//#include "RenderButterfly.cpp"
-//#include "RenderColorWash.cpp"
-//#include "RenderFire.cpp"
-//#include "RenderGarlands.cpp"
-//#include "RenderLife.cpp"
-//#include "RenderMeteors.cpp"
-//#include "RenderPictures.cpp"
-//#include "RenderSnowflakes.cpp"
-//#include "RenderSnowstorm.cpp"
-//#include "RenderSpirals.cpp"
-//#include "RenderText.cpp"
-//#include "RenderTwinkle.cpp"
-//#include "RenderTree.cpp"
-//#include "RenderSpirograph.cpp"
-//#include "RenderFireworks.cpp"
-
-
-
-
-
-
 

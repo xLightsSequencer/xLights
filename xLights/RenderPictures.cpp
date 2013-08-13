@@ -26,15 +26,11 @@
 #include <wx/file.h>
 #include <wx/utils.h>
 
-
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
     const int speedfactor=4;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
-    int maxframes;
-    if(state==0 ) maxmovieframes=10;
-    maxframes=maxmovieframes;
-    int frame = state%maxframes;
+    int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
     int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
@@ -43,7 +39,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     if(NewPictureName2.length()==0) return;
 
-//  Look at ending of the filename passed in. If we have it ending as *-1.jog then we will assume
+//  Look at ending of the filename passed in. If we have it ending as *-1.jpg or *-1.png then we will assume
 //  we have a bunch of jpg files made by ffmpeg
 //  movie files can be converted into jpg frames by this command
 //      ffmpeg -i XXXX.mp4 -s 16x50 XXXX-%d.jpg
@@ -51,6 +47,10 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
 //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
+
+    if(state==0 || maxmovieframes <= 0) maxmovieframes=10;
+    maxframes=maxmovieframes;
+    frame = state%maxframes;
 
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
@@ -74,6 +74,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 }
             }
         }
+        int ij = maxmovieframes;
 
     }
 
@@ -86,8 +87,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     }
     if(createlog==1)
     {
-
-
         wxRemoveFile(filename);
         if (!f.Create(filename,false))
         {
@@ -111,7 +110,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         PictureName=NewPictureName;
         if (!image.IsOk())
             return;
-
     }
     if(imageCount>1)
     {
@@ -126,7 +124,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
             else
             {
                 imageIndex++;
-
             }
 
 
@@ -141,15 +138,13 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     }
 
     int imgwidth=image.GetWidth();
-    int imght=image.GetHeight();
-    int yoffset=(BufferHt+imght)/2;
-    int xoffset=(imgwidth-BufferWi)/2;
+    int imght   =image.GetHeight();
+    int yoffset =(BufferHt+imght)/2;
+    int xoffset =(imgwidth-BufferWi)/2;
 
 // copy image to buffer
     wxColour c;
-    for(int x=0;
-            x<imgwidth;
-            x++)
+    for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
         {
@@ -158,15 +153,33 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
                 switch (dir)
                 {
-                case 0: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,yoffset-y,c); break; // left
-                case 1: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,yoffset-y,c); break; // right
-                case 2: SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up
-                case 3: SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down
-                case 5: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up-left
-                case 6: SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down-left
-                case 7: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c); break; // up-right
-                case 8: SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c); break; // down-right
-                default: SetPixel(x-xoffset,yoffset-y,c); break; // no movement - centered
+                case 0:
+                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,yoffset-y,c);
+                    break; // left
+                case 1:
+                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,yoffset-y,c);
+                    break; // right
+                case 2:
+                    SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    break; // up
+                case 3:
+                    SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    break; // down
+                case 5:
+                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    break; // up-left
+                case 6:
+                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    break; // down-left
+                case 7:
+                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    break; // up-right
+                case 8:
+                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    break; // down-right
+                default:
+                    SetPixel(x-xoffset,yoffset-y,c);
+                    break; // no movement - centered
                 }
             }
         }

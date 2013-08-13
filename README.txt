@@ -8,7 +8,42 @@ Nutcracker is a program that generates animated effects on massive RGB devices
 such as megatrees, matrices, and arches. 
 
 
-XLIGHTS/NUTCRACKER RELEASE NOTES:
+XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+3.1.1:  Aug 12,2013 - Bug Fix: (Matt Brown). Matt has fixed the Meteor effect. He has also enhanced it so meteors can fall to the left or right.
+						We have	renamed	Starfiled to be called "explode" and "implode"
+					- Enhancement: (Matt Brown)  I made some improvements to countdown & skip blank cells logic. I also changed a couple of method names to make them more clear. Also, the timer now skips if the last interval takes more than 50ms to process. Before it was blocking until the last interval finished (so if every interval took more than 50ms you had a stackup of waiting timer calls to process).
+3.1.0:  Aug 7,2013 	- Enhancement: (frankr) new single BACKUP option now.
+						Goto to "File,Backup" and every xml file you have will be created in the new Backup sub-directory under show show directory.
+						How big are xLight sequences? The xseq file for 12K channels is around 30mbytes, the xml of your sequence is around 30kbytes. As comparison the XML file for LOR for the same song is 800mbytes, for LSP 1.2gbytes. Because xlight sequence files are so small (normally < 50kbytes), we can back them all up quickly.
+						How long to back up over 100 sequences? < 1 second.
+						How much space does 100 sequences take? < 10 mbytes
+						How many times can you do this per day? 1000's. 
+						How to use this feature? Just do a "File, Backup" before getting new versions.
+						I would do a copy if you plan on doing lots of edits.  Basically get yourself protected.
+
+						So after upgrading to 3.1.0, go and make a copy before opening any sequences
+
+					- Enhancement: (Matt Brown) re-engineered the underlying architecture. This is like replacing the galvanized pipe with copper pipe on your home. Takes lots of effort, when you are done the house still looks the same. This re-architecture was needed to allows us to offer new fit to time frame option. With this option effects will be enhanced to do things like start and end exactly to the timing marks on a row. Wait for future releases to see how this is going to help. Trust me, you will like the new things coming.
+
+					- Enhancement: (Matt Brown) has enhanced the preview screen so it is multiple times brighter than before. So much nicer now!!
+
+					- Enhancement: (frankr) made it so that when you select none, it will not overwrite existing data. Why do we care? This enhancement means a LSP person could sequence the first 30 seconds of a megatree (mark those rows as none,none in nutcracker). Now fill the rest of the sequence with nutcracker effects. The result? LSP effects will appear for the first 30 seconds, Nutcracker effects will appear for the remainder.
+
+					- Enhancement:(Frankr) enhanced the right click process for protecting a cell. Before you had to get focus on the cell by left clicking (turned it yellow), then you could right click. Now just ricght click any cell, you dont need left click first
+
+					- Enhancement: (Matt Brown) made it so effects are now listed alphabetically except for effects current under development (like the piano keyboard)
+
+					- Enhancement: (sean) Sean added Radial 3d Button. Click this button besides the Radial button to get new radial effects
+
+					- Bug Fix: (Sean, Matt, frankkr) . Found more division by zero errors, fixed them.
+
+					- Enhancement: (Sean), For any  person who is pulling code and compiling it (Like MaterDaddy for Linux compiles). I have renamed repository nutcracker_c to be called xLights. Nutcracker_c was just a temp name I was using. I want everyone to remember we started with the xLights code base from Matt Brown in January of this  year. Nutcracker is just one tab on xllights. People get confused is it xLights? Is it Nutcracker? All of nutcracker has been put inside of xLights so the repository should be called the same. Again thanks to Matt for making this all possible. So here is new repository: https://github.com/smeighan/xLights
+
+					- Enhancement: Please start to enter bugs into github so we can track them there. If you want to raise a bug go to https://github.com/smeighan/xLights/issues
+
+					- Bug fix: (Matt) Meteors has been fixed by Matt's rewrite of the preview window. This means the normal Meteor effect is now working again. 
+						StarField still does not display on megatrees, it does work on other models.
+
 3.0.24: Aug 4,2013 	- Enhancement: (frankr) New fade in and fade out boxes on every effect. Enter the number of seconds to either fade in/out.
 					- Enhancement: (sean) Started development of Piano Keyboard. This is not complete. Will eventually use an input file from
                            Audacity that will identify the polyphonic notes in a song.
@@ -16,8 +51,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 						   "1 is unmask, 2 is color wash". Text now has 45 degrees rotation. Countdown timer can show seconds counting down or
 						   it can show "xx d yy h zz m aa s" display. countdown text is now centered correctly.
 					- Enhancement: (frankr) New effect for circles. Circles can bounce, collide. Choose radial to make a new effect
-					- Bug: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
-					- Bug: (sean) When randomly creating Spirograph effects, the animate button was not being selected. fixed.
+					- Bug Fix: (sean) fixed crash when creating random effects. The new effect classes (piano,circles) were causing problem. fixed
+					- Bug Fix: (sean) When randomly creating Spirograph effects, the animate button was not being selected. fixed.
 					- Enhancement: (frankr) Cells in your effect grid can now be protected/un-protected. Protect a cell and
 						   press the "create random effects" and all cells will get a new effect unless the cell is protected.
 						   Under Development: Piano Effect. This is NOT done yet. when completed it will animate a piano
@@ -36,8 +71,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 					  coro snowflakes, stars, strings wrapped around a car, fire sticks, candles,. Basically any model. Watch this space for a future tutorial.
 3.0.22: Jul 26,2013 - Enhancement: (frankr) New button to randomly create effects for every row in your sequence
                     - Enhancement: (sean) Brightness slider now goes to 400% (Old value was 100%). This will allow improving movies
-					- Bug: (sean) If Tree effect was selected for Effect2 and slider was all the way to left, xlights crashed. fixed
-					- Bug: (sean) Removed the gauge that was next to Export button. The gauge library does not work in Unix.
+					- Bug Fix: (sean) If Tree effect was selected for Effect2 and slider was all the way to left, xlights crashed. fixed
+					- Bug Fix: (sean) Removed the gauge that was next to Export button. The gauge library does not work in Unix.
 3.0.21: Jul 25,2013 - Enhancement: (frankr) In the Model setup screen, you can now set the starting channel for each string
                     - Enhancement: (frankr) In the Model setup screen, you can now choose how the strings wrap. 3 more choices are now available
 					  bottom left, upper left, upper right, bottom right
@@ -46,14 +81,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 					  2) Swirl2. Same as Swirl 1 excep odd strands move one way, even strands move the other
 					  3) Strarfield. Meteor effect starts in center of your display and moves outwards
 3.0.20: Jul 19,2013 - Enhancement: (frankr) Highlight cell you are editing in so you know where "update" will apply 
-                    - Bug: (frankr) Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
+                    - Bug Fix: (frankr) Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
 					- Enhancement: (frankr) Ability to read an Audacity or a XML file when creating a blank sequence from a music file
 					- Enhancement: (frankr) 1 is Unmask, 2 is Unmask now keeps the brightness value of the mask. This is big! Use a picture as a mask on a colorwash.
 					  The new picture will be a mono tone version. Use text as a mask, the edges will feather but in a solid color. 
 					  This fixes the antio-aliasing issue of text. To fix use text as effect 1, color wash as effect2. set effect 2 color what you want your text
 					  to look like
-					- Bug: (frankr) Deleting some models caused crash, fixed.
-					- Bug: (frankr) If you had multiple models attached to a sequence, deleting anything other than 1st model caused crash. fixed
+					- Bug Fix: (frankr) Deleting some models caused crash, fixed.
+					- Bug Fix: (frankr) If you had multiple models attached to a sequence, deleting anything other than 1st model caused crash. fixed
 3.0.19: Jul 17,2013 - Bug Fix: (matt) Crash on exit fixed
                     - Bug fix: (matt) Empty export files (LOR, hls,vixen,conductor) fixed
 					- Enhancement: (sean) When reading in your sequence, missing attributes will be added if your file is from pre ver 18.

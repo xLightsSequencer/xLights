@@ -1,19 +1,21 @@
 #ifndef XLIGHTS_GLOBALS_H_INCLUDED_
 #define XLIGHTS_GLOBALS_H_INCLUDED_
 
-#define XLIGHTS_VERSION "BETA 3.0.25"
+#define XLIGHTS_VERSION "3.1.1"
 #define XLIGHTS_CONFIG_ID "xLights"
 #define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
 #define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
 
 #define XTIMER_INTERVAL 50
+#define M_PI 3.14159265358979323846
 
-#define XLIGHTS_ANIMATION_FILE "xlights_animation.xml"
-#define XLIGHTS_NETWORK_FILE   "xlights_networks.xml"
-#define XLIGHTS_CHANNEL_FILE   "xlights_channels.csv"
-#define XLIGHTS_SCHEDULE_FILE  "xlights_schedule.xml"
-#define XLIGHTS_RGBEFFECTS_FILE  "xlights_rgbeffects.xml"
-#define XLIGHTS_SEQUENCE_EXT   "xseq"
+#define XLIGHTS_ANIMATION_FILE     "xlights_animation.xml"
+#define XLIGHTS_NETWORK_FILE       "xlights_networks.xml"
+#define XLIGHTS_CHANNEL_FILE       "xlights_channels.csv"
+#define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
+#define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
+#define XLIGHTS_RGBEFFECTS_VERSION "0001"
+#define XLIGHTS_SEQUENCE_EXT       "xseq"
 
 #define XLIGHTS_DESCRIPTION "Use xLights to control you holiday light display"
 

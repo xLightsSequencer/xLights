@@ -40,7 +40,6 @@ typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 
 #define rgb_MAX_BALLS 20
-#define PI 3.14159265
 
 class RgbFireworks
 {
@@ -56,17 +55,19 @@ public:
     float angle;
     bool _bActive;
     int _cycles;
+    wxImage::HSVValue _hsv;
 
-    void Reset(int x, int y, bool active, float velocity)
+    void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv)
     {
-        _x = x;
-        _y = y;
-        vel = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-        angle = 2*M_PI*rand()/RAND_MAX;
-        _dx = vel*cos(angle);
-        _dy = vel*sin(angle);
+        _x       = x;
+        _y       = y;
+        vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
+        angle    = 2*M_PI*rand()/RAND_MAX;
+        _dx      = vel*cos(angle);
+        _dy      = vel*sin(angle);
         _bActive = active;
-        _cycles = 0;
+        _cycles  = 0;
+        _hsv     = hsv;
     }
 protected:
 private:
@@ -100,8 +101,8 @@ public:
     {
         _x=x+r*cos(_t);
         _y=y+r*sin(_t);
-        _t+=dir* (PI/9.0);
-        dir *= _t < PI/6.0 || _t > (2*PI)/3?-1.0:1.0;
+        _t+=dir* (M_PI/9.0);
+        dir *= _t < M_PI/6.0 || _t > (2*M_PI)/3?-1.0:1.0;
     }
     void updatePosition(float incr, int width, int height)
     {
@@ -132,22 +133,18 @@ public:
     wxImage::HSVValue hsv;
 };
 
-typedef std::list<MeteorClass> MeteorList;
-
-class MeteorHasExpired
+// for radial meteor effect
+class MeteorRadialClass
 {
-    int TailLength;
 public:
-    MeteorHasExpired(int t)
-        : TailLength(t)
-    {}
 
-    // operator() is what's called when you do MeteorHasExpired()
-    bool operator()(const MeteorClass& obj)
-    {
-        return obj.y + TailLength < 0;
-    }
+    double x,y,dx,dy;
+    int cnt;
+    wxImage::HSVValue hsv;
 };
+
+typedef std::list<MeteorClass> MeteorList;
+typedef std::list<MeteorRadialClass> MeteorRadialList;
 
 
 class SnowstormClass
@@ -190,7 +187,9 @@ public:
 
     size_t Size()
     {
-        return color.size();
+        size_t colorcnt=color.size();
+        if (colorcnt < 1) colorcnt=1;
+        return colorcnt;
     }
 
     void GetColor(size_t idx, wxColour& c)
@@ -239,7 +238,7 @@ public:
     void RenderFire(int HeightPct,int HueShift,bool GrowFire);
     void RenderGarlands(int GarlandType, int Spacing);
     void RenderLife(int Count, int Type);
-    void RenderMeteors(int MeteorType, int Count, int Length,bool FallUp,int MeteorsEffect,int SwirlIntensity);
+    void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
@@ -252,7 +251,7 @@ public:
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                        bool radial, int start_x, int start_y);
+                        bool radial, bool radial_3D,  int start_x, int start_y);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
@@ -293,9 +292,14 @@ protected:
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
     void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown);
+    void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
+    void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
+    void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
+    void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
 
 
     int BufferHt,BufferWi;  // size of the buffer
+    int DiagLen;  // length of the diagonal
     wxColourVector pixels; // this is the calculation buffer
     wxColourVector tempbuf;
     wxColourVector FirePalette;
@@ -304,6 +308,7 @@ protected:
     std::vector<int> WaveBuffer1;
     std::vector<int> WaveBuffer2;
     MeteorList meteors;
+    MeteorRadialList meteorsRadial;
     SnowstormList SnowstormItems;
     PaletteClass palette;
 
@@ -320,16 +325,19 @@ protected:
     long state;
     long LastLifeState;
     int speed;
-    int lastperiod;
+    int lastperiod, curPeriod;
     RgbFireworks fireworkBursts[20000];
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
-    long old_longsecs[1],timer_countdown[1];
+    long timer_countdown[1];
+
+    double GetEffectPeriodPosition();
+    double GetEffectTimeIntervalPosition();
 
 
 
 private:
-    void RenderRadial(int start_x,int start_y,int radius,int colorCnt);
+    void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
     void RenderCirclesUpdate(int number);
 };
 

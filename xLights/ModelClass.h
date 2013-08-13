@@ -108,7 +108,6 @@ private:
     void InitCustomMatrix(wxString customModel);
     void SetFromXmlAdvanced(wxXmlNode* ModelNode);
     void InitializeStringStartNum();
-    static const double PI  =3.141592653589793238462;
     bool modelv2;
 
 public:

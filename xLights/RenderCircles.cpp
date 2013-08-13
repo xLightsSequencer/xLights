@@ -25,20 +25,25 @@
 
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, int start_x, int start_y)
+                               bool radial, bool radial_3D, int start_x, int start_y)
 {
 
     int ii=0;
     int colorIdx;
-    size_t colorCnt = palette.Size();
+    size_t colorCnt=GetColorCount();
     wxImage::HSVValue hsv;
     float spd;
     float angle;
     static int numBalls = 0;
 
+    int i1=curEffStartPer;
+    int i2=curEffEndPer;
+    int i3=nextEffTimePeriod;
+
+
     if (radial)
     {
-        RenderRadial(start_x, start_y, radius, colorCnt);
+        RenderRadial(start_x, start_y, radius, colorCnt, number, radial_3D);
         return; //radial is the easiest case so just get out.
     }
 
@@ -102,7 +107,7 @@ void RgbEffects::RenderCirclesUpdate(int ballCnt)
     }
 }
 
-void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
+void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int number,bool radial_3D)
 {
     wxImage::HSVValue hsv;
     int ii,n;
@@ -113,6 +118,8 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
     int blockHt   = colorCnt*barht;
     int f_offset  = state/4 % (blockHt+1);
 
+//  int curEffStartPer, curEffEndPer, nextEffTimePeriod;
+
     barht = barht>0?barht:1;
     palette.GetHSV(0,hsv);
     for( ii = maxRadius ; ii >= 0;  ii--)
@@ -121,6 +128,13 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt)
         colorIdx = (n)%blockHt/barht;
         palette.GetHSV(colorIdx,hsv);
 
+        if(radial_3D)
+        {
+            hsv.hue = 1.0*(ii+state)/(maxRadius/number);
+            if(hsv.hue>1.0) hsv.hue=hsv.hue-(long)hsv.hue;
+            hsv.saturation=1.0;
+            hsv.value=1.0;
+        }
         DrawCircle(x, y, ii, hsv);
     }
 }

@@ -154,6 +154,7 @@ public:
     xLightsFrame(wxWindow* parent,wxWindowID id = -1);
     virtual ~xLightsFrame();
 
+
     // these are added to 1000*pagenum to get the control id
     enum PlayListIds
     {
@@ -200,8 +201,10 @@ public:
         eff_NONE,
         eff_BARS,
         eff_BUTTERFLY,
+        eff_CIRCLES,
         eff_COLORWASH,
         eff_FIRE,
+        eff_FIREWORKS,
         eff_GARLANDS,
         eff_LIFE,
         eff_METEORS,
@@ -209,12 +212,10 @@ public:
         eff_SNOWFLAKES,
         eff_SNOWSTORM,
         eff_SPIRALS,
-        eff_TEXT,
-        eff_TWINKLE,
-        eff_TREE,
         eff_SPIROGRAPH,
-        eff_FIREWORKS,
-        eff_CIRCLES,
+        eff_TEXT,
+        eff_TREE,
+        eff_TWINKLE,
         eff_PIANO,
         eff_LASTEFFECT //Always the last entry
     };
@@ -806,6 +807,7 @@ private:
 //    void OnCheckBox_PaletteClick(wxCommandEvent& event);
     void PresetsSelect();
     void LoadEffectsFile();
+    wxString LoadEffectsFileNoCheck();
     bool SaveEffectsFile();
     void CreateDefaultEffectsXml();
     void UpdateEffectsList();
@@ -813,7 +815,7 @@ private:
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
     void PlayRgbEffect(int EffectPeriod);
-    void PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
+    bool PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
 
@@ -831,12 +833,13 @@ private:
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
-    void LoadEffectFromString(wxString settings, MapStringString& SettingsMap);
+    void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl();
     void UpdateEffectDuration();
+    void ResetEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    void RenderEffectFromString(int layer, int period, MapStringString& SettingsMap);
+    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
     void DisplayEffectOnWindow();
@@ -851,6 +854,9 @@ private:
     void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
     wxString CreateEffectStringRandom();
+    wxString InsertMissing(wxString str,wxString missing_array,bool INSERT);
+    void FixVersionDifferences(wxString file);
+    void BackupDirectory(wxString targetDirName);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -874,7 +880,7 @@ private:
     wxArrayString EffectDirections;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
-
+    wxGridCellCoords *curCell;
 
     DECLARE_EVENT_TABLE()
 };
