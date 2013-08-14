@@ -108,9 +108,20 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
     int SpiralCount=colorcnt * PaletteRepeat;
     int deltaStrands=BufferWi / SpiralCount;
     int SpiralThickness=(deltaStrands * Thickness / 100) + 1;
+    int spiralGap = deltaStrands - SpiralThickness;
     long SpiralState=state*Direction;
     wxImage::HSVValue hsv;
     wxColour color;
+
+    if (((state/spiralGap)%2)==0){
+        SpiralThickness += state%(spiralGap);
+    }
+    else
+    {
+        SpiralThickness +=spiralGap-state%(spiralGap);
+    }
+    //SpiralThickness += (((state/deltaStrands)/2)==0?state%deltaStrands:(deltaStrands-state%deltaStrands));
+
     for(int ns=0; ns < SpiralCount; ns++)
     {
         strand_base=ns * deltaStrands;

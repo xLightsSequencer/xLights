@@ -36,11 +36,28 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     float angle;
     static int numBalls = 0;
 
-    int i1=curEffStartPer;
-    int i2=curEffEndPer;
-    int i3=nextEffTimePeriod;
+    if ( 0 == state || number != numBalls)
+    {
+        numBalls = number;
+        for(ii=0; ii<number; ii++)
+        {
+            start_x = rand()%(BufferWi);
+            start_y = rand()%(BufferHt);
+            colorIdx = ii%colorCnt;
+            palette.GetHSV(colorIdx, hsv);
+            spd = rand()%3 + 1;
+            angle = rand()%2?rand()%90:-rand()%90;
+            metaballs[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+        }
+    }
+    else
+    {
+        RenderCirclesUpdate(number);
+    }
 
+    RenderMetaBalls(numBalls);
 
+#if 0
     if (radial)
     {
         RenderRadial(start_x, start_y, radius, colorCnt, number, radial_3D);
@@ -95,7 +112,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
             }
         }
     }
-
+#endif
 }
 
 void RgbEffects::RenderCirclesUpdate(int ballCnt)
@@ -103,7 +120,8 @@ void RgbEffects::RenderCirclesUpdate(int ballCnt)
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        balls[ii].updatePosition(speed/4, BufferWi, BufferHt);
+        //balls[ii].updatePosition(speed/4, BufferWi, BufferHt);
+        metaballs[ii].updatePosition(speed/4, BufferWi, BufferHt);
     }
 }
 
@@ -136,6 +154,42 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
             hsv.value=1.0;
         }
         DrawCircle(x, y, ii, hsv);
+    }
+}
+
+
+
+void RgbEffects::RenderMetaBalls(int numBalls)
+{
+    int row, col, ii;
+    float sum, val;
+    wxImage::HSVValue hsv, temp;
+
+    for(row=0;row<BufferHt;row++)
+    {
+        for(col=0;col<BufferWi;col++)
+        {
+            sum = 0;
+            hsv.hue=0.0;
+            hsv.saturation=0.0;
+            hsv.value=0.0;
+
+            for (ii=0; ii<numBalls; ii++)
+            {
+                val =  metaballs[ii].Equation((float)col,(float)row);
+                sum+= val;
+                temp = metaballs[ii].hsvcolor;
+                if(val > 0.30)
+                {
+                    temp.value=val>1.0?1.0:val;
+                    hsv = Get2ColorAdditive(hsv, temp);
+                }
+            }
+            if(sum >= 0.90)
+            {
+                SetPixel(col,row, hsv);
+            }
+        }
     }
 }
 
