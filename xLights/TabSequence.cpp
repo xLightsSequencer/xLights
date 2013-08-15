@@ -98,11 +98,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)
 {
-    EffectTreeDialog dia(this);
-    dia.InitItems(EffectsNode);
-    dia.ShowModal();
+    EffectTreeDialog *dia = new EffectTreeDialog(this);
+    dia->InitItems(EffectsNode);
+    dia->Show();
 
-    EffectListDialog dialog(this);
+    /*EffectListDialog dialog(this);
     wxString name;
     for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -118,7 +118,7 @@ void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)
     dialog.ShowModal();
     UpdateEffectsList();
     PresetsSelect();
-    SaveEffectsFile();
+    SaveEffectsFile();*/
 }
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)

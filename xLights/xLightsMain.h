@@ -195,6 +195,7 @@ public:
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
     void SetEffectControls(wxString settings);
     wxXmlNode* CreateEffectNode(wxString& name);
+    bool SaveEffectsFile();
 
     enum RGB_EFFECTS_e
     {
@@ -808,7 +809,6 @@ private:
     void PresetsSelect();
     void LoadEffectsFile();
     wxString LoadEffectsFileNoCheck();
-    bool SaveEffectsFile();
     void CreateDefaultEffectsXml();
     void UpdateEffectsList();
     void UpdateModelsList();

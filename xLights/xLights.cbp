@@ -112,10 +112,10 @@
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
 		<Unit filename="EffectListDialog.h" />
-		<Unit filename="EffectsPanel.cpp" />
-		<Unit filename="EffectsPanel.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
+		<Unit filename="EffectsPanel.cpp" />
+		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
@@ -206,8 +206,8 @@
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/CustomModelDialog.wxs" />
-		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
+		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />

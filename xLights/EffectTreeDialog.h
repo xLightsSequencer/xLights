@@ -57,6 +57,7 @@ class EffectTreeDialog: public wxDialog
 		void OnbtRenameClick(wxCommandEvent& event);
 		void OnbtDeleteClick(wxCommandEvent& event);
 		void OnbtAddGroupClick(wxCommandEvent& event);
+		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
 		//*)
         wxWindow* xLightParent;
 		wxXmlNode *NcEffectsNode;
@@ -68,6 +69,9 @@ class EffectTreeDialog: public wxDialog
         bool CheckValidOperation(wxTreeItemId itemID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void FixupEffectsPresets(wxXmlNode *UserGroupNode);
+        void ApplyEffect();
+        bool PromptForName(wxString *name, wxString prompt, wxString errorMsg);
+        void SaveEffectsFile();
 
 		DECLARE_EVENT_TABLE()
 
@@ -76,12 +80,13 @@ class EffectTreeDialog: public wxDialog
 class MyTreeItemData : public wxTreeItemData
 {
 public:
-    MyTreeItemData(wxXmlNode* desc) {element=desc; }
+    MyTreeItemData(wxXmlNode* desc, bool isGroup=false) {element=desc; _isGroup=isGroup; }
 
     wxXmlNode *GetElement() { return element; }
-
+    bool IsGroup() { return _isGroup; }
 private:
     wxXmlNode *element;
+    bool _isGroup;
 };
 
 #endif
