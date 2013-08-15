@@ -142,6 +142,16 @@ void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, wxCo
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
 }
 
+HSVValue RgbEffects::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
+{
+    wxImage::RGBValue rgb;
+    wxImage::RGBValue rgb1 = wxImage::HSVtoRGB(hsv1);
+    wxImage::RGBValue rgb2 = wxImage::HSVtoRGB(hsv2);
+    rgb.red = rgb1.red + rgb2.red;
+    rgb.green = rgb1.green + rgb2.green;
+    rgb.blue = rgb1.blue + rgb2.blue;
+    return wxImage::RGBtoHSV(rgb);
+}
 // 0 <= n < 1
 void RgbEffects::GetMultiColorBlend(double n, bool circular, wxColour &color)
 {
@@ -159,6 +169,7 @@ void RgbEffects::GetMultiColorBlend(double n, bool circular, wxColour &color)
     double ratio=realidx-double(coloridx1);
     Get2ColorBlend(coloridx1,coloridx2,ratio,color);
 }
+
 
 // 0,0 is lower left
 void RgbEffects::SetPixel(int x, int y, const wxColour &color)

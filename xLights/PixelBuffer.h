@@ -85,7 +85,8 @@ public:
     void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
-    void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
+    void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+                       bool Blend, bool Show3D, bool grow, bool shrink);
     void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int Effect1,int Countdown1,
                     int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2);
     void RenderTwinkle(int Count,int Steps, bool Strobe);
@@ -94,7 +95,7 @@ public:
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial,  bool radial_3D, int start_x, int start_y);
+                               bool radial,  bool radial_3D, int start_x, int start_y, bool plasma);
 
 
     void CalcOutput(int EffectPeriod);

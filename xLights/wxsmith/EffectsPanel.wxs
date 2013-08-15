@@ -214,6 +214,14 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Plasma" variable="CheckBox_Circles_Plasma" member="yes">
+										<label>Plasma</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Collide" variable="CheckBox_Circles_Collide" member="yes">
 										<label>Collide</label>
 										<hidden>1</hidden>
@@ -838,6 +846,22 @@
 								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX_Spirals_3D" variable="CheckBox_Spirals_3D" member="yes">
 										<label>3D</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirals_Grow" variable="CheckBox_Spirals_Grow" member="yes">
+										<label>Grow</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_Spirals_Shrink" variable="CheckBox_Spirlas_Shrink" member="yes">
+										<label>Shrink</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>

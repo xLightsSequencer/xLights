@@ -423,9 +423,10 @@ void PixelBufferClass::RenderSnowstorm(int Count, int Length)
     Effect[CurrentLayer].RenderSnowstorm(Count,Length);
 }
 
-void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D)
+void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+                                     bool Blend, bool Show3D, bool grow, bool shrink)
 {
-    Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D);
+    Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
 void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int Effect1,int Countdown1,
@@ -462,7 +463,7 @@ void PixelBufferClass::RenderPiano(int Keyboard)
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D,  int start_x, int start_y)
+                               bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
 {
-    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y);
+    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
 }

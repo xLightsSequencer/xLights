@@ -101,16 +101,30 @@ void bass()
 }
 */
 
-void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D)
+void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+                               bool Blend, bool Show3D, bool grow, bool shrink)
 {
     int strand_base,strand,thick,x,y,ColorIdx;
     size_t colorcnt=GetColorCount();
     int SpiralCount=colorcnt * PaletteRepeat;
     int deltaStrands=BufferWi / SpiralCount;
     int SpiralThickness=(deltaStrands * Thickness / 100) + 1;
+    int spiralGap = deltaStrands - SpiralThickness;
     long SpiralState=state*Direction;
+    long ThicknessState = state/10;
     wxImage::HSVValue hsv;
     wxColour color;
+
+
+    if (grow && (!shrink || ((ThicknessState/spiralGap)%2)==0))
+    {
+        SpiralThickness += ThicknessState%(spiralGap);
+    }
+    else if (shrink && (!grow || ((ThicknessState/spiralGap)%2)==1))
+    {
+        SpiralThickness +=spiralGap-ThicknessState%(spiralGap);
+    }
+
     for(int ns=0; ns < SpiralCount; ns++)
     {
         strand_base=ns * deltaStrands;

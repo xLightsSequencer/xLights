@@ -283,7 +283,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
     wxString s;
     s.clear();
 
-    eff1 = rand() % eff_LASTEFFECT; //Temporarily prevent choosing to do a circle.
+    eff1 = rand() % eff_LASTEFFECT;
     eff2 = rand() % eff_LASTEFFECT;
     eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
     eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
@@ -835,7 +835,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Rotation")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Thickness")]),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Blend")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_3D")]==wxT("1"));
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_3D")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Grow")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Shrink")]==wxT("1")
+                             );
     }
     else if (effect == wxT("Text"))
     {
@@ -890,7 +893,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
-                             buffer.BufferWi/2, buffer.BufferHt/2
+                             buffer.BufferWi/2, buffer.BufferHt/2,
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Plasma")]==wxT("1")
                             );
 
     }
@@ -975,7 +979,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Spirals_Rotation->GetValue(),
                              panel->Slider_Spirals_Thickness->GetValue(),
                              panel->CheckBox_Spirals_Blend->GetValue(),
-                             panel->CheckBox_Spirals_3D->GetValue());
+                             panel->CheckBox_Spirals_3D->GetValue(),
+                             panel->CheckBox_Spirals_Grow->GetValue(),
+                             panel->CheckBox_Spirlas_Shrink->GetValue());
         break;
     case eff_TEXT:
         buffer.RenderText(panel->Slider_Text_Position1->GetValue(),
@@ -1024,7 +1030,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Circles_Random_m->GetValue(),
                              panel->CheckBox_Circles_Radial->GetValue(),
                              panel->CheckBox_Circles_Radial_3D->GetValue(),
-                             buffer.BufferWi/2, buffer.BufferHt/2 //temp hard coding.
+                             buffer.BufferWi/2, buffer.BufferHt/2, //temp hard coding.
+                             panel->CheckBox_Circles_Plasma->GetValue()
                             );
 
         break;

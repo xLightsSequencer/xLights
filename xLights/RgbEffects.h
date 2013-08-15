@@ -38,6 +38,7 @@
 typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
+typedef wxImage::HSVValue HSVValue;
 
 #define rgb_MAX_BALLS 20
 
@@ -122,6 +123,16 @@ public:
         _dy = _y+_radius>=height?-_dy:_dy;
     }
 
+};
+
+class MetaBall : public RgbBalls
+{
+public:
+    float Equation(float x, float y)
+    {
+        if(x==_x || y==_y) return 1;
+        return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
+    }
 };
 
 // for meteor effect
@@ -242,7 +253,8 @@ public:
     void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
     void RenderSnowflakes(int Count, int SnowflakeType);
     void RenderSnowstorm(int Count, int Length);
-    void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness, bool Blend, bool Show3D);
+    void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+                       bool Blend, bool Show3D, bool grow, bool shrink);
     void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,int Effect1,
                     int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,int Effect2);
     void RenderTwinkle(int Count,int Steps,bool Strobe);
@@ -251,7 +263,8 @@ public:
     void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
     void RenderPiano(int Keyboard);
     void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                        bool radial, bool radial_3D,  int start_x, int start_y);
+                        bool radial, bool radial_3D,  int start_x, int start_y, bool plasma);
+    void RenderMetaBalls(int numBalls);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
@@ -295,8 +308,8 @@ protected:
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
+    HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
-
 
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal
@@ -333,12 +346,12 @@ protected:
 
     double GetEffectPeriodPosition();
     double GetEffectTimeIntervalPosition();
-
+    MetaBall metaballs[10];
 
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
-    void RenderCirclesUpdate(int number);
+    void RenderCirclesUpdate(int number, RgbBalls* effObjs);
 };
 
 #endif // XLIGHTS_RGBEFFECTS_H

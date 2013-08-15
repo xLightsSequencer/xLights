@@ -25,7 +25,7 @@
 
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D, int start_x, int start_y)
+                               bool radial, bool radial_3D, int start_x, int start_y, bool plasma)
 {
 
     int ii=0;
@@ -35,11 +35,17 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     float spd;
     float angle;
     static int numBalls = 0;
+    RgbBalls *effectObjects;
+    static bool metaType=false;
 
-    int i1=curEffStartPer;
-    int i2=curEffEndPer;
-    int i3=nextEffTimePeriod;
-
+    if(plasma)
+    {
+        effectObjects = metaballs;
+    }
+    else
+    {
+        effectObjects = balls;
+    }
 
     if (radial)
     {
@@ -47,8 +53,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         return; //radial is the easiest case so just get out.
     }
 
-
-    if ( 0 == state || radius != balls[ii]._radius || number != numBalls)
+    if ( 0 == state || radius != effectObjects[ii]._radius || number != numBalls || metaType != plasma)
     {
         numBalls = number;
         for(ii=0; ii<number; ii++)
@@ -59,12 +64,13 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
             palette.GetHSV(colorIdx, hsv);
             spd = rand()%3 + 1;
             angle = rand()%2?rand()%90:-rand()%90;
-            balls[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+            effectObjects[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
         }
+        metaType=plasma;
     }
     else
     {
-        RenderCirclesUpdate(number);
+        RenderCirclesUpdate(number, effectObjects);
     }
 
     if (bounce)
@@ -72,7 +78,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         //update position in case something hit a wall
         for(ii = 0; ii < number; ii++)
         {
-            balls[ii].Bounce(BufferWi,BufferHt);
+            effectObjects[ii].Bounce(BufferWi,BufferHt);
         }
     }
     if(collide)
@@ -80,30 +86,36 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         //update position if two balls collided
     }
 
-    for (ii=0; ii<number; ii++)
+    if (plasma)
     {
-        hsv = balls[ii].hsvcolor;
-        for(int r = balls[ii]._radius; r >= 0; r--)
+        RenderMetaBalls(numBalls);
+    }
+    else
+    {
+        for (ii=0; ii<number; ii++)
         {
-            if(!bounce && !collide)
+            hsv = balls[ii].hsvcolor;
+            for(int r = balls[ii]._radius; r >= 0; r--)
             {
-                DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
-            }
-            else
-            {
-                DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
+                if(!bounce && !collide)
+                {
+                    DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
+                }
+                else
+                {
+                    DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
+                }
             }
         }
     }
-
 }
 
-void RgbEffects::RenderCirclesUpdate(int ballCnt)
+void RgbEffects::RenderCirclesUpdate(int ballCnt, RgbBalls* effObjs)
 {
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        balls[ii].updatePosition(speed/4, BufferWi, BufferHt);
+        effObjs[ii].updatePosition((float)speed/4.0, BufferWi, BufferHt);
     }
 }
 
@@ -136,6 +148,42 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
             hsv.value=1.0;
         }
         DrawCircle(x, y, ii, hsv);
+    }
+}
+
+
+
+void RgbEffects::RenderMetaBalls(int numBalls)
+{
+    int row, col, ii;
+    float sum, val;
+    wxImage::HSVValue hsv, temp;
+
+    for(row=0;row<BufferHt;row++)
+    {
+        for(col=0;col<BufferWi;col++)
+        {
+            sum = 0;
+            hsv.hue=0.0;
+            hsv.saturation=0.0;
+            hsv.value=0.0;
+
+            for (ii=0; ii<numBalls; ii++)
+            {
+                val =  metaballs[ii].Equation((float)col,(float)row);
+                sum+= val;
+                temp = metaballs[ii].hsvcolor;
+                if(val > 0.30)
+                {
+                    temp.value=val>1.0?1.0:val;
+                    hsv = Get2ColorAdditive(hsv, temp);
+                }
+            }
+            if(sum >= 0.90)
+            {
+                SetPixel(col,row, hsv);
+            }
+        }
     }
 }
 

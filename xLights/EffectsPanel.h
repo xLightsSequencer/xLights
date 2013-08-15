@@ -35,12 +35,14 @@ class EffectsPanel: public wxPanel
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(EffectsPanel)
+		wxCheckBox* CheckBox_Circles_Plasma;
 		wxPanel* Panel1_Life;
 		wxButton* Button_Text_Font2;
 		wxStaticText* StaticText93;
 		wxSlider* Slider_Fireworks_Number_Explosions;
 		wxStaticText* StaticText79;
 		wxTextCtrl* TextCtrl_Fadein;
+		wxCheckBox* CheckBox_Spirals_Grow;
 		wxSlider* Slider_Speed;
 		wxStaticText* StaticText100;
 		wxStaticText* StaticText32;
@@ -201,6 +203,7 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Spirograph_Animate;
 		wxCheckBox* CheckBox_Circles_Bounce;
 		wxSlider* Slider_Spirals_Direction;
+		wxCheckBox* CheckBox_Spirlas_Shrink;
 		wxCheckBox* CheckBox_Spirals_3D;
 		wxButton* Button_Palette2;
 		wxPanel* Panel1_Bars;
@@ -236,6 +239,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHECKBOX_Circles_Bounce;
 		static const long ID_CHECKBOX_Circles_Radial;
 		static const long ID_CHECKBOX_Circles_Radial_3D;
+		static const long ID_CHECKBOX_Circles_Plasma;
 		static const long ID_CHECKBOX_Circles_Collide;
 		static const long ID_CHECKBOX_Circles_Random_m;
 		static const long ID_PANEL37;
@@ -310,6 +314,8 @@ class EffectsPanel: public wxPanel
 		static const long ID_SLIDER_Spirals_Direction;
 		static const long ID_CHECKBOX_Spirals_Blend;
 		static const long ID_CHECKBOX_Spirals_3D;
+		static const long ID_CHECKBOX_Spirals_Grow;
+		static const long ID_CHECKBOX_Spirals_Shrink;
 		static const long ID_PANEL26;
 		static const long ID_STATICTEXT88;
 		static const long ID_SLIDER_Spirograph_R;
