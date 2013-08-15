@@ -1145,6 +1145,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BarEffectDirections.Add("down");
     BarEffectDirections.Add("expand");
     BarEffectDirections.Add("compress");
+    BarEffectDirections.Add("Left");
+    BarEffectDirections.Add("Right");
+    BarEffectDirections.Add("H-expand");
+    BarEffectDirections.Add("H-compress");
 
     ButterflyEffectColors.Add("Rainbow");
     ButterflyEffectColors.Add("Palette");
