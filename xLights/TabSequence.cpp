@@ -1452,8 +1452,8 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     */
     //
 
-    Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
-    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
+ //   Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
+//    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
     Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
     Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
     Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
@@ -1506,8 +1506,8 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_CHECKBOX_ColorWash2_VFade|E2_CHECKBOX_ColorWash_VFade");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Fire1_GrowFire|E1_CHECKBOX_Fire_GrowFire");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Fire2_GrowFire|E2_CHECKBOX_Fire_GrowFire");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
+//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
+//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_1|E1_CHECKBOX_Palette1");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_2|E1_CHECKBOX_Palette2");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_3|E1_CHECKBOX_Palette3");
@@ -1668,6 +1668,12 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
     replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
     //
+    //
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp");
+     replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp");
+    //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
+//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
+//
 
 //    E1_TEXTCTRL_Text_Font1=
 //	,E1_CHOICE_Text_Dir1=left
