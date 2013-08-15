@@ -25,7 +25,7 @@
 
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D, int start_x, int start_y)
+                               bool radial, bool radial_3D, int start_x, int start_y, bool plasma)
 {
 
     int ii=0;
@@ -35,37 +35,25 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     float spd;
     float angle;
     static int numBalls = 0;
+    RgbBalls *effectObjects;
+    static bool metaType=false;
 
-    if ( 0 == state || number != numBalls)
+    if(plasma)
     {
-        numBalls = number;
-        for(ii=0; ii<number; ii++)
-        {
-            start_x = rand()%(BufferWi);
-            start_y = rand()%(BufferHt);
-            colorIdx = ii%colorCnt;
-            palette.GetHSV(colorIdx, hsv);
-            spd = rand()%3 + 1;
-            angle = rand()%2?rand()%90:-rand()%90;
-            metaballs[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
-        }
+        effectObjects = metaballs;
     }
     else
     {
-        RenderCirclesUpdate(number);
+        effectObjects = balls;
     }
 
-    RenderMetaBalls(numBalls);
-
-#if 0
     if (radial)
     {
         RenderRadial(start_x, start_y, radius, colorCnt, number, radial_3D);
         return; //radial is the easiest case so just get out.
     }
 
-
-    if ( 0 == state || radius != balls[ii]._radius || number != numBalls)
+    if ( 0 == state || radius != effectObjects[ii]._radius || number != numBalls || metaType != plasma)
     {
         numBalls = number;
         for(ii=0; ii<number; ii++)
@@ -76,12 +64,13 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
             palette.GetHSV(colorIdx, hsv);
             spd = rand()%3 + 1;
             angle = rand()%2?rand()%90:-rand()%90;
-            balls[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+            effectObjects[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
         }
+        metaType=plasma;
     }
     else
     {
-        RenderCirclesUpdate(number);
+        RenderCirclesUpdate(number, effectObjects);
     }
 
     if (bounce)
@@ -89,7 +78,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         //update position in case something hit a wall
         for(ii = 0; ii < number; ii++)
         {
-            balls[ii].Bounce(BufferWi,BufferHt);
+            effectObjects[ii].Bounce(BufferWi,BufferHt);
         }
     }
     if(collide)
@@ -97,31 +86,36 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         //update position if two balls collided
     }
 
-    for (ii=0; ii<number; ii++)
+    if (plasma)
     {
-        hsv = balls[ii].hsvcolor;
-        for(int r = balls[ii]._radius; r >= 0; r--)
+        RenderMetaBalls(numBalls);
+    }
+    else
+    {
+        for (ii=0; ii<number; ii++)
         {
-            if(!bounce && !collide)
+            hsv = balls[ii].hsvcolor;
+            for(int r = balls[ii]._radius; r >= 0; r--)
             {
-                DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
-            }
-            else
-            {
-                DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
+                if(!bounce && !collide)
+                {
+                    DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
+                }
+                else
+                {
+                    DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
+                }
             }
         }
     }
-#endif
 }
 
-void RgbEffects::RenderCirclesUpdate(int ballCnt)
+void RgbEffects::RenderCirclesUpdate(int ballCnt, RgbBalls* effObjs)
 {
     int ii;
     for (ii=0; ii <ballCnt; ii++)
     {
-        //balls[ii].updatePosition(speed/4, BufferWi, BufferHt);
-        metaballs[ii].updatePosition(speed/4, BufferWi, BufferHt);
+        effObjs[ii].updatePosition((float)speed/4.0, BufferWi, BufferHt);
     }
 }
 
