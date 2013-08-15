@@ -52,3 +52,7 @@ EffectDialogv2::~EffectDialogv2()
 	//*)
 }
 
+void EffectDialogv2::PrepItems(wxXmlNode* e)
+{
+    treeRootID = TreeCtrl1->
+}

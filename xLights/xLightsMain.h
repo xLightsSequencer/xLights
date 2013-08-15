@@ -57,6 +57,7 @@
 #include <map>
 #include <vector>
 
+#include "EffectTreeDialog.h"
 #include "../include/globals.h"
 #include "xlights_out.h"
 #include "PlayerFrame.h"
@@ -74,6 +75,8 @@
 #include "PixelBuffer.h"
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
+
+class EffectTreeDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -192,6 +195,9 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
+    void SetEffectControls(wxString settings);
+    wxXmlNode* CreateEffectNode(wxString& name);
+    bool SaveEffectsFile();
 
     enum RGB_EFFECTS_e
     {
@@ -231,6 +237,7 @@ public:
     };
     EffectNamesVector EffectNames;
     EffectLayerOptionsVector EffectLayerOptions;
+    wxString CurrentDir;
 
 private:
 
@@ -419,13 +426,10 @@ private:
     static const long ID_SCROLLEDWINDOW1;
     static const long ID_BUTTON13;
     static const long ID_BUTTON3;
-    static const long ID_BUTTON_Palette;
     static const long ID_BUTTON58;
     static const long ID_CHOICE7;
     static const long ID_BUTTON59;
-    static const long ID_CHOICE2;
-    static const long ID_BUTTON9;
-    static const long ID_BUTTON8;
+    static const long ID_BUTTON_Palette;
     static const long ID_CHOICE_LayerMethod;
     static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
@@ -543,7 +547,6 @@ private:
     wxChoice* ChoiceOutputFormat;
     wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText6;
-    wxChoice* Choice_Presets;
     wxSplitterWindow* SplitterWindow2;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonDim;
@@ -568,7 +571,6 @@ private:
     wxSlider* Slider_EffectLayerMix;
     wxButton* ButtonDisplayElements;
     wxStaticText* StaticText3;
-    wxButton* Button_PresetAdd;
     wxGrid* Grid1;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbAlt;
@@ -614,7 +616,6 @@ private:
     wxSlider* Slider_SparkleFrequency;
     wxButton* ButtonShowDatesChange;
     wxRadioButton* RadioButtonRgbTwinkle25;
-    wxButton* Button_PresetUpdate;
     wxRadioButton* RadioButtonRgbShimmer;
     wxCheckBox* CheckBoxLightOutput;
     wxStaticText* StaticText15;
@@ -666,7 +667,7 @@ private:
     wxStaticText* StaticTextSequenceFileName;
     //*)
 
-    wxString CurrentDir;
+
     wxFileName networkFile;
     wxFileName scheduleFile;
     PlayerFrame* PlayerDlg;
@@ -805,7 +806,6 @@ private:
     void PresetsSelect();
     void LoadEffectsFile();
     wxString LoadEffectsFileNoCheck();
-    bool SaveEffectsFile();
     void CreateDefaultEffectsXml();
     void UpdateEffectsList();
     void UpdateModelsList();
@@ -815,8 +815,8 @@ private:
     bool PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
-    void SetEffectControls(wxString settings);
-    wxXmlNode* CreateEffectNode(wxString& name);
+
+
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
     void ChooseModelsForSequence();
@@ -878,6 +878,7 @@ private:
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxGridCellCoords *curCell;
+    EffectTreeDialog *EffectTreeDlg;
 
     DECLARE_EVENT_TABLE()
 };

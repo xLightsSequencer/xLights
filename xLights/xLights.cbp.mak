@@ -40,9 +40,9 @@ OBJDIR_RELEASELINUX = .objs
 DEP_RELEASELINUX = 
 OUT_RELEASELINUX = ../bin/xLights
 
-OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/EffectsPanel.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/CustomModelDialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderPiano.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderCircles.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o
+OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/EffectsPanel.o $(OBJDIR_DEBUGLINUX)/EffectTreeDialog.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/CustomModelDialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderPiano.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderCircles.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o
 
-OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/EffectsPanel.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/CustomModelDialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderPiano.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderCircles.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o
+OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/EffectsPanel.o $(OBJDIR_RELEASELINUX)/EffectTreeDialog.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/CustomModelDialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderPiano.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderCircles.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o
 
 all: debuglinux releaselinux
 
@@ -86,6 +86,9 @@ $(OBJDIR_DEBUGLINUX)/RgbEffects.o: RgbEffects.cpp
 $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderTwinkle.cpp -o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o
 
+$(OBJDIR_DEBUGLINUX)/RenderTree.o: RenderTree.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderTree.cpp -o $(OBJDIR_DEBUGLINUX)/RenderTree.o
+
 $(OBJDIR_DEBUGLINUX)/xlights_out.o: xlights_out.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c xlights_out.cpp -o $(OBJDIR_DEBUGLINUX)/xlights_out.o
 
@@ -94,12 +97,6 @@ $(OBJDIR_DEBUGLINUX)/xLightsMain.o: xLightsMain.cpp
 
 $(OBJDIR_DEBUGLINUX)/xLightsApp.o: xLightsApp.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c xLightsApp.cpp -o $(OBJDIR_DEBUGLINUX)/xLightsApp.o
-
-$(OBJDIR_DEBUGLINUX)/RenderTree.o: RenderTree.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderTree.cpp -o $(OBJDIR_DEBUGLINUX)/RenderTree.o
-
-$(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c PaletteMgmtDialog.cpp -o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o
 
 $(OBJDIR_DEBUGLINUX)/NetInfo.o: NetInfo.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c NetInfo.cpp -o $(OBJDIR_DEBUGLINUX)/NetInfo.o
@@ -116,6 +113,9 @@ $(OBJDIR_DEBUGLINUX)/ModelClass.o: ModelClass.cpp
 $(OBJDIR_DEBUGLINUX)/EffectsPanel.o: EffectsPanel.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c EffectsPanel.cpp -o $(OBJDIR_DEBUGLINUX)/EffectsPanel.o
 
+$(OBJDIR_DEBUGLINUX)/EffectTreeDialog.o: EffectTreeDialog.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c EffectTreeDialog.cpp -o $(OBJDIR_DEBUGLINUX)/EffectTreeDialog.o
+
 $(OBJDIR_DEBUGLINUX)/EffectListDialog.o: EffectListDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c EffectListDialog.cpp -o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o
 
@@ -131,8 +131,8 @@ $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_DEBUGLINUX)/RenderFire.o: RenderFire.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFire.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFire.o
+$(OBJDIR_DEBUGLINUX)/AddShowDialog.o: AddShowDialog.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c AddShowDialog.cpp -o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o
 
 $(OBJDIR_DEBUGLINUX)/RenderText.o: RenderText.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderText.cpp -o $(OBJDIR_DEBUGLINUX)/RenderText.o
@@ -167,8 +167,8 @@ $(OBJDIR_DEBUGLINUX)/RenderGarlands.o: RenderGarlands.cpp
 $(OBJDIR_DEBUGLINUX)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFireworks.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o
 
-$(OBJDIR_DEBUGLINUX)/AddShowDialog.o: AddShowDialog.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c AddShowDialog.cpp -o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o
+$(OBJDIR_DEBUGLINUX)/RenderFire.o: RenderFire.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFire.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFire.o
 
 $(OBJDIR_DEBUGLINUX)/RenderColorWash.o: RenderColorWash.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderColorWash.cpp -o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o
@@ -190,6 +190,9 @@ $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
 
 $(OBJDIR_DEBUGLINUX)/PixelBuffer.o: PixelBuffer.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c PixelBuffer.cpp -o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o
+
+$(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c PaletteMgmtDialog.cpp -o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o
 
 clean_debuglinux: 
 	rm -f $(OBJ_DEBUGLINUX) $(OUT_DEBUGLINUX)
@@ -232,6 +235,9 @@ $(OBJDIR_RELEASELINUX)/RgbEffects.o: RgbEffects.cpp
 $(OBJDIR_RELEASELINUX)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderTwinkle.cpp -o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o
 
+$(OBJDIR_RELEASELINUX)/RenderTree.o: RenderTree.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderTree.cpp -o $(OBJDIR_RELEASELINUX)/RenderTree.o
+
 $(OBJDIR_RELEASELINUX)/xlights_out.o: xlights_out.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c xlights_out.cpp -o $(OBJDIR_RELEASELINUX)/xlights_out.o
 
@@ -240,12 +246,6 @@ $(OBJDIR_RELEASELINUX)/xLightsMain.o: xLightsMain.cpp
 
 $(OBJDIR_RELEASELINUX)/xLightsApp.o: xLightsApp.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c xLightsApp.cpp -o $(OBJDIR_RELEASELINUX)/xLightsApp.o
-
-$(OBJDIR_RELEASELINUX)/RenderTree.o: RenderTree.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderTree.cpp -o $(OBJDIR_RELEASELINUX)/RenderTree.o
-
-$(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c PaletteMgmtDialog.cpp -o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o
 
 $(OBJDIR_RELEASELINUX)/NetInfo.o: NetInfo.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c NetInfo.cpp -o $(OBJDIR_RELEASELINUX)/NetInfo.o
@@ -262,6 +262,9 @@ $(OBJDIR_RELEASELINUX)/ModelClass.o: ModelClass.cpp
 $(OBJDIR_RELEASELINUX)/EffectsPanel.o: EffectsPanel.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c EffectsPanel.cpp -o $(OBJDIR_RELEASELINUX)/EffectsPanel.o
 
+$(OBJDIR_RELEASELINUX)/EffectTreeDialog.o: EffectTreeDialog.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c EffectTreeDialog.cpp -o $(OBJDIR_RELEASELINUX)/EffectTreeDialog.o
+
 $(OBJDIR_RELEASELINUX)/EffectListDialog.o: EffectListDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c EffectListDialog.cpp -o $(OBJDIR_RELEASELINUX)/EffectListDialog.o
 
@@ -277,8 +280,8 @@ $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_RELEASELINUX)/RenderFire.o: RenderFire.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFire.cpp -o $(OBJDIR_RELEASELINUX)/RenderFire.o
+$(OBJDIR_RELEASELINUX)/AddShowDialog.o: AddShowDialog.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c AddShowDialog.cpp -o $(OBJDIR_RELEASELINUX)/AddShowDialog.o
 
 $(OBJDIR_RELEASELINUX)/RenderText.o: RenderText.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderText.cpp -o $(OBJDIR_RELEASELINUX)/RenderText.o
@@ -313,8 +316,8 @@ $(OBJDIR_RELEASELINUX)/RenderGarlands.o: RenderGarlands.cpp
 $(OBJDIR_RELEASELINUX)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFireworks.cpp -o $(OBJDIR_RELEASELINUX)/RenderFireworks.o
 
-$(OBJDIR_RELEASELINUX)/AddShowDialog.o: AddShowDialog.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c AddShowDialog.cpp -o $(OBJDIR_RELEASELINUX)/AddShowDialog.o
+$(OBJDIR_RELEASELINUX)/RenderFire.o: RenderFire.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFire.cpp -o $(OBJDIR_RELEASELINUX)/RenderFire.o
 
 $(OBJDIR_RELEASELINUX)/RenderColorWash.o: RenderColorWash.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderColorWash.cpp -o $(OBJDIR_RELEASELINUX)/RenderColorWash.o
@@ -336,6 +339,9 @@ $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
 
 $(OBJDIR_RELEASELINUX)/PixelBuffer.o: PixelBuffer.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c PixelBuffer.cpp -o $(OBJDIR_RELEASELINUX)/PixelBuffer.o
+
+$(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c PaletteMgmtDialog.cpp -o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o
 
 clean_releaselinux: 
 	rm -f $(OBJ_RELEASELINUX) $(OUT_RELEASELINUX)
@@ -360,11 +366,13 @@ RgbEffects.cpp: RgbEffects.h
 
 RenderTwinkle.cpp: RgbEffects.h
 
+RenderTree.cpp: RgbEffects.h
+
 xlights_out.cpp: xlights_out.h serial.h
 
 xLightsMain.cpp: xLightsMain.h SerialPortWithRate.h E131Dialog.h xLightsBasic.cpp TabSetup.cpp TabTest.cpp TabConvert.cpp TabSchedule.cpp TabSequence.cpp
 
-xLightsMain.h: xlights_out.h PlayerFrame.h EffectsPanel.h AddShowDialog.h ShowDatesDialog.h PlaybackOptionsDialog.h ModelListDialog.h EffectListDialog.h SeqParmsDialog.h ChannelMapDialog.h SeqOpenDialog.h SeqExportDialog.h SeqElementMismatchDialog.h PixelBuffer.h NetInfo.h PaletteMgmtDialog.h
+xLightsMain.h: xlights_out.h PlayerFrame.h EffectsPanel.h AddShowDialog.h ShowDatesDialog.h PlaybackOptionsDialog.h ModelListDialog.h EffectListDialog.h SeqParmsDialog.h ChannelMapDialog.h SeqOpenDialog.h SeqExportDialog.h SeqElementMismatchDialog.h PixelBuffer.h NetInfo.h PaletteMgmtDialog.h EffectTreeDialog.h
 
 ModelListDialog.h: ModelClass.h
 
@@ -374,13 +382,11 @@ PixelBuffer.h: ModelClass.h RgbEffects.h
 
 PaletteMgmtDialog.h: EffectsPanel.h
 
+EffectTreeDialog.h: xLightsMain.h
+
 xLightsBasic.cpp: serial.h
 
 xLightsApp.cpp: xLightsApp.h xLightsMain.h
-
-RenderTree.cpp: RgbEffects.h
-
-PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
 
 NetInfo.cpp: NetInfo.h
 
@@ -392,6 +398,8 @@ ModelClass.cpp: ModelClass.h
 
 EffectsPanel.cpp: EffectsPanel.h
 
+EffectTreeDialog.cpp: EffectTreeDialog.h
+
 EffectListDialog.cpp: EffectListDialog.h
 
 E131Dialog.cpp: E131Dialog.h
@@ -402,7 +410,7 @@ ChannelMapDialog.cpp: ChannelMapDialog.h
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
-RenderFire.cpp: RgbEffects.h
+AddShowDialog.cpp: AddShowDialog.h
 
 RenderText.cpp: RgbEffects.h
 
@@ -426,7 +434,7 @@ RenderGarlands.cpp: RgbEffects.h
 
 RenderFireworks.cpp: RgbEffects.h
 
-AddShowDialog.cpp: AddShowDialog.h
+RenderFire.cpp: RgbEffects.h
 
 RenderColorWash.cpp: RgbEffects.h
 
@@ -441,6 +449,8 @@ PlayerFrame.cpp: PlayerFrame.h
 PlaybackOptionsDialog.cpp: PlaybackOptionsDialog.h
 
 PixelBuffer.cpp: PixelBuffer.h
+
+PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
 
 .PHONY: before_debuglinux after_debuglinux clean_debuglinux before_releaselinux after_releaselinux clean_releaselinux
 
