@@ -723,6 +723,7 @@ private:
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels);
     void ReadVixFile(const char* filename);
     void ReadLorFile(const char* filename);
+    void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);
