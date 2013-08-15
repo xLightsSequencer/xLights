@@ -65,6 +65,14 @@ void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
         wxMessageBox(_("No model is selected"), _("ERROR"));
         return;
     }
+    if (EffectTreeDlg != NULL)
+    {
+        EffectTreeDlg->Show(false);
+    }
+    if (EffectTreeDlg != NULL)
+    {
+        EffectTreeDlg->Show(false);
+    }
     wxXmlNode* ModelXml=(wxXmlNode*)Choice_Models->GetClientData(sel);
     buffer.InitBuffer(ModelXml);
     ResetEffectStates();
@@ -98,9 +106,12 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)
 {
-    EffectTreeDialog *dia = new EffectTreeDialog(this);
-    dia->InitItems(EffectsNode);
-    dia->Show();
+    if (EffectTreeDlg==NULL)
+    {
+        EffectTreeDlg = new EffectTreeDialog(this);
+        EffectTreeDlg->InitItems(EffectsNode);
+    }
+    EffectTreeDlg->Show();
 }
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)

@@ -8,11 +8,12 @@
 #include <wx/dialog.h>
 //*)
 #include <wx/xml/xml.h>
+#include <wx/filename.h>
 #include "xLightsMain.h"
 
 #define NCCOM_FILE wxT("nutcracker_com_effects.xml")
 
-class EffectTreeDialog: public wxDialog
+class EffectTreeDialog : public wxDialog
 {
 	public:
 
@@ -26,6 +27,7 @@ class EffectTreeDialog: public wxDialog
 		wxButton* btUpdate;
 		wxButton* btApply;
 		wxButton* btRename;
+		wxButton* Button_OK;
 		wxTreeCtrl* TreeCtrl1;
 		wxButton* btDelete;
 		//*)
@@ -45,6 +47,7 @@ class EffectTreeDialog: public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
+		static const long ID_BUTTON8;
 		//*)
 
 	private:
@@ -58,6 +61,7 @@ class EffectTreeDialog: public wxDialog
 		void OnbtDeleteClick(wxCommandEvent& event);
 		void OnbtAddGroupClick(wxCommandEvent& event);
 		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
+		void OnButton_OKClick(wxCommandEvent& event);
 		//*)
         wxWindow* xLightParent;
 		wxXmlNode *NcEffectsNode;

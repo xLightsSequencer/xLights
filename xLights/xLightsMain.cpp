@@ -1246,6 +1246,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     curCell = new wxGridCellCoords(0,0);
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
+    EffectTreeDlg = NULL;
+
 //   scm, causes crash if we remove this    Choicebook1->RemovePage(eff_CIRCLES);
 //   Choicebook2->RemovePage(eff_CIRCLES);
 

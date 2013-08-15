@@ -57,6 +57,7 @@
 #include <map>
 #include <vector>
 
+#include "EffectTreeDialog.h"
 #include "../include/globals.h"
 #include "xlights_out.h"
 #include "PlayerFrame.h"
@@ -74,7 +75,8 @@
 #include "PixelBuffer.h"
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
-#include "EffectTreeDialog.h"
+
+class EffectTreeDialog;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -876,6 +878,7 @@ private:
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxGridCellCoords *curCell;
+    EffectTreeDialog *EffectTreeDlg;
 
     DECLARE_EVENT_TABLE()
 };
