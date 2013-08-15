@@ -424,13 +424,10 @@ private:
     static const long ID_SCROLLEDWINDOW1;
     static const long ID_BUTTON13;
     static const long ID_BUTTON3;
-    static const long ID_BUTTON_Palette;
     static const long ID_BUTTON58;
     static const long ID_CHOICE7;
     static const long ID_BUTTON59;
-    static const long ID_CHOICE2;
-    static const long ID_BUTTON9;
-    static const long ID_BUTTON8;
+    static const long ID_BUTTON_Palette;
     static const long ID_CHOICE_LayerMethod;
     static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
@@ -548,7 +545,6 @@ private:
     wxChoice* ChoiceOutputFormat;
     wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText6;
-    wxChoice* Choice_Presets;
     wxSplitterWindow* SplitterWindow2;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonDim;
@@ -573,7 +569,6 @@ private:
     wxSlider* Slider_EffectLayerMix;
     wxButton* ButtonDisplayElements;
     wxStaticText* StaticText3;
-    wxButton* Button_PresetAdd;
     wxGrid* Grid1;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbAlt;
@@ -619,7 +614,6 @@ private:
     wxSlider* Slider_SparkleFrequency;
     wxButton* ButtonShowDatesChange;
     wxRadioButton* RadioButtonRgbTwinkle25;
-    wxButton* Button_PresetUpdate;
     wxRadioButton* RadioButtonRgbShimmer;
     wxCheckBox* CheckBoxLightOutput;
     wxStaticText* StaticText15;

@@ -32,7 +32,8 @@
 							<orient>wxVERTICAL</orient>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
-									<label>Apply Preset</label>
+									<label>&amp;Apply Preset</label>
+									<tooltip>Apply the selected effect Preset.</tooltip>
 									<handler function="OnbtApplyClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -41,7 +42,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON1" variable="btNewPreset" member="yes">
-									<label>New Preset</label>
+									<label>&amp;New Preset</label>
+									<tooltip>Create New Effect Preset from current settings.</tooltip>
 									<handler function="OnbtNewPresetClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -50,7 +52,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON2" variable="btUpdate" member="yes">
-									<label>Update Preset</label>
+									<label>&amp;Update Preset</label>
+									<tooltip>Update the selected effect preset to reflect current effect settings.</tooltip>
 									<handler function="OnbtUpdateClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -59,7 +62,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON5" variable="btFavorite" member="yes">
-									<label>Add To Favorites</label>
+									<label>Add To &amp;Favorites</label>
+									<tooltip>Copy effect into favorites group.</tooltip>
 									<handler function="OnbtFavoriteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -68,7 +72,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON7" variable="btAddGroup" member="yes">
-									<label>Add Group</label>
+									<label>Add &amp;Group</label>
+									<tooltip>Add effect preset group.</tooltip>
 									<handler function="OnbtAddGroupClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -77,7 +82,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON3" variable="btRename" member="yes">
-									<label>Rename</label>
+									<label>&amp;Rename</label>
+									<tooltip>Rename currently selected effect preset.</tooltip>
 									<handler function="OnbtRenameClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -86,7 +92,8 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON4" variable="btDelete" member="yes">
-									<label>Delete</label>
+									<label>&amp;Delete</label>
+									<tooltip>Delete curently selected effect preset.</tooltip>
 									<handler function="OnbtDeleteClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

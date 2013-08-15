@@ -69,7 +69,7 @@ class EffectTreeDialog: public wxDialog
         bool CheckValidOperation(wxTreeItemId itemID);
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void FixupEffectsPresets(wxXmlNode *UserGroupNode);
-        void ApplyEffect();
+        void ApplyEffect(bool dblClick=false);
         bool PromptForName(wxString *name, wxString prompt, wxString errorMsg);
         void SaveEffectsFile();
 

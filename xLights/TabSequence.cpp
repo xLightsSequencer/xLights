@@ -81,8 +81,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
     Button_Models->Enable(enable && ModelsNode);
     Button_Presets->Enable(enable && EffectsNode);
-    Button_PresetAdd->Enable(enable && EffectsNode);
-    Button_PresetUpdate->Enable(enable && EffectsNode);
+//    Button_PresetAdd->Enable(enable && EffectsNode);
+//    Button_PresetUpdate->Enable(enable && EffectsNode);
     Choice_Models->Enable(enable);
     EffectsPanel1->Button_Pictures_Filename->Enable(enable);
     EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
@@ -101,24 +101,6 @@ void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)
     EffectTreeDialog *dia = new EffectTreeDialog(this);
     dia->InitItems(EffectsNode);
     dia->Show();
-
-    /*EffectListDialog dialog(this);
-    wxString name;
-    for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == wxT("effect"))
-        {
-            name=e->GetAttribute(wxT("name"));
-            if (!name.IsEmpty())
-            {
-                dialog.ListBox1->Append(name,e);
-            }
-        }
-    }
-    dialog.ShowModal();
-    UpdateEffectsList();
-    PresetsSelect();
-    SaveEffectsFile();*/
 }
 
 void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
@@ -224,19 +206,21 @@ void xLightsFrame::SetEffectControls(wxString settings)
 
 void xLightsFrame::PresetsSelect()
 {
+    /*
     int NameIdx=Choice_Presets->GetSelection();
     if (NameIdx != wxNOT_FOUND)
     {
         wxXmlNode* x=(wxXmlNode*)Choice_Presets->GetClientData(NameIdx);
         SetEffectControls(x->GetAttribute("settings"));
     }
+    */
 }
 
 void xLightsFrame::OnChoice_PresetsSelect(wxCommandEvent& event)
 {
     PresetsSelect();
 }
-
+/*
 void xLightsFrame::OnButton_PresetAddClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dialog(this,_("Enter preset name"),_("Add New Preset"));
@@ -273,7 +257,7 @@ void xLightsFrame::OnButton_PresetAddClick(wxCommandEvent& event)
     Choice_Presets->SetStringSelection(name);
     SaveEffectsFile();
 }
-
+*/
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
     wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("effect"));
@@ -494,7 +478,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
     }
     Grid1->ForceRefresh();
 }
-
+/*
 void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
 {
     int NameIdx=Choice_Presets->GetSelection();
@@ -515,7 +499,7 @@ void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
     Choice_Presets->SetStringSelection(name);
     SaveEffectsFile();
 }
-
+*/
 void xLightsFrame::OnChoice_LayerMethodSelect(wxCommandEvent& event)
 {
     MixTypeChanged=true;
@@ -556,7 +540,7 @@ void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffectsList()
 {
-    wxString name;
+ /*   wxString name;
     wxString SelectedStr=Choice_Presets->GetStringSelection();
     Choice_Presets->Clear();
     for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
@@ -577,6 +561,7 @@ void xLightsFrame::UpdateEffectsList()
     {
         Choice_Presets->SetStringSelection(SelectedStr);
     }
+*/
 }
 
 void xLightsFrame::UpdateModelsList()
@@ -2503,7 +2488,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
         wxString EffectString=Grid1->GetCellValue(row,col);
         if (!EffectString.IsEmpty())
         {
-            Choice_Presets->SetSelection(0);  // set to <grid>
+            //Choice_Presets->SetSelection(0);  // set to <grid>
             SetEffectControls(EffectString);
         }
     }

@@ -37,19 +37,26 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	TreeCtrl1 = new wxTreeCtrl(this, ID_TREECTRL1, wxDefaultPosition, wxSize(200,300), wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL1"));
 	FlexGridSizer2->Add(TreeCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-	btApply = new wxButton(this, ID_BUTTON6, _("Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btNewPreset = new wxButton(this, ID_BUTTON1, _("New Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	btNewPreset = new wxButton(this, ID_BUTTON1, _("&New Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	btNewPreset->SetToolTip(_("Create New Effect Preset from current settings."));
 	BoxSizer1->Add(btNewPreset, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btUpdate = new wxButton(this, ID_BUTTON2, _("Update Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	btUpdate = new wxButton(this, ID_BUTTON2, _("&Update Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	btUpdate->SetToolTip(_("Update the selected effect preset to reflect current effect settings."));
 	BoxSizer1->Add(btUpdate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btFavorite = new wxButton(this, ID_BUTTON5, _("Add To Favorites"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	btFavorite = new wxButton(this, ID_BUTTON5, _("Add To &Favorites"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	btFavorite->SetToolTip(_("Copy effect into favorites group."));
 	BoxSizer1->Add(btFavorite, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btAddGroup = new wxButton(this, ID_BUTTON7, _("Add Group"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	btAddGroup = new wxButton(this, ID_BUTTON7, _("Add &Group"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
+	btAddGroup->SetToolTip(_("Add effect preset group."));
 	BoxSizer1->Add(btAddGroup, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btRename = new wxButton(this, ID_BUTTON3, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	btRename = new wxButton(this, ID_BUTTON3, _("&Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	btRename->SetToolTip(_("Rename currently selected effect preset."));
 	BoxSizer1->Add(btRename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btDelete = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	btDelete = new wxButton(this, ID_BUTTON4, _("&Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	btDelete->SetToolTip(_("Delete curently selected effect preset."));
 	BoxSizer1->Add(btDelete, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -145,7 +152,10 @@ void EffectTreeDialog::InitItems(wxXmlNode *EffectsNode)
         FixupEffectsPresets(newNode);
         XrgbEffectsNode->AddChild(newNode);
     }
-    AddNCcomEffects();
+    /* Enable this function when we want to include a set of effects as known 'cool' effects*/
+    //AddNCcomEffects();
+
+    SaveEffectsFile();
 }
 
 void EffectTreeDialog::FixupEffectsPresets(wxXmlNode *UserGroupNode)
@@ -236,17 +246,23 @@ void EffectTreeDialog::UpdateNcEffectsList()
     AddTreeElementsRecursive(NcEffectsNode, treeNCcomGroupID);
 }
 
-void EffectTreeDialog::ApplyEffect()
+void EffectTreeDialog::ApplyEffect(bool dblClick)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
-
     if (!itemID.IsOk())
     {
          wxMessageBox(_("No effect selected."), _("ERROR"));
     }
     else if (TreeCtrl1->HasChildren(itemID))
     {
-         wxMessageBox(_("A effect group can not be applied."), _("ERROR"));
+        if (dblClick)
+        {
+            TreeCtrl1->Toggle(itemID);
+        }
+        else
+        {
+            wxMessageBox(_("An effect group can not be applied."), _("ERROR"));
+        }
     }
     else
     {
@@ -472,13 +488,14 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     wxXmlNode *node=parentData->GetElement();
     wxXmlNode *newNode=CreateEffectGroupNode(name);
     node->AddChild(newNode);
-    TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode, true));
+    itemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newNode, true));
+    TreeCtrl1->SetItemHasChildren(itemID);
     SaveEffectsFile();
 }
 
 void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
 {
-    ApplyEffect();
+    ApplyEffect(true);
 }
 
 void EffectTreeDialog::SaveEffectsFile()
