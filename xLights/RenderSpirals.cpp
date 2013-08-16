@@ -115,7 +115,7 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
     wxImage::HSVValue hsv;
     wxColour color;
 
-
+    spiralGap += (spiralGap==0);
     if (grow && (!shrink || ((ThicknessState/spiralGap)%2)==0))
     {
         SpiralThickness += ThicknessState%(spiralGap);
