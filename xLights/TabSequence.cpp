@@ -551,28 +551,28 @@ void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffectsList()
 {
- /*   wxString name;
-    wxString SelectedStr=Choice_Presets->GetStringSelection();
-    Choice_Presets->Clear();
-    for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == wxT("effect"))
-        {
-            name=e->GetAttribute(wxT("name"));
-            if (!name.IsEmpty())
-            {
-                Choice_Presets->Append(name,e);
-            }
-        }
-    }
+    /*   wxString name;
+       wxString SelectedStr=Choice_Presets->GetStringSelection();
+       Choice_Presets->Clear();
+       for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+       {
+           if (e->GetName() == wxT("effect"))
+           {
+               name=e->GetAttribute(wxT("name"));
+               if (!name.IsEmpty())
+               {
+                   Choice_Presets->Append(name,e);
+               }
+           }
+       }
 
-    // select a preset if one exists
-    Choice_Presets->SetSelection(-1);
-    if (Choice_Presets->GetCount() > 0 && !SelectedStr.IsEmpty())
-    {
-        Choice_Presets->SetStringSelection(SelectedStr);
-    }
-*/
+       // select a preset if one exists
+       Choice_Presets->SetSelection(-1);
+       if (Choice_Presets->GetCount() > 0 && !SelectedStr.IsEmpty())
+       {
+           Choice_Presets->SetStringSelection(SelectedStr);
+       }
+    */
 }
 
 void xLightsFrame::UpdateModelsList()
@@ -838,7 +838,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_3D")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Grow")]==wxT("1"),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Shrink")]==wxT("1")
-                             );
+                            );
     }
     else if (effect == wxT("Text"))
     {
@@ -1459,7 +1459,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     */
     //
 
- //   Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
+//   Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
 //    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
     Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
     Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
@@ -1677,7 +1677,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //
     //
     replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp");
-     replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp");
     //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
 //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
 //
