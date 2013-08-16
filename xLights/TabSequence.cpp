@@ -790,7 +790,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == wxT("Fire"))
     {
         buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_Height")]),
-                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_HueShift_HueShift")]),
+                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_HueShift")]),
                           SettingsMap[LayerStr+wxT("CHECKBOX_Fire_GrowFire")]==wxT("1"));
     }
     else if (effect == wxT("Garlands"))
@@ -808,7 +808,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Type")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Count")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
-                             MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_MeteorsEffect_Type")]),
+                             MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Effect")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
     }
     else if (effect == wxT("Pictures"))
