@@ -94,7 +94,7 @@ public:
         _dy=speed*sin(angle);
         _radius = radius;
         hsvcolor = color;
-        _t=3.14159265/6.0;
+        _t=M_PI/6.0;
         dir =1.0;
 
     }
@@ -117,10 +117,22 @@ public:
 
     void Bounce(int width, int height)
     {
-        _dx = _x-_radius<=0? -_dx:_dx;
-        _dx = _x+_radius>=width?-_dx:_dx;
-        _dy = _y-_radius<=0?-_dy:_dy;
-        _dy = _y+_radius>=height?-_dy:_dy;
+        if (_x-_radius<=0) {
+            _dx=abs(_dx);
+            if (_dx < 0.2) _dx=0.2;
+        }
+        if (_x+_radius>=width) {
+            _dx=-abs(_dx);
+            if (_dx > -0.2) _dx=-0.2;
+        }
+        if (_y-_radius<=0) {
+            _dy=abs(_dy);
+            if (_dy < 0.2) _dy=0.2;
+        }
+        if (_y+_radius>=height) {
+            _dy=-abs(_dy);
+            if (_dy > -0.2) _dy=-0.2;
+        }
     }
 
 };

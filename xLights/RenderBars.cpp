@@ -26,8 +26,7 @@
 // Direction: 0=up, 1=down, 2=expand, 3=compress, 4=left, 5=right, 6=H-expand, 7=H-compress
 void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
-    int x,y,n,pixel_ratio,ColorIdx;
-    bool IsMovingDown,IsMovingLeft,IsHighlightRow;
+    int x,y,n,ColorIdx;
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
     int BarCount = PaletteRepeat * colorcnt;
@@ -42,40 +41,47 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int f_offset = state/4 % BlockHt;
         for (y=0; y<BufferHt; y++)
         {
+            n=y+f_offset;
+            ColorIdx=(n % BlockHt) / BarHt;
+            palette.GetHSV(ColorIdx, hsv);
+            if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
+            if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
             switch (Direction)
             {
             case 1:
-                IsMovingDown=true;
+                // down
+                for (x=0; x<BufferWi; x++)
+                {
+                    SetPixel(x,y,hsv);
+                }
                 break;
             case 2:
-                IsMovingDown=(y <= HalfHt);
+                // expand
+                if (y <= HalfHt) {
+                    for (x=0; x<BufferWi; x++)
+                    {
+                        SetPixel(x,y,hsv);
+                        SetPixel(x,BufferHt-y-1,hsv);
+                    }
+                }
                 break;
             case 3:
-                IsMovingDown=(y > HalfHt);
+                // compress
+                if (y >= HalfHt) {
+                    for (x=0; x<BufferWi; x++)
+                    {
+                        SetPixel(x,y,hsv);
+                        SetPixel(x,BufferHt-y-1,hsv);
+                    }
+                }
                 break;
             default:
-                IsMovingDown=false;
+                // up
+                for (x=0; x<BufferWi; x++)
+                {
+                    SetPixel(x,BufferHt-y-1,hsv);
+                }
                 break;
-            }
-            if (IsMovingDown)
-            {
-                n=y+f_offset;
-                pixel_ratio = BarHt - n%BarHt - 1;
-                IsHighlightRow=n % BarHt == 0;
-            }
-            else
-            {
-                n=y-f_offset+BlockHt;
-                pixel_ratio = n%BarHt;
-                IsHighlightRow=(n % BarHt == BarHt-1); // || (y == BufferHt-1);
-            }
-            ColorIdx=(n % BlockHt) / BarHt;
-            palette.GetHSV(ColorIdx, hsv);
-            if (Highlight && IsHighlightRow) hsv.saturation=0.0;
-            if (Show3D) hsv.value *= double(pixel_ratio) / BarHt;
-            for (x=0; x<BufferWi; x++)
-            {
-                SetPixel(x,y,hsv);
             }
         }
     }
@@ -89,40 +95,47 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int f_offset = state/4 % BlockWi;
         for (x=0; x<BufferWi; x++)
         {
+            n=x+f_offset;
+            ColorIdx=(n % BlockWi) / BarWi;
+            palette.GetHSV(ColorIdx, hsv);
+            if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
+            if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
             switch (Direction)
             {
             case 5:
-                IsMovingLeft=false;
+                // right
+                for (y=0; y<BufferHt; y++)
+                {
+                    SetPixel(BufferWi-x-1,y,hsv);
+                }
                 break;
             case 6:
-                IsMovingLeft=(x <= HalfWi);
+                // H-expand
+                if (x <= HalfWi) {
+                    for (y=0; y<BufferHt; y++)
+                    {
+                        SetPixel(x,y,hsv);
+                        SetPixel(BufferWi-x-1,y,hsv);
+                    }
+                }
                 break;
             case 7:
-                IsMovingLeft=(x > HalfWi);
+                // H-compress
+                if (x >= HalfWi) {
+                    for (y=0; y<BufferHt; y++)
+                    {
+                        SetPixel(x,y,hsv);
+                        SetPixel(BufferWi-x-1,y,hsv);
+                    }
+                }
                 break;
             default:
-                IsMovingLeft=true;
+                // left
+                for (y=0; y<BufferHt; y++)
+                {
+                    SetPixel(x,y,hsv);
+                }
                 break;
-            }
-            if (IsMovingLeft)
-            {
-                n=x+f_offset;
-                pixel_ratio = BarWi - n%BarWi - 1;
-                IsHighlightRow=n % BarWi == 0;
-            }
-            else
-            {
-                n=x-f_offset+BlockWi;
-                pixel_ratio = n%BarWi;
-                IsHighlightRow=(n % BarWi == BarWi-1);
-            }
-            ColorIdx=(n % BlockWi) / BarWi;
-            palette.GetHSV(ColorIdx, hsv);
-            if (Highlight && IsHighlightRow) hsv.saturation=0.0;
-            if (Show3D) hsv.value *= double(pixel_ratio) / BarWi;
-            for (y=0; y<BufferHt; y++)
-            {
-                SetPixel(x,y,hsv);
             }
         }
     }
