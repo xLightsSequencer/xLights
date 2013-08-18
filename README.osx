@@ -11,29 +11,23 @@ xLights/Nutcracker on Mac OS/X.
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 2.9.4.
+of wxWidgets for xLights/Nutcracker is 2.9.5.
 
-Unfortunately, xLights/Nutcracker cannot be compiled using the OS/X Cocoa
-libraries due to bugs in wxWidgets. Ticket #13065 (wxMediaCtrl not ported
-to wxCocoa) is the problem. Until the ticket is resolved, xLights/Nutcracker
-must be compiled as a Carbon app.
+Unfortunately, xLights/Nutcracker cannot be compiled wxWidgets3 that is part 
+of MacPorts due to that build not including the wxMediaControl widgets that 
+is required for Nutcracker.  You must build wxWidgets from source.
+
 
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.
 Xcode can be downloaded from the Apple developer web site. Make
 sure you install the version of Xcode that matches your version of
-OS/X. For example, I use OS/X 10.6, so I installed Xcode 3.1.
+OS/X. For example, I use OS/X 10.8, so I installed Xcode 4.4.
 Instructions are here:
 
   http://wiki.wxwidgets.org/Installing_Xcode
 
-OS/X comes with the wxWidgets libraries pre-installed. If you have
-OS/X version 10.5 or higher, then xLights can use the version
-of wxWidgets that comes with the OS and you can skip this step.
-If you are using 10.4 or earlier, then you will need an updated
-version of wxWidgets and this step is required. Note that after
-performing this step, you will have 2 copies of wxWidgets on your
-system and you will need to be very careful to access the correct one in
-later steps. Use "./wx-config --version" to check which one you are accessing.
+OS/X comes with the wxWidgets libraries pre-installed. 
+
 The instructions here suggest compiling with Xcode:
   http://wiki.wxwidgets.org/Compiling_wxWidgets_with_Xcode
 
