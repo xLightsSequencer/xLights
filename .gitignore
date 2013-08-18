@@ -5,4 +5,5 @@ bin/*.exe
 thumbs.db
 *.save
 *cscope*
+xcuserdata
 build
