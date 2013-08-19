@@ -10,6 +10,8 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <wx/utils.h>
+#include "serial.h"
 
 // OS/X version
 
