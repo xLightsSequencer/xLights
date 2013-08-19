@@ -1,15 +1,18 @@
 xLights is a program that allows you to play the sequence files from Vixen and
-LOR. It has the ability to drive USB DMX controllers, E1.31 ethernet
-controllers.
-
-xLights has a extensive scheduler.
-
-Nutcracker is a program that generates animated effects on massive RGB devices
+LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet
+controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices
 such as megatrees, matrices, and arches. 
 
-
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
-3.1.1:  Aug 12,2013 - Bug Fix: (Matt Brown). Matt has fixed the Meteor effect. He has also enhanced it so meteors can fall to the left or right.
+
+
+3.1.2:  Aug 17,2013 - Enhancement: (Frankr). Circle effect now has new option called plasma.
+					- Enhancement: (Matt Brown).  bars compress & expand so that the two halves mirror each other.
+					- Bug: (Frankr).  found and fixed the issues with fire and meteors that were being discussed at DIYC.
+					- Enhancement (Dan Kulp). New import from HLS now available on CONVERT tab
+					- Enhancement (Frankr). New option in spirals to allow the thickness to grow or shrink
+3.1.1:  Aug 12,2013 - Bug Fix: (Matt Brown). Matt has fixed the Meteor effect. He has also enhanced it so meteors 
+						can fall to the left or right.
 						We have	renamed	Starfiled to be called "explode" and "implode"
 					- Enhancement: (Matt Brown)  I made some improvements to countdown & skip blank cells logic. I also changed a couple of method names to make them more clear. Also, the timer now skips if the last interval takes more than 50ms to process. Before it was blocking until the last interval finished (so if every interval took more than 50ms you had a stackup of waiting timer calls to process).
 3.1.0:  Aug 7,2013 	- Enhancement: (frankr) new single BACKUP option now.
