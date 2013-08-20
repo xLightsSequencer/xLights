@@ -41,6 +41,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText93;
 		wxSlider* Slider_Fireworks_Number_Explosions;
 		wxStaticText* StaticText79;
+		wxCheckBox* CheckBox_Curtain_Repeat;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxCheckBox* CheckBox_Spirals_Grow;
 		wxSlider* Slider_Speed;
@@ -60,6 +61,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText41;
 		wxPanel* Panel1_Spirograph;
 		wxButton* Button_Palette1;
+		wxChoice* Choice_Curtain_Edge;
 		wxStaticText* StaticText85;
 		wxSlider* Slider_Fireworks_Velocity;
 		wxButton* Button_Pictures_Filename;
@@ -104,6 +106,7 @@ class EffectsPanel: public wxPanel
 		wxButton* Button_Palette3;
 		wxStaticText* StaticText130;
 		wxPanel* Panel1_Piano;
+		wxStaticText* StaticText7;
 		wxSlider* Slider_Meteors_Count;
 		wxTextCtrl* TextCtrl_Text_Line2;
 		wxChoice* Choice_Pictures_Direction;
@@ -115,9 +118,9 @@ class EffectsPanel: public wxPanel
 		wxButton* Button_Palette6;
 		wxStaticText* StaticText107;
 		wxSlider* Slider_Spirograph_d;
+		wxCheckBox* CheckBox_Palette5;
 		wxChoice* Choice_Bars_Direction;
 		wxStaticText* StaticText57;
-		wxCheckBox* CheckBox_Palette5;
 		wxSlider* Slider_Spirals_Rotation;
 		wxStaticText* StaticText98;
 		wxButton* Button_Text_Font1;
@@ -176,6 +179,7 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_ColorWash_Count;
 		wxButton* Button_Palette5;
 		wxStaticText* StaticText59;
+		wxChoice* Choice_Curtain_Action;
 		wxStaticText* StaticText95;
 		wxCheckBox* CheckBox_Circles_Radial;
 		wxCheckBox* CheckBox_Fire_GrowFire;
@@ -253,7 +257,11 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT33;
 		static const long ID_CHECKBOX_ColorWash_VFade;
 		static const long ID_PANEL5;
+		static const long ID_STATICTEXT6;
+		static const long ID_CHOICE_Curtain_Edge;
 		static const long ID_STATICTEXT5;
+		static const long ID_CHOICE_Curtain_Action;
+		static const long ID_CHECKBOX_Curtain_Repeat;
 		static const long ID_PANEL1;
 		static const long ID_STATICTEXT84;
 		static const long ID_SLIDER_Fire_Height;

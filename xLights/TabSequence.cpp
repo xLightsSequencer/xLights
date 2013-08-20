@@ -935,15 +935,39 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                panel->Slider_Butterfly_Chunks->GetValue(),
                                panel->Slider_Butterfly_Skip->GetValue());
         break;
+    case eff_CIRCLES:
+        buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
+                             panel->Slider_Circles_Size->GetValue(),
+                             panel->CheckBox_Circles_Bounce->GetValue(),
+                             panel->CheckBox_Circles_Collide->GetValue(),
+                             panel->CheckBox_Circles_Random_m->GetValue(),
+                             panel->CheckBox_Circles_Radial->GetValue(),
+                             panel->CheckBox_Circles_Radial_3D->GetValue(),
+                             buffer.BufferWi/2, buffer.BufferHt/2, //temp hard coding.
+                             panel->CheckBox_Circles_Plasma->GetValue()
+                            );
+
+        break;
     case eff_COLORWASH:
         buffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
                                panel->CheckBox_ColorWash_VFade->GetValue(),
                                panel->Slider_ColorWash_Count->GetValue());
         break;
+    case eff_CURTAIN:
+        buffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
+                             panel->Choice_Curtain_Action->GetSelection(),
+                             panel->CheckBox_Curtain_Repeat->GetValue());
+        break;
     case eff_FIRE:
         buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
                           panel->Slider_Fire_HueShift->GetValue(),
                           panel->CheckBox_Fire_GrowFire->GetValue());
+        break;
+    case eff_FIREWORKS:
+        buffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
+                               panel->Slider_Fireworks_Count->GetValue(),
+                               panel->Slider_Fireworks_Velocity->GetValue(),
+                               panel->Slider_Fireworks_Fade->GetValue());
         break;
     case eff_GARLANDS:
         buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
@@ -959,6 +983,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Meteors_Length->GetValue(),
                              panel->Choice_Meteors_Effect->GetSelection(),
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
+        break;
+    case eff_PIANO:
+        buffer.RenderPiano(panel->Slider_Piano_Keyboard->GetValue());
         break;
     case eff_PICTURES:
         buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
@@ -983,6 +1010,12 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Spirals_Grow->GetValue(),
                              panel->CheckBox_Spirlas_Shrink->GetValue());
         break;
+    case eff_SPIROGRAPH:
+        buffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
+                                panel->Slider_Spirograph_r->GetValue(),
+                                panel->Slider_Spirograph_d->GetValue(),
+                                panel->CheckBox_Spirograph_Animate->GetValue());
+        break;
     case eff_TEXT:
         buffer.RenderText(panel->Slider_Text_Position1->GetValue(),
                           panel->TextCtrl_Text_Line1->GetValue(),
@@ -998,43 +1031,15 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->Choice_Text_Count2->GetSelection());
 
         break;
+    case eff_TREE:
+        buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
+        break;
     case eff_TWINKLE:
         buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
                              panel->Slider_Twinkle_Steps->GetValue(),
                              panel->CheckBox_Twinkle_Strobe->GetValue());
         break;
-    case eff_TREE:
-        buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
-        break;
-    case eff_SPIROGRAPH:
-        buffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
-                                panel->Slider_Spirograph_r->GetValue(),
-                                panel->Slider_Spirograph_d->GetValue(),
-                                panel->CheckBox_Spirograph_Animate->GetValue());
-        break;
-    case eff_FIREWORKS:
-        buffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
-                               panel->Slider_Fireworks_Count->GetValue(),
-                               panel->Slider_Fireworks_Velocity->GetValue(),
-                               panel->Slider_Fireworks_Fade->GetValue());
-        break;
-    case eff_PIANO:
-        buffer.RenderPiano(panel->Slider_Piano_Keyboard->GetValue());
-        break;
 
-    case eff_CIRCLES:
-        buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
-                             panel->Slider_Circles_Size->GetValue(),
-                             panel->CheckBox_Circles_Bounce->GetValue(),
-                             panel->CheckBox_Circles_Collide->GetValue(),
-                             panel->CheckBox_Circles_Random_m->GetValue(),
-                             panel->CheckBox_Circles_Radial->GetValue(),
-                             panel->CheckBox_Circles_Radial_3D->GetValue(),
-                             buffer.BufferWi/2, buffer.BufferHt/2, //temp hard coding.
-                             panel->CheckBox_Circles_Plasma->GetValue()
-                            );
-
-        break;
     }
     return retval;
 }

@@ -1168,6 +1168,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextCountDown.Add("count down seconds");
     TextCountDown.Add("count down to date");
 
+    CurtainEdge.Add("left");
+    CurtainEdge.Add("center");
+    CurtainEdge.Add("right");
+
+    CurtainEffect.Add("open");
+    CurtainEffect.Add("close");
+    CurtainEffect.Add("open then close");
+    CurtainEffect.Add("close then open");
+
     InitEffectsPanel(EffectsPanel1);
     InitEffectsPanel(EffectsPanel2);
 
@@ -1254,6 +1263,10 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count1->SetSelection(0);
     panel->Choice_Text_Count2->Set(TextCountDown);
     panel->Choice_Text_Count2->SetSelection(0);
+    panel->Choice_Curtain_Edge->Set(CurtainEdge);
+    panel->Choice_Curtain_Edge->SetSelection(0);
+    panel->Choice_Curtain_Action->Set(CurtainEffect);
+    panel->Choice_Curtain_Action->SetSelection(0);
     panel->CurrentDir = &CurrentDir;
 }
 

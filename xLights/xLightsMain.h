@@ -876,6 +876,8 @@ private:
     wxArrayString EffectDirections;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
+    wxArrayString CurtainEdge;
+    wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
     EffectTreeDialog *EffectTreeDlg;
 

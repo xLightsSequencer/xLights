@@ -383,14 +383,30 @@ void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, i
     Effect[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip);
 }
 
+void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+                               bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
+{
+    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
+}
+
 void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
 {
     Effect[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
 }
 
+void PixelBufferClass::RenderCurtain(int edge, int effect, bool repeat)
+{
+    Effect[CurrentLayer].RenderCurtain(edge,effect,repeat);
+}
+
 void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
     Effect[CurrentLayer].RenderFire(HeightPct,HueShift,GrowFire);
+}
+
+void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
+{
+    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
 }
 
 void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing)
@@ -406,6 +422,11 @@ void PixelBufferClass::RenderLife(int Count, int Seed)
 void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
     Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
+}
+
+void PixelBufferClass::RenderPiano(int Keyboard)
+{
+    Effect[CurrentLayer].RenderPiano(Keyboard);
 }
 
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
@@ -429,6 +450,11 @@ void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotat
     Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
+void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
+{
+    Effect[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
+}
+
 void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int Effect1,int Countdown1,
                                   int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2)
 {
@@ -436,34 +462,13 @@ void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wx
                                     Position2,Line2,FontString2,dir2,Effect2,Countdown2);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
-{
-    Effect[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
-}
-
 void PixelBufferClass::RenderTree(int Branches)
 {
     Effect[CurrentLayer].RenderTree(Branches);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
+void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
 {
-    Effect[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
+    Effect[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
 }
 
-
-void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
-{
-    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
-}
-
-void PixelBufferClass::RenderPiano(int Keyboard)
-{
-    Effect[CurrentLayer].RenderPiano(Keyboard);
-}
-
-void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
-{
-    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
-}
