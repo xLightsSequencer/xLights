@@ -1192,42 +1192,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
 
-    /* The whole registration of effects is kind of a kludge but without moving all
-     * of the unique panels out of wxSmith there really isn't a better way to do
-     * this that I can think of.  This extension is to enable random effect generation
-     */
-    EffectNames.clear();
-    EffectNames.resize(eff_LASTEFFECT); //
-    EffectNames[eff_NONE]      =wxT("None");
-    EffectNames[eff_BARS]      =wxT("Bars");
-    EffectNames[eff_BUTTERFLY] =wxT("Butterfly");
-    EffectNames[eff_COLORWASH] =wxT("Color Wash");
-    EffectNames[eff_FIRE]      =wxT("Fire");
-    EffectNames[eff_GARLANDS]  =wxT("Garlands");
-    EffectNames[eff_LIFE]      =wxT("Life");
-    EffectNames[eff_METEORS]   =wxT("Meteors");
-    EffectNames[eff_PICTURES]  =wxT("Pictures");
-    EffectNames[eff_SNOWFLAKES]=wxT("Snowflakes");
-    EffectNames[eff_SNOWSTORM] =wxT("Snowstorm");
-    EffectNames[eff_SPIRALS]   =wxT("Spirals");
-    EffectNames[eff_TEXT]      =wxT("Text");
-    EffectNames[eff_TWINKLE]   =wxT("Twinkle");
-    EffectNames[eff_TREE]      =wxT("Tree");
-    EffectNames[eff_SPIROGRAPH]=wxT("Spirograph");
-    EffectNames[eff_FIREWORKS] =wxT("Fireworks");
-    EffectNames[eff_CIRCLES]   =wxT("Circles");
-    EffectNames[eff_PIANO]     =wxT("Piano");
-
-    EffectLayerOptions.clear();
-    EffectLayerOptions.resize(LASTLAYER);
-    EffectLayerOptions[EFFECT1]     =wxT("Effect 1");
-    EffectLayerOptions[EFFECT2]     =wxT("Effect 2");
-    EffectLayerOptions[EFF1MASK]    =wxT("1 is Mask");
-    EffectLayerOptions[EFF2MASK]    =wxT("2 is Mask");
-    EffectLayerOptions[EFF1UNMASK]  =wxT("1 is Unmask");
-    EffectLayerOptions[EFF2UNMASK]  =wxT("2 is Unmask");
-    EffectLayerOptions[EFFLAYERED]  =wxT("Layered");
-    EffectLayerOptions[EFFAVERAGED] =wxT("Average");
+    EffectNames=EffectsPanel1->Choicebook1->GetChoiceCtrl()->GetStrings();
+    EffectLayerOptions=Choice_LayerMethod->GetStrings();
 
     if (RunFlag && !ShowEvents.IsEmpty())
     {

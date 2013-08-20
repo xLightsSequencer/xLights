@@ -114,6 +114,7 @@
 		<Unit filename="EffectListDialog.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
 		<Unit filename="EffectTreeDialog.h" />
+		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ModelClass.cpp" />

@@ -94,8 +94,6 @@ static wxCriticalSection gs_xoutCriticalSection;
 
 typedef std::map<wxString,wxString> MapStringString;
 typedef std::vector<wxUint8> SeqDataType;
-typedef std::vector<wxString> EffectNamesVector;
-typedef std::vector<wxString> EffectLayerOptionsVector;
 
 enum play_modes
 {
@@ -206,11 +204,13 @@ public:
         eff_BUTTERFLY,
         eff_CIRCLES,
         eff_COLORWASH,
+        eff_CURTAIN,
         eff_FIRE,
         eff_FIREWORKS,
         eff_GARLANDS,
         eff_LIFE,
         eff_METEORS,
+        eff_PIANO,
         eff_PICTURES,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,
@@ -219,7 +219,6 @@ public:
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
-        eff_PIANO,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -235,8 +234,8 @@ public:
         EFFAVERAGED,
         LASTLAYER
     };
-    EffectNamesVector EffectNames;
-    EffectLayerOptionsVector EffectLayerOptions;
+    wxArrayString EffectNames;
+    wxArrayString EffectLayerOptions;
     wxString CurrentDir;
 
 private:

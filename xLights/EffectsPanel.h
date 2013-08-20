@@ -73,6 +73,7 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel_Text1;
 		wxStaticText* StaticText87;
 		wxStaticText* StaticText25;
+		wxStaticText* StaticText6;
 		wxStaticText* StaticText108;
 		wxPanel* Panel1_ColorWash;
 		wxChoice* Choice_Text_Dir2;
@@ -99,6 +100,7 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Twinkle_Count;
 		wxSlider* Slider_Fire_Height;
 		wxSlider* Slider_Snowflakes_Type;
+		wxPanel* Panel1_Curtain;
 		wxButton* Button_Palette3;
 		wxStaticText* StaticText130;
 		wxPanel* Panel1_Piano;
@@ -169,6 +171,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Text_Count1;
 		wxTextCtrl* TextCtrl_Pictures_Filename;
 		wxSlider* Slider_Spirograph_R;
+		wxStaticText* StaticText4;
 		wxStaticText* StaticText80;
 		wxSlider* Slider_ColorWash_Count;
 		wxButton* Button_Palette5;
@@ -250,6 +253,8 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT33;
 		static const long ID_CHECKBOX_ColorWash_VFade;
 		static const long ID_PANEL5;
+		static const long ID_STATICTEXT5;
+		static const long ID_PANEL1;
 		static const long ID_STATICTEXT84;
 		static const long ID_SLIDER_Fire_Height;
 		static const long ID_STATICTEXT133;
@@ -287,6 +292,10 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT131;
 		static const long ID_SLIDER_Meteors_Swirl_Intensity;
 		static const long ID_PANEL18;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Piano_Keyboard;
+		static const long ID_STATICTEXT4;
+		static const long ID_PANEL39;
 		static const long ID_BUTTON_PICTURES_FILENAME;
 		static const long ID_TEXTCTRL_Pictures_Filename;
 		static const long ID_STATICTEXT46;
@@ -364,9 +373,6 @@ class EffectsPanel: public wxPanel
 		static const long ID_SLIDER_Twinkle_Steps;
 		static const long ID_CHECKBOX_Twinkle_Strobe;
 		static const long ID_PANEL33;
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_Piano_Keyboard;
-		static const long ID_PANEL39;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_CHECKBOX_Palette1;
 		static const long ID_BUTTON_Palette1;
