@@ -306,6 +306,7 @@ protected:
 
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal
+    int NumPixels;
     wxColourVector pixels; // this is the calculation buffer
     wxColourVector tempbuf;
     wxColourVector FirePalette;

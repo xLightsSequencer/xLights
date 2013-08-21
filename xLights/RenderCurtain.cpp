@@ -25,17 +25,40 @@
 
 // edge: 0=left, 1=center, 2=right
 // effect: 0=open, 1=close, 2=open then close, 3=close then open
-void RgbEffects::RenderCurtain(int edge, int effect, bool repeat)
+void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
 {
-    int x,y;
+    int i,x,y;
+    double a;
     wxColour color;
     wxImage::HSVValue hsv;
+    wxArrayInt sw;
+    int swaglen=BufferHt > 1 ? swag * BufferWi / 40 : 0;
+    if (swaglen > 0) {
+        a=double(BufferHt - 1) / (swaglen * swaglen);
+        for (x=0; x<swaglen; x++) {
+            sw.Add(int(a*x*x));
+        }
+    }
+    int xlimit=repeat || state < 200 ? (state % 200) * BufferWi / 199 : BufferWi;
     //double HalfHt=double(BufferHt-1)/2.0;
     //double HalfWi=double(BufferWi-1)/2.0;
-    for (x=0; x<BufferWi; x++)
+    for (i=0; i<xlimit; i++)
     {
+        GetMultiColorBlend(double(i) / double(BufferWi), true, color);
+        x=edge==0 ? BufferWi-i-1 : i;
+        for (y=BufferHt-1; y>=0; y--)
+        {
+            SetPixel(x,y,color);
+        }
+    }
+
+    // swag
+    for (i=0; i<swaglen; i++)
+    {
+        x=xlimit+i;
         GetMultiColorBlend(double(x) / double(BufferWi), true, color);
-        for (y=0; y<BufferHt; y++)
+        if (edge==0) x=BufferWi-x-1;
+        for (y=BufferHt-1; y>sw[i]; y--)
         {
             SetPixel(x,y,color);
         }

@@ -956,6 +956,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_CURTAIN:
         buffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
                              panel->Choice_Curtain_Action->GetSelection(),
+                             panel->Slider_Curtain_Swag->GetValue(),
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FIRE:

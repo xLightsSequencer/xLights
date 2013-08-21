@@ -394,9 +394,9 @@ void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int Repeat
     Effect[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, bool repeat)
+void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat)
 {
-    Effect[CurrentLayer].RenderCurtain(edge,effect,repeat);
+    Effect[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
 }
 
 void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)

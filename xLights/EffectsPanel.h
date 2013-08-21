@@ -157,6 +157,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Text_Effect2;
 		wxStaticText* StaticText96;
 		wxPanel* Panel1_Twinkle;
+		wxSlider* Slider_Curtain_Swag;
 		wxSlider* Slider_Spirals_Thickness;
 		wxTextCtrl* TextCtrl_Text_Font2;
 		wxStaticText* StaticText104;
@@ -186,6 +187,7 @@ class EffectsPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Fadeout;
 		wxSlider* Slider_Circles_Count;
 		wxStaticText* StaticText26;
+		wxStaticText* StaticText8;
 		wxSlider* Slider_Snowstorm_Length;
 		wxStaticText* StaticText28;
 		wxStaticText* StaticText30;
@@ -211,8 +213,8 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Circles_Bounce;
 		wxSlider* Slider_Spirals_Direction;
 		wxCheckBox* CheckBox_Spirlas_Shrink;
-		wxCheckBox* CheckBox_Spirals_3D;
 		wxButton* Button_Palette2;
+		wxCheckBox* CheckBox_Spirals_3D;
 		wxPanel* Panel1_Bars;
 		wxPanel* Panel1_Snowstorm;
 		wxStaticText* StaticText134;
@@ -261,6 +263,8 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHOICE_Curtain_Edge;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE_Curtain_Action;
+		static const long ID_STATICTEXT7;
+		static const long ID_SLIDER_Curtain_Swag;
 		static const long ID_CHECKBOX_Curtain_Repeat;
 		static const long ID_PANEL1;
 		static const long ID_STATICTEXT84;

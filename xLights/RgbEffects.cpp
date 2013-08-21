@@ -63,7 +63,7 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
     DiagLen=sqrt(BufferHt*BufferHt + BufferWi*BufferWi);
-    int NumPixels=BufferHt * BufferWi;
+    NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     FireBuffer.resize(NumPixels);
