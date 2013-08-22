@@ -781,17 +781,46 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Chunks")]),
                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Skip")]));
     }
+    else if (effect == wxT("Circles"))
+    {
+
+        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Count")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Size")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Bounce")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
+                             buffer.BufferWi/2, buffer.BufferHt/2,
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Plasma")]==wxT("1")
+                            );
+
+    }
     else if (effect == wxT("Color Wash"))
     {
         buffer.RenderColorWash(SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_HFade")]==wxT("1"),
                                SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_VFade")]==wxT("1"),
                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_ColorWash_Count")]));
     }
+    else if (effect == wxT("Curtain"))
+    {
+        buffer.RenderCurtain(CurtainEdge.Index(SettingsMap[LayerStr+wxT("CHOICE_Curtain_Edge")]),
+                             CurtainEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_Curtain_Effect")]),
+                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Curtain_Swag")]),
+                             SettingsMap[LayerStr+wxT("CHECKBOX_Curtain_Repeat")]==wxT("1"));
+    }
     else if (effect == wxT("Fire"))
     {
         buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_Height")]),
                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_HueShift")]),
                           SettingsMap[LayerStr+wxT("CHECKBOX_Fire_GrowFire")]==wxT("1"));
+    }
+    else if (effect == wxT("Fireworks"))
+    {
+        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Number_Explosions")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Count")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Velocity")]),
+                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Fade")]));
     }
     else if (effect == wxT("Garlands"))
     {
@@ -810,6 +839,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
                              MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Effect")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
+    }
+    else if (effect == wxT("Piano"))
+    {
+        buffer.RenderPiano(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_Keyboard")]));
     }
     else if (effect == wxT("Pictures"))
     {
@@ -840,6 +873,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Shrink")]==wxT("1")
                             );
     }
+    else if (effect == wxT("Spirograph"))
+    {
+        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_R")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_r")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_d")]),
+                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_Animate")]));
+    }
     else if (effect == wxT("Text"))
     {
         buffer.RenderText(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position1")]),
@@ -855,48 +895,15 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect2")]),
                           TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count2")]));
     }
+    else if (effect == wxT("Tree"))
+    {
+        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Tree_Branches")]));
+    }
     else if (effect == wxT("Twinkle"))
     {
         buffer.RenderTwinkle(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Count")]),
                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Steps")]),
                              SettingsMap[LayerStr+wxT("CHECKBOX_Twinkle_Strobe")]==wxT("1"));
-    }
-    else if (effect == wxT("Tree"))
-    {
-        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Tree_Branches")]));
-    }
-    else if (effect == wxT("Spirograph"))
-    {
-        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_R")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_r")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_d")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_Animate")]));
-    }
-    else if (effect == wxT("Fireworks"))
-    {
-        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Number_Explosions")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Count")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Velocity")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Fade")]));
-    }
-    else if (effect == wxT("Piano"))
-    {
-        buffer.RenderPiano(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_Keyboard")]));
-    }
-    else if (effect == wxT("Circles"))
-    {
-
-        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Count")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Size")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Bounce")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
-                             buffer.BufferWi/2, buffer.BufferHt/2,
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Plasma")]==wxT("1")
-                            );
-
     }
     return retval;
 }
@@ -955,7 +962,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_CURTAIN:
         buffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
-                             panel->Choice_Curtain_Action->GetSelection(),
+                             panel->Choice_Curtain_Effect->GetSelection(),
                              panel->Slider_Curtain_Swag->GetValue(),
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;

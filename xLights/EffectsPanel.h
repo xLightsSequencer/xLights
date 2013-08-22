@@ -57,6 +57,7 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel1_Garlands;
 		wxChoice* Choice_Meteors_Effect;
 		wxSlider* Slider_Life_Count;
+		wxChoice* Choice_Curtain_Effect;
 		wxSlider* Slider_Twinkle_Steps;
 		wxStaticText* StaticText41;
 		wxPanel* Panel1_Spirograph;
@@ -180,7 +181,6 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_ColorWash_Count;
 		wxButton* Button_Palette5;
 		wxStaticText* StaticText59;
-		wxChoice* Choice_Curtain_Action;
 		wxStaticText* StaticText95;
 		wxCheckBox* CheckBox_Circles_Radial;
 		wxCheckBox* CheckBox_Fire_GrowFire;
@@ -262,7 +262,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT6;
 		static const long ID_CHOICE_Curtain_Edge;
 		static const long ID_STATICTEXT5;
-		static const long ID_CHOICE_Curtain_Action;
+		static const long ID_CHOICE_Curtain_Effect;
 		static const long ID_STATICTEXT7;
 		static const long ID_SLIDER_Curtain_Swag;
 		static const long ID_CHECKBOX_Curtain_Repeat;

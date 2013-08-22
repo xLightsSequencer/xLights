@@ -1265,8 +1265,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count2->SetSelection(0);
     panel->Choice_Curtain_Edge->Set(CurtainEdge);
     panel->Choice_Curtain_Edge->SetSelection(0);
-    panel->Choice_Curtain_Action->Set(CurtainEffect);
-    panel->Choice_Curtain_Action->SetSelection(0);
+    panel->Choice_Curtain_Effect->Set(CurtainEffect);
+    panel->Choice_Curtain_Effect->SetSelection(0);
     panel->CurrentDir = &CurrentDir;
 }
 

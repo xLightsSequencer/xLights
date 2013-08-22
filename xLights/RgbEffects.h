@@ -303,6 +303,7 @@ protected:
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
     void RenderMetaBalls(int numBalls);
+    void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
 
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal
@@ -329,6 +330,8 @@ protected:
     int LastSnowstormCount;
     int LastLifeCount;
     int LastLifeType;
+    int LastCurtainDir;
+    int LastCurtainLimit;
     long state;
     long LastLifeState;
     int speed;
