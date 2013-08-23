@@ -225,7 +225,7 @@ void xLightsFrame::SetChannelNamesForRgbModel(wxArrayString& ChNames, wxXmlNode*
 {
     ModelClass model;
     model.SetFromXml(ModelNode);
-    size_t ChannelNum=model.StartChannel-1;
+    size_t ChannelNum=model.StartChannel-1; //StartChannel is stored in the model class 1 based but act channel is stored 0 based.
     size_t NodeCount=model.GetNodeCount();
     wxString FormatSpec = wxT("Ch %d: ")+model.name+wxT(" node %d %c");
     for(size_t i=0; i < NodeCount && ChannelNum+2 < ChNames.Count(); i++,ChannelNum=model.Nodes[i].ActChan)

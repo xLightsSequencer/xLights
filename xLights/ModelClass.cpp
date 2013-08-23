@@ -279,7 +279,7 @@ void ModelClass::InitLine()
     {
         for(x=0; x<parm2; x++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + idx * 3;
             Nodes[idx].bufX=IsLtoR ? x : parm2-x-1;
             Nodes[idx].bufY=0;
             Nodes[idx].StringNum=ns;
@@ -354,7 +354,7 @@ void ModelClass::InitFrame()
         x=IsLtoR ? 0 : FrameWidth-1;
         for(y=0; y<parm2; y++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -364,7 +364,7 @@ void ModelClass::InitFrame()
         y=parm2-1;
         for(x=0; x<parm1; x++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=IsLtoR ? x+1 : parm1-x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -374,7 +374,7 @@ void ModelClass::InitFrame()
         x=IsLtoR ? FrameWidth-1 : 0;
         for(y=parm2-1; y>=0; y--)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -384,7 +384,7 @@ void ModelClass::InitFrame()
         y=0;
         for(x=0; x<parm3; x++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=IsLtoR ? parm1-x : x+1;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -400,7 +400,7 @@ void ModelClass::InitFrame()
         x=IsLtoR ? 0 : FrameWidth-1;
         for(y=parm2-1; y>=0; y--)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -410,7 +410,7 @@ void ModelClass::InitFrame()
         y=0;
         for(x=0; x<parm3; x++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=IsLtoR ? x+1: parm3-x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -420,7 +420,7 @@ void ModelClass::InitFrame()
         x=IsLtoR ? FrameWidth-1 : 0;
         for(y=0; y<parm2; y++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
@@ -430,7 +430,7 @@ void ModelClass::InitFrame()
         y=parm2-1;
         for(x=0; x<parm1; x++)
         {
-            Nodes[idx].ActChan = idx * 3;
+            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=IsLtoR ? parm3-x : x+1;
             Nodes[idx].bufY=y;
             Nodes[idx].StringNum=0;
