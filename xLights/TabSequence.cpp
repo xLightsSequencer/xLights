@@ -102,6 +102,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     BitmapButtonInsertRow->Enable(enable);
     BitmapButtonDeleteRow->Enable(enable);
     ButtonDisplayElements->Enable(enable && ModelsNode);
+    Button_CreateRandom->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
+    if (!enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS )
+    {
+        ButtonStopNow->SetFocus();
+    }
 }
 
 void xLightsFrame::OnButton_PresetsClick(wxCommandEvent& event)

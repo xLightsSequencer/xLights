@@ -541,7 +541,7 @@ private:
     wxStaticText* StaticTextShowEnd;
     wxScrolledWindow* ScrolledWindow1;
     wxButton* ButtonGracefulStop;
-    wxButton* Button1;
+    wxButton* Button_CreateRandom;
     wxRadioButton* RadioButtonRgbCycle3;
     wxChoice* ChoiceOutputFormat;
     wxTextCtrl* TextCtrlLog;
