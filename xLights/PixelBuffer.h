@@ -76,6 +76,7 @@ public:
     void SetContrast(int value);
     void SetMixThreshold(int value);
     void CalcOutput(int EffectPeriod);
+    void DisplayEffectOnWindow(wxWindow* window);
 
 #include "Effects.h"
 

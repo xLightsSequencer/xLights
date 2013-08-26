@@ -135,7 +135,6 @@ void xLightsFrame::SetDir(const wxString& newdir)
     EffectsPanel1->SetDefaultPalette();
     EffectsPanel2->SetDefaultPalette();
     LoadEffectsFile();
-    PresetsSelect();
     EnableSequenceControls(true);
     UpdateNetworkList();
 

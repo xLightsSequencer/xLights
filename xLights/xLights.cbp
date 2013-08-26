@@ -170,6 +170,10 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="TabPreview.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
 		<Unit filename="TabSchedule.cpp">
 			<Option compile="0" />
 			<Option link="0" />

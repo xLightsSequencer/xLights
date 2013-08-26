@@ -373,6 +373,69 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
     }
 }
 
+void PixelBufferClass::DisplayEffectOnWindow(wxWindow* window)
+{
+    wxPen pen;
+    wxBrush brush;
+    wxClientDC dc(window);
+    wxColour color;
+    wxCoord w, h;
+    dc.GetSize(&w, &h);
+    double scaleX = double(w) / RenderWi;
+    double scaleY = double(h) / RenderHt;
+    double scale=scaleY < scaleX ? scaleY : scaleX;
+    dc.SetAxisOrientation(true,true);
+    dc.SetDeviceOrigin(w/2,h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
+
+    int radius=1;
+    int factor=8;
+    if (scale < 0.5)
+    {
+        radius=int(1.0/scale+0.5);
+        factor=1;
+    }
+    else if (scale < 8.0)
+    {
+        factor=int(scale+0.5);
+    }
+    dc.SetUserScale(scale/factor,scale/factor);
+
+    // if the radius/factor are not yielding good results, uncomment the next line
+    //StatusBar1->SetStatusText(wxString::Format(wxT("Scale=%5.3f, radius=%d, factor=%d"),scale,radius,factor));
+
+    /*
+            // check that origin is in the right place
+            dc.SetUserScale(4,4);
+            color.Set(0,0,255);
+            pen.SetColour(color);
+            dc.SetPen(pen);
+            dc.DrawPoint(0,0);
+            dc.DrawPoint(1,1);
+            dc.DrawPoint(2,2);
+            return;
+    */
+    // layer calculation and map to output
+    size_t NodeCount=Nodes.size();
+    double sx,sy;
+
+    for(size_t i=0; i<NodeCount; i++)
+    {
+        // draw node on screen
+        Nodes[i].GetColor(color);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        brush.SetStyle(wxBRUSHSTYLE_SOLID);
+        dc.SetPen(pen);
+        dc.SetBrush(brush);
+        sx=Nodes[i].screenX;
+        sy=Nodes[i].screenY;
+        //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
+        //dc.DrawPoint(sx,sy);
+        dc.DrawCircle(sx*factor,sy*factor,radius);
+    }
+}
+
+
 void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
     Effect[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);

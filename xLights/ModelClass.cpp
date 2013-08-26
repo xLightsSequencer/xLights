@@ -30,6 +30,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     wxString tempstr;
     wxString customModel;
     long degrees;
+
+    ModelXml=ModelNode;
     name=ModelNode->GetAttribute(wxT("name"));
     DisplayAs=ModelNode->GetAttribute(wxT("DisplayAs"));
     RGBorder=ModelNode->GetAttribute(wxT("Order"),wxT("RGB"));
@@ -60,7 +62,14 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     tempstr=ModelNode->GetAttribute(wxT("Antialias"),wxT("0"));
     tempstr.ToLong(&Antialias);
     AliasFactor=1 << Antialias;
-    MyDisplay=(ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
+    MyDisplay=IsMyDisplay(ModelNode);
+
+    tempstr=ModelNode->GetAttribute(wxT("offsetXpct"),wxT("0"));
+    tempstr.ToDouble(&offsetXpct);
+    tempstr=ModelNode->GetAttribute(wxT("offsetYpct"),wxT("0"));
+    tempstr.ToDouble(&offsetYpct);
+    tempstr=ModelNode->GetAttribute(wxT("PreviewScale"),wxT("0.333"));
+    tempstr.ToDouble(&PreviewScale);
 
     wxStringTokenizer tkz(DisplayAs, wxT(" "));
     wxString token = tkz.GetNextToken();
@@ -68,7 +77,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     modelv2 = ModelNode->HasAttribute(wxT("Advanced"));
     if( modelv2 )
     {
-            SetFromXmlAdvanced(ModelNode);
+        SetFromXmlAdvanced(ModelNode);
     }
     else
     {
@@ -113,8 +122,32 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
         InitFrame();
         CopyBufCoord2ScreenCoord();
     }
-
 }
+
+void ModelClass::SetOffset(double xPct, double yPct)
+{
+    offsetXpct=xPct;
+    offsetYpct=yPct;
+}
+
+
+void ModelClass::AddOffset(double xPct, double yPct)
+{
+    offsetXpct+=xPct;
+    offsetYpct+=yPct;
+}
+
+
+void ModelClass::SetScale(double newscale)
+{
+    PreviewScale=newscale;
+}
+
+double ModelClass::GetScale()
+{
+    return PreviewScale;
+}
+
 void ModelClass::InitializeStringStartNum()
 {
     int i;
@@ -437,7 +470,11 @@ void ModelClass::InitFrame()
             idx++;
         }
     }
-    SetBufferSize(parm2,FrameWidth);
+    // treat as outside of matrix
+    //SetBufferSize(parm2,FrameWidth);
+
+    // treat as single string
+    SetBufferSize(1,Nodes.size());
     SetRenderSize(parm2,FrameWidth);
 }
 
@@ -477,6 +514,48 @@ void ModelClass::CopyBufCoord2ScreenCoord()
     {
         Nodes[i].screenX = Nodes[i].bufX - xoffset;
         Nodes[i].screenY = Nodes[i].bufY;
+    }
+}
+
+void ModelClass::UpdateXmlWithScale()
+{
+    ModelXml->DeleteAttribute(wxT("offsetXpct"));
+    ModelXml->DeleteAttribute(wxT("offsetYpct"));
+    ModelXml->DeleteAttribute(wxT("PreviewScale"));
+    ModelXml->AddAttribute(wxT("offsetXpct"), wxString::Format(wxT("%6.4f"),offsetXpct));
+    ModelXml->AddAttribute(wxT("offsetYpct"), wxString::Format(wxT("%6.4f"),offsetYpct));
+    ModelXml->AddAttribute(wxT("PreviewScale"), wxString::Format(wxT("%6.4f"),PreviewScale));
+}
+
+void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    wxClientDC dc(window);
+    wxPen pen;
+    wxCoord w, h;
+
+    dc.GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    /*
+    // this isn't an ideal scaling algorithm - room for improvement here
+    double windowDiagonal=sqrt(w*w+h*h);
+    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
+    double scale=windowDiagonal / modelDiagonal * PreviewScale;
+    */
+    dc.SetAxisOrientation(true,true);
+    dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
+    dc.SetUserScale(scale,scale);
+
+    pen.SetColour(*color);
+    dc.SetPen(pen);
+    for(size_t i=0; i<NodeCount; i++)
+    {
+        // draw node on screen
+        sx=Nodes[i].screenX;
+        sy=Nodes[i].screenY;
+        dc.DrawPoint(sx,sy);
+        //dc.DrawCircle(sx*factor,sy*factor,radius);
     }
 }
 

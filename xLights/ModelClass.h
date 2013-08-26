@@ -28,6 +28,8 @@
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
+#include <wx/window.h>
+#include <wx/dcclient.h>
 #include <stdint.h>
 
 class RgbNodeClass
@@ -109,6 +111,9 @@ private:
     void SetFromXmlAdvanced(wxXmlNode* ModelNode);
     void InitializeStringStartNum();
     bool modelv2;
+    double offsetXpct,offsetYpct;
+    double PreviewScale;
+    wxXmlNode* ModelXml;
 
 public:
     wxString name;      // user-designated model name
@@ -132,6 +137,16 @@ public:
 
     void SetFromXml(wxXmlNode* ModelNode);
     size_t GetNodeCount();
+    void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
+    void UpdateXmlWithScale();
+    void SetOffset(double xPct, double yPct);
+    void AddOffset(double xPct, double yPct);
+    void SetScale(double newscale);
+    double GetScale();
+
+    static bool IsMyDisplay(wxXmlNode* ModelNode) {
+        return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");
+    }
 };
 
 #endif // MODELCLASS_H

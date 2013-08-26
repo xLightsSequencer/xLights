@@ -220,60 +220,6 @@ void xLightsFrame::SetEffectControls(wxString settings)
     ResetEffectStates();
 }
 
-void xLightsFrame::PresetsSelect()
-{
-    /*
-    int NameIdx=Choice_Presets->GetSelection();
-    if (NameIdx != wxNOT_FOUND)
-    {
-        wxXmlNode* x=(wxXmlNode*)Choice_Presets->GetClientData(NameIdx);
-        SetEffectControls(x->GetAttribute("settings"));
-    }
-    */
-}
-
-void xLightsFrame::OnChoice_PresetsSelect(wxCommandEvent& event)
-{
-    PresetsSelect();
-}
-/*
-void xLightsFrame::OnButton_PresetAddClick(wxCommandEvent& event)
-{
-    wxTextEntryDialog dialog(this,_("Enter preset name"),_("Add New Preset"));
-    int DlgResult;
-    bool ok;
-    wxString name;
-    do
-    {
-        ok=true;
-        DlgResult=dialog.ShowModal();
-        if (DlgResult == wxID_OK)
-        {
-            // validate inputs
-            name=dialog.GetValue();
-            name.Trim();
-            if (name.IsEmpty())
-            {
-                ok=false;
-                wxMessageBox(_("A preset name cannot be empty"), _("ERROR"));
-            }
-            else if (Choice_Presets->FindString(name) != wxNOT_FOUND)
-            {
-                ok=false;
-                wxMessageBox(_("That name is already in use"), _("ERROR"));
-            }
-        }
-    }
-    while (DlgResult == wxID_OK && !ok);
-    if (DlgResult != wxID_OK) return;
-
-    // update Choice_Presets
-    EffectsNode->AddChild(CreateEffectNode(name));
-    UpdateEffectsList();
-    Choice_Presets->SetStringSelection(name);
-    SaveEffectsFile();
-}
-*/
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
     wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("effect"));
@@ -494,34 +440,13 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
     }
     Grid1->ForceRefresh();
 }
-/*
-void xLightsFrame::OnButton_PresetUpdateClick(wxCommandEvent& event)
-{
-    int NameIdx=Choice_Presets->GetSelection();
-    if (NameIdx == wxNOT_FOUND)
-    {
-        wxMessageBox(_("No preset name is selected"), _("ERROR"));
-        return;
-    }
-    // update preset
-    // delete old xml entry
-    wxXmlNode* OldXml=(wxXmlNode*)Choice_Presets->GetClientData(NameIdx);
-    EffectsNode->RemoveChild(OldXml);
-    delete OldXml;
 
-    wxString name=Choice_Presets->GetString(NameIdx);
-    EffectsNode->AddChild(CreateEffectNode(name));
-    UpdateEffectsList();
-    Choice_Presets->SetStringSelection(name);
-    SaveEffectsFile();
-}
-*/
 void xLightsFrame::OnChoice_LayerMethodSelect(wxCommandEvent& event)
 {
     MixTypeChanged=true;
 }
 
-void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
+void xLightsFrame::ShowModelsDialog()
 {
     ModelListDialog dialog(this);
     wxString name;
@@ -554,38 +479,20 @@ void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
     EnableSequenceControls(true);
 }
 
-void xLightsFrame::UpdateEffectsList()
+void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
 {
-    /*   wxString name;
-       wxString SelectedStr=Choice_Presets->GetStringSelection();
-       Choice_Presets->Clear();
-       for(wxXmlNode* e=EffectsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-       {
-           if (e->GetName() == wxT("effect"))
-           {
-               name=e->GetAttribute(wxT("name"));
-               if (!name.IsEmpty())
-               {
-                   Choice_Presets->Append(name,e);
-               }
-           }
-       }
-
-       // select a preset if one exists
-       Choice_Presets->SetSelection(-1);
-       if (Choice_Presets->GetCount() > 0 && !SelectedStr.IsEmpty())
-       {
-           Choice_Presets->SetStringSelection(SelectedStr);
-       }
-    */
+    ShowModelsDialog();
 }
 
 void xLightsFrame::UpdateModelsList()
 {
     //TODO: Add code to read in model list with v2 values
     wxString name;
+    ModelClass *model;
     wxString SelectedStr=Choice_Models->GetStringSelection();
     Choice_Models->Clear();
+    ListBoxElementList->Clear();
+    PreviewModels.clear();
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == wxT("model"))
@@ -594,6 +501,13 @@ void xLightsFrame::UpdateModelsList()
             if (!name.IsEmpty())
             {
                 Choice_Models->Append(name,e);
+                if (ModelClass::IsMyDisplay(e))
+                {
+                    ListBoxElementList->Append(name,e);
+                    model=new ModelClass;
+                    model->SetFromXml(e);
+                    PreviewModels.push_back(model);
+                }
             }
         }
     }
@@ -682,7 +596,6 @@ void xLightsFrame::LoadEffectsFile()
     }
 
     UpdateModelsList();
-    UpdateEffectsList();
 }
 
 // returns true on success
@@ -1093,7 +1006,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
-    DisplayEffectOnWindow();
+    buffer.DisplayEffectOnWindow(ScrolledWindow1);
     if (CheckBoxLightOutput->IsChecked() && xout)
     {
         size_t NodeCnt=buffer.GetNodeCount();
@@ -1279,6 +1192,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
     xlightsFilename=filename;
     StaticTextSequenceFileName->SetLabel(filename);
+    StaticTextPreviewFileName->SetLabel(filename);
 }
 
 void xLightsFrame::GetModelNames(wxArrayString& a)
@@ -2035,7 +1949,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     EnableSequenceControls(true);
 }
 
-void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
+void xLightsFrame::OpenSequence()
 {
     wxArrayString SeqFiles,MediaFiles;
     wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
@@ -2176,6 +2090,11 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     nSeconds%=60;
     wxMessageBox(wxString::Format(wxT("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d"),
                                   SeqNumChannels,SeqNumPeriods,interval,nMinutes,nSeconds));
+}
+
+void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
+{
+    OpenSequence();
 }
 
 void xLightsFrame::RenderGridToSeqData()
@@ -2544,83 +2463,6 @@ void xLightsFrame::ClearEffectWindow()
     dc.Clear();
 }
 
-void xLightsFrame::DisplayEffectOnWindow()
-{
-    wxPen pen;
-    wxBrush brush;
-    wxClientDC dc(ScrolledWindow1);
-    wxColour color;
-    wxCoord w, h;
-    static wxCoord lastw, lasth;
-    dc.GetSize(&w, &h);
-    if (w!=lastw || h!=lasth)
-    {
-        // window was resized
-        dc.Clear();
-        lastw=w;
-        lasth=h;
-    }
-    dc.SetAxisOrientation(true,true);
-    if (buffer.RenderHt==1)
-    {
-        dc.SetDeviceOrigin(w/2,h/2); // set origin at center
-    }
-    else
-    {
-        dc.SetDeviceOrigin(w/2,h); // set origin at bottom center
-    }
-    double scaleX = double(w) / buffer.RenderWi;
-    double scaleY = double(h) / buffer.RenderHt;
-    double scale=scaleY < scaleX ? scaleY : scaleX;
-    //scale=0.25;
-    int radius=1;
-    int factor=8;
-    if (scale < 0.5)
-    {
-        radius=int(1.0/scale+0.5);
-        factor=1;
-    }
-    else if (scale < 8.0)
-    {
-        factor=int(scale+0.5);
-    }
-    dc.SetUserScale(scale/factor,scale/factor);
-
-    // if the radius/factor are not yielding good results, uncomment the next line
-    //StatusBar1->SetStatusText(wxString::Format(wxT("Scale=%5.3f, radius=%d, factor=%d"),scale,radius,factor));
-
-    /*
-            // check that origin is in the right place
-            dc.SetUserScale(4,4);
-            color.Set(0,0,255);
-            pen.SetColour(color);
-            dc.SetPen(pen);
-            dc.DrawPoint(0,0);
-            dc.DrawPoint(1,1);
-            dc.DrawPoint(2,2);
-            return;
-    */
-    // layer calculation and map to output
-    size_t NodeCount=buffer.Nodes.size();
-    double sx,sy;
-
-    for(size_t i=0; i<NodeCount; i++)
-    {
-        // draw node on screen
-        buffer.Nodes[i].GetColor(color);
-        pen.SetColour(color);
-        brush.SetColour(color);
-        brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        dc.SetPen(pen);
-        dc.SetBrush(brush);
-        sx=buffer.Nodes[i].screenX;
-        sy=buffer.Nodes[i].screenY;
-        //#     dc.DrawPoint(buffer.Nodes[i].screenX, buffer.Nodes[i].screenY);
-        //dc.DrawPoint(sx,sy);
-        dc.DrawCircle(sx*factor,sy*factor,radius);  // 4 is good for high number of nodes
-    }
-}
-
 void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
@@ -2804,4 +2646,9 @@ void xLightsFrame::OnSlider_BrightnessCmdScroll(wxScrollEvent& event)
 void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 {
     txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
+}
+
+void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)
+{
+    ScrolledWindow1->ClearBackground();
 }
