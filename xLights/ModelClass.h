@@ -81,6 +81,13 @@ public:
         return ActChan+chnum;
     }
 
+    void getRGBChanNum(size_t *rChNum, size_t *gChNum, size_t *bChNum)
+    {
+        *rChNum=ActChan+offset[0];
+        *gChNum=ActChan+offset[1];
+        *bChNum=ActChan+offset[2];
+    }
+
     void GetColor(wxColour& color)
     {
         color.Set(c[0],c[1],c[2]);
@@ -137,12 +144,14 @@ public:
 
     void SetFromXml(wxXmlNode* ModelNode);
     size_t GetNodeCount();
-    void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     void SetScale(double newscale);
     double GetScale();
+    void DisplayModelOnWindow(wxWindow* window);
+    void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
+
 
     static bool IsMyDisplay(wxXmlNode* ModelNode) {
         return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");

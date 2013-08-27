@@ -893,7 +893,7 @@ private:
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
     void ResetEffectStates();
-    void SeqLoadXlightsFile(const wxString& filename);
+    void SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
     void ImportAudacityTimings();
@@ -910,6 +910,9 @@ private:
     void ShowModelsDialog();
     void TimerPreview(long msec);
     void ShowPreviewTime(long totalmsec);
+    void PreviewOutput(int period);
+    void TimerOutput(int period);
+    void ResetSequenceGrid();
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -940,6 +943,7 @@ private:
     EffectTreeDialog *EffectTreeDlg;
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
+    std::string LastIntensity;
 
     DECLARE_EVENT_TABLE()
 };

@@ -39,7 +39,20 @@ void xLightsFrame::OnButtonClearBackgroundClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
-    OpenSequence();
+    wxArrayString SeqFiles;
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
+    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+            "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    {
+        return;
+    }
+    wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
+    if (dialog.ShowModal() != wxID_OK) return;
+    ResetTimer(NO_SEQ);
+    ResetSequenceGrid();
+    wxString filename=dialog.GetStringSelection();
+    SeqLoadXlightsXSEQ(filename);
+    SeqLoadXlightsFile(filename, false);
 }
 
 void xLightsFrame::UpdatePreview()
@@ -152,11 +165,29 @@ void xLightsFrame::ShowPreviewTime(long totalmsec)
     TextCtrlPreviewTime->SetValue(wxString::Format(wxT("%d:%02d:%03d"),minutes,seconds,msec));
 }
 
+void xLightsFrame::PreviewOutput(int period)
+{
+    size_t m, n, rchan, gchan, bchan, NodeCnt;
+    char r,g,b;
+    TimerOutput(period);
+    for (m=0; m<PreviewModels.size(); m++)
+    {
+        NodeCnt=PreviewModels[m]->GetNodeCount();
+        for(n=0; n<NodeCnt; n++)
+        {
+            PreviewModels[m]->Nodes[n].getRGBChanNum(&rchan,&gchan,&bchan);
+            r=SeqData[rchan*SeqNumPeriods+period];
+            g=SeqData[gchan*SeqNumPeriods+period];
+            b=SeqData[bchan*SeqNumPeriods+period];
+            PreviewModels[m]->Nodes[n].SetColor(r,g,b);
+        }
+        PreviewModels[m]->DisplayModelOnWindow(ScrolledWindowPreview);
+    }
+}
+
 void xLightsFrame::TimerPreview(long msec)
 {
-    int period, chindex;
-    static std::string LastIntensity;
-    char intensity;
+    int period;
     switch (SeqPlayerState)
     {
     case STARTING_MEDIA:
@@ -181,27 +212,16 @@ void xLightsFrame::TimerPreview(long msec)
         ResetTimer(PLAYING_SEQ_ANIM);
         break;
     case PLAYING_SEQ_ANIM:
+        period = msec / XTIMER_INTERVAL;
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
             break;
         }
         ShowPreviewTime(msec);
-        period = msec / XTIMER_INTERVAL;
         if (period < SeqNumPeriods)
         {
-            if (CheckBoxLightOutput->IsChecked())
-            {
-                for (chindex=0; chindex<SeqNumChannels; chindex++)
-                {
-                    intensity=SeqData[chindex*SeqNumPeriods+period];
-                    if (xout && intensity != LastIntensity[chindex])
-                    {
-                        xout->SetIntensity(chindex, intensity);
-                        LastIntensity[chindex]=intensity;
-                    }
-                }
-            }
+            PreviewOutput(period);
         }
         else
         {
@@ -226,28 +246,17 @@ void xLightsFrame::TimerPreview(long msec)
             ResetTimer(PAUSE_SEQ);
             return;
         }
+        msec = PlayerDlg->MediaCtrl->Tell();
+        period = msec / XTIMER_INTERVAL;
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
             break;
         }
-        msec = PlayerDlg->MediaCtrl->Tell();
         ShowPreviewTime(msec);
-        period = msec / XTIMER_INTERVAL;
         if (period < SeqNumPeriods)
         {
-            if (CheckBoxLightOutput->IsChecked())
-            {
-                for (chindex=0; chindex<SeqNumChannels; chindex++)
-                {
-                    intensity=SeqData[chindex*SeqNumPeriods+period];
-                    if (xout && intensity != LastIntensity[chindex])
-                    {
-                        xout->SetIntensity(chindex, intensity);
-                        LastIntensity[chindex]=intensity;
-                    }
-                }
-            }
+            PreviewOutput(period);
         }
         break;
     case PAUSE_SEQ:

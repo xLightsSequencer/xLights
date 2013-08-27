@@ -1819,25 +1819,17 @@ void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
 
 void xLightsFrame::ImportxLightsXMLTimings()
 {
-    wxFileDialog* OpenDialog = new wxFileDialog(
-        this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
-        _("Text files (*.xml)|*.xml"),		wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog OpenDialog(this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
+                          _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
-    if (OpenDialog->ShowModal() == wxID_OK)
+    if (OpenDialog.ShowModal() == wxID_OK)
     {
-        fName =	OpenDialog->GetPath();
-        SeqLoadXlightsFile(fName);
+        fName =	OpenDialog.GetPath();
+        SeqLoadXlightsFile(fName, true);
     }
-    else
-    {
-
-    }
-
-    // Clean up after ourselves
-    OpenDialog->Destroy();
-
 }
+
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
@@ -1848,7 +1840,7 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
     SeqChanCtrlColor=false;
 }
 
-void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
+void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
     wxString tmpStr;
     // read xml sequence info
@@ -1858,7 +1850,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     int gridCol;
     if (!FileObj.FileExists())
     {
-        ChooseModelsForSequence();
+        if (ChooseModels) ChooseModelsForSequence();
         return;
     }
 
@@ -1949,6 +1941,15 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename)
     EnableSequenceControls(true);
 }
 
+void xLightsFrame::ResetSequenceGrid()
+{
+    int n;
+    n=Grid1->GetNumberCols();
+    if (n > SEQ_STATIC_COLUMNS) Grid1->DeleteCols(SEQ_STATIC_COLUMNS, n-SEQ_STATIC_COLUMNS);
+    n=Grid1->GetNumberRows();
+    if (n > 0) Grid1->DeleteRows(0, n);
+}
+
 void xLightsFrame::OpenSequence()
 {
     wxArrayString SeqFiles,MediaFiles;
@@ -2007,19 +2008,14 @@ void xLightsFrame::OpenSequence()
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 
-    // reset grid
-    int n;
-    n=Grid1->GetNumberCols();
-    if (n > SEQ_STATIC_COLUMNS) Grid1->DeleteCols(SEQ_STATIC_COLUMNS, n-SEQ_STATIC_COLUMNS);
-    n=Grid1->GetNumberRows();
-    if (n > 0) Grid1->DeleteRows(0, n);
     mediaFilename.Clear();
+    ResetSequenceGrid();
 
     long duration;
     if (dialog.RadioButtonXlights->GetValue())
     {
         SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
-        SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection());
+        SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection(), true);
         return;
     }
     else if (dialog.RadioButtonNewMusic->GetValue())
