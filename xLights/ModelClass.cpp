@@ -480,10 +480,10 @@ void ModelClass::InitFrame()
         }
     }
     // treat as outside of matrix
-    //SetBufferSize(parm2,FrameWidth);
+    SetBufferSize(parm2,FrameWidth);
 
     // treat as single string
-    SetBufferSize(1,Nodes.size());
+    //SetBufferSize(1,Nodes.size());
     SetRenderSize(parm2,FrameWidth);
 }
 
