@@ -483,11 +483,27 @@ int xLightsFrame::FindNotebookPage(wxString& pagename)
     return -1;
 }
 
+void xLightsFrame::TimerOutput(int period)
+{
+    int chindex;
+    char intensity;
+    if (CheckBoxLightOutput->IsChecked())
+    {
+        for (chindex=0; chindex<SeqNumChannels; chindex++)
+        {
+            intensity=SeqData[chindex*SeqNumPeriods+period];
+            if (xout && intensity != LastIntensity[chindex])
+            {
+                xout->SetIntensity(chindex, intensity);
+                LastIntensity[chindex]=intensity;
+            }
+        }
+    }
+}
+
 void xLightsFrame::OnTimerPlaylist(long msec)
 {
-    int period, chindex;
-    static std::string LastIntensity;
-    char intensity;
+    int period;
     switch (SeqPlayerState)
     {
     case DELAY_AFTER_PLAY:
@@ -529,18 +545,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         period = msec / XTIMER_INTERVAL;
         if (period < SeqNumPeriods)
         {
-            if (CheckBoxLightOutput->IsChecked())
-            {
-                for (chindex=0; chindex<SeqNumChannels; chindex++)
-                {
-                    intensity=SeqData[chindex*SeqNumPeriods+period];
-                    if (xout && intensity != LastIntensity[chindex])
-                    {
-                        xout->SetIntensity(chindex, intensity);
-                        LastIntensity[chindex]=intensity;
-                    }
-                }
-            }
+            TimerOutput(period);
         }
         else
         {
@@ -574,18 +579,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         period = msec / XTIMER_INTERVAL;
         if (period < SeqNumPeriods)
         {
-            if (CheckBoxLightOutput->IsChecked())
-            {
-                for (chindex=0; chindex<SeqNumChannels; chindex++)
-                {
-                    intensity=SeqData[chindex*SeqNumPeriods+period];
-                    if (xout && intensity != LastIntensity[chindex])
-                    {
-                        xout->SetIntensity(chindex, intensity);
-                        LastIntensity[chindex]=intensity;
-                    }
-                }
-            }
+            TimerOutput(period);
         }
         break;
     case PAUSE_SEQ:

@@ -122,6 +122,15 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
         InitFrame();
         CopyBufCoord2ScreenCoord();
     }
+    size_t NodeCount=GetNodeCount();
+    uint8_t offset_r=RGBorder.find(wxT("R"));
+    uint8_t offset_g=RGBorder.find(wxT("G"));
+    uint8_t offset_b=RGBorder.find(wxT("B"));
+    for(size_t i=0; i<NodeCount; i++)
+    {
+        Nodes[i].SetOffset(offset_r, offset_g, offset_b);
+        Nodes[i].sparkle = rand() % 10000;
+    }
 }
 
 void ModelClass::SetOffset(double xPct, double yPct)
@@ -527,6 +536,7 @@ void ModelClass::UpdateXmlWithScale()
     ModelXml->AddAttribute(wxT("PreviewScale"), wxString::Format(wxT("%6.4f"),PreviewScale));
 }
 
+// display model using a single color
 void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 {
     size_t NodeCount=Nodes.size();
@@ -554,6 +564,41 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
         // draw node on screen
         sx=Nodes[i].screenX;
         sy=Nodes[i].screenY;
+        dc.DrawPoint(sx,sy);
+        //dc.DrawCircle(sx*factor,sy*factor,radius);
+    }
+}
+
+// display model using colors stored in each node
+void ModelClass::DisplayModelOnWindow(wxWindow* window)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    wxClientDC dc(window);
+    wxPen pen;
+    wxColour color;
+    wxCoord w, h;
+
+    dc.GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    /*
+    // this isn't an ideal scaling algorithm - room for improvement here
+    double windowDiagonal=sqrt(w*w+h*h);
+    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
+    double scale=windowDiagonal / modelDiagonal * PreviewScale;
+    */
+    dc.SetAxisOrientation(true,true);
+    dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
+    dc.SetUserScale(scale,scale);
+
+    for(size_t i=0; i<NodeCount; i++)
+    {
+        // draw node on screen
+        sx=Nodes[i].screenX;
+        sy=Nodes[i].screenY;
+        Nodes[i].GetColor(color);
+        pen.SetColour(color);
+        dc.SetPen(pen);
         dc.DrawPoint(sx,sy);
         //dc.DrawCircle(sx*factor,sy*factor,radius);
     }

@@ -1244,7 +1244,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
+															<max>200</max>
+															<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>

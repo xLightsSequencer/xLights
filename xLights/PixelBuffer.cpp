@@ -35,18 +35,8 @@ PixelBufferClass::~PixelBufferClass()
 
 void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode)
 {
-    size_t i;
     SetFromXml(ModelNode);
-    size_t NodeCount=GetNodeCount();
-    uint8_t offset_r=RGBorder.find(wxT("R"));
-    uint8_t offset_g=RGBorder.find(wxT("G"));
-    uint8_t offset_b=RGBorder.find(wxT("B"));
-    for(i=0; i<NodeCount; i++)
-    {
-        Nodes[i].SetOffset(offset_r, offset_g, offset_b);
-        Nodes[i].sparkle = rand() % 10000;
-    }
-    for(i=0; i<2; i++)
+    for(size_t i=0; i<2; i++)
     {
         Effect[i].InitBuffer(BufferHt, BufferWi);
     }

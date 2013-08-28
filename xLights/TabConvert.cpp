@@ -822,6 +822,9 @@ bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vix
 
 void xLightsFrame::SetMediaFilename(const wxString& filename)
 {
+#ifndef NDEBUG
+    TextCtrlLog->AppendText(wxT("Setting media file to: ")+filename+wxT("\n"));
+#endif
     mediaFilename=filename;
     if (mediaFilename.IsEmpty()) return;
     wxPathFormat PathFmt = mediaFilename.Contains(_("\\")) ? wxPATH_DOS : wxPATH_NATIVE;
@@ -1030,7 +1033,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     wxString NodeName, NodeValue, Data, ChannelName;
     wxArrayString context;
     IrrXMLReader* xml = createIrrXMLReader(filename);
-    
+
     // pass one, get the metadata
     while(xml && xml->read())
     {
@@ -1050,7 +1053,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 NodeName = wxString::FromAscii( xml->getNodeName() );
                 context.Add(NodeName);
                 cnt++;
-                
+
                 if (xml->isEmptyElement())
                 {
                     context.RemoveAt(cnt-1);
@@ -1096,7 +1099,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 }
                 if (context[cnt - 1] == _("Block")) {
                     NodeValue = wxString::FromAscii( xml->getNodeData() );
-                    
+
                     int idx = NodeValue.Find("-");
                     Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
                 }
@@ -1105,13 +1108,13 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 NodeName = wxString::FromAscii( xml->getNodeName() );
                 context.Add(NodeName);
                 cnt++;
-                
+
                 if (xml->isEmptyElement())
                 {
                     context.RemoveAt(cnt-1);
                     cnt--;
                 }
-                
+
                 break;
             case EXN_ELEMENT_END:
                 NodeName = wxString::FromAscii( xml->getNodeName() );
