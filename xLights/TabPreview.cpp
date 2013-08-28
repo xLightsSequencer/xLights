@@ -53,6 +53,8 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
+    SliderPreviewTime->SetValue(0);
+    TextCtrlPreviewTime->Clear();
 }
 
 void xLightsFrame::UpdatePreview()
@@ -138,28 +140,51 @@ void xLightsFrame::OnButtonModelsPreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
 {
-    if (SeqPlayerState == PAUSE_SEQ)
+    switch (SeqPlayerState)
     {
+    case PAUSE_SEQ:
+        PreviewStartPeriod=PlaybackPeriod;
         PlayerDlg->MediaCtrl->Play();
-    } else
-    {
+        break;
+    case PAUSE_SEQ_ANIM:
+        PreviewStartPeriod=PlaybackPeriod;
+        ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        break;
+    default:
+        PreviewStartPeriod=0;
         PlayCurrentXlightsFile();
+        break;
     }
 }
 
 void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
 {
-    PlayerDlg->MediaCtrl->Pause();
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PAUSE_SEQ_ANIM);
+    }
+    else
+    {
+        PlayerDlg->MediaCtrl->Pause();
+    }
 }
 
 void xLightsFrame::OnButtonRepeatPreviewClick(wxCommandEvent& event)
 {
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, PreviewStartPeriod * XTIMER_INTERVAL);
+    }
+    else
+    {
+        PlayerDlg->MediaCtrl->Seek(PreviewStartPeriod * XTIMER_INTERVAL);
+    }
 }
 
-void xLightsFrame::ShowPreviewTime(long totalmsec)
+void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
-    int msec=totalmsec % 1000;
-    int seconds=totalmsec / 1000;
+    int msec=ElapsedMSec % 1000;
+    int seconds=ElapsedMSec / 1000;
     int minutes=seconds / 60;
     seconds=seconds % 60;
     TextCtrlPreviewTime->SetValue(wxString::Format(wxT("%d:%02d:%03d"),minutes,seconds,msec));
@@ -183,50 +208,37 @@ void xLightsFrame::PreviewOutput(int period)
         }
         PreviewModels[m]->DisplayModelOnWindow(ScrolledWindowPreview);
     }
+    int amtdone = period * SliderPreviewTime->GetMax() / (SeqNumPeriods-1);
+    SliderPreviewTime->SetValue(amtdone);
 }
 
 void xLightsFrame::TimerPreview(long msec)
 {
-    int period;
     switch (SeqPlayerState)
     {
-    case STARTING_MEDIA:
-        if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
-        {
-            ResetTimer(PLAYING_MEDIA);
-        }
-        else
-        {
-            PlayerDlg->MediaCtrl->Play();
-        }
-        break;
-    case PLAYING_MEDIA:
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
-        {
-            ResetTimer(NO_SEQ);
-        }
-        break;
     case STARTING_SEQ_ANIM:
         LastIntensity.clear();
         LastIntensity.resize(SeqNumChannels,1);
         ResetTimer(PLAYING_SEQ_ANIM);
         break;
     case PLAYING_SEQ_ANIM:
-        period = msec / XTIMER_INTERVAL;
+        PlaybackPeriod = msec / XTIMER_INTERVAL;
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
             break;
         }
         ShowPreviewTime(msec);
-        if (period < SeqNumPeriods)
+        if (PlaybackPeriod < SeqNumPeriods)
         {
-            PreviewOutput(period);
+            PreviewOutput(PlaybackPeriod);
         }
         else
         {
             ResetTimer(NO_SEQ);
         }
+        break;
+    case PAUSE_SEQ_ANIM:
         break;
     case STARTING_SEQ:
         if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
@@ -247,16 +259,16 @@ void xLightsFrame::TimerPreview(long msec)
             return;
         }
         msec = PlayerDlg->MediaCtrl->Tell();
-        period = msec / XTIMER_INTERVAL;
+        PlaybackPeriod = msec / XTIMER_INTERVAL;
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
             break;
         }
         ShowPreviewTime(msec);
-        if (period < SeqNumPeriods)
+        if (PlaybackPeriod < SeqNumPeriods)
         {
-            PreviewOutput(period);
+            PreviewOutput(PlaybackPeriod);
         }
         break;
     case PAUSE_SEQ:
@@ -266,5 +278,19 @@ void xLightsFrame::TimerPreview(long msec)
             ResetTimer(PLAYING_SEQ);
         }
         break;
+    }
+}
+
+void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
+{
+    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    long msec=newperiod * XTIMER_INTERVAL;
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, msec);
+    }
+    else
+    {
+        PlayerDlg->MediaCtrl->Seek(msec);
     }
 }

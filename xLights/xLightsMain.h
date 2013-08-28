@@ -127,6 +127,7 @@ enum SeqPlayerStates
     STARTING_SEQ_ANIM,
     PLAYING_SEQ_ANIM,
     PAUSE_SEQ,
+    PAUSE_SEQ_ANIM,
     DELAY_AFTER_PLAY,
     PLAYING_EFFECT
 };
@@ -343,6 +344,7 @@ private:
     void OnButtonPlayPreviewClick(wxCommandEvent& event);
     void OnButtonStopPreviewClick(wxCommandEvent& event);
     void OnButtonRepeatPreviewClick(wxCommandEvent& event);
+    void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -909,7 +911,7 @@ private:
     void UpdatePreview();
     void ShowModelsDialog();
     void TimerPreview(long msec);
-    void ShowPreviewTime(long totalmsec);
+    void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
     void ResetSequenceGrid();
@@ -944,6 +946,7 @@ private:
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
+    long PreviewStartPeriod, PlaybackPeriod;
 
     DECLARE_EVENT_TABLE()
 };
