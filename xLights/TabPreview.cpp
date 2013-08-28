@@ -201,6 +201,13 @@ void xLightsFrame::PreviewOutput(int period)
         for(n=0; n<NodeCnt; n++)
         {
             PreviewModels[m]->Nodes[n].getRGBChanNum(&rchan,&gchan,&bchan);
+            if (rchan >= SeqNumChannels || gchan >= SeqNumChannels || bchan >= SeqNumChannels)
+            {
+                ResetTimer(NO_SEQ);
+                if (!mediaFilename.IsEmpty()) PlayerDlg->MediaCtrl->Stop();
+                wxMessageBox(_("ERROR: a model defines channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+                return;
+            }
             r=SeqData[rchan*SeqNumPeriods+period];
             g=SeqData[gchan*SeqNumPeriods+period];
             b=SeqData[bchan*SeqNumPeriods+period];
