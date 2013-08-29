@@ -1763,7 +1763,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     tfile.Close();
     f.Close();
     if(modified) wxCopyFile(fileout,file,true); // if we modified the file, copy over it
-    //  wxRemoveFile(fileout); // get rid of temporary file
+    wxRemoveFile(fileout); // get rid of temporary file
 }
 
 
@@ -1820,7 +1820,7 @@ void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
 void xLightsFrame::ImportxLightsXMLTimings()
 {
     wxFileDialog OpenDialog(this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
-                          _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
+                            _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
     if (OpenDialog.ShowModal() == wxID_OK)
