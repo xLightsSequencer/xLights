@@ -7,7 +7,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 
 
 3.1.3:  Aug 27,2013 - Enhancement: (Matt). New Effect Curtain.
-					- Enhancement: New tab PREVIEW. This tab will allow showing multiple models at same time. This tab is NOT finished yet
+					- Enhancement: (Matt)  New tab PREVIEW. There is a new tab that will allow you to see all of your models displaying effects.
+					- Bug (Frank) Fixed channel numbering for single string and Window models
 3.1.2:  Aug 17,2013 - Enhancement: (Frankr). Circle effect now has new option called plasma.
 					- Enhancement: (Matt Brown).  bars compress & expand so that the two halves mirror each other.
 					- Bug: (Frankr).  found and fixed the issues with fire and meteors that were being discussed at DIYC.
