@@ -149,6 +149,7 @@ public:
     void AddOffset(double xPct, double yPct);
     void SetScale(double newscale);
     double GetScale();
+    int GetLastChannel();
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
 

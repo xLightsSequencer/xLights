@@ -2098,7 +2098,8 @@ void xLightsFrame::RenderGridToSeqData()
     MapStringString SettingsMap;
     wxString ColName,msg, EffectStr;
     long msec;
-    size_t ChannelNum, NodeCnt;
+    bool effectsToUpdate;
+    size_t ChannelLimit, NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
@@ -2112,19 +2113,18 @@ void xLightsFrame::RenderGridToSeqData()
         buffer.InitBuffer(ModelNode);
         if (!buffer.MyDisplay) continue;
         NodeCnt=buffer.GetNodeCount();
-        ChannelNum=buffer.StartChannel-1+NodeCnt*3; // last channel
-        bool effectsToUpdate;
+        ChannelLimit=buffer.GetLastChannel() + 1;
 
-        if (ChannelNum > SeqNumChannels)
+        if (ChannelLimit > SeqNumChannels)
         {
             // need to add more channels to existing sequence
-            msg=wxString::Format(wxT("Increasing sequence channel count from %ld to %d"),SeqNumChannels,ChannelNum);
-            if (ChannelNum > NetInfo.GetTotChannels())
+            msg=wxString::Format(wxT("Increasing sequence channel count from %ld to %d"),SeqNumChannels,ChannelLimit);
+            if (ChannelLimit > NetInfo.GetTotChannels())
             {
                 msg+=wxT("\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!");
             }
             wxMessageBox(msg);
-            SeqNumChannels=ChannelNum;
+            SeqNumChannels=ChannelLimit;
             SeqDataLen=SeqNumChannels*SeqNumPeriods;
             SeqData.resize(SeqDataLen,0);
         }
