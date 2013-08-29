@@ -947,7 +947,6 @@ private:
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
     long PreviewStartPeriod, PlaybackPeriod;
-    int LastPreviewChannel;
 
     DECLARE_EVENT_TABLE()
 };

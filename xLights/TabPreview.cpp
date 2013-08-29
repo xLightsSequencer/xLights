@@ -55,11 +55,6 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     SeqLoadXlightsFile(filename, false);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
-    LastPreviewChannel=0;
-    for (int i=0; i<PreviewModels.size(); i++)
-    {
-        LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
-    }
 }
 
 void xLightsFrame::UpdatePreview()
@@ -145,6 +140,7 @@ void xLightsFrame::OnButtonModelsPreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
 {
+    int LastPreviewChannel=0;
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
@@ -156,6 +152,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
         break;
     default:
+        for (int i=0; i<PreviewModels.size(); i++)
+        {
+            LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
+        }
         if (LastPreviewChannel >= SeqNumChannels)
         {
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
