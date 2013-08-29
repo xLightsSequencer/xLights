@@ -1002,7 +1002,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
-    ResetEffectDuration();
+//    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
