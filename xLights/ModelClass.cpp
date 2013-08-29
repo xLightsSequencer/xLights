@@ -133,6 +133,17 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     }
 }
 
+int ModelClass::GetLastChannel()
+{
+    int LastChan=0;
+    size_t NodeCount=GetNodeCount();
+    for(size_t idx=0; idx<NodeCount; idx++)
+    {
+        LastChan=std::max(LastChan,Nodes[idx].ActChan+2);
+    }
+    return LastChan;
+}
+
 void ModelClass::SetOffset(double xPct, double yPct)
 {
     offsetXpct=xPct;

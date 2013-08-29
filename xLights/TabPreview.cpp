@@ -55,6 +55,11 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     SeqLoadXlightsFile(filename, false);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
+    LastPreviewChannel=0;
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
+    }
 }
 
 void xLightsFrame::UpdatePreview()
@@ -151,8 +156,15 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
         break;
     default:
-        PreviewStartPeriod=0;
-        PlayCurrentXlightsFile();
+        if (LastPreviewChannel >= SeqNumChannels)
+        {
+            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+        }
+        else
+        {
+            PreviewStartPeriod=0;
+            PlayCurrentXlightsFile();
+        }
         break;
     }
 }
@@ -201,13 +213,6 @@ void xLightsFrame::PreviewOutput(int period)
         for(n=0; n<NodeCnt; n++)
         {
             PreviewModels[m]->Nodes[n].getRGBChanNum(&rchan,&gchan,&bchan);
-            if (rchan >= SeqNumChannels || gchan >= SeqNumChannels || bchan >= SeqNumChannels)
-            {
-                ResetTimer(NO_SEQ);
-                if (!mediaFilename.IsEmpty()) PlayerDlg->MediaCtrl->Stop();
-                wxMessageBox(_("ERROR: a model defines channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
-                return;
-            }
             r=SeqData[rchan*SeqNumPeriods+period];
             g=SeqData[gchan*SeqNumPeriods+period];
             b=SeqData[bchan*SeqNumPeriods+period];
