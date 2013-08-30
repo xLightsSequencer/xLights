@@ -152,6 +152,7 @@ public:
     int GetLastChannel();
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
+    void DisplayEffectOnWindow(wxWindow* window);
 
 
     static bool IsMyDisplay(wxXmlNode* ModelNode) {
