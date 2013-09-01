@@ -25,6 +25,7 @@ public:
     wxButton* Button_Layout;
     wxButton* Button_Delete;
     wxButton* Button_New;
+    wxButton* Button_Copy;
     wxButton* Button_Rename;
     wxListBox* ListBox1;
     //*)
@@ -37,6 +38,7 @@ protected:
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
     static const long ID_BUTTON2;
+    static const long ID_BUTTON5;
     static const long ID_BUTTON_LAYOUT;
     //*)
 
@@ -48,9 +50,10 @@ private:
     void OnButton_DeleteClick(wxCommandEvent& event);
     void OnButton_RenameClick(wxCommandEvent& event);
     void OnButton_LayoutClick(wxCommandEvent& event);
+    void OnButton_CopyClick(wxCommandEvent& event);
     //*)
 
-    wxString StartChanAttrName(int idx);
+    bool ValidateModelName(const wxString& name);
 
     DECLARE_EVENT_TABLE()
 };
