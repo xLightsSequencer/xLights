@@ -6,7 +6,7 @@
 		<help>Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical.</help>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>2</cols>
+			<cols>3</cols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
@@ -221,7 +221,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText4" member="yes">
-							<label>Smooth Edges (antialias)</label>
+							<label>Smooth Edges - antialias&#x0A;(future capability)</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -234,6 +234,7 @@
 								<item>2x</item>
 							</content>
 							<selection>0</selection>
+							<enabled>0</enabled>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -256,34 +257,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText9" member="yes">
-							<label>Individual Start Chans</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="cbIndividualStartNumbers" member="yes">
-							<handler function="OncbIndividualStartNumbersClick" entry="EVT_CHECKBOX" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText10" member="yes">
 							<label></label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="btCustomModelConfig" member="yes">
-							<label>Configure Custom Model</label>
-							<enabled>0</enabled>
-							<handler function="OnbtCustomModleConfigClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -296,20 +271,79 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>3</cols>
+					<cols>1</cols>
+					<rows>2</rows>
+					<growablerows>1</growablerows>
 					<object class="sizeritem">
-						<object class="wxGrid" name="ID_GRID1" variable="gridStartChannels" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="cbIndividualStartNumbers" member="yes">
+							<label>Individual Start Chans</label>
+							<handler function="OncbIndividualStartNumbersClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>10</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxGrid" name="ID_GRID_START_CHANNELS" variable="gridStartChannels" member="yes">
 							<cols>1</cols>
+							<labelrowheight>20</labelrowheight>
 							<labelcolwidth>25</labelcolwidth>
 							<defaultcolsize>90</defaultcolsize>
 							<collabels>
 								<item>Start Channel</item>
 							</collabels>
-							<size>150,348</size>
 							<style>wxVSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
 							<handler function="OngridStartChannelsCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+						<border>4</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<cols>1</cols>
+					<rows>2</rows>
+					<growablerows>1</growablerows>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+							<cols>3</cols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticTextCustomModel" member="yes">
+									<label>Custom Model</label>
+								</object>
+								<flag>wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_CUSTOM_MODEL_HELP" variable="ButtonCustomModelHelp" member="yes">
+									<label>Custom Model Help</label>
+									<handler function="OnButtonCustomModelHelpClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
+							<cols>1</cols>
+							<rows>1</rows>
+							<labelrowheight>20</labelrowheight>
+							<labelcolwidth>30</labelcolwidth>
+							<defaultcolsize>30</defaultcolsize>
+							<size>300,0</size>
+						</object>
+						<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

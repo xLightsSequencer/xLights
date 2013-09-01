@@ -21,30 +21,31 @@ public:
     ModelDialog(wxWindow* parent,wxWindowID id=wxID_ANY);
     virtual ~ModelDialog();
     void UpdateLabels();
-    void UpdateStartChannels();
-    wxString customChannelData;
+    void SetCustomGridData(const wxString& customChannelData);
+    wxString GetCustomGridData();
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
-    wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
+    wxStaticText* StaticTextCustomModel;
     wxStaticText* StaticText2;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxGrid* GridCustom;
     wxRadioButton* RadioButton_TopLeft;
     wxRadioButton* RadioButton_BotLeft;
-    wxButton* btCustomModelConfig;
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
     wxChoice* Choice_Order;
     wxCheckBox* cbIndividualStartNumbers;
+    wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
     wxGrid* gridStartChannels;
     wxChoice* Choice_DisplayAs;
@@ -83,11 +84,12 @@ protected:
     static const long ID_CHOICE3;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
-    static const long ID_STATICTEXT12;
-    static const long ID_CHECKBOX2;
     static const long ID_STATICTEXT13;
-    static const long ID_BUTTON1;
-    static const long ID_GRID1;
+    static const long ID_CHECKBOX2;
+    static const long ID_GRID_START_CHANNELS;
+    static const long ID_STATICTEXT14;
+    static const long ID_BUTTON_CUSTOM_MODEL_HELP;
+    static const long ID_GRID_Custom;
     //*)
 
 private:
@@ -99,12 +101,20 @@ private:
     void OnSpinCtrl_parm2Change(wxSpinEvent& event);
     void OnSpinCtrl_StartChannelChange(wxSpinEvent& event);
     void OngridStartChannelsCellChange(wxGridEvent& event);
-    void OnbtCustomModleConfigClick(wxCommandEvent& event);
+    void OnButtonCustomModelHelpClick(wxCommandEvent& event);
     //*)
     void SetDefaultStartChannels();
     void UpdateRowCount();
 
     void SetReadOnly(bool);
+    void UpdateCustom();
+    void UpdateStartChannels();
+    void ResizeCustomGrid();
+    bool IsCustom();
+    int GetNumberOfStrings();
+
+    bool HasCustomData;
+
     DECLARE_EVENT_TABLE()
 };
 

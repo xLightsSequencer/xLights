@@ -76,17 +76,23 @@ ModelListDialog::~ModelListDialog()
 }
 
 
+wxString ModelListDialog::StartChanAttrName(int idx)
+{
+    return wxString::Format(wxT("String%d"),idx+1);
+}
+
+
 void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 {
     int DlgResult, ii;
     bool ok;
     wxString name;
-    wxString strText = wxT("String");
     ModelDialog dialog(this);
+    dialog.RadioButton_BotLeft->SetValue(true);
+    dialog.UpdateLabels();
     do
     {
         ok=true;
-        dialog.RadioButton_BotLeft->SetValue(true);
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -129,8 +135,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
                     e->AddAttribute(wxT("Advanced"), wxT("1"));
                     for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
                     {
-                        e->AddAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))),
-                                        dialog.gridStartChannels->GetCellValue(ii,0));
+                        e->AddAttribute(StartChanAttrName(ii), dialog.gridStartChannels->GetCellValue(ii,0));
                     }
                 }
             }
@@ -142,8 +147,6 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
 {
     int ii;
-    wxString strText;
-    strText = wxT("String");
     int sel=ListBox1->GetSelection();
     long numStrings;
     wxString tempStr;
@@ -182,13 +185,12 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     if(e->HasAttribute(wxT("Advanced")))
     {
         dialog.cbIndividualStartNumbers->SetValue(true);
-        dialog.UpdateStartChannels();
         tempStr = e->GetAttribute(wxT("parm1"));
         tempStr.ToLong(&numStrings);
         for(ii=0; ii < numStrings; ii++)
         {
-            dialog.gridStartChannels->SetCellValue(ii,0,
-                                e->GetAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1)))));
+            dialog.gridStartChannels->AppendRows();
+            dialog.gridStartChannels->SetCellValue(ii,0,e->GetAttribute(StartChanAttrName(ii)));
         }
     }
 
@@ -209,7 +211,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     if (e->HasAttribute(wxT("CustomModel")))
     {
         e->GetAttribute(wxT("CustomModel"),&customChannels);
-        dialog.customChannelData = customChannels;
+        dialog.SetCustomGridData(customChannels);
     }
     dialog.CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
     dialog.UpdateLabels();
@@ -229,7 +231,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                     tempStr.ToLong(&numStrings);
                     for(ii=0; ii < numStrings; ii++)
                     {
-                        e->DeleteAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))));
+                        e->DeleteAttribute(StartChanAttrName(ii));
                     }
                 }
                 if (e->HasAttribute(wxT("CustomModel")));
@@ -241,8 +243,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                     e->AddAttribute(wxT("Advanced"), wxT("1"));
                     for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
                     {
-                        e->AddAttribute(strText.Left(6).Append((wxString::Format(wxT("%i"),ii+1))),
-                                        dialog.gridStartChannels->GetCellValue(ii,0));
+                        e->AddAttribute(StartChanAttrName(ii),dialog.gridStartChannels->GetCellValue(ii,0));
                     }
                 }
                 if (e->HasAttribute(wxT("StartSide")))
@@ -275,7 +276,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
                 e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
                 if (dialog.Choice_DisplayAs->GetStringSelection() == wxT("Custom"))
                 {
-                    e->AddAttribute(wxT("CustomModel"),dialog.customChannelData);
+                    e->AddAttribute(wxT("CustomModel"),dialog.GetCustomGridData());
                 }
 
             }

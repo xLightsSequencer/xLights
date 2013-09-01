@@ -1,5 +1,4 @@
 #include "ModelDialog.h"
-#include "CustomModelDialog.h"
 #include "ModelClass.h"
 #include <wx/msgdlg.h>
 
@@ -33,11 +32,12 @@ const long ModelDialog::ID_STATICTEXT9 = wxNewId();
 const long ModelDialog::ID_CHOICE3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
-const long ModelDialog::ID_STATICTEXT12 = wxNewId();
-const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_STATICTEXT13 = wxNewId();
-const long ModelDialog::ID_BUTTON1 = wxNewId();
-const long ModelDialog::ID_GRID1 = wxNewId();
+const long ModelDialog::ID_CHECKBOX2 = wxNewId();
+const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
+const long ModelDialog::ID_STATICTEXT14 = wxNewId();
+const long ModelDialog::ID_BUTTON_CUSTOM_MODEL_HELP = wxNewId();
+const long ModelDialog::ID_GRID_Custom = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
@@ -48,7 +48,9 @@ END_EVENT_TABLE()
 ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(ModelDialog)
+    wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxBoxSizer* BoxSizer1;
@@ -57,7 +59,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 
     Create(parent, wxID_ANY, _("Model"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     SetHelpText(_("Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical."));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -126,40 +128,57 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     RadioButton_BotRight = new wxRadioButton(this, ID_RADIOBUTTON3, _("Bottom Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
     BoxSizer2->Add(RadioButton_BotRight, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(BoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Edges (antialias)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT9, _("Smooth Edges - antialias\n(future capability)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Antialias = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
     Choice_Antialias->SetSelection( Choice_Antialias->Append(_("None")) );
     Choice_Antialias->Append(_("2x"));
+    Choice_Antialias->Disable();
     FlexGridSizer2->Add(Choice_Antialias, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT10, _("Part of my display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
     FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_MyDisplay = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_MyDisplay->SetValue(true);
     FlexGridSizer2->Add(CheckBox_MyDisplay, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Individual Start Chans"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
-    FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-    cbIndividualStartNumbers->SetValue(false);
-    FlexGridSizer2->Add(cbIndividualStartNumbers, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText10 = new wxStaticText(this, ID_STATICTEXT13, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
     FlexGridSizer2->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    btCustomModelConfig = new wxButton(this, ID_BUTTON1, _("Configure Custom Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    btCustomModelConfig->Disable();
-    FlexGridSizer2->Add(btCustomModelConfig, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-    gridStartChannels = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxSize(150,348), wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
+    FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizer3->AddGrowableRow(1);
+    cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, _("Individual Start Chans"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    cbIndividualStartNumbers->SetValue(false);
+    FlexGridSizer3->Add(cbIndividualStartNumbers, 1, wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
+    gridStartChannels = new wxGrid(this, ID_GRID_START_CHANNELS, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID_START_CHANNELS"));
     gridStartChannels->CreateGrid(0,1);
     gridStartChannels->EnableEditing(true);
     gridStartChannels->EnableGridLines(true);
+    gridStartChannels->SetColLabelSize(20);
     gridStartChannels->SetRowLabelSize(25);
     gridStartChannels->SetDefaultColSize(90, true);
     gridStartChannels->SetColLabelValue(0, _("Start Channel"));
     gridStartChannels->SetDefaultCellFont( gridStartChannels->GetFont() );
     gridStartChannels->SetDefaultCellTextColour( gridStartChannels->GetForegroundColour() );
-    FlexGridSizer3->Add(gridStartChannels, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+    FlexGridSizer3->Add(gridStartChannels, 1, wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 4);
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
+    FlexGridSizer4->AddGrowableRow(1);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticTextCustomModel = new wxStaticText(this, ID_STATICTEXT14, _("Custom Model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
+    FlexGridSizer5->Add(StaticTextCustomModel, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonCustomModelHelp = new wxButton(this, ID_BUTTON_CUSTOM_MODEL_HELP, _("Custom Model Help"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CUSTOM_MODEL_HELP"));
+    FlexGridSizer5->Add(ButtonCustomModelHelp, 1, wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridCustom = new wxGrid(this, ID_GRID_Custom, wxDefaultPosition, wxSize(300,0), 0, _T("ID_GRID_Custom"));
+    GridCustom->CreateGrid(1,1);
+    GridCustom->EnableEditing(true);
+    GridCustom->EnableGridLines(true);
+    GridCustom->SetColLabelSize(20);
+    GridCustom->SetRowLabelSize(30);
+    GridCustom->SetDefaultColSize(30, true);
+    GridCustom->SetDefaultCellFont( GridCustom->GetFont() );
+    GridCustom->SetDefaultCellTextColour( GridCustom->GetForegroundColour() );
+    FlexGridSizer4->Add(GridCustom, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -175,10 +194,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnbtCustomModleConfigClick);
-    Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
+    Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
+    Connect(ID_BUTTON_CUSTOM_MODEL_HELP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButtonCustomModelHelpClick);
     //*)
     UpdateStartChannels();
+    HasCustomData = false;
 }
 
 ModelDialog::~ModelDialog()
@@ -188,11 +208,108 @@ ModelDialog::~ModelDialog()
 }
 
 
+// make grid the size specified by the spin controls
+void ModelDialog::ResizeCustomGrid()
+{
+    int numCols=SpinCtrl_parm1->GetValue();
+    int numRows=SpinCtrl_parm2->GetValue();
+    int deltaCols=numCols - GridCustom->GetNumberCols();
+    int deltaRows=numRows - GridCustom->GetNumberRows();
+    if (deltaCols > 0) GridCustom->AppendCols(deltaCols);
+    if (deltaRows > 0) GridCustom->AppendRows(deltaRows);
+    if (deltaCols < 0) GridCustom->DeleteCols(numCols,-deltaCols);
+    if (deltaRows < 0) GridCustom->DeleteRows(numRows,-deltaRows);
+}
+
+bool ModelDialog::IsCustom()
+{
+    return Choice_DisplayAs->GetStringSelection() == wxT("Custom");
+}
+
+void ModelDialog::UpdateCustom()
+{
+    bool CustomFlag = IsCustom();
+    GridCustom->Show(CustomFlag);
+    if (CustomFlag && !HasCustomData) ResizeCustomGrid();
+}
+
+// initialize grid with saved values
+wxString ModelDialog::GetCustomGridData()
+{
+    wxString customChannelData, value;
+    if (IsCustom())
+    {
+        int numCols=SpinCtrl_parm1->GetValue();
+        int numRows=SpinCtrl_parm2->GetValue();
+        for(int row=0; row < numRows; row++)
+        {
+            if (row > 0) customChannelData+=wxT(";");
+            for(int col=0; col<numCols; col++)
+            {
+                if (col > 0) customChannelData+=wxT(",");
+                value = GridCustom->GetCellValue(row,col);
+                if (value == wxT("0") || value.StartsWith(wxT("-"))) value.clear();
+                customChannelData += value;
+            }
+        }
+    }
+    return customChannelData;
+}
+
+// Initialize custom grid with saved values
+// Must be called AFTER Choice_DisplayAs & SpinCtrl_parm1 & SpinCtrl_parm2 have been set
+void ModelDialog::SetCustomGridData(const wxString& customChannelData)
+{
+    wxString value;
+    wxArrayString cols;
+
+    if (!IsCustom()) return;
+
+    HasCustomData = true;
+    if (customChannelData.IsEmpty())
+    {
+        ResizeCustomGrid();
+        return;
+    }
+
+    wxArrayString rows=wxSplit(customChannelData,';');
+    for(size_t row=0; row < rows.size(); row++)
+    {
+        if (row >= GridCustom->GetNumberRows()) GridCustom->AppendRows();
+        cols=wxSplit(rows[row],',');
+        for(size_t col=0; col < cols.size(); col++)
+        {
+            if (col >= GridCustom->GetNumberCols()) GridCustom->AppendCols();
+            value=cols[col];
+            if (!value.IsEmpty() && value != wxT("0"))
+            {
+                GridCustom->SetCellValue(row,col,value);
+            }
+        }
+    }
+    SpinCtrl_parm1->SetValue(GridCustom->GetNumberCols());
+    SpinCtrl_parm2->SetValue(GridCustom->GetNumberRows());
+}
+
+
+int ModelDialog::GetNumberOfStrings()
+{
+    wxString choice=Choice_DisplayAs->GetStringSelection();
+    if (choice == wxT("Window Frame") || choice == wxT("Custom"))
+    {
+        return 1;
+    }
+    else
+    {
+        return SpinCtrl_parm1->GetValue();
+    }
+}
+
+
 void ModelDialog::UpdateLabels()
 {
     wxString choice;
     choice=Choice_DisplayAs->GetStringSelection();
-    btCustomModelConfig->Enable(false);
     if (choice == wxT("Arches"))
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
@@ -223,7 +340,6 @@ void ModelDialog::UpdateLabels()
         StaticText_Strands->SetLabelText(_("n/a"));
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
-        btCustomModelConfig->Enable(true);
     }
     else
     {
@@ -232,8 +348,9 @@ void ModelDialog::UpdateLabels()
         StaticText_Nodes->SetLabelText(_("# of RGB Nodes per String"));
         StaticText_Strands->SetLabelText(_("# of Strands per String"));
         SpinCtrl_parm3->Enable(true);
-        UpdateStartChannels();
     }
+    UpdateStartChannels();
+    UpdateCustom();
 }
 
 
@@ -249,12 +366,6 @@ void ModelDialog::OncbIndividualStartNumbersClick(wxCommandEvent& event)
 
 void ModelDialog::UpdateStartChannels()
 {
-    int stringnum;
-    int strings = SpinCtrl_parm1->GetValue();
-    int startchan = SpinCtrl_StartChannel->GetValue();
-    int nodesPerString = SpinCtrl_parm2->GetValue();
-    int curRowCnt = gridStartChannels->GetNumberRows();
-
     UpdateRowCount();
 
     if(!cbIndividualStartNumbers->IsChecked())
@@ -280,15 +391,16 @@ void ModelDialog::SetReadOnly(bool readonly)
 }
 void ModelDialog::OnSpinCtrl_parm1Change(wxSpinEvent& event)
 {
-    UpdateStartChannels();
+    if (IsCustom()) {
+        ResizeCustomGrid();
+    } else {
+        UpdateStartChannels();
+    }
 }
 
 void ModelDialog::UpdateRowCount()
 {
-    int stringnum;
-    int strings = SpinCtrl_parm1->GetValue();
-    int startchan = SpinCtrl_StartChannel->GetValue();
-    int nodesPerString = SpinCtrl_parm2->GetValue();
+    int strings = GetNumberOfStrings();
     int curRowCnt = gridStartChannels->GetNumberRows();
 
     if (strings > curRowCnt )
@@ -299,16 +411,19 @@ void ModelDialog::UpdateRowCount()
     {
         gridStartChannels->DeleteRows(strings, curRowCnt - strings);
     }
+
+    bool OneString = strings == 1;
+    if (OneString) cbIndividualStartNumbers->SetValue(false);
+    cbIndividualStartNumbers->Enable(!OneString);
 }
+
 void ModelDialog::SetDefaultStartChannels()
 {
-    int stringnum;
-    int strings = SpinCtrl_parm1->GetValue();
+    int strings = GetNumberOfStrings();
     int startchan = SpinCtrl_StartChannel->GetValue();
     int nodesPerString = SpinCtrl_parm2->GetValue();
-    int curRowCnt = gridStartChannels->GetNumberRows();
 
-    for (stringnum=0; stringnum<strings; stringnum++)
+    for (int stringnum=0; stringnum<strings; stringnum++)
     {
         gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*nodesPerString*3)));
     }
@@ -316,7 +431,11 @@ void ModelDialog::SetDefaultStartChannels()
 
 void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
 {
-     UpdateStartChannels();
+    if (IsCustom()) {
+        ResizeCustomGrid();
+    } else {
+        UpdateStartChannels();
+    }
 }
 
 void ModelDialog::OnSpinCtrl_StartChannelChange(wxSpinEvent& event)
@@ -334,72 +453,16 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
     if (col==0)
     {
         tmpStr = gridStartChannels->GetCellValue(row,col);
-        if ( (!tmpStr.ToLong(&val) || val < 0) )
+        if ( (!tmpStr.ToLong(&val) || val <= 0) )
         {
             wxMessageBox(_("Cell value must be a positive numeric value"));
-            gridStartChannels->SetCellValue(row,col,wxT("0"));
+            gridStartChannels->SetCellValue(row,col,wxT("1"));
         }
     }
     event.Skip();
 }
 
-void ModelDialog::OnbtCustomModleConfigClick(wxCommandEvent& event)
+void ModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 {
-    CustomModelDialog dialog(this);
-    int numRows, numCols, row, col, idx;
-    unsigned long val;
-    uint8_t *chanData;
-    int dlgResult;
-    wxString value;
-
-    numCols=SpinCtrl_parm1->GetValue();
-    numRows=SpinCtrl_parm2->GetValue();
-
-    dialog.gdModelChans->AppendCols(numCols - dialog.gdModelChans->GetNumberCols());
-    dialog.gdModelChans->AppendRows(numRows - dialog.gdModelChans->GetNumberRows());
-
-    if(customChannelData.size() != 0)
-    {
-        chanData = base64_decode(customChannelData, numRows, numCols);
-    }
-    else
-    {
-        chanData = (uint8_t *) calloc(numRows*numCols*2, sizeof(uint8_t));
-    }
-    idx = 0;
-    for(row=numRows-1; row >= 0 ; row--)
-    {
-        for( col=0; col<numCols; col++)
-        {
-            val = chanData[idx] << 8 | chanData[idx+1];
-            if (val != 0)
-                dialog.gdModelChans->SetCellValue(row,col,wxString::Format(wxT("%d"),val));
-            idx+=2;
-        }
-    }
-    dlgResult = dialog.ShowModal();
-    if ( wxID_OK == dlgResult)
-    {
-        idx = 0;
-        for(row=numRows-1; row >= 0; row--)
-        {
-            for( col=0; col<numCols; col++)
-            {
-                value = dialog.gdModelChans->GetCellValue(row,col);
-                if (value == wxT(""))
-                {
-                    val = 0;
-                }
-                else
-                {
-                    value.ToULong(&val);
-                }
-                chanData[idx] = (uint8_t) (val >> 8) & 0xFF;
-                chanData[idx+1] = (uint8_t) val & 0xFF;
-                idx+=2;
-            }
-        }
-        customChannelData = base64_encode(chanData,numRows*numCols*2);
-    }
-    free(chanData);
+    wxMessageBox(_("To create a custom model, set 'Display As' to 'Custom';\nthen set the model width and model height values.\n\nA custom model allows you to represent almost any display element \ncreated from RGB lights. If your element has 12 RGB nodes in it, then \nyou will need to place the numbers 1 through 12 in the grid. \nPlace the numbers so that they are in the shape of your display \nelement. If you enter a number and then need to erase it, enter a 0.\n\nFor example, to model a candy cane with 12 nodes, you could \nstart with a grid 4 columns wide and 10 rows high. You would place the \nnumbers 1-9 up the right-hand side, 10 and 11 would go in the middle \ncells in the top row, and then 12 would go in column A, row 2.\n\n     11 10\n12           9\n               8\n               7\n               6\n               5\n               4\n               3\n               2\n               1"));
 }

@@ -50,6 +50,8 @@ private:
     void OnButton_LayoutClick(wxCommandEvent& event);
     //*)
 
+    wxString StartChanAttrName(int idx);
+
     DECLARE_EVENT_TABLE()
 };
 
