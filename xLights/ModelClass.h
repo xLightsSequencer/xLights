@@ -43,7 +43,7 @@ public:
     size_t bufIdx;
     int sparkle;
     int ActChan;
-    int StringNum; // node is part of this string # - used only for reporting purposes
+    int StringNum; // node is part of this string # - used only for reporting purposes. 0 is the first string.
 
     void SetColor(wxColour& color)
     {

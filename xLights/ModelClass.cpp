@@ -242,7 +242,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
     Nodes.clear();
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    node.StringNum=1;
+    node.StringNum=0;
     for(size_t row=0; row < rows.size(); row++)
     {
         cols=wxSplit(rows[row],',');

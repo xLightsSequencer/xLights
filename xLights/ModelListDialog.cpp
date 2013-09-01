@@ -207,7 +207,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
     int sel=ListBox1->GetSelection();
     if (sel == wxNOT_FOUND)
     {
-        wxMessageBox(_("Select an item before clicking the Modify button"));
+        wxMessageBox(_("Select an item before clicking the Copy button"));
         return;
     }
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
@@ -255,17 +255,21 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     model.SetFromXml(ModelNode);
     size_t NodeCount=model.GetNodeCount();
     chmap.resize(model.BufferHt * model.BufferWi);
+    bool IsCustom = model.DisplayAs == wxT("Custom");
     wxString direction;
-    if (!model.IsLtoR)
+    if (IsCustom) {
+        direction=wxT("n/a");
+    } else if (!model.IsLtoR) {
         if(!model.isBotToTop)
             direction=wxT("Top Right");
         else
             direction=wxT("Bottom Right");
-    else
+    } else {
         if (!model.isBotToTop)
             direction=wxT("Top Left");
         else
             direction=wxT("Bottom Left");
+    }
 
     wxString html = wxT("<html><body><table border=0>");
     html+=wxT("<tr><td>Name:</td><td>")+model.name+wxT("</td></tr>");
@@ -295,7 +299,8 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
             if (model.Nodes[i].bufX >= 0)
             {
                 idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
-                if (idx < chmap.size()) chmap[idx]=i+1;
+                n=IsCustom ? model.Nodes[i].ActChan/3 : i;  // node number, 0 based
+                if (idx < chmap.size()) chmap[idx]=n+1;
             }
         }
         for(y=model.BufferHt-1; y>=0; y--)
