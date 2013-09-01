@@ -54,7 +54,7 @@ void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int Meteo
  * *************************************************************
  */
 
-class MeteorHasExpiredX
+class RgbEffects::MeteorHasExpiredX
 {
     int TailLength;
 public:
@@ -148,7 +148,7 @@ void RgbEffects::RenderMeteorsHorizontal(int ColorScheme, int Count, int Length,
  * *************************************************************
  */
 
-class MeteorHasExpiredY
+class RgbEffects::MeteorHasExpiredY
 {
     int TailLength;
 public:
@@ -244,7 +244,7 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
  * *************************************************************
  */
 
-class MeteorHasExpiredImplode
+class RgbEffects::MeteorHasExpiredImplode
 {
     int cx, cy;
 public:
@@ -355,7 +355,7 @@ void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, in
  * *************************************************************
  */
 
-class MeteorHasExpiredExplode
+class RgbEffects::MeteorHasExpiredExplode
 {
     int ht, wi;
 public:
