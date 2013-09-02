@@ -920,6 +920,8 @@ private:
     void PreviewOutput(int period);
     void TimerOutput(int period);
     void ResetSequenceGrid();
+    void CompareMyDisplayToSeq();
+    void GetSeqModelNames(wxArrayString& a);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;

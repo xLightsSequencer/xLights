@@ -164,6 +164,10 @@ public:
     static bool IsMyDisplay(wxXmlNode* ModelNode) {
         return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");
     }
+    static void SetMyDisplay(wxXmlNode* ModelNode,bool NewValue) {
+        ModelNode->DeleteAttribute(wxT("MyDisplay"));
+        ModelNode->AddAttribute(wxT("MyDisplay"), NewValue ? wxT("1") : wxT("0"));
+    }
 };
 
 #endif // MODELCLASS_H

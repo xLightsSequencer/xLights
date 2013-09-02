@@ -1,5 +1,3 @@
-#define SEQ_STATIC_COLUMNS 2
-
 void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("xrgb") );
@@ -28,7 +26,7 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
         return;
     }
     SeqPlayColumn=Grid1->GetGridCursorCol();
-    if (SeqPlayColumn < SEQ_STATIC_COLUMNS)
+    if (SeqPlayColumn < XLIGHTS_SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("Select a cell in a display element column before clicking Play"), wxT("Error"));
         return;
@@ -86,7 +84,7 @@ void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
     Button_PlayEffect->Enable(enable && Choice_Models->GetCount() > 0);
-    Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
+    Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     Button_Models->Enable(enable && ModelsNode);
     Button_Presets->Enable(enable && EffectsNode);
 //    Button_PresetAdd->Enable(enable && EffectsNode);
@@ -96,14 +94,14 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
     EffectsPanel2->Button_Pictures_Filename->Enable(enable);
     EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
-    ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
+    ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
     BitmapButtonInsertRow->Enable(enable);
     BitmapButtonDeleteRow->Enable(enable);
     ButtonDisplayElements->Enable(enable && ModelsNode);
-    Button_CreateRandom->Enable(enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS);
-    if (!enable && Grid1->GetNumberCols() > SEQ_STATIC_COLUMNS )
+    Button_CreateRandom->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
+    if (!enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS )
     {
         ButtonStopNow->SetFocus();
     }
@@ -279,7 +277,7 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+            for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -293,7 +291,7 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         // copy to current cell
         r=Grid1->GetGridCursorRow();
         c=Grid1->GetGridCursorCol();
-        if (c >=SEQ_STATIC_COLUMNS)
+        if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
         }
@@ -312,7 +310,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+            for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -327,7 +325,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         // copy to current cell
         r=curCell->GetRow();
         c=curCell->GetCol();
-        if (c >=SEQ_STATIC_COLUMNS)
+        if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             v = CreateEffectStringRandom();
             Grid1->SetCellValue(r,c,v);
@@ -347,7 +345,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+            for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -362,7 +360,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=curCell->GetRow();
         c=curCell->GetCol();
-        if (c >=SEQ_STATIC_COLUMNS)
+        if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
             Grid1->SetCellTextColour(r,c,*wxBLACK);
@@ -383,7 +381,7 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+            for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -397,7 +395,7 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=curCell->GetRow();
         c=curCell->GetCol();
-        if (c >= SEQ_STATIC_COLUMNS)
+        if (c >= XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLUE);
         }
@@ -419,7 +417,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
         int nCols = Grid1->GetNumberCols();
         for (r=0; r<nRows; r++)
         {
-            for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+            for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
             {
                 if (Grid1->IsInSelection(r,c))
                 {
@@ -433,7 +431,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
         // copy to current cell
         r=curCell->GetRow();
         c=curCell->GetCol();
-        if (c >= SEQ_STATIC_COLUMNS)
+        if (c >= XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellTextColour(r,c,*wxBLACK);
         }
@@ -1195,6 +1193,16 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     StaticTextPreviewFileName->SetLabel(filename);
 }
 
+void xLightsFrame::GetSeqModelNames(wxArrayString& a)
+{
+    wxString name;
+    for(int i=XLIGHTS_SEQ_STATIC_COLUMNS; i < Grid1->GetCols(); i++)
+    {
+        name=Grid1->GetColLabelValue(i);
+        a.Add(name);
+    }
+}
+
 void xLightsFrame::GetModelNames(wxArrayString& a)
 {
     wxString name;
@@ -1214,7 +1222,7 @@ void xLightsFrame::GetModelNames(wxArrayString& a)
 void xLightsFrame::GetGridColumnLabels(wxArrayString& a)
 {
     int n=Grid1->GetNumberCols();
-    for(int i=SEQ_STATIC_COLUMNS; i < n; i++)
+    for(int i=XLIGHTS_SEQ_STATIC_COLUMNS; i < n; i++)
     {
         a.Add(Grid1->GetColLabelValue(i));
     }
@@ -1295,7 +1303,7 @@ void xLightsFrame::ChooseModelsForSequence()
     {
         if (!labels[idx].IsEmpty())
         {
-            Grid1->DeleteCols(idx+SEQ_STATIC_COLUMNS);
+            Grid1->DeleteCols(idx+XLIGHTS_SEQ_STATIC_COLUMNS);
         }
     }
     EnableSequenceControls(true);
@@ -1894,7 +1902,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
             if (td->GetName() != wxT("td")) continue;
             if (r==0)
             {
-                if (c >= SEQ_STATIC_COLUMNS)
+                if (c >= XLIGHTS_SEQ_STATIC_COLUMNS)
                 {
                     ColName=td->GetNodeContent();
                     if (ModelNames.Index(ColName) == wxNOT_FOUND)
@@ -1945,7 +1953,7 @@ void xLightsFrame::ResetSequenceGrid()
 {
     int n;
     n=Grid1->GetNumberCols();
-    if (n > SEQ_STATIC_COLUMNS) Grid1->DeleteCols(SEQ_STATIC_COLUMNS, n-SEQ_STATIC_COLUMNS);
+    if (n > XLIGHTS_SEQ_STATIC_COLUMNS) Grid1->DeleteCols(XLIGHTS_SEQ_STATIC_COLUMNS, n-XLIGHTS_SEQ_STATIC_COLUMNS);
     n=Grid1->GetNumberRows();
     if (n > 0) Grid1->DeleteRows(0, n);
 }
@@ -2105,7 +2113,7 @@ void xLightsFrame::RenderGridToSeqData()
     wxXmlNode *ModelNode;
 
     LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
-    for (int c=SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
         ModelNode=GetModelNode(ColName);
@@ -2201,7 +2209,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     // save Grid1 to xml
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
-    if (colcnt <= SEQ_STATIC_COLUMNS)
+    if (colcnt <= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("No models in the grid!"), wxT("Warning"));
     }
@@ -2316,7 +2324,7 @@ void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
     Grid1->InsertRows( r, 1 );
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
-    for (int c=SEQ_STATIC_COLUMNS; c < n; c++)
+    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
     {
         Grid1->SetReadOnly(r,c);
     }
@@ -2440,7 +2448,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
     effGridPrevY = row;
     effGridPrevX = col;
 
-    if (col >= SEQ_STATIC_COLUMNS)
+    if (col >= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
         wxString EffectString=Grid1->GetCellValue(row,col);
         if (!EffectString.IsEmpty())
@@ -2466,7 +2474,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
         return;
     }
-    if (Grid1->GetNumberCols() <= SEQ_STATIC_COLUMNS)
+    if (Grid1->GetNumberCols() <= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
         wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
         return;
@@ -2609,7 +2617,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
     int nRows = Grid1->GetNumberRows();
     int nCols = Grid1->GetNumberCols();
 
-    for (c=SEQ_STATIC_COLUMNS; c<nCols; c++)
+    for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
     {
         for (r=0; r<nRows; r++)
         {

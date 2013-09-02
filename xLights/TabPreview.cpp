@@ -57,6 +57,37 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     SeqLoadXlightsFile(filename, false);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
+    CompareMyDisplayToSeq();
+}
+
+// ask user if they want to reset MyDisplay flags to match sequence
+void xLightsFrame::CompareMyDisplayToSeq()
+{
+    wxString name;
+    wxArrayString SeqModels;
+    GetSeqModelNames(SeqModels);
+    int SeqModelCount=SeqModels.size();
+    if (SeqModelCount == 0) return;
+    bool match=SeqModelCount == ListBoxElementList->GetCount();
+    for(int i=0; i < SeqModelCount && match; i++)
+    {
+        if (ListBoxElementList->FindString(SeqModels[i]) == wxNOT_FOUND) match=false;
+    }
+    if (match) return;
+    int retval = wxMessageBox(_("Reset 'My Display' flags on element models to match sequence?"),_("Adjust Preview"),wxCENTRE | wxYES_NO);
+    if (retval != wxYES) return;
+
+    // reset My Display flags
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == wxT("model"))
+        {
+            name=e->GetAttribute(wxT("name"));
+            ModelClass::SetMyDisplay(e,SeqModels.Index(name) != wxNOT_FOUND);
+        }
+    }
+    UpdateModelsList();
+    UpdatePreview();
 }
 
 void xLightsFrame::UpdatePreview()
