@@ -296,12 +296,8 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
         // horizontal or vertical matrix or frame
         for(i=0; i<NodeCount; i++)
         {
-            if (model.Nodes[i].bufX >= 0)
-            {
-                idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
-                n=IsCustom ? model.Nodes[i].ActChan/3 : i;  // node number, 0 based
-                if (idx < chmap.size()) chmap[idx]=n+1;
-            }
+            idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
+            if (idx < chmap.size()) chmap[idx]=model.GetNodeNumber(i);
         }
         for(y=model.BufferHt-1; y>=0; y--)
         {

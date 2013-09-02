@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.1.3)</title>
+		<title>xLights/Nutcracker  (Ver 3.1.4)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1278,6 +1278,7 @@
 																<object class="wxListBox" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 																	<default>-1</default>
 																	<size>132,102</size>
+																	<style>wxLB_SORT</style>
 																	<handler function="OnListBoxElementListSelect" entry="EVT_LISTBOX" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1315,6 +1316,26 @@
 																	<value>50</value>
 																	<min>1</min>
 																	<handler function="OnSliderPreviewScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticTextPreviewRotation" member="yes">
+																	<label>Single String Rotation</label>
+																	<enabled>0</enabled>
+																</object>
+																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_PREVIEW_ROTATE" variable="SliderPreviewRotate" member="yes">
+																	<min>-30</min>
+																	<max>30</max>
+																	<enabled>0</enabled>
+																	<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>

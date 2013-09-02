@@ -114,7 +114,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    RadioButton_TopLeft = new wxRadioButton(this, ID_RADIOBUTTON1, _("Top Left"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+    RadioButton_TopLeft = new wxRadioButton(this, ID_RADIOBUTTON1, _("Top Left"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     RadioButton_TopLeft->SetValue(true);
     BoxSizer1->Add(RadioButton_TopLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     RadioButton_TopRight = new wxRadioButton(this, ID_RADIOBUTTON2, _("Top Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
@@ -511,7 +511,6 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute(wxT("Order"));
     e->DeleteAttribute(wxT("Dir"));
     e->DeleteAttribute(wxT("Antialias"));
-    e->DeleteAttribute(wxT("MyDisplay"));
     e->AddAttribute(wxT("DisplayAs"), Choice_DisplayAs->GetStringSelection());
     e->AddAttribute(wxT("parm1"), wxString::Format(wxT("%d"),SpinCtrl_parm1->GetValue()));
     e->AddAttribute(wxT("parm2"), wxString::Format(wxT("%d"),SpinCtrl_parm2->GetValue()));
@@ -528,11 +527,11 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute(wxT("Dir"),wxT("R"));
 
     e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),Choice_Antialias->GetSelection()));
-    e->AddAttribute(wxT("MyDisplay"), CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
     if (Choice_DisplayAs->GetStringSelection() == wxT("Custom"))
     {
         e->AddAttribute(wxT("CustomModel"),GetCustomGridData());
     }
+    ModelClass::SetMyDisplay(e,CheckBox_MyDisplay->GetValue());
 }
 
 void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
@@ -590,7 +589,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         e->GetAttribute(wxT("CustomModel"),&tempStr);
         SetCustomGridData(tempStr);
     }
-    CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
+    CheckBox_MyDisplay->SetValue(ModelClass::IsMyDisplay(e));
     UpdateLabels();
 }
 

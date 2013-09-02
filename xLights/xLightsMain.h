@@ -345,6 +345,7 @@ private:
     void OnButtonStopPreviewClick(wxCommandEvent& event);
     void OnButtonRepeatPreviewClick(wxCommandEvent& event);
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
+    void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -460,6 +461,8 @@ private:
     static const long ID_BUTTON_SAVE_PREVIEW;
     static const long ID_STATICTEXT22;
     static const long ID_SLIDER_PREVIEW_SCALE;
+    static const long ID_STATICTEXT25;
+    static const long ID_SLIDER_PREVIEW_ROTATE;
     static const long ID_SCROLLEDWINDOW_PREVIEW;
     static const long ID_PANEL_PREVIEW;
     static const long ID_SCROLLEDWINDOW1;
@@ -614,6 +617,7 @@ private:
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
     wxStaticText* StaticText22;
+    wxSlider* SliderPreviewRotate;
     wxTreeCtrl* ListBoxSched;
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
@@ -649,6 +653,7 @@ private:
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
+    wxStaticText* StaticTextPreviewRotation;
     wxSlider* SliderFgIntensity;
     wxSplitterWindow* SplitterWindow1;
     wxButton* ButtonLightsOff;
@@ -915,6 +920,8 @@ private:
     void PreviewOutput(int period);
     void TimerOutput(int period);
     void ResetSequenceGrid();
+    void CompareMyDisplayToSeq();
+    void GetSeqModelNames(wxArrayString& a);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;

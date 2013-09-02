@@ -1,3 +1,5 @@
+#define PREVIEWROTATIONFACTOR 3
+
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 {
     // update xml with offsets and scale
@@ -55,16 +57,48 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     SeqLoadXlightsFile(filename, false);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
+    CompareMyDisplayToSeq();
+}
+
+// ask user if they want to reset MyDisplay flags to match sequence
+void xLightsFrame::CompareMyDisplayToSeq()
+{
+    wxString name;
+    wxArrayString SeqModels;
+    GetSeqModelNames(SeqModels);
+    int SeqModelCount=SeqModels.size();
+    if (SeqModelCount == 0) return;
+    bool match=SeqModelCount == ListBoxElementList->GetCount();
+    for(int i=0; i < SeqModelCount && match; i++)
+    {
+        if (ListBoxElementList->FindString(SeqModels[i]) == wxNOT_FOUND) match=false;
+    }
+    if (match) return;
+    int retval = wxMessageBox(_("Reset 'My Display' flags on element models to match sequence?"),_("Adjust Preview"),wxCENTRE | wxYES_NO);
+    if (retval != wxYES) return;
+
+    // reset My Display flags
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == wxT("model"))
+        {
+            name=e->GetAttribute(wxT("name"));
+            ModelClass::SetMyDisplay(e,SeqModels.Index(name) != wxNOT_FOUND);
+        }
+    }
+    UpdateModelsList();
+    UpdatePreview();
 }
 
 void xLightsFrame::UpdatePreview()
 {
     const wxColour *color;
     int sel=ListBoxElementList->GetSelection();
+    ModelClass* m=(sel == wxNOT_FOUND) ? 0 : (ModelClass*)ListBoxElementList->GetClientData(sel);
     ScrolledWindowPreview->ClearBackground();
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color=i==sel ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i] == m) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(ScrolledWindowPreview,color);
     }
 }
@@ -73,7 +107,12 @@ void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
-    SliderPreviewScale->SetValue(int(PreviewModels[sel]->GetScale()*100.0));
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    SliderPreviewScale->SetValue(int(m->GetScale()*100.0));
+    SliderPreviewRotate->SetValue(m->GetRotation()/PREVIEWROTATIONFACTOR);
+    bool canrotate=m->CanRotate();
+    SliderPreviewRotate->Enable(canrotate);
+    StaticTextPreviewRotation->Enable(canrotate);
     UpdatePreview();
 }
 
@@ -82,6 +121,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
     m_previous_mouse_y = event.GetPosition().y;
+    //StatusBar1->SetStatusText(wxString::Format(wxT("x=%d y=%d"),m_previous_mouse_x,m_previous_mouse_y));
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
@@ -101,12 +141,13 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     {
         int sel=ListBoxElementList->GetSelection();
         if (sel == wxNOT_FOUND) return;
+        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = event.GetPosition().y - m_previous_mouse_y;
         ScrolledWindowPreview->GetClientSize(&wi,&ht);
         if (wi > 0 && ht > 0)
         {
-            PreviewModels[sel]->AddOffset(delta_x/wi, delta_y/ht);
+            m->AddOffset(delta_x/wi, delta_y/ht);
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
@@ -123,7 +164,17 @@ void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
 {
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
-    PreviewModels[sel]->SetScale(double(SliderPreviewScale->GetValue())/100.0);
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    m->SetScale(double(SliderPreviewScale->GetValue())/100.0);
+    UpdatePreview();
+}
+
+void xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event)
+{
+    int sel=ListBoxElementList->GetSelection();
+    if (sel == wxNOT_FOUND) return;
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+    m->Rotate(PREVIEWROTATIONFACTOR*SliderPreviewRotate->GetValue());
     UpdatePreview();
 }
 

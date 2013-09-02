@@ -28,6 +28,7 @@
 				<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButtonAdd" member="yes">
 					<label>Add as new model/element (future enhancement)</label>
 					<enabled>0</enabled>
+					<style>wxRB_GROUP</style>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

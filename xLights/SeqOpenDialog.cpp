@@ -35,7 +35,7 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     SetClientSize(wxSize(298,262));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    RadioButtonXlights = new wxRadioButton(this, ID_RADIOBUTTON1, _("xLights Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+    RadioButtonXlights = new wxRadioButton(this, ID_RADIOBUTTON1, _("xLights Sequence"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     RadioButtonXlights->SetValue(true);
     FlexGridSizer2->Add(RadioButtonXlights, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
