@@ -16,6 +16,7 @@ const long ModelListDialog::ID_BUTTON1 = wxNewId();
 const long ModelListDialog::ID_BUTTON3 = wxNewId();
 const long ModelListDialog::ID_BUTTON4 = wxNewId();
 const long ModelListDialog::ID_BUTTON2 = wxNewId();
+const long ModelListDialog::ID_BUTTON5 = wxNewId();
 const long ModelListDialog::ID_BUTTON_LAYOUT = wxNewId();
 //*)
 
@@ -49,6 +50,8 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     FlexGridSizer3->Add(Button_Delete, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Rename = new wxButton(this, ID_BUTTON2, _("Rename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer3->Add(Button_Rename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Copy = new wxButton(this, ID_BUTTON5, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    FlexGridSizer3->Add(Button_Copy, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Layout = new wxButton(this, ID_BUTTON_LAYOUT, _("Node Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LAYOUT"));
     FlexGridSizer3->Add(Button_Layout, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -65,6 +68,7 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_ModifyClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_DeleteClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_RenameClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_CopyClick);
     Connect(ID_BUTTON_LAYOUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_LayoutClick);
     //*)
 }
@@ -75,12 +79,21 @@ ModelListDialog::~ModelListDialog()
     //*)
 }
 
-
-wxString ModelListDialog::StartChanAttrName(int idx)
+// returns true if name is ok
+bool ModelListDialog::ValidateModelName(const wxString& name)
 {
-    return wxString::Format(wxT("String%d"),idx+1);
+    if (name.IsEmpty())
+    {
+        wxMessageBox(_("A model name is required"), _("ERROR"));
+        return false;
+    }
+    if (ListBox1->FindString(name) != wxNOT_FOUND)
+    {
+        wxMessageBox(_("A model with this name already exists"), _("ERROR"));
+        return false;
+    }
+    return true;
 }
-
 
 void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 {
@@ -99,45 +112,13 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
             // validate inputs
             name=dialog.TextCtrl_Name->GetValue();
             name.Trim();
-            if (name.IsEmpty())
-            {
-                ok=false;
-                wxMessageBox(_("A model name is required"), _("ERROR"));
-            }
-            else if (ListBox1->FindString(name) != wxNOT_FOUND)
-            {
-                ok=false;
-                wxMessageBox(_("A model with this name already exists"), _("ERROR"));
-            }
+            ok=ValidateModelName(name);
             if (ok)
             {
                 wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("model"));
                 e->AddAttribute(wxT("name"), name);
-                e->AddAttribute(wxT("DisplayAs"), dialog.Choice_DisplayAs->GetStringSelection());
-                e->AddAttribute(wxT("parm1"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm1->GetValue()));
-                e->AddAttribute(wxT("parm2"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm2->GetValue()));
-                e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm3->GetValue()));
-                e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),dialog.SpinCtrl_StartChannel->GetValue()));
-                e->AddAttribute(wxT("Order"), dialog.Choice_Order->GetStringSelection());
-                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_TopRight->GetValue() )
-                    e->AddAttribute(wxT("StartSide"),wxT("T"));
-                else
-                    e->AddAttribute(wxT("StartSide"),wxT("B"));
-                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_BotLeft->GetValue() )
-                    e->AddAttribute(wxT("Dir"),wxT("L"));
-                else
-                    e->AddAttribute(wxT("Dir"),wxT("R"));
-                e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
-                e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
+                dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
-                if (dialog.cbIndividualStartNumbers->IsChecked())
-                {
-                    e->AddAttribute(wxT("Advanced"), wxT("1"));
-                    for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
-                    {
-                        e->AddAttribute(StartChanAttrName(ii), dialog.gridStartChannels->GetCellValue(ii,0));
-                    }
-                }
             }
         }
     }
@@ -146,11 +127,7 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 
 void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
 {
-    int ii;
     int sel=ListBox1->GetSelection();
-    long numStrings;
-    wxString tempStr;
-    wxString customChannels;
     if (sel == wxNOT_FOUND)
     {
         wxMessageBox(_("Select an item before clicking the Modify button"));
@@ -158,63 +135,10 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     }
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
     int DlgResult;
-    long n;
     bool ok;
-    wxString name,direction,antialias, startSide;
     ModelDialog dialog(this);
-    dialog.TextCtrl_Name->SetValue(e->GetAttribute(wxT("name")));
-    dialog.TextCtrl_Name->Enable(false);
-    dialog.Choice_DisplayAs->SetStringSelection(e->GetAttribute(wxT("DisplayAs")));
-    dialog.SpinCtrl_parm1->SetValue(e->GetAttribute(wxT("parm1")));
-    dialog.SpinCtrl_parm2->SetValue(e->GetAttribute(wxT("parm2")));
-    dialog.SpinCtrl_parm3->SetValue(e->GetAttribute(wxT("parm3")));
-    dialog.SpinCtrl_StartChannel->SetValue(e->GetAttribute(wxT("StartChannel")));
-    dialog.Choice_Order->SetStringSelection(e->GetAttribute(wxT("Order")));
-    antialias=e->GetAttribute(wxT("Antialias"),wxT("0"));
-    antialias.ToLong(&n);
-    dialog.Choice_Antialias->SetSelection(n);
-    direction=e->GetAttribute(wxT("Dir"));
-    if(e->HasAttribute(wxT("StartSide")))
-    {
-        startSide=e->GetAttribute(wxT("StartSide"));
-    }
-    else
-    {
-        startSide = wxT("B");
-    }
-    if(e->HasAttribute(wxT("Advanced")))
-    {
-        dialog.cbIndividualStartNumbers->SetValue(true);
-        tempStr = e->GetAttribute(wxT("parm1"));
-        tempStr.ToLong(&numStrings);
-        for(ii=0; ii < numStrings; ii++)
-        {
-            dialog.gridStartChannels->AppendRows();
-            dialog.gridStartChannels->SetCellValue(ii,0,e->GetAttribute(StartChanAttrName(ii)));
-        }
-    }
-
-    if (direction == wxT("R") )
-    {
-        if(startSide == wxT("B"))
-            dialog.RadioButton_BotRight->SetValue(true);
-        else
-            dialog.RadioButton_TopRight->SetValue(true);
-    }
-    else
-    {
-        if(startSide == wxT("B"))
-            dialog.RadioButton_BotLeft->SetValue(true);
-        else
-            dialog.RadioButton_TopLeft->SetValue(true);
-    }
-    if (e->HasAttribute(wxT("CustomModel")))
-    {
-        e->GetAttribute(wxT("CustomModel"),&customChannels);
-        dialog.SetCustomGridData(customChannels);
-    }
-    dialog.CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
-    dialog.UpdateLabels();
+    dialog.SetFromXml(e);
+    dialog.TextCtrl_Name->Enable(false); // do not allow name changes
     do
     {
         ok=true;
@@ -224,61 +148,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
             // validate inputs
             if (ok)
             {
-                if(e->HasAttribute(wxT("Advanced")))
-                {
-                    e->DeleteAttribute(wxT("Advanced"));
-                    tempStr = e->GetAttribute(wxT("parm1"));
-                    tempStr.ToLong(&numStrings);
-                    for(ii=0; ii < numStrings; ii++)
-                    {
-                        e->DeleteAttribute(StartChanAttrName(ii));
-                    }
-                }
-                if (e->HasAttribute(wxT("CustomModel")));
-                {
-                    e->DeleteAttribute(wxT("CustomModel"));
-                }
-                if (dialog.cbIndividualStartNumbers->IsChecked())
-                {
-                    e->AddAttribute(wxT("Advanced"), wxT("1"));
-                    for(ii=0; ii < dialog.gridStartChannels->GetNumberRows(); ii++)
-                    {
-                        e->AddAttribute(StartChanAttrName(ii),dialog.gridStartChannels->GetCellValue(ii,0));
-                    }
-                }
-                if (e->HasAttribute(wxT("StartSide")))
-                    e->DeleteAttribute(wxT("StartSide"));
-                e->DeleteAttribute(wxT("DisplayAs"));
-                e->DeleteAttribute(wxT("parm1"));
-                e->DeleteAttribute(wxT("parm2"));
-                e->DeleteAttribute(wxT("parm3"));
-                e->DeleteAttribute(wxT("StartChannel"));
-                e->DeleteAttribute(wxT("Order"));
-                e->DeleteAttribute(wxT("Dir"));
-                e->DeleteAttribute(wxT("Antialias"));
-                e->DeleteAttribute(wxT("MyDisplay"));
-                e->AddAttribute(wxT("DisplayAs"), dialog.Choice_DisplayAs->GetStringSelection());
-                e->AddAttribute(wxT("parm1"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm1->GetValue()));
-                e->AddAttribute(wxT("parm2"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm2->GetValue()));
-                e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),dialog.SpinCtrl_parm3->GetValue()));
-                e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),dialog.SpinCtrl_StartChannel->GetValue()));
-                e->AddAttribute(wxT("Order"), dialog.Choice_Order->GetStringSelection());
-                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_TopRight->GetValue() )
-                    e->AddAttribute(wxT("StartSide"),wxT("T"));
-                else
-                    e->AddAttribute(wxT("StartSide"),wxT("B"));
-                if (dialog.RadioButton_TopLeft->GetValue() || dialog.RadioButton_BotLeft->GetValue() )
-                    e->AddAttribute(wxT("Dir"),wxT("L"));
-                else
-                    e->AddAttribute(wxT("Dir"),wxT("R"));
-
-                e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),dialog.Choice_Antialias->GetSelection()));
-                e->AddAttribute(wxT("MyDisplay"), dialog.CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
-                if (dialog.Choice_DisplayAs->GetStringSelection() == wxT("Custom"))
-                {
-                    e->AddAttribute(wxT("CustomModel"),dialog.GetCustomGridData());
-                }
-
+                dialog.UpdateXml(e);
             }
         }
     }
@@ -321,20 +191,7 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
             // validate inputs
             NewName=dialog.GetValue();
             NewName.Trim();
-            if (NewName.IsEmpty())
-            {
-                ok=false;
-                wxMessageBox(_("A model name cannot be empty"), _("ERROR"));
-            }
-            else
-            {
-                int FindIdx=ListBox1->FindString(NewName);
-                if (FindIdx != wxNOT_FOUND && FindIdx != sel)
-                {
-                    ok=false;
-                    wxMessageBox(_("That name is already in use"), _("ERROR"));
-                }
-            }
+            ok=ValidateModelName(NewName);
         }
     }
     while (DlgResult == wxID_OK && !ok);
@@ -343,6 +200,42 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     e->DeleteAttribute(wxT("name"));
     e->AddAttribute(wxT("name"),NewName);
     ListBox1->SetString(sel,NewName);
+}
+
+void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
+{
+    int sel=ListBox1->GetSelection();
+    if (sel == wxNOT_FOUND)
+    {
+        wxMessageBox(_("Select an item before clicking the Copy button"));
+        return;
+    }
+    wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
+    wxString name;
+    int DlgResult;
+    bool ok;
+    ModelDialog dialog(this);
+    dialog.SetFromXml(e,_(" - Copy"));
+    do
+    {
+        ok=true;
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            name=dialog.TextCtrl_Name->GetValue();
+            name.Trim();
+            ok=ValidateModelName(name);
+            if (ok)
+            {
+                wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("model"));
+                e->AddAttribute(wxT("name"), name);
+                dialog.UpdateXml(e);
+                ListBox1->Append(name,e);
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
 }
 
 void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
@@ -362,17 +255,21 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     model.SetFromXml(ModelNode);
     size_t NodeCount=model.GetNodeCount();
     chmap.resize(model.BufferHt * model.BufferWi);
+    bool IsCustom = model.DisplayAs == wxT("Custom");
     wxString direction;
-    if (!model.IsLtoR)
+    if (IsCustom) {
+        direction=wxT("n/a");
+    } else if (!model.IsLtoR) {
         if(!model.isBotToTop)
             direction=wxT("Top Right");
         else
             direction=wxT("Bottom Right");
-    else
+    } else {
         if (!model.isBotToTop)
             direction=wxT("Top Left");
         else
             direction=wxT("Bottom Left");
+    }
 
     wxString html = wxT("<html><body><table border=0>");
     html+=wxT("<tr><td>Name:</td><td>")+model.name+wxT("</td></tr>");
@@ -399,11 +296,8 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
         // horizontal or vertical matrix or frame
         for(i=0; i<NodeCount; i++)
         {
-            if (model.Nodes[i].bufX >= 0)
-            {
-                idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
-                if (idx < chmap.size()) chmap[idx]=i+1;
-            }
+            idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
+            if (idx < chmap.size()) chmap[idx]=model.GetNodeNumber(i);
         }
         for(y=model.BufferHt-1; y>=0; y--)
         {
@@ -436,3 +330,4 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     dialog.SetHtmlSource(html);
     dialog.ShowModal();
 }
+

@@ -114,7 +114,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-    RadioButton_TopLeft = new wxRadioButton(this, ID_RADIOBUTTON1, _("Top Left"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
+    RadioButton_TopLeft = new wxRadioButton(this, ID_RADIOBUTTON1, _("Top Left"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     RadioButton_TopLeft->SetValue(true);
     BoxSizer1->Add(RadioButton_TopLeft, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     RadioButton_TopRight = new wxRadioButton(this, ID_RADIOBUTTON2, _("Top Right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
@@ -233,6 +233,10 @@ void ModelDialog::UpdateCustom()
 {
     bool CustomFlag = IsCustom();
     GridCustom->Show(CustomFlag);
+    RadioButton_BotRight->Enable(!CustomFlag);
+    RadioButton_TopRight->Enable(!CustomFlag);
+    RadioButton_BotLeft->Enable(!CustomFlag);
+    RadioButton_TopLeft->Enable(!CustomFlag);
     if (CustomFlag && !HasCustomData) ResizeCustomGrid();
 }
 
@@ -463,6 +467,131 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
         }
     }
     event.Skip();
+}
+
+wxString ModelDialog::StartChanAttrName(int idx)
+{
+    return wxString::Format(wxT("String%d"),idx+1);
+}
+
+// does not update name
+void ModelDialog::UpdateXml(wxXmlNode* e)
+{
+    int ii;
+    long numStrings;
+    wxString tempStr;
+    if(e->HasAttribute(wxT("Advanced")))
+    {
+        e->DeleteAttribute(wxT("Advanced"));
+        tempStr = e->GetAttribute(wxT("parm1"));
+        tempStr.ToLong(&numStrings);
+        for(ii=0; ii < numStrings; ii++)
+        {
+            e->DeleteAttribute(StartChanAttrName(ii));
+        }
+    }
+    if (e->HasAttribute(wxT("CustomModel")));
+    {
+        e->DeleteAttribute(wxT("CustomModel"));
+    }
+    if (cbIndividualStartNumbers->IsChecked())
+    {
+        e->AddAttribute(wxT("Advanced"), wxT("1"));
+        for(ii=0; ii < gridStartChannels->GetNumberRows(); ii++)
+        {
+            e->AddAttribute(StartChanAttrName(ii),gridStartChannels->GetCellValue(ii,0));
+        }
+    }
+    if (e->HasAttribute(wxT("StartSide"))) e->DeleteAttribute(wxT("StartSide"));
+    e->DeleteAttribute(wxT("DisplayAs"));
+    e->DeleteAttribute(wxT("parm1"));
+    e->DeleteAttribute(wxT("parm2"));
+    e->DeleteAttribute(wxT("parm3"));
+    e->DeleteAttribute(wxT("StartChannel"));
+    e->DeleteAttribute(wxT("Order"));
+    e->DeleteAttribute(wxT("Dir"));
+    e->DeleteAttribute(wxT("Antialias"));
+    e->DeleteAttribute(wxT("MyDisplay"));
+    e->AddAttribute(wxT("DisplayAs"), Choice_DisplayAs->GetStringSelection());
+    e->AddAttribute(wxT("parm1"), wxString::Format(wxT("%d"),SpinCtrl_parm1->GetValue()));
+    e->AddAttribute(wxT("parm2"), wxString::Format(wxT("%d"),SpinCtrl_parm2->GetValue()));
+    e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),SpinCtrl_parm3->GetValue()));
+    e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),SpinCtrl_StartChannel->GetValue()));
+    e->AddAttribute(wxT("Order"), Choice_Order->GetStringSelection());
+    if (RadioButton_TopLeft->GetValue() || RadioButton_TopRight->GetValue() )
+        e->AddAttribute(wxT("StartSide"),wxT("T"));
+    else
+        e->AddAttribute(wxT("StartSide"),wxT("B"));
+    if (RadioButton_TopLeft->GetValue() || RadioButton_BotLeft->GetValue() )
+        e->AddAttribute(wxT("Dir"),wxT("L"));
+    else
+        e->AddAttribute(wxT("Dir"),wxT("R"));
+
+    e->AddAttribute(wxT("Antialias"), wxString::Format(wxT("%d"),Choice_Antialias->GetSelection()));
+    e->AddAttribute(wxT("MyDisplay"), CheckBox_MyDisplay->GetValue() ? wxT("1") : wxT("0"));
+    if (Choice_DisplayAs->GetStringSelection() == wxT("Custom"))
+    {
+        e->AddAttribute(wxT("CustomModel"),GetCustomGridData());
+    }
+}
+
+void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
+{
+    long n;
+    wxString name, direction, startSide, tempStr;
+    name=e->GetAttribute(wxT("name")) + NameSuffix;
+    TextCtrl_Name->SetValue(name);
+    Choice_DisplayAs->SetStringSelection(e->GetAttribute(wxT("DisplayAs")));
+    SpinCtrl_parm1->SetValue(e->GetAttribute(wxT("parm1")));
+    SpinCtrl_parm2->SetValue(e->GetAttribute(wxT("parm2")));
+    SpinCtrl_parm3->SetValue(e->GetAttribute(wxT("parm3")));
+    SpinCtrl_StartChannel->SetValue(e->GetAttribute(wxT("StartChannel")));
+    Choice_Order->SetStringSelection(e->GetAttribute(wxT("Order")));
+    tempStr=e->GetAttribute(wxT("Antialias"),wxT("0"));
+    tempStr.ToLong(&n);
+    Choice_Antialias->SetSelection(n);
+    direction=e->GetAttribute(wxT("Dir"));
+    if(e->HasAttribute(wxT("StartSide")))
+    {
+        startSide=e->GetAttribute(wxT("StartSide"));
+    }
+    else
+    {
+        startSide = wxT("B");
+    }
+    if(e->HasAttribute(wxT("Advanced")))
+    {
+        cbIndividualStartNumbers->SetValue(true);
+        tempStr = e->GetAttribute(wxT("parm1"));
+        tempStr.ToLong(&n);  // number of strings
+        for(int ii=0; ii < n; ii++)
+        {
+            gridStartChannels->AppendRows();
+            gridStartChannels->SetCellValue(ii,0,e->GetAttribute(StartChanAttrName(ii)));
+        }
+    }
+
+    if (direction == wxT("R") )
+    {
+        if(startSide == wxT("B"))
+            RadioButton_BotRight->SetValue(true);
+        else
+            RadioButton_TopRight->SetValue(true);
+    }
+    else
+    {
+        if(startSide == wxT("B"))
+            RadioButton_BotLeft->SetValue(true);
+        else
+            RadioButton_TopLeft->SetValue(true);
+    }
+    if (e->HasAttribute(wxT("CustomModel")))
+    {
+        e->GetAttribute(wxT("CustomModel"),&tempStr);
+        SetCustomGridData(tempStr);
+    }
+    CheckBox_MyDisplay->SetValue(e->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1"));
+    UpdateLabels();
 }
 
 void ModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)

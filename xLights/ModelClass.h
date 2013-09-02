@@ -42,8 +42,8 @@ public:
     wxCoord bufX, bufY, screenX, screenY;
     size_t bufIdx;
     int sparkle;
-    int ActChan;
-    int StringNum; // node is part of this string # - used only for reporting purposes
+    int ActChan;   // 0 is the first channel
+    int StringNum; // node is part of this string # - used only for reporting purposes. 0 is the first string.
 
     void SetColor(wxColour& color)
     {
@@ -117,9 +117,12 @@ private:
     void InitCustomMatrix(wxString customModel);
     void SetFromXmlAdvanced(wxXmlNode* ModelNode);
     void InitializeStringStartNum();
+    double toRadians(long degrees);
+
     bool modelv2;
     double offsetXpct,offsetYpct;
     double PreviewScale;
+    int PreviewRotation;
     wxXmlNode* ModelXml;
 
 public:
@@ -128,9 +131,9 @@ public:
     wxString RGBorder;  // RGB, RBG, GBR, GRB, BGR, BRG
     bool IsLtoR;        // true=left to right, false=right to left
     bool isBotToTop;
-    long parm1;         /**< Number of strings in the model */
-    long parm2;         /**< Number of nodes per string in the model */
-    long parm3;         /**< Number of strands per string in the model */
+    long parm1;         /**< Number of strings in the model (except for frames & custom) */
+    long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
+    long parm3;         /**< Number of strands per string in the model (except for frames & custom) */
     long StartChannel;      // start channel for output (1 is first channel)
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
@@ -150,10 +153,13 @@ public:
     void SetScale(double newscale);
     double GetScale();
     int GetLastChannel();
+    int GetNodeNumber(size_t nodenum);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
     void DisplayEffectOnWindow(wxWindow* window);
-
+    bool CanRotate();
+    void Rotate(int degrees);
+    int GetRotation();
 
     static bool IsMyDisplay(wxXmlNode* ModelNode) {
         return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");

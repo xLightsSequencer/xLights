@@ -1,6 +1,9 @@
 #ifndef MODELDIALOG_H
 #define MODELDIALOG_H
 
+#include <wx/xml/xml.h>
+
+
 //(*Headers(ModelDialog)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -23,6 +26,8 @@ public:
     void UpdateLabels();
     void SetCustomGridData(const wxString& customChannelData);
     wxString GetCustomGridData();
+    void SetFromXml(wxXmlNode* e, const wxString& NameSuffix=wxEmptyString);
+    void UpdateXml(wxXmlNode* e);
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
@@ -112,6 +117,7 @@ private:
     void ResizeCustomGrid();
     bool IsCustom();
     int GetNumberOfStrings();
+    wxString StartChanAttrName(int idx);
 
     bool HasCustomData;
 

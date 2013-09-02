@@ -503,9 +503,9 @@ void xLightsFrame::UpdateModelsList()
                 Choice_Models->Append(name,e);
                 if (ModelClass::IsMyDisplay(e))
                 {
-                    ListBoxElementList->Append(name,e);
                     model=new ModelClass;
                     model->SetFromXml(e);
+                    ListBoxElementList->Append(name,model);
                     PreviewModels.push_back(model);
                 }
             }

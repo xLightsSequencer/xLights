@@ -70,6 +70,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     tempstr.ToDouble(&offsetYpct);
     tempstr=ModelNode->GetAttribute(wxT("PreviewScale"),wxT("0.333"));
     tempstr.ToDouble(&PreviewScale);
+    tempstr=ModelNode->GetAttribute(wxT("PreviewRotation"),wxT("0"));
+    tempstr.ToLong(&degrees);
+    PreviewRotation=degrees;
 
     wxStringTokenizer tkz(DisplayAs, wxT(" "));
     wxString token = tkz.GetNextToken();
@@ -178,6 +181,7 @@ void ModelClass::InitializeStringStartNum()
         stringStartChan[i] = StartChannel-1 + (i)*parm2*3;
     }
 }
+
 void ModelClass::SetFromXmlAdvanced(wxXmlNode* ModelNode)
 {
     wxString strText;
@@ -242,7 +246,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
     Nodes.clear();
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    node.StringNum=1;
+    node.StringNum=0;
     for(size_t row=0; row < rows.size(); row++)
     {
         cols=wxSplit(rows[row],',');
@@ -265,6 +269,11 @@ void ModelClass::InitCustomMatrix(wxString customModel)
     SetRenderSize(height,width);
 }
 
+double ModelClass::toRadians(long degrees)
+{
+    return 2.0*M_PI*double(degrees)/360.0;
+}
+
 // initialize screen coordinates for tree
 void ModelClass::SetTreeCoord(long degrees)
 {
@@ -276,7 +285,7 @@ void ModelClass::SetTreeCoord(long degrees)
     int factor=1000/BufferHt;
     RenderHt=BufferHt*factor;
     RenderWi=RenderHt/2;
-    double radians=2.0*M_PI*double(degrees)/360.0;
+    double radians=toRadians(degrees);
     double radius=RenderWi/2.0;
     double StartAngle=-radians/2.0;
     double AngleIncr=radians/double(BufferWi-1);
@@ -334,8 +343,9 @@ void ModelClass::InitLine()
     int idx=0;
     int NodeCount=parm1*parm2;
     TreeDegrees=0;
-    SetBufferSize(1,parm2);
     SetNodeCount(NodeCount);
+
+    SetBufferSize(1,parm2);
     for (ns=0; ns < parm1; ns++)
     {
         for(x=0; x<parm2; x++)
@@ -351,16 +361,28 @@ void ModelClass::InitLine()
 
 void ModelClass::SetLineCoord()
 {
+    int x,y;
     size_t NodeCount=GetNodeCount();
-    int idx=0;
-    SetRenderSize(1,NodeCount);
-    int xoffset=RenderWi/2;
-    for(size_t x=0; x<NodeCount; x++)
-    {
-        Nodes[idx].screenX=(IsLtoR ? idx : NodeCount-idx-1) - xoffset;
-        Nodes[idx].screenY=0;
-        idx++;
-    }
+    int half=NodeCount/2;
+    SetRenderSize(NodeCount*2,NodeCount);
+    //if (CanRotate() && PreviewRotation!=0) {
+        double radians=toRadians(PreviewRotation);
+        for(size_t idx=0; idx<NodeCount; idx++)
+        {
+            x=cos(radians)*idx;
+            x=IsLtoR ? x - half : half - x;
+            y=sin(radians)*idx;
+            Nodes[idx].screenX=x;
+            Nodes[idx].screenY=y + NodeCount;
+        }
+    //} else {
+        //SetRenderSize(1,NodeCount);
+        //for(size_t n=0; n<NodeCount; n++)
+        //{
+        //    Nodes[n].screenX=(IsLtoR ? n : NodeCount-n-1) - xoffset;
+        //    Nodes[n].screenY=0;
+        //}
+    //}
 }
 
 // Set screen coordinates for arches
@@ -528,6 +550,32 @@ void ModelClass::SetNodeCount(size_t NewCount)
     }
 }
 
+bool ModelClass::CanRotate()
+{
+    return DisplayAs == wxT("Single Line");
+}
+
+void ModelClass::Rotate(int degrees)
+{
+    if (!CanRotate()) return;
+    PreviewRotation=degrees;
+    SetLineCoord();
+}
+
+int ModelClass::GetRotation()
+{
+    return PreviewRotation;
+}
+
+
+// returns a number where the first node is 1
+int ModelClass::GetNodeNumber(size_t nodenum)
+{
+    if (nodenum >= Nodes.size()) return 0;
+    if (Nodes[nodenum].bufX < 0) return 0;
+    return (Nodes[nodenum].ActChan - (StartChannel-1)) / 3 + 1;
+}
+
 size_t ModelClass::GetNodeCount()
 {
     return Nodes.size();
@@ -550,9 +598,11 @@ void ModelClass::UpdateXmlWithScale()
     ModelXml->DeleteAttribute(wxT("offsetXpct"));
     ModelXml->DeleteAttribute(wxT("offsetYpct"));
     ModelXml->DeleteAttribute(wxT("PreviewScale"));
+    ModelXml->DeleteAttribute(wxT("PreviewRotation"));
     ModelXml->AddAttribute(wxT("offsetXpct"), wxString::Format(wxT("%6.4f"),offsetXpct));
     ModelXml->AddAttribute(wxT("offsetYpct"), wxString::Format(wxT("%6.4f"),offsetYpct));
     ModelXml->AddAttribute(wxT("PreviewScale"), wxString::Format(wxT("%6.4f"),PreviewScale));
+    ModelXml->AddAttribute(wxT("PreviewRotation"), wxString::Format(wxT("%d"),PreviewRotation));
 }
 
 // display model using a single color
