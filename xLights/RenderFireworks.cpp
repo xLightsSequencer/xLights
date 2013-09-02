@@ -78,13 +78,13 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
             fireworkBursts[idxFlakes].Reset(startX, startY, true, Velocity, hsv);
         }
     }
-    else if (mod100<10)
-    {
-        rgbcolor = wxColour(0,255,255);
-        Color2HSV(color,hsv);
-        y=(int)(startY-startY*(1.0/(mod100+1)));
-        SetPixel(startX,y,hsv);
-    }
+//    else if (mod100<10)
+//    {
+//        rgbcolor = wxColour(0,255,255);
+//        Color2HSV(color,hsv);
+//        y=(int)(startY-startY*(1.0/(mod100+1)));
+//        SetPixel(startX,y,hsv);
+//    }
     else
     {
         for (i=0; i<maxFlakes; i++)
