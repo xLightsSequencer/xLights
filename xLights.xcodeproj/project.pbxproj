@@ -12,7 +12,6 @@
 		67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */; };
 		67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */; };
 		67A61A2817B51C0F008E95BB /* ChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */; };
-		67A61A2917B51C0F008E95BB /* CustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C217B51C0F008E95BB /* CustomModelDialog.cpp */; };
 		67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C417B51C0F008E95BB /* E131Dialog.cpp */; };
 		67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C817B51C0F008E95BB /* EffectListDialog.cpp */; };
 		67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */; };
@@ -86,7 +85,6 @@
 		67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelLayoutDialog.h; sourceTree = "<group>"; };
 		67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChannelMapDialog.cpp; sourceTree = "<group>"; };
 		67A619C117B51C0F008E95BB /* ChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelMapDialog.h; sourceTree = "<group>"; };
-		67A619C217B51C0F008E95BB /* CustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomModelDialog.cpp; sourceTree = "<group>"; };
 		67A619C317B51C0F008E95BB /* CustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomModelDialog.h; sourceTree = "<group>"; };
 		67A619C417B51C0F008E95BB /* E131Dialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = E131Dialog.cpp; sourceTree = "<group>"; };
 		67A619C517B51C0F008E95BB /* E131Dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = E131Dialog.h; sourceTree = "<group>"; };
@@ -291,7 +289,6 @@
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
-				67A619C217B51C0F008E95BB /* CustomModelDialog.cpp */,
 				67A619C417B51C0F008E95BB /* E131Dialog.cpp */,
 				67A619C817B51C0F008E95BB /* EffectListDialog.cpp */,
 				67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */,
@@ -462,7 +459,6 @@
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2817B51C0F008E95BB /* ChannelMapDialog.cpp in Sources */,
-				67A61A2917B51C0F008E95BB /* CustomModelDialog.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
