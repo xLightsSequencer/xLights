@@ -150,6 +150,8 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
             SetFireBuffer(x,y,new_index);
         }
     }
+
+    //  Now play fire
     for (y=0; y<BufferHt; y++)
     {
         for (x=0; x<BufferWi; x++)
@@ -168,11 +170,6 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
                 rgb = wxImage::HSVtoRGB(hsv);
                 color = wxColor(rgb.red,rgb.green,rgb.blue);
             }
-
-
-
-
-
             SetPixel(x,y,color);
         }
     }
