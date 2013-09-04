@@ -422,7 +422,7 @@ class EffectsPanel: public wxPanel
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);
-        void SetButtonColor(wxWindow* btn, const wxColour* c);
+        void SetButtonColor(wxButton* btn, const wxColour* c);
         int GetRandomSliderValue(wxSlider* slider);
         wxString GetAttrPrefix();
         wxString GetEffectStringFromWindow(wxWindow *ParentWin);

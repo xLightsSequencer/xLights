@@ -811,11 +811,23 @@ void EffectsPanel::SetPaletteColor(int idx, const wxColour* c)
     }
 }
 
-void EffectsPanel::SetButtonColor(wxWindow* btn, const wxColour* c)
+void EffectsPanel::SetButtonColor(wxButton* btn, const wxColour* c)
 {
     btn->SetBackgroundColour(*c);
     int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
     btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
+    
+#ifdef __WXOSX__
+    //OSX does NOT allow active buttons to have a color other than the default.
+    //We'll use an image of the appropriate color instead
+    wxImage image(15, 15);
+    image.SetRGB(wxRect(0, 0, 15, 15),
+                 c->Red(), c->Green(), c->Blue());
+    wxBitmap bmp(image);
+    
+    btn->SetBitmap(bmp);
+    btn->SetLabelText("");
+#endif
 }
 
 void EffectsPanel::SetDefaultPalette()
@@ -1014,7 +1026,7 @@ void EffectsPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
 
 void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 {
-    wxWindow* w=(wxWindow*)event.GetEventObject();
+    wxButton* w=(wxButton*)event.GetEventObject();
     if (ColourDialog1->ShowModal() == wxID_OK)
     {
         wxColourData retData = ColourDialog1->GetColourData();
