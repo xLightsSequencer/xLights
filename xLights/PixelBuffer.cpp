@@ -214,10 +214,11 @@ void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
     Effect[layer].SetPalette(newcolors);
 }
 
-size_t PixelBufferClass::GetColorCount(int layer)
-{
-    return Effect[layer].GetColorCount();
-}
+// Not currently used...
+//size_t PixelBufferClass::GetColorCount(int layer)
+//{
+//    return Effect[layer].GetColorCount();
+//}
 
 // 10-200 or so, or 0 for no sparkle
 void PixelBufferClass::SetSparkle(int freq)
@@ -265,18 +266,19 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
     for(int ii=0; ii<2; ii++)
     {
         fadeFactor[ii] = 1.0;
-        if(Effect[ii].fadein > 0 || Effect[ii].fadeout > 0)
+        Effect[ii].GetFadeSteps( fadeInSteps, fadeOutSteps);
+        if( fadeInSteps > 0 || fadeOutSteps > 0)
         {
-            fadeInSteps = Effect[ii].fadein;
-            fadeOutSteps = Effect[ii].fadeout;
-            if (EffectPeriod < (Effect[ii].curEffStartPer)+fadeInSteps)
+            int effStartPer, effNextPer;
+            Effect[ii].GetEffectPeriods( effStartPer, effNextPer);
+            if (EffectPeriod < (effStartPer)+fadeInSteps)
             {
-                curStep = EffectPeriod - Effect[ii].curEffStartPer;
+                curStep = EffectPeriod - effStartPer;
                 fadeInFactor = (double)curStep/(double)fadeInSteps;
             }
-            if (EffectPeriod > (Effect[ii].nextEffTimePeriod)-fadeOutSteps)
+            if (EffectPeriod > (effNextPer)-fadeOutSteps)
             {
-                curStep = EffectPeriod - (Effect[ii].nextEffTimePeriod-fadeOutSteps);
+                curStep = EffectPeriod - (effNextPer-fadeOutSteps);
                 fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
             }
             if(fadeInFactor < 1 && fadeOutFactor < 1)

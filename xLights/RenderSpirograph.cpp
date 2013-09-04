@@ -42,8 +42,8 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
         if(colorcnt>0) d_mod = (int) BufferWi/colorcnt;
         else d_mod=1;
 
-        x2= pow ((x-xc),2);
-        y2= pow ((y-yc),2);
+        x2= pow ((double)(x-xc),2);
+        y2= pow ((double)(y-yc),2);
         hyp = (sqrt(x2 + y2)/BufferWi) * 100.0;
         ColorIdx=(int)(hyp / d_mod); // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
 

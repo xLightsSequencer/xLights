@@ -42,229 +42,264 @@ typedef wxImage::HSVValue HSVValue;
 
 #define rgb_MAX_BALLS 20
 
-class RgbFireworks
+// eventually this will go in some header..
+// the idea is to define this (currently) for the MS compiler
+// and to switch its value based on creating vs using the dll
+// NCCDLLIMPL is set by the project creating the dll
+#ifdef _MSC_VER
+	#ifdef NCCDLLIMPL
+		#define NCCDLLEXPORT __declspec(dllexport)
+	#else
+		#define NCCDLLEXPORT __declspec(dllimport)
+	#endif
+#else
+	#define NCCDLLEXPORT
+#endif
+
+class NCCDLLEXPORT RgbEffects
 {
 public:
-//static const float velocity = 2.5;
-    static const int maxCycle = 4096;
-    static const int maxNewBurstFlakes = 10;
-    float _x;
-    float _y;
-    float _dx;
-    float _dy;
-    float vel;
-    float angle;
-    bool _bActive;
-    int _cycles;
-    wxImage::HSVValue _hsv;
+//BL: it turns out this actually works... the pix buf class is the only consumer of this...
+//protected:
+//    friend class PixelBufferClass;
 
-    void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv)
-    {
-        _x       = x;
-        _y       = y;
-        vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-        angle    = 2*M_PI*rand()/RAND_MAX;
-        _dx      = vel*cos(angle);
-        _dy      = vel*sin(angle);
-        _bActive = active;
-        _cycles  = 0;
-        _hsv     = hsv;
-    }
-protected:
-private:
-};
-
-class RgbBalls
-{
-public:
-    float _x;
-    float _y;
-    float _dx;
-    float _dy;
-    float _radius;
-    float _t;
-    float dir;
-    wxImage::HSVValue hsvcolor;
-
-    void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
-    {
-        _x=x;
-        _y=y;
-        _dx=speed*cos(angle);
-        _dy=speed*sin(angle);
-        _radius = radius;
-        hsvcolor = color;
-        _t=M_PI/6.0;
-        dir =1.0;
-
-    }
-    void updatePositionArc(int x,int y, int r)
-    {
-        _x=x+r*cos(_t);
-        _y=y+r*sin(_t);
-        _t+=dir* (M_PI/9.0);
-        dir *= _t < M_PI/6.0 || _t > (2*M_PI)/3?-1.0:1.0;
-    }
-    void updatePosition(float incr, int width, int height)
-    {
-        _x+=_dx*incr;
-        _x = _x>width?0:_x;
-        _x = _x<0?width:_x;
-        _y+=_dy*incr;
-        _y = _y>height?0:_y;
-        _y = _y<0?height:_y;
-    }
-
-    void Bounce(int width, int height)
-    {
-        if (_x-_radius<=0) {
-            _dx=abs(_dx);
-            if (_dx < 0.2) _dx=0.2;
-        }
-        if (_x+_radius>=width) {
-            _dx=-abs(_dx);
-            if (_dx > -0.2) _dx=-0.2;
-        }
-        if (_y-_radius<=0) {
-            _dy=abs(_dy);
-            if (_dy < 0.2) _dy=0.2;
-        }
-        if (_y+_radius>=height) {
-            _dy=-abs(_dy);
-            if (_dy > -0.2) _dy=-0.2;
-        }
-    }
-
-};
-
-class MetaBall : public RgbBalls
-{
-public:
-    float Equation(float x, float y)
-    {
-        if(x==_x || y==_y) return 1;
-        return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
-    }
-};
-
-// for meteor effect
-class MeteorClass
-{
-public:
-
-    int x,y;
-    wxImage::HSVValue hsv;
-};
-
-// for radial meteor effect
-class MeteorRadialClass
-{
-public:
-
-    double x,y,dx,dy;
-    int cnt;
-    wxImage::HSVValue hsv;
-};
-
-typedef std::list<MeteorClass> MeteorList;
-typedef std::list<MeteorRadialClass> MeteorRadialList;
-
-
-class SnowstormClass
-{
-public:
-    wxPointVector points;
-    wxImage::HSVValue hsv;
-    int idx,ssDecay;
-    ~SnowstormClass()
-    {
-        points.clear();
-    }
-};
-
-typedef std::list<SnowstormClass> SnowstormList;
-
-
-class PaletteClass
-{
-private:
-    wxColourVector color;
-    hsvVector hsv;
-public:
-
-    void Set(wxColourVector& newcolors)
-    {
-        color=newcolors;
-        hsv.clear();
-        wxImage::RGBValue newrgb;
-        wxImage::HSVValue newhsv;
-        for(size_t i=0; i<newcolors.size(); i++)
-        {
-            newrgb.red=newcolors[i].Red();
-            newrgb.green=newcolors[i].Green();
-            newrgb.blue=newcolors[i].Blue();
-            newhsv=wxImage::RGBtoHSV(newrgb);
-            hsv.push_back(newhsv);
-        }
-    }
-
-    size_t Size()
-    {
-        size_t colorcnt=color.size();
-        if (colorcnt < 1) colorcnt=1;
-        return colorcnt;
-    }
-
-    void GetColor(size_t idx, wxColour& c)
-    {
-        if (idx >= color.size())
-        {
-            c.Set(255,255,255);
-        }
-        else
-        {
-            c=color[idx];
-        }
-    }
-
-    void GetHSV(size_t idx, wxImage::HSVValue& c)
-    {
-        if (hsv.size() == 0)
-        {
-            // white
-            c.hue=0.0;
-            c.saturation=0.0;
-            c.value=1.0;
-        }
-        else
-        {
-            c=hsv[idx % hsv.size()];
-        }
-    }
-};
-
-
-class RgbEffects
-{
-public:
     RgbEffects();
     ~RgbEffects();
     void InitBuffer(int newBufferHt, int newBufferWi);
     void Clear(const wxColour& bgColor);
     void SetPalette(wxColourVector& newcolors);
-    size_t GetColorCount();
     void SetState(int period, int NewSpeed, bool ResetState);
     void GetPixel(int x, int y, wxColour &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
 
-    int fadein, fadeout;
-    int curEffStartPer, curEffEndPer, nextEffTimePeriod;
+    void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
+    void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod);  // nobody wants endPer?
 
 #include "Effects.h"
 
 protected:
+    // was public, but not used external to this class
+    size_t GetColorCount();
+
+    int fadeinsteps, fadeoutsteps;
+    int curEffStartPer, curEffEndPer, nextEffTimePeriod;
+
+
+    class RgbFireworks
+    {
+    public:
+    //static const float velocity = 2.5;
+        static const int maxCycle = 4096;
+        static const int maxNewBurstFlakes = 10;
+        float _x;
+        float _y;
+        float _dx;
+        float _dy;
+        float vel;
+        float angle;
+        bool _bActive;
+        int _cycles;
+        wxImage::HSVValue _hsv;
+
+        void Reset(int x, int y, bool active, float velocity, wxImage::HSVValue hsv)
+        {
+            _x       = x;
+            _y       = y;
+            vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
+            angle    = 2*M_PI*rand()/RAND_MAX;
+            _dx      = vel*cos(angle);
+            _dy      = vel*sin(angle);
+            _bActive = active;
+            _cycles  = 0;
+            _hsv     = hsv;
+        }
+    protected:
+    private:
+    };
+
+    class RgbBalls
+    {
+    public:
+        float _x;
+        float _y;
+        float _dx;
+        float _dy;
+        float _radius;
+        float _t;
+        float dir;
+        wxImage::HSVValue hsvcolor;
+
+        void Reset(float x, float y, float speed, float angle, float radius, wxImage::HSVValue color)
+        {
+            _x=x;
+            _y=y;
+            _dx=speed*cos(angle);
+            _dy=speed*sin(angle);
+            _radius = radius;
+            hsvcolor = color;
+            _t=M_PI/6.0;
+            dir =1.0;
+
+        }
+        void updatePositionArc(int x,int y, int r)
+        {
+            _x=x+r*cos(_t);
+            _y=y+r*sin(_t);
+            _t+=dir* (M_PI/9.0);
+            dir *= _t < M_PI/6.0 || _t > (2*M_PI)/3?-1.0:1.0;
+        }
+        void updatePosition(float incr, int width, int height)
+        {
+            _x+=_dx*incr;
+            _x = _x>width?0:_x;
+            _x = _x<0?width:_x;
+            _y+=_dy*incr;
+            _y = _y>height?0:_y;
+            _y = _y<0?height:_y;
+        }
+
+        void Bounce(int width, int height)
+        {
+            if (_x-_radius<=0) {
+                _dx=abs(_dx);
+                if (_dx < 0.2) _dx=0.2;
+            }
+            if (_x+_radius>=width) {
+                _dx=-abs(_dx);
+                if (_dx > -0.2) _dx=-0.2;
+            }
+            if (_y-_radius<=0) {
+                _dy=abs(_dy);
+                if (_dy < 0.2) _dy=0.2;
+            }
+            if (_y+_radius>=height) {
+                _dy=-abs(_dy);
+                if (_dy > -0.2) _dy=-0.2;
+            }
+        }
+
+    };
+
+    class MetaBall : public RgbBalls
+    {
+    public:
+        float Equation(float x, float y)
+        {
+            if(x==_x || y==_y) return 1;
+            return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
+        }
+    };
+
+    // for meteor effect
+    class MeteorHasExpiredX;
+    class MeteorHasExpiredY;
+    class MeteorHasExpiredImplode;
+    class MeteorHasExpiredExplode;
+
+    class MeteorClass
+    {
+    public:
+
+        int x,y;
+        wxImage::HSVValue hsv;
+    };
+
+    // for radial meteor effect
+    class MeteorRadialClass
+    {
+    public:
+
+        double x,y,dx,dy;
+        int cnt;
+        wxImage::HSVValue hsv;
+    };
+
+    typedef std::list<MeteorClass> MeteorList;
+    typedef std::list<MeteorRadialClass> MeteorRadialList;
+
+
+    class SnowstormClass
+    {
+    public:
+        wxPointVector points;
+        wxImage::HSVValue hsv;
+        int idx,ssDecay;
+        ~SnowstormClass()
+        {
+            points.clear();
+        }
+    };
+
+    typedef std::list<SnowstormClass> SnowstormList;
+
+
+    class PaletteClass
+    {
+    private:
+        wxColourVector color;
+        hsvVector hsv;
+    public:
+
+        void Set(wxColourVector& newcolors)
+        {
+            color=newcolors;
+            hsv.clear();
+            wxImage::RGBValue newrgb;
+            wxImage::HSVValue newhsv;
+            for(size_t i=0; i<newcolors.size(); i++)
+            {
+                newrgb.red=newcolors[i].Red();
+                newrgb.green=newcolors[i].Green();
+                newrgb.blue=newcolors[i].Blue();
+                newhsv=wxImage::RGBtoHSV(newrgb);
+                hsv.push_back(newhsv);
+            }
+        }
+
+        size_t Size()
+        {
+            size_t colorcnt=color.size();
+            if (colorcnt < 1) colorcnt=1;
+            return colorcnt;
+        }
+
+        void GetColor(size_t idx, wxColour& c)
+        {
+            if (idx >= color.size())
+            {
+                c.Set(255,255,255);
+            }
+            else
+            {
+                c=color[idx];
+            }
+        }
+
+        void GetHSV(size_t idx, wxImage::HSVValue& c)
+        {
+            if (hsv.size() == 0)
+            {
+                // white
+                c.hue=0.0;
+                c.saturation=0.0;
+                c.value=1.0;
+            }
+            else
+            {
+                c=hsv[idx % hsv.size()];
+            }
+        }
+    };
+
+
+
+
+
+
+
+
     void SetPixel(int x, int y, const wxColour &color);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
     void SetTempPixel(int x, int y, const wxColour &color);

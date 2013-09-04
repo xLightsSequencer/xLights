@@ -62,7 +62,7 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
 {
     BufferHt=newBufferHt;
     BufferWi=newBufferWi;
-    DiagLen=sqrt(BufferHt*BufferHt + BufferWi*BufferWi);
+    DiagLen=sqrt( (double)BufferHt*BufferHt + BufferWi*BufferWi);
     NumPixels=BufferHt * BufferWi;
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
@@ -352,9 +352,15 @@ void RgbEffects::ClearWaveBuffer2()
 
 void RgbEffects::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
 {
-    fadein = (int)(fadeInDuration*1000)/XTIMER_INTERVAL;
-    fadeout = (int)(fadeOutDuration*1000)/XTIMER_INTERVAL;
+    fadeinsteps = (int)(fadeInDuration*1000)/XTIMER_INTERVAL;
+    fadeoutsteps = (int)(fadeOutDuration*1000)/XTIMER_INTERVAL;
 }
+
+void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
+{
+    fadeInSteps = fadeinsteps;
+    fadeOutSteps = fadeoutsteps;
+};
 
 void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
 {
@@ -362,4 +368,11 @@ void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
     curEffEndPer = endMsec/XTIMER_INTERVAL;
     nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
 }
+
+void RgbEffects::GetEffectPeriods( int& start, int& next)
+{
+    start = curEffStartPer;
+    next = nextEffTimePeriod;
+};
+
 

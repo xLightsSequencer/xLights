@@ -1,0 +1,42 @@
+
+
+Just some rambling notes I don't want to forget related to the Nutcracker DLL project.
+
+
+Setting up for CodeBlocks & wxWidgets instructions pretty good.
+-just one issue for me: my path had too much 'stuff' in it that confused the wx buld.
+-Path=C:\Windows\system32;C:\Windows;C:\mingw\bin
+-then build worked fine
+
+
+First pass:
+-Create an nccdll (Nutcracker core dll) dir under xLights
+-Using VS10 to create the dll
+-Create sln and vcproj in there along with any other needed stuff
+-Add RgbEffects and the RenderXXX files from the parent dir
+-Hit build and....
+-Use of wxXXX classes needs addressing...
+-Also had to use full path to my wx dir in extra cmdline opts... revisit
+
+-First try... reimplement what NC needs...
+-create local wx dir in nccdll for re-impl of the wx stuff used.
+-Mosly some simple classes easy to re-do.
+-Got a build, but had to leave out Pictures and Text for adj wx usage
+-Talked to Sean... they have no reason to avoid wx stuff (too bad for me)
+
+-Plan B... try using static versions of wx libs in dll...
+-first need to get 32b static libs  (debug/release)
+-in wx build/msw dir...
+-use Path=C:\Windows\system32;C:\Windows  plus  vs10\vc\vcvarsall  (x86 vars)
+-nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=debug
+-nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=release
+(apparently monolithic is not advisable with shared=0)
+-re-jigger the project to use real includes and libs just built
+-got a build...
+-massage RgbEffects a bit to tighen up the interface...
+
+
+
+
+
+
