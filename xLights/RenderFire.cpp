@@ -101,6 +101,7 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
     for (x=0; x<BufferWi; x++)
     {
         r=x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
+        // r=x%2==0 ? 190+((state+rand()) % 10) : 100+((state+rand()) % 50);
         SetFireBuffer(x,0,r);
     }
     int step=255*100/BufferHt/HeightPct;
@@ -142,20 +143,22 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
                 if (new_index < 0) new_index=0;
                 if (new_index >= FirePalette.size()) new_index = FirePalette.size()-1;
             }
-
-
-
-
-
             SetFireBuffer(x,y,new_index);
         }
     }
 
     //  Now play fire
+    float rx,ry;
+    float mod_state;
+    mod_state = 4 / (state%4+1);
+    ry = 1.0 / mod_state;
     for (y=0; y<BufferHt; y++)
     {
+        //y=(int)ry;
         for (x=0; x<BufferWi; x++)
         {
+            rx = 1.0 / mod_state;
+           // x=(int)rx;
             //SetPixel(x,y,FirePalette[y]);
             //  first get the calculated color fo normal fire.
 

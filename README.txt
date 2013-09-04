@@ -5,7 +5,12 @@ such as megatrees, matrices, and arches.
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 
-
+3.1.4:  Sep 03,2013 - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can 
+						define a candy cane out of rgb pixels and then place candycane in the preview window. Very Nice!
+                    - Enhancement: (Matt) You can now copy models.
+					- Enhancement: (Matt) You can now rotate single strand models in the preview window.
+					- Enhancement: (Matt) There is a Sequence open button on the Preview tab. If you use this to open a sequence there is
+						an option to set the "Part of my Display" checkboxes to match the models that just got opened.
 3.1.3:  Aug 27,2013 - Enhancement: (Matt). New Effect Curtain.
 					- Enhancement: (Matt)  New tab PREVIEW. There is a new tab that will allow you to see all of your models displaying effects.
 					- Bug (Frank) Fixed channel numbering for single string and Window models
