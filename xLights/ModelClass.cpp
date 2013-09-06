@@ -426,6 +426,8 @@ void ModelClass::InitFrame()
 {
     int x,y;
     int idx=0;
+    int fSide = IsLtoR << 1 |isBotToTop ;
+    fSide = fSide == 0?1: (fSide == 1?0: fSide);
     TreeDegrees=0;
     SetNodeCount(parm1+2*parm2+parm3);
     if (parm1 >= parm3)
@@ -433,45 +435,59 @@ void ModelClass::InitFrame()
         // first node is bottom left and we count up the left side, across the top, and down the right
         FrameWidth=parm1+2;  // allow for left/right columns
 
-        // up side 1
-        x=IsLtoR ? 0 : FrameWidth-1;
-        for(y=0; y<parm2; y++)
+        for (int ii = 0; ii < 4; fSide= (fSide-1)<0?3:(fSide-1), ii++)
         {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=x;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // across top
-        y=parm2-1;
-        for(x=0; x<parm1; x++)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=IsLtoR ? x+1 : parm1-x;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // down side 2
-        x=IsLtoR ? FrameWidth-1 : 0;
-        for(y=parm2-1; y>=0; y--)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=x;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // across bottom
-        y=0;
-        for(x=0; x<parm3; x++)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=IsLtoR ? parm1-x : x+1;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
+            switch (fSide)
+            {
+            case 3:
+                // up side 1
+                x= 0;
+                for(y=0; y<parm2; y++)
+                {
+                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
+                    Nodes[idx].bufX=x;
+                    Nodes[idx].bufY= y; //isBotToTop? y:parm2-y-1;
+                    Nodes[idx].StringNum=0;
+                    idx++;
+                }
+                break;
+            case 2:
+                // across top
+                y=parm2-1;
+                for(x=0; x<parm1; x++)
+                {
+                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
+                    Nodes[idx].bufX=x+1;//IsLtoR ? x+1 : parm1-x;
+                    Nodes[idx].bufY=y;
+                    Nodes[idx].StringNum=0;
+                    idx++;
+                }
+                break;
+            case 1:
+                // down side 2
+                x=FrameWidth-1;
+                for(y=parm2-1; y>=0; y--)
+                {
+                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
+                    Nodes[idx].bufX=x;
+                    Nodes[idx].bufY=y;//isBotToTop?y:parm2-(y+1);
+                    Nodes[idx].StringNum=0;
+                    idx++;
+                }
+                break;
+            case 0:
+                // across bottom
+                y=0;
+                for(x=0; x<parm3; x++)
+                {
+                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
+                    Nodes[idx].bufX=parm1-x; //IsLtoR ? parm1-x : x+1;
+                    Nodes[idx].bufY=y;
+                    Nodes[idx].StringNum=0;
+                    idx++;
+                }
+                break;
+            }
         }
     }
     else
@@ -485,7 +501,7 @@ void ModelClass::InitFrame()
         {
             Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
-            Nodes[idx].bufY=y;
+            Nodes[idx].bufY=isBotToTop?y:parm2-(y+1);
             Nodes[idx].StringNum=0;
             idx++;
         }
@@ -505,7 +521,7 @@ void ModelClass::InitFrame()
         {
             Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
             Nodes[idx].bufX=x;
-            Nodes[idx].bufY=y;
+            Nodes[idx].bufY=isBotToTop? y:parm2-y-1;
             Nodes[idx].StringNum=0;
             idx++;
         }
