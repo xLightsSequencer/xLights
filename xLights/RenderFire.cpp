@@ -76,7 +76,6 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
     return -1;
 }
 
-
 // 10 <= HeightPct <= 100
 void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
