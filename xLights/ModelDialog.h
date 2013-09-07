@@ -31,24 +31,24 @@ public:
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
+    wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
-    wxStaticText* StaticText2;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxChoice* Choice_StringType;
     wxGrid* GridCustom;
     wxRadioButton* RadioButton_TopLeft;
     wxRadioButton* RadioButton_BotLeft;
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
-    wxChoice* Choice_Order;
     wxCheckBox* cbIndividualStartNumbers;
     wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
@@ -69,6 +69,8 @@ protected:
     static const long ID_TEXTCTRL1;
     static const long ID_STATICTEXT5;
     static const long ID_CHOICE1;
+    static const long ID_STATICTEXT12;
+    static const long ID_CHOICE_STRING_TYPE;
     static const long ID_STATICTEXT2;
     static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT3;
@@ -77,8 +79,6 @@ protected:
     static const long ID_SPINCTRL3;
     static const long ID_STATICTEXT6;
     static const long ID_SPINCTRL4;
-    static const long ID_STATICTEXT7;
-    static const long ID_CHOICE2;
     static const long ID_STATICTEXT8;
     static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON2;
@@ -107,10 +107,10 @@ private:
     void OnSpinCtrl_StartChannelChange(wxSpinEvent& event);
     void OngridStartChannelsCellChange(wxGridEvent& event);
     void OnButtonCustomModelHelpClick(wxCommandEvent& event);
+    void OnChoice_StringTypeSelect(wxCommandEvent& event);
     //*)
-    void SetDefaultStartChannels();
-    void UpdateRowCount();
 
+    void UpdateRowCount();
     void SetReadOnly(bool);
     void UpdateCustom();
     void UpdateStartChannels();
@@ -118,6 +118,7 @@ private:
     bool IsCustom();
     int GetNumberOfStrings();
     wxString StartChanAttrName(int idx);
+    int GetChannelsPerString();
 
     bool HasCustomData;
 

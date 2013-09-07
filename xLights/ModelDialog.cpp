@@ -12,6 +12,8 @@ const long ModelDialog::ID_STATICTEXT1 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT5 = wxNewId();
 const long ModelDialog::ID_CHOICE1 = wxNewId();
+const long ModelDialog::ID_STATICTEXT12 = wxNewId();
+const long ModelDialog::ID_CHOICE_STRING_TYPE = wxNewId();
 const long ModelDialog::ID_STATICTEXT2 = wxNewId();
 const long ModelDialog::ID_SPINCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT3 = wxNewId();
@@ -20,8 +22,6 @@ const long ModelDialog::ID_STATICTEXT4 = wxNewId();
 const long ModelDialog::ID_SPINCTRL3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT6 = wxNewId();
 const long ModelDialog::ID_SPINCTRL4 = wxNewId();
-const long ModelDialog::ID_STATICTEXT7 = wxNewId();
-const long ModelDialog::ID_CHOICE2 = wxNewId();
 const long ModelDialog::ID_STATICTEXT8 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON1 = wxNewId();
 const long ModelDialog::ID_RADIOBUTTON2 = wxNewId();
@@ -79,6 +79,21 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Window Frame"));
     Choice_DisplayAs->Append(_("Custom"));
     FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+    FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_StringType = new wxChoice(this, ID_CHOICE_STRING_TYPE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_STRING_TYPE"));
+    Choice_StringType->SetSelection( Choice_StringType->Append(_("RGB Nodes")) );
+    Choice_StringType->Append(_("RBG Nodes"));
+    Choice_StringType->Append(_("GBR Nodes"));
+    Choice_StringType->Append(_("GRB Nodes"));
+    Choice_StringType->Append(_("BRG Nodes"));
+    Choice_StringType->Append(_("BGR Nodes"));
+    Choice_StringType->Append(_("3 Channel RGB"));
+    Choice_StringType->Append(_("Single Color Red"));
+    Choice_StringType->Append(_("Single Color Green"));
+    Choice_StringType->Append(_("Single Color Blue"));
+    Choice_StringType->Append(_("Single Color White"));
+    FlexGridSizer2->Add(Choice_StringType, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_Strings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl_parm1 = new wxSpinCtrl(this, ID_SPINCTRL1, _T("1"), wxDefaultPosition, wxSize(60,21), 0, 1, 100, 1, _T("ID_SPINCTRL1"));
@@ -100,16 +115,6 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     SpinCtrl_StartChannel = new wxSpinCtrl(this, ID_SPINCTRL4, _T("1"), wxDefaultPosition, wxSize(90,21), 0, 1, 99999, 1, _T("ID_SPINCTRL4"));
     SpinCtrl_StartChannel->SetValue(_T("1"));
     FlexGridSizer2->Add(SpinCtrl_StartChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT7, _("Channel Order"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_Order = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-    Choice_Order->SetSelection( Choice_Order->Append(_("RGB")) );
-    Choice_Order->Append(_("RBG"));
-    Choice_Order->Append(_("GBR"));
-    Choice_Order->Append(_("GRB"));
-    Choice_Order->Append(_("BRG"));
-    Choice_Order->Append(_("BGR"));
-    FlexGridSizer2->Add(Choice_Order, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT8, _("Starting Corner"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     StaticText3->SetHelpText(_("The point at which pixels in your model start."));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -190,6 +195,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Center();
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_DisplayAsSelect);
+    Connect(ID_CHOICE_STRING_TYPE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_StringTypeSelect);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm1Change);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
@@ -299,48 +305,58 @@ void ModelDialog::SetCustomGridData(const wxString& customChannelData)
 }
 
 
+int ModelDialog::GetChannelsPerString()
+{
+    wxString StringType=Choice_StringType->GetStringSelection();
+    if (ModelClass::HasSingleChannel(StringType)) return 1;
+    if (ModelClass::HasSingleNode(StringType)) return 3;
+    return SpinCtrl_parm2->GetValue()*3;
+}
+
+
 int ModelDialog::GetNumberOfStrings()
 {
-    wxString choice=Choice_DisplayAs->GetStringSelection();
-    if (choice == wxT("Window Frame") || choice == wxT("Custom"))
-    {
-        return 1;
-    }
-    else
-    {
-        return SpinCtrl_parm1->GetValue();
-    }
+    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
+    return (ModelClass::HasOneString(DisplayAs)) ? 1 : SpinCtrl_parm1->GetValue();
 }
 
 
 void ModelDialog::UpdateLabels()
 {
-    wxString choice;
-    choice=Choice_DisplayAs->GetStringSelection();
-    if (choice == wxT("Arches"))
+    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
+    wxString StringType=Choice_StringType->GetStringSelection();
+    wxString NodeLabel = ModelClass::HasSingleChannel(StringType) ? _("lights") : _("RGB Nodes");
+    wxString s;
+
+    if (DisplayAs == wxT("Arches"))
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
-        StaticText_Nodes->SetLabelText(_("# of RGB Nodes per Arch"));
+        s=_("# of ") + NodeLabel + _(" per Arch");
+        StaticText_Nodes->SetLabelText(s);
         StaticText_Strands->SetLabelText(_("n/a"));
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
     }
-    else if (choice == wxT("Window Frame"))
+    else if (DisplayAs == wxT("Window Frame"))
     {
-        StaticText_Strings->SetLabelText(_("# of RGB Nodes Top"));
-        StaticText_Nodes->SetLabelText(_("# of RGB Nodes Left/Right"));
-        StaticText_Strands->SetLabelText(_("# of RGB Nodes Bottom"));
+        s=_("# of ") + NodeLabel + _(" Top");
+        StaticText_Strings->SetLabelText(s);
+        s=_("# of ") + NodeLabel + _(" Left/Right");
+        StaticText_Nodes->SetLabelText(s);
+        s=_("# of ") + NodeLabel + _(" Bottom");
+        StaticText_Strands->SetLabelText(s);
         SpinCtrl_parm3->Enable(true);
     }
-    else if (choice == wxT("Single Line"))
+    else if (DisplayAs == wxT("Single Line"))
     {
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
-        StaticText_Nodes->SetLabelText(_("# of RGB Nodes per String"));
+        s=_("# of ") + NodeLabel + _(" per String");
+        StaticText_Nodes->SetLabelText(s);
         StaticText_Strands->SetLabelText(_("n/a"));
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
     }
-    else if (choice == wxT("Custom"))
+    else if (DisplayAs == wxT("Custom"))
     {
         StaticText_Strings->SetLabelText(_("Model Width"));
         StaticText_Nodes->SetLabelText(_("Model Height"));
@@ -352,7 +368,8 @@ void ModelDialog::UpdateLabels()
     {
         // matrix or tree
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
-        StaticText_Nodes->SetLabelText(_("# of RGB Nodes per String"));
+        s=_("# of ") + NodeLabel + _(" per String");
+        StaticText_Nodes->SetLabelText(s);
         StaticText_Strands->SetLabelText(_("# of Strands per String"));
         SpinCtrl_parm3->Enable(true);
     }
@@ -377,7 +394,14 @@ void ModelDialog::UpdateStartChannels()
 
     if(!cbIndividualStartNumbers->IsChecked())
     {
-        SetDefaultStartChannels();
+        int strings = GetNumberOfStrings();
+        int startchan = SpinCtrl_StartChannel->GetValue();
+        int ChannelsPerString = GetChannelsPerString();
+
+        for (int stringnum=0; stringnum<strings; stringnum++)
+        {
+            gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString)));
+        }
         SetReadOnly(true);
     }
     else
@@ -424,18 +448,6 @@ void ModelDialog::UpdateRowCount()
     cbIndividualStartNumbers->Enable(!OneString);
 }
 
-void ModelDialog::SetDefaultStartChannels()
-{
-    int strings = GetNumberOfStrings();
-    int startchan = SpinCtrl_StartChannel->GetValue();
-    int nodesPerString = SpinCtrl_parm2->GetValue();
-
-    for (int stringnum=0; stringnum<strings; stringnum++)
-    {
-        gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*nodesPerString*3)));
-    }
-}
-
 void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
 {
     if (IsCustom()) {
@@ -469,11 +481,6 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
     event.Skip();
 }
 
-wxString ModelDialog::StartChanAttrName(int idx)
-{
-    return wxString::Format(wxT("String%d"),idx+1);
-}
-
 // does not update name
 void ModelDialog::UpdateXml(wxXmlNode* e)
 {
@@ -487,7 +494,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         tempStr.ToLong(&numStrings);
         for(ii=0; ii < numStrings; ii++)
         {
-            e->DeleteAttribute(StartChanAttrName(ii));
+            e->DeleteAttribute(ModelClass::StartChanAttrName(ii));
         }
     }
     if (e->HasAttribute(wxT("CustomModel")));
@@ -499,11 +506,12 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute(wxT("Advanced"), wxT("1"));
         for(ii=0; ii < gridStartChannels->GetNumberRows(); ii++)
         {
-            e->AddAttribute(StartChanAttrName(ii),gridStartChannels->GetCellValue(ii,0));
+            e->AddAttribute(ModelClass::StartChanAttrName(ii),gridStartChannels->GetCellValue(ii,0));
         }
     }
     if (e->HasAttribute(wxT("StartSide"))) e->DeleteAttribute(wxT("StartSide"));
     e->DeleteAttribute(wxT("DisplayAs"));
+    e->DeleteAttribute(wxT("StringType"));
     e->DeleteAttribute(wxT("parm1"));
     e->DeleteAttribute(wxT("parm2"));
     e->DeleteAttribute(wxT("parm3"));
@@ -512,11 +520,12 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute(wxT("Dir"));
     e->DeleteAttribute(wxT("Antialias"));
     e->AddAttribute(wxT("DisplayAs"), Choice_DisplayAs->GetStringSelection());
+    e->AddAttribute(wxT("StringType"), Choice_StringType->GetStringSelection());
     e->AddAttribute(wxT("parm1"), wxString::Format(wxT("%d"),SpinCtrl_parm1->GetValue()));
     e->AddAttribute(wxT("parm2"), wxString::Format(wxT("%d"),SpinCtrl_parm2->GetValue()));
     e->AddAttribute(wxT("parm3"), wxString::Format(wxT("%d"),SpinCtrl_parm3->GetValue()));
     e->AddAttribute(wxT("StartChannel"), wxString::Format(wxT("%d"),SpinCtrl_StartChannel->GetValue()));
-    e->AddAttribute(wxT("Order"), Choice_Order->GetStringSelection());
+    //e->AddAttribute(wxT("Order"), Choice_Order->GetStringSelection());
     if (RadioButton_TopLeft->GetValue() || RadioButton_TopRight->GetValue() )
         e->AddAttribute(wxT("StartSide"),wxT("T"));
     else
@@ -541,11 +550,12 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     name=e->GetAttribute(wxT("name")) + NameSuffix;
     TextCtrl_Name->SetValue(name);
     Choice_DisplayAs->SetStringSelection(e->GetAttribute(wxT("DisplayAs")));
+    Choice_StringType->SetStringSelection(e->GetAttribute(wxT("StringType"),wxT("RGB Nodes")));
     SpinCtrl_parm1->SetValue(e->GetAttribute(wxT("parm1")));
     SpinCtrl_parm2->SetValue(e->GetAttribute(wxT("parm2")));
     SpinCtrl_parm3->SetValue(e->GetAttribute(wxT("parm3")));
     SpinCtrl_StartChannel->SetValue(e->GetAttribute(wxT("StartChannel")));
-    Choice_Order->SetStringSelection(e->GetAttribute(wxT("Order")));
+    //Choice_Order->SetStringSelection(e->GetAttribute(wxT("Order")));
     tempStr=e->GetAttribute(wxT("Antialias"),wxT("0"));
     tempStr.ToLong(&n);
     Choice_Antialias->SetSelection(n);
@@ -566,7 +576,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         for(int ii=0; ii < n; ii++)
         {
             gridStartChannels->AppendRows();
-            gridStartChannels->SetCellValue(ii,0,e->GetAttribute(StartChanAttrName(ii)));
+            gridStartChannels->SetCellValue(ii,0,e->GetAttribute(ModelClass::StartChanAttrName(ii)));
         }
     }
 
@@ -591,9 +601,15 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     }
     CheckBox_MyDisplay->SetValue(ModelClass::IsMyDisplay(e));
     UpdateLabels();
+    Fit();
 }
 
 void ModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 {
     wxMessageBox(_("To create a custom model, set 'Display As' to 'Custom';\nthen set the model width and model height values.\n\nA custom model allows you to represent almost any display element \ncreated from RGB lights. If your element has 12 RGB nodes in it, then \nyou will need to place the numbers 1 through 12 in the grid. \nPlace the numbers so that they are in the shape of your display \nelement. If you enter a number and then need to erase it, enter a 0.\n\nNode 1 will be assigned:\n  StartChannel\n  StartChannel+1\n  StartChannel+2\nNode 2 will be assigned:\n  StartChannel+3\n  StartChannel+4\n  StartChannel+5\netc.\n\nFor example, to model a candy cane with 12 nodes, you could \nstart with a grid 4 columns wide and 10 rows high. You would place the \nnumbers 1-9 up the right-hand side, 10 and 11 would go in the middle \ncells in the top row, and then 12 would go in column A, row 2.\n\n     11 10\n12           9\n               8\n               7\n               6\n               5\n               4\n               3\n               2\n               1"));
+}
+
+void ModelDialog::OnChoice_StringTypeSelect(wxCommandEvent& event)
+{
+    UpdateLabels();
 }

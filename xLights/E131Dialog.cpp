@@ -38,7 +38,7 @@ E131Dialog::E131Dialog(wxWindow* parent)
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sets up an E1.31 connection over ethernet.\n\nSupported devices include those made\nby j1sys, SanDevices, and Entec. Also\nsupports the Lynx EtherDongle, and \nE1.31 projects on DIYC.\n\nThe universe numbers entered here\nshould match the universe numbers \ndefined on your E1.31 device."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sets up an E1.31 connection over ethernet.\n\nSupported devices include those made\nby j1sys, SanDevices, Advatek Lights,\nand Entec. Also supports the Lynx \nEtherDongle, and E1.31 projects on DIYC.\n\nThe universe numbers entered here\nshould match the universe numbers \ndefined on your E1.31 device."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Method"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));

@@ -37,48 +37,48 @@ xNetwork::xNetwork()
 {
     timer_msec=0;
     num_channels=0;
-};
+}
 
 xNetwork::~xNetwork()
 {
-};
+}
 
 void xNetwork::SetNetworkDesc(wxString& NetworkDesc)
 {
     netdesc=NetworkDesc;
-};
+}
 
 wxString xNetwork::GetNetworkDesc()
 {
     return netdesc;
-};
+}
 
 size_t xNetwork::GetChannelCount()
 {
     return num_channels;
-};
+}
 
 void xNetwork::InitSerialPort(const wxString& portname, int baudrate)
 {
-};
+}
 
 void xNetwork::InitNetwork(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum)
 {
-};
+}
 
 void xNetwork::TimerStart(long msec)
 {
     timer_msec=msec;
-};
+}
 
 long xNetwork::GetTimer()
 {
     return timer_msec;
-};
+}
 
 void xNetwork::ResetTimer()
 {
-};
+}
 
 
 // ***************************************************************************************
@@ -627,17 +627,17 @@ public:
 xOutput::xOutput()
 {
     srand((unsigned)time(NULL));
-};
+}
 
 xOutput::~xOutput()
 {
     WX_CLEAR_ARRAY(networks);
-};
+}
 
 size_t xOutput::NetworkCount()
 {
     return networks.GetCount();
-};
+}
 
 // returns the network index
 size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxString& portname, int baudrate)
@@ -694,19 +694,19 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
         netobj->InitSerialPort(portname, baudrate);
     }
     return netnum;
-};
+}
 
 int xOutput::GetChannelCount(size_t netnum)
 {
     if (netnum >= networks.GetCount()) return 0;
     return networks[netnum]->GetChannelCount();
-};
+}
 
 wxString xOutput::GetNetworkDesc(size_t netnum)
 {
     if (netnum >= networks.GetCount()) return wxT("");
     return networks[netnum]->GetNetworkDesc();
-};
+}
 
 // absChNum starts at 0
 // intensity is 0-255
@@ -714,14 +714,14 @@ void xOutput::SetIntensity (size_t absChNum, wxByte intensity)
 {
     if (absChNum < channels.size())
         networks[channels[absChNum].first]->SetIntensity(channels[absChNum].second, intensity);
-};
+}
 
 // convenience function to turn a single channel off
 void xOutput::off (size_t absChNum)
 {
     if (absChNum < channels.size())
         networks[channels[absChNum].first]->SetIntensity(channels[absChNum].second, 0);
-};
+}
 
 // turns all channels off on all networks
 void xOutput::alloff ()
@@ -730,7 +730,7 @@ void xOutput::alloff ()
     {
         networks[channels[absChNum].first]->SetIntensity(channels[absChNum].second, 0);
     }
-};
+}
 
 // returns total number of channels across all networks
 size_t xOutput::TotalChannelCount()
@@ -759,7 +759,7 @@ void xOutput::ResetTimer()
     {
         networks[i]->ResetTimer();
     }
-};
+}
 
 void xOutput::TimerStart(long msec)
 {
@@ -768,7 +768,7 @@ void xOutput::TimerStart(long msec)
     {
         networks[i]->TimerStart(msec);
     }
-};
+}
 
 void xOutput::TimerEnd()
 {
@@ -776,7 +776,7 @@ void xOutput::TimerEnd()
     {
         networks[i]->TimerEnd();
     }
-};
+}
 
 bool xOutput::TxEmpty()
 {
@@ -785,4 +785,4 @@ bool xOutput::TxEmpty()
         if (!networks[i]->TxEmpty()) return false;
     }
     return true;
-};
+}

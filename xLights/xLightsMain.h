@@ -761,7 +761,6 @@ private:
     void OnGridNetworkDragEnd(wxMouseEvent& event);
     void SetupDongle(wxXmlNode* e);
     void SetupE131(wxXmlNode* e);
-    void SetChannelNamesForRgbModel(wxArrayString& ChNames, wxXmlNode* ModelNode);
 
     // test
     void SetTestCheckboxes(bool NewValue);
@@ -922,6 +921,7 @@ private:
     void ResetSequenceGrid();
     void CompareMyDisplayToSeq();
     void GetSeqModelNames(wxArrayString& a);
+    void UpdateChannelNames();
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -934,7 +934,7 @@ private:
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
     PixelBufferClass buffer;
-    std::vector<ModelClass*> PreviewModels;
+    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
     int SeqPlayColumn;

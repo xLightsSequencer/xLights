@@ -299,20 +299,20 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
     size_t NodeCount=Nodes.size();
     for(size_t i=0; i<NodeCount; i++)
     {
-        if (Nodes[i].bufX < 0)
+        if (!Nodes[i]->IsVisible())
         {
             // unmapped pixel - set to black
-            Nodes[i].SetColor(0,0,0);
+            Nodes[i]->SetColor(0,0,0);
         }
         else
         {
             // get blend of two effects
-            GetMixedColor(Nodes[i].bufX, Nodes[i].bufY, color);
+            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color);
 
             // add sparkles
             if (sparkle_count > 0 && color.GetRGB()!=0)
             {
-                switch (Nodes[i].sparkle%sparkle_count)
+                switch (Nodes[i]->sparkle%sparkle_count)
                 {
                 case 1:
                 case 7:
@@ -331,7 +331,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
                     color.Set(wxT("#FFFFFF"));
                     break;
                 }
-                Nodes[i].sparkle++;
+                Nodes[i]->sparkle++;
             }
             // Apply brightness
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
@@ -360,7 +360,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             color = wxColor(rgb.red,rgb.green,rgb.blue);
 
             // set color for physical output
-            Nodes[i].SetColor(color);
+            Nodes[i]->SetColor(color);
         }
     }
 }

@@ -14,7 +14,7 @@
 #include <wx/image.h>
 //*)
 
-IMPLEMENT_APP(xLightsApp);
+IMPLEMENT_APP(xLightsApp)
 
 bool xLightsApp::OnInit()
 {

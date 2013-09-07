@@ -360,7 +360,7 @@ void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
 {
     fadeInSteps = fadeinsteps;
     fadeOutSteps = fadeoutsteps;
-};
+}
 
 void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
 {
@@ -373,6 +373,6 @@ void RgbEffects::GetEffectPeriods( int& start, int& next)
 {
     start = curEffStartPer;
     next = nextEffTimePeriod;
-};
+}
 
 

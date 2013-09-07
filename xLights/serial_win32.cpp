@@ -40,12 +40,12 @@ SerialPort::SerialPort()
     memset( &ov, 0, sizeof( OVERLAPPED ) );
     fd = INVALID_HANDLE_VALUE;
     rtsdtr_state = LinestateNull;
-};
+}
 
 SerialPort::~SerialPort()
 {
     Close();
-};
+}
 
 int SerialPort::Close()
 {
@@ -57,7 +57,7 @@ int SerialPort::Close()
         fd = INVALID_HANDLE_VALUE;
     }
     return 0;
-};
+}
 
 // return 0 on success, negative value on error
 int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol)
@@ -182,13 +182,13 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
     if(!SetupComm(fd,SERIALPORT_BUFSIZE/2,SERIALPORT_BUFSIZE)) return -6;
 
     return 0;
-};
+}
 
 
 bool SerialPort::IsOpen()
 {
     return (fd != INVALID_HANDLE_VALUE);
-};
+}
 
 
 int SerialPort::AvailableToRead()
@@ -202,7 +202,7 @@ int SerialPort::AvailableToRead()
         return 0;
     }
     return comStat.cbInQue;
-};
+}
 
 int SerialPort::WaitingToWrite()
 {
@@ -215,7 +215,7 @@ int SerialPort::WaitingToWrite()
         return 0;
     }
     return comStat.cbOutQue;
-};
+}
 
 int SerialPort::Read(char* buf,size_t len)
 {
@@ -236,7 +236,7 @@ int SerialPort::Read(char* buf,size_t len)
         return (int)read;
     }
     return 0;
-};
+}
 
 int SerialPort::Write(char* buf,size_t len)
 {
@@ -261,7 +261,7 @@ int SerialPort::Write(char* buf,size_t len)
         }
     }
     return write;
-};
+}
 
 int SerialPort::SendBreak()
 {
@@ -270,4 +270,4 @@ int SerialPort::SendBreak()
     if(!ClearCommBreak(fd)) return -1;
     // no error
     return 0;
-};
+}

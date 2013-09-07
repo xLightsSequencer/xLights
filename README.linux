@@ -21,17 +21,20 @@ Instructions for other Linux distributions will vary.
   a) Using Software Manager (or apt-get or rpm), install these packages: 
 
      build-essential
-     subversion
      libgtk2.0-dev
      libgstreamer0.10-dev
      libgstreamer-plugins-base0.10-dev
 
-  b) Build wxWidgets 2.9.4
+  b) Build wxWidgets 2.9.5
+
+     NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
+           WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
+           FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
 
      $ cd ~
-     $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.4.tar.bz2
-     $ tar xjf wxWidgets-2.9.4.tar.bz2
-     $ cd wxWidgets-2.9.4
+     $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.5.tar.bz2
+     $ tar xjf wxWidgets-2.9.5.tar.bz2
+     $ cd wxWidgets-2.9.5
      $ ./configure --with-mediactrl
      $ make
      $ sudo make install

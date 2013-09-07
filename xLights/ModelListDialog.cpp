@@ -240,11 +240,7 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
 
 void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
 {
-    size_t i,idx;
-    int n,x,y,s;
-    wxString bgcolor;
     int sel=ListBox1->GetSelection();
-    std::vector<int> chmap;
     if (sel == wxNOT_FOUND)
     {
         wxMessageBox(_("Select an item before clicking the Channel Layout button"));
@@ -253,77 +249,7 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     wxXmlNode* ModelNode=(wxXmlNode*)ListBox1->GetClientData(sel);
     ModelClass model;
     model.SetFromXml(ModelNode);
-    size_t NodeCount=model.GetNodeCount();
-    chmap.resize(model.BufferHt * model.BufferWi);
-    bool IsCustom = model.DisplayAs == wxT("Custom");
-    wxString direction;
-    if (IsCustom) {
-        direction=wxT("n/a");
-    } else if (!model.IsLtoR) {
-        if(!model.isBotToTop)
-            direction=wxT("Top Right");
-        else
-            direction=wxT("Bottom Right");
-    } else {
-        if (!model.isBotToTop)
-            direction=wxT("Top Left");
-        else
-            direction=wxT("Bottom Left");
-    }
-
-    wxString html = wxT("<html><body><table border=0>");
-    html+=wxT("<tr><td>Name:</td><td>")+model.name+wxT("</td></tr>");
-    html+=wxT("<tr><td>Display As:</td><td>")+model.DisplayAs+wxT("</td></tr>");
-    html+=wxT("<tr><td>Start Corner:</td><td>")+direction+wxT("</td></tr>");
-    html+=wxString::Format(wxT("<tr><td>Total nodes:</td><td>%d</td></tr>"),NodeCount);
-    html+=wxString::Format(wxT("<tr><td>Height:</td><td>%d</td></tr>"),model.BufferHt);
-    html+=wxT("</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>");
-    if (model.BufferHt == 1)
-    {
-        // single line or arch
-        html+=wxT("<tr>");
-        for(i=1; i<=NodeCount; i++)
-        {
-            n=model.IsLtoR ? i : NodeCount-i+1;
-            s=model.Nodes[n-1].StringNum+1;
-            bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
-            html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
-        }
-        html+=wxT("</tr>");
-    }
-    else if (model.BufferHt > 1)
-    {
-        // horizontal or vertical matrix or frame
-        for(i=0; i<NodeCount; i++)
-        {
-            idx=model.Nodes[i].bufY * model.BufferWi + model.Nodes[i].bufX;
-            if (idx < chmap.size()) chmap[idx]=model.GetNodeNumber(i);
-        }
-        for(y=model.BufferHt-1; y>=0; y--)
-        {
-            html+=wxT("<tr>");
-            for(x=0; x<model.BufferWi; x++)
-            {
-                n=chmap[y*model.BufferWi+x];
-                if (n==0)
-                {
-                    html+=wxT("<td></td>");
-                }
-                else
-                {
-                    s=model.Nodes[n-1].StringNum+1;
-                    bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
-                    html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
-                }
-            }
-            html+=wxT("</tr>");
-        }
-    }
-    else
-    {
-        html+=wxT("<tr><td>Error - invalid height</td></tr>");
-    }
-    html+=wxT("</table></body></html>");
+    wxString html=model.ChannelLayoutHtml();
 
     ChannelLayoutDialog dialog(this);
     dialog.HtmlEasyPrint=HtmlEasyPrint;

@@ -93,13 +93,13 @@ void xLightsFrame::CompareMyDisplayToSeq()
 void xLightsFrame::UpdatePreview()
 {
     const wxColour *color;
-    int sel=ListBoxElementList->GetSelection();
-    ModelClass* m=(sel == wxNOT_FOUND) ? 0 : (ModelClass*)ListBoxElementList->GetClientData(sel);
+    wxString SelModelName=ListBoxElementList->GetStringSelection();
+    //ScrolledWindowPreview->ClearBackground();
     wxClientDC dc(ScrolledWindowPreview);
     dc.Clear();
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i] == m) ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(ScrolledWindowPreview,color);
     }
 }
@@ -256,19 +256,27 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 
 void xLightsFrame::PreviewOutput(int period)
 {
-    size_t m, n, rchan, gchan, bchan, NodeCnt;
-    char r,g,b;
+    size_t m, n, chnum, NodeCnt;
+    wxByte intensity;
     TimerOutput(period);
     for (m=0; m<PreviewModels.size(); m++)
     {
         NodeCnt=PreviewModels[m]->GetNodeCount();
+        size_t cn=PreviewModels[m]->ChannelsPerNode();
         for(n=0; n<NodeCnt; n++)
         {
-            PreviewModels[m]->Nodes[n].getRGBChanNum(&rchan,&gchan,&bchan);
-            r=SeqData[rchan*SeqNumPeriods+period];
-            g=SeqData[gchan*SeqNumPeriods+period];
-            b=SeqData[bchan*SeqNumPeriods+period];
-            PreviewModels[m]->Nodes[n].SetColor(r,g,b);
+            if (cn==1) {
+                PreviewModels[m]->GetChanIntensity(n,0,&chnum,&intensity);
+                intensity=SeqData[chnum*SeqNumPeriods+period];
+                PreviewModels[m]->SetChanIntensityAll(n,intensity);
+            } else {
+                for(size_t c=0; c<cn; c++)
+                {
+                    PreviewModels[m]->GetChanIntensity(n,c,&chnum,&intensity);
+                    intensity=SeqData[chnum*SeqNumPeriods+period];
+                    PreviewModels[m]->SetChanIntensity(n,c,intensity);
+                }
+            }
         }
         PreviewModels[m]->DisplayModelOnWindow(ScrolledWindowPreview);
     }

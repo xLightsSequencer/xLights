@@ -150,7 +150,6 @@ void xLightsFrame::UpdateNetworkList()
     int MaxDmxChannels=512;
     int StartChannel,ch;
     char c;
-    wxArrayString ChNames;
 
     wxString MaxChannelsStr,NetName,msg;
     wxXmlNode* e=NetworkXML.GetRoot();
@@ -201,40 +200,52 @@ void xLightsFrame::UpdateNetworkList()
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
+    UpdateChannelNames();
+}
 
-    // reset test channel listbox
+// reset test channel listbox
+void xLightsFrame::UpdateChannelNames()
+{
+    wxArrayString ChNames;
+    ModelClass model;
+    wxString FormatSpec;
+    int ChannelNum,ChanPerNode;
+    size_t NodeCount,n,c;
     NetInfo.GetAllChannelNames(ChNames);
     // update names with RGB models where MyDisplay is checked
-    wxString MyDisplay;
-    for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == wxT("model") && ModelClass::IsMyDisplay(e))
         {
-            MyDisplay=e->GetAttribute(wxT("MyDisplay"));
-            if (MyDisplay == wxT("1"))
+            model.SetFromXml(e);
+            NodeCount=model.GetNodeCount();
+            ChanPerNode = model.ChannelsPerNode();
+            FormatSpec = wxT("Ch %d: ")+model.name+wxT(" #%d %c");
+            for(n=0; n < NodeCount; n++)
             {
-                SetChannelNamesForRgbModel(ChNames,e);
+                ChannelNum=model.NodeStartChannel(n);
+                if (ChanPerNode==1)
+                {
+                    if (ChannelNum < ChNames.Count())
+                    {
+                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,n+1,' ');
+                    }
+                }
+                else
+                {
+                    for(c=0; c < ChanPerNode; c++)
+                    {
+                        if (ChannelNum < ChNames.Count())
+                        {
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,n+1,model.GetChannelColorLetter(c));
+                        }
+                        ChannelNum++;
+                    }
+                }
             }
         }
     }
     CheckListBoxTestChannels->Set(ChNames);
-}
-
-void xLightsFrame::SetChannelNamesForRgbModel(wxArrayString& ChNames, wxXmlNode* ModelNode)
-{
-    ModelClass model;
-    model.SetFromXml(ModelNode);
-    size_t ChannelNum=model.StartChannel-1; //StartChannel is stored in the model class 1 based but act channel is stored 0 based.
-    size_t NodeCount=model.GetNodeCount();
-    wxString FormatSpec = wxT("Ch %d: ")+model.name+wxT(" node %d %c");
-    for(size_t i=0; i < NodeCount && ChannelNum+2 < ChNames.Count(); i++,ChannelNum=model.Nodes[i].ActChan)
-    {
-        for(size_t j=0; j < 3; j++)
-        {
-            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,i+1,model.RGBorder[j]);
-            ChannelNum++;
-        }
-    }
 }
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)

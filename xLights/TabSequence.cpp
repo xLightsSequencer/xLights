@@ -475,6 +475,7 @@ void xLightsFrame::ShowModelsDialog()
     SaveEffectsFile();
     UpdateModelsList();
     EnableSequenceControls(true);
+    UpdateChannelNames();
 }
 
 void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
@@ -504,7 +505,7 @@ void xLightsFrame::UpdateModelsList()
                     model=new ModelClass;
                     model->SetFromXml(e);
                     ListBoxElementList->Append(name,model);
-                    PreviewModels.push_back(model);
+                    PreviewModels.push_back(ModelClassPtr(model));
                 }
             }
         }
@@ -1005,14 +1006,19 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
     buffer.DisplayEffectOnWindow(ScrolledWindow1);
+    size_t chnum;
+    wxByte intensity;
     if (CheckBoxLightOutput->IsChecked() && xout)
     {
         size_t NodeCnt=buffer.GetNodeCount();
-        for(size_t i=0; i<NodeCnt; i++)
+        size_t cn=buffer.ChannelsPerNode();
+        for(size_t n=0; n<NodeCnt; n++)
         {
-            xout->SetIntensity((buffer.Nodes[i].getChanNum(0)),buffer.Nodes[i].GetChannelColorVal(0));
-            xout->SetIntensity((buffer.Nodes[i].getChanNum(1)),buffer.Nodes[i].GetChannelColorVal(1));
-            xout->SetIntensity((buffer.Nodes[i].getChanNum(2)),buffer.Nodes[i].GetChannelColorVal(2));
+            for(size_t c=0; c<cn; c++)
+            {
+                buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                xout->SetIntensity(chnum,intensity);
+            }
         }
     }
 }
@@ -2182,15 +2188,18 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 buffer.CalcOutput(p);
                 // update SeqData with contents of buffer
-                for(int n=0; n<NodeCnt; n++)
+                size_t chnum;
+                wxByte intensity;
+                size_t NodeCnt=buffer.GetNodeCount();
+                size_t cn=buffer.ChannelsPerNode();
+                for(size_t n=0; n<NodeCnt; n++)
                 {
-                    SeqData[(buffer.Nodes[n].getChanNum(0))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(0);
-
-                    SeqData[(buffer.Nodes[n].getChanNum(1))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(1);
-
-                    SeqData[(buffer.Nodes[n].getChanNum(2))*SeqNumPeriods+p]=buffer.Nodes[n].GetChannelColorVal(2);
-
-                } // for(int n=0; n<NodeCnt; n++)
+                    for(size_t c=0; c<cn; c++)
+                    {
+                        buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                        SeqData[chnum*SeqNumPeriods+p]=intensity;
+                    }
+                }
             }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
     }

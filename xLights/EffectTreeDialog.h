@@ -27,7 +27,6 @@ class EffectTreeDialog : public wxDialog
 		wxButton* btUpdate;
 		wxButton* btApply;
 		wxButton* btRename;
-		wxButton* Button_OK;
 		wxTreeCtrl* TreeCtrl1;
 		wxButton* btDelete;
 		//*)
@@ -47,7 +46,6 @@ class EffectTreeDialog : public wxDialog
 		static const long ID_BUTTON7;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
-		static const long ID_BUTTON8;
 		//*)
 
 	private:

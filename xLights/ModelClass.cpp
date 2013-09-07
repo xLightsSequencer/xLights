@@ -27,14 +27,31 @@
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode)
 {
-    wxString tempstr;
-    wxString customModel;
-    long degrees;
+    wxString tempstr,channelstr;
+    wxString customModel,RGBorder;
+    long degrees, StartChannel, channel;
+    size_t i;
 
     ModelXml=ModelNode;
     name=ModelNode->GetAttribute(wxT("name"));
     DisplayAs=ModelNode->GetAttribute(wxT("DisplayAs"));
-    RGBorder=ModelNode->GetAttribute(wxT("Order"),wxT("RGB"));
+    if (ModelNode->HasAttribute(wxT("StringType")))
+    {
+        // post 3.1.4
+        StringType=ModelNode->GetAttribute(wxT("StringType"));
+    }
+    else
+    {
+        // 3.1.4 and earlier
+        StringType=ModelNode->GetAttribute(wxT("Order"),wxT("RGB"))+wxT(" Nodes");
+    }
+    SingleNode=HasSingleNode(StringType);
+    SingleChannel=HasSingleChannel(StringType);
+    RGBorder=SingleNode ? "RGB" : RGBorder=StringType.Left(3);
+    rgbidx[0]=std::max(RGBorder.Find('R'),0);
+    rgbidx[1]=std::max(RGBorder.Find('G'),0);
+    rgbidx[2]=std::max(RGBorder.Find('B'),0);
+
     tempstr=ModelNode->GetAttribute(wxT("parm1"));
     tempstr.ToLong(&parm1);
     tempstr=ModelNode->GetAttribute(wxT("parm2"));
@@ -74,20 +91,35 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     tempstr.ToLong(&degrees);
     PreviewRotation=degrees;
 
+    // calculate starting channel numbers for each string
+    size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
+    tempstr=ModelNode->GetAttribute(wxT("Advanced"),wxT("0"));
+    bool HasIndividualStartChans=tempstr == wxT("1");
+    int ChannelsPerString=parm2*3;
+    if (SingleChannel)
+        ChannelsPerString=1;
+    else if (SingleNode)
+        ChannelsPerString=3;
+    stringStartChan.clear();
+    stringStartChan.resize(NumberOfStrings);
+    for (i=0; i<NumberOfStrings; i++)
+    {
+        tempstr=StartChanAttrName(i);
+        if (HasIndividualStartChans && ModelNode->HasAttribute(tempstr))
+        {
+            ModelNode->GetAttribute(tempstr, &channelstr);
+            channelstr.ToLong(&channel);
+            stringStartChan[i] = channel-1;
+        }
+        else
+        {
+            stringStartChan[i] = StartChannel-1 + i*ChannelsPerString;
+        }
+    }
+
+    // initialize model based on the DisplayAs value
     wxStringTokenizer tkz(DisplayAs, wxT(" "));
     wxString token = tkz.GetNextToken();
-
-    modelv2 = ModelNode->HasAttribute(wxT("Advanced"));
-    if( modelv2 )
-    {
-        SetFromXmlAdvanced(ModelNode);
-    }
-    else
-    {
-        InitializeStringStartNum();
-    }
-
-
     if (token == wxT("Tree"))
     {
         InitVMatrix();
@@ -125,15 +157,34 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
         InitFrame();
         CopyBufCoord2ScreenCoord();
     }
+
     size_t NodeCount=GetNodeCount();
-    uint8_t offset_r=RGBorder.find(wxT("R"));
-    uint8_t offset_g=RGBorder.find(wxT("G"));
-    uint8_t offset_b=RGBorder.find(wxT("B"));
     for(size_t i=0; i<NodeCount; i++)
     {
-        Nodes[i].SetOffset(offset_r, offset_g, offset_b);
-        Nodes[i].sparkle = rand() % 10000;
+        Nodes[i]->sparkle = rand() % 10000;
     }
+}
+
+void ModelClass::GetChanIntensity(size_t nodenum, wxByte chidx, size_t *absChNum, uint8_t *intensity)
+{
+    Nodes[nodenum]->GetChanIntensity(chidx,rgbidx[chidx],absChNum,intensity);
+}
+
+void ModelClass::SetChanIntensity(size_t nodenum, wxByte chidx, uint8_t intensity)
+{
+    Nodes[nodenum]->SetChanIntensity(rgbidx[chidx],intensity);
+}
+
+void ModelClass::SetChanIntensityAll(size_t nodenum, uint8_t intensity)
+{
+    Nodes[nodenum]->SetChanIntensityAll(intensity);
+}
+
+// only valid for rgb nodes and dumb strings (not traditional strings)
+wxChar ModelClass::GetChannelColorLetter(wxByte chidx)
+{
+    wxString rgb=wxT("RGB");
+    return rgb[rgbidx[chidx]];
 }
 
 int ModelClass::GetLastChannel()
@@ -142,7 +193,7 @@ int ModelClass::GetLastChannel()
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++)
     {
-        LastChan=std::max(LastChan,Nodes[idx].ActChan+2);
+        LastChan=std::max(LastChan,Nodes[idx]->ActChan+2);
     }
     return LastChan;
 }
@@ -171,102 +222,159 @@ double ModelClass::GetScale()
     return PreviewScale;
 }
 
-void ModelClass::InitializeStringStartNum()
-{
-    int i;
-    stringStartChan.clear();
-    stringStartChan.resize(parm1);
-    for (i=0; i<parm1; i++)
-    {
-        stringStartChan[i] = StartChannel-1 + (i)*parm2*3;
-    }
-}
-
-void ModelClass::SetFromXmlAdvanced(wxXmlNode* ModelNode)
-{
-    wxString strText;
-    wxString idxString;
-    wxString tmpStr;
-    int stringNum = 0;
-    long val;
-
-    strText = wxT("String");
-    stringStartChan.clear();
-    stringStartChan.resize(parm1);
-
-    for(idxString = strText.Left(6).Append((wxString::Format(wxT("%i"),stringNum+1)));
-        true == ModelNode->GetAttribute(idxString, &tmpStr) ;
-        stringNum++, idxString = strText.Left(6).Append((wxString::Format(wxT("%i"),stringNum+1))))
-    {
-        tmpStr.ToLong(&val);
-        stringStartChan[stringNum] = val-1;
-    }
-    if (stringNum != parm1)
-    {
-        //ERROR: not equal number of strings and start channels
-    }
-
-}
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
 // parm3=StrandsPerString
 void ModelClass::InitVMatrix()
 {
-    int y,x,idx,stringnum,segmentnum;
+    int y,x,idx,stringnum,segmentnum,yincr;
     int NumStrands=parm1*parm3;
     int PixelsPerStrand=parm2/parm3;
+    int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
-    SetNodeCount(parm1*parm2);
+    SetNodeCount(parm1,PixelsPerString);
     SetRenderSize(PixelsPerStrand,NumStrands);
 
     // create output mapping
-    for (x=0; x < NumStrands; x++)
-    {
-        stringnum=x / parm3;
-        segmentnum=x % parm3;
-        for(y=0; y < PixelsPerStrand; y++)
+    if (SingleNode) {
+        x=0;
+        for (size_t n=0; n<Nodes.size(); n++)
         {
-            idx=stringnum * parm2 + segmentnum * PixelsPerStrand + y;
-            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
-            Nodes[idx].bufX=IsLtoR ? x : NumStrands-x-1;
-            Nodes[idx].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
-            Nodes[idx].StringNum=stringnum;
+            Nodes[n]->ActChan = stringStartChan[n];
+            y=0;
+            yincr=1;
+            for (size_t c=0; c<PixelsPerString; c++)
+            {
+                Nodes[n]->Coords[c].bufX=IsLtoR ? x : NumStrands-x-1;
+                Nodes[n]->Coords[c].bufY=y;
+                y+=yincr;
+                if (y < 0 || y >= PixelsPerStrand)
+                {
+                    yincr=-yincr;
+                    y+=yincr;
+                    x++;
+                }
+            }
+        }
+    } else {
+        for (x=0; x < NumStrands; x++)
+        {
+            stringnum=x / parm3;
+            segmentnum=x % parm3;
+            for(y=0; y < PixelsPerStrand; y++)
+            {
+                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
+                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
+                Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
+                Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
+                Nodes[idx]->StringNum=stringnum;
+            }
         }
     }
 }
+
+// initialize buffer coordinates
+// parm1=NumStrings
+// parm2=PixelsPerString
+// parm3=StrandsPerString
+void ModelClass::InitHMatrix()
+{
+    int y,x,idx,stringnum,segmentnum,xincr;
+    int NumStrands=parm1*parm3;
+    int PixelsPerStrand=parm2/parm3;
+    int PixelsPerString=PixelsPerStrand*parm3;
+    SetBufferSize(NumStrands,PixelsPerStrand);
+    SetNodeCount(parm1,PixelsPerString);
+    SetRenderSize(NumStrands,PixelsPerStrand);
+
+    // create output mapping
+    if (SingleNode) {
+        y=0;
+        for (size_t n=0; n<Nodes.size(); n++)
+        {
+            Nodes[n]->ActChan = stringStartChan[n];
+            x=0;
+            xincr=1;
+            for (size_t c=0; c<PixelsPerString; c++)
+            {
+                Nodes[n]->Coords[c].bufX=x;
+                Nodes[n]->Coords[c].bufY=isBotToTop ? y :NumStrands-y-1;
+                x+=xincr;
+                if (x < 0 || x >= PixelsPerStrand)
+                {
+                    xincr=-xincr;
+                    x+=xincr;
+                    y++;
+                }
+            }
+        }
+    } else {
+        for (y=0; y < NumStrands; y++)
+        {
+            stringnum=y / parm3;
+            segmentnum=y % parm3;
+            for(x=0; x<PixelsPerStrand; x++)
+            {
+                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + x;
+                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + x*3;
+                Nodes[idx]->Coords[0].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
+                Nodes[idx]->Coords[0].bufY= isBotToTop ? y :NumStrands-y-1;
+                Nodes[idx]->StringNum=stringnum;
+            }
+        }
+    }
+}
+
 void ModelClass::InitCustomMatrix(wxString customModel)
 {
     wxString value;
     wxArrayString cols;
     long idx;
     int width=1;
-    RgbNodeClass node;
+    NodeBaseClass* newnode;
 
-    Nodes.clear();
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    node.StringNum=0;
-    for(size_t row=0; row < rows.size(); row++)
-    {
-        cols=wxSplit(rows[row],',');
-        if (cols.size() > width) width=cols.size();
-        for(size_t col=0; col < cols.size(); col++)
+    if (SingleNode) {
+        SetNodeCount(1,0);
+        Nodes[0]->ActChan=stringStartChan[0];
+        for(size_t row=0; row < rows.size(); row++)
         {
-            value=cols[col];
-            if (!value.IsEmpty() && value != wxT("0"))
+            cols=wxSplit(rows[row],',');
+            if (cols.size() > width) width=cols.size();
+            for(size_t col=0; col < cols.size(); col++)
             {
-                // add a node
-                value.ToLong(&idx);
-                node.ActChan = (StartChannel-1) + ((idx-1) * 3);
-                node.bufX=col;
-                node.bufY=height - row - 1;
-                Nodes.push_back(node);
+                value=cols[col];
+                if (!value.IsEmpty() && value != wxT("0"))
+                {
+                    Nodes[0]->AddBufCoord(col,height - row - 1);
+                }
+            }
+        }
+    } else {
+        // rgb nodes
+        for(size_t row=0; row < rows.size(); row++)
+        {
+            cols=wxSplit(rows[row],',');
+            if (cols.size() > width) width=cols.size();
+            for(size_t col=0; col < cols.size(); col++)
+            {
+                value=cols[col];
+                if (!value.IsEmpty() && value != wxT("0"))
+                {
+                    // add a node
+                    newnode=new NodeBaseClass();
+                    newnode->StringNum=0;
+                    value.ToLong(&idx);
+                    newnode->ActChan=stringStartChan[0] + (idx-1) * 3;
+                    Nodes.push_back(NodeBaseClassPtr(newnode));
+                    Nodes.back()->AddBufCoord(col,height - row - 1);
+                }
             }
         }
     }
     SetBufferSize(height,width);
-    SetRenderSize(height,width);
 }
 
 double ModelClass::toRadians(long degrees)
@@ -291,129 +399,104 @@ void ModelClass::SetTreeCoord(long degrees)
     double AngleIncr=radians/double(BufferWi-1);
     //wxString msg=wxString::Format(wxT("BufferHt=%d, BufferWi=%d, factor=%d, RenderHt=%d, RenderWi=%d\n"),BufferHt,BufferWi,factor,RenderHt,RenderWi);
     size_t NodeCount=GetNodeCount();
-    for(size_t idx=0; idx<NodeCount; idx++)
+    for(size_t n=0; n<NodeCount; n++)
     {
-        bufferX=Nodes[idx].bufX;
-        bufferY=Nodes[idx].bufY;
-        angle=StartAngle + double(bufferX) * AngleIncr;
-        x0=radius * sin(angle);
-        Nodes[idx].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
-        Nodes[idx].screenY=bufferY * factor;
-        //if (bufferY==0) msg+=wxString::Format(wxT("idx=%d, bufX=%d, screenX=%d\n"),idx,bufferX,Nodes[idx].screenX);
-    }
-    //wxMessageBox(msg);
-}
-
-// initialize buffer coordinates
-// parm1=NumStrings
-// parm2=PixelsPerString
-// parm3=StrandsPerString
-void ModelClass::InitHMatrix()
-{
-    int y,x,idx,stringnum,segmentnum;
-    TreeDegrees=0;
-    int NumStrands=parm1*parm3;
-    int PixelsPerStrand=parm2/parm3;
-    SetBufferSize(NumStrands,PixelsPerStrand);
-    SetNodeCount(parm1*parm2);
-    SetRenderSize(NumStrands,PixelsPerStrand);
-
-    // create output mapping
-    for (y=0; y < NumStrands; y++)
-    {
-        stringnum=y / parm3;
-        segmentnum=y % parm3;
-        for(x=0; x<PixelsPerStrand; x++)
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
         {
-            idx=stringnum * parm2 + segmentnum * PixelsPerStrand + x;
-            Nodes[idx].ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + x*3;
-            Nodes[idx].bufX=IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand-x-1 : x;
-            Nodes[idx].bufY= isBotToTop ? y :NumStrands-y-1;
-            Nodes[idx].StringNum=stringnum;
+            bufferX=Nodes[n]->Coords[c].bufX;
+            bufferY=Nodes[n]->Coords[c].bufY;
+            angle=StartAngle + double(bufferX) * AngleIncr;
+            x0=radius * sin(angle);
+            Nodes[n]->Coords[c].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
+            Nodes[n]->Coords[c].screenY=bufferY * factor;
         }
     }
 }
 
-// initialize buffer and screen coordinates
+// initialize buffer coordinates
 // parm1=Number of Strings/Arches
 // parm2=Pixels Per String/Arch
 void ModelClass::InitLine()
 {
-    int ns,x;
-    int idx=0;
-    int NodeCount=parm1*parm2;
-    TreeDegrees=0;
-    SetNodeCount(NodeCount);
-
+    SetNodeCount(parm1,parm2);
     SetBufferSize(1,parm2);
-    for (ns=0; ns < parm1; ns++)
+    int LastStringNum=-1;
+    int chan,idx;
+    int ChanIncr=SingleChannel ?  1 : 3;
+    size_t NodeCount=GetNodeCount();
+    for(size_t n=0; n<NodeCount; n++)
     {
-        for(x=0; x<parm2; x++)
+        if (Nodes[n]->StringNum != LastStringNum)
         {
-            Nodes[idx].ActChan = (StartChannel-1) + idx * 3;
-            Nodes[idx].bufX=IsLtoR ? x : parm2-x-1;
-            Nodes[idx].bufY=0;
-            Nodes[idx].StringNum=ns;
+            LastStringNum=Nodes[n]->StringNum;
+            chan=stringStartChan[LastStringNum];
+            idx=0;
+        }
+        Nodes[n]->ActChan=chan;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : parm2-idx-1;
+            Nodes[n]->Coords[c].bufY=0;
+            idx++;
+        }
+        chan+=ChanIncr;
+    }
+}
+
+// initialize screen coordinates
+// parm1=Number of Strings/Arches
+// parm2=Pixels Per String/Arch
+void ModelClass::SetLineCoord()
+{
+    int x,y;
+    int idx=0;
+    size_t NodeCount=GetNodeCount();
+    int numlights=parm1*parm2;
+    int half=numlights/2;
+    SetRenderSize(numlights*2,numlights);
+    double radians=toRadians(PreviewRotation);
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            x=cos(radians)*idx;
+            x=IsLtoR ? x - half : half - x;
+            y=sin(radians)*idx;
+            Nodes[n]->Coords[c].screenX=x;
+            Nodes[n]->Coords[c].screenY=y + numlights;
             idx++;
         }
     }
 }
 
-void ModelClass::SetLineCoord()
-{
-    int x,y;
-    size_t NodeCount=GetNodeCount();
-    int half=NodeCount/2;
-    SetRenderSize(NodeCount*2,NodeCount);
-    //if (CanRotate() && PreviewRotation!=0) {
-        double radians=toRadians(PreviewRotation);
-        for(size_t idx=0; idx<NodeCount; idx++)
-        {
-            x=cos(radians)*idx;
-            x=IsLtoR ? x - half : half - x;
-            y=sin(radians)*idx;
-            Nodes[idx].screenX=x;
-            Nodes[idx].screenY=y + NodeCount;
-        }
-    //} else {
-        //SetRenderSize(1,NodeCount);
-        //for(size_t n=0; n<NodeCount; n++)
-        //{
-        //    Nodes[n].screenX=(IsLtoR ? n : NodeCount-n-1) - xoffset;
-        //    Nodes[n].screenY=0;
-        //}
-    //}
-}
-
 // Set screen coordinates for arches
 void ModelClass::SetArchCoord()
 {
-    int ns,x, xoffset, idx, incr;
+    int ns,x, xoffset;
     double angle;
+    int numlights=parm1*parm2;
     size_t NodeCount=GetNodeCount();
-    if (IsLtoR)
-    {
-        idx=0;
-        incr=1;
-    }
-    else
-    {
-        idx=NodeCount-1;
-        incr=-1;
-    }
-    SetRenderSize(parm2,NodeCount*2);
+    SetRenderSize(parm2,numlights*2);
     double midpt=parm2;
     double AngleIncr=M_PI / parm2;
-    for (ns=0; ns < parm1; ns++)
+    for(size_t n=0; n<NodeCount; n++)
     {
         angle=-1.0*M_PI/2.0;
-        xoffset=ns*parm2*2 - NodeCount;
-        for(x=0; x<parm2; x++)
+        xoffset=Nodes[n]->StringNum*parm2*2 - numlights;
+        x=0;
+        size_t CoordCount=GetCoordCount(n);
+        while (x<parm2)
         {
-            Nodes[idx].screenX=xoffset + (int)floor(midpt*sin(angle)+midpt);
-            Nodes[idx].screenY=(int)floor(midpt*cos(angle)+0.5);
-            angle+=AngleIncr;
-            idx+=incr;
+            for(size_t c=0; c < CoordCount; c++)
+            {
+                Nodes[n]->Coords[c].screenX=xoffset + (int)floor(midpt*sin(angle)+midpt);
+                Nodes[n]->Coords[c].screenY=(int)floor(midpt*cos(angle)+0.5);
+                angle+=AngleIncr;
+                x++;
+            }
         }
     }
 }
@@ -429,7 +512,8 @@ void ModelClass::InitFrame()
     int fSide = IsLtoR << 1 |isBotToTop ;
     fSide = fSide == 0?1: (fSide == 1?0: fSide);
     TreeDegrees=0;
-    SetNodeCount(parm1+2*parm2+parm3);
+    SetNodeCount(1,parm1+2*parm2+parm3);
+    /*
     if (parm1 >= parm3)
     {
         // first node is bottom left and we count up the left side, across the top, and down the right
@@ -536,6 +620,7 @@ void ModelClass::InitFrame()
             idx++;
         }
     }
+    */
     // treat as outside of matrix
     SetBufferSize(parm2,FrameWidth);
 
@@ -556,13 +641,51 @@ void ModelClass::SetRenderSize(int NewHt, int NewWi)
     RenderWi=NewWi;
 }
 
-void ModelClass::SetNodeCount(size_t NewCount)
+// not valid for Frame or Custom
+int ModelClass::NodesPerString()
 {
+    return SingleNode ? 1 : parm2;
+}
+
+int ModelClass::NodeStartChannel(size_t nodenum)
+{
+    return Nodes[nodenum]->ActChan;
+}
+
+int ModelClass::ChannelsPerNode()
+{
+    return SingleChannel ? 1 : 3;
+}
+
+// set size of Nodes vector and each Node's Coords vector
+void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
+{
+    size_t n;
     Nodes.clear();
-    Nodes.resize(NewCount);
-    for(size_t i=0; i<Nodes.size(); i++)
+    if (SingleNode) {
+        if (StringType==wxT("Single Color Red")) {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString)));
+        } else if (StringType==wxT("Single Color Green")) {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString)));
+        } else if (StringType==wxT("Single Color Blue")) {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString)));
+        } else if (StringType==wxT("Single Color White")) {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
+        } else {
+            // 3 Channel RGB
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString)));
+        }
+    }
+    else
     {
-        Nodes[i].bufX = -1;  // set to invalid
+        size_t numnodes=NumStrings*NodesPerString;
+        for(n=0; n<numnodes; n++)
+            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1)));
     }
 }
 
@@ -588,8 +711,9 @@ int ModelClass::GetRotation()
 int ModelClass::GetNodeNumber(size_t nodenum)
 {
     if (nodenum >= Nodes.size()) return 0;
-    if (Nodes[nodenum].bufX < 0) return 0;
-    return (Nodes[nodenum].ActChan - (StartChannel-1)) / 3 + 1;
+    //if (Nodes[nodenum].bufX < 0) return 0;
+    int sn=Nodes[nodenum]->StringNum;
+    return (Nodes[nodenum]->ActChan - stringStartChan[sn]) / 3 + sn*NodesPerString() + 1;
 }
 
 size_t ModelClass::GetNodeCount()
@@ -597,16 +721,108 @@ size_t ModelClass::GetNodeCount()
     return Nodes.size();
 }
 
+size_t ModelClass::GetCoordCount(size_t nodenum)
+{
+    return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+}
+
+wxString ModelClass::ChannelLayoutHtml()
+{
+    size_t NodeCount=GetNodeCount();
+    size_t i,idx;
+    int n,x,y,s;
+    wxString bgcolor;
+    std::vector<int> chmap;
+    chmap.resize(BufferHt * BufferWi);
+    bool IsCustom = DisplayAs == wxT("Custom");
+    wxString direction;
+    if (IsCustom) {
+        direction=wxT("n/a");
+    } else if (!IsLtoR) {
+        if(!isBotToTop)
+            direction=wxT("Top Right");
+        else
+            direction=wxT("Bottom Right");
+    } else {
+        if (!isBotToTop)
+            direction=wxT("Top Left");
+        else
+            direction=wxT("Bottom Left");
+    }
+
+    wxString html = wxT("<html><body><table border=0>");
+    html+=wxT("<tr><td>Name:</td><td>")+name+wxT("</td></tr>");
+    html+=wxT("<tr><td>Display As:</td><td>")+DisplayAs+wxT("</td></tr>");
+    html+=wxT("<tr><td>String Type:</td><td>")+StringType+wxT("</td></tr>");
+    html+=wxT("<tr><td>Start Corner:</td><td>")+direction+wxT("</td></tr>");
+    html+=wxString::Format(wxT("<tr><td>Total nodes:</td><td>%d</td></tr>"),NodeCount);
+    html+=wxString::Format(wxT("<tr><td>Height:</td><td>%d</td></tr>"),BufferHt);
+    html+=wxT("</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>");
+    if (BufferHt == 1)
+    {
+        // single line or arch
+        html+=wxT("<tr>");
+        for(i=1; i<=NodeCount; i++)
+        {
+            n=IsLtoR ? i : NodeCount-i+1;
+            s=Nodes[n-1]->StringNum+1;
+            bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
+            html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
+        }
+        html+=wxT("</tr>");
+    }
+    else if (BufferHt > 1)
+    {
+        // horizontal or vertical matrix or frame
+        for(i=0; i<NodeCount; i++)
+        {
+            idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
+            if (idx < chmap.size()) chmap[idx]=GetNodeNumber(i);
+        }
+        for(y=BufferHt-1; y>=0; y--)
+        {
+            html+=wxT("<tr>");
+            for(x=0; x<BufferWi; x++)
+            {
+                n=chmap[y*BufferWi+x];
+                if (n==0)
+                {
+                    html+=wxT("<td></td>");
+                }
+                else
+                {
+                    s=Nodes[n-1]->StringNum+1;
+                    bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
+                    html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
+                }
+            }
+            html+=wxT("</tr>");
+        }
+    }
+    else
+    {
+        html+=wxT("<tr><td>Error - invalid height</td></tr>");
+    }
+    html+=wxT("</table></body></html>");
+    return html;
+}
+
+
 // initialize screen coordinates
 void ModelClass::CopyBufCoord2ScreenCoord()
 {
     size_t NodeCount=GetNodeCount();
-    int xoffset=RenderWi/2;
-    for(size_t i=0; i<NodeCount; i++)
+    int xoffset=BufferWi/2;
+    for(size_t n=0; n<NodeCount; n++)
     {
-        Nodes[i].screenX = Nodes[i].bufX - xoffset;
-        Nodes[i].screenY = Nodes[i].bufY;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
+            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+        }
     }
+    SetRenderSize(BufferHt,BufferWi);
 }
 
 void ModelClass::UpdateXmlWithScale()
@@ -644,13 +860,17 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 
     pen.SetColour(*color);
     dc.SetPen(pen);
-    for(size_t i=0; i<NodeCount; i++)
+    for(size_t n=0; n<NodeCount; n++)
     {
-        // draw node on screen
-        sx=Nodes[i].screenX;
-        sy=Nodes[i].screenY;
-        dc.DrawPoint(sx,sy);
-        //dc.DrawCircle(sx*factor,sy*factor,radius);
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            dc.DrawPoint(sx,sy);
+            //dc.DrawCircle(sx*factor,sy*factor,radius);
+        }
     }
 }
 
@@ -676,16 +896,20 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
     dc.SetUserScale(scale,scale);
 
-    for(size_t i=0; i<NodeCount; i++)
+    for(size_t n=0; n<NodeCount; n++)
     {
-        // draw node on screen
-        sx=Nodes[i].screenX;
-        sy=Nodes[i].screenY;
-        Nodes[i].GetColor(color);
+        Nodes[n]->GetColor(color);
         pen.SetColour(color);
         dc.SetPen(pen);
-        dc.DrawPoint(sx,sy);
-        //dc.DrawCircle(sx*factor,sy*factor,radius);
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            dc.DrawPoint(sx,sy);
+            //dc.DrawCircle(sx*factor,sy*factor,radius);
+        }
     }
 }
 
@@ -735,19 +959,23 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
     size_t NodeCount=Nodes.size();
     double sx,sy;
 
-    for(size_t i=0; i<NodeCount; i++)
+    for(size_t n=0; n<NodeCount; n++)
     {
-        // draw node on screen
-        Nodes[i].GetColor(color);
+        Nodes[n]->GetColor(color);
         pen.SetColour(color);
         brush.SetColour(color);
         brush.SetStyle(wxBRUSHSTYLE_SOLID);
         dc.SetPen(pen);
         dc.SetBrush(brush);
-        sx=Nodes[i].screenX;
-        sy=Nodes[i].screenY;
-        //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
-        //dc.DrawPoint(sx,sy);
-        dc.DrawCircle(sx*factor,sy*factor,radius);
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
+            //dc.DrawPoint(sx,sy);
+            dc.DrawCircle(sx*factor,sy*factor,radius);
+        }
     }
 }

@@ -14,7 +14,6 @@ const long EffectTreeDialog::ID_BUTTON5 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON7 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON3 = wxNewId();
 const long EffectTreeDialog::ID_BUTTON4 = wxNewId();
-const long EffectTreeDialog::ID_BUTTON8 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
@@ -28,6 +27,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	wxFlexGridSizer* FlexGridSizer2;
 	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -60,8 +60,10 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	BoxSizer1->Add(btDelete, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_OK = new wxButton(this, ID_BUTTON8, _("&Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-	FlexGridSizer1->Add(Button_OK, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
+	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
+	StdDialogButtonSizer1->Realize();
+	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -74,7 +76,6 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtAddGroupClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtRenameClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnbtDeleteClick);
-	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectTreeDialog::OnButton_OKClick);
 	//*)
 	treeRootID = TreeCtrl1->AddRoot(wxT("Effect Presets"));
     xLightParent = (xLightsFrame *)parent;

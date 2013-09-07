@@ -54,6 +54,36 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText9" member="yes">
+							<label>Type of String</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_STRING_TYPE" variable="Choice_StringType" member="yes">
+							<content>
+								<item>RGB Nodes</item>
+								<item>RBG Nodes</item>
+								<item>GBR Nodes</item>
+								<item>GRB Nodes</item>
+								<item>BRG Nodes</item>
+								<item>BGR Nodes</item>
+								<item>3 Channel RGB</item>
+								<item>Single Color Red</item>
+								<item>Single Color Green</item>
+								<item>Single Color Blue</item>
+								<item>Single Color White</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnChoice_StringTypeSelect" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText_Strings" member="yes">
 							<label>Actual # of Strings</label>
 						</object>
@@ -126,30 +156,6 @@
 							<max>99999</max>
 							<size>90,21</size>
 							<handler function="OnSpinCtrl_StartChannelChange" entry="EVT_SPINCTRL" />
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText2" member="yes">
-							<label>Channel Order</label>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE2" variable="Choice_Order" member="yes">
-							<content>
-								<item>RGB</item>
-								<item>RBG</item>
-								<item>GBR</item>
-								<item>GRB</item>
-								<item>BRG</item>
-								<item>BGR</item>
-							</content>
-							<selection>0</selection>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
