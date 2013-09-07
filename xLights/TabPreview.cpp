@@ -95,7 +95,8 @@ void xLightsFrame::UpdatePreview()
     const wxColour *color;
     int sel=ListBoxElementList->GetSelection();
     ModelClass* m=(sel == wxNOT_FOUND) ? 0 : (ModelClass*)ListBoxElementList->GetClientData(sel);
-    ScrolledWindowPreview->ClearBackground();
+    wxClientDC dc(ScrolledWindowPreview);
+    dc.Clear();
     for (int i=0; i<PreviewModels.size(); i++)
     {
         color = (PreviewModels[i] == m) ? wxYELLOW : wxLIGHT_GREY;
