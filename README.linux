@@ -7,7 +7,7 @@ xLights/Nutcracker on Linux.
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 2.9.4.  This can be compiled from
+of wxWidgets for xLights/Nutcracker is v2.9.5.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 This document describes how to build wxWidgets if you need to to that yourself.
 
@@ -15,10 +15,13 @@ These instructions have been tested on the following distributions:
 
   - Linux Mint 12
   - Ubuntu 12.10
+  - Fedora 18
 
 Instructions for other Linux distributions will vary. 
 
-  a) Using Software Manager (or apt-get or rpm), install these packages: 
+  a) Using Software Manager (or apt-get or rpm), install the following packages.
+     (Fedora packages will be named differently and have 'devel' instead of 'dev'
+     in their name)
 
      build-essential
      libgtk2.0-dev
@@ -35,7 +38,7 @@ Instructions for other Linux distributions will vary.
      $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.5.tar.bz2
      $ tar xjf wxWidgets-2.9.5.tar.bz2
      $ cd wxWidgets-2.9.5
-     $ ./configure --with-mediactrl
+     $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl
      $ make
      $ sudo make install
      $ sudo ldconfig
@@ -43,7 +46,7 @@ Instructions for other Linux distributions will vary.
   c) Get the xLights/Nutcracker source code by opening a terminal window and
      typing the following:
 
-     git clone https://github.com/smeighan/nutcracker_c.git nutcracker
+     git clone https://github.com/smeighan/xLights.git xLights
 
 
 xLights/Nutcracker can be built 2 ways on Linux. First, you can use the
@@ -79,9 +82,9 @@ using Code::Blocks, proceed to step 'e'.:
 
      Option #2 - Build using the xLights.cbp.mak file directly
 
-         $ cd nutcracker/xLights
+         $ cd xLights
          $ make -f xLights.cbp.mak clean
-         $ make -f xLights.cbp.mak releaselinux
+         $ make -f xLights.cbp.mak CFLAGS="-std=gnu++11" releaselinux
  
      You may get some compiler warnings, however, the executable 'xLights'
      should get built in the ./bin directory.  The proper dependencies are
