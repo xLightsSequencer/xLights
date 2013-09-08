@@ -37,6 +37,11 @@ However, I followed the method used for Linux from inside a Terminal window:
        WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
        FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
 
+    NOTE: The GCC that is part of Xcode 4.x is version 4.2 which does
+       NOT support the gnu++0x flag (tops out at c++99).  Since xLights
+       requires g++0x, we need to use the clang compiler.  This also
+       requires setting the minimum maxosx version to 10.7.
+
   cd <wxMac base dir>
   export CXXFLAGS="-stdlib=libc++ -std=c++11" 
   export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
