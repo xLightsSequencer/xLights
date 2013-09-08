@@ -33,6 +33,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     size_t i;
 
     ModelXml=ModelNode;
+    TreeDegrees=0;
+    Nodes.clear();
+
     name=ModelNode->GetAttribute(wxT("name"));
     DisplayAs=ModelNode->GetAttribute(wxT("DisplayAs"));
     if (ModelNode->HasAttribute(wxT("StringType")))
@@ -507,126 +510,69 @@ void ModelClass::SetArchCoord()
 // parm3=Nodes on Bottom
 void ModelClass::InitFrame()
 {
-    int x,y;
-    int idx=0;
-    int fSide = IsLtoR << 1 |isBotToTop ;
-    fSide = fSide == 0?1: (fSide == 1?0: fSide);
-    TreeDegrees=0;
+    int x,y,newx,newy;
     SetNodeCount(1,parm1+2*parm2+parm3);
-    /*
-    if (parm1 >= parm3)
-    {
-        // first node is bottom left and we count up the left side, across the top, and down the right
-        FrameWidth=parm1+2;  // allow for left/right columns
-
-        for (int ii = 0; ii < 4; fSide= (fSide-1)<0?3:(fSide-1), ii++)
-        {
-            switch (fSide)
-            {
-            case 3:
-                // up side 1
-                x= 0;
-                for(y=0; y<parm2; y++)
-                {
-                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-                    Nodes[idx].bufX=x;
-                    Nodes[idx].bufY= y; //isBotToTop? y:parm2-y-1;
-                    Nodes[idx].StringNum=0;
-                    idx++;
-                }
-                break;
-            case 2:
-                // across top
-                y=parm2-1;
-                for(x=0; x<parm1; x++)
-                {
-                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-                    Nodes[idx].bufX=x+1;//IsLtoR ? x+1 : parm1-x;
-                    Nodes[idx].bufY=y;
-                    Nodes[idx].StringNum=0;
-                    idx++;
-                }
-                break;
-            case 1:
-                // down side 2
-                x=FrameWidth-1;
-                for(y=parm2-1; y>=0; y--)
-                {
-                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-                    Nodes[idx].bufX=x;
-                    Nodes[idx].bufY=y;//isBotToTop?y:parm2-(y+1);
-                    Nodes[idx].StringNum=0;
-                    idx++;
-                }
-                break;
-            case 0:
-                // across bottom
-                y=0;
-                for(x=0; x<parm3; x++)
-                {
-                    Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-                    Nodes[idx].bufX=parm1-x; //IsLtoR ? parm1-x : x+1;
-                    Nodes[idx].bufY=y;
-                    Nodes[idx].StringNum=0;
-                    idx++;
-                }
-                break;
-            }
-        }
-    }
-    else
-    {
-        // first node is top left and we count down the left side, across the bottom, and up the right
-        FrameWidth=parm3+2;
-
-        // down side 1
-        x=IsLtoR ? 0 : FrameWidth-1;
-        for(y=parm2-1; y>=0; y--)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=x;
-            Nodes[idx].bufY=isBotToTop?y:parm2-(y+1);
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // across bottom
-        y=0;
-        for(x=0; x<parm3; x++)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=IsLtoR ? x+1: parm3-x;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // up side 2
-        x=IsLtoR ? FrameWidth-1 : 0;
-        for(y=0; y<parm2; y++)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=x;
-            Nodes[idx].bufY=isBotToTop? y:parm2-y-1;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-        // across top
-        y=parm2-1;
-        for(x=0; x<parm1; x++)
-        {
-            Nodes[idx].ActChan = (StartChannel-1) + (idx * 3);
-            Nodes[idx].bufX=IsLtoR ? parm3-x : x+1;
-            Nodes[idx].bufY=y;
-            Nodes[idx].StringNum=0;
-            idx++;
-        }
-    }
-    */
-    // treat as outside of matrix
-    SetBufferSize(parm2,FrameWidth);
-
-    // treat as single string
-    //SetBufferSize(1,Nodes.size());
+    int FrameWidth=std::max(parm1,parm3)+2;
+    SetBufferSize(parm2,FrameWidth);   // treat as outside of matrix
+    //SetBufferSize(1,Nodes.size());   // treat as single string
     SetRenderSize(parm2,FrameWidth);
+    int chan=stringStartChan[0];
+    int ChanIncr=SingleChannel ?  1 : 3;
+
+    int xincr[4]={0,1,0,-1};  // indexed by side
+    int yincr[4]={1,0,-1,0};
+    x=IsLtoR ? 0 : FrameWidth-1;
+    y=isBotToTop ? 0 : parm2-1;
+    int dir=1;            // 1=clockwise
+    int side=x>0 ? 2 : 0; // 0=left, 1=top, 2=right, 3=bottom
+    int SideIncr=1;       // 1=clockwise
+    if (parm1 > parm3 && x>0 || parm3 > parm1 && x==0) {
+        // counter-clockwise
+        dir=-1;
+        SideIncr=3;
+    }
+
+    // determine starting position
+    if (parm1 > parm3) {
+        // more nodes on top, must start at bottom
+        y=0;
+    } else if (parm3 > parm1) {
+        // more nodes on bottom, must start at top
+        y=parm2-1;
+    } else {
+        // equal top and bottom, can start in any corner
+        // assume clockwise numbering
+        if (x>0 && y==0) {
+            // starting in lower right
+            side=3;
+        } else if (x==0 && y>0) {
+            // starting in upper left
+            side=1;
+        }
+    }
+
+    size_t NodeCount=GetNodeCount();
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        Nodes[n]->ActChan=chan;
+        chan+=ChanIncr;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            Nodes[n]->Coords[c].bufX=x;
+            Nodes[n]->Coords[c].bufY=y;
+            newx=x+xincr[side]*dir;
+            newy=y+yincr[side]*dir;
+            if (newx < 0 || newx >= FrameWidth || newy < 0 || newy >= parm2) {
+                // move to the next side
+                side=(side+SideIncr) % 4;
+                newx=x+xincr[side]*dir;
+                newy=y+yincr[side]*dir;
+            }
+            x=newx;
+            y=newy;
+        }
+    }
 }
 
 void ModelClass::SetBufferSize(int NewHt, int NewWi)
@@ -661,7 +607,6 @@ int ModelClass::ChannelsPerNode()
 void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
 {
     size_t n;
-    Nodes.clear();
     if (SingleNode) {
         if (StringType==wxT("Single Color Red")) {
             for(n=0; n<NumStrings; n++)
@@ -733,7 +678,7 @@ wxString ModelClass::ChannelLayoutHtml()
     int n,x,y,s;
     wxString bgcolor;
     std::vector<int> chmap;
-    chmap.resize(BufferHt * BufferWi);
+    chmap.resize(BufferHt * BufferWi,0);
     bool IsCustom = DisplayAs == wxT("Custom");
     wxString direction;
     if (IsCustom) {
