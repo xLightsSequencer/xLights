@@ -112,7 +112,6 @@ private:
 
     void UpdateRowCount();
     void SetReadOnly(bool);
-    void UpdateCustom();
     void UpdateStartChannels();
     void ResizeCustomGrid();
     bool IsCustom();

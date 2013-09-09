@@ -162,6 +162,9 @@ private:
     void InitHMatrix();
     void InitLine();
     void InitFrame();
+    void InitStar();
+    void InitWreath();
+
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
     void SetNodeCount(size_t NumStrings, size_t NodesPerString);

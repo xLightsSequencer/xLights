@@ -77,6 +77,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Single Line"));
     Choice_DisplayAs->Append(_("Arches"));
     Choice_DisplayAs->Append(_("Window Frame"));
+    Choice_DisplayAs->Append(_("Star"));
+    Choice_DisplayAs->Append(_("Wreath"));
     Choice_DisplayAs->Append(_("Custom"));
     FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
@@ -235,17 +237,6 @@ bool ModelDialog::IsCustom()
     return Choice_DisplayAs->GetStringSelection() == wxT("Custom");
 }
 
-void ModelDialog::UpdateCustom()
-{
-    bool CustomFlag = IsCustom();
-    GridCustom->Show(CustomFlag);
-    RadioButton_BotRight->Enable(!CustomFlag);
-    RadioButton_TopRight->Enable(!CustomFlag);
-    RadioButton_BotLeft->Enable(!CustomFlag);
-    RadioButton_TopLeft->Enable(!CustomFlag);
-    if (CustomFlag && !HasCustomData) ResizeCustomGrid();
-}
-
 // initialize grid with saved values
 wxString ModelDialog::GetCustomGridData()
 {
@@ -347,7 +338,16 @@ void ModelDialog::UpdateLabels()
         StaticText_Strands->SetLabelText(s);
         SpinCtrl_parm3->Enable(true);
     }
-    else if (DisplayAs == wxT("Single Line"))
+    else if (DisplayAs == wxT("Star")
+            )
+    {
+        StaticText_Strings->SetLabelText(_("Actual # of Strings"));
+        s=_("# of ") + NodeLabel + _(" per String");
+        StaticText_Nodes->SetLabelText(s);
+        StaticText_Strands->SetLabelText(_("# of points"));
+        SpinCtrl_parm3->Enable(true);
+    }
+    else if (DisplayAs == wxT("Single Line") || DisplayAs == wxT("Wreath"))
     {
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
         s=_("# of ") + NodeLabel + _(" per String");
@@ -366,7 +366,7 @@ void ModelDialog::UpdateLabels()
     }
     else
     {
-        // matrix or tree
+        // matrix or tree or wreath
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
         s=_("# of ") + NodeLabel + _(" per String");
         StaticText_Nodes->SetLabelText(s);
@@ -374,7 +374,36 @@ void ModelDialog::UpdateLabels()
         SpinCtrl_parm3->Enable(true);
     }
     UpdateStartChannels();
-    UpdateCustom();
+    bool CustomFlag = IsCustom();
+    GridCustom->Show(CustomFlag);
+
+    // set start corner text
+    if (DisplayAs == wxT("Wreath") || DisplayAs == wxT("Star"))
+    {
+        RadioButton_BotRight->SetLabelText(_("Bottom center, CCW"));
+        RadioButton_TopRight->SetLabelText(_("Top center, CW"));
+        RadioButton_BotLeft->SetLabelText (_("Bottom center, CW"));
+        RadioButton_TopLeft->SetLabelText (_("Top center, CCW"));
+    }
+    else if (CustomFlag)
+    {
+        RadioButton_BotRight->SetLabelText(_("n/a"));
+        RadioButton_TopRight->SetLabelText(_("n/a"));
+        RadioButton_BotLeft->SetLabelText (_("n/a"));
+        RadioButton_TopLeft->SetLabelText (_("n/a"));
+    }
+    else
+    {
+        RadioButton_BotRight->SetLabelText(_("Top Left"));
+        RadioButton_TopRight->SetLabelText(_("Top Right"));
+        RadioButton_BotLeft->SetLabelText (_("Bottom Left"));
+        RadioButton_TopLeft->SetLabelText (_("Bottom Right"));
+    }
+    RadioButton_BotRight->Enable(!CustomFlag);
+    RadioButton_TopRight->Enable(!CustomFlag);
+    RadioButton_BotLeft->Enable(!CustomFlag);
+    RadioButton_TopLeft->Enable(!CustomFlag);
+    if (CustomFlag && !HasCustomData) ResizeCustomGrid();
 }
 
 
