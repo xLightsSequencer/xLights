@@ -156,6 +156,7 @@ private:
             color.Set(cmin,cmin,cmin);
         }
     };
+
     typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
     void InitVMatrix();
@@ -187,6 +188,7 @@ private:
     int AliasFactor;     // factor to expand buffer (2 ^ Antialias)
     int TreeDegrees,FrameWidth;
     bool modelv2;
+    int StrobeRate;      // 0=no strobing
     double offsetXpct,offsetYpct;
     double PreviewScale;
     int PreviewRotation;
@@ -254,7 +256,7 @@ public:
     }
     // true for traditional strings
     static bool HasSingleChannel(const wxString& StrType) {
-        return StrType.StartsWith(wxT("Single Color"));
+        return StrType.StartsWith(wxT("Single")) || StrType.StartsWith(wxT("Strobe"));
     }
 
 };

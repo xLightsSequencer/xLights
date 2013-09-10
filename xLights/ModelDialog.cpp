@@ -95,6 +95,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_StringType->Append(_("Single Color Green"));
     Choice_StringType->Append(_("Single Color Blue"));
     Choice_StringType->Append(_("Single Color White"));
+    Choice_StringType->Append(_("Strobes White 3fps"));
     FlexGridSizer2->Add(Choice_StringType, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Strings = new wxStaticText(this, ID_STATICTEXT2, _("Actual # of Strings"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer2->Add(StaticText_Strings, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
