@@ -4,7 +4,15 @@ controllers. xLights has a extensive scheduler. Nutcracker is a program that gen
 such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
-
+3.2.0:  Sep 09,2013 - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new
+						string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can
+						pick RED, GREEN,BLUE, WHITE as single colour strings.
+					- Enhancement: (Matt). You can now select a string type that is strobe lights. This light will flash 3 times per second
+						for each bulb.
+					- Enhancement: (Matt). You can now pick a multi pointed star as a display element.
+					- Enhancement: (Matt). You can select a wreath as a display element.
+					- Enhancement: (matt). You can select a string type of 3 channel RGB (In other words dumb rgb strings)
+					NOTE! With the change to the latest wxWidgets 2.9.5 , Mac 10.6.8 is no longer supported. We now will only support 10.7 and higher
 3.1.4:  Sep 03,2013 - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can 
 						define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
                     - Enhancement: (Matt) You can now copy models.
@@ -21,7 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					- Enhancement (Frankr). New option in spirals to allow the thickness to grow or shrink
 3.1.1:  Aug 12,2013 - Bug Fix: (Matt Brown). Matt has fixed the Meteor effect. He has also enhanced it so meteors 
 						can fall to the left or right.
-						We have	renamed	Starfiled to be called "explode" and "implode"
+						We have	renamed	Starfield to be called "explode" and "implode"
 					- Enhancement: (Matt Brown)  I made some improvements to countdown & skip blank cells logic. I also changed a couple of method names to make them more clear. Also, the timer now skips if the last interval takes more than 50ms to process. Before it was blocking until the last interval finished (so if every interval took more than 50ms you had a stackup of waiting timer calls to process).
 3.1.0:  Aug 7,2013 	- Enhancement: (frankr) new single BACKUP option now.
 						Goto to "File,Backup" and every xml file you have will be created in the new Backup sub-directory under show show directory.
@@ -77,7 +85,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					- Enhancement: (frankr) Before if you changed or created a sequence and then clicked exit, program would just exit and you would lose your
 					  change. Now, you will be prompted if you want to save before exit.
 					- Enhancement: (frankr) Random effect generation. When creating a Spirograph, the Animate button will always be set and the little radius will be
-					  set to its minimum value. By setting r to zero and setiing animate to true, random spirographs will now always produce an animation.
+					  set to its minimum value. By setting r to zero and setting animate to true, random spirographs will now always produce an animation.
 					- Enhancement: (frankr) New choice in model generation. You can now select custom. We are not quite done with this but it will support having
 					  coro snowflakes, stars, strings wrapped around a car, fire sticks, candles,. Basically any model. Watch this space for a future tutorial.
 3.0.22: Jul 26,2013 - Enhancement: (frankr) New button to randomly create effects for every row in your sequence
@@ -89,7 +97,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					  bottom left, upper left, upper right, bottom right
 					- Enhancement: (sean) Meteor Effect class has 3 new effects
 					  1) Swirl1. As meteors fall they are moved in a sine wave
-					  2) Swirl2. Same as Swirl 1 excep odd strands move one way, even strands move the other
+					  2) Swirl2. Same as Swirl 1 except odd strands move one way, even strands move the other
 					  3) Strarfield. Meteor effect starts in center of your display and moves outwards
 3.0.20: Jul 19,2013 - Enhancement: (frankr) Highlight cell you are editing in so you know where "update" will apply 
                     - Bug Fix: (frankr) Opening a music file twice, the second time will not prompt for a new file name. Instead, it overwrites the first file. Fixed
@@ -106,7 +114,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					- Enhancement: (sean) Changed rotation slider in Spirals so it does ten times more rotations.
 					- Bug fix: (matt) If you have two lines of text but only one color selected, both lines will be same color
 	NOTE!! Please make a backup of all your xml files. This release will be fixing your sequences, protect yourself.
-3.0.18: Jul 06,2013 - (sean) Added new Brightness and Comtrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
+3.0.18: Jul 06,2013 - (sean) Added new Brightness and Contrast sliders. Located next to Sparkle slider it allows dimming the overall effect.
                       Contrast will make brights brighter and sim colors go towards black.
 3.0.17: Jul 01,2013 - (sean) Fixed text in Effect2. Added Twinkle, Tree, Spirograph and Fireworks to Effect2
 3.0.16: Jun 28,2013 - (sean) New option added to the Text effect, Countdown timer.
