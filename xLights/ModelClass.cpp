@@ -584,28 +584,22 @@ void ModelClass::SetLineCoord()
 // Set screen coordinates for arches
 void ModelClass::SetArchCoord()
 {
-    int ns,x, xoffset;
-    double angle;
+    int xoffset,x,y;
     int numlights=parm1*parm2;
     size_t NodeCount=GetNodeCount();
     SetRenderSize(parm2,numlights*2);
     double midpt=parm2;
-    double AngleIncr=M_PI / parm2;
     for(size_t n=0; n<NodeCount; n++)
     {
-        angle=-1.0*M_PI/2.0;
         xoffset=Nodes[n]->StringNum*parm2*2 - numlights;
-        x=0;
         size_t CoordCount=GetCoordCount(n);
-        while (x<parm2)
+        for(size_t c=0; c < CoordCount; c++)
         {
-            for(size_t c=0; c < CoordCount; c++)
-            {
-                Nodes[n]->Coords[c].screenX=xoffset + (int)floor(midpt*sin(angle)+midpt);
-                Nodes[n]->Coords[c].screenY=(int)floor(midpt*cos(angle)+0.5);
-                angle+=AngleIncr;
-                x++;
-            }
+            double angle=-M_PI/2.0 + M_PI * (double)Nodes[n]->Coords[c].bufX/midpt;
+            x=xoffset + (int)floor(midpt*sin(angle)+midpt);
+            y=(int)floor(midpt*cos(angle)+0.5);
+            Nodes[n]->Coords[c].screenX=x;
+            Nodes[n]->Coords[c].screenY=y;
         }
     }
 }

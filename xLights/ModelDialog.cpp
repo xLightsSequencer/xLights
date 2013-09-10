@@ -381,10 +381,10 @@ void ModelDialog::UpdateLabels()
     // set start corner text
     if (DisplayAs == wxT("Wreath") || DisplayAs == wxT("Star"))
     {
-        RadioButton_BotRight->SetLabelText(_("Bottom center, CCW"));
-        RadioButton_TopRight->SetLabelText(_("Top center, CW"));
-        RadioButton_BotLeft->SetLabelText (_("Bottom center, CW"));
-        RadioButton_TopLeft->SetLabelText (_("Top center, CCW"));
+        RadioButton_BotRight->SetLabelText(_("Btm ctr, CCW"));
+        RadioButton_TopRight->SetLabelText(_("Top ctr, CW"));
+        RadioButton_BotLeft->SetLabelText (_("Btm ctr, CW"));
+        RadioButton_TopLeft->SetLabelText (_("Top ctr, CCW"));
     }
     else if (CustomFlag)
     {
@@ -395,10 +395,10 @@ void ModelDialog::UpdateLabels()
     }
     else
     {
-        RadioButton_BotRight->SetLabelText(_("Top Left"));
+        RadioButton_BotRight->SetLabelText(_("Bottom Right"));
         RadioButton_TopRight->SetLabelText(_("Top Right"));
         RadioButton_BotLeft->SetLabelText (_("Bottom Left"));
-        RadioButton_TopLeft->SetLabelText (_("Bottom Right"));
+        RadioButton_TopLeft->SetLabelText (_("Top Left"));
     }
     RadioButton_BotRight->Enable(!CustomFlag);
     RadioButton_TopRight->Enable(!CustomFlag);
