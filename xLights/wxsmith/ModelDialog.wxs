@@ -77,6 +77,7 @@
 								<item>Single Color Green</item>
 								<item>Single Color Blue</item>
 								<item>Single Color White</item>
+								<item>Strobes White 3fps</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_StringTypeSelect" entry="EVT_CHOICE" />

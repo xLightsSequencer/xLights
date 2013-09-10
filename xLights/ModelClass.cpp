@@ -34,6 +34,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
 
     ModelXml=ModelNode;
     TreeDegrees=0;
+    StrobeRate=0;
     Nodes.clear();
 
     name=ModelNode->GetAttribute(wxT("name"));
@@ -725,6 +726,10 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
         } else if (StringType==wxT("Single Color White")) {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
+        } else if (StringType==wxT("Strobes White 3fps")) {
+            StrobeRate=7;  // 1 out of every 7 frames
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
         } else {
             // 3 Channel RGB
             for(n=0; n<NumStrings; n++)
@@ -925,6 +930,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 }
 
 // display model using colors stored in each node
+// used when preview is running
 void ModelClass::DisplayModelOnWindow(wxWindow* window)
 {
     size_t NodeCount=Nodes.size();
@@ -946,21 +952,49 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
     dc.SetUserScale(scale,scale);
 
-    for(size_t n=0; n<NodeCount; n++)
-    {
-        Nodes[n]->GetColor(color);
-        pen.SetColour(color);
-        dc.SetPen(pen);
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++)
+    // avoid performing StrobeRate test in inner loop for performance reasons
+    if (StrobeRate==0) {
+        // no strobing
+        for(size_t n=0; n<NodeCount; n++)
         {
-            // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-            dc.DrawPoint(sx,sy);
-            //dc.DrawCircle(sx*factor,sy*factor,radius);
+            Nodes[n]->GetColor(color);
+            pen.SetColour(color);
+            dc.SetPen(pen);
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c=0; c < CoordCount; c++)
+            {
+                // draw node on screen
+                sx=Nodes[n]->Coords[c].screenX;
+                sy=Nodes[n]->Coords[c].screenY;
+                dc.DrawPoint(sx,sy);
+                //dc.DrawCircle(sx*factor,sy*factor,radius);
+            }
+        }
+    } else {
+        // flash individual nodes according to StrobeRate
+        for(size_t n=0; n<NodeCount; n++)
+        {
+            Nodes[n]->GetColor(color);
+            bool CanFlash = color.GetRGB() ==  0x00ffffff;
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c=0; c < CoordCount; c++)
+            {
+                // draw node on screen
+                if (CanFlash && rand() % StrobeRate == 0) {
+                    pen.SetColour(color);
+                    dc.SetPen(pen);
+                } else {
+                    pen.SetColour(*wxBLACK);
+                    dc.SetPen(pen);
+                }
+                sx=Nodes[n]->Coords[c].screenX;
+                sy=Nodes[n]->Coords[c].screenY;
+                dc.DrawPoint(sx,sy);
+                //dc.DrawCircle(sx*factor,sy*factor,radius);
+            }
         }
     }
+
 }
 
 // uses DrawCircle instead of DrawPoint
