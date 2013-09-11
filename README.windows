@@ -10,41 +10,17 @@ http://www.nutcracker123.com/nutcracker/releases/
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 2.9.4.  Precompiled Windows binaries
-can be downloaded from
-http://sourceforge.net/projects/wxwindows/files/2.9.4/binaries/
+of wxWidgets for xLights/Nutcracker is 2.9.4.  Do not use the pre-compiled 
+Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
+
 
 Here are the steps to compile xLights/Nutcracker for Windows.
 
-  a) Install Code::Blocks for Windows
+  a) Install Code::Blocks for Windows (currently using version 12.11)
 
-     Version 10.05 can be used to compile xLights, but it will not work
-     for changing the visual layout. I strongly recommend using one of the
-     daily builds. I am using SVN 8484 which is discussed here:
-     http://forums.codeblocks.org/index.php/topic,17019.0.html
-
-     Important points from this thread:
-
-     If you already have codeblocks 10.05 and/or the mingw compiler installed
-     on your system they should be removed/uninstalled.
-
-     Download the following items:
-        wxWidget dll for Code::Blocks http://prdownload.berlios.de/codeblocks/wxmsw28u_gcc_cb_wx2812_gcc471-TDM.7z
-        the mingw10m.dll http://prdownload.berlios.de/codeblocks/mingwm10_gcc471-TDM.7z
-        the 28 October 2012 build of codeblocks http://prdownload.berlios.de/codeblocks/CB_20121028_rev8484_win32.7z
-
-     Unzip codeblocks, the wxWidget dll, and the mingwm10 dll to the same folder.
-     Do not reuse any other folder, create a new folder and put the files from
-     all three archives into that new folder.
-
-     Get the mingw compiler here: http://tdm-gcc.tdragon.net/
-     and extract it so that the path to it is C:\mingw
-
-     Then run the codeblocks exe in the folder you created.
-     From the menu, select Settings -> Compiler -> Toolchain executables
-     Set the path to C:\mingw\bin
-     And then click "auto-detect"  You may have to exit codeblocks and
-     restart it before auto detect works correctly.
+     Download and install the codeblocks-12.11mingw-setup_user.exe file from here:
+        http://www.codeblocks.org/downloads
+     This includes Code::Blocks and the GNU C++ compiler needed for building xLights.
 
   c) wxWidgets for Windows (currently using version 2.9.5)
 
@@ -54,7 +30,7 @@ Here are the steps to compile xLights/Nutcracker for Windows.
            FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
 
      Download the version with the Windows installer from here:
-     http://www.wxwidgets.org/downloads/
+        http://www.wxwidgets.org/downloads/
      The installer only puts the wxWidgets source code on your system, you will need
      to compile it yourself to create the dll. To compile it yourself:
      1) Open a command prompt
@@ -79,9 +55,11 @@ Here are the steps to compile xLights/Nutcracker for Windows.
   e) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the version2/xLights directory.
 
+     
 Windows Installer
-We use Inno Setup to create the setup.exe for xLights/Nutcracker
-http://www.jrsoftware.org/isinfo.php
 
-You will find a xLights.iss file that is used to create the release setup.exe
+    We use Inno Setup to create the setup.exe for xLights/Nutcracker
+    http://www.jrsoftware.org/isinfo.php
+
+    You will find a xLights.iss file that is used to create the release setup.exe
 

@@ -100,14 +100,13 @@ using Code::Blocks, proceed to step 'e'.:
   e) Building xLights using Code::Blocks
 
      Install the Code::Blocks IDE using your distribution's package
-     manager.  The latest stable version is 10.05, which works ok for
-     everything except the bitmap buttons on the Sequence tab.
-     It will compile xLights just fine; but if you change the 
-     visual layout using 10.05, you will lose those bitmap 
-     buttons. Also, you may need to install libwxsmithlib0 to 
+     manager as long as it is version 12.11 or later.  Otherwise,
+     you can try downloading it directly from the Code::Blocks web site:
+        http://www.codeblocks.org/downloads
+     Also, you may need to install libwxsmithlib0 to 
      enable visual layout.
 
-  f) Now you are ready to use Code::Blocks to build xLights
+     Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the xLights.cbp file.
      In order for the double-click to work, you may need 
      to first right-click on the cbp file, select properties,
