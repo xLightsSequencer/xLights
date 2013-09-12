@@ -5,6 +5,7 @@
 
 
 //(*Headers(ModelDialog)
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -37,6 +38,7 @@ public:
     wxStaticText* StaticText_Strings;
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
+    wxScrolledWindow* ScrolledWindow1;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
@@ -49,6 +51,7 @@ public:
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
+    wxScrolledWindow* ScrolledWindow2;
     wxCheckBox* cbIndividualStartNumbers;
     wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
@@ -92,9 +95,11 @@ protected:
     static const long ID_STATICTEXT13;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
+    static const long ID_SCROLLEDWINDOW1;
     static const long ID_STATICTEXT14;
     static const long ID_BUTTON_CUSTOM_MODEL_HELP;
     static const long ID_GRID_Custom;
+    static const long ID_SCROLLEDWINDOW2;
     //*)
 
 private:

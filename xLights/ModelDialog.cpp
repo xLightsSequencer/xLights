@@ -35,9 +35,11 @@ const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT13 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
+const long ModelDialog::ID_SCROLLEDWINDOW1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT14 = wxNewId();
 const long ModelDialog::ID_BUTTON_CUSTOM_MODEL_HELP = wxNewId();
 const long ModelDialog::ID_GRID_Custom = wxNewId();
+const long ModelDialog::ID_SCROLLEDWINDOW2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelDialog,wxDialog)
@@ -156,17 +158,19 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, _("Individual Start Chans"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     cbIndividualStartNumbers->SetValue(false);
     FlexGridSizer3->Add(cbIndividualStartNumbers, 1, wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
-    gridStartChannels = new wxGrid(this, ID_GRID_START_CHANNELS, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID_START_CHANNELS"));
-    gridStartChannels->CreateGrid(0,1);
+    ScrolledWindow1 = new wxScrolledWindow(this, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_SCROLLEDWINDOW1"));
+    gridStartChannels = new wxGrid(ScrolledWindow1, ID_GRID_START_CHANNELS, wxPoint(-1,-3), wxSize(232,323), wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID_START_CHANNELS"));
+    gridStartChannels->CreateGrid(0,2);
     gridStartChannels->EnableEditing(true);
     gridStartChannels->EnableGridLines(true);
     gridStartChannels->SetColLabelSize(20);
     gridStartChannels->SetRowLabelSize(25);
     gridStartChannels->SetDefaultColSize(90, true);
-    gridStartChannels->SetColLabelValue(0, _("Start Channel"));
+    gridStartChannels->SetColLabelValue(0, _("Start Ch."));
+    gridStartChannels->SetColLabelValue(1, _("End Ch."));
     gridStartChannels->SetDefaultCellFont( gridStartChannels->GetFont() );
     gridStartChannels->SetDefaultCellTextColour( gridStartChannels->GetForegroundColour() );
-    FlexGridSizer3->Add(gridStartChannels, 1, wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 4);
+    FlexGridSizer3->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer4->AddGrowableRow(1);
@@ -176,7 +180,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     ButtonCustomModelHelp = new wxButton(this, ID_BUTTON_CUSTOM_MODEL_HELP, _("Custom Model Help"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CUSTOM_MODEL_HELP"));
     FlexGridSizer5->Add(ButtonCustomModelHelp, 1, wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    GridCustom = new wxGrid(this, ID_GRID_Custom, wxDefaultPosition, wxSize(300,0), 0, _T("ID_GRID_Custom"));
+    ScrolledWindow2 = new wxScrolledWindow(this, ID_SCROLLEDWINDOW2, wxDefaultPosition, wxSize(430,323), wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW2"));
+    ScrolledWindow2->SetMinSize(wxSize(504,-1));
+    GridCustom = new wxGrid(ScrolledWindow2, ID_GRID_Custom, wxPoint(6,5), wxSize(484,318), 0, _T("ID_GRID_Custom"));
     GridCustom->CreateGrid(1,1);
     GridCustom->EnableEditing(true);
     GridCustom->EnableGridLines(true);
@@ -185,7 +191,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     GridCustom->SetDefaultColSize(30, true);
     GridCustom->SetDefaultCellFont( GridCustom->GetFont() );
     GridCustom->SetDefaultCellTextColour( GridCustom->GetForegroundColour() );
-    FlexGridSizer4->Add(GridCustom, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
+    FlexGridSizer4->Add(ScrolledWindow2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -431,6 +437,7 @@ void ModelDialog::UpdateStartChannels()
         for (int stringnum=0; stringnum<strings; stringnum++)
         {
             gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString)));
+            gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString+ChannelsPerString)));
         }
         SetReadOnly(true);
     }
