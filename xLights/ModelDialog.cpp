@@ -455,6 +455,8 @@ void ModelDialog::SetReadOnly(bool readonly)
     for(ii=0; ii < gridStartChannels->GetNumberRows(); ii++)
     {
         gridStartChannels->SetReadOnly(ii,0,readonly);
+        //End channel is always read only.
+        gridStartChannels->SetReadOnly(ii,1,true);
     }
 }
 void ModelDialog::OnSpinCtrl_parm1Change(wxSpinEvent& event)
