@@ -437,7 +437,7 @@ void ModelDialog::UpdateStartChannels()
         for (int stringnum=0; stringnum<strings; stringnum++)
         {
             gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString)));
-            gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString+ChannelsPerString)));
+            gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString+ChannelsPerString-1)));
         }
         SetReadOnly(true);
     }
