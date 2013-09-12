@@ -313,7 +313,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
 
 
 
-    for (ch=0; ch < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
+    for (ch=0; ch+2 < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
 
         buff=wxT("");
