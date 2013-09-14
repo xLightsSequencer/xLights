@@ -536,7 +536,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
             e->DeleteAttribute(ModelClass::StartChanAttrName(ii));
         }
     }
-    if (e->HasAttribute(wxT("CustomModel")));
+    if (e->HasAttribute(wxT("CustomModel")))
     {
         e->DeleteAttribute(wxT("CustomModel"));
     }
