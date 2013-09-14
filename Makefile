@@ -4,10 +4,10 @@ PREFIX          = /usr/local
 
 # Ignore some warnings for now to make compile output cleaner
 # until the issues are cleaned up in the code.
-IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-maybe-uninitialized -Wno-return-type -Wno-uninitialized -Wno-unused-value
+IGNORE_WARNINGS = -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value
 
 # Copied from xLights.cbp.mak with added -std option
-CFLAGS          = -DwxUSE_UNICODE -std=gnu++11
+CFLAGS          = -DwxUSE_UNICODE -std=gnu++0x
 
 # Copied from xLights.cbp.mak with slight addition to ignore warnings for now
 CFLAGS_RELEASELINUX = $(CFLAGS) -O2 -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG $(IGNORE_WARNINGS)
