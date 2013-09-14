@@ -13,6 +13,8 @@
 #include <wx/dir.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
+#include <wx/persist.h>
+#include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
 
 // dialogs
@@ -1318,6 +1320,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
+    
+    SetName("xLights");
+    wxPersistenceManager::Get().RegisterAndRestore(this);
 }
 
 xLightsFrame::~xLightsFrame()
