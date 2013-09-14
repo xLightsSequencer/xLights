@@ -4,6 +4,11 @@ controllers. xLights has a extensive scheduler. Nutcracker is a program that gen
 such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+3.2.1:  Sep 12,2013 - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
+					- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
+					- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
+					- Bug: (Matt). Smart RGB arches are only producing a single channel. Fixed
+					- Enhancement: (Matt). F1 will bring up help if you are in the Profile tab
 3.2.0:  Sep 09,2013 - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new
 						string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can
 						pick RED, GREEN,BLUE, WHITE as single colour strings.
