@@ -460,6 +460,7 @@ private:
     static const long ID_BUTTON_MODELS_PREVIEW;
     static const long ID_BUTTON_SAVE_PREVIEW;
     static const long ID_STATICTEXT22;
+    static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
     static const long ID_SLIDER_PREVIEW_SCALE;
     static const long ID_STATICTEXT25;
     static const long ID_SLIDER_PREVIEW_ROTATE;
@@ -608,6 +609,7 @@ private:
     wxListBox* ListBoxElementList;
     wxStaticText* StaticText10;
     wxTextCtrl* txtCtlBrightness;
+    wxTextCtrl* TextCtrlPreviewElementSize;
     wxChoice* ChoiceOutputFormat;
     wxDirDialog* DirDialog1;
     wxStaticText* StaticTextSetup1;
@@ -654,8 +656,8 @@ private:
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxStaticText* StaticTextPreviewRotation;
-    wxSlider* SliderFgIntensity;
     wxSplitterWindow* SplitterWindow1;
+    wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
     wxPanel* PanelTestStandard;
     wxPanel* SeqPanelRight;

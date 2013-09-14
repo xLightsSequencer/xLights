@@ -1304,11 +1304,29 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText23" member="yes">
-																	<label>Element Size</label>
+																<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
+																	<cols>2</cols>
+																	<growablecols>1</growablecols>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText23" member="yes">
+																			<label>Element Size</label>
+																		</object>
+																		<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE" variable="TextCtrlPreviewElementSize" member="yes">
+																			<value>50</value>
+																			<size>30,20</size>
+																			<style>wxTE_READONLY</style>
+																		</object>
+																		<flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
 																</object>
-																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -1326,7 +1344,7 @@
 																	<label>Single String Rotation</label>
 																	<enabled>0</enabled>
 																</object>
-																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -1335,6 +1353,7 @@
 																	<min>-30</min>
 																	<max>30</max>
 																	<enabled>0</enabled>
+																	<style>wxTRANSPARENT_WINDOW</style>
 																	<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -109,7 +109,9 @@ void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    SliderPreviewScale->SetValue(int(m->GetScale()*100.0));
+    int newscale=m->GetScale()*100.0;
+    SliderPreviewScale->SetValue(newscale);
+    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
     SliderPreviewRotate->SetValue(m->GetRotation()/PREVIEWROTATIONFACTOR);
     bool canrotate=m->CanRotate();
     SliderPreviewRotate->Enable(canrotate);
@@ -163,10 +165,12 @@ void xLightsFrame::OnScrolledWindowPreviewResize(wxSizeEvent& event)
 
 void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
 {
+    int newscale=SliderPreviewScale->GetValue();
+    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    m->SetScale(double(SliderPreviewScale->GetValue())/100.0);
+    m->SetScale(double(newscale)/100.0);
     UpdatePreview();
 }
 
