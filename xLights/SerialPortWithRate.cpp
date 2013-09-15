@@ -119,7 +119,7 @@ wxString SerialPortWithRate::GetRateString()
 void SerialPortWithRate::ProtocolChange()
 {
     wxString NetName = ChoiceProtocol->GetStringSelection();
-    bool EnableRate;
+    bool EnableRate = false;
     if (NetName == _("LOR"))
     {
         SetLabel(_("LOR controllers attached to any LOR dongle.\nMax of 8 channels at 9600 baud.\nMax of 48 channels at 57600 baud.\nMax of 96 channels at 115200 baud.\nRun your controllers in DMX mode for higher throughput."));
