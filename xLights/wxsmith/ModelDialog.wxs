@@ -362,6 +362,7 @@
 								<defaultcolsize>30</defaultcolsize>
 								<pos>6,5</pos>
 								<size>484,318</size>
+								<handler function="OnGridCustomCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

@@ -211,11 +211,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     Connect(ID_BUTTON_CUSTOM_MODEL_HELP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButtonCustomModelHelpClick);
+    Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     //*)
 
     gridStartChannels->SetDefaultEditor(new wxGridCellNumberEditor());
     GridCustom->SetDefaultEditor(new wxGridCellNumberEditor());
-    UpdateStartChannels();
     HasCustomData = false;
 }
 
@@ -250,8 +250,8 @@ wxString ModelDialog::GetCustomGridData()
     wxString customChannelData, value;
     if (IsCustom())
     {
-        int numCols=SpinCtrl_parm1->GetValue();
-        int numRows=SpinCtrl_parm2->GetValue();
+        int numCols=GridCustom->GetNumberCols();
+        int numRows=GridCustom->GetNumberRows();
         for(int row=0; row < numRows; row++)
         {
             if (row > 0) customChannelData+=wxT(";");
@@ -308,7 +308,29 @@ int ModelDialog::GetChannelsPerString()
     wxString StringType=Choice_StringType->GetStringSelection();
     if (ModelClass::HasSingleChannel(StringType)) return 1;
     if (ModelClass::HasSingleNode(StringType)) return 3;
-    return SpinCtrl_parm2->GetValue()*3;
+    if (IsCustom())
+    {
+        // find max node number
+        int numCols=GridCustom->GetNumberCols();
+        int numRows=GridCustom->GetNumberRows();
+        long val,maxval=0;
+        wxString valstr;
+        for(int row=0; row < numRows; row++)
+        {
+            for(int col=0; col<numCols; col++)
+            {
+                valstr = GridCustom->GetCellValue(row,col);
+                if (valstr.ToLong(&val)) {
+                    maxval=std::max(val,maxval);
+                }
+            }
+        }
+        return maxval*3;
+    }
+    else
+    {
+        return SpinCtrl_parm2->GetValue()*3;
+    }
 }
 
 
@@ -426,24 +448,54 @@ void ModelDialog::OncbIndividualStartNumbersClick(wxCommandEvent& event)
 
 void ModelDialog::UpdateStartChannels()
 {
-    UpdateRowCount();
+    int StringStartChan,StringEndChan;
+    long StringStartChanLong;
+    wxString tmpStr;
+    int StringCnt = GetNumberOfStrings();
+    bool OneString = StringCnt == 1;
+    int ChannelsPerString = GetChannelsPerString();
 
-    if(!cbIndividualStartNumbers->IsChecked())
+    // Update number of grid rows
+    int curRowCnt = gridStartChannels->GetNumberRows();
+    if (StringCnt > curRowCnt )
     {
-        int strings = GetNumberOfStrings();
-        int startchan = SpinCtrl_StartChannel->GetValue();
-        int ChannelsPerString = GetChannelsPerString();
+        gridStartChannels->AppendRows(StringCnt - curRowCnt);
+    }
+    else if ( StringCnt < curRowCnt )
+    {
+        gridStartChannels->DeleteRows(StringCnt, curRowCnt - StringCnt);
+    }
 
-        for (int stringnum=0; stringnum<strings; stringnum++)
+    // if only 1 string, then disable individual string start channels
+    if (OneString) cbIndividualStartNumbers->SetValue(false);
+    cbIndividualStartNumbers->Enable(!OneString);
+
+    // update grid
+    if(cbIndividualStartNumbers->IsChecked())
+    {
+        // update end channel numbers only
+        for (int stringnum=0; stringnum<StringCnt; stringnum++)
         {
-            gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString)));
-            gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),startchan + (stringnum*ChannelsPerString+ChannelsPerString-1)));
+            tmpStr = gridStartChannels->GetCellValue(stringnum,0);
+            if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
+                StringEndChan=StringStartChanLong + ChannelsPerString - 1;
+                gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),StringEndChan));
+            }
         }
-        SetReadOnly(true);
+        SetReadOnly(false);
     }
     else
     {
-        SetReadOnly(false);
+        // update start and end channel numbers
+        int startchan = SpinCtrl_StartChannel->GetValue();
+        for (int stringnum=0; stringnum<StringCnt; stringnum++)
+        {
+            StringStartChan=startchan + (stringnum*ChannelsPerString);
+            StringEndChan=StringStartChan + ChannelsPerString - 1;
+            gridStartChannels->SetCellValue(stringnum,0, wxString::Format(wxT("%i"),StringStartChan));
+            gridStartChannels->SetCellValue(stringnum,1, wxString::Format(wxT("%i"),StringEndChan));
+        }
+        SetReadOnly(true);
     }
 
 }
@@ -466,25 +518,6 @@ void ModelDialog::OnSpinCtrl_parm1Change(wxSpinEvent& event)
     } else {
         UpdateStartChannels();
     }
-}
-
-void ModelDialog::UpdateRowCount()
-{
-    int strings = GetNumberOfStrings();
-    int curRowCnt = gridStartChannels->GetNumberRows();
-
-    if (strings > curRowCnt )
-    {
-        gridStartChannels->AppendRows(strings - curRowCnt);
-    }
-    else if ( strings < curRowCnt )
-    {
-        gridStartChannels->DeleteRows(strings, curRowCnt - strings);
-    }
-
-    bool OneString = strings == 1;
-    if (OneString) cbIndividualStartNumbers->SetValue(false);
-    cbIndividualStartNumbers->Enable(!OneString);
 }
 
 void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
@@ -515,6 +548,10 @@ void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
         {
             wxMessageBox(_("Cell value must be a positive numeric value"));
             gridStartChannels->SetCellValue(row,col,wxT("1"));
+        }
+        else
+        {
+            UpdateStartChannels();
         }
     }
     event.Skip();
@@ -651,4 +688,9 @@ void ModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 void ModelDialog::OnChoice_StringTypeSelect(wxCommandEvent& event)
 {
     UpdateLabels();
+}
+
+void ModelDialog::OnGridCustomCellChange(wxGridEvent& event)
+{
+    UpdateStartChannels();
 }

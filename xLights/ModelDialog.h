@@ -113,9 +113,9 @@ private:
     void OngridStartChannelsCellChange(wxGridEvent& event);
     void OnButtonCustomModelHelpClick(wxCommandEvent& event);
     void OnChoice_StringTypeSelect(wxCommandEvent& event);
+    void OnGridCustomCellChange(wxGridEvent& event);
     //*)
 
-    void UpdateRowCount();
     void SetReadOnly(bool);
     void UpdateStartChannels();
     void ResizeCustomGrid();
