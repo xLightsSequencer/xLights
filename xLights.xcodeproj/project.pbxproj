@@ -625,10 +625,10 @@
 					"-lwxtiff-2.9",
 					"-lwxjpeg-2.9",
 					"-lwxpng-2.9",
-					/opt/local/lib/libiconv.a,
+					"-liconv",
 					"-lpthread",
-					/opt/local/lib/libz.a,
-					/opt/local/lib/libexpat.a,
+					"-lz",
+					"-lexpat",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx10.7;
@@ -696,10 +696,10 @@
 					"-lwxtiff-2.9",
 					"-lwxjpeg-2.9",
 					"-lwxpng-2.9",
-					/opt/local/lib/libiconv.a,
+					"-liconv",
 					"-lpthread",
-					/opt/local/lib/libz.a,
-					/opt/local/lib/libexpat.a,
+					"-lz",
+					"-lexpat",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx10.7;
