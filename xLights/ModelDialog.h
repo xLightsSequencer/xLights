@@ -14,6 +14,7 @@
 #include <wx/radiobut.h>
 #include <wx/grid.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
@@ -46,16 +47,19 @@ public:
     wxStaticText* StaticText3;
     wxChoice* Choice_StringType;
     wxGrid* GridCustom;
+    wxBitmapButton* BitmapButtonCustomPaste;
     wxRadioButton* RadioButton_TopLeft;
     wxRadioButton* RadioButton_BotLeft;
     wxCheckBox* CheckBox_MyDisplay;
     wxStaticText* StaticText5;
     wxStaticText* StaticText7;
+    wxBitmapButton* BitmapButtonCustomCopy;
     wxScrolledWindow* ScrolledWindow2;
     wxCheckBox* cbIndividualStartNumbers;
     wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
     wxGrid* gridStartChannels;
+    wxBitmapButton* BitmapButtonCustomCut;
     wxChoice* Choice_DisplayAs;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButton_BotRight;
@@ -97,6 +101,9 @@ protected:
     static const long ID_GRID_START_CHANNELS;
     static const long ID_SCROLLEDWINDOW1;
     static const long ID_STATICTEXT14;
+    static const long ID_BITMAPBUTTON_CUSTOM_CUT;
+    static const long ID_BITMAPBUTTON_CUSTOM_COPY;
+    static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
     static const long ID_BUTTON_CUSTOM_MODEL_HELP;
     static const long ID_GRID_Custom;
     static const long ID_SCROLLEDWINDOW2;
@@ -114,6 +121,9 @@ private:
     void OnButtonCustomModelHelpClick(wxCommandEvent& event);
     void OnChoice_StringTypeSelect(wxCommandEvent& event);
     void OnGridCustomCellChange(wxGridEvent& event);
+    void OnBitmapButtonCustomPasteClick(wxCommandEvent& event);
+    void OnBitmapButtonCustomCopyClick(wxCommandEvent& event);
+    void OnBitmapButtonCustomCutClick(wxCommandEvent& event);
     //*)
 
     void SetReadOnly(bool);
@@ -123,6 +133,7 @@ private:
     int GetNumberOfStrings();
     wxString StartChanAttrName(int idx);
     int GetChannelsPerString();
+    void CutOrCopyToClipboard(bool IsCut);
 
     bool HasCustomData;
 

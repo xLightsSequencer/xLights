@@ -327,7 +327,7 @@
 					<growablerows>1</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-							<cols>3</cols>
+							<cols>5</cols>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticTextCustomModel" member="yes">
 									<label>Custom Model</label>
@@ -337,8 +337,37 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_CUT" variable="BitmapButtonCustomCut" member="yes">
+									<bitmap stock_id="wxART_CUT" />
+									<handler function="OnBitmapButtonCustomCutClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_COPY" variable="BitmapButtonCustomCopy" member="yes">
+									<bitmap stock_id="wxART_COPY" />
+									<default>1</default>
+									<handler function="OnBitmapButtonCustomCopyClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CUSTOM_PASTE" variable="BitmapButtonCustomPaste" member="yes">
+									<bitmap stock_id="wxART_PASTE" />
+									<default>1</default>
+									<handler function="OnBitmapButtonCustomPasteClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON_CUSTOM_MODEL_HELP" variable="ButtonCustomModelHelp" member="yes">
-									<label>Custom Model Help</label>
+									<label>Help</label>
 									<handler function="OnButtonCustomModelHelpClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -346,7 +375,7 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

@@ -1,9 +1,13 @@
 #include "ModelDialog.h"
 #include "ModelClass.h"
 #include <wx/msgdlg.h>
+#include <wx/clipbrd.h>
 
 //(*InternalHeaders(ModelDialog)
+#include <wx/artprov.h>
+#include <wx/bitmap.h>
 #include <wx/intl.h>
+#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
@@ -37,6 +41,9 @@ const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
 const long ModelDialog::ID_SCROLLEDWINDOW1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT14 = wxNewId();
+const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
+const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
+const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
 const long ModelDialog::ID_BUTTON_CUSTOM_MODEL_HELP = wxNewId();
 const long ModelDialog::ID_GRID_Custom = wxNewId();
 const long ModelDialog::ID_SCROLLEDWINDOW2 = wxNewId();
@@ -174,12 +181,20 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer4->AddGrowableRow(1);
-    FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 5, 0, 0);
     StaticTextCustomModel = new wxStaticText(this, ID_STATICTEXT14, _("Custom Model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
     FlexGridSizer5->Add(StaticTextCustomModel, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonCustomModelHelp = new wxButton(this, ID_BUTTON_CUSTOM_MODEL_HELP, _("Custom Model Help"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CUSTOM_MODEL_HELP"));
+    BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
+    FlexGridSizer5->Add(BitmapButtonCustomCut, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonCustomCopy = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_COPY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_COPY")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_COPY"));
+    BitmapButtonCustomCopy->SetDefault();
+    FlexGridSizer5->Add(BitmapButtonCustomCopy, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonCustomPaste = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_PASTE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_PASTE")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_PASTE"));
+    BitmapButtonCustomPaste->SetDefault();
+    FlexGridSizer5->Add(BitmapButtonCustomPaste, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonCustomModelHelp = new wxButton(this, ID_BUTTON_CUSTOM_MODEL_HELP, _("Help"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CUSTOM_MODEL_HELP"));
     FlexGridSizer5->Add(ButtonCustomModelHelp, 1, wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ScrolledWindow2 = new wxScrolledWindow(this, ID_SCROLLEDWINDOW2, wxDefaultPosition, wxSize(430,323), wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW2"));
     ScrolledWindow2->SetMinSize(wxSize(504,-1));
     GridCustom = new wxGrid(ScrolledWindow2, ID_GRID_Custom, wxPoint(6,5), wxSize(484,318), 0, _T("ID_GRID_Custom"));
@@ -210,6 +225,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
+    Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
+    Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCopyClick);
+    Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomPasteClick);
     Connect(ID_BUTTON_CUSTOM_MODEL_HELP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButtonCustomModelHelpClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     //*)
@@ -692,5 +710,97 @@ void ModelDialog::OnChoice_StringTypeSelect(wxCommandEvent& event)
 
 void ModelDialog::OnGridCustomCellChange(wxGridEvent& event)
 {
+    UpdateStartChannels();
+}
+
+void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
+{
+    wxString copy_data;
+    wxString cur_line;
+    wxArrayString fields;
+    int i,k,fieldnum;
+    long val;
+
+    if (wxTheClipboard->Open()) {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+            wxTextDataObject data;
+
+            if (wxTheClipboard->GetData(data)) {
+                copy_data = data.GetText();
+            } else {
+                wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+            }
+        } else {
+            wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+        return;
+    }
+
+    i = GridCustom->GetGridCursorRow();
+    k = GridCustom->GetGridCursorCol();
+    int numrows=GridCustom->GetNumberRows();
+    int numcols=GridCustom->GetNumberCols();
+
+    do {
+        cur_line = copy_data.BeforeFirst('\n');
+        copy_data = copy_data.AfterFirst('\n');
+        fields=wxSplit(cur_line,'\t');
+        for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
+        {
+            if (i < numrows && k+fieldnum < numcols && (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))) {
+                GridCustom->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+            }
+        }
+        i++;
+    } while (copy_data.IsEmpty() == false);
+    UpdateStartChannels();
+}
+
+// pass true for cutting, false for copying
+void ModelDialog::CutOrCopyToClipboard(bool IsCut)
+{
+int i,k;
+    wxString copy_data;
+    bool something_in_this_line;
+
+    for (i=0; i< GridCustom->GetRows(); i++) {      // step through all lines
+        something_in_this_line = false;             // nothing found yet
+        for (k=0; k<GridCustom->GetCols(); k++) {   // step through all colums
+            if (GridCustom->IsInSelection(i,k)) {   // this field is selected!!!
+                if (!something_in_this_line) {      // first field in this line => may need a linefeed
+                    if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
+                        copy_data += wxT("\n");     // next LINE
+                    }
+                    something_in_this_line = true;
+                } else {                                // if not the first field in this line we need a field seperator (TAB)
+                    copy_data += wxT("\t");  // next COLUMN
+                }
+                copy_data += GridCustom->GetCellValue(i,k);    // finally we need the field value
+                if (IsCut) GridCustom->SetCellValue(i,k,wxEmptyString);
+            }
+        }
+    }
+
+    if (wxTheClipboard->Open()) {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+    }
+}
+
+void ModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(false);
+}
+
+void ModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(true);
     UpdateStartChannels();
 }
