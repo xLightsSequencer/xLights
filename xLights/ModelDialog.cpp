@@ -743,6 +743,7 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     k = GridCustom->GetGridCursorCol();
     int numrows=GridCustom->GetNumberRows();
     int numcols=GridCustom->GetNumberCols();
+    bool errflag=false;
 
     do {
         cur_line = copy_data.BeforeFirst('\n');
@@ -750,13 +751,24 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
         fields=wxSplit(cur_line,'\t');
         for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
         {
-            if (i < numrows && k+fieldnum < numcols && (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))) {
-                GridCustom->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+            if (i < numrows && k+fieldnum < numcols) {
+                if (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))
+                {
+                    GridCustom->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+                }
+                else
+                {
+                    errflag=true;
+                }
             }
         }
         i++;
     } while (copy_data.IsEmpty() == false);
     UpdateStartChannels();
+    if (errflag)
+    {
+        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number"),_("Paste Error"));
+    }
 }
 
 // pass true for cutting, false for copying

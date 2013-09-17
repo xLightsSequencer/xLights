@@ -100,6 +100,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     if (NewPictureName != PictureName)
     {
+        wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
         imageCount = wxImage::GetImageCount(NewPictureName);
         imageIndex = 0;
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
