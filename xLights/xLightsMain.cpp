@@ -795,6 +795,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_LayerMethod->Append(_("2 is Unmask"));
     Choice_LayerMethod->Append(_("Layered"));
     Choice_LayerMethod->Append(_("Average"));
+    Choice_LayerMethod->Append(_("Bottom-Top"));
+    Choice_LayerMethod->Append(_("Left-Right"));
     FlexGridSizer33->Add(Choice_LayerMethod, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_EffectLayerMix = new wxSlider(SeqPanelLeft, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
     FlexGridSizer33->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

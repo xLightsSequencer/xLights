@@ -43,6 +43,8 @@ enum MixTypes
     Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is black */
     Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */
     Mix_Average, /**<  Average color value between effects per pixel */
+    Mix_BottomTop,
+    Mix_LeftRight
 };
 
 

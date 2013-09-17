@@ -86,6 +86,14 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
     {
         MixType=Mix_Average;
     }
+    else if (MixName == wxT("Bottom-Top"))
+    {
+        MixType=Mix_BottomTop;
+    }
+    else if (MixName == wxT("Left-Right"))
+    {
+        MixType=Mix_LeftRight;
+    }
 }
 
 void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
@@ -205,6 +213,12 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         {
             c.Set( (c0.Red()+c1.Red())/2, (c0.Green()+c1.Green())/2, (c0.Blue()+c1.Blue())/2 );
         }
+        break;
+    case Mix_BottomTop:
+        c=y < BufferHt/2 ? c0 : c1;
+        break;
+    case Mix_LeftRight:
+        c=x < BufferWi/2 ? c0 : c1;
         break;
     }
 }

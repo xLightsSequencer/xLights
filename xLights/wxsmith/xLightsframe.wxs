@@ -1515,6 +1515,8 @@
 																						<item>2 is Unmask</item>
 																						<item>Layered</item>
 																						<item>Average</item>
+																						<item>Bottom-Top</item>
+																						<item>Left-Right</item>
 																					</content>
 																					<selection>0</selection>
 																					<style>wxFULL_REPAINT_ON_RESIZE</style>
