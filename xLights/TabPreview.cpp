@@ -8,6 +8,7 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
         PreviewModels[i]->UpdateXmlWithScale();
     }
     SaveEffectsFile();
+    StatusBar1->SetStatusText(_("Preview layout saved"));
 }
 
 /*
@@ -196,6 +197,11 @@ void xLightsFrame::OnButtonModelsPreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
 {
+    if (SeqNumChannels == 0)
+    {
+        wxMessageBox(_("Nothing to play. Please open a sequence first."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+        return;
+    }
     int LastPreviewChannel=0;
     switch (SeqPlayerState)
     {
@@ -215,12 +221,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         if (LastPreviewChannel >= SeqNumChannels)
         {
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+            return;
         }
-        else
-        {
-            PreviewStartPeriod=0;
-            PlayCurrentXlightsFile();
-        }
+        PreviewStartPeriod=0;
+        PlayCurrentXlightsFile();
         break;
     }
 }

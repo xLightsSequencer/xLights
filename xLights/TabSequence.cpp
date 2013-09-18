@@ -1197,6 +1197,10 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     xlightsFilename=filename;
     StaticTextSequenceFileName->SetLabel(filename);
     StaticTextPreviewFileName->SetLabel(filename);
+    bool EnableButtons=!filename.IsEmpty();
+    ButtonPlayPreview->Enable(EnableButtons);
+    ButtonStopPreview->Enable(EnableButtons);
+    ButtonRepeatPreview->Enable(EnableButtons);
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)

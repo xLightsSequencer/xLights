@@ -104,7 +104,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     ButtonTestLoad->Enable(true);
     ButtonTestSave->Enable(true);
     EnableNetworkChanges();
-    DisplayXlightsFilename(wxT(""));
+    DisplayXlightsFilename(wxEmptyString);
 
     // load network
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("Networks") );
