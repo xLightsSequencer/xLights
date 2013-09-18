@@ -26,7 +26,7 @@
 void RgbEffects::RenderTree(int Branches)
 {
 
-    int x,y,i,i7,r,ColorIdx,Count,pixels_per_branch;
+    int x,y,i,r,ColorIdx,pixels_per_branch;
     int maxFrame,mod,branch,row,b,f_mod,m,frame;
     int number_garlands,f_mod_odd,s_odd_row,odd_even;
     float V,H;

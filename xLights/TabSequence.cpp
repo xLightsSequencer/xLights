@@ -1690,7 +1690,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 
 
     f.Write(str);
-    int p,pos,pos_ID_SLIDER_Brightness,pos_ID_SLIDER_Contrast,pos_SLIDER_Slider,pos_ID_TEXTCTRL4;
+    int pos,pos_SLIDER_Slider,pos_ID_TEXTCTRL4;
 
 // read all lines one by one
 // until the end of the file
@@ -1790,8 +1790,7 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
     wxTextFile f;
     wxString line;
 
-    double timeMark;
-    int spacePos, r;
+    int r;
 
     if (!f.Open(filename.c_str()))
     {
@@ -2408,7 +2407,6 @@ void xLightsFrame::NumericSort()
     //sort the table
     int i, iHole;
     double d;
-    const int SortCol=0;
 
     Grid1->BeginBatch();
     int rowcnt = Grid1->GetNumberRows();
@@ -2433,8 +2431,7 @@ void xLightsFrame::NumericSort()
 
 void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
 {
-    int row = event.GetRow(),
-        col = event.GetCol();
+    int col = event.GetCol();
     if (col==0)
     {
         // re-order table by start time (column 0)
@@ -2602,8 +2599,6 @@ void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
 
 void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 {
-    void *data=static_cast<wxMenu *>(event.GetEventObject())->GetClientData();
-
     if(event.GetId() == ID_DELETE_EFFECT)
     {
         DeleteSelectedEffects(event);

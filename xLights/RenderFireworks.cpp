@@ -28,7 +28,7 @@
 void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
 {
     int idxFlakes=0;
-    int i=0,x,y,mod100;
+    int i=0,mod100;
     int x25,x75,y25,y75,stateChunk,denom;
     const int maxFlakes = 1000;
     //float velocity = 3.5;

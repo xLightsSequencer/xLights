@@ -97,7 +97,7 @@ bool ModelListDialog::ValidateModelName(const wxString& name)
 
 void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
 {
-    int DlgResult, ii;
+    int DlgResult;
     bool ok;
     wxString name;
     ModelDialog dialog(this);

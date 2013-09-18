@@ -4,7 +4,7 @@
 
 void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 {
-    int i,x,y,k,xc,yc,ColorIdx;
+    int i,x,y,xc,yc,ColorIdx;
     int mod1440,state360,d_mod;
     srand(1);
     float R,r,d,d_orig,t;

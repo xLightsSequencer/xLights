@@ -74,8 +74,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 }
             }
         }
-        int ij = maxmovieframes;
-
     }
 
 

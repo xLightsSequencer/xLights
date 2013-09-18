@@ -164,7 +164,7 @@ void xLightsFrame::OnButtonChooseFileClick(wxCommandEvent& event)
 bool xLightsFrame::WriteVixenFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
-    int32_t ChannelColor,done;
+    int32_t ChannelColor;
     long TotalTime=SeqNumPeriods * Timer1.GetInterval();
     wxXmlNode *node,*chparent,*textnode;
     wxXmlDocument doc;
@@ -296,8 +296,7 @@ void xLightsFrame::WriteVirFile(const wxString& filename)
 void xLightsFrame::WriteHLSFile(const wxString& filename)
 {
     wxString ChannelName,TestName,buff;
-    int32_t ChannelColor;
-    int ch,p,csec,StartCSec;
+    int ch,p;
     unsigned long rgb;
     int seqidx=0;
 
@@ -308,11 +307,6 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         return;
     }
 
-    int interval=Timer1.GetInterval() / 10;  // in centiseconds
-    long centiseconds=SeqNumPeriods * interval;
-
-
-
     for (ch=0; ch+2 < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
 
@@ -322,7 +316,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         {
             //    rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+(2*SeqNumPeriods)]& 0xff); // we want a 24bit value for HLS
             //  buff += wxString::Format(wxT("%d (%d:%d %d %d)"),rgb,seqidx,SeqData[seqidx],SeqData[seqidx+SeqNumPeriods],SeqData[seqidx+2*SeqNumPeriods]);
-            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | (SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff); // we want a 24bit value for HLS
             if(p<SeqNumPeriods-1)
                 buff += wxString::Format(wxT("%d "),rgb);
             else
@@ -343,7 +337,6 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     wxUint32 dataOffset = 28;
     wxUint16 fixedHeaderLength = 28;
     wxUint32 stepSize = SeqNumChannels + (SeqNumChannels%4);
-    wxUint32 stepLength = SeqNumPeriods;
     // Fixed 50 Milliseconds
     wxUint16 stepTime = 50;
     // Ignored by Pi Player
@@ -359,7 +352,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     // Step Size must be multiple of 4
     wxUint8 buf[stepSize];
 
-    size_t ch,i,j;
+    size_t ch;
     if (!f.Create(filename,true))
     {
         ConversionError(_("Unable to create file: ")+filename);
@@ -449,8 +442,7 @@ void xLightsFrame::WriteXLightsFile(const wxString& filename)
 void xLightsFrame::WriteLSPFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
-    int32_t ChannelColor;
-    int ch,p,csec,StartCSec;
+    int ch,p,csec;
     int seqidx=0;
     int pos,bst,ben,byte;
     unsigned long rgb;
@@ -462,8 +454,6 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
         return;
     }
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
-    long centiseconds=SeqNumPeriods * interval;
-
 
 
 
@@ -500,7 +490,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
             seconds = (p*50)/1000.0;
             pos = seconds * 88200;
             byte = SeqData[seqidx];
-            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff; // we want a 24bit value for HLS
+            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | (SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff); // we want a 24bit value for HLS
 
             if(rgb>0)
             {
@@ -544,7 +534,6 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     savedIndexes = (int *)calloc(SeqNumChannels, sizeof(int));
 
     int index = 0;
-    bool rgbProcDone = false;
     int rgbChanIndexes[3] = {0,0,0};
     int curRgbChanCount = 0;
 
@@ -678,7 +667,6 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
 void xLightsFrame::WriteLcbFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
-    int32_t ChannelColor;
     int ch,p,csec,StartCSec;
     int seqidx=0;
     int intensity,LastIntensity;
@@ -696,7 +684,6 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
     //  m_Name, m_Ext);
 
     int interval=Timer1.GetInterval() / 10;  // in centiseconds
-    long centiseconds=SeqNumPeriods * interval;
     f.Write(wxT("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"));
     f.Write(wxT("<channelsClipboard version=\"1\" name=\"" + m_Name + "\">\n"));
 

@@ -411,7 +411,6 @@ void EffectTreeDialog::OnbtFavoriteClick(wxCommandEvent& event)
 void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
-    bool isGroup = false;
     if ( !CheckValidOperation(itemID))
     {
         wxMessageBox(_("You Cannot rename this item"), _("ERROR"));

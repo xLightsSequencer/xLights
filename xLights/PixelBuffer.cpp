@@ -101,7 +101,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     wxColour c0,c1;
     wxImage::HSVValue hsv,hsv0,hsv1;
     wxImage::RGBValue rgbVal;
-    double emt, emtNot, tmp;
+    double emt, emtNot;
     int n =0; //increase to change the curve of the crossfade
 
     Effect[0].GetPixel(x,y,c0);

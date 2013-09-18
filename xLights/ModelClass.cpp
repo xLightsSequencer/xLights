@@ -471,7 +471,7 @@ void ModelClass::InitStar()
     int chan,cursegment,nextsegment,x,y;
     int offset=numlights/2;
     int numsegments=parm3*2;
-    double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,angle,segpct,dseg;
+    double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
     double dpct=1.0/(double)numsegments;
     double OuterRadius=offset;
     double InnerRadius=OuterRadius/2.618034;    // divide by golden ratio squared
@@ -626,7 +626,7 @@ void ModelClass::InitFrame()
     int dir=1;            // 1=clockwise
     int side=x>0 ? 2 : 0; // 0=left, 1=top, 2=right, 3=bottom
     int SideIncr=1;       // 1=clockwise
-    if (parm1 > parm3 && x>0 || parm3 > parm1 && x==0) {
+    if ((parm1 > parm3 && x>0) || (parm3 > parm1 && x==0)) {
         // counter-clockwise
         dir=-1;
         SideIncr=3;

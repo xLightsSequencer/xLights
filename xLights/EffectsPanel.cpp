@@ -796,6 +796,7 @@ wxColour EffectsPanel::GetPaletteColor(int idx)
     case 5: return Button_Palette5->GetBackgroundColour();
     case 6: return Button_Palette6->GetBackgroundColour();
     }
+    return *wxBLACK;
 }
 
 // idx is 1-6
@@ -963,7 +964,6 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
         }
         else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
         {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
             if(ChildName.Contains(wxT("Spirograph_Animate")))
             {
                 // always animate spirograph

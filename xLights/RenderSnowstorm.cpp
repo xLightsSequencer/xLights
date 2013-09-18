@@ -100,7 +100,6 @@ void RgbEffects::RenderSnowstorm(int Count, int Length)
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
-    size_t colorcnt=GetColorCount();
     Count=BufferWi * BufferHt * Count / 2000 + 1;
     int TailLength=BufferWi * BufferHt * Length / 2000 + 2;
     SnowstormClass ssItem;

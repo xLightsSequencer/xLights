@@ -759,7 +759,7 @@ double dimvariable(void) {
   char id[32];
   int len;
   int index[5];
-  double *answer;
+  double *answer = NULL;
 
   getid(string, id, &len);
   match(DIMFLTID);

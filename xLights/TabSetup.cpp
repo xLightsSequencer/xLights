@@ -148,7 +148,7 @@ void xLightsFrame::UpdateNetworkList()
     int NetCnt=0;
     //int MaxLorChannels=240*16;
     int MaxDmxChannels=512;
-    int StartChannel,ch;
+    int StartChannel;
     char c;
 
     wxString MaxChannelsStr,NetName,msg;
@@ -363,7 +363,7 @@ void xLightsFrame::OnButtonNetworkDeleteAllClick(wxCommandEvent& event)
 {
     wxXmlNode* e;
     wxXmlNode* root=NetworkXML.GetRoot();
-    while ( e=root->GetChildren() )
+    while ( (e=root->GetChildren()) != NULL )
     {
         root->RemoveChild(e);
     }

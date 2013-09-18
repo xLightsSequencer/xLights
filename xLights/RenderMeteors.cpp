@@ -263,7 +263,7 @@ void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, in
     if (state == 0) meteorsRadial.clear();
     double mspeed=state/4;
     state-=int(mspeed)*4;
-    double swirl_phase,angle;
+    double angle;
     int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
     int centerX=BufferWi/2;
     int centerY=BufferHt/2;
@@ -310,7 +310,7 @@ void RgbEffects::RenderMeteorsImplode(int ColorScheme, int Count, int Length, in
 
     // render meteors
 
-    int x,y,dx,n=0;
+    int x,y,n=0;
     for (MeteorRadialList::iterator it=meteorsRadial.begin(); it!=meteorsRadial.end(); ++it)
     {
         n++;
@@ -374,7 +374,7 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
     if (state == 0) meteorsRadial.clear();
     double mspeed=state/4;
     state-=int(mspeed)*4;
-    double swirl_phase,angle;
+    double angle;
     int halfdiag=DiagLen/2; // 1/2 the length of the diagonal
 
     MeteorRadialClass m;
@@ -419,7 +419,7 @@ void RgbEffects::RenderMeteorsExplode(int ColorScheme, int Count, int Length, in
 
     // render meteors
 
-    int x,y,dx,n=0;
+    int x,y,n=0;
     for (MeteorRadialList::iterator it=meteorsRadial.begin(); it!=meteorsRadial.end(); ++it)
     {
         n++;

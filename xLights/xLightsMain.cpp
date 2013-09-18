@@ -1159,7 +1159,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 
     SetIcon(wxIcon(xlights_xpm));
-    wxStandardPathsBase& stdp = wxStandardPaths::Get();
     wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
 
     effGridPrevX = 0;
@@ -1395,6 +1394,8 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
     {
     case play_off:
         StatusBar1->SetStatusText(_("Playback: off"));
+        break;
+    default:
         break;
     }
 

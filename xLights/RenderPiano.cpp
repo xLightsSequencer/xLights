@@ -26,7 +26,7 @@ void RgbEffects::RenderPiano(int Keyboard)
 {
     wxImage::HSVValue hsv;
     wxColour color;
-    int x,y,xc,yc,n,pixel_ratio,ColorIdx;
+    int x,y,ColorIdx;
     size_t colorcnt=GetColorCount();
     int keys,keys_mod,width,height;
 
@@ -75,7 +75,6 @@ void RgbEffects::RenderPiano(int Keyboard)
     int y_start = (int) ((BufferHt/2.0) - (height/2.0));
     int y_end = y_start+height;
 
-    int x_start=1;
     int x_end,y_end2;
     y_end2 =(int) ( y_start+(height/2));
 

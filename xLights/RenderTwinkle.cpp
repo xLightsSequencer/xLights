@@ -26,12 +26,12 @@
 void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 {
 
-    int x,y,i,i7,r,ColorIdx;
+    int x,y,i,i7,ColorIdx;
     int lights = (BufferHt*BufferWi)*(Count/100.0); // Count is in range of 1-100 from slider bar
     int step;
     if(lights>0) step=BufferHt*BufferWi/lights;
     else step=1;
-    int mod_number,max_modulo;
+    int max_modulo;
     max_modulo=Steps;
     if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
     int max_modulo2=max_modulo/2;
