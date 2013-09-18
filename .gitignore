@@ -6,4 +6,5 @@ thumbs.db
 *.save
 *cscope*
 xcuserdata
+xcshareddata
 build
