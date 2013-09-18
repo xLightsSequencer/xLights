@@ -256,6 +256,11 @@ public:
         {
             throw "universe number must be between 1 and 63999";
         }
+        InitData(ipaddr, UniverseNumber, NetNum);
+        InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
+    }
+private:
+    void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
         SequenceNum=0;
         SkipCount=0;
         wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
@@ -394,6 +399,10 @@ public:
         data[123]=0x02;  // Property value count (high)
         data[124]=0x01;  // Property value count (low)
         data[125]=0x00;  // DMX512-A START Code
+    }
+    void InitRemoteAddr(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
+        wxByte UnivHi = UniverseNumber >> 8;   // Universe Number (high)
+        wxByte UnivLo = UniverseNumber & 0xff; // Universe Number (low)
 
         wxIPV4address localaddr;
         localaddr.AnyAddress();
@@ -415,6 +424,7 @@ public:
         remoteAddr.Service (E131_PORT);
     };
 
+public:
     void SetChannelCount(size_t numchannels)
     {
         if (numchannels > 512)
@@ -623,7 +633,6 @@ public:
 
 // xOutput should be a singleton
 // It contains references to all of the networks
-
 xOutput::xOutput()
 {
     srand((unsigned)time(NULL));
@@ -786,3 +795,6 @@ bool xOutput::TxEmpty()
     }
     return true;
 }
+
+
+
