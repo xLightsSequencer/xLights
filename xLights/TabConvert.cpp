@@ -1017,9 +1017,13 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     long channels = 0;
     long cnt = 0;
     long tmp;
+    long universe = 0;
+    long channelsInUniverse = 0;
     wxString NodeName, NodeValue, Data, ChannelName;
     wxArrayString context;
     IrrXMLReader* xml = createIrrXMLReader(filename);
+    wxArrayInt map;
+    
 
     // pass one, get the metadata
     while(xml && xml->read())
@@ -1032,8 +1036,12 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
                 if (context[cnt - 1] == _("AudioSourcePcmFile")) mediaFilename = NodeValue;
                 if (context[cnt - 1] == _("ChannelsInUniverse")) {
+                    NodeValue.ToLong(&channelsInUniverse);
+                    channels += channelsInUniverse;
+                }
+                if (context[cnt - 1] == _("UniverseNumber")) {
                     NodeValue.ToLong(&tmp);
-                    channels += tmp;
+                    universe = tmp;
                 }
                 break;
             case EXN_ELEMENT:
@@ -1050,6 +1058,21 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 break;
             case EXN_ELEMENT_END:
                 NodeName = wxString::FromAscii( xml->getNodeName() );
+                if (NodeName == _("Universe")) {
+                    map.Add(universe);
+                    map.Add(channelsInUniverse);
+                    for (tmp = map.size() - 2; tmp > 0; tmp -= 2) {
+                        if (map[tmp] < map[tmp - 2]) {
+                            long t1 = map[tmp];
+                            long t2 = map[tmp + 1];
+                            map[tmp] = map[tmp - 2];
+                            map[tmp + 1] = map[tmp - 1];
+                            map[tmp - 2] = t1;
+                            map[tmp - 1] = t2;
+                        }
+                    }
+                }
+                NodeName = wxString::FromAscii( xml->getNodeName() );
                 if (cnt > 0) context.RemoveAt(cnt-1);
                 cnt = context.GetCount();
                 break;
@@ -1058,6 +1081,8 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         }
     }
     delete xml;
+    
+    
     TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("msPerCell = %d ms\n"), msPerCell));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels = %d\n"), channels));
@@ -1074,6 +1099,15 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     ChannelNames.resize(channels);
     ChannelColors.resize(channels);
     channels = 0;
+
+    for (tmp = 0; tmp < map.size(); tmp += 2) {
+        int i = map[tmp + 1];
+        map[tmp + 1] = channels;
+        channels += i;
+    }
+    channels = 0;
+
+    
     //pass2 read the sequence data
     while(xml && xml->read())
     {
@@ -1089,6 +1123,16 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
 
                     int idx = NodeValue.Find("-");
                     Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
+                }
+                if (context[cnt - 1] == _("UniverseNumber")) {
+                    NodeValue = wxString::FromAscii( xml->getNodeData() );
+                    NodeValue.ToLong(&tmp);
+                    universe = tmp;
+                    for (tmp = 0; tmp < map.size() ; tmp += 2) {
+                        if (universe == map[tmp]) {
+                            channels = map[tmp + 1];
+                        }
+                    }
                 }
                 break;
             case EXN_ELEMENT:
@@ -1109,7 +1153,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                     //finished reading this channel, map the data
                     int idx = ChannelName.find(", ");
                     wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
-
+                    wxString origName = ChannelNames[channels];
                     if (type == _("RGB-R")) {
                         ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
                         ChannelColors[channels] = 0x000000FF;
@@ -1123,6 +1167,9 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                         ChannelNames[channels] = ChannelName.Left(idx);
                         ChannelColors[channels] = 0x00FFFFFF;
                     }
+                    wxString o2 = NetInfo.GetChannelName(channels);
+                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
+                                                                        ChannelNames[channels],origName,o2));
                     for (long newper = 0; newper < SeqNumPeriods; newper++) {
                         int hlsper = newper * timeCells / SeqNumPeriods;
                         long intensity;
