@@ -1034,7 +1034,14 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                 NodeValue = wxString::FromAscii( xml->getNodeData() );
                 if (context[cnt - 1] == _("MilliSecPerTimeUnit")) NodeValue.ToLong(&msPerCell);
                 if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
-                if (context[cnt - 1] == _("AudioSourcePcmFile")) mediaFilename = NodeValue;
+                if (context[cnt - 1] == _("AudioSourcePcmFile")) {
+                    mediaFilename = NodeValue;
+                    if (mediaFilename.EndsWith(".PCM")) {
+                        //nothing can deal with PCM files, we'll assume this came from an mp3
+                        mediaFilename.Remove(mediaFilename.size() - 4);
+                        mediaFilename += ".mp3";
+                    }
+                }
                 if (context[cnt - 1] == _("ChannelsInUniverse")) {
                     NodeValue.ToLong(&channelsInUniverse);
                     channels += channelsInUniverse;
