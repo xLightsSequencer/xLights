@@ -1401,6 +1401,7 @@
 													<minsize>10,10</minsize>
 													<style>wxSP_3DSASH|wxSP_NOBORDER|wxSP_NO_XP_THEME</style>
 													<object class="wxPanel" name="ID_PANEL31" variable="SeqPanelLeft" member="yes">
+														<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 														<object class="wxBoxSizer" variable="BoxSizer6" member="no">
 															<orient>wxVERTICAL</orient>
 															<object class="sizeritem">
@@ -1443,22 +1444,22 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON3" variable="Button_UpdateGrid" member="yes">
 																					<label>Update Grid</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButton_UpdateGridClick" entry="EVT_BUTTON" />
 																				</object>
-																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="spacer">
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON58" variable="Button_Models" member="yes">
 																					<label>Models</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButton_ModelsClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1482,7 +1483,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON59" variable="Button_Presets" member="yes">
 																					<label>Effect Presets</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButton_PresetsClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1492,7 +1493,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_Palette" variable="Button_Palette" member="yes">
 																					<label>Palette</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButton_PaletteClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1538,7 +1539,7 @@
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_LayerMix" variable="txtCtlEffectMix" member="yes">
 																					<value>0</value>
-																					<size>30,20</size>
+																					<size>32,20</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1569,7 +1570,7 @@
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
 																					<value>200</value>
-																					<size>30,20</size>
+																					<size>32,20</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1598,7 +1599,7 @@
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
 																					<value>100</value>
-																					<size>30,20</size>
+																					<size>32,20</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1625,7 +1626,7 @@
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
 																					<value>0</value>
-																					<size>30,20</size>
+																					<size>32,20</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1645,6 +1646,7 @@
 													</object>
 													<object class="wxPanel" name="ID_PANEL32" variable="SeqPanelRight" member="yes">
 														<pos>40,-11</pos>
+														<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 														<object class="wxBoxSizer" variable="BoxSizer4" member="no">
 															<orient>wxVERTICAL</orient>
 															<object class="sizeritem">
@@ -1681,7 +1683,7 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON2" variable="ButtonDisplayElements" member="yes">
 																							<label>Display Elements</label>
-																							<bg>#E0E0E0</bg>
+																							<bg>wxSYS_COLOUR_BTNFACE</bg>
 																							<handler function="OnButtonDisplayElementsClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1693,7 +1695,7 @@
 																							<label>Channel Map</label>
 																							<enabled>0</enabled>
 																							<hidden>1</hidden>
-																							<bg>#E0E0E0</bg>
+																							<bg>wxSYS_COLOUR_BTNFACE</bg>
 																							<handler function="OnButton_ChannelMapClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1751,7 +1753,7 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
 																							<label>Export</label>
-																							<bg>#E0E0E0</bg>
+																							<bg>wxSYS_COLOUR_BTNFACE</bg>
 																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1761,7 +1763,7 @@
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_CREATE_RANDOM" variable="Button_CreateRandom" member="yes">
 																							<label>Create Random Effects</label>
-																							<bg>#E0E0E0</bg>
+																							<bg>wxSYS_COLOUR_BTNFACE</bg>
 																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																						</object>
 																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1808,7 +1810,7 @@
 																			<orient>wxVERTICAL</orient>
 																			<object class="sizeritem">
 																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes" />
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1823,7 +1825,7 @@
 																			<orient>wxVERTICAL</orient>
 																			<object class="sizeritem">
 																				<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes" />
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1833,7 +1835,7 @@
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 															</object>
 														</object>
@@ -1902,7 +1904,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_SAVE_SCHEDULE" variable="ButtonSaveSchedule" member="yes">
 																					<label>Save Schedule</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonSaveScheduleClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1912,7 +1914,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_ADD_SHOW" variable="ButtonAddShow" member="yes">
 																					<label>Schedule Playlist</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonAddShowClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1922,7 +1924,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_UPDATE_SHOW" variable="ButtonUpdateShow" member="yes">
 																					<label>Update Selected Items</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonUpdateShowClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1932,7 +1934,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_DELETE_SHOW" variable="ButtonDeleteShow" member="yes">
 																					<label>Delete Selected Items</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonDeleteShowClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1961,7 +1963,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_SHOW_DATES_CHANGE" variable="ButtonShowDatesChange" member="yes">
 																					<label>Change</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonShowDatesChangeClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2046,7 +2048,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_CLEARLOG" variable="ButtonClearLog" member="yes">
 																					<label>Clear</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonClearLogClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2056,7 +2058,7 @@
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON_SAVELOG" variable="ButtonSaveLog" member="yes">
 																					<label>Save</label>
-																					<bg>#E0E0E0</bg>
+																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButtonSaveLogClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
