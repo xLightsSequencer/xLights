@@ -1375,6 +1375,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     wxFile f;
     bool modified=false;
     fileout = file + ".out";
+    //wxMessageBox(_("fixing: ")+file);
 // open the file
     wxString missing     = "xdummy|xdummy";
     wxString replace_str = "xdummy|xdummy";
@@ -1678,6 +1679,11 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadeout|E2_TEXTCTRL_Fadeout");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Effect1_Fit|E1_CHECKBOX_FitToTime");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Effect2_Fit|E2_CHECKBOX_FitToTime");
+
+    replace_str = replace_str + wxT("|vertical text up|vert text up");
+    replace_str = replace_str + wxT("|vertical dext down|vert text down");
+    replace_str = replace_str + wxT("|count down seconds|seconds");
+    replace_str = replace_str + wxT("|count down to date|to date");
 
     if (!f.Create(fileout,true))
     {
