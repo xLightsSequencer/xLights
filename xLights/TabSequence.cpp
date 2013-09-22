@@ -1728,6 +1728,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 //  166 tokens
             modified=true;
             str=InsertMissing(str,replace_str,false);
+            str=InsertMissing(str,missing,true);
 
 //  now look to fill in any missing tokens
 
@@ -1736,7 +1737,6 @@ void xLightsFrame::FixVersionDifferences(wxString file)
                    if(p>0) // Look for lines that should have brightness and contrast, in other words all
                    {
                        modified=true;
-                       str=InsertMissing(str,missing,true);
                    }
 
                    p=str.find("ID_TEXTCTRL_Text1_Line1",0);
