@@ -7,6 +7,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
+					- Bug: (Dan) Up/Down arrows on Setup tab not properly re-ordering networks if there is a named test setup.
+				
 3.2.1:  Sep 12,2013 - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
 					- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
 					- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
