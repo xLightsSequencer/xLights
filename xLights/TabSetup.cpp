@@ -1,3 +1,28 @@
+
+/***************************************************************
+ * Name:      xLightsMain.cpp
+ * Purpose:   Code for Application Frame
+ * Author:    Matt Brown (dowdybrown@yahoo.com)
+ * Created:   2012-11-03
+ * Copyright: Matt Brown ()
+ * License:
+ **************************************************************/
+
+#include "xLightsMain.h"
+#include <wx/msgdlg.h>
+#include <wx/config.h>
+#include <wx/dir.h>
+#include <wx/textdlg.h>
+#include <wx/numdlg.h>
+#include <wx/persist.h>
+#include <wx/persist/toplevel.h>
+#include <wx/valnum.h>
+
+
+// dialogs
+#include "SerialPortWithRate.h"
+#include "E131Dialog.h"
+
 // Process Setup Panel Events
 
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
@@ -268,15 +293,19 @@ long xLightsFrame::GetNetworkSelection()
 void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
 {
     wxXmlNode* root=NetworkXML.GetRoot();
-    wxXmlNode* fromNode;
-    wxXmlNode* toNode;
+    wxXmlNode* fromNode = NULL;
+    wxXmlNode* toNode = NULL;
     int cnt=0;
     //wxMessageBox(wxString::Format(wxT("Move from %d to %d"),fromRow,toRow));
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (cnt==fromRow) fromNode=e;
-        if (cnt==toRow) toNode=e;
-        cnt++;
+        //Network XML can have nodes other than "network" nodes. (like "testpreset") We
+        //need to make sure we only consider the "network" nodes.
+        if (e->GetName() == "network") {
+            if (cnt==fromRow) fromNode=e;
+            if (cnt==toRow) toNode=e;
+            cnt++;
+        }
     }
     root->RemoveChild(fromNode);
     if (!toNode)

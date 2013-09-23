@@ -17,9 +17,7 @@
 #include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
 
-// dialogs
-#include "SerialPortWithRate.h"
-#include "E131Dialog.h"
+
 
 // xml
 #include "../include/xml-irr-1.2/irrXML.h"
@@ -1652,8 +1650,6 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 }
 
 
-
-#include "TabSetup.cpp"
 #include "TabTest.cpp"
 #include "TabConvert.cpp"
 #include "TabSchedule.cpp"

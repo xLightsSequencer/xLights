@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
 		67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */; };
@@ -79,6 +80,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
+		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
+		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
+		673E425A17F0D23E00F4BC76 /* TabTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabTest.cpp; sourceTree = "<group>"; };
 		67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AddShowDialog.cpp; sourceTree = "<group>"; };
 		67A619BD17B51C0F008E95BB /* AddShowDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddShowDialog.h; sourceTree = "<group>"; };
 		67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChannelLayoutDialog.cpp; sourceTree = "<group>"; };
@@ -322,6 +327,7 @@
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67E491B317C45BAF00FE40EA /* TabSequence.cpp */,
+				673E425917F0D23E00F4BC76 /* TabSetup.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
 				67A61A0917B51C0F008E95BB /* wxsmith */,
 				67A61A1D17B51C0F008E95BB /* xlights_out.cpp */,
@@ -335,6 +341,9 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
+				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
+				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
 				67A619EE17B51C0F008E95BB /* resource.rc */,
 				67A61A1E17B51C0F008E95BB /* xlights_out.h */,
 				67A61A2217B51C0F008E95BB /* xLightsApp.h */,
@@ -450,6 +459,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2817B51C0F008E95BB /* ChannelMapDialog.cpp in Sources */,
@@ -563,12 +573,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-static-2.9",
 					"-I/opt/local/include/wx-2.9",
@@ -640,7 +651,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-static-2.9",
 					"-I/opt/local/include/wx-2.9",
