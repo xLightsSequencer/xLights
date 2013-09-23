@@ -20,10 +20,10 @@
     You should have received a copy of the GNU General Public License
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
-
 #include "ModelClass.h"
 #include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
+#include <wx/graphics.h>
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode)
 {
@@ -891,24 +891,27 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    wxClientDC dc(window);
     wxPen pen;
-    wxCoord w, h;
+    wxDouble w, h;
 
-    dc.GetSize(&w, &h);
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
     /*
     // this isn't an ideal scaling algorithm - room for improvement here
     double windowDiagonal=sqrt(w*w+h*h);
     double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
     double scale=windowDiagonal / modelDiagonal * PreviewScale;
     */
-    dc.SetAxisOrientation(true,true);
-    dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
-    dc.SetUserScale(scale,scale);
 
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
+    gc->GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+    gc->Scale(1, -1);
+    gc->Translate(int(offsetXpct*w)+w/2,
+                  -(int(offsetYpct*h)+h-
+                     std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+    
     pen.SetColour(*color);
-    dc.SetPen(pen);
+    gc->SetPen(pen);
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -917,8 +920,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            dc.DrawPoint(sx,sy);
-            //dc.DrawCircle(sx*factor,sy*factor,radius);
+            gc->DrawRectangle(sx*scale,sy*scale,0,0);
         }
     }
 }
@@ -929,22 +931,26 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    wxClientDC dc(window);
     wxPen pen;
     wxColour color;
-    wxCoord w, h;
+    wxDouble w, h;
 
-    dc.GetSize(&w, &h);
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
     /*
     // this isn't an ideal scaling algorithm - room for improvement here
     double windowDiagonal=sqrt(w*w+h*h);
     double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
     double scale=windowDiagonal / modelDiagonal * PreviewScale;
     */
-    dc.SetAxisOrientation(true,true);
-    dc.SetDeviceOrigin(int(offsetXpct*w)+w/2,int(offsetYpct*h)+h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
-    dc.SetUserScale(scale,scale);
+    
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
+    gc->GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+    gc->Scale(1, -1);
+    gc->Translate(int(offsetXpct*w)+w/2,
+                  -(int(offsetYpct*h)+h-
+                    std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+    
 
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0) {
@@ -953,15 +959,14 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
         {
             Nodes[n]->GetColor(color);
             pen.SetColour(color);
-            dc.SetPen(pen);
+            gc->SetPen(pen);
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                dc.DrawPoint(sx,sy);
-                //dc.DrawCircle(sx*factor,sy*factor,radius);
+                gc->DrawRectangle(sx*scale,sy*scale,0,0);
             }
         }
     } else {
@@ -976,19 +981,17 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                 // draw node on screen
                 if (CanFlash && rand() % StrobeRate == 0) {
                     pen.SetColour(color);
-                    dc.SetPen(pen);
+                    gc->SetPen(pen);
                 } else {
                     pen.SetColour(*wxBLACK);
-                    dc.SetPen(pen);
+                    gc->SetPen(pen);
                 }
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                dc.DrawPoint(sx,sy);
-                //dc.DrawCircle(sx*factor,sy*factor,radius);
+                gc->DrawRectangle(sx*scale,sy*scale,0,0);
             }
         }
     }
-
 }
 
 // uses DrawCircle instead of DrawPoint
