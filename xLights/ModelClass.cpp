@@ -912,6 +912,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
     
     pen.SetColour(*color);
     gc->SetPen(pen);
+    wxGraphicsPath path = gc->CreatePath();
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -920,9 +921,10 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            gc->DrawRectangle(sx*scale,sy*scale,0,0);
+            path.AddRectangle(sx*scale,sy*scale,0,0);
         }
     }
+    gc->DrawPath(path);
 }
 
 // display model using colors stored in each node
@@ -951,22 +953,30 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                   -(int(offsetYpct*h)+h-
                     std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
     
-
+    wxGraphicsPath path = gc->CreatePath();
+    wxColor lastColor(*wxBLACK);
+    pen.SetColour(lastColor);
+    gc->SetPen(pen);
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0) {
         // no strobing
         for(size_t n=0; n<NodeCount; n++)
         {
             Nodes[n]->GetColor(color);
-            pen.SetColour(color);
-            gc->SetPen(pen);
+            if (color != lastColor) {
+                gc->DrawPath(path);
+                path = gc->CreatePath();
+                pen.SetColour(color);
+                gc->SetPen(pen);
+                lastColor = color;
+            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc->DrawRectangle(sx*scale,sy*scale,0,0);
+                path.AddRectangle(sx*scale,sy*scale,0,0);
             }
         }
     } else {
@@ -978,20 +988,27 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++)
             {
+                wxColor c2 = *wxBLACK;
                 // draw node on screen
                 if (CanFlash && rand() % StrobeRate == 0) {
-                    pen.SetColour(color);
-                    gc->SetPen(pen);
-                } else {
-                    pen.SetColour(*wxBLACK);
-                    gc->SetPen(pen);
+                    c2 = color;
                 }
+                
+                if (c2 != lastColor) {
+                    gc->DrawPath(path);
+                    path = gc->CreatePath();
+                    pen.SetColour(c2);
+                    gc->SetPen(pen);
+                    lastColor = c2;
+                }
+                
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc->DrawRectangle(sx*scale,sy*scale,0,0);
+                path.AddRectangle(sx*scale,sy*scale,0,0);
             }
         }
     }
+    gc->DrawPath(path);
 }
 
 // uses DrawCircle instead of DrawPoint
@@ -1014,7 +1031,7 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
     gc->Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
     double radius = scale/2.0;
-    if (radius < 1.0) {
+    if (radius < 0.5) {
         radius = 1.0;
     }
 
@@ -1033,15 +1050,26 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
-
+    wxGraphicsPath path = gc->CreatePath();
+    wxColour lastColor(*wxBLACK);
+    pen.SetColour(lastColor);
+    brush.SetColour(lastColor);
+    brush.SetStyle(wxBRUSHSTYLE_SOLID);
+    gc->SetPen(pen);
+    gc->SetBrush(brush);
     for(size_t n=0; n<NodeCount; n++)
     {
         Nodes[n]->GetColor(color);
-        pen.SetColour(color);
-        brush.SetColour(color);
-        brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        gc->SetPen(pen);
-        gc->SetBrush(brush);
+        if (color != lastColor) {
+            gc->DrawPath(path);
+            path = gc->CreatePath();
+            pen.SetColour(color);
+            brush.SetColour(color);
+            brush.SetStyle(wxBRUSHSTYLE_SOLID);
+            gc->SetPen(pen);
+            gc->SetBrush(brush);
+            lastColor = color;
+        }
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
@@ -1051,7 +1079,9 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
             //dc.DrawPoint(sx,sy);
             //dc.DrawCircle(sx*scale,sy*scale,radius);
-            gc->DrawEllipse(sx*scale,sy*scale,radius,radius);
+            //gc->DrawEllipse(sx*scale,sy*scale,radius,radius);
+            path.AddEllipse(sx*scale,sy*scale,radius,radius);
         }
     }
+    gc->DrawPath(path);
 }
