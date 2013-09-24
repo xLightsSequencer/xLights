@@ -999,43 +999,37 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
 {
     wxPen pen;
     wxBrush brush;
-    wxClientDC dc(window);
     wxColour color;
-    wxCoord w, h;
-    dc.GetSize(&w, &h);
-    double scaleX = double(w) / RenderWi;
-    double scaleY = double(h) / RenderHt;
+    wxDouble w, h;
+    
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
+    gc->GetSize(&w, &h);
+
+    double scaleX = double(w) * 0.95 / RenderWi;
+    double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
-    dc.SetAxisOrientation(true,true);
-    dc.SetDeviceOrigin(w/2,h-std::max((h-int(double(RenderHt-1)*scale))/2,1));
 
-    int radius=1;
-    int factor=8;
-    if (scale < 0.5)
-    {
-        radius=int(1.0/scale+0.5);
-        factor=1;
-    }
-    else if (scale < 8.0)
-    {
-        factor=int(scale+0.5);
-    }
-    dc.SetUserScale(scale/factor,scale/factor);
+    gc->SetAntialiasMode(wxANTIALIAS_NONE);
+    gc->Scale(1, -1);
+    gc->Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
-    // if the radius/factor are not yielding good results, uncomment the next line
-    //StatusBar1->SetStatusText(wxString::Format(wxT("Scale=%5.3f, radius=%d, factor=%d"),scale,radius,factor));
+    double radius = scale/2.0;
+    if (radius < 1.0) {
+        radius = 1.0;
+    }
 
     /*
-            // check that origin is in the right place
-            dc.SetUserScale(4,4);
-            color.Set(0,0,255);
-            pen.SetColour(color);
-            dc.SetPen(pen);
-            dc.DrawPoint(0,0);
-            dc.DrawPoint(1,1);
-            dc.DrawPoint(2,2);
-            return;
+    // check that origin is in the right place
+    color.Set(0,0,255);
+    pen.SetColour(color);
+    gc->SetPen(pen);
+    gc->DrawEllipse(0,0,1,1);
+    gc->DrawEllipse(1,1,1,1);
+    gc->DrawEllipse(2,2,1,1);
+    gc->DrawEllipse(3,3,1,1);
+    gc->DrawEllipse(4,4,1,1);
     */
+    
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
@@ -1046,8 +1040,8 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
         pen.SetColour(color);
         brush.SetColour(color);
         brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        dc.SetPen(pen);
-        dc.SetBrush(brush);
+        gc->SetPen(pen);
+        gc->SetBrush(brush);
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
@@ -1056,7 +1050,8 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             sy=Nodes[n]->Coords[c].screenY;
             //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
             //dc.DrawPoint(sx,sy);
-            dc.DrawCircle(sx*factor,sy*factor,radius);
+            //dc.DrawCircle(sx*scale,sy*scale,radius);
+            gc->DrawEllipse(sx*scale,sy*scale,radius,radius);
         }
     }
 }
