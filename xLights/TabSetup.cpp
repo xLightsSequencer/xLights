@@ -338,21 +338,23 @@ void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
     long cnt=0;
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (cnt==SelectedItem)
-        {
-            if (e->GetAttribute(wxT("NetworkType")) == wxT("E131"))
+        if (e->GetName() == "network") {
+            if (cnt==SelectedItem)
             {
-                SetupE131(e);
+                if (e->GetAttribute(wxT("NetworkType")) == wxT("E131"))
+                {
+                    SetupE131(e);
+                }
+                else
+                {
+                    SetupDongle(e);
+                }
+                break;
             }
             else
             {
-                SetupDongle(e);
+                cnt++;
             }
-            break;
-        }
-        else
-        {
-            cnt++;
         }
     }
 }
@@ -369,14 +371,16 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
     long cnt=0;
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (cnt==SelectedItem)
-        {
-            root->RemoveChild(e);
-            break;
-        }
-        else
-        {
-            cnt++;
+        if (e->GetName() == "network") {
+            if (cnt==SelectedItem)
+            {
+                root->RemoveChild(e);
+                break;
+            }
+            else
+            {
+                cnt++;
+            }
         }
     }
     UnsavedChanges=true;
