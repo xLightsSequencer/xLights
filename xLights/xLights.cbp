@@ -185,10 +185,7 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
-		<Unit filename="TabSetup.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="TabSetup.cpp" />
 		<Unit filename="TabTest.cpp">
 			<Option compile="0" />
 			<Option link="0" />

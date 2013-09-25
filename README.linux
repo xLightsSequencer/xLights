@@ -38,7 +38,7 @@ Instructions for other Linux distributions will vary.
      $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.5.tar.bz2
      $ tar xjf wxWidgets-2.9.5.tar.bz2
      $ cd wxWidgets-2.9.5
-     $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl
+     $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl --enable-graphics_ctx
      $ make
      $ sudo make install
      $ sudo ldconfig

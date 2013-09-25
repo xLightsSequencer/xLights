@@ -887,7 +887,7 @@ void ModelClass::UpdateXmlWithScale()
 }
 
 
-#ifdef wxUSE_GRAPHICS_CONTEXT
+#ifndef __WXMSW__
 class ModelGraphics {
 public:
     ModelGraphics(wxWindow *window) : lastColor(*wxBLACK) {
@@ -911,7 +911,7 @@ public:
     void GetSize(wxDouble *x, wxDouble *y) {
         gc->GetSize(x, y);
     }
-    
+
     void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
         if (lastColor != color) {
             flush(color);
@@ -924,7 +924,7 @@ public:
         }
         path.AddEllipse(x, y, diameter, diameter);
     }
-    
+
 private:
     void flush(const wxColour &color) {
         gc->DrawPath(path);
@@ -965,7 +965,7 @@ public:
         *x = int(x2);
         *y = int(y2);
     }
-    
+
     void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
         if (lastColor != color) {
             flush(color);
@@ -984,7 +984,7 @@ public:
         }
         dc.DrawEllipse(x - (diameter/2), y - (diameter / 2), diameter, diameter);
     }
-    
+
 private:
     void flush(const wxColour &color) {
         lastColor = color;
@@ -1022,7 +1022,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
     gc.Translate(int(offsetXpct*w)+w/2,
                   -(int(offsetYpct*h)+h-
                      std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
-    
+
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -1053,13 +1053,13 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
     double scale=windowDiagonal / modelDiagonal * PreviewScale;
     */
-    
+
     gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
     gc.Translate(int(offsetXpct*w)+w/2,
                   -(int(offsetYpct*h)+h-
                     std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
-    
+
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0) {
         // no strobing
@@ -1089,7 +1089,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                 if (CanFlash && rand() % StrobeRate == 0) {
                     c2 = color;
                 }
-                
+
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
                 gc.AddSquare(c2,sx*scale,sy*scale,0.0);
@@ -1103,7 +1103,7 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
 {
     wxColour color;
     wxDouble w, h;
-    
+
     ModelGraphics gc(window);
     gc.GetSize(&w, &h);
 
@@ -1127,7 +1127,7 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
     gc.AddCircle(color, 3,3,1);
     gc.AddCircle(color, 4,4,1);
      */
-    
+
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
