@@ -946,7 +946,7 @@ private:
 class ModelGraphics {
 public:
     ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED) {
-        //dc.SetAxisOrientation(true,true);
+        dc.SetAxisOrientation(true,true);
         dc.SetLogicalScale(1.0, -1.0);
         pen.SetColour(lastColor);
         dc.SetPen(pen);
