@@ -947,7 +947,7 @@ class ModelGraphics {
 public:
     ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED) {
         dc.SetAxisOrientation(true,true);
-        dc.SetLogicalScale(1.0, -1.0);
+        //dc.SetLogicalScale(1.0, -1.0);
         pen.SetColour(lastColor);
         dc.SetPen(pen);
         brush.SetStyle(wxBRUSHSTYLE_SOLID);
@@ -970,8 +970,8 @@ public:
         if (lastColor != color) {
             flush(color);
         }
-        if (size < 1) {
-            size = 1;
+        if (size < 2) {
+            size = 2;
         }
         dc.DrawRectangle(x,y,size,size);
     }
