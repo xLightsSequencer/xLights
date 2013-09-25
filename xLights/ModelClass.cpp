@@ -886,6 +886,122 @@ void ModelClass::UpdateXmlWithScale()
     ModelXml->AddAttribute(wxT("PreviewRotation"), wxString::Format(wxT("%d"),PreviewRotation));
 }
 
+
+#ifdef wxUSE_GRAPHICS_CONTEXT
+class ModelGraphics {
+public:
+    ModelGraphics(wxWindow *window) : lastColor(*wxBLACK) {
+        gc = wxGraphicsContext::Create(window);
+        gc->SetAntialiasMode(wxANTIALIAS_NONE);
+        gc->Scale(1, -1);
+        path = gc->CreatePath();
+        pen.SetColour(lastColor);
+        gc->SetPen(pen);
+        brush.SetStyle(wxBRUSHSTYLE_SOLID);
+        brush.SetColour(lastColor);
+        gc->SetBrush(brush);
+    }
+    ~ModelGraphics() {
+        gc->DrawPath(path);
+        delete gc;
+    }
+    void Translate(wxDouble x, wxDouble y) {
+        gc->Translate(x, y);
+    }
+    void GetSize(wxDouble *x, wxDouble *y) {
+        gc->GetSize(x, y);
+    }
+    
+    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
+        if (lastColor != color) {
+            flush(color);
+        }
+        path.AddRectangle(x, y, size, size);
+    }
+    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter) {
+        if (lastColor != color) {
+            flush(color);
+        }
+        path.AddEllipse(x, y, diameter, diameter);
+    }
+    
+private:
+    void flush(const wxColour &color) {
+        gc->DrawPath(path);
+        path = gc->CreatePath();
+        lastColor = color;
+        pen.SetColour(lastColor);
+        gc->SetPen(pen);
+        brush.SetColour(lastColor);
+        gc->SetBrush(brush);
+    }
+    wxBrush brush;
+    wxPen pen;
+    wxGraphicsContext *gc;
+    wxColor lastColor;
+    wxGraphicsPath path;
+};
+
+#else
+class ModelGraphics {
+public:
+    ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED) {
+        //dc.SetAxisOrientation(true,true);
+        dc.SetLogicalScale(1.0, -1.0);
+        pen.SetColour(lastColor);
+        dc.SetPen(pen);
+        brush.SetStyle(wxBRUSHSTYLE_SOLID);
+        brush.SetColour(lastColor);
+        dc.SetBrush(brush);
+    }
+    ~ModelGraphics() {
+    }
+    void Translate(wxDouble x, wxDouble y) {
+        dc.SetDeviceOrigin(x, -y);
+    }
+    void GetSize(wxDouble *x, wxDouble *y) {
+        int x2, y2;
+        dc.GetSize(&x2, &y2);
+        *x = int(x2);
+        *y = int(y2);
+    }
+    
+    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
+        if (lastColor != color) {
+            flush(color);
+        }
+        if (size < 1) {
+            size = 1;
+        }
+        dc.DrawRectangle(x,y,size,size);
+    }
+    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter) {
+        if (lastColor != color) {
+            flush(color);
+        }
+        if (diameter < 2) {
+            diameter = 2;
+        }
+        dc.DrawEllipse(x - (diameter/2), y - (diameter / 2), diameter, diameter);
+    }
+    
+private:
+    void flush(const wxColour &color) {
+        lastColor = color;
+        pen.SetColour(lastColor);
+        dc.SetPen(pen);
+        brush.SetColour(lastColor);
+        dc.SetBrush(brush);
+    }
+    wxBrush brush;
+    wxPen pen;
+    wxColor lastColor;
+    wxClientDC dc;
+};
+
+#endif
+
+
 // display model using a single color
 void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 {
@@ -893,7 +1009,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
     wxCoord sx,sy;
     wxPen pen;
     wxDouble w, h;
-
+    ModelGraphics gc(window);
     /*
     // this isn't an ideal scaling algorithm - room for improvement here
     double windowDiagonal=sqrt(w*w+h*h);
@@ -901,18 +1017,12 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
     double scale=windowDiagonal / modelDiagonal * PreviewScale;
     */
 
-    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
-    gc->GetSize(&w, &h);
+    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc->SetAntialiasMode(wxANTIALIAS_NONE);
-    gc->Scale(1, -1);
-    gc->Translate(int(offsetXpct*w)+w/2,
+    gc.Translate(int(offsetXpct*w)+w/2,
                   -(int(offsetYpct*h)+h-
                      std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
     
-    pen.SetColour(*color);
-    gc->SetPen(pen);
-    wxGraphicsPath path = gc->CreatePath();
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -921,10 +1031,9 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            path.AddRectangle(sx*scale,sy*scale,0,0);
+            gc.AddSquare(*color,sx*scale,sy*scale,0.0);
         }
     }
-    gc->DrawPath(path);
 }
 
 // display model using colors stored in each node
@@ -936,6 +1045,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     wxPen pen;
     wxColour color;
     wxDouble w, h;
+    ModelGraphics gc(window);
 
     /*
     // this isn't an ideal scaling algorithm - room for improvement here
@@ -944,39 +1054,25 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     double scale=windowDiagonal / modelDiagonal * PreviewScale;
     */
     
-    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
-    gc->GetSize(&w, &h);
+    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc->SetAntialiasMode(wxANTIALIAS_NONE);
-    gc->Scale(1, -1);
-    gc->Translate(int(offsetXpct*w)+w/2,
+    gc.Translate(int(offsetXpct*w)+w/2,
                   -(int(offsetYpct*h)+h-
                     std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
     
-    wxGraphicsPath path = gc->CreatePath();
-    wxColor lastColor(*wxBLACK);
-    pen.SetColour(lastColor);
-    gc->SetPen(pen);
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0) {
         // no strobing
         for(size_t n=0; n<NodeCount; n++)
         {
             Nodes[n]->GetColor(color);
-            if (color != lastColor) {
-                gc->DrawPath(path);
-                path = gc->CreatePath();
-                pen.SetColour(color);
-                gc->SetPen(pen);
-                lastColor = color;
-            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                path.AddRectangle(sx*scale,sy*scale,0,0);
+                gc.AddSquare(color,sx*scale,sy*scale,0.0);
             }
         }
     } else {
@@ -994,82 +1090,50 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                     c2 = color;
                 }
                 
-                if (c2 != lastColor) {
-                    gc->DrawPath(path);
-                    path = gc->CreatePath();
-                    pen.SetColour(c2);
-                    gc->SetPen(pen);
-                    lastColor = c2;
-                }
-                
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                path.AddRectangle(sx*scale,sy*scale,0,0);
+                gc.AddSquare(c2,sx*scale,sy*scale,0.0);
             }
         }
     }
-    gc->DrawPath(path);
 }
 
 // uses DrawCircle instead of DrawPoint
 void ModelClass::DisplayEffectOnWindow(wxWindow* window)
 {
-    wxPen pen;
-    wxBrush brush;
     wxColour color;
     wxDouble w, h;
     
-    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(window));
-    gc->GetSize(&w, &h);
+    ModelGraphics gc(window);
+    gc.GetSize(&w, &h);
 
     double scaleX = double(w) * 0.95 / RenderWi;
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
-    gc->SetAntialiasMode(wxANTIALIAS_NONE);
-    gc->Scale(1, -1);
-    gc->Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
+    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
     double radius = scale/2.0;
     if (radius < 0.5) {
-        radius = 1.0;
+        radius = 0.5;
     }
 
     /*
     // check that origin is in the right place
     color.Set(0,0,255);
-    pen.SetColour(color);
-    gc->SetPen(pen);
-    gc->DrawEllipse(0,0,1,1);
-    gc->DrawEllipse(1,1,1,1);
-    gc->DrawEllipse(2,2,1,1);
-    gc->DrawEllipse(3,3,1,1);
-    gc->DrawEllipse(4,4,1,1);
-    */
+    gc.AddCircle(color, 0,0,1);
+    gc.AddCircle(color, 1,1,1);
+    gc.AddCircle(color, 2,2,1);
+    gc.AddCircle(color, 3,3,1);
+    gc.AddCircle(color, 4,4,1);
+     */
     
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
-    wxGraphicsPath path = gc->CreatePath();
-    wxColour lastColor(*wxBLACK);
-    pen.SetColour(lastColor);
-    brush.SetColour(lastColor);
-    brush.SetStyle(wxBRUSHSTYLE_SOLID);
-    gc->SetPen(pen);
-    gc->SetBrush(brush);
     for(size_t n=0; n<NodeCount; n++)
     {
         Nodes[n]->GetColor(color);
-        if (color != lastColor) {
-            gc->DrawPath(path);
-            path = gc->CreatePath();
-            pen.SetColour(color);
-            brush.SetColour(color);
-            brush.SetStyle(wxBRUSHSTYLE_SOLID);
-            gc->SetPen(pen);
-            gc->SetBrush(brush);
-            lastColor = color;
-        }
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
@@ -1080,8 +1144,7 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             //dc.DrawPoint(sx,sy);
             //dc.DrawCircle(sx*scale,sy*scale,radius);
             //gc->DrawEllipse(sx*scale,sy*scale,radius,radius);
-            path.AddEllipse(sx*scale,sy*scale,radius,radius);
+            gc.AddCircle(color, sx*scale,sy*scale,radius);
         }
     }
-    gc->DrawPath(path);
 }
