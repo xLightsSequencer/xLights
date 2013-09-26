@@ -1,3 +1,0 @@
-APP_ICON ICON "../include/xlights.ico"
-
-#include "wx/msw/wx.rc"
