@@ -7,7 +7,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
-					- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, modifying a network, etc..) did not work properly and could result in modifying the wrong network.
+					- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
+					- Bug: (Dan) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
+					- Bug: (Dan) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
 				
 3.2.1:  Sep 12,2013 - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
 					- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
