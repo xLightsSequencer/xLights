@@ -887,7 +887,7 @@ void ModelClass::UpdateXmlWithScale()
 }
 
 
-#ifndef __WXMSW__
+#ifdef __WXOSX__
 class ModelGraphics {
 public:
     ModelGraphics(wxWindow *window) : lastColor(*wxBLACK) {
