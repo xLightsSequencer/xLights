@@ -155,9 +155,9 @@ void xLightsFrame::OnButtonChooseFileClick(wxCommandEvent& event)
         }
         TextCtrlFilename->ChangeValue( AllNames );
         wxString ConvertDir = FileDialogConvert->GetDirectory();
-        wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
+        wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("ConvertDir"), ConvertDir);
-        delete config;
+        //delete config;
     }
 }
 
@@ -1023,7 +1023,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     wxArrayString context;
     IrrXMLReader* xml = createIrrXMLReader(filename);
     wxArrayInt map;
-    
+
 
     // pass one, get the metadata
     while(xml && xml->read())
@@ -1088,8 +1088,8 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         }
     }
     delete xml;
-    
-    
+
+
     TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("msPerCell = %d ms\n"), msPerCell));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels = %d\n"), channels));
@@ -1114,7 +1114,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     }
     channels = 0;
 
-    
+
     //pass2 read the sequence data
     while(xml && xml->read())
     {

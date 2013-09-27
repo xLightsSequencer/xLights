@@ -39,7 +39,6 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxColour c;
     wxBitmap bitmap(BufferWi,BufferHt);
     wxMemoryDC dc(bitmap);
-    //wxNativeFontInfo NFont1,NFont2;  // cleartype off
 
     long DefaultPixelHt=BufferHt/2;
     if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
@@ -53,7 +52,13 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         Font2.SetNativeFontInfoUserDesc(FontString2);
     }
 
-#if defined(__WXMSW__)
+#ifndef __WXMSW__
+    // wxMemoryDC is not cleared on creation
+    dc.SetBackground(*wxBLACK_BRUSH);
+    dc.Clear();
+#endif
+
+#ifdef __WXMSW__
     /*
     Here is the format for NativeFontInfo on Windows (taken from the source)
     We want to change lfQuality from 2 to 3 - this disables antialiasing

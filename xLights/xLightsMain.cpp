@@ -1159,7 +1159,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 
     SetIcon(wxIcon(xlights_xpm));
-    wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
+    SetName("xLights");
+    wxPersistenceManager::Get().RegisterAndRestore(this);
+    wxConfigBase* config = wxConfigBase::Get();
 
     effGridPrevX = 0;
     effGridPrevY = 0;
@@ -1284,7 +1286,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     xout=0;
     long RunFlag=0;
     config->Read(_("RunSchedule"), &RunFlag);
-    delete config;  // close config before calling SetDir, which will open config
+    //delete config;  // close config before calling SetDir, which will open config
 
     SetPlayMode(play_off);
     ResetEffectsXml();
@@ -1322,9 +1324,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
-
-    SetName("xLights");
-    wxPersistenceManager::Get().RegisterAndRestore(this);
 }
 
 xLightsFrame::~xLightsFrame()
