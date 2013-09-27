@@ -69,7 +69,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     // save config
     bool DirExists=wxFileName::DirExists(newdir);
     wxString mru_name, value;
-    wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
+    wxConfigBase* config = wxConfigBase::Get();
     if (DirExists) config->Write(_("LastDir"), newdir);
     for (i=0; i<MRU_LENGTH; i++)
     {
@@ -88,7 +88,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
         }
         config->Write(mru_name, value);
     }
-    delete config;
+    //delete config;
 
     // append mru items to menu
     cnt=mru.GetCount();
@@ -219,7 +219,7 @@ void xLightsFrame::UpdateNetworkList()
             GridNetwork->SetItem(newidx,4,msg);
 
             // Vixen mapping
-            msg=wxString::Format(_("Channels %d to %d"), StartChannel, TotChannels);
+            msg=wxString::Format(_("Channels %d to %ld"), StartChannel, TotChannels);
             GridNetwork->SetItem(newidx,5,msg);
         }
     }
@@ -234,7 +234,7 @@ void xLightsFrame::UpdateChannelNames()
     wxArrayString ChNames;
     ModelClass model;
     wxString FormatSpec;
-    int ChannelNum,ChanPerNode;
+    int ChannelNum,ChanPerNode,NodeNum;
     size_t NodeCount,n,c;
     NetInfo.GetAllChannelNames(ChNames);
     // update names with RGB models where MyDisplay is checked
@@ -245,15 +245,16 @@ void xLightsFrame::UpdateChannelNames()
             model.SetFromXml(e);
             NodeCount=model.GetNodeCount();
             ChanPerNode = model.ChannelsPerNode();
-            FormatSpec = wxT("Ch %d: ")+model.name+wxT(" #%d %c");
+            FormatSpec = wxT("Ch %d: ")+model.name+wxT(" #%d");
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model.NodeStartChannel(n);
+                NodeNum=n+1;
                 if (ChanPerNode==1)
                 {
                     if (ChannelNum < ChNames.Count())
                     {
-                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,n+1,' ');
+                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
                     }
                 }
                 else
@@ -262,7 +263,7 @@ void xLightsFrame::UpdateChannelNames()
                     {
                         if (ChannelNum < ChNames.Count())
                         {
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,n+1,model.GetChannelColorLetter(c));
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
                         }
                         ChannelNum++;
                     }

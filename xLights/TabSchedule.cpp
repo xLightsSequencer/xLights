@@ -1756,8 +1756,9 @@ void xLightsFrame::OnCheckBoxRunScheduleClick(wxCommandEvent& event)
     CheckRunSchedule();
     long RunFlag=CheckBoxRunSchedule->IsChecked() ? 1 : 0;
     // Get CurrentDir
-    wxConfig* config = new wxConfig(_(XLIGHTS_CONFIG_ID));
+    wxConfigBase* config = wxConfigBase::Get();
     config->Write(_("RunSchedule"), RunFlag);
+    //delete config;
 }
 
 
