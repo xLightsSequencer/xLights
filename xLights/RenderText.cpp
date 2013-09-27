@@ -100,12 +100,15 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     }
     RenderTextLine(dc,1,Position2,Line2,dir2,Effect2,Countdown2);
 
-    // copy dc to buffer
+    //convert to image to get the pixel data
+    wxImage image(bitmap.ConvertToImage());
     for(wxCoord x=0; x<BufferWi; x++)
     {
         for(wxCoord y=0; y<BufferHt; y++)
         {
-            dc.GetPixel(x,BufferHt-y-1,&c);
+            c.Set(image.GetRed(x, BufferHt-y-1),
+                  image.GetGreen(x, BufferHt-y-1),
+                  image.GetBlue(x, BufferHt-y-1));
             SetPixel(x,y,c);
         }
     }
