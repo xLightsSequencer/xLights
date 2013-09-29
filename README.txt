@@ -4,6 +4,8 @@ controllers. xLights has a extensive scheduler. Nutcracker is a program that gen
 such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+3.2.3:
+					- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
