@@ -590,6 +590,7 @@
 					"-D__WXOSX_COCOA__",
 				);
 				OTHER_LDFLAGS = (
+					"-L/usr/lib",
 					"-L/opt/local/lib",
 					"-framework",
 					IOKit,
@@ -662,6 +663,7 @@
 					"-D__WXOSX_COCOA__",
 				);
 				OTHER_LDFLAGS = (
+					"-L/usr/lib",
 					"-L/opt/local/lib",
 					"-framework",
 					IOKit,
