@@ -5,6 +5,7 @@ such as megatrees, matrices, and arches.
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 3.2.3:
+                                        - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
 					- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
