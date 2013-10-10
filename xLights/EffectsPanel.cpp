@@ -2,8 +2,8 @@
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/settings.h>
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 //(*IdInit(EffectsPanel)
@@ -162,6 +162,22 @@ const long EffectsPanel::ID_PANEL7 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT87 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Tree_Branches = wxNewId();
 const long EffectsPanel::ID_PANEL34 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT8 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Single_Color_Mix1 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT9 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Single_Color_Spacing1 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT10 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Single_Group_Arches1 = wxNewId();
+const long EffectsPanel::ID_PANEL3 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT11 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Single_Color_Mix2 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT12 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Single_Color_Spacing2 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT13 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Single_Group_Arches2 = wxNewId();
+const long EffectsPanel::ID_PANEL6 = wxNewId();
+const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
+const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT86 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Twinkle_Count = wxNewId();
 const long EffectsPanel::ID_STATICTEXT105 = wxNewId();
@@ -199,33 +215,36 @@ END_EVENT_TABLE()
 EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
 	//(*Initialize(EffectsPanel)
-	wxFlexGridSizer* FlexGridSizer46;
-	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer72;
-	wxFlexGridSizer* FlexGridSizer74;
-	wxFlexGridSizer* FlexGridSizer41;
-	wxFlexGridSizer* FlexGridSizer40;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer71;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer38;
-	wxFlexGridSizer* FlexGridSizer42;
-	wxFlexGridSizer* FlexGridSizer37;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer31;
-	wxFlexGridSizer* FlexGridSizer43;
-	wxFlexGridSizer* FlexGridSizer39;
-	wxFlexGridSizer* FlexGridSizer80;
-	wxFlexGridSizer* FlexGridSizer73;
-	wxFlexGridSizer* FlexGridSizer36;
 	wxFlexGridSizer* FlexGridSizer45;
+	wxFlexGridSizer* FlexGridSizer73;
+	wxFlexGridSizer* FlexGridSizer38;
+	wxFlexGridSizer* FlexGridSizer41;
+	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer80;
 	wxFlexGridSizer* FlexGridSizer44;
-	wxFlexGridSizer* FlexGridSizer35;
+	wxFlexGridSizer* FlexGridSizer37;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer65;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer69;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer74;
+	wxFlexGridSizer* FlexGridSizer8;
+	wxFlexGridSizer* FlexGridSizer35;
+	wxFlexGridSizer* FlexGridSizer36;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer46;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer43;
+	wxFlexGridSizer* FlexGridSizer65;
+	wxFlexGridSizer* FlexGridSizer42;
+	wxFlexGridSizer* FlexGridSizer72;
+	wxFlexGridSizer* FlexGridSizer31;
+	wxFlexGridSizer* FlexGridSizer40;
+	wxFlexGridSizer* FlexGridSizer39;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -660,6 +679,52 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Panel1_Tree->SetSizer(FlexGridSizer71);
 	FlexGridSizer71->Fit(Panel1_Tree);
 	FlexGridSizer71->SetSizeHints(Panel1_Tree);
+	Panel1_SingleStrand = new wxPanel(Choicebook1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(1);
+	Notebook1 = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK1, wxDefaultPosition, wxSize(220,201), 0, _T("ID_NOTEBOOK1"));
+	Panel1 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	FlexGridSizer9 = new wxFlexGridSizer(4, 2, 0, 0);
+	StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Color Mix"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Single_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Mix1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix1"));
+	FlexGridSizer9->Add(Slider_Single_Color_Mix1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText10 = new wxStaticText(Panel1, ID_STATICTEXT9, _("Color Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer9->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Single_Color_Spacing1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Spacing1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing1"));
+	FlexGridSizer9->Add(Slider_Single_Color_Spacing1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText11 = new wxStaticText(Panel1, ID_STATICTEXT10, _("Group all Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer9->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Single_Group_Arches1 = new wxCheckBox(Panel1, ID_CHECKBOX_Single_Group_Arches1, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Single_Group_Arches1"));
+	CheckBox_Single_Group_Arches1->SetValue(false);
+	FlexGridSizer9->Add(CheckBox_Single_Group_Arches1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel1->SetSizer(FlexGridSizer9);
+	FlexGridSizer9->Fit(Panel1);
+	FlexGridSizer9->SetSizeHints(Panel1);
+	Panel2 = new wxPanel(Notebook1, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+	FlexGridSizer10 = new wxFlexGridSizer(4, 2, 0, 0);
+	StaticText12 = new wxStaticText(Panel2, ID_STATICTEXT11, _("Color Mix"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+	FlexGridSizer10->Add(StaticText12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Single_Color_Mix2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Mix2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix2"));
+	FlexGridSizer10->Add(Slider_Single_Color_Mix2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText13 = new wxStaticText(Panel2, ID_STATICTEXT12, _("Color Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer10->Add(StaticText13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Single_Color_Spacing2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Spacing2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing2"));
+	FlexGridSizer10->Add(Slider_Single_Color_Spacing2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText14 = new wxStaticText(Panel2, ID_STATICTEXT13, _("Group All Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
+	FlexGridSizer10->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Single_Group_Arches2 = new wxCheckBox(Panel2, ID_CHECKBOX_Single_Group_Arches2, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Single_Group_Arches2"));
+	CheckBox_Single_Group_Arches2->SetValue(false);
+	FlexGridSizer10->Add(CheckBox_Single_Group_Arches2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel2->SetSizer(FlexGridSizer10);
+	FlexGridSizer10->Fit(Panel2);
+	FlexGridSizer10->SetSizeHints(Panel2);
+	Notebook1->AddPage(Panel1, _("Chase 1"), false);
+	Notebook1->AddPage(Panel2, _("Chase 2"), false);
+	FlexGridSizer2->Add(Notebook1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel1_SingleStrand->SetSizer(FlexGridSizer2);
+	FlexGridSizer2->Fit(Panel1_SingleStrand);
+	FlexGridSizer2->SetSizeHints(Panel1_SingleStrand);
 	Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
@@ -696,6 +761,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Choicebook1->AddPage(Panel1_Spirograph, _("Spirograph"), false);
 	Choicebook1->AddPage(Panel1_Text, _("Text"), false);
 	Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
+	Choicebook1->AddPage(Panel1_SingleStrand, _("SingleStrand"), false);
 	Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
 	FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -827,7 +893,7 @@ void EffectsPanel::SetButtonColor(wxButton* btn, const wxColour* c)
     btn->SetBackgroundColour(*c);
     int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
     btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
-    
+
 #ifdef __WXOSX__
     //OSX does NOT allow active buttons to have a color other than the default.
     //We'll use an image of the appropriate color instead
@@ -835,7 +901,7 @@ void EffectsPanel::SetButtonColor(wxButton* btn, const wxColour* c)
     image.SetRGB(wxRect(0, 0, 15, 15),
                  c->Red(), c->Green(), c->Blue());
     wxBitmap bmp(image);
-    
+
     btn->SetBitmap(bmp);
     btn->SetLabelText("");
 #endif

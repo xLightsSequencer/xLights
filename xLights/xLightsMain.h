@@ -221,6 +221,7 @@ public:
         eff_SPIROGRAPH,
         eff_TEXT,
         eff_TREE,
+        eff_SINGLESTRAND,
         eff_TWINKLE,
         eff_LASTEFFECT //Always the last entry
     };

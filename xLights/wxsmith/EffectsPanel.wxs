@@ -1340,6 +1340,129 @@
 						<label>Tree</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL2" variable="Panel1_SingleStrand" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+								<cols>2</cols>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+										<size>220,201</size>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL3" variable="Panel1" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+													<cols>2</cols>
+													<rows>4</rows>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
+															<label>Color Mix</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix1" variable="Slider_Single_Color_Mix1" member="yes" />
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText10" member="yes">
+															<label>Color Spacing</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing1" variable="Slider_Single_Color_Spacing1" member="yes" />
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText11" member="yes">
+															<label>Group all Arches</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Single_Group_Arches1" variable="CheckBox_Single_Group_Arches1" member="yes">
+															<label>Yes</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Chase 1</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL6" variable="Panel2" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+													<cols>2</cols>
+													<rows>4</rows>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText12" member="yes">
+															<label>Color Mix</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix2" variable="Slider_Single_Color_Mix2" member="yes" />
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText13" member="yes">
+															<label>Color Spacing</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing2" variable="Slider_Single_Color_Spacing2" member="yes" />
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText14" member="yes">
+															<label>Group All Arches</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Single_Group_Arches2" variable="CheckBox_Single_Group_Arches2" member="yes">
+															<label>Yes</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Chase 2</label>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>SingleStrand</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 								<cols>2</cols>

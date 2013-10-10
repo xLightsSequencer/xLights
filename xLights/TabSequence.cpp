@@ -768,6 +768,15 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
                              );
     }
+    else if (effect == wxT("SingleStrand"))
+    {
+        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+wxT("Slide_Single_Color_Mix1")]),
+                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Color_Spacing1")]),
+                                  SettingsMap[LayerStr+wxT("CheckBox_Single_Group_Arches1")]==wxT("1"),
+                                  wxAtoi(SettingsMap[LayerStr+wxT("Slide_Single_Color_Mix2")]),
+                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Color_Spacing2")]),
+                                  SettingsMap[LayerStr+wxT("CheckBox_Single_Group_Arches2")]==wxT("1"));
+    }
     else if (effect == wxT("Snowflakes"))
     {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Count")]),
@@ -917,6 +926,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
+
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
                                 panel->Slider_Snowflakes_Type->GetValue());
@@ -958,6 +968,14 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_TREE:
         buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
+        break;
+    case eff_SINGLESTRAND:
+        buffer.RenderSingleStrand(panel->Slider_Single_Color_Mix1->GetValue(),
+                                  panel->Slider_Single_Color_Spacing1->GetValue(),
+                                  panel->CheckBox_Single_Group_Arches1->GetValue(),
+                                  panel->Slider_Single_Color_Mix2->GetValue(),
+                                  panel->Slider_Single_Color_Spacing2->GetValue(),
+                                  panel->CheckBox_Single_Group_Arches2->GetValue());
         break;
     case eff_TWINKLE:
         buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),

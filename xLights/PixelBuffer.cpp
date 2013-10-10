@@ -391,7 +391,7 @@ void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, i
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
+                                     bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
 {
     Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
 }
@@ -439,6 +439,13 @@ void PixelBufferClass::RenderPiano(int Keyboard)
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
 {
     Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
+}
+
+void PixelBufferClass::RenderSingleStrand(int Color_Mix1,int Color_Spacing1,bool Group_Arches1,
+        int Color_Mix2,int Color_Spacing2,bool Group_Arches2)
+{
+    Effect[CurrentLayer].RenderSingleStrand(Color_Mix1,Color_Spacing1, Group_Arches1,
+                                            Color_Mix2,Color_Spacing2, Group_Arches2);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)
