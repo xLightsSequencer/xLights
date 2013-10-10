@@ -79,7 +79,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config --libs std,media`" />
-					<Add option="`pkg-config --libs gstreamer-interfaces-0.10`"/>
 				</Linker>
 			</Target>
 			<Target title="ReleaseLinux">
@@ -100,7 +99,6 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="`wx-config --version=2.9 --libs std,media`" />
-					<Add option="`pkg-config --libs gstreamer-interfaces-0.10`"/>
 				</Linker>
 			</Target>
 		</Build>
@@ -150,6 +148,7 @@
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
+		<Unit filename="RenderSingleStrand.cpp" />
 		<Unit filename="RenderSnowflakes.cpp" />
 		<Unit filename="RenderSnowstorm.cpp" />
 		<Unit filename="RenderSpirals.cpp" />

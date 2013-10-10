@@ -8,6 +8,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					- Bug: (Dan) Schedule tab missing on Linux
                                         - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
 					- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
+					- Enhancement: (Sean)New Single Strand Effect class. Use this for arches and eaves (under development)
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
