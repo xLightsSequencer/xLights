@@ -258,6 +258,7 @@ public:
         }
         InitData(ipaddr, UniverseNumber, NetNum);
         InitRemoteAddr(ipaddr, UniverseNumber, NetNum);
+        SetChannelCount(num_channels);
     }
 private:
     void InitData(const wxString& ipaddr, wxUint16 UniverseNumber, wxUint16 NetNum) {
@@ -432,6 +433,32 @@ public:
             throw "max channels on E1.31 is 512";
         }
         num_channels=numchannels;
+        
+        int i = num_channels + 1;
+        wxByte NumHi = i >> 8;   // Channels (high)
+        wxByte NumLo = i & 0xff; // Channels (low)
+        
+        data[123]=NumHi;  // Property value count (high)
+        data[124]=NumLo;  // Property value count (low)
+        
+        i = 638 - 16 - (512 - num_channels);
+        wxByte hi = i >> 8;   // (high)
+        wxByte lo = i & 0xff; // (low)
+        
+        data[16]=hi + 0x70;  // RLP Protocol flags and length (high)
+        data[17]=lo;  // 0x26e = 638 - 16
+        
+        i = 638 - 38 - (512 - num_channels);
+        hi = i >> 8;   // (high)
+        lo = i & 0xff; // (low)
+        data[38]=hi + 0x70;  // Framing Protocol flags and length (high)
+        data[39]=lo;  // 0x258 = 638 - 38
+        
+        i = 638 - 115 - (512 - num_channels);
+        hi = i >> 8;   // (high)
+        lo = i & 0xff; // (low)
+        data[115]=hi + 0x70;  // DMP Protocol flags and length (high)
+        data[116]=lo;  // 0x20b = 638 - 115
     };
 
     void TimerEnd()
@@ -440,7 +467,7 @@ public:
         if (xNetwork_E131_changed || SkipCount > 10)
         {
             data[111]=SequenceNum;
-            datagram->SendTo(remoteAddr, data, E131_PACKET_LEN);
+            datagram->SendTo(remoteAddr, data, E131_PACKET_LEN - (512 - num_channels));
             SequenceNum= SequenceNum==255 ? 0 : SequenceNum+1;
             SkipCount=0;
         }

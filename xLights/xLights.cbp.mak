@@ -24,7 +24,7 @@ RESINC_DEBUGLINUX = $(RESINC)
 RCFLAGS_DEBUGLINUX = $(RCFLAGS)
 LIBDIR_DEBUGLINUX = $(LIBDIR)
 LIB_DEBUGLINUX = $(LIB)
-LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` $(LDFLAGS)
+LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` `pkg-config --libs gstreamer-interfaces-0.10` $(LDFLAGS)
 OBJDIR_DEBUGLINUX = .objs
 DEP_DEBUGLINUX = 
 OUT_DEBUGLINUX = ../bin/xLights
@@ -35,7 +35,7 @@ RESINC_RELEASELINUX = $(RESINC)
 RCFLAGS_RELEASELINUX = $(RCFLAGS)
 LIBDIR_RELEASELINUX = $(LIBDIR)
 LIB_RELEASELINUX = $(LIB)
-LDFLAGS_RELEASELINUX =  -s `wx-config --version=2.9 --libs std,media` $(LDFLAGS)
+LDFLAGS_RELEASELINUX =  -s `wx-config --version=2.9 --libs std,media` `pkg-config --libs gstreamer-interfaces-0.10` $(LDFLAGS)
 OBJDIR_RELEASELINUX = .objs
 DEP_RELEASELINUX = 
 OUT_RELEASELINUX = ../bin/xLights
