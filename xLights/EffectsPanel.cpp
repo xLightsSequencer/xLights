@@ -687,11 +687,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer9 = new wxFlexGridSizer(4, 2, 0, 0);
 	StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Color Mix"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Single_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Mix1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix1"));
+	Slider_Single_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Mix1, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix1"));
 	FlexGridSizer9->Add(Slider_Single_Color_Mix1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText10 = new wxStaticText(Panel1, ID_STATICTEXT9, _("Color Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer9->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Single_Color_Spacing1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Spacing1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing1"));
+	Slider_Single_Color_Spacing1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Spacing1, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing1"));
 	FlexGridSizer9->Add(Slider_Single_Color_Spacing1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText11 = new wxStaticText(Panel1, ID_STATICTEXT10, _("Group all Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer9->Add(StaticText11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -705,11 +705,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer10 = new wxFlexGridSizer(4, 2, 0, 0);
 	StaticText12 = new wxStaticText(Panel2, ID_STATICTEXT11, _("Color Mix"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer10->Add(StaticText12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Single_Color_Mix2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Mix2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix2"));
+	Slider_Single_Color_Mix2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Mix2, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix2"));
 	FlexGridSizer10->Add(Slider_Single_Color_Mix2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(Panel2, ID_STATICTEXT12, _("Color Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer10->Add(StaticText13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Single_Color_Spacing2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Spacing2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing2"));
+	Slider_Single_Color_Spacing2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Spacing2, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Spacing2"));
 	FlexGridSizer10->Add(Slider_Single_Color_Spacing2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText14 = new wxStaticText(Panel2, ID_STATICTEXT13, _("Group All Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
 	FlexGridSizer10->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

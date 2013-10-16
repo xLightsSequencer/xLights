@@ -1361,7 +1361,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix1" variable="Slider_Single_Color_Mix1" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix1" variable="Slider_Single_Color_Mix1" member="yes">
+															<value>1</value>
+															<min>1</min>
+														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -1375,7 +1378,11 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing1" variable="Slider_Single_Color_Spacing1" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing1" variable="Slider_Single_Color_Spacing1" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>10</max>
+														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -1414,7 +1421,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix2" variable="Slider_Single_Color_Mix2" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Mix2" variable="Slider_Single_Color_Mix2" member="yes">
+															<value>1</value>
+															<min>1</min>
+														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -1428,7 +1438,11 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing2" variable="Slider_Single_Color_Spacing2" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Single_Color_Spacing2" variable="Slider_Single_Color_Spacing2" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>10</max>
+														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>

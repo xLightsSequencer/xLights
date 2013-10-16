@@ -369,10 +369,11 @@ void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
     nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
 }
 
-void RgbEffects::GetEffectPeriods( int& start, int& next)
+void RgbEffects::GetEffectPeriods( int& start, int& next, int& endp)
 {
     start = curEffStartPer;
     next = nextEffTimePeriod;
+    endp = curEffEndPer;
 }
 
 

@@ -75,7 +75,7 @@ public:
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
 
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
-    void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod);  // nobody wants endPer?
+    void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod, int& curEffEndPer);  // nobody wants endPer?
 
 #include "Effects.h"
 

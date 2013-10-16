@@ -283,8 +283,8 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
         Effect[ii].GetFadeSteps( fadeInSteps, fadeOutSteps);
         if( fadeInSteps > 0 || fadeOutSteps > 0)
         {
-            int effStartPer, effNextPer;
-            Effect[ii].GetEffectPeriods( effStartPer, effNextPer);
+            int effStartPer, effNextPer, effEndPer;
+            Effect[ii].GetEffectPeriods( effStartPer, effNextPer, effEndPer);
             if (EffectPeriod < (effStartPer)+fadeInSteps)
             {
                 curStep = EffectPeriod - effStartPer;
