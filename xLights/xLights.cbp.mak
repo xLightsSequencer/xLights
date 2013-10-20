@@ -12,7 +12,7 @@ LD = g++
 WINDRES = windres
 
 INC = 
-CFLAGS = -DwxUSE_UNICODE
+CFLAGS = -DwxUSE_UNICODE -std=gnu++0x
 RESINC = 
 LIBDIR = 
 LIB = 
@@ -24,25 +24,25 @@ RESINC_DEBUGLINUX = $(RESINC)
 RCFLAGS_DEBUGLINUX = $(RCFLAGS)
 LIBDIR_DEBUGLINUX = $(LIBDIR)
 LIB_DEBUGLINUX = $(LIB)
-LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` `pkg-config --libs gstreamer-interfaces-0.10` $(LDFLAGS)
-OBJDIR_DEBUGLINUX = .objs
+LDFLAGS_DEBUGLINUX =  `wx-config --libs std,media` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+OBJDIR_DEBUGLINUX = .objs_debug
 DEP_DEBUGLINUX = 
 OUT_DEBUGLINUX = ../bin/xLights
 
 INC_RELEASELINUX = $(INC)
-CFLAGS_RELEASELINUX = $(CFLAGS) -O2 -std=c++0x -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG
+CFLAGS_RELEASELINUX = $(CFLAGS) -O2 -std=c++0x -Wall `wx-config --version=2.9 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value
 RESINC_RELEASELINUX = $(RESINC)
-RCFLAGS_RELEASELINUX = $(RCFLAGS)
+RCFLAGS_RELEASELINUX = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value
 LIBDIR_RELEASELINUX = $(LIBDIR)
 LIB_RELEASELINUX = $(LIB)
-LDFLAGS_RELEASELINUX =  -s `wx-config --version=2.9 --libs std,media` `pkg-config --libs gstreamer-interfaces-0.10` $(LDFLAGS)
+LDFLAGS_RELEASELINUX =  -s `wx-config --version=2.9 --libs std,media` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
 OBJDIR_RELEASELINUX = .objs
 DEP_RELEASELINUX = 
 OUT_RELEASELINUX = ../bin/xLights
 
-OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/TabSetup.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/EffectsPanel.o $(OBJDIR_DEBUGLINUX)/EffectTreeDialog.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/RenderCurtain.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderPiano.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderCircles.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o
+OBJ_DEBUGLINUX = $(OBJDIR_DEBUGLINUX)/TabSetup.o $(OBJDIR_DEBUGLINUX)/ShowDatesDialog.o $(OBJDIR_DEBUGLINUX)/SerialPortWithRate.o $(OBJDIR_DEBUGLINUX)/serial.o $(OBJDIR_DEBUGLINUX)/SeqParmsDialog.o $(OBJDIR_DEBUGLINUX)/SeqOpenDialog.o $(OBJDIR_DEBUGLINUX)/SeqExportDialog.o $(OBJDIR_DEBUGLINUX)/SeqElementMismatchDialog.o $(OBJDIR_DEBUGLINUX)/RgbEffects.o $(OBJDIR_DEBUGLINUX)/RenderTwinkle.o $(OBJDIR_DEBUGLINUX)/RenderTree.o $(OBJDIR_DEBUGLINUX)/xlights_out.o $(OBJDIR_DEBUGLINUX)/xLightsMain.o $(OBJDIR_DEBUGLINUX)/xLightsApp.o $(OBJDIR_DEBUGLINUX)/RenderText.o $(OBJDIR_DEBUGLINUX)/PaletteMgmtDialog.o $(OBJDIR_DEBUGLINUX)/NetInfo.o $(OBJDIR_DEBUGLINUX)/ModelListDialog.o $(OBJDIR_DEBUGLINUX)/ModelDialog.o $(OBJDIR_DEBUGLINUX)/ModelClass.o $(OBJDIR_DEBUGLINUX)/EffectsPanel.o $(OBJDIR_DEBUGLINUX)/EffectTreeDialog.o $(OBJDIR_DEBUGLINUX)/EffectListDialog.o $(OBJDIR_DEBUGLINUX)/E131Dialog.o $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o $(OBJDIR_DEBUGLINUX)/RenderFire.o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o $(OBJDIR_DEBUGLINUX)/RenderSpirals.o $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o $(OBJDIR_DEBUGLINUX)/RenderSingleStrand.o $(OBJDIR_DEBUGLINUX)/RenderPictures.o $(OBJDIR_DEBUGLINUX)/RenderPiano.o $(OBJDIR_DEBUGLINUX)/RenderMeteors.o $(OBJDIR_DEBUGLINUX)/RenderLife.o $(OBJDIR_DEBUGLINUX)/RenderGarlands.o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o $(OBJDIR_DEBUGLINUX)/RenderCurtain.o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o $(OBJDIR_DEBUGLINUX)/RenderCircles.o $(OBJDIR_DEBUGLINUX)/RenderButterfly.o $(OBJDIR_DEBUGLINUX)/RenderBars.o $(OBJDIR_DEBUGLINUX)/PlayerFrame.o $(OBJDIR_DEBUGLINUX)/PlaybackOptionsDialog.o $(OBJDIR_DEBUGLINUX)/PixelBuffer.o
 
-OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/TabSetup.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/EffectsPanel.o $(OBJDIR_RELEASELINUX)/EffectTreeDialog.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderCurtain.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderPiano.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderCircles.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o
+OBJ_RELEASELINUX = $(OBJDIR_RELEASELINUX)/TabSetup.o $(OBJDIR_RELEASELINUX)/ShowDatesDialog.o $(OBJDIR_RELEASELINUX)/SerialPortWithRate.o $(OBJDIR_RELEASELINUX)/serial.o $(OBJDIR_RELEASELINUX)/SeqParmsDialog.o $(OBJDIR_RELEASELINUX)/SeqOpenDialog.o $(OBJDIR_RELEASELINUX)/SeqExportDialog.o $(OBJDIR_RELEASELINUX)/SeqElementMismatchDialog.o $(OBJDIR_RELEASELINUX)/RgbEffects.o $(OBJDIR_RELEASELINUX)/RenderTwinkle.o $(OBJDIR_RELEASELINUX)/RenderTree.o $(OBJDIR_RELEASELINUX)/xlights_out.o $(OBJDIR_RELEASELINUX)/xLightsMain.o $(OBJDIR_RELEASELINUX)/xLightsApp.o $(OBJDIR_RELEASELINUX)/RenderText.o $(OBJDIR_RELEASELINUX)/PaletteMgmtDialog.o $(OBJDIR_RELEASELINUX)/NetInfo.o $(OBJDIR_RELEASELINUX)/ModelListDialog.o $(OBJDIR_RELEASELINUX)/ModelDialog.o $(OBJDIR_RELEASELINUX)/ModelClass.o $(OBJDIR_RELEASELINUX)/EffectsPanel.o $(OBJDIR_RELEASELINUX)/EffectTreeDialog.o $(OBJDIR_RELEASELINUX)/EffectListDialog.o $(OBJDIR_RELEASELINUX)/E131Dialog.o $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o $(OBJDIR_RELEASELINUX)/RenderFire.o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o $(OBJDIR_RELEASELINUX)/RenderSpirals.o $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o $(OBJDIR_RELEASELINUX)/RenderSingleStrand.o $(OBJDIR_RELEASELINUX)/RenderPictures.o $(OBJDIR_RELEASELINUX)/RenderPiano.o $(OBJDIR_RELEASELINUX)/RenderMeteors.o $(OBJDIR_RELEASELINUX)/RenderLife.o $(OBJDIR_RELEASELINUX)/RenderGarlands.o $(OBJDIR_RELEASELINUX)/RenderFireworks.o $(OBJDIR_RELEASELINUX)/AddShowDialog.o $(OBJDIR_RELEASELINUX)/RenderCurtain.o $(OBJDIR_RELEASELINUX)/RenderColorWash.o $(OBJDIR_RELEASELINUX)/RenderCircles.o $(OBJDIR_RELEASELINUX)/RenderButterfly.o $(OBJDIR_RELEASELINUX)/RenderBars.o $(OBJDIR_RELEASELINUX)/PlayerFrame.o $(OBJDIR_RELEASELINUX)/PlaybackOptionsDialog.o $(OBJDIR_RELEASELINUX)/PixelBuffer.o
 
 all: debuglinux releaselinux
 
@@ -137,8 +137,8 @@ $(OBJDIR_DEBUGLINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_DEBUGLINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_DEBUGLINUX)/RenderCurtain.o: RenderCurtain.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderCurtain.cpp -o $(OBJDIR_DEBUGLINUX)/RenderCurtain.o
+$(OBJDIR_DEBUGLINUX)/RenderFire.o: RenderFire.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFire.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFire.o
 
 $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o: RenderSpirograph.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderSpirograph.cpp -o $(OBJDIR_DEBUGLINUX)/RenderSpirograph.o
@@ -151,6 +151,9 @@ $(OBJDIR_DEBUGLINUX)/RenderSnowstorm.o: RenderSnowstorm.cpp
 
 $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o: RenderSnowflakes.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderSnowflakes.cpp -o $(OBJDIR_DEBUGLINUX)/RenderSnowflakes.o
+
+$(OBJDIR_DEBUGLINUX)/RenderSingleStrand.o: RenderSingleStrand.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderSingleStrand.cpp -o $(OBJDIR_DEBUGLINUX)/RenderSingleStrand.o
 
 $(OBJDIR_DEBUGLINUX)/RenderPictures.o: RenderPictures.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderPictures.cpp -o $(OBJDIR_DEBUGLINUX)/RenderPictures.o
@@ -170,11 +173,11 @@ $(OBJDIR_DEBUGLINUX)/RenderGarlands.o: RenderGarlands.cpp
 $(OBJDIR_DEBUGLINUX)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFireworks.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFireworks.o
 
-$(OBJDIR_DEBUGLINUX)/RenderFire.o: RenderFire.cpp
-	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderFire.cpp -o $(OBJDIR_DEBUGLINUX)/RenderFire.o
-
 $(OBJDIR_DEBUGLINUX)/AddShowDialog.o: AddShowDialog.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c AddShowDialog.cpp -o $(OBJDIR_DEBUGLINUX)/AddShowDialog.o
+
+$(OBJDIR_DEBUGLINUX)/RenderCurtain.o: RenderCurtain.cpp
+	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderCurtain.cpp -o $(OBJDIR_DEBUGLINUX)/RenderCurtain.o
 
 $(OBJDIR_DEBUGLINUX)/RenderColorWash.o: RenderColorWash.cpp
 	$(CXX) $(CFLAGS_DEBUGLINUX) $(INC_DEBUGLINUX) -c RenderColorWash.cpp -o $(OBJDIR_DEBUGLINUX)/RenderColorWash.o
@@ -289,8 +292,8 @@ $(OBJDIR_RELEASELINUX)/ChannelMapDialog.o: ChannelMapDialog.cpp
 $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c ChannelLayoutDialog.cpp -o $(OBJDIR_RELEASELINUX)/ChannelLayoutDialog.o
 
-$(OBJDIR_RELEASELINUX)/RenderCurtain.o: RenderCurtain.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderCurtain.cpp -o $(OBJDIR_RELEASELINUX)/RenderCurtain.o
+$(OBJDIR_RELEASELINUX)/RenderFire.o: RenderFire.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFire.cpp -o $(OBJDIR_RELEASELINUX)/RenderFire.o
 
 $(OBJDIR_RELEASELINUX)/RenderSpirograph.o: RenderSpirograph.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderSpirograph.cpp -o $(OBJDIR_RELEASELINUX)/RenderSpirograph.o
@@ -303,6 +306,9 @@ $(OBJDIR_RELEASELINUX)/RenderSnowstorm.o: RenderSnowstorm.cpp
 
 $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o: RenderSnowflakes.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderSnowflakes.cpp -o $(OBJDIR_RELEASELINUX)/RenderSnowflakes.o
+
+$(OBJDIR_RELEASELINUX)/RenderSingleStrand.o: RenderSingleStrand.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderSingleStrand.cpp -o $(OBJDIR_RELEASELINUX)/RenderSingleStrand.o
 
 $(OBJDIR_RELEASELINUX)/RenderPictures.o: RenderPictures.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderPictures.cpp -o $(OBJDIR_RELEASELINUX)/RenderPictures.o
@@ -322,11 +328,11 @@ $(OBJDIR_RELEASELINUX)/RenderGarlands.o: RenderGarlands.cpp
 $(OBJDIR_RELEASELINUX)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFireworks.cpp -o $(OBJDIR_RELEASELINUX)/RenderFireworks.o
 
-$(OBJDIR_RELEASELINUX)/RenderFire.o: RenderFire.cpp
-	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderFire.cpp -o $(OBJDIR_RELEASELINUX)/RenderFire.o
-
 $(OBJDIR_RELEASELINUX)/AddShowDialog.o: AddShowDialog.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c AddShowDialog.cpp -o $(OBJDIR_RELEASELINUX)/AddShowDialog.o
+
+$(OBJDIR_RELEASELINUX)/RenderCurtain.o: RenderCurtain.cpp
+	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderCurtain.cpp -o $(OBJDIR_RELEASELINUX)/RenderCurtain.o
 
 $(OBJDIR_RELEASELINUX)/RenderColorWash.o: RenderColorWash.cpp
 	$(CXX) $(CFLAGS_RELEASELINUX) $(INC_RELEASELINUX) -c RenderColorWash.cpp -o $(OBJDIR_RELEASELINUX)/RenderColorWash.o
@@ -424,7 +430,7 @@ ChannelMapDialog.cpp: ChannelMapDialog.h
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
-RenderCurtain.cpp: RgbEffects.h
+RenderFire.cpp: RgbEffects.h
 
 RenderSpirograph.cpp: RgbEffects.h
 
@@ -433,6 +439,8 @@ RenderSpirals.cpp: RgbEffects.h
 RenderSnowstorm.cpp: RgbEffects.h
 
 RenderSnowflakes.cpp: RgbEffects.h
+
+RenderSingleStrand.cpp: RgbEffects.h
 
 RenderPictures.cpp: RgbEffects.h
 
@@ -446,9 +454,9 @@ RenderGarlands.cpp: RgbEffects.h
 
 RenderFireworks.cpp: RgbEffects.h
 
-RenderFire.cpp: RgbEffects.h
-
 AddShowDialog.cpp: AddShowDialog.h
+
+RenderCurtain.cpp: RgbEffects.h
 
 RenderColorWash.cpp: RgbEffects.h
 
