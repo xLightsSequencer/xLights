@@ -69,16 +69,18 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Color_Spacing1,bool Group
     GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
 
 
+
     if(Color_Spacing1<1) Color_Spacing1=1;
     for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
+       /*
         for (x1=0; x1<BufferWi; x1++)
         {
             ColorIdx=-1;
             hsv.value=0.0;
             hsv.saturation=1.0;
             hsv.hue=0.0;
-            x=(state/5)+x1;
+            x=(state/10)+x1;
             if(x>BufferWi) x=x%BufferWi;
             if(x<max_width3 and colorcnt==3)
                 ColorIdx=2;
@@ -92,5 +94,13 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Color_Spacing1,bool Group
 
             SetPixel(x,y,hsv); // Turn pixel on
         }
+        */
+
+        x= nextEffTimePeriod-curEffStartPer;
+           ColorIdx=0;
+
+            if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+
+         SetPixel(x,y,hsv); // Turn pixel on
     }
 }
