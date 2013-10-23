@@ -575,7 +575,7 @@
 		67E7088B17B51AB400A22034 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -599,9 +599,9 @@
 					"-framework",
 					IOKit,
 					"-framework",
-					Carbon,
-					"-framework",
 					Cocoa,
+					"-framework",
+					Carbon,
 					"-framework",
 					AudioToolbox,
 					"-framework",
@@ -649,7 +649,7 @@
 		67E7088C17B51AB400A22034 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
@@ -672,9 +672,9 @@
 					"-framework",
 					IOKit,
 					"-framework",
-					Carbon,
-					"-framework",
 					Cocoa,
+					"-framework",
+					Carbon,
 					"-framework",
 					AudioToolbox,
 					"-framework",
