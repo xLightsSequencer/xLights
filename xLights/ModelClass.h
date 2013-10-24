@@ -130,28 +130,38 @@ private:
     {
     public:
         NodeClassRed(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
-        virtual void GetColor(wxColour& color) { color.Set(c[0],0,0); }
+        virtual void GetColor(wxColour& color)
+        {
+            color.Set(c[0],0,0);
+        }
     };
 
     class NodeClassGreen : public NodeBaseClass
     {
     public:
         NodeClassGreen(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
-        virtual void GetColor(wxColour& color) { color.Set(0,c[1],0); }
+        virtual void GetColor(wxColour& color)
+        {
+            color.Set(0,c[1],0);
+        }
     };
 
     class NodeClassBlue : public NodeBaseClass
     {
     public:
         NodeClassBlue(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
-        virtual void GetColor(wxColour& color) { color.Set(0,0,c[2]); }
+        virtual void GetColor(wxColour& color)
+        {
+            color.Set(0,0,c[2]);
+        }
     };
 
     class NodeClassWhite : public NodeBaseClass
     {
     public:
         NodeClassWhite(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
-        virtual void GetColor(wxColour& color) {
+        virtual void GetColor(wxColour& color)
+        {
             uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
             color.Set(cmin,cmin,cmin);
         }
@@ -194,13 +204,14 @@ private:
     int PreviewRotation;
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
-    wxXmlNode* ModelXml;
+
     StartChannelVector_t stringStartChan;
+    wxXmlNode* ModelXml;
     wxByte rgbidx[3]; // records the order in which the color values are sent to the physical device
-        // rgbidx entries should be 0-2
-        // for rgb order, set: 0,1,2
-        // for grb order, set: 1,0,2
-        // for brg order, set: 2,0,1
+    // rgbidx entries should be 0-2
+    // for rgb order, set: 0,1,2
+    // for grb order, set: 1,0,2
+    // for brg order, set: 2,0,1
 
 protected:
     std::vector<NodeBaseClassPtr> Nodes;
@@ -235,10 +246,28 @@ public:
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
 
-    static bool IsMyDisplay(wxXmlNode* ModelNode) {
+    long GetNumArches()
+    {
+        if (DisplayAs == wxT("Arches"))
+            return parm1;
+        else
+            return 0;
+    }
+
+    long GetNodesPerArch()
+    {
+        if (DisplayAs == wxT("Arches"))
+            return parm2;
+        else
+            return 0;
+    }
+
+    static bool IsMyDisplay(wxXmlNode* ModelNode)
+    {
         return ModelNode->GetAttribute(wxT("MyDisplay"),wxT("0")) == wxT("1");
     }
-    static void SetMyDisplay(wxXmlNode* ModelNode,bool NewValue) {
+    static void SetMyDisplay(wxXmlNode* ModelNode,bool NewValue)
+    {
         ModelNode->DeleteAttribute(wxT("MyDisplay"));
         ModelNode->AddAttribute(wxT("MyDisplay"), NewValue ? wxT("1") : wxT("0"));
     }
@@ -247,15 +276,18 @@ public:
         return wxString::Format(wxT("String%d"),idx+1);
     }
     // returns true for models that only have 1 string and where parm1 does NOT represent the # of strings
-    static bool HasOneString(const wxString& DispAs) {
+    static bool HasOneString(const wxString& DispAs)
+    {
         return (DispAs == wxT("Window Frame") || DispAs == wxT("Custom"));
     }
     // true for dumb strings and traditional strings
-    static bool HasSingleNode(const wxString& StrType) {
+    static bool HasSingleNode(const wxString& StrType)
+    {
         return !StrType.EndsWith(wxT(" Nodes"));
     }
     // true for traditional strings
-    static bool HasSingleChannel(const wxString& StrType) {
+    static bool HasSingleChannel(const wxString& StrType)
+    {
         return StrType.StartsWith(wxT("Single")) || StrType.StartsWith(wxT("Strobe"));
     }
 
