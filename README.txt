@@ -1,14 +1,12 @@
-ixLights is a program that allows you to play the sequence files from Vixen and
-LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet
-controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices
-such as megatrees, matrices, and arches. 
+xLights is a program that allows you to play the sequence files from Vixen and
+LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 3.2.3:
 					- Bug: (Dan) Schedule tab missing on Linux
                                         - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
 					- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
-					- Enhancement: (Sean)New Single Strand Effect class. Use this for arches and eaves (under development)
+					- Enhancement: (Sean) New Single Strand Effect class. Use this for arches and eaves
 3.2.2:
 					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
@@ -21,17 +19,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 					- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
 					- Bug: (Matt). Smart RGB arches are only producing a single channel. Fixed
 					- Enhancement: (Matt). F1 will bring up help if you are in the Profile tab
-3.2.0:  Sep 09,2013 - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new
-						string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can
-						pick RED, GREEN,BLUE, WHITE as single colour strings.
+3.2.0:  Sep 09,2013 - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can pick RED, GREEN,BLUE, WHITE as single colour strings.
 					- Enhancement: (Matt). You can now select a string type that is strobe lights. This light will flash 3 times per second
 						for each bulb.
 					- Enhancement: (Matt). You can now pick a multi pointed star as a display element.
 					- Enhancement: (Matt). You can select a wreath as a display element.
 					- Enhancement: (matt). You can select a string type of 3 channel RGB (In other words dumb rgb strings)
 					NOTE! With the change to the latest wxWidgets 2.9.5 , Mac 10.6.8 is no longer supported. We now will only support 10.7 and higher
-3.1.4:  Sep 03,2013 - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can 
-						define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
+3.1.4:  Sep 03,2013 - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
                     - Enhancement: (Matt) You can now copy models.
 					- Enhancement: (Matt) You can now rotate single strand models in the preview window.
 					- Enhancement: (Matt) There is a Sequence open button on the Preview tab. If you use this to open a sequence there is

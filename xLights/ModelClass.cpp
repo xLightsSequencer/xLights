@@ -153,7 +153,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     }
     else if (DisplayAs == wxT("Arches"))
     {
-        InitLine();
+        InitHMatrix(); // Old call was InitLine();
         SetArchCoord();
     }
     else if (DisplayAs == wxT("Window Frame"))

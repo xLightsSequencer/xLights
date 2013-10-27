@@ -23,26 +23,15 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int Color_Mix1,int Color_Spacing1,bool Group_Arches1,
-                                    int Color_Mix2,int Color_Spacing2,bool Group_Arches2)
+void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Speed1,bool Group_Arches1, bool R_TO_L1,
+                                    int Color_Mix2,int Chase_Spacing2,int Chase_Speed2,bool Group_Arches2, bool R_TO_L2)
 {
 
-    int x,x1,y,i,maxx,ColorIdx;
-    int lights = (BufferHt*BufferWi)*(Color_Mix1/100.0); // Count is in range of 1-100 from slider bar
-    if(lights<1) lights=1;
-    int step;
-    if(lights>0) step=BufferHt*BufferWi/lights;
-    else step=1;
+    int x,x1,x0,y,i,maxx,ColorIdx;
+    int color_index,x1_mod;
+    int MaxNodes,xt;
+    int xstart,xend;
 
-    //  size_t NodeCount=GetNodeCount();
-
-    int max_modulo;
-    max_modulo=Color_Spacing1;
-    if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
-    int max_modulo2=max_modulo/2;
-    if(max_modulo2<1) max_modulo2=1;
-
-    if(step<1) step=1;
     if(Group_Arches1) srand (time(NULL)); // for strobe effect, make lights be random
     else srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
@@ -56,77 +45,86 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Color_Spacing1,bool Group
     int state_width = state/BufferWi;
     int state_col = (state_width*BufferWi) + state%10;
     int state_ht = state_width%BufferHt; // 0 .. (BufferHt-1)
-    int max_width = BufferWi * (Color_Mix1/100.0);
-    int max_width2 = max_width/2;
-    int max_width3 = max_width/3;
-    if(max_width<1) max_width=1;
-    if(max_width2<1) max_width2=1;
-    if(max_width3<1) max_width3=1;
-//  curEffStartPer = startMsec/XTIMER_INTERVAL;
-//    curEffEndPer = endMsec/XTIMER_INTERVAL;
-//    nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
-    int curEffStartPer;
-    int curEffEndPer;
-    int nextEffTimePeriod;
+
+    int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
+
     GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
     double rtval = GetEffectTimeIntervalPosition();
 
 
-    if(Color_Spacing1<1) Color_Spacing1=1;
+    if(Chase_Spacing1<1) Chase_Spacing1=1;
     int ymax=BufferHt;
-    int chase_buffer[300];
-    for(x=0; x<300; x++)
+    int chase_buffer[1000];
+    for(x=0; x<1000; x++) // fill up chase buffer with invalid ColorIndex value. Or in other words, intialize array
         chase_buffer[x]=-1;
-    int color_index;
-    int nodes_per_color = int(BufferWi/colorcnt);
-    //  fill chase buffer
-    for (x1=0; x1<BufferWi; x1++)
+
+    if(Group_Arches1) MaxNodes= BufferWi*BufferHt;
+    else MaxNodes=BufferWi;
+
+    int MaxChase=MaxNodes*(Color_Mix1/100.0);
+    if(MaxChase<1) MaxChase=1;
+
+    int nodes_per_color = int(MaxChase/colorcnt);
+    if(nodes_per_color<1)  nodes_per_color=1;    //  fill chase buffer
+    for (x1=0; x1<MaxChase; x1++) // fill up chase buffer with pattern we will be using to scroll across arches
     {
         color_index = int(x1/nodes_per_color);
         chase_buffer[x1]=color_index;
+
     }
 
     hsv.value=0.0;
     hsv.saturation=1.0;
     hsv.hue=0.0;
-    for (y=0; y<ymax; y++) // For my 20x120 megatree, BufferHt=120
+
+
+    xstart= (rtval*MaxNodes)*Chase_Speed1;
+    xend = xstart+BufferHt;
+    x0=xstart;
+
+
+    if(Group_Arches1)
     {
-        /*
-         for (x1=0; x1<BufferWi; x1++)
-         {
-             ColorIdx=-1;
-             hsv.value=0.0;
-             hsv.saturation=1.0;
-             hsv.hue=0.0;
-             x=(state/10)+x1;
-             if(x>BufferWi) x=x%BufferWi;
-             if(x<max_width3 and colorcnt==3)
-                 ColorIdx=2;
-             else if(x<max_width2 and colorcnt==2)
-                 ColorIdx=1;
-             else  if(x<max_width)
-                 ColorIdx=0;
-             if(Color_Spacing1>1 and x1%Color_Spacing1>0) ColorIdx=-1;
-             if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-
-
-             SetPixel(x,y,hsv); // Turn pixel on
-         }
-         */
-
-        maxx= (rtval*BufferWi);
-        for(x1=0; x1<maxx; x1++)
+        for(x1=0; x1<MaxChase; x1++)
         {
-            x=maxx-x1-1;
+            xt=x0-x1;
+            if(R_TO_L1) xt=MaxNodes-x0-x1;
+            if(xt<0) xt=0;
+            y=int (xt/BufferWi);
+            x=xt%BufferWi;
             ColorIdx=chase_buffer[x1];
-         /*
-            if((y%2)==1)
-                x=BufferWi-maxx+x1;
-*/
-
             if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-
+            x1_mod=x1%Chase_Spacing1;
+            if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
+            {
+                hsv.value=0.0;
+                hsv.saturation=1.0;
+                hsv.hue=0.0;
+            }
             SetPixel(x,y,hsv); // Turn pixel on
+        }
+    }
+    else
+    {
+        for(y=0; y<BufferHt; y++)
+        {
+            for(x1=0; x1<MaxChase; x1++)
+            {
+                xt=x0-x1;
+                if(R_TO_L1) xt=MaxNodes-x0-x1;
+                if(xt<0) xt=0;
+                x=xt%BufferWi;
+                ColorIdx=chase_buffer[x1];
+                if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+                x1_mod=x1%Chase_Spacing1;
+                if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 0  and x1_mod != 1))
+                {
+                    hsv.value=0.0;
+                    hsv.saturation=1.0;
+                    hsv.hue=0.0;
+                }
+                SetPixel(x,y,hsv); // Turn pixel on
+            }
         }
     }
 }
