@@ -73,6 +73,7 @@ public:
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
+    void SetFitToTime(bool fit);
 
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
     void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod, int& curEffEndPer);  // nobody wants endPer?
@@ -375,6 +376,7 @@ protected:
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
     long timer_countdown[1];
+    bool fitToTime;
 
     double GetEffectPeriodPosition();
     double GetEffectTimeIntervalPosition();

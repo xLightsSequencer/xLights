@@ -899,6 +899,7 @@ private:
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
+    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
     void ResetEffectStates();

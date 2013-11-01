@@ -268,6 +268,10 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextT
 {
     Effect[layer].SetEffectDuration(startTime, endTime, nextTime);
 }
+void PixelBufferClass::SetFitToTime(int layer, bool fit)
+{
+    Effect[layer].SetFitToTime(fit);
+}
 
 void PixelBufferClass::CalcOutput(int EffectPeriod)
 {

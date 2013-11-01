@@ -642,6 +642,15 @@ void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& Sett
 
     buffer.SetFadeTimes(effectNum-1, fadeIn, fadeOut);
 }
+
+void xLightsFrame::UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap)
+{
+    bool fitToTime;
+
+    fitToTime = (SettingsMap[wxString::Format(wxT("E%d_CHECKBOX_FitToTime"),effectNum)] == wxT("1"));
+
+    buffer.SetFitToTime(effectNum-1, fitToTime);
+}
 void xLightsFrame::UpdateBufferFadesFromCtrl()
 {
     wxString tmpStr;
@@ -678,6 +687,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
+    bool fitToTime;
     wxString LayerStr=layer==0 ? wxT("E1_") : wxT("E2_");
     wxString SpeedStr=SettingsMap[LayerStr+wxT("SLIDER_Speed")];
     buffer.SetLayer(layer,period,wxAtoi(SpeedStr),ResetEffectState[layer]);
@@ -845,6 +855,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
 bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {
     bool retval = true;
+    bool fitToTime;
     if (panel->EffectChanged)
     {
         ResetEffectState[layer]=true;
@@ -856,6 +867,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         ResetEffectState[layer]=true;
         panel->PaletteChanged=false;
     }
+    fitToTime = panel->CheckBox_FitToTime->GetValue();
+
     buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
     switch (panel->Choicebook1->GetSelection())
@@ -1106,6 +1119,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 {
                     SetEffectControls(EffectStr);
                 }
+                buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
+                buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 
@@ -1158,6 +1173,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 {
                     SetEffectControls(EffectStr);
                 }
+                buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
+                buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
                 UpdateEffectDuration();
                 NextGridRowToPlay++;
 
@@ -2214,6 +2231,8 @@ void xLightsFrame::RenderGridToSeqData()
                     buffer.SetContrast(contrast);
                     UpdateBufferFadesFromMap(1, SettingsMap);
                     UpdateBufferFadesFromMap(2, SettingsMap);
+                    UpdateFitToTimeFromMap(1, SettingsMap);
+                    UpdateFitToTimeFromMap(2, SettingsMap);
                 }
 
                 UpdateEffectDuration();

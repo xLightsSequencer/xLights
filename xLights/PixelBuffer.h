@@ -72,6 +72,7 @@ public:
     void SetPalette(int layer, wxColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime, int nextTime);
+    void SetFitToTime(int layer, bool fit);
     void SetFadeTimes(int layer, float inTime, float outTime);
     void SetSparkle(int freq);
     void SetBrightness(int value);

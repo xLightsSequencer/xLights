@@ -350,7 +350,9 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
 
     wxFile f;
     // Step Size must be multiple of 4
-    wxUint8 buf[stepSize];
+    //wxUint8 buf[stepSize];
+    wxUint8* buf;
+    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
 
     size_t ch;
     if (!f.Create(filename,true))
