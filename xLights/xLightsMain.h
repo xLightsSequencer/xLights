@@ -347,6 +347,7 @@ private:
     void OnButtonRepeatPreviewClick(wxCommandEvent& event);
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
+    void OnPanelSequence2Char(wxKeyEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -354,7 +355,7 @@ private:
     void InsertRandomEffects(wxCommandEvent &evt);
     void UnprotectSelectedEffects(wxCommandEvent& evt);
     void ProtectSelectedEffects(wxCommandEvent& evt);
-
+    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
     static const long ID_BITMAPBUTTON_TAB_INFO;
@@ -876,7 +877,7 @@ private:
     bool PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
-
+    void UpdateGrid();
 
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);

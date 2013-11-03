@@ -1131,6 +1131,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
+    PanelSequence2->Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnPanelSequence2Char,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1323,6 +1324,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxImage::AddHandler(new wxGIFHandler);
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
+
+    ConnectOnChar(PanelSequence2);
 }
 
 xLightsFrame::~xLightsFrame()
@@ -1746,3 +1749,36 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }
 
+void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
+{
+    if(pclComponent)
+    {
+        pclComponent->Connect(wxID_ANY,
+                          wxEVT_CHAR,
+                          wxKeyEventHandler(xLightsFrame::OnPanelSequence2Char),
+                          (wxObject*) NULL,
+                          this);
+
+        wxWindowListNode* pclNode = pclComponent->GetChildren().GetFirst();
+        while(pclNode)
+        {
+            wxWindow* pclChild = pclNode->GetData();
+            this->ConnectOnChar(pclChild);
+
+            pclNode = pclNode->GetNext();
+        }
+    }
+}
+
+void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
+{
+    wxChar uc = event.GetKeyCode();
+    switch (uc)
+    {
+    case 'U':
+    case 'u':
+        UpdateGrid();
+    default:
+        event.Skip();
+    }
+}

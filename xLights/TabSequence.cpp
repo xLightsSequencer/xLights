@@ -269,7 +269,7 @@ wxString xLightsFrame::CreateEffectString()
     return s;
 }
 
-void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
+void xLightsFrame::UpdateGrid()
 {
     int r,c;
     wxString v=CreateEffectString();
@@ -300,6 +300,10 @@ void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
         }
     }
     UnsavedChanges = true;
+}
+void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
+{
+    UpdateGrid();
 }
 void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
 {
