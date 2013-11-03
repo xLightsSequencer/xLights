@@ -46,6 +46,7 @@
 #include <wx/xml/xml.h>
 #include <wx/fontdlg.h>
 #include <wx/dir.h>
+#include <unordered_map> //-DJ
 
 
 #ifdef LINUX
@@ -221,7 +222,6 @@ public:
         eff_SPIROGRAPH,
         eff_TEXT,
         eff_TREE,
-        eff_SINGLESTRAND,
         eff_TWINKLE,
         eff_LASTEFFECT //Always the last entry
     };
@@ -348,6 +348,10 @@ private:
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
     void OnPanelSequence2Char(wxKeyEvent& event);
+    void OnBitmapButton_EffectLayerMixClick(wxCommandEvent& event);
+    void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
+    void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
+    void OnBitmapButton_ContrastClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -478,15 +482,22 @@ private:
     static const long ID_CHOICE_LayerMethod;
     static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
+    static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
     static const long ID_STATICTEXT24;
     static const long ID_SLIDER_SparkleFrequency;
     static const long ID_TEXTCTRL5;
+    static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
     static const long ID_STATICTEXT127;
     static const long ID_SLIDER_Brightness;
     static const long ID_TEXTCTRL6;
+    static const long ID_BITMAPBUTTON_SLIDER_Brightness;
     static const long ID_STATICTEXT128;
     static const long ID_SLIDER_Contrast;
     static const long ID_TEXTCTRL7;
+    static const long ID_BITMAPBUTTON_SLIDER_Contrast;
+    static const long ID_BITMAPBUTTON11;
+    static const long ID_BITMAPBUTTON13;
+    static const long ID_BITMAPBUTTON12;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
@@ -554,6 +565,7 @@ private:
     wxSlider* Slider_EffectLayerMix;
     wxSlider* SliderFgColorC;
     wxRadioButton* RadioButtonRgbCycleMixed;
+    wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
     wxChoice* Choice_Models;
     wxButton* ButtonRepeatPreview;
@@ -587,10 +599,12 @@ private:
     wxPanel* PanelTest;
     wxButton* ButtonStopPreview;
     wxMenuItem* MenuItemBackup;
+    wxBitmapButton* BitmapButton_Brightness;
     wxButton* Button_Palette;
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
+    wxBitmapButton* BitmapButton_locked;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
@@ -606,6 +620,7 @@ private:
     wxPanel* PanelSequence2;
     wxButton* ButtonDeleteShow;
     wxStaticText* StaticTextSequenceFileName;
+    wxBitmapButton* BitmapButton_SparkleFrequency;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
     wxListBox* ListBoxElementList;
@@ -641,8 +656,8 @@ private:
     wxSlider* Slider_SparkleFrequency;
     wxButton* ButtonChangeDir;
     wxGrid* Grid1;
-    wxPanel* PanelSetup;
     wxButton* ButtonSaveLog;
+    wxPanel* PanelSetup;
     wxSlider* SliderFgColorB;
     wxRadioButton* RadioButtonShimmer;
     wxMenuItem* MenuItemSavePlaylists;
@@ -654,6 +669,7 @@ private:
     wxPanel* Panel3;
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
+    wxBitmapButton* BitmapButton_random;
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
@@ -666,6 +682,7 @@ private:
     wxStaticText* StaticText20;
     wxButton* ButtonSeqExport;
     wxRadioButton* RadioButtonRgbCycle4;
+    wxBitmapButton* BitmapButton_Contrast;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxSlider* Slider_Contrast;
     wxButton* ButtonTestSave;
@@ -685,6 +702,7 @@ private:
     wxBitmapButton* BitmapButtonOpenSeq;
     wxStaticText* StaticText15;
     wxStaticText* StaticText8;
+    wxBitmapButton* BitmapButton_EffectLayerMix;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText29;
@@ -697,8 +715,8 @@ private:
     wxRadioButton* RadioButtonOff;
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxRadioButton* RadioButtonRgbChase5;
-    wxStaticText* StaticText1;
     wxTextCtrl* TextCtrlLog;
+    wxStaticText* StaticText1;
     wxStaticText* StaticText2;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* SliderBgColorB;
@@ -959,6 +977,15 @@ private:
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
     long PreviewStartPeriod, PlaybackPeriod;
+
+//add lock/unlock/random state flags -DJ
+//these could be used to make fields read-only, but initially they are just used for partially random effects
+//#include <unordered_map>
+    typedef enum { Normal, Locked, Random } EditState;
+    std::unordered_map<std::string, EditState> buttonState;
+    bool isRandom_(wxControl* ctl, const char*debug);
+#define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
+    void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
 };

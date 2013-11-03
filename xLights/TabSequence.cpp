@@ -226,32 +226,70 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     return NewXml;
 }
 
+//modifed for partially random -DJ
+//void djdebug(const char* fmt, ...); //_DJ
 wxString xLightsFrame::CreateEffectStringRandom()
 {
     int eff1, eff2, layerOp;
-
     wxString s;
     s.clear();
 
-    eff1 = rand() % eff_LASTEFFECT;
-    eff2 = rand() % eff_LASTEFFECT;
-    eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
-    eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
-    if(eff_PIANO == eff1 || eff_CIRCLES == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
-    if(eff_PIANO == eff2 || eff_CIRCLES == eff1) eff2 = eff_BARS; //
+//encapsulation is poor here
+//    djdebug("CreateEffectStringRandom: %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d", (const char*)EffectsPanel1->Choicebook1->GetName().c_str(), isRandom(EffectsPanel1->Choicebook1), (const char*)EffectsPanel2->Choicebook1->GetName().c_str(), isRandom(EffectsPanel2->Choicebook1), (const char*)Slider_EffectLayerMix->GetName().c_str(), isRandom(Slider_EffectLayerMix), (const char*)Slider_SparkleFrequency->GetName().c_str(), isRandom(Slider_SparkleFrequency), (const char*)Slider_Brightness->GetName().c_str(), isRandom(Slider_Brightness), (const char*)Slider_Contrast->GetName().c_str(), isRandom(Slider_Contrast));
+    eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
+    eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
+    if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
+    {
+        eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
+        if(eff_PIANO == eff1 || eff_CIRCLES == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
+    }
+    if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
+    {
+        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
+        if(eff_PIANO == eff2 || eff_CIRCLES == eff1) eff2 = eff_BARS; //
+    }
 
-    layerOp = rand() % LASTLAYER;
-    s=EffectNames[eff1]+wxT(",")+EffectNames[eff2]+wxT(",")+EffectLayerOptions[layerOp];
-    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetMax()); // max is actually all teh way left, ie no sparkles
+    layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
+    s = EffectNames[eff1] + wxT(",")+EffectNames[eff2] + wxT(",") + EffectLayerOptions[layerOp];
+    s += wxT(",ID_SLIDER_SparkleFrequency=") + wxString::Format(wxT("%d"), isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
+    s += wxT(",ID_SLIDER_Brightness=") + wxString::Format(wxT("%d"), isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
+    s += wxT(",ID_SLIDER_Contrast=") + wxString::Format(wxT("%d"), isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
+    s += EffectsPanel1->GetRandomEffectString(eff1);
+    s += EffectsPanel2->GetRandomEffectString(eff2);
+#if 0 //partially random -DJ
+    int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
+    int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
+    // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
+    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+wxT(",")+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
+    s+=wxT(",")+Choice_LayerMethod->GetStringSelection();
+    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
     s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
-    s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),0);
-
+    s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
+    s+=wxT(",ID_SLIDER_EffectLayerMix=")+wxString::Format(wxT("%d"),Slider_EffectLayerMix->GetValue());
+    s+=EffectsPanel1->GetEffectString();
+    s+=EffectsPanel2->GetEffectString();
+#elif 0
+ #define tostr(thing)  #thing
+ #define EFFECT "Color Wash"
+ #define SPFREQ  200
+ #define BRIGHT  109
+ #define CONTRAST  69
+    s= EFFECT ",None,Effect 1,ID_SLIDER_SparkleFrequency= " tostr(SPREQ) ",ID_SLIDER_Brightness=" tostr(BRIGHT) ",ID_SLIDER_Contrast=" tostr(CONTRAST) ",ID_SLIDER_EffectLayerMix=0";
     s+=EffectsPanel1->GetRandomEffectString(eff1);
     s+=EffectsPanel2->GetRandomEffectString(eff2);
-
+#endif
     return s;
 
 }
+#if 0 //example: //-DJ
+Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=100,
+E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
+
+Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
+E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
+#endif // 0
 
 wxString xLightsFrame::CreateEffectString()
 {
@@ -785,19 +823,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
                              );
     }
-    else if (effect == wxT("SingleStrand"))
-    {
-        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+wxT("Slide_Single_Color_Mix1")]),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Chase_Spacing1")]),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Chase_Speed1")]),
-                                  SettingsMap[LayerStr+wxT("CheckBox_Single_Group_Arches1")]==wxT("1"),
-                                  SettingsMap[LayerStr+wxT("CheckBox_Single_R_TO_L1")]==wxT("1"),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("Slide_Single_Color_Mix2")]),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Chase_Spacing2")]),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("Slider_Single_Chase_Speed2")]),
-                                  SettingsMap[LayerStr+wxT("CheckBox_Single_Group_Arches2")]==wxT("1"),
-                                  SettingsMap[LayerStr+wxT("CheckBox_Single_R_TO_L2")]==wxT("1"));
-    }
     else if (effect == wxT("Snowflakes"))
     {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Count")]),
@@ -950,7 +975,6 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
-
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
                                 panel->Slider_Snowflakes_Type->GetValue());
@@ -992,18 +1016,6 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_TREE:
         buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
-        break;
-    case eff_SINGLESTRAND:
-        buffer.RenderSingleStrand(panel->Slider_Single_Color_Mix1->GetValue(),
-                                  panel->Slider_Single_Chase_Spacing1->GetValue(),
-                                  panel->Slider_Single_Chase_Speed1->GetValue(),
-                                  panel->CheckBox_Single_Group_Arches1->GetValue(),
-                                  panel->CheckBox_Single_R_TO_L1->GetValue(),
-                                  panel->Slider_Single_Color_Mix2->GetValue(),
-                                  panel->Slider_Single_Chase_Spacing2->GetValue(),
-                                  panel->Slider_Single_Chase_Speed2->GetValue(),
-                                  panel->CheckBox_Single_Group_Arches2->GetValue(),
-                                  panel->CheckBox_Single_R_TO_L2->GetValue());
         break;
     case eff_TWINKLE:
         buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
@@ -1840,7 +1852,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     wxRemoveFile(fileout); // get rid of temporary file
 }
 
-
+//void djdebug(const char* fmt, ...); //_DJ
 void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 {
     wxTextFile f;
@@ -1859,6 +1871,7 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
         wxString token = tkz.GetNextToken();
 
         Grid1->AppendRows();
+//        djdebug("line last token = '%s'", (const char*)token); //-DJ
         Grid1->SetCellValue(r,0,token);
 
     }
@@ -2675,6 +2688,7 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     }
 }
 
+//void djdebug(const char* fmt, ...); //_DJ
 void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 {
     int r,c;
@@ -2682,6 +2696,18 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 
     int nRows = Grid1->GetNumberRows();
     int nCols = Grid1->GetNumberCols();
+
+#if 0 //debug
+    wxString buf;
+    for (auto it = buttonState.begin(); it != buttonState.end(); ++it)
+        buf += it->first + wxString::Format(wxT("=%d,"), it->second);
+    for (auto it = EffectsPanel1->buttonState.begin(); it != EffectsPanel1->buttonState.end(); ++it)
+        buf += wxT("FX1:") + it->first + wxString::Format(wxT("=%d,"), it->second);
+    for (auto it = EffectsPanel2->buttonState.begin(); it != EffectsPanel2->buttonState.end(); ++it)
+        buf += wxT("FX2:") + it->first + wxString::Format(wxT("=%d,"), it->second);
+//    djdebug("InsertRandomEffects: %s", (const char*)buf.c_str());
+//    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
+#endif
 
     for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
     {

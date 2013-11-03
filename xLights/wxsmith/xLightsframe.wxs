@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.3)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.4)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1429,7 +1429,7 @@
 																	<label>Combined Effect</label>
 																	<object class="sizeritem">
 																		<object class="wxFlexGridSizer" variable="FlexGridSizer33" member="no">
-																			<cols>3</cols>
+																			<cols>4</cols>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
 																					<label>Play Effect</label>
@@ -1452,8 +1452,13 @@
 																				<option>1</option>
 																			</object>
 																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
 																				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>1</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1477,7 +1482,12 @@
 																			</object>
 																			<object class="spacer">
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1502,7 +1512,12 @@
 																			</object>
 																			<object class="spacer">
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="spacer">
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1547,6 +1562,17 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT24" variable="StaticText22" member="yes">
 																					<label>Sparkles</label>
 																				</object>
@@ -1575,6 +1601,17 @@
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1607,6 +1644,17 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText127" member="yes">
 																					<label>Contrast</label>
 																				</object>
@@ -1628,6 +1676,53 @@
 																					<value>0</value>
 																					<size>32,20</size>
 																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>1</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_normal" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<hidden>1</hidden>
+																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON13" variable="BitmapButton_locked" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-red.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<hidden>1</hidden>
+																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_random" member="yes">
+																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-blue.png</bitmap>
+																					<default>1</default>
+																					<size>16,16</size>
+																					<hidden>1</hidden>
+																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1852,6 +1947,7 @@
 								<object class="notebookpage">
 									<object class="wxPanel" name="ID_PANEL_CAL" variable="PanelCal" member="yes">
 										<pos>49,10</pos>
+										<hidden>1</hidden>
 										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 											<cols>2</cols>
 											<rows>2</rows>
