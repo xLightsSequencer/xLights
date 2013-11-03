@@ -692,7 +692,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer2->AddGrowableCol(1);
 	Notebook1 = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK1, wxDefaultPosition, wxSize(220,201), 0, _T("ID_NOTEBOOK1"));
 	Panel1 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-	FlexGridSizer9 = new wxFlexGridSizer(4, 2, 0, 0);
+	FlexGridSizer9 = new wxFlexGridSizer(5, 2, 0, 0);
+	FlexGridSizer9->AddGrowableCol(1);
 	StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Chase Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Single_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Single_Color_Mix1, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix1"));
@@ -719,7 +720,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer9->Fit(Panel1);
 	FlexGridSizer9->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(Notebook1, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-	FlexGridSizer10 = new wxFlexGridSizer(4, 2, 0, 0);
+	FlexGridSizer10 = new wxFlexGridSizer(5, 2, 0, 0);
+	FlexGridSizer10->AddGrowableCol(1);
 	StaticText12 = new wxStaticText(Panel2, ID_STATICTEXT11, _("Chase Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
 	FlexGridSizer10->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_Single_Color_Mix2 = new wxSlider(Panel2, ID_SLIDER_Single_Color_Mix2, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Single_Color_Mix2"));

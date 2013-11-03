@@ -1351,7 +1351,8 @@
 											<object class="wxPanel" name="ID_PANEL3" variable="Panel1" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 													<cols>2</cols>
-													<rows>4</rows>
+													<rows>5</rows>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
 															<label>Chase Size</label>
@@ -1443,7 +1444,8 @@
 											<object class="wxPanel" name="ID_PANEL6" variable="Panel2" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 													<cols>2</cols>
-													<rows>4</rows>
+													<rows>5</rows>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText12" member="yes">
 															<label>Chase Size</label>
