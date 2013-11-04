@@ -36,7 +36,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" variable="BitmapButton_PaletteRep" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_PaletteRepClick" entry="EVT_BUTTON" />
@@ -63,7 +63,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_DirectionClick" entry="EVT_BUTTON" />
@@ -90,7 +90,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" variable="BitmapButton_Highlight" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_HighlightClick" entry="EVT_BUTTON" />
@@ -119,7 +119,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_3DClick" entry="EVT_BUTTON" />
@@ -155,7 +155,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Color" variable="BitmapButton_ButterflyColors" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ButterflyColorsClick" entry="EVT_BUTTON" />
@@ -184,7 +184,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Style" variable="BitmapButton_ButterflyStyle" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ButterflyStyleClick" entry="EVT_BUTTON" />
@@ -213,7 +213,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks" variable="BitmapButton_ButterflyChunks" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ButterflyChunksClick" entry="EVT_BUTTON" />
@@ -242,7 +242,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton_ButterflySkip" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ButterflySkipClick" entry="EVT_BUTTON" />
@@ -282,7 +282,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Count" variable="BitmapButton_CirclesCount" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesCountClick" entry="EVT_BUTTON" />
@@ -319,7 +319,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Size" variable="BitmapButton_CirclesSize" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesSizeClick" entry="EVT_BUTTON" />
@@ -351,7 +351,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce" variable="BitmapButton_CirclesBounce" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesBounceClick" entry="EVT_BUTTON" />
@@ -384,7 +384,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Collide" variable="BitmapButton_CirclesCollide" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesCollideClick" entry="EVT_BUTTON" />
@@ -416,7 +416,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial" variable="BitmapButton_CirclesRadial" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesRadialClick" entry="EVT_BUTTON" />
@@ -448,7 +448,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma" variable="BitmapButton_CirclesPlasma" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesPlasmaClick" entry="EVT_BUTTON" />
@@ -475,7 +475,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D" variable="BitmapButton_CirclesRadial3D" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_CirclesRadial3DClick" entry="EVT_BUTTON" />
@@ -508,7 +508,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m" variable="BitmapButton_RandomMotion" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_RandomMotionClick" entry="EVT_BUTTON" />
@@ -551,7 +551,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ColorWash_Count" variable="BitmapButton_ColorWashCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ColorWashCountClick" entry="EVT_BUTTON" />
@@ -578,7 +578,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade" variable="BitmapButton_ColorWashHFade" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ColorWashHFadeClick" entry="EVT_BUTTON" />
@@ -605,7 +605,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade" variable="BitmapButton_ColorWashVFade" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_ColorWashVFadeClick" entry="EVT_BUTTON" />
@@ -647,7 +647,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Edge" variable="BitmapButton_CurtainEdge" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_CurtainEdgeClick" entry="EVT_BUTTON" />
@@ -680,7 +680,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Effect" variable="BitmapButton_CurtainEffect" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_CurtainEffectClick" entry="EVT_BUTTON" />
@@ -708,7 +708,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Curtain_Swag" variable="BitmapButton_CurtainSwag" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_CurtainSwagClick" entry="EVT_BUTTON" />
@@ -732,7 +732,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat" variable="BitmapButton_CurtainRepeat" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_CurtainRepeatClick" entry="EVT_BUTTON" />
@@ -769,7 +769,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_Height" variable="BitmapButton_FireHeight" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireHeightClick" entry="EVT_BUTTON" />
@@ -794,7 +794,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_HueShift" variable="BitmapButton_FireWidth" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireWidthClick" entry="EVT_BUTTON" />
@@ -821,7 +821,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire" variable="BitmapButton_FireGrow" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireGrowClick" entry="EVT_BUTTON" />
@@ -859,7 +859,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions" variable="BitmapButton_FireworksNumberExplosions" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireworksNumberExplosionsClick" entry="EVT_BUTTON" />
@@ -887,7 +887,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Count" variable="BitmapButton_FireworksCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireworksCountClick" entry="EVT_BUTTON" />
@@ -916,7 +916,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity" variable="BitmapButton_FireworksVelocity" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireworksVelocityClick" entry="EVT_BUTTON" />
@@ -944,7 +944,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Fade" variable="BitmapButton_FireworksFade" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_FireworksFadeClick" entry="EVT_BUTTON" />
@@ -980,7 +980,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Garlands_Type" variable="BitmapButton_GarlandsType" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_GarlandsTypeClick" entry="EVT_BUTTON" />
@@ -1005,7 +1005,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Garlands_Spacing" variable="BitmapButton_GarlandsSpacing" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_GarlandsSpacingClick" entry="EVT_BUTTON" />
@@ -1041,7 +1041,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Count" variable="BitmapButton_LifeCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_LifeCountClick" entry="EVT_BUTTON" />
@@ -1068,7 +1068,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Seed" variable="BitmapButton_LifeSpeed" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_LifeSpeedClick" entry="EVT_BUTTON" />
@@ -1104,7 +1104,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Meteors_Type" variable="BitmapButton_MeteorsType" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_MeteorsTypeClick" entry="EVT_BUTTON" />
@@ -1129,7 +1129,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Meteors_Effect" variable="BitmapButton_MeteorsEffect" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_MeteorsEffectClick" entry="EVT_BUTTON" />
@@ -1157,7 +1157,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Count" variable="BitmapButton_MeteorsCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_MeteorsCountClick" entry="EVT_BUTTON" />
@@ -1185,7 +1185,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Length" variable="BitmapButton_MeteorsLength" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_MeteorsLengthClick" entry="EVT_BUTTON" />
@@ -1212,7 +1212,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity" variable="BitmapButton_MeteorsSwirlIntensity" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_MeteorsSwirlIntensityClick" entry="EVT_BUTTON" />
@@ -1250,7 +1250,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Piano_Keyboard" variable="BitmapButton_PianoKeyboard" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_PianoKeyboardClick" entry="EVT_BUTTON" />
@@ -1296,7 +1296,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME" variable="BitmapButton_PicturesFilename" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_PicturesFilenameClick" entry="EVT_BUTTON" />
@@ -1340,7 +1340,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_PicturesDirectionClick" entry="EVT_BUTTON" />
@@ -1369,7 +1369,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed" variable="BitmapButton_PicturesSpeed" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_PicturesSpeedClick" entry="EVT_BUTTON" />
@@ -1412,7 +1412,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Count" variable="BitmapButton_SnowflakesCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SnowflakesCountClick" entry="EVT_BUTTON" />
@@ -1440,7 +1440,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowflakes_Type" variable="BitmapButton_SnowflakesType" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SnowflakesTypeClick" entry="EVT_BUTTON" />
@@ -1476,7 +1476,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Count" variable="BitmapButton_SnowstormCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SnowstormCountClick" entry="EVT_BUTTON" />
@@ -1503,7 +1503,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Length" variable="BitmapButton_SnowstormLength" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SnowstormLengthClick" entry="EVT_BUTTON" />
@@ -1541,7 +1541,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Count" variable="BitmapButton_SpiralsCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpiralsCountClick" entry="EVT_BUTTON" />
@@ -1570,7 +1570,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Rotation" variable="BitmapButton_SpiralsRotation" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpiralsRotationClick" entry="EVT_BUTTON" />
@@ -1597,7 +1597,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Thickness" variable="BitmapButton_SpiralsThickness" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpiralsThicknessClick" entry="EVT_BUTTON" />
@@ -1626,7 +1626,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Direction" variable="BitmapButton_SpiralsDirection" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpiralsDirectionClick" entry="EVT_BUTTON" />
@@ -1648,7 +1648,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend" variable="BitmapButton_SpiralsBlend" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_SpiralsBlendClick" entry="EVT_BUTTON" />
@@ -1677,7 +1677,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_3D" variable="BitmapButton_Spirals3D" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_Spirals3DClick" entry="EVT_BUTTON" />
@@ -1699,7 +1699,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow" variable="BitmapButton_SpiralsGrow" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_SpiralsGrowClick" entry="EVT_BUTTON" />
@@ -1728,7 +1728,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink" variable="BitmapButton_SpiralsShrink" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpiralsShrinkClick" entry="EVT_BUTTON" />
@@ -1765,7 +1765,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_R" variable="BitmapButton_SpirographR" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpirographRClick" entry="EVT_BUTTON" />
@@ -1793,7 +1793,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_r" variable="BitmapButton_Spirographr" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpirographrClick" entry="EVT_BUTTON" />
@@ -1822,7 +1822,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirograph_d" variable="BitmapButton_SpirographAnimate" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpirographAnimateClick" entry="EVT_BUTTON" />
@@ -1849,7 +1849,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate" variable="BitmapButton_Spirographd" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_SpirographdClick" entry="EVT_BUTTON" />
@@ -1898,7 +1898,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Line1" variable="BitmapButton_TextLine1" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_TextLine1Click" entry="EVT_BUTTON" />
@@ -1925,7 +1925,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Line2" variable="BitmapButton_TextLine2" member="yes">
-												<bitmap code="padlock16x16_green_xpm" />
+												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
 												<handler function="OnBitmapButton_TextLine2Click" entry="EVT_BUTTON" />
@@ -1968,7 +1968,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font1" variable="BitmapButton_TextFont1" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextFont1Click" entry="EVT_BUTTON" />
@@ -1995,7 +1995,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir1" variable="BitmapButton_TextDir1" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
@@ -2020,7 +2020,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Effect1" variable="BitmapButton_TextEffect1" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextEffect1Click" entry="EVT_BUTTON" />
@@ -2045,7 +2045,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Count1" variable="BitmapButton_TextCount1" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextCount1Click" entry="EVT_BUTTON" />
@@ -2072,7 +2072,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Text_Position1" variable="BitmapButton_TextPosition1" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextPosition1Click" entry="EVT_BUTTON" />
@@ -2110,7 +2110,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Font2" variable="BitmapButton_TextFont2" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextFont2Click" entry="EVT_BUTTON" />
@@ -2137,7 +2137,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir2" variable="BitmapButton_TextDir2" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextDir2Click" entry="EVT_BUTTON" />
@@ -2162,7 +2162,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Effect2" variable="BitmapButton_TextEffect2" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextEffect2Click" entry="EVT_BUTTON" />
@@ -2187,7 +2187,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Count2" variable="BitmapButton_TextCount2" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextCount2Click" entry="EVT_BUTTON" />
@@ -2214,7 +2214,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Text_Position2" variable="BitmapButton_TextPosition2" member="yes">
-															<bitmap code="padlock16x16_green_xpm" />
+															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>16,16</size>
 															<handler function="OnBitmapButton_TextPosition2Click" entry="EVT_BUTTON" />
@@ -2261,7 +2261,7 @@
 													<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Tree_Branches" variable="BitmapButton_TreeBranches" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_TreeBranchesClick" entry="EVT_BUTTON" />
@@ -2299,7 +2299,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" variable="BitmapButton_TwinkleCount" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_TwinkleCountClick" entry="EVT_BUTTON" />
@@ -2331,7 +2331,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" variable="BitmapButton_TwinkleSteps" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_TwinkleStepsClick" entry="EVT_BUTTON" />
@@ -2355,7 +2355,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" variable="BitmapButton_TwinkleStrobe" member="yes">
-										<bitmap code="padlock16x16_green_xpm" />
+										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>16,16</size>
 										<handler function="OnBitmapButton_TwinkleStrobeClick" entry="EVT_BUTTON" />
@@ -2455,7 +2455,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette1" variable="BitmapButton_Palette1" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
@@ -2485,7 +2485,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette2" variable="BitmapButton_Palette2" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
@@ -2514,7 +2514,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette3" variable="BitmapButton_Palette3" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
@@ -2543,7 +2543,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette4" variable="BitmapButton_Palette4" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
@@ -2572,7 +2572,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette5" variable="BitmapButton_Palette5" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
@@ -2601,7 +2601,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette6" variable="BitmapButton_Palette6" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
@@ -2642,7 +2642,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Speed" variable="BitmapButton_Speed" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_SpeedClick" entry="EVT_BUTTON" />
@@ -2697,7 +2697,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
@@ -2726,7 +2726,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
@@ -2758,7 +2758,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
-											<bitmap code="padlock16x16_green_xpm" />
+											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>16,16</size>
 											<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />

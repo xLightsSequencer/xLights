@@ -356,7 +356,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.4)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.2)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -778,7 +778,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_PlayEffect->Disable();
     Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
     FlexGridSizer33->Add(Button_PlayEffect, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Button_UpdateGrid = new wxButton(SeqPanelLeft, ID_BUTTON3, _("Update Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    Button_UpdateGrid = new wxButton(SeqPanelLeft, ID_BUTTON3, _("Update Grid (F5)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     Button_UpdateGrid->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer33->Add(Button_UpdateGrid, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -814,7 +814,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     txtCtlEffectMix = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL_LayerMix, _("0"), wxDefaultPosition, wxSize(32,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LayerMix"));
     FlexGridSizer33->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_EffectLayerMix = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-green.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
+    BitmapButton_EffectLayerMix = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
     BitmapButton_EffectLayerMix->SetDefault();
     FlexGridSizer33->Add(BitmapButton_EffectLayerMix, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText22 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT24, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
@@ -823,7 +823,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     txtCtrlSparkleFreq = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL5, _("200"), wxDefaultPosition, wxSize(32,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL5"));
     FlexGridSizer33->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_SparkleFrequency = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-green.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
+    BitmapButton_SparkleFrequency = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
     BitmapButton_SparkleFrequency->SetDefault();
     FlexGridSizer33->Add(BitmapButton_SparkleFrequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText126 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT127, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
@@ -832,7 +832,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(Slider_Brightness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     txtCtlBrightness = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL6, _("100"), wxDefaultPosition, wxSize(32,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL6"));
     FlexGridSizer33->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Brightness = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Brightness, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-green.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
+    BitmapButton_Brightness = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Brightness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
     BitmapButton_Brightness->SetDefault();
     FlexGridSizer33->Add(BitmapButton_Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText127 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT128, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT128"));
@@ -841,18 +841,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(Slider_Contrast, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     txtCtlContrast = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL7, _("0"), wxDefaultPosition, wxSize(32,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL7"));
     FlexGridSizer33->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Contrast = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Contrast, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-green.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
+    BitmapButton_Contrast = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Contrast, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
     BitmapButton_Contrast->SetDefault();
     FlexGridSizer33->Add(BitmapButton_Contrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    BitmapButton_normal = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON11, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-green.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
+    BitmapButton_normal = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON11, padlock16x16_green_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
     BitmapButton_normal->SetDefault();
     BitmapButton_normal->Hide();
     FlexGridSizer33->Add(BitmapButton_normal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_locked = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON13, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-red.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON13"));
+    BitmapButton_locked = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON13, padlock16x16_red_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON13"));
     BitmapButton_locked->SetDefault();
     BitmapButton_locked->Hide();
     FlexGridSizer33->Add(BitmapButton_locked, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_random = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON12, wxBitmap(wxImage(_T("C:\\Users\\smeighan\\Documents\\c++\\xlights\\xlights\\wxsmith\\padlock16x16-blue.png"))), wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
+    BitmapButton_random = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON12, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
     BitmapButton_random->SetDefault();
     BitmapButton_random->Hide();
     FlexGridSizer33->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1827,7 +1827,6 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
         event.Skip();
     }
 }
-
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
 //void djdebug(const char* fmt, ...); //_DJ
@@ -1838,27 +1837,27 @@ void xLightsFrame::setlock(wxBitmapButton* button) //, EditState& islocked)
     if (parent.StartsWith("ID_BITMAPBUTTON_")) parent = "ID_" + parent.substr(16); //map to associated control
     EditState& islocked = buttonState[std::string(parent)]; //creates entry if not there
 //    djdebug("ctl %s was %d", (const char*)parent.c_str(), islocked);
-   switch (islocked) //cycle thru states
+    switch (islocked) //cycle thru states
     {
         case Locked:
             islocked = Random;
             button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
             break;
-        case Random:
+//        case Random:
+//            islocked = Normal;
+//            button->SetBitmapLabel(BitmapButton_normal->GetBitmapLabel());
+//            break;
+        default:
             islocked = Locked;
             button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
             break;
-//        default:
- //           islocked = Locked;
-          //  button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
-          //  break;
     }
 }
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
 bool xLightsFrame::isRandom_(wxControl* ctl, const char*debug)
 {
 //    if (!ctl->GetName().length()) djdebug("NO NAME FOR %s", debug);
-    bool retval = (buttonState[std::string(ctl->GetName())] == Random);
+    bool retval = (buttonState[std::string(ctl->GetName())] != Locked); //== Random);
 //    djdebug("isRandom(%s) = %d", (const char*)ctl->GetName().c_str(), retval);
     return retval;
 }
@@ -1879,3 +1878,20 @@ showlock(EffectLayerMix)
 showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
+
+//broken
+//added keyboard handler: -DJ
+/*
+void xLightsFrame::OnPanelSequence2KeyDown(wxKeyEvent& event)
+{
+//    wxMessageBox(wxString::Format(wxT("You pressed '0x%x' = 0x%x vs 0x%x"), event.GetUnicodeKey(), event.GetKeyCode(), WXK_F5));
+//    wxChar uc = event.GetUnicodeKey();
+//    if ( uc == WXK_NONE )
+        switch ( event.GetKeyCode() )
+        {
+            case WXK_F5:
+                xLightsFrame::OnButton_UpdateGridClick(*(new wxCommandEvent()));
+                break;
+        }
+}
+*/

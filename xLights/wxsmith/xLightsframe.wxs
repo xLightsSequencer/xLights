@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.4)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.2)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1443,7 +1443,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON3" variable="Button_UpdateGrid" member="yes">
-																					<label>Update Grid</label>
+																					<label>Update Grid (F5)</label>
 																					<bg>wxSYS_COLOUR_BTNFACE</bg>
 																					<handler function="OnButton_UpdateGridClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1563,7 +1563,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
@@ -1605,7 +1605,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
@@ -1645,7 +1645,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
@@ -1683,7 +1683,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
@@ -1694,7 +1694,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_normal" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-green.png</bitmap>
+																					<bitmap code="padlock16x16_green_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<hidden>1</hidden>
@@ -1706,7 +1706,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON13" variable="BitmapButton_locked" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-red.png</bitmap>
+																					<bitmap code="padlock16x16_red_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<hidden>1</hidden>
@@ -1718,7 +1718,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_random" member="yes">
-																					<bitmap>C:\Users\smeighan\Documents\c++\xlights\xlights\wxsmith\padlock16x16-blue.png</bitmap>
+																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>16,16</size>
 																					<hidden>1</hidden>
