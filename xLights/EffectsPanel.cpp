@@ -248,6 +248,7 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Twinkle_Steps = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_PANEL33 = wxNewId();
+const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
@@ -1050,6 +1051,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Panel1_Twinkle->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel1_Twinkle);
 	FlexGridSizer4->SetSizeHints(Panel1_Twinkle);
+	Panel1 = new wxPanel(Choicebook1, ID_PANEL2, wxPoint(88,16), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	Choicebook1->AddPage(Panel1_None, _("None"), false);
 	Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
 	Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
@@ -1070,6 +1072,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Choicebook1->AddPage(Panel1_Text, _("Text"), false);
 	Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
 	Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
+	Choicebook1->AddPage(Panel1, _("SingleStrand"), false);
 	FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);

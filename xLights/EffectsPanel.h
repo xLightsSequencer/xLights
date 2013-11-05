@@ -79,6 +79,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Curtain_Effect;
 		wxSlider* Slider_Twinkle_Steps;
 		wxStaticText* StaticText41;
+		wxPanel* Panel1;
 		wxBitmapButton* BitmapButton_Palette5;
 		wxPanel* Panel1_Spirograph;
 		wxBitmapButton* BitmapButton_FadeOut;
@@ -551,6 +552,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHECKBOX_Twinkle_Strobe;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe;
 		static const long ID_PANEL33;
+		static const long ID_PANEL2;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON87;
