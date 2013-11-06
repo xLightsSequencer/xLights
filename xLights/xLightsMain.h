@@ -935,6 +935,8 @@ private:
     void FixVersionDifferences(wxString file);
     void BackupDirectory(wxString targetDirName);
     void OpenSequence();
+    void SaveSequence();
+    void InsertRow();
     void UpdatePreview();
     void ShowModelsDialog();
     void TimerPreview(long msec);

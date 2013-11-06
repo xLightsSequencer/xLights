@@ -2283,6 +2283,11 @@ void xLightsFrame::RenderGridToSeqData()
 
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
+    SaveSequence();
+}
+
+void xLightsFrame::SaveSequence()
+{
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -2399,6 +2404,11 @@ void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsM
 }
 
 void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
+{
+    InsertRow();
+}
+
+void xLightsFrame::InsertRow()
 {
     if (SeqData.size() == 0)
     {

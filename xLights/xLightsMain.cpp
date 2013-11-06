@@ -1824,6 +1824,19 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
     case WXK_F5:
         if (Button_UpdateGrid->IsEnabled())
             UpdateGrid();
+        break;
+    case WXK_CONTROL_O:
+        if (BitmapButtonOpenSeq->IsEnabled())
+            OpenSequence();
+        break;
+    case WXK_CONTROL_S:
+        if (BitmapButtonSaveSeq->IsEnabled())
+            SaveSequence();
+        break;
+    case WXK_INSERT:
+        if (BitmapButtonInsertRow->IsEnabled())
+            InsertRow();
+        break;
     default:
         event.Skip();
     }
