@@ -1821,7 +1821,22 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
     {
     case 'U':
     case 'u':
-        UpdateGrid();
+    case WXK_F5:
+        if (Button_UpdateGrid->IsEnabled())
+            UpdateGrid();
+        break;
+    case WXK_CONTROL_O:
+        if (BitmapButtonOpenSeq->IsEnabled())
+            OpenSequence();
+        break;
+    case WXK_CONTROL_S:
+        if (BitmapButtonSaveSeq->IsEnabled())
+            SaveSequence();
+        break;
+    case WXK_INSERT:
+        if (BitmapButtonInsertRow->IsEnabled())
+            InsertRow();
+        break;
     default:
         event.Skip();
     }
@@ -1877,20 +1892,3 @@ showlock(EffectLayerMix)
 showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
-
-//broken
-//added keyboard handler: -DJ
-/*
-void xLightsFrame::OnPanelSequence2KeyDown(wxKeyEvent& event)
-{
-//    wxMessageBox(wxString::Format(wxT("You pressed '0x%x' = 0x%x vs 0x%x"), event.GetUnicodeKey(), event.GetKeyCode(), WXK_F5));
-//    wxChar uc = event.GetUnicodeKey();
-//    if ( uc == WXK_NONE )
-        switch ( event.GetKeyCode() )
-        {
-            case WXK_F5:
-                xLightsFrame::OnButton_UpdateGridClick(*(new wxCommandEvent()));
-                break;
-        }
-}
-*/

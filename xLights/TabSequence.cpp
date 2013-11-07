@@ -87,8 +87,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     Button_Models->Enable(enable && ModelsNode);
     Button_Presets->Enable(enable && EffectsNode);
-//    Button_PresetAdd->Enable(enable && EffectsNode);
-//    Button_PresetUpdate->Enable(enable && EffectsNode);
+    Button_UpdateGrid->Enable(enable);
     Choice_Models->Enable(enable);
     EffectsPanel1->Button_Pictures_Filename->Enable(enable);
     EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
@@ -310,6 +309,7 @@ wxString xLightsFrame::CreateEffectString()
 void xLightsFrame::UpdateGrid()
 {
     int r,c;
+    bool changed = false;
     wxString v=CreateEffectString();
     if ( Grid1->IsSelection() )
     {
@@ -323,6 +323,7 @@ void xLightsFrame::UpdateGrid()
                 if (Grid1->IsInSelection(r,c))
                 {
                     Grid1->SetCellValue(r,c,v);
+                    changed = true;
                 }
             }
         }
@@ -335,9 +336,10 @@ void xLightsFrame::UpdateGrid()
         if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
+            changed = true;
         }
     }
-    UnsavedChanges = true;
+    UnsavedChanges = changed;
 }
 void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
 {
@@ -2281,6 +2283,11 @@ void xLightsFrame::RenderGridToSeqData()
 
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
+    SaveSequence();
+}
+
+void xLightsFrame::SaveSequence()
+{
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -2397,6 +2404,11 @@ void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsM
 }
 
 void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
+{
+    InsertRow();
+}
+
+void xLightsFrame::InsertRow()
 {
     if (SeqData.size() == 0)
     {
