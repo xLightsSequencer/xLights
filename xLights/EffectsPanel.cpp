@@ -248,7 +248,6 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Twinkle_Steps = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_PANEL33 = wxNewId();
-const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
@@ -1008,7 +1007,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer46->Fit(Panel1_Text);
 	FlexGridSizer46->SetSizeHints(Panel1_Text);
 	Panel1_Tree = new wxPanel(Choicebook1, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL34"));
-	FlexGridSizer71 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer71 = new wxFlexGridSizer(5, 3, 0, 0);
 	FlexGridSizer71->AddGrowableCol(1);
 	StaticText86 = new wxStaticText(Panel1_Tree, ID_STATICTEXT87, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT87"));
 	FlexGridSizer71->Add(StaticText86, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1020,10 +1019,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Panel1_Tree->SetSizer(FlexGridSizer71);
 	FlexGridSizer71->Fit(Panel1_Tree);
 	FlexGridSizer71->SetSizeHints(Panel1_Tree);
-	FlexGridSizer9 = new wxFlexGridSizer(5, 2, 0, 0);
-	FlexGridSizer9->AddGrowableCol(1);
-	FlexGridSizer10 = new wxFlexGridSizer(5, 2, 0, 0);
-	FlexGridSizer10->AddGrowableCol(1);
 	Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
@@ -1051,7 +1046,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Panel1_Twinkle->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel1_Twinkle);
 	FlexGridSizer4->SetSizeHints(Panel1_Twinkle);
-	Panel1 = new wxPanel(Choicebook1, ID_PANEL2, wxPoint(88,16), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	Choicebook1->AddPage(Panel1_None, _("None"), false);
 	Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
 	Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
@@ -1072,7 +1066,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Choicebook1->AddPage(Panel1_Text, _("Text"), false);
 	Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
 	Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
-	Choicebook1->AddPage(Panel1, _("SingleStrand"), false);
 	FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
