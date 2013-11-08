@@ -22,6 +22,7 @@ OutputDir=output
 Source: "bin/xLights.exe"; DestDir: "{app}"
 Source: "bin/ffmpeg.exe"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
+Source: "songs/*.*"; DestDir: "{app}/songs"
 ;Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 Source: "C:\wxWidgets-2.9.5\lib\gcc_dll\wxmsw295u_gcc_custom.dll"; DestDir: "{app}"
 Source: "License.txt"; DestDir: "{app}";
