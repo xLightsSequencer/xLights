@@ -899,6 +899,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         panel->PaletteChanged=false;
     }
     fitToTime = panel->CheckBox_FitToTime->GetValue();
+    buffer.SetFitToTime(layer, fitToTime);
 
     buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
