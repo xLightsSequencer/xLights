@@ -1819,8 +1819,7 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
     wxChar uc = event.GetKeyCode();
     switch (uc)
     {
-    case 'U':
-    case 'u':
+
     case WXK_F5:
         if (Button_UpdateGrid->IsEnabled())
             UpdateGrid();
