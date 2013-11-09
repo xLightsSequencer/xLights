@@ -1369,8 +1369,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
 
-    ConnectOnChar(PanelSequence2);
-    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
+//    ConnectOnChar(PanelSequence2);
+//    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 }
 
 xLightsFrame::~xLightsFrame()
@@ -1801,6 +1801,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }
 
+#if 0 //removed
 void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
 {
     if(pclComponent)
@@ -1821,6 +1822,7 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
         }
     }
 }
+#endif //0
 
 void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
 {

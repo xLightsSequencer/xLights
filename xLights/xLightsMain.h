@@ -359,7 +359,7 @@ private:
     void InsertRandomEffects(wxCommandEvent &evt);
     void UnprotectSelectedEffects(wxCommandEvent& evt);
     void ProtectSelectedEffects(wxCommandEvent& evt);
-    void ConnectOnChar(wxWindow* pclComponent);
+//    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
     static const long ID_BITMAPBUTTON_TAB_INFO;

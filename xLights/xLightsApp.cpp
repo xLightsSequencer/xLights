@@ -40,18 +40,18 @@ bool xLightsApp::OnInit()
 int xLightsApp::FilterEvent(wxEvent& event)
 {
     if (event.GetEventType() == wxEVT_KEY_DOWN)
-        switch ((int)(((wxKeyEvent&)event).GetKeyCode()))
+//        switch ((int)(((wxKeyEvent&)event).GetKeyCode()))
         {
-        case WXK_F5:
+//        case WXK_F5:
             xLightsFrame* Frame = (xLightsFrame*)GetTopWindow();
 //            wxMessageBox(wxString::Format(wxT("tab %d, You pressed 0x%x = 0x%x vs 0x%x"), Frame->Notebook1->GetSelection(), ((wxKeyEvent&)event).GetUnicodeKey(), ((wxKeyEvent&)event).GetKeyCode(), WXK_F5));
 //            if (Frame->Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
-            {
+//            {
 //                Frame->OnPanelSequence2KeyDown((wxKeyEvent&)event);
                 Frame->OnPanelSequence2Char((wxKeyEvent&)event);
                 return true;
-            }
-            break;
+//            }
+//            break;
 
 //add more cases here:
 //        case WXK_F1:
