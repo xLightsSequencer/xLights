@@ -1379,7 +1379,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-										<label>This effect &#x0A;is still under &#x0A;developement</label>
+										<label>*** This effect is still under development. ***&#x0A;              Please do not use it yet</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

@@ -782,7 +782,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	TextCtrl_Piano_Filename = new wxTextCtrl(Panel1_Piano, ID_TEXTCTRL_Piano_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_Filename"));
 	FlexGridSizer5->Add(TextCtrl_Piano_Filename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText4 = new wxStaticText(Panel1_Piano, ID_STATICTEXT4, _("This effect \nis still under \ndevelopement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	StaticText4 = new wxStaticText(Panel1_Piano, ID_STATICTEXT4, _("*** This effect is still under development. ***\n              Please do not use it yet"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer5->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1_Piano->SetSizer(FlexGridSizer5);
 	FlexGridSizer5->Fit(Panel1_Piano);
