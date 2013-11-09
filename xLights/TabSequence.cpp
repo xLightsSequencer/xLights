@@ -1884,15 +1884,39 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
         //Add error dialog if open file failed
         return;
     }
+
     for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
     {
+        std::string::size_type ofs;
+        if ((ofs = line.find("#")) != std::string::npos) line.erase(ofs); //remove comments
+//        while (!linebuf.empty() && (linebuf.back() == '\\')) //line continuation
+//        {
+//            linebuf.pop_back(); //remove trailing "\"
+//            std::string morebuf;
+//            if (!std::getline(infile.stream, morebuf)) break;
+//            linebuf += morebuf;
+//        }
+        while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
+        if (line.empty()) { --r; continue; } //skip blank lines; don't add grid row
+
         wxStringTokenizer tkz(line, wxT("\t"));
-        wxString token = tkz.GetNextToken();
-
+        wxString token = tkz.GetNextToken(); //first column = start time
+#if 1 //pull in lyrics or other label text -DJ
+        tkz.GetNextToken(); //second column = end time; ignored by Nutcracker
+        wxString label = tkz.GetNextToken(); //third column = label/text -DJ
+        for (;;) //collect remaining tokens into label
+        {
+            wxString more = tkz.GetNextToken();
+            if (more.empty()) break;
+            label += " " + more;
+        }
+#endif // 1
         Grid1->AppendRows();
-//        djdebug("line last token = '%s'", (const char*)token); //-DJ
-        Grid1->SetCellValue(r,0,token);
-
+//        djdebug("line last token = '%s', t2 = %s, t3 %s", (const char*)token, (const char*)token2, (const char*)token3); //-DJ
+        Grid1->SetCellValue(r, 0, token);
+#if 1
+        Grid1->SetCellValue(r, 1, label); //add label text -DJ
+#endif // 1
     }
 }
 
