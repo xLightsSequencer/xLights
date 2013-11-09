@@ -992,6 +992,7 @@ private:
     void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
+friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
 };
 
 #endif // XLIGHTSMAIN_H

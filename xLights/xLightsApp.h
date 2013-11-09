@@ -16,6 +16,7 @@ class xLightsApp : public wxApp
 {
 public:
     virtual bool OnInit();
+    int FilterEvent(wxEvent& event); //-DJ
 };
 
 #endif // XLIGHTSAPP_H
