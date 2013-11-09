@@ -68,8 +68,8 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Bars_Highlight;
 		wxStaticText* StaticText27;
 		wxStaticText* StaticText89;
-		wxPanel* Panel1_Circles;
 		wxBitmapButton* BitmapButton_SpiralsDirection;
+		wxPanel* Panel1_Circles;
 		wxSlider* Slider_Butterfly_Style;
 		wxPanel* Panel1_Garlands;
 		wxChoice* Choice_Meteors_Effect;
@@ -81,6 +81,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Curtain_Effect;
 		wxSlider* Slider_Twinkle_Steps;
 		wxPanel* Panel1_SingleStrand;
+		wxBitmapButton* BitmapButton_Piano_KeyWidth;
 		wxStaticText* StaticText41;
 		wxPanel* Panel1;
 		wxBitmapButton* BitmapButton_Palette5;
@@ -122,11 +123,12 @@ class EffectsPanel: public wxPanel
 		wxNotebook* Notebook1;
 		wxBitmapButton* BitmapButton_SpirographR;
 		wxBitmapButton* BitmapButton_FitToTime;
+		wxStaticText* StaticText19;
 		wxChoice* Choice_Butterfly_Colors;
 		wxSlider* Slider_Chase_Speed2;
 		wxChoice* Choice_Text_Dir1;
-		wxSlider* Slider_Garlands_Type;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
+		wxSlider* Slider_Garlands_Type;
 		wxBitmapButton* BitmapButton_TextFont2;
 		wxStaticText* StaticText39;
 		wxBitmapButton* BitmapButton_Spirographd;
@@ -177,8 +179,8 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText16;
 		wxTextCtrl* TextCtrl_Speed;
 		wxSlider* Slider_Bars_BarCount;
-		wxBitmapButton* BitmapButton_CurtainEdge;
 		wxCheckBox* CheckBox_Spirals_Blend;
+		wxBitmapButton* BitmapButton_CurtainEdge;
 		wxButton* Button_Palette6;
 		wxStaticText* StaticText107;
 		wxSlider* Slider_Spirograph_d;
@@ -207,6 +209,7 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Chase_Spacing1;
 		wxTextCtrl* TextCtrl_Text_Line1;
 		wxStaticText* StaticText18;
+		wxTextCtrl* TextCtrl_Piano_Filename;
 		wxSlider* Slider_Color_Mix1;
 		wxBitmapButton* BitmapButton_random;
 		wxStaticText* StaticText86;
@@ -219,9 +222,11 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText51;
 		wxStaticText* StaticText53;
 		wxStaticText* StaticText132;
+		wxButton* Button_Piano_Filename;
 		wxCheckBox* CheckBox_Circles_Random_m;
 		wxCheckBox* CheckBox_Palette6;
 		wxStaticText* StaticText54;
+		wxStaticText* StaticText20;
 		wxPanel* Panel_Text2;
 		wxSlider* Slider_Meteors_Swirl_Intensity;
 		wxPanel* Panel1_Snowflakes;
@@ -239,7 +244,6 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText96;
 		wxSlider* Slider_Curtain_Swag;
 		wxSlider* Slider_Spirals_Thickness;
-		wxBitmapButton* BitmapButton_PianoKeyboard;
 		wxBitmapButton* BitmapButton_CirclesSize;
 		wxTextCtrl* TextCtrl_Text_Font2;
 		wxBitmapButton* BitmapButton_FadeIn;
@@ -268,6 +272,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText80;
 		wxBitmapButton* BitmapButton_TextCount2;
+		wxBitmapButton* BitmapButton_Piano_NumKeys;
 		wxBitmapButton* BitmapButton_FireGrow;
 		wxSlider* Slider_ColorWash_Count;
 		wxButton* Button_Palette5;
@@ -295,10 +300,12 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel1_Spirals;
 		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
 		wxBitmapButton* BitmapButton_GarlandsSpacing;
-		wxSlider* Slider_Piano_Keyboard;
+		wxSlider* Slider_Piano_KeyWidth;
+		wxBitmapButton* BitmapButton_Piano_Filename;
 		wxSlider* Slider_Circles_Size;
 		wxCheckBox* CheckBox_Group_Arches2;
 		wxSlider* Slider_Snowstorm_Count;
+		wxBitmapButton* BitmapButton_Piano_Style;
 		wxBitmapButton* BitmapButton_Palette3;
 		wxBitmapButton* BitmapButton_SpiralsCount;
 		wxSlider* Slider_Fireworks_Count;
@@ -307,6 +314,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText1;
 		wxSlider* Slider_Text_Position2;
+		wxSlider* Slider_Piano_NumKeys;
 		wxPanel* Panel1_Text;
 		wxStaticText* StaticText83;
 		wxBitmapButton* BitmapButton_ColorWashHFade;
@@ -329,6 +337,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_SnowstormLength;
 		wxButton* Button_Palette2;
 		wxCheckBox* CheckBox_Spirals_3D;
+		wxChoice* Choice_Piano_Style;
 		wxPanel* Panel1_Bars;
 		wxPanel* Panel1_Snowstorm;
 		wxStaticText* StaticText134;
@@ -459,8 +468,17 @@ class EffectsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity;
 		static const long ID_PANEL18;
 		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_Piano_Keyboard;
-		static const long ID_BITMAPBUTTON_SLIDER_Piano_Keyboard;
+		static const long ID_CHOICE_Piano_Style;
+		static const long ID_BITMAPBUTTON_SLIDER_Piano_Style;
+		static const long ID_STATICTEXT18;
+		static const long ID_SLIDER_Piano_NumKeys;
+		static const long ID_BITMAPBUTTON_Piano_NumKeys;
+		static const long ID_STATICTEXT19;
+		static const long ID_SLIDER_Piano_KeyWidth;
+		static const long ID_BITMAPBUTTON_Piano_KeyWidth;
+		static const long ID_BUTTON_Piano_Filename;
+		static const long ID_BITMAPBUTTON_Piano_Filename;
+		static const long ID_TEXTCTRL_Piano_Filename;
 		static const long ID_STATICTEXT4;
 		static const long ID_PANEL39;
 		static const long ID_BUTTON_PICTURES_FILENAME;
@@ -733,6 +751,15 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_TwinkleCountClick(wxCommandEvent& event);
 		void OnBitmapButton_TwinkleStepsClick(wxCommandEvent& event);
 		void OnBitmapButton_TwinkleStrobeClick(wxCommandEvent& event);
+		void OnPiano_StyleSelect(wxCommandEvent& event);
+		void OnSlider_Piano_NumKeysCmdScroll(wxScrollEvent& event);
+		void OnTextCtrl_Piano_FilenameText(wxCommandEvent& event);
+		void OnButton_Piano_FilenameClick(wxCommandEvent& event);
+		void OnBitmapButton_Piano_StyleClick(wxCommandEvent& event);
+		void OnBitmapButton_Piano_NumKeysClick(wxCommandEvent& event);
+		void OnBitmapButton_Piano_FilenameClick(wxCommandEvent& event);
+		void OnSlider_Piano_KeyWidthCmdScroll(wxScrollEvent& event);
+		void OnBitmapButton_Piano_KeyWidthClick(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);

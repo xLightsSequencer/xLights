@@ -987,7 +987,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;
     case eff_PIANO:
-        buffer.RenderPiano(panel->Slider_Piano_Keyboard->GetValue());
+        buffer.RenderPiano(panel->Choice_Piano_Style->GetSelection()); //changed slider to choice list -DJ
         break;
     case eff_PICTURES:
         buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),

@@ -132,8 +132,17 @@ const long EffectsPanel::ID_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_PANEL18 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT1 = wxNewId();
-const long EffectsPanel::ID_SLIDER_Piano_Keyboard = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Piano_Keyboard = wxNewId();
+const long EffectsPanel::ID_CHOICE_Piano_Style = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Piano_Style = wxNewId();
+const long EffectsPanel::ID_STATICTEXT18 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Piano_NumKeys = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Piano_NumKeys = wxNewId();
+const long EffectsPanel::ID_STATICTEXT19 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Piano_KeyWidth = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Piano_KeyWidth = wxNewId();
+const long EffectsPanel::ID_BUTTON_Piano_Filename = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Piano_Filename = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Piano_Filename = wxNewId();
 const long EffectsPanel::ID_STATICTEXT4 = wxNewId();
 const long EffectsPanel::ID_PANEL39 = wxNewId();
 const long EffectsPanel::ID_BUTTON_PICTURES_FILENAME = wxNewId();
@@ -330,6 +339,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer80;
+	wxFlexGridSizer* FlexGridSizer27;
 	wxFlexGridSizer* FlexGridSizer44;
 	wxFlexGridSizer* FlexGridSizer37;
 	wxFlexGridSizer* FlexGridSizer25;
@@ -362,6 +372,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	wxFlexGridSizer* FlexGridSizer31;
 	wxFlexGridSizer* FlexGridSizer40;
 	wxFlexGridSizer* FlexGridSizer39;
+	wxFlexGridSizer* FlexGridSizer26;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -729,15 +740,47 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer41->Fit(Panel1_Meteors);
 	FlexGridSizer41->SetSizeHints(Panel1_Meteors);
 	Panel1_Piano = new wxPanel(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL39"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer5->AddGrowableCol(1);
-	StaticText1 = new wxStaticText(Panel1_Piano, ID_STATICTEXT1, _("Keyboard"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Piano_Keyboard = new wxSlider(Panel1_Piano, ID_SLIDER_Piano_Keyboard, 3, 1, 3, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_Keyboard"));
-	FlexGridSizer5->Add(Slider_Piano_Keyboard, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_PianoKeyboard = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_SLIDER_Piano_Keyboard, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Piano_Keyboard"));
-	BitmapButton_PianoKeyboard->SetDefault();
-	FlexGridSizer5->Add(BitmapButton_PianoKeyboard, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
+	FlexGridSizer27 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer27->AddGrowableCol(0);
+	StaticText1 = new wxStaticText(Panel1_Piano, ID_STATICTEXT1, _("Style:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer27->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Piano_Style = new wxChoice(Panel1_Piano, ID_CHOICE_Piano_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_Style"));
+	Choice_Piano_Style->SetSelection( Choice_Piano_Style->Append(_("Keyboard (top view)")) );
+	Choice_Piano_Style->Append(_("Keyboard (edge view)"));
+	Choice_Piano_Style->Append(_("Player piano (scolling)"));
+	Choice_Piano_Style->Append(_("Equalizer (bars)"));
+	FlexGridSizer27->Add(Choice_Piano_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Piano_Style = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_SLIDER_Piano_Style, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Piano_Style"));
+	BitmapButton_Piano_Style->SetDefault();
+	FlexGridSizer27->Add(BitmapButton_Piano_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	StaticText19 = new wxStaticText(Panel1_Piano, ID_STATICTEXT18, _("# Keys:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT18"));
+	FlexGridSizer27->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Piano_NumKeys = new wxSlider(Panel1_Piano, ID_SLIDER_Piano_NumKeys, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_NumKeys"));
+	FlexGridSizer27->Add(Slider_Piano_NumKeys, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Piano_NumKeys = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_Piano_NumKeys, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_NumKeys"));
+	BitmapButton_Piano_NumKeys->SetDefault();
+	FlexGridSizer27->Add(BitmapButton_Piano_NumKeys, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText20 = new wxStaticText(Panel1_Piano, ID_STATICTEXT19, _("Key width:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT19"));
+	FlexGridSizer27->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Piano_KeyWidth = new wxSlider(Panel1_Piano, ID_SLIDER_Piano_KeyWidth, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_KeyWidth"));
+	FlexGridSizer27->Add(Slider_Piano_KeyWidth, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Piano_KeyWidth = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_Piano_KeyWidth, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_KeyWidth"));
+	BitmapButton_Piano_KeyWidth->SetDefault();
+	FlexGridSizer27->Add(BitmapButton_Piano_KeyWidth, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(FlexGridSizer27, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer26 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer26->AddGrowableCol(0);
+	Button_Piano_Filename = new wxButton(Panel1_Piano, ID_BUTTON_Piano_Filename, _("File name"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Piano_Filename"));
+	Button_Piano_Filename->SetBackgroundColour(wxColour(224,224,224));
+	FlexGridSizer26->Add(Button_Piano_Filename, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	BitmapButton_Piano_Filename = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_Piano_Filename, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_Filename"));
+	BitmapButton_Piano_Filename->SetDefault();
+	FlexGridSizer26->Add(BitmapButton_Piano_Filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer5->Add(FlexGridSizer26, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+	TextCtrl_Piano_Filename = new wxTextCtrl(Panel1_Piano, ID_TEXTCTRL_Piano_Filename, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Piano_Filename"));
+	FlexGridSizer5->Add(TextCtrl_Piano_Filename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(Panel1_Piano, ID_STATICTEXT4, _("This effect \nis still under \ndevelopement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer5->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1313,7 +1356,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsCountClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Length,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsLengthClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MeteorsSwirlIntensityClick);
-	Connect(ID_BITMAPBUTTON_SLIDER_Piano_Keyboard,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PianoKeyboardClick);
+	Connect(ID_CHOICE_Piano_Style,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnPiano_StyleSelect);
+	Connect(ID_BITMAPBUTTON_SLIDER_Piano_Style,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_StyleClick);
+	Connect(ID_SLIDER_Piano_NumKeys,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Piano_NumKeysCmdScroll);
+	Connect(ID_BITMAPBUTTON_Piano_NumKeys,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_NumKeysClick);
+	Connect(ID_SLIDER_Piano_KeyWidth,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Piano_KeyWidthCmdScroll);
+	Connect(ID_BITMAPBUTTON_Piano_KeyWidth,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_KeyWidthClick);
+	Connect(ID_BUTTON_Piano_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Piano_FilenameClick);
+	Connect(ID_BITMAPBUTTON_Piano_Filename,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Piano_FilenameClick);
+	Connect(ID_TEXTCTRL_Piano_Filename,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Piano_FilenameText);
 	Connect(ID_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Pictures_FilenameClick);
 	Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesFilenameClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesDirectionClick);
@@ -1636,6 +1687,12 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
     if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
 }
 
+void EffectsPanel::OnButton_Piano_FilenameClick(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty()) TextCtrl_Piano_Filename->SetValue(filename);
+}
+
 void EffectsPanel::UpdateFont(wxTextCtrl* FontCtrl)
 {
     wxFont oldfont,newfont;
@@ -1684,6 +1741,29 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
 {
     TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
+}
+
+
+//new Piano effect UI handlers: -DJ
+void EffectsPanel::OnPiano_StyleSelect(wxCommandEvent& event)
+{
+//TODO
+}
+
+void EffectsPanel::OnSlider_Piano_NumKeysCmdScroll(wxScrollEvent& event)
+{
+//TODO
+//    TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
+}
+
+void EffectsPanel::OnTextCtrl_Piano_FilenameText(wxCommandEvent& event)
+{
+//TODO
+}
+
+void EffectsPanel::OnSlider_Piano_KeyWidthCmdScroll(wxScrollEvent& event)
+{
+//TODO
 }
 
 
@@ -1779,7 +1859,10 @@ showlock(MeteorsEffect)
 showlock(MeteorsCount)
 showlock(MeteorsLength)
 showlock(MeteorsSwirlIntensity)
-showlock(PianoKeyboard)
+showlock(Piano_Style)
+showlock(Piano_NumKeys)
+showlock(Piano_KeyWidth)
+showlock(Piano_Filename)
 showlock(PicturesFilename)
 showlock(PicturesDirection)
 showlock(PicturesSpeed)
@@ -1815,4 +1898,3 @@ showlock(TreeBranches)
 showlock(TwinkleCount)
 showlock(TwinkleSteps)
 showlock(TwinkleStrobe)
-
