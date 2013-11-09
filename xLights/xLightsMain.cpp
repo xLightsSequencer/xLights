@@ -1200,7 +1200,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
-
+    ButtonStopNow->Connect(wxEVT_KEY_DOWN,(wxObjectEventFunction)&xLightsFrame::OnPanelSequence2Char,0,this);
 
     SetIcon(wxIcon(xlights_xpm));
     SetName("xLights");
@@ -1647,6 +1647,11 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
 {
+    SeqStopNow();
+}
+
+void xLightsFrame::SeqStopNow()
+{
     PlayerDlg->MediaCtrl->Stop();
     if (play_mode == play_sched)
     {
@@ -1822,19 +1827,60 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
 
     case WXK_F5:
         if (Button_UpdateGrid->IsEnabled())
+        {
             UpdateGrid();
+        }
         break;
+    case WXK_F4:
+        if (Button_PlayRgbSeq->IsEnabled())
+        {
+             PlayRgbSequence();
+        }
+        else
+        {
+            SeqStopNow();
+        }
+        break;
+    case WXK_F3:
+        if (Button_PlayEffect->IsEnabled())
+        {
+            PlayCurrentRgbEffect();
+        }
+        else
+        {
+            switch (SeqPlayerState)
+            {
+            case PLAYING_EFFECT:
+                SeqStopNow();
+                break;
+            case STARTING_SEQ_ANIM:
+            case PLAYING_SEQ_ANIM:
+            case STARTING_SEQ:
+            case PLAYING_SEQ:
+                SeqStopNow();
+                PlayCurrentRgbEffect();
+                break;
+            }
+        }
+        break;
+
     case WXK_CONTROL_O:
         if (BitmapButtonOpenSeq->IsEnabled())
+        {
             OpenSequence();
+        }
         break;
     case WXK_CONTROL_S:
         if (BitmapButtonSaveSeq->IsEnabled())
+        {
             SaveSequence();
+        }
         break;
     case WXK_INSERT:
         if (BitmapButtonInsertRow->IsEnabled())
+        {
             InsertRow();
+        }
         break;
     default:
         event.Skip();
