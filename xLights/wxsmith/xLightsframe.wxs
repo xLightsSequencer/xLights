@@ -1432,7 +1432,7 @@
 																			<cols>4</cols>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
-																					<label>Play Effect</label>
+																					<label>Play Effect (F4)</label>
 																					<enabled>0</enabled>
 																					<bg>#00FF00</bg>
 																					<handler function="OnButton_PlayEffectClick" entry="EVT_BUTTON" />

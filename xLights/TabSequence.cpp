@@ -55,8 +55,17 @@ void xLightsFrame::ResetEffectStates()
     ResetEffectState[1]=true;
 }
 
-void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
+
+//factored out from below so it can be reused by play/pause button -DJ
+void xLightsFrame::PlayEffect()
 {
+//    wxString lbltxt = Button_PlayEffect->GetLabel();
+//    if (SeqPlayerState == PLAYING_EFFECT) //already playing effect; pause -DJ
+//    {
+//        StopNow();
+//        Button_PlayEffect->SetLabel(_("Play Effect (F4)"));
+//        return;
+//    }
     int sel=Choice_Models->GetSelection();
     if (sel == wxNOT_FOUND)
     {
@@ -79,11 +88,18 @@ void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
     ResetTimer(PLAYING_EFFECT);
+    Button_PlayEffect->SetLabel(_("Pause Effect (F4)")); //toggle label -DJ
+}
+
+void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
+{
+    if (SeqPlayerState == PLAYING_EFFECT) StopNow();
+    else PlayEffect();
 }
 
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
-    Button_PlayEffect->Enable(enable && Choice_Models->GetCount() > 0);
+    Button_PlayEffect->Enable(/*enable &&*/ Choice_Models->GetCount() > 0); //leave this one enabled -DJ
     Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     Button_Models->Enable(enable && ModelsNode);
     Button_Presets->Enable(enable && EffectsNode);

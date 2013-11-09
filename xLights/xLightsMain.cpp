@@ -774,7 +774,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, SeqPanelLeft, _("Combined Effect"));
     FlexGridSizer33 = new wxFlexGridSizer(0, 4, 0, 0);
-    Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, _("Play Effect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
+    Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, _("Play Effect (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
     Button_PlayEffect->Disable();
     Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
     FlexGridSizer33->Add(Button_PlayEffect, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1370,6 +1370,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectTreeDlg = NULL;
 
     ConnectOnChar(PanelSequence2);
+    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 }
 
 xLightsFrame::~xLightsFrame()
@@ -1645,7 +1646,8 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 }
 
 
-void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
+//factored out from below so it can be reused by play/pause button -DJ
+void xLightsFrame::StopNow(void)
 {
     PlayerDlg->MediaCtrl->Stop();
     if (play_mode == play_sched)
@@ -1665,6 +1667,12 @@ void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
         EnableSequenceControls(true);
         break;
     }
+    Button_PlayEffect->SetLabel(_("Play Effect (F4)")); //toggle label -DJ
+}
+
+void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
+{
+    StopNow();
 }
 
 void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
@@ -1817,9 +1825,16 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
 void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
+//    wxMessageBox(wxString::Format(wxT("You pressed '0x%x' = 0x%x"), event.GetKeyCode(), event.GetUnicodeKey())); //just checking to see if key event was received -DJ
     switch (uc)
     {
-
+    case WXK_F4: //play/pause effect -DJ
+        if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
+            if (SeqPlayerState == PLAYING_EFFECT) StopNow();
+            else PlayEffect();
+//        if (Button_PlayEffect->IsEnabled()) PlayEffect();
+//        else StopNow();
+        break;
     case WXK_F5:
         if (Button_UpdateGrid->IsEnabled())
             UpdateGrid();

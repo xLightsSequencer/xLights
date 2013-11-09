@@ -947,6 +947,8 @@ private:
     void CompareMyDisplayToSeq();
     void GetSeqModelNames(wxArrayString& a);
     void UpdateChannelNames();
+    void StopNow(void);
+    void PlayEffect(void);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
