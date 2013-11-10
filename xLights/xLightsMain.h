@@ -972,6 +972,7 @@ private:
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
+    wxArrayString PianoEffectStyles;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString CurtainEdge;

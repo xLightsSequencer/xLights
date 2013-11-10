@@ -435,9 +435,9 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
     Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
-void PixelBufferClass::RenderPiano(int Keyboard)
+void PixelBufferClass::RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile) //added controls -DJ
 {
-    Effect[CurrentLayer].RenderPiano(Keyboard);
+    Effect[CurrentLayer].RenderPiano(Style, NumKeys, KeyWidth, NotesFile);
 }
 
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)

@@ -749,10 +749,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	StaticText1 = new wxStaticText(Panel1_Piano, ID_STATICTEXT1, _("Style:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer27->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Piano_Style = new wxChoice(Panel1_Piano, ID_CHOICE_Piano_Style, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Piano_Style"));
-	Choice_Piano_Style->SetSelection( Choice_Piano_Style->Append(_("Keyboard (top view)")) );
-	Choice_Piano_Style->Append(_("Keyboard (edge view)"));
-	Choice_Piano_Style->Append(_("Player piano (scolling)"));
+	Choice_Piano_Style->SetSelection( Choice_Piano_Style->Append(_("Color Organ")) );
 	Choice_Piano_Style->Append(_("Equalizer (bars)"));
+	Choice_Piano_Style->Append(_("Keyboard (edge view)"));
+	Choice_Piano_Style->Append(_("Keyboard (top view)"));
+	Choice_Piano_Style->Append(_("Player Piano (scrolling)"));
+	Choice_Piano_Style->Append(_("RGB Icicles"));
 	FlexGridSizer27->Add(Choice_Piano_Style, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Piano_Style = new wxBitmapButton(Panel1_Piano, ID_BITMAPBUTTON_SLIDER_Piano_Style, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Piano_Style"));
 	BitmapButton_Piano_Style->SetDefault();
@@ -1691,7 +1693,7 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
 
 void EffectsPanel::OnButton_Piano_FilenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Notes File", *CurrentDir, "", "", "Notes files (*.txt;*.not)|*.txt;*.not", wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_Filename->SetValue(filename);
 }
 

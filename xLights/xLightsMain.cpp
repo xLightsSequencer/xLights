@@ -1308,6 +1308,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectDirections.Add("up-right");
     EffectDirections.Add("down-right");
 
+//TODO: read these from controls (avoid dupplication)!
+    PianoEffectStyles.Add("Color Organ");
+    PianoEffectStyles.Add("Equalizer (bars)");
+    PianoEffectStyles.Add("Keyboard (edge view)");
+    PianoEffectStyles.Add("Keyboard (top view)");
+    PianoEffectStyles.Add("Player Piano (scrolling)");
+    PianoEffectStyles.Add("RGB Icicles");
+
     TextEffects.Add("normal");
     TextEffects.Add("vert text up");
     TextEffects.Add("vert text down");

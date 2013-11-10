@@ -22,55 +22,118 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
-void RgbEffects::RenderPiano(int Keyboard)
+#include <deque> //fifo
+
+#define MIN(a, b)  (((a) < (b))? (a): (b))
+#define MAX(a, b)  (((a) > (b))? (a): (b))
+
+//these must match choice list in UI:
+#define PIANO_STYLE_CORGAN  0
+#define PIANO_STYLE_EQBARS  1
+#define PIANO_STYLE_KEYEDGE  2
+#define PIANO_STYLE_KEYTOP  3
+#define PIANO_STYLE_SCROLLING  4
+#define PIANO_STYLE_ICICLES  5
+
+#define NoteVolume(key, time)  ((key + time) & 7) //TODO
+#define IsNoteOn(key, time)  (NoteVolume(key, time) >= 2) //TODO
+
+//void djdebug(const char* fmt, ...); //_DJ
+
+
+void RgbEffects::RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile)
 {
-    wxImage::HSVValue hsv;
-    wxColour color;
-    int x,y,ColorIdx;
-    size_t colorcnt=GetColorCount();
-    int keys,keys_mod,width,height;
+    static char KeyShapes[] = {'M' /*A*/, 'L' /*B*/, 'R' /*C*/, 'M' /*D*/, 'L' /*E*/, 'R' /*F*/, 'M' /*G*/}; //L/R = black key on left/right, M = black key on left+right
+    static std::deque<std::vector<bool>> WasNoteOn; //keep history for scrolling player piano
+//    wxImage::HSVValue hsv;
+//    wxColour color;
+//    int ColorIdx;
+//    int keys_mod;
 
-
-
-
-
-
-
-
-
-
-
-
-    switch (Keyboard)
+    size_t colorcnt = GetColorCount();
+    if (NumKeys < 3) NumKeys = 12; //default to 1 octave
+    if (NumKeys > BufferWi) NumKeys = BufferWi; //each key should be at least 1 wide
+    if (KeyWidth < 1) KeyWidth = MAX(BufferWi / NumKeys, 1); //"0" => divide available space into equal widths
+    if (KeyWidth > BufferWi / NumKeys) KeyWidth = MAX(BufferWi / NumKeys, 1);
+    int height = /*(Style == PIANO_STYLE_SCROLLING)? MIN(KeyWidth, BufferHt):*/ BufferHt; //use square keys for scrolling piano, entire height for all others
+    if (Style == PIANO_STYLE_SCROLLING) //add another history row
     {
-    case 1: // smallest keyboard
-    {
-        width=1;
-        height=3;
-        break;
-    }
-    case 2: // medium keyboard
-    {
-        width=2;
-        height=5;
-        break;
-    }
-    case 3: // largest keyboard
-    {
-        width =3;
-
-        height=10;
-        width =7;
-        height=16;
-        break;
-    }
+        WasNoteOn.emplace_back();
+        if (WasNoteOn.size() > BufferHt / height) WasNoteOn.pop_front(); //drop oldest row
     }
 
-    ColorIdx=rand() % colorcnt;
-    palette.GetColor(ColorIdx,color);
-    Color2HSV(color,hsv);
-    if(height>BufferHt) height=BufferHt;
-    if(width>BufferWi) width=BufferWi;
+//    char buf[100];
+//    sprintf(buf, "Playback: piano fx, style %d, #keys %d, keyw %d, buf w %d, buf h %d", Style, NumKeys, KeyWidth, BufferWi, BufferHt);
+//    StatusBar1->SetStatusText(_(buf));
+//    djdebug("[%d] style %d, #keys %d, keyw %d, w %d, h %d, fx h %d, hist len %d", state, Style, NumKeys, KeyWidth, BufferWi, BufferHt, height, WasNoteOn.size());
+    for (int xofs = 0; xofs < BufferWi; xofs += KeyWidth) // xofs/KeyWidth == key#
+    {
+        bool isdown = IsNoteOn(xofs/KeyWidth, state);
+//how to handle colors?
+//choose different color for each key?
+        wxImage::HSVValue hsv;
+        wxColour color;
+        int ColorIdx = rand() % colorcnt; //TODO: why is this random?
+        palette.GetColor(ColorIdx, color);
+        Color2HSV(color, hsv);
+
+        switch (Style)
+        {
+            case PIANO_STYLE_KEYEDGE: //edge of keys go up/down according to whether note is on/off, note color is ????
+            case PIANO_STYLE_KEYTOP:
+                height = isdown? BufferHt: BufferHt/2;
+                hsv.value = isdown? .5: 1.0; //make "on" (down) keys brighter??
+//                djdebug("  key notex %d/%d: ht %d, bright %f", xofs/KeyWidth, BufferWi/KeyWidth, height, hsv.value);
+                break;
+            case PIANO_STYLE_CORGAN: //don't even show keys that are off
+//                djdebug("  corgan notex %d/%d: isdown? %d", xofs/KeyWidth, BufferWi/KeyWidth, isdown);
+                if (!isdown) continue;
+                break;
+            case PIANO_STYLE_EQBARS: //height indicates strength/loudness of note
+                height = BufferHt * NoteVolume(xofs/KeyWidth, state) / 7;
+//                djdebug("  eq notex %d/%d: vol %d, ht %d", xofs/KeyWidth, BufferWi/KeyWidth, NoteVolume(xofs/KeyWidth, state), height);
+                break;
+            case PIANO_STYLE_SCROLLING: //history scrolling
+                WasNoteOn.back()[xofs / KeyWidth] = isdown;
+//                djdebug("  scr notex %d/%d: ison %d", xofs/KeyWidth, BufferWi/KeyWidth, isdown);
+                break;
+//            case PIANO_STYLE_ICICLES: //start drip when note is on
+        }
+
+        for (int x = 0; (x < KeyWidth) && (xofs + x < BufferWi); ++x)
+            for (int y = 0; y < height; ++y)
+            {
+                if (Style == PIANO_STYLE_SCROLLING)
+                {
+                    int row = y / KeyWidth;
+                    if (WasNoteOn.size() < row) continue; //row wasn't displayed yet
+                    if (!WasNoteOn[row][xofs/KeyWidth]) continue; //note is not on currently
+                }
+                SetPixel(xofs + x, y, hsv);
+            }
+    }
+#if 0
+    switch (Style)
+    {
+        case PIANO_STYLE_KEYTOP: //view from above; black and white keys have different shapes according to place within octave
+//fill one key for now:
+            for (int x = 0; x < KeyWidth; ++x)
+                for (int y = 0; y < height; ++y)
+                    SetPixel(x, y, hsv);
+            break;
+
+        case PIANO_STYLE_KEYEDGE:
+
+        case PIANO_STYLE_SCROLLING:
+
+        case PIANO_STYLE_EQBARS:
+
+        case PIANO_STYLE_ICICLES:
+    }
+                            SetPixel(x,y,hsv);
+
+//#if 1
+
     //  BufferWi ,BufferHt
     int y_start = (int) ((BufferHt/2.0) - (height/2.0));
     int y_end = y_start+height;
@@ -394,4 +457,5 @@ void RgbEffects::RenderPiano(int Keyboard)
         break;
         } // switch (keys_mod)
     } //  for (keys=1; keys<=14; keys++)
+#endif // 0
 }

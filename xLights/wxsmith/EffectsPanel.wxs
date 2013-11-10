@@ -1247,10 +1247,12 @@
 										<object class="sizeritem">
 											<object class="wxChoice" name="ID_CHOICE_Piano_Style" variable="Choice_Piano_Style" member="yes">
 												<content>
-													<item>Keyboard (top view)</item>
-													<item>Keyboard (edge view)</item>
-													<item>Player piano (scolling)</item>
+													<item>Color Organ</item>
 													<item>Equalizer (bars)</item>
+													<item>Keyboard (edge view)</item>
+													<item>Keyboard (top view)</item>
+													<item>Player Piano (scrolling)</item>
+													<item>RGB Icicles</item>
 												</content>
 												<selection>0</selection>
 												<handler function="OnPiano_StyleSelect" entry="EVT_CHOICE" />

@@ -9,7 +9,7 @@ void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderLife(int Count, int Type);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
-void RenderPiano(int Keyboard);
+void RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
 void RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Speed1, bool Group_Arches1, bool R_TO_L1,
                         int Color_Mix2,int Chase_Spacing2,int Chase_Speed2, bool Group_Arches2, bool R_TO_L2);
