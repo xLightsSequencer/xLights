@@ -387,6 +387,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
+												<hidden>1</hidden>
 												<handler function="OnBitmapButton_CirclesCollideClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -511,6 +512,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>16,16</size>
+												<hidden>1</hidden>
 												<handler function="OnBitmapButton_RandomMotionClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
