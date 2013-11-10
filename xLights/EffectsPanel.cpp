@@ -485,6 +485,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer15->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	BitmapButton_CirclesCollide = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON_CHECKBOX_Circles_Collide, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Collide"));
 	BitmapButton_CirclesCollide->SetDefault();
+	BitmapButton_CirclesCollide->Hide();
 	FlexGridSizer15->Add(BitmapButton_CirclesCollide, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer80->Add(FlexGridSizer15, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -521,6 +522,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer16->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	BitmapButton_RandomMotion = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m"));
 	BitmapButton_RandomMotion->SetDefault();
+	BitmapButton_RandomMotion->Hide();
 	FlexGridSizer16->Add(BitmapButton_RandomMotion, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer80->Add(FlexGridSizer16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel1_Circles->SetSizer(FlexGridSizer80);
@@ -1754,6 +1756,7 @@ void EffectsPanel::OnSlider_Piano_NumKeysCmdScroll(wxScrollEvent& event)
 {
 //TODO
 //    TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
+//    txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
 }
 
 void EffectsPanel::OnTextCtrl_Piano_FilenameText(wxCommandEvent& event)
