@@ -1824,7 +1824,9 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
 }
 #endif //0
 
-void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
+
+//need to return a "processed" flag here; refactor: -DJ
+bool xLightsFrame::HotKey(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
 //    wxMessageBox(wxString::Format(wxT("You pressed '0x%x' = 0x%x"), event.GetKeyCode(), event.GetUnicodeKey())); //just checking to see if key event was received -DJ
@@ -1836,27 +1838,35 @@ void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
             else PlayEffect();
 //        if (Button_PlayEffect->IsEnabled()) PlayEffect();
 //        else StopNow();
-        break;
+        return true;
     case WXK_F5:
-        if (Button_UpdateGrid->IsEnabled())
-            UpdateGrid();
-        break;
+        if (!Button_UpdateGrid->IsEnabled()) break;
+        UpdateGrid();
+        return true;
     case WXK_CONTROL_O:
-        if (BitmapButtonOpenSeq->IsEnabled())
-            OpenSequence();
-        break;
+        if (!BitmapButtonOpenSeq->IsEnabled()) break;
+        OpenSequence();
+        return true;
     case WXK_CONTROL_S:
-        if (BitmapButtonSaveSeq->IsEnabled())
-            SaveSequence();
-        break;
+        if (!BitmapButtonSaveSeq->IsEnabled()) break;
+        SaveSequence();
+        return true;
     case WXK_INSERT:
-        if (BitmapButtonInsertRow->IsEnabled())
-            InsertRow();
-        break;
-    default:
-        event.Skip();
+        if (!BitmapButtonInsertRow->IsEnabled()) break;
+        InsertRow();
+        return true;
+//    default:
+//        event.Skip();
     }
+    event.Skip();
+    return false; //tell someone else to handle the char
 }
+
+void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
+{
+    HotKey(event);
+}
+
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
 //void djdebug(const char* fmt, ...); //_DJ

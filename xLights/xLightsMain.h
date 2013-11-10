@@ -949,6 +949,7 @@ private:
     void UpdateChannelNames();
     void StopNow(void);
     void PlayEffect(void);
+    bool HotKey(wxKeyEvent& event);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;

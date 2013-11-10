@@ -48,8 +48,7 @@ int xLightsApp::FilterEvent(wxEvent& event)
 //            if (Frame->Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
 //            {
 //                Frame->OnPanelSequence2KeyDown((wxKeyEvent&)event);
-                Frame->OnPanelSequence2Char((wxKeyEvent&)event);
-                return true;
+                if (Frame->HotKey((wxKeyEvent&)event)) return true;
 //            }
 //            break;
 
