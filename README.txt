@@ -2,6 +2,20 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+3.2.6:				- Bug (Sean) Removed Linus and Lucy mp3 file from songs directory, we don't distribute mp3's
+					- Enhancement (Frankr and djulien). New hot keys created.
+						F3 Toggles between PLAY/STOP for far left "Play Effect" button
+						F4 Toggles between PLAY/STOP for top "Play" button
+						F3 -- will start to play an effect (left play) if none is playing and no sequence is playing
+							if an effect is playing it will stop playing. if a sequence is playing it will
+							stop playing and the current effect will play.  This allows for easy editing of an effect.
+						F4 -- Starts playing a sequence (top play) from the current selected cell
+							If a sequence is playing it will be stopped.
+						F5 Same as clicking the "Update Grid" button
+						Ctl-o Same as clicking the open button
+						Ctl-s save as clicking the save file button
+3.2.5:				- Bug (Frankr) removed 'U' for updating grid. Now only F5 is shortcut key. The 'u' caused a problem 
+							when typing in text.
 3.2.4:				- Enhancement (Djulien) New  filtering on every slider and checkbox for "Create Random Effects"
 					- Enhancement (Frankr) F5 or 'U' now performs an update grid
 					- Enhancement (Sean) New directory "songs" has audacity label files for many songs. Find the new directory

@@ -41,6 +41,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     size_t colorcnt=GetColorCount(); // global now set to how many colors have been picked
     y=BufferHt;
 
+
     i=0;
     int state_width = state/BufferWi;
     int state_col = (state_width*BufferWi) + state%10;

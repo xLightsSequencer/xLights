@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.4)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.6)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1209,7 +1209,7 @@
 													<growablecols>4</growablecols>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_PLAY_PREVIEW" variable="ButtonPlayPreview" member="yes">
-															<label>Play</label>
+															<label>Play (F4)</label>
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1432,7 +1432,6 @@
 																			<cols>4</cols>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
-																					<label>Play Effect (F4)</label>
 																					<enabled>0</enabled>
 																					<bg>#00FF00</bg>
 																					<handler function="OnButton_PlayEffectClick" entry="EVT_BUTTON" />
@@ -1766,7 +1765,7 @@
 																					<cols>10</cols>
 																					<object class="sizeritem">
 																						<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
-																							<label>Play</label>
+																							<label>Play (F4)</label>
 																							<bg>#00FF00</bg>
 																							<tooltip>Play from current grid cell</tooltip>
 																							<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
