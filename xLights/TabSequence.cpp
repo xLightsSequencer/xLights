@@ -20,6 +20,11 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 
 void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 {
+    PlayRgbSequence();
+}
+
+void xLightsFrame::PlayRgbSequence()
+{
     if (SeqData.size() == 0)
     {
         wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
@@ -56,6 +61,11 @@ void xLightsFrame::ResetEffectStates()
 }
 
 void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
+{
+    PlayCurrentRgbEffect();
+}
+
+void xLightsFrame::PlayCurrentRgbEffect()
 {
     int sel=Choice_Models->GetSelection();
     if (sel == wxNOT_FOUND)

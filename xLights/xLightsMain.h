@@ -765,6 +765,9 @@ private:
     int effGridPrevX;
     int effGridPrevY;
 
+    void SeqStopNow();
+    void PlayRgbSequence();
+    void PlayCurrentRgbEffect();
 
     void SetPlayMode(play_modes newmode);
     double rand01();
