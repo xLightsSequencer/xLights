@@ -20,6 +20,11 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 
 void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 {
+    PlayRgbSequence();
+}
+
+void xLightsFrame::PlayRgbSequence()
+{
     if (SeqData.size() == 0)
     {
         wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
@@ -56,16 +61,9 @@ void xLightsFrame::ResetEffectStates()
 }
 
 
-//factored out from below so it can be reused by play/pause button -DJ
+
 void xLightsFrame::PlayEffect()
 {
-//    wxString lbltxt = Button_PlayEffect->GetLabel();
-//    if (SeqPlayerState == PLAYING_EFFECT) //already playing effect; pause -DJ
-//    {
-//        StopNow();
-//        Button_PlayEffect->SetLabel(_("Play Effect (F4)"));
-//        return;
-//    }
     int sel=Choice_Models->GetSelection();
     if (sel == wxNOT_FOUND)
     {
@@ -88,13 +86,19 @@ void xLightsFrame::PlayEffect()
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
     ResetTimer(PLAYING_EFFECT);
-    Button_PlayEffect->SetLabel(_("Pause Effect (F4)")); //toggle label -DJ
+    Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
 }
 
 void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
 {
-    if (SeqPlayerState == PLAYING_EFFECT) StopNow();
-    else PlayEffect();
+    if (SeqPlayerState == PLAYING_EFFECT)
+    {
+        StopNow();
+    }
+    else
+    {
+        PlayEffect();
+    }
 }
 
 void xLightsFrame::EnableSequenceControls(bool enable)
@@ -1152,8 +1156,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
-                Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
+                Grid1->GoToCell(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
+
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())

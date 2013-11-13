@@ -39,7 +39,7 @@ bool xLightsApp::OnInit()
 #if 1
 int xLightsApp::FilterEvent(wxEvent& event)
 {
-    if (event.GetEventType() == wxEVT_KEY_DOWN)
+    if (event.GetEventType() == wxEVT_CHAR)
 //        switch ((int)(((wxKeyEvent&)event).GetKeyCode()))
         {
 //        case WXK_F5:
