@@ -948,6 +948,7 @@ private:
     void GetSeqModelNames(wxArrayString& a);
     void UpdateChannelNames();
     void StopNow(void);
+    void PlayRgbSequence(void);
     void PlayEffect(void);
     bool HotKey(wxKeyEvent& event);
 

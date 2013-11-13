@@ -85,8 +85,9 @@ protected:
     size_t GetColorCount();
 
     int fadeinsteps, fadeoutsteps;
-    int curEffStartPer, curEffEndPer, nextEffTimePeriod;
-
+    int curEffStartPer;    /**< Start 50ms period of current effect. */
+    int curEffEndPer;      /**<  */
+    int nextEffTimePeriod; /**<  */
 
     class RgbFireworks
     {

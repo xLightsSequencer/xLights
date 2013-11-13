@@ -774,7 +774,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, SeqPanelLeft, _("Combined Effect"));
     FlexGridSizer33 = new wxFlexGridSizer(0, 4, 0, 0);
-    Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
+    Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, _("Play (F3)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
     Button_PlayEffect->Disable();
     Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
     FlexGridSizer33->Add(Button_PlayEffect, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1675,7 +1675,7 @@ void xLightsFrame::StopNow(void)
         EnableSequenceControls(true);
         break;
     }
-    Button_PlayEffect->SetLabel(_("Play Effect (F4)")); //toggle label -DJ
+    Button_PlayEffect->SetLabel(_("Play Effect (F3)")); //toggle label -DJ
 }
 
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
@@ -1837,37 +1837,73 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
 bool xLightsFrame::HotKey(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
-//    wxMessageBox(wxString::Format(wxT("You pressed '0x%x' = 0x%x"), event.GetKeyCode(), event.GetUnicodeKey())); //just checking to see if key event was received -DJ
-    switch (uc)
+    bool retval = false;
+
+    if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
     {
-    case WXK_F4: //play/pause effect -DJ
-        if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
-            if (SeqPlayerState == PLAYING_EFFECT) StopNow();
-            else PlayEffect();
-//        if (Button_PlayEffect->IsEnabled()) PlayEffect();
-//        else StopNow();
-        return true;
-    case WXK_F5:
-        if (!Button_UpdateGrid->IsEnabled()) break;
-        UpdateGrid();
-        return true;
-    case WXK_CONTROL_O:
-        if (!BitmapButtonOpenSeq->IsEnabled()) break;
-        OpenSequence();
-        return true;
-    case WXK_CONTROL_S:
-        if (!BitmapButtonSaveSeq->IsEnabled()) break;
-        SaveSequence();
-        return true;
-    case WXK_INSERT:
-        if (!BitmapButtonInsertRow->IsEnabled()) break;
-        InsertRow();
-        return true;
-//    default:
-//        event.Skip();
+        retval = true;
+        switch (uc)
+        {
+        case WXK_F4:
+            if (Button_PlayRgbSeq->IsEnabled())
+            {
+                 PlayRgbSequence();
+            }
+            else
+            {
+                StopNow();
+            }
+            break;
+        case WXK_F3:
+            switch (SeqPlayerState)
+            {
+            case PLAYING_EFFECT:
+                StopNow();
+                break;
+            case STARTING_SEQ_ANIM:
+            case PLAYING_SEQ_ANIM:
+            case STARTING_SEQ:
+            case PLAYING_SEQ:
+                StopNow();
+                PlayEffect();
+                break;
+            default:
+                PlayEffect();
+            }
+            break;
+        case WXK_F5:
+            if (Button_UpdateGrid->IsEnabled())
+            {
+                UpdateGrid();
+            }
+            break;
+        case WXK_CONTROL_O:
+            if (BitmapButtonOpenSeq->IsEnabled())
+            {
+                OpenSequence();
+            }
+            break;
+        case WXK_CONTROL_S:
+            if (BitmapButtonSaveSeq->IsEnabled())
+            {
+                SaveSequence();
+            }
+            break;
+        case WXK_INSERT:
+            if (BitmapButtonInsertRow->IsEnabled())
+            {
+                InsertRow();
+            }
+            break;
+        default:
+            retval = false;
+        }
     }
-    event.Skip();
-    return false; //tell someone else to handle the char
+    if (!retval)
+    {
+        event.Skip();
+    }
+    return retval;
 }
 
 void xLightsFrame::OnPanelSequence2Char(wxKeyEvent& event)
