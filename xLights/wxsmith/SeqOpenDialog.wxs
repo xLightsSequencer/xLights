@@ -88,6 +88,7 @@
 							</content>
 							<default>-1</default>
 							<enabled>0</enabled>
+							<style>wxRA_SPECIFY_ROWS</style>
 							<handler function="OnRadioBox1Select1" entry="EVT_RADIOBOX" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

@@ -57,7 +57,7 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     	_("Audacity"),
     	_("Xlights XML")
     };
-    RadioBoxTimingChoice = new wxRadioBox(this, ID_RADIOBOX_Timing_Choice, _("Timing Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX_Timing_Choice"));
+    RadioBoxTimingChoice = new wxRadioBox(this, ID_RADIOBOX_Timing_Choice, _("Timing Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, wxRA_SPECIFY_ROWS, wxDefaultValidator, _T("ID_RADIOBOX_Timing_Choice"));
     RadioBoxTimingChoice->Disable();
     FlexGridSizer2->Add(RadioBoxTimingChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonNewAnim = new wxRadioButton(this, ID_RADIOBUTTON3, _("New animation sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
