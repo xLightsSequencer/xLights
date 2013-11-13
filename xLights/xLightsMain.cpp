@@ -937,7 +937,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer70->Fit(PanelSequence2);
     FlexGridSizer70->SetSizeHints(PanelSequence2);
     PanelCal = new wxPanel(Notebook1, ID_PANEL_CAL, wxPoint(49,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CAL"));
-    PanelCal->Hide();
     FlexGridSizer8 = new wxFlexGridSizer(2, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(0);
     FlexGridSizer8->AddGrowableRow(0);
