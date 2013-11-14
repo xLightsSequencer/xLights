@@ -2092,18 +2092,15 @@ void xLightsFrame::ResetSequenceGrid()
 
 void xLightsFrame::OpenSequence()
 {
-    wxArrayString SeqFiles,MediaFiles;
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
+    wxArrayString XSeqFiles,LorFiles,MediaFiles;
 
     // get list of media files
     wxFileName oName;
     wxString filename;
     wxString nullString;
-    char filetype;
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
     nullString.Clear();
-    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
 
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
@@ -2111,19 +2108,31 @@ void xLightsFrame::OpenSequence()
         return;
     }
 
+    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while ( cont )
     {
         oName.SetFullName(filename);
-        filetype=ExtType(oName.GetExt());
-        if (filetype=='a' || filetype=='v') MediaFiles.Add(oName.GetFullPath());
+        switch (ExtType(oName.GetExt()))
+        {
+            case 'a':
+            case 'v':
+                MediaFiles.Add(oName.GetFullPath());
+                break;
+            case 'X':
+                XSeqFiles.Add(oName.GetFullPath());
+                break;
+            case 'L':
+                LorFiles.Add(oName.GetFullPath());
+                break;
+        }
         cont = dir.GetNext(&filename);
     }
 
     // populate dialog
     SeqOpenDialog dialog(this);
-    if (SeqFiles.Count() > 0)
+    if (XSeqFiles.Count() > 0)
     {
-        dialog.ChoiceSeqFiles->Set(SeqFiles);
+        dialog.ChoiceSeqFiles->Set(XSeqFiles);
         dialog.ChoiceSeqFiles->SetSelection(0);
     }
     else
@@ -2132,6 +2141,16 @@ void xLightsFrame::OpenSequence()
         dialog.ChoiceSeqFiles->Enable(false);
         dialog.RadioBoxTimingChoice->Enable();
         dialog.RadioButtonNewMusic->SetValue(true);
+    }
+    if (LorFiles.Count() > 0)
+    {
+        dialog.ChoiceLorFiles->Set(LorFiles);
+        dialog.ChoiceLorFiles->SetSelection(0);
+    }
+    else
+    {
+        dialog.RadioButtonLor->Enable(false);
+        dialog.ChoiceLorFiles->Enable(false);
     }
     if (MediaFiles.Count() > 0)
     {
@@ -2156,6 +2175,11 @@ void xLightsFrame::OpenSequence()
     {
         SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
         SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection(), true);
+        return;
+    }
+    else if (dialog.RadioButtonLor->GetValue())
+    {
+        wxMessageBox(wxT("This feature is coming soon!"));
         return;
     }
     else if (dialog.RadioButtonNewMusic->GetValue())

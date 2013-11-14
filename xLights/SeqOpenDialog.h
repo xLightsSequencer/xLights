@@ -27,6 +27,9 @@ public:
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     wxSpinCtrl* SpinCtrlDuration;
+    wxRadioButton* RadioButtonLor;
+    wxChoice* ChoiceLorFiles;
+    wxStaticText* StaticText4;
     wxRadioButton* RadioButtonNewAnim;
     wxChoice* ChoiceSeqFiles;
     //*)
@@ -37,6 +40,9 @@ protected:
     static const long ID_RADIOBUTTON1;
     static const long ID_STATICTEXT1;
     static const long ID_CHOICE1;
+    static const long ID_RADIOBUTTON4;
+    static const long ID_STATICTEXT4;
+    static const long ID_CHOICE3;
     static const long ID_RADIOBUTTON2;
     static const long ID_STATICTEXT2;
     static const long ID_CHOICE2;
@@ -58,6 +64,7 @@ private:
     void OnRadioButtonXlightsSelect(wxCommandEvent& event);
     void OnRadioButtonNewMusicSelect(wxCommandEvent& event);
     void OnRadioButtonNewAnimSelect(wxCommandEvent& event);
+    void OnRadioButtonLorSelect(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

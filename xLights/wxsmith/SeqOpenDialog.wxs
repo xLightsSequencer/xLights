@@ -43,6 +43,34 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxRadioButton" name="ID_RADIOBUTTON4" variable="RadioButtonLor" member="yes">
+							<label>LOR Sequence</label>
+							<handler function="OnRadioButtonLorSelect" entry="EVT_RADIOBUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+							<label>File name</label>
+						</object>
+						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE3" variable="ChoiceLorFiles" member="yes" />
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButtonNewMusic" member="yes">
 							<label>New Musical Sequence</label>
 							<handler function="OnRadioButtonNewMusicSelect" entry="EVT_RADIOBUTTON" />
