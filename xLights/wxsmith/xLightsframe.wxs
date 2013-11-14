@@ -1565,7 +1565,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1607,7 +1608,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1647,7 +1649,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1685,7 +1688,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1696,8 +1700,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_normal" member="yes">
 																					<bitmap code="padlock16x16_green_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1708,8 +1713,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON13" variable="BitmapButton_locked" member="yes">
 																					<bitmap code="padlock16x16_red_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1720,8 +1726,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_random" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

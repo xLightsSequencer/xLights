@@ -775,7 +775,7 @@ class EffectsPanel: public wxPanel
         std::unordered_map<std::string, EditState> buttonState;
         bool isRandom_(wxControl* ctl, const char*debug);
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
-        void setlock(wxBitmapButton* button); //, EditState& islocked);
+        void setlock(wxButton* button); //, EditState& islocked);
 //friend class xLightsFrame; //debug only
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
