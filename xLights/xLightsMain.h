@@ -77,6 +77,7 @@
 #include "PixelBuffer.h"
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
+#include "ExportModelSelect.h"
 
 class EffectTreeDialog;
 
@@ -352,6 +353,7 @@ private:
     void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
     void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
     void OnBitmapButton_ContrastClick(wxCommandEvent& event);
+    void OnButtonModelExportClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -502,13 +504,14 @@ private:
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
     static const long ID_BUTTON2;
-    static const long ID_BUTTON1;
+    static const long ID_BUTTON_SeqExport;
+    static const long ID_BUTTON4;
+    static const long ID_BUTTON_CREATE_RANDOM;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
-    static const long ID_BUTTON_SeqExport;
-    static const long ID_BUTTON_CREATE_RANDOM;
+    static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS2;
@@ -598,6 +601,7 @@ private:
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
     wxButton* ButtonStopPreview;
+    wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
     wxBitmapButton* BitmapButton_Brightness;
     wxButton* Button_Palette;
@@ -687,8 +691,8 @@ private:
     wxSlider* Slider_Contrast;
     wxButton* ButtonTestSave;
     wxStaticText* StaticTextShowEnd;
-    wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    wxRadioButton* RadioButtonAlt;
     wxChoice* Choice_LayerMethod;
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
@@ -795,6 +799,16 @@ private:
     TestFunctions TestFunc;
     void OnTimerTest(long curtime);
 
+    wxString mediaFilename;
+    wxString xlightsFilename;
+    SeqDataType SeqData;
+    long SeqDataLen;
+    long SeqNumPeriods;
+    long SeqNumChannels;
+    wxArrayString FileNames;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels);
     void ReadVixFile(const char* filename);
@@ -805,14 +819,18 @@ private:
     void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
     bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
-    void WriteVirFile(const wxString& filename); //       Vixen *.vir
+    void WriteVirFile(const wxString& filename);
+    void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
+    void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
+    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
     void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
+    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void ClearLastPeriod();
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
@@ -820,15 +838,8 @@ private:
     wxString base64_encode();
     std::string base64_decode(const wxString& encoded_string);
 
-    wxString mediaFilename;
-    wxString xlightsFilename;
-    SeqDataType SeqData;
-    long SeqDataLen;
-    long SeqNumPeriods;
-    long SeqNumChannels;
-    wxArrayString FileNames;
-    wxArrayString ChannelNames;
-    wxArrayInt ChannelColors;
+    SeqDataType* RenderModelToData(wxXmlNode *modelNode);
+    wxXmlNode* SelectModelToExport();
 
     // schedule
     wxDateTime ShowStartDate,ShowEndDate;

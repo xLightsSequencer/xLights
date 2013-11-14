@@ -15,6 +15,7 @@ public:
 
     SeqExportDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~SeqExportDialog();
+    void ModelExportTypes();
 
     //(*Declarations(SeqExportDialog)
     wxTextCtrl* TextCtrlFilename;

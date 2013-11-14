@@ -2357,6 +2357,94 @@ void xLightsFrame::RenderGridToSeqData()
     }
 }
 
+//FR Caller is responsible for deleting the returned data object
+SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
+{
+    MapStringString SettingsMap;
+    wxString ColName,msg, EffectStr;
+    long msec;
+    bool effectsToUpdate;
+    size_t ChannelLimit, NodeCnt;
+    int rowcnt=Grid1->GetNumberRows();
+    int colcnt=Grid1->GetNumberCols();
+    SeqDataType* retData;
+
+
+    //buffer.InitBuffer(modelNode);
+    NodeCnt = buffer.GetNodeCount();
+    retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
+
+    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
+    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    {
+        ColName=Grid1->GetColLabelValue(c);
+        if (ColName != buffer.name) continue;
+
+        NextGridRowToPlay=0;
+        for (int p=0; p<SeqNumPeriods; p++)
+        {
+            msec=p * XTIMER_INTERVAL;
+            buffer.Clear();
+
+            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            {
+                // start next effect
+                wxYield();
+                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
+
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                EffectStr.Trim();
+                if (!EffectStr.IsEmpty())
+                {
+                    //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
+                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    UpdateBufferPaletteFromMap(1,SettingsMap);
+                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    buffer.SetMixType(SettingsMap["LayerMethod"]);
+                    ResetEffectStates();
+                    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
+                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    buffer.SetSparkle(freq);
+
+                    int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                    buffer.SetBrightness(brightness);
+
+                    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+                    buffer.SetContrast(contrast);
+                    UpdateBufferFadesFromMap(1, SettingsMap);
+                    UpdateBufferFadesFromMap(2, SettingsMap);
+                    UpdateFitToTimeFromMap(1, SettingsMap);
+                    UpdateFitToTimeFromMap(2, SettingsMap);
+                }
+
+                UpdateEffectDuration();
+                NextGridRowToPlay++;
+            } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+
+            if (effectsToUpdate)
+            {
+                buffer.CalcOutput(p);
+                // update SeqData with contents of buffer
+                size_t chnum;
+                wxByte intensity;
+                size_t NodeCnt=buffer.GetNodeCount();
+                size_t cn=buffer.ChannelsPerNode();
+                for(size_t n=0; n<NodeCnt; n++)
+                {
+                    for(size_t c=0; c<cn; c++)
+                    {
+                        buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                        (*retData)[chnum*SeqNumPeriods+p]=intensity;
+                    }
+                }
+            }//if (effectsToUpdate)
+        } //for (int p=0; p<SeqNumPeriods; p++)
+    }
+    return retData;
+}
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
@@ -2737,6 +2825,113 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         WriteXLightsFile(fullpath);
     }
 
+    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+}
+
+wxXmlNode* xLightsFrame::SelectModelToExport()
+{
+    ExportModelSelect dialog(this);
+    wxString modelName;
+    int colcnt = Grid1->GetNumberCols();
+    wxASSERT(colcnt > XLIGHTS_SEQ_STATIC_COLUMNS);
+    for( int col=XLIGHTS_SEQ_STATIC_COLUMNS; col<colcnt; col++)
+    {
+        dialog.ModelChoice->Append(Grid1->GetColLabelValue(col));
+    }
+    dialog.ModelChoice->SetSelection(0);
+    if (dialog.ShowModal() != wxID_OK) return NULL;
+    return GetModelNode(dialog.ModelChoice->GetStringSelection());
+}
+
+
+void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
+{
+    if (SeqData.size() == 0)
+    {
+        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        return;
+    }
+    if (Grid1->GetNumberCols() <= XLIGHTS_SEQ_STATIC_COLUMNS)
+    {
+        wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
+        return;
+    }
+    if (Grid1->GetNumberRows() == 0)
+    {
+        wxMessageBox(wxT("No grid rows to save!"), wxT("Error"));
+        return;
+    }
+    int DlgResult;
+    bool ok;
+    wxString filename;
+    wxXmlNode* modelNode;
+    SeqDataType* dataBuf;
+    int numChan;
+    SeqExportDialog dialog(this);
+    dialog.ModelExportTypes();
+    do
+    {
+        ok=true;
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            filename=dialog.TextCtrlFilename->GetValue();
+            filename.Trim();
+            if (filename.IsEmpty())
+            {
+                ok=false;
+                wxMessageBox(_("The file name cannot be empty"), _("ERROR"));
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    if (DlgResult != wxID_OK) return;
+
+    modelNode = SelectModelToExport();
+
+    if(!modelNode) return;
+
+    buffer.InitBuffer(modelNode,true);
+    numChan = buffer.GetChanCount();
+    dataBuf = RenderModelToData(modelNode);
+
+    wxFileName oName(filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath;
+    wxString format=dialog.ChoiceFormat->GetStringSelection();
+    wxStopWatch sw;
+    wxString Out3=format.Left(3);
+    StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
+
+    if (Out3 == wxT("Lcb"))
+    {
+        oName.SetExt(_("lcb"));
+        fullpath=oName.GetFullPath();
+        WriteLcbFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+
+    else if (Out3 == wxT("Vir"))
+    {
+        oName.SetExt(_("vir"));
+        fullpath=oName.GetFullPath();
+        WriteVirFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+    else if (Out3 == wxT("LSP"))
+    {
+        oName.SetExt(_("user"));
+        fullpath=oName.GetFullPath();
+        WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        return;
+    }
+    else if (Out3 == wxT("HLS"))
+    {
+        oName.SetExt(_("hlsnc"));
+        fullpath=oName.GetFullPath();
+        WriteHLSFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+
+    delete dataBuf;
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
 }
 

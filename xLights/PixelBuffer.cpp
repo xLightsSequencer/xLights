@@ -33,9 +33,9 @@ PixelBufferClass::~PixelBufferClass()
 {
 }
 
-void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode)
+void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 {
-    SetFromXml(ModelNode);
+    SetFromXml(ModelNode, zeroBased);
     for(size_t i=0; i<2; i++)
     {
         Effect[i].InitBuffer(BufferHt, BufferWi);

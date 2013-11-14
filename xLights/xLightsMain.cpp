@@ -218,13 +218,14 @@ const long xLightsFrame::ID_PANEL31 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PLAY_RGB_SEQ = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
-const long xLightsFrame::ID_BUTTON1 = wxNewId();
+const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
+const long xLightsFrame::ID_BUTTON_CREATE_RANDOM = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
-const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
-const long xLightsFrame::ID_BUTTON_CREATE_RANDOM = wxNewId();
+const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
@@ -300,7 +301,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxBoxSizer* BoxSizer5;
     wxFlexGridSizer* FlexGridSizer19;
     wxBoxSizer* BoxSizer10;
+    wxBoxSizer* BoxSizer7;
     wxFlexGridSizer* FlexGridSizer70;
+    wxFlexGridSizer* FlexGridSizer38;
     wxFlexGridSizer* FlexGridSizer23;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem2;
@@ -870,7 +873,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer32->AddGrowableRow(2);
     StaticTextSequenceFileName = new wxStaticText(SeqPanelRight, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer32->Add(StaticTextSequenceFileName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
-    FlexGridSizer68 = new wxFlexGridSizer(0, 10, 0, 0);
+    BoxSizer7 = new wxBoxSizer(wxVERTICAL);
+    FlexGridSizer68 = new wxFlexGridSizer(2, 5, 0, 0);
     Button_PlayRgbSeq = new wxButton(SeqPanelRight, ID_BUTTON_PLAY_RGB_SEQ, _("Play (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_RGB_SEQ"));
     Button_PlayRgbSeq->SetBackgroundColour(wxColour(0,255,0));
     Button_PlayRgbSeq->SetToolTip(_("Play from current grid cell"));
@@ -878,34 +882,39 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonDisplayElements = new wxButton(SeqPanelRight, ID_BUTTON2, _("Display Elements"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     ButtonDisplayElements->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer68->Add(ButtonDisplayElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSeqExport = new wxButton(SeqPanelRight, ID_BUTTON_SeqExport, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SeqExport"));
+    ButtonSeqExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonModelExport = new wxButton(SeqPanelRight, ID_BUTTON4, _("Model Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer68->Add(ButtonModelExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_CreateRandom = new wxButton(SeqPanelRight, ID_BUTTON_CREATE_RANDOM, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CREATE_RANDOM"));
+    Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38 = new wxFlexGridSizer(0, 5, 0, 0);
+    BitmapButtonOpenSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON7, open_xpm, wxDefaultPosition, wxSize(48,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
+    BitmapButtonOpenSeq->SetDefault();
+    BitmapButtonOpenSeq->SetToolTip(_("Open Sequence"));
+    FlexGridSizer38->Add(BitmapButtonOpenSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonSaveSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON9, save_xpm, wxDefaultPosition, wxSize(53,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
+    BitmapButtonSaveSeq->SetDefault();
+    BitmapButtonSaveSeq->SetToolTip(_("Save Sequence"));
+    FlexGridSizer38->Add(BitmapButtonSaveSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonInsertRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON3, insertrow_xpm, wxDefaultPosition, wxSize(50,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
+    BitmapButtonInsertRow->SetDefault();
+    BitmapButtonInsertRow->SetToolTip(_("Insert Row"));
+    FlexGridSizer38->Add(BitmapButtonInsertRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonDeleteRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON4, deleterow_xpm, wxDefaultPosition, wxSize(49,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
+    BitmapButtonDeleteRow->SetDefault();
+    BitmapButtonDeleteRow->SetToolTip(_("Delete Row"));
+    FlexGridSizer38->Add(BitmapButtonDeleteRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ChannelMap = new wxButton(SeqPanelRight, ID_BUTTON1, _("Channel Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     Button_ChannelMap->Disable();
     Button_ChannelMap->Hide();
     Button_ChannelMap->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer68->Add(Button_ChannelMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    BitmapButtonOpenSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON7, open_xpm, wxDefaultPosition, wxSize(48,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
-    BitmapButtonOpenSeq->SetDefault();
-    BitmapButtonOpenSeq->SetToolTip(_("Open Sequence"));
-    FlexGridSizer68->Add(BitmapButtonOpenSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonSaveSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON9, save_xpm, wxDefaultPosition, wxSize(53,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
-    BitmapButtonSaveSeq->SetDefault();
-    BitmapButtonSaveSeq->SetToolTip(_("Save Sequence"));
-    FlexGridSizer68->Add(BitmapButtonSaveSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonInsertRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON3, insertrow_xpm, wxDefaultPosition, wxSize(50,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-    BitmapButtonInsertRow->SetDefault();
-    BitmapButtonInsertRow->SetToolTip(_("Insert Row"));
-    FlexGridSizer68->Add(BitmapButtonInsertRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonDeleteRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON4, deleterow_xpm, wxDefaultPosition, wxSize(49,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-    BitmapButtonDeleteRow->SetDefault();
-    BitmapButtonDeleteRow->SetToolTip(_("Delete Row"));
-    FlexGridSizer68->Add(BitmapButtonDeleteRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSeqExport = new wxButton(SeqPanelRight, ID_BUTTON_SeqExport, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SeqExport"));
-    ButtonSeqExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_CreateRandom = new wxButton(SeqPanelRight, ID_BUTTON_CREATE_RANDOM, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CREATE_RANDOM"));
-    Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer32->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38->Add(Button_ChannelMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    BoxSizer7->Add(FlexGridSizer38, 1, wxTOP|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer32->Add(BoxSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(SeqPanelRight, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
     Grid1->EnableEditing(true);
@@ -937,6 +946,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer70->Fit(PanelSequence2);
     FlexGridSizer70->SetSizeHints(PanelSequence2);
     PanelCal = new wxPanel(Notebook1, ID_PANEL_CAL, wxPoint(49,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CAL"));
+    PanelCal->Hide();
     FlexGridSizer8 = new wxFlexGridSizer(2, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(0);
     FlexGridSizer8->AddGrowableRow(0);
@@ -1165,13 +1175,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_EffectLayerMixClick);
     Connect(ID_BUTTON_PLAY_RGB_SEQ,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayAllClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDisplayElementsClick);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
+    Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelExportClick);
+    Connect(ID_BUTTON_CREATE_RANDOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
     Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
     Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonDeleteRowClick);
-    Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
-    Connect(ID_BUTTON_CREATE_RANDOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
@@ -1961,3 +1972,8 @@ showlock(EffectLayerMix)
 showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
+
+/*void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
+{
+}
+*/

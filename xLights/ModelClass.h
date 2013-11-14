@@ -35,6 +35,9 @@
 
 typedef std::vector<long> StartChannelVector_t;
 
+#define NODE_RGB_CHAN_CNT 3
+#define NODE_SINGLE_COLOR_CHAN_CNT 1
+
 class ModelClass
 {
 private:
@@ -52,6 +55,7 @@ private:
     protected:
         // color values in rgb order
         uint8_t c[3];
+        int chanCnt;
 
     public:
 
@@ -101,6 +105,10 @@ private:
             c[2]=intensity;
         }
 
+        int GetChanCount()
+        {
+            return chanCnt;
+        }
         bool IsVisible()
         {
             return Coords.size() > 0;
@@ -108,12 +116,14 @@ private:
 
         NodeBaseClass()
         {
+            chanCnt=NODE_RGB_CHAN_CNT;
         }
 
         NodeBaseClass(int StringNumber, size_t NodesPerString)
         {
             StringNum=StringNumber;
             Coords.resize(NodesPerString);
+            chanCnt=NODE_RGB_CHAN_CNT;
         }
 
         virtual ~NodeBaseClass()
@@ -129,7 +139,10 @@ private:
     class NodeClassRed : public NodeBaseClass
     {
     public:
-        NodeClassRed(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
+        NodeClassRed(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+        }
         virtual void GetColor(wxColour& color)
         {
             color.Set(c[0],0,0);
@@ -139,7 +152,10 @@ private:
     class NodeClassGreen : public NodeBaseClass
     {
     public:
-        NodeClassGreen(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
+        NodeClassGreen(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+        }
         virtual void GetColor(wxColour& color)
         {
             color.Set(0,c[1],0);
@@ -149,7 +165,10 @@ private:
     class NodeClassBlue : public NodeBaseClass
     {
     public:
-        NodeClassBlue(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
+        NodeClassBlue(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+        }
         virtual void GetColor(wxColour& color)
         {
             color.Set(0,0,c[2]);
@@ -159,7 +178,11 @@ private:
     class NodeClassWhite : public NodeBaseClass
     {
     public:
-        NodeClassWhite(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString) {}
+        NodeClassWhite(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+        }
+
         virtual void GetColor(wxColour& color)
         {
             uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
@@ -222,8 +245,9 @@ public:
     int RenderHt,RenderWi;  // size of the rendered output
     bool MyDisplay;
 
-    void SetFromXml(wxXmlNode* ModelNode);
+    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     size_t GetNodeCount();
+    int GetChanCount();
     size_t GetCoordCount(size_t nodenum);
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);

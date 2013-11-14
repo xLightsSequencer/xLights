@@ -36,25 +36,14 @@ bool xLightsApp::OnInit()
 //couldn't get PanelSequence2 keyboard handler to work, so just use a global filter as suggested in
 // http://wiki.wxwidgets.org/Catching_key_events_globally
 //also, there are some issues with controls in other panels
-#if 1
+
 int xLightsApp::FilterEvent(wxEvent& event)
 {
     if (event.GetEventType() == wxEVT_CHAR)
-//        switch ((int)(((wxKeyEvent&)event).GetKeyCode()))
-        {
-//        case WXK_F5:
-            xLightsFrame* Frame = (xLightsFrame*)GetTopWindow();
-//            wxMessageBox(wxString::Format(wxT("tab %d, You pressed 0x%x = 0x%x vs 0x%x"), Frame->Notebook1->GetSelection(), ((wxKeyEvent&)event).GetUnicodeKey(), ((wxKeyEvent&)event).GetKeyCode(), WXK_F5));
-//            if (Frame->Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
-//            {
-//                Frame->OnPanelSequence2KeyDown((wxKeyEvent&)event);
-                if (Frame->HotKey((wxKeyEvent&)event)) return true;
-//            }
-//            break;
-
-//add more cases here:
-//        case WXK_F1:
-        }
+    {
+        xLightsFrame* Frame = (xLightsFrame*)GetTopWindow();
+        if (Frame->HotKey((wxKeyEvent&)event)) return true;
+    }
     return -1;
 }
-#endif
+

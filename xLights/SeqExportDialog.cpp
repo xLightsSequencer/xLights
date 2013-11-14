@@ -64,6 +64,13 @@ SeqExportDialog::~SeqExportDialog()
     //*)
 }
 
+void SeqExportDialog::ModelExportTypes()
+{
+    ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
+    ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
+    ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
+    ChoiceFormat->SetSelection(0);
+}
 
 void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
 {

@@ -264,8 +264,12 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     return doc.Save( filename );
 }
 
-
 void xLightsFrame::WriteVirFile(const wxString& filename)
+{
+    WriteVirFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+}
+
+void xLightsFrame::WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString buff;
 
@@ -278,22 +282,26 @@ void xLightsFrame::WriteVirFile(const wxString& filename)
         return;
     }
 
-    for (ch=0; ch < SeqNumChannels; ch++ )
+    for (ch=0; ch < numChans; ch++ )
     {
 
         buff=wxT("");
-        for (p=0; p < SeqNumPeriods; p++, seqidx++)
+        for (p=0; p < numPeriods; p++, seqidx++)
         {
-            buff += wxString::Format(wxT("%d "),SeqData[seqidx]);
+            buff += wxString::Format(wxT("%d "),(*dataBuf)[seqidx]);
         }
         buff += wxString::Format(wxT("\n"));
         f.Write(buff);
     }
     f.Close();
-
 }
 
 void xLightsFrame::WriteHLSFile(const wxString& filename)
+{
+    WriteHLSFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+}
+
+void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName,TestName,buff;
     int ch,p;
@@ -307,17 +315,17 @@ void xLightsFrame::WriteHLSFile(const wxString& filename)
         return;
     }
 
-    for (ch=0; ch+2 < SeqNumChannels; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
+    for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
 
         buff=wxT("");
 
-        for (p=0; p < SeqNumPeriods; p++, seqidx++)
+        for (p=0; p < numPeriods; p++, seqidx++)
         {
-            //    rgb = (SeqData[seqidx]& 0xff) << 16 | (SeqData[seqidx+SeqNumPeriods]& 0xff) << 8 | (SeqData[seqidx+(2*SeqNumPeriods)]& 0xff); // we want a 24bit value for HLS
-            //  buff += wxString::Format(wxT("%d (%d:%d %d %d)"),rgb,seqidx,SeqData[seqidx],SeqData[seqidx+SeqNumPeriods],SeqData[seqidx+2*SeqNumPeriods]);
-            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | (SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff); // we want a 24bit value for HLS
-            if(p<SeqNumPeriods-1)
+            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
+               ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
+               ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+            if(p<numPeriods-1)
                 buff += wxString::Format(wxT("%d "),rgb);
             else
                 buff += wxString::Format(wxT("%d"),rgb);
@@ -440,8 +448,12 @@ void xLightsFrame::WriteXLightsFile(const wxString& filename)
     f.Close();
 
 }
+void xLightsFrame::WriteLSPFile(const wxString& filename )
+{
+    WriteLSPFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+}
 
-void xLightsFrame::WriteLSPFile(const wxString& filename)
+void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName,TestName;
     int ch,p,csec;
@@ -473,7 +485,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
 
 
 
-    for (ch=0; ch < SeqNumChannels; ch++ )
+    for (ch=0; ch < numChans; ch++ )
     {
 
         f.Write(wxT("\t<Track>\n"));
@@ -487,12 +499,12 @@ void xLightsFrame::WriteLSPFile(const wxString& filename)
         //    f.Write(wxT("\t\t<WiiMapping inv=\"0\" ibn=\"\" inbn=\"\" ani=\"0\" ain=\"\" hty=\"-1\" fed=\"0"\ wind=\"-1\" wibt=\"0\" cint=\"False\" ceff=\"False\" hefsd=\"True\" lef=\"3\" lefl=\"1\" intb=\"0\" efd=\"0\" />\n"));
         f.Write(wxT("\t\t<Name />\n"));
         f.Write(wxT("\t\t<Intervals>\n"));
-        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
+        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
         {
             seconds = (p*50)/1000.0;
             pos = seconds * 88200;
-            byte = SeqData[seqidx];
-            rgb = (SeqData[(ch*SeqNumPeriods)+p]& 0xff) << 16 | (SeqData[((ch+1)*SeqNumPeriods)+p]& 0xff) << 8 | (SeqData[((ch+2)*SeqNumPeriods)+p]& 0xff); // we want a 24bit value for HLS
+            byte = (*dataBuf)[seqidx];
+            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 | ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 | ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
 
             if(rgb>0)
             {
@@ -665,8 +677,11 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     free(savedIndexes);
 
 }
-
 void xLightsFrame::WriteLcbFile(const wxString& filename)
+{
+    WriteLcbFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+}
+void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName,TestName;
     int ch,p,csec,StartCSec;
@@ -693,7 +708,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
 //  <channel>
 //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     f.Write(wxT("<cellDemarcations>\n"));
-    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval)
+    for (p=0,csec=0; p < numPeriods; p++, csec+=interval)
     {
         f.Write(wxString::Format(wxT("\t<cellDemarcation centisecond=\"%d\"/>\n"),csec));
     }
@@ -702,13 +717,13 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
     // LOR is BGR with high bits=0
     // Vix is RGB with high bits=1
     f.Write(wxT("<channels>\n"));
-    for (ch=0; ch < SeqNumChannels; ch++ )
+    for (ch=0; ch < numChans; ch++ )
     {
         f.Write(wxT("\t<channel>\n"));
         LastIntensity=0;
-        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
+        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
         {
-            intensity=SeqData[seqidx] * 100 / 255;
+            intensity=(*dataBuf)[seqidx] * 100 / 255;
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)
@@ -732,6 +747,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename)
     f.Close();
 
 }
+
 void xLightsFrame::WriteConductorFile(const wxString& filename)
 {
     wxFile f;
