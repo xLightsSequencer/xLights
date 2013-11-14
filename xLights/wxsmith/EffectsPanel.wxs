@@ -39,7 +39,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_PaletteRepClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -67,7 +67,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_DirectionClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -95,7 +95,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_HighlightClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -125,7 +125,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_3DClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -162,7 +162,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyColorsClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -192,7 +192,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyStyleClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -222,7 +222,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyChunksClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -252,7 +252,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflySkipClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -293,7 +293,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesCountClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -331,7 +331,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesSizeClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -364,7 +364,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesBounceClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -399,7 +399,7 @@
 												<default>1</default>
 												<size>22,21</size>
 												<hidden>1</hidden>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesCollideClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -432,7 +432,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesRadialClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -465,7 +465,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesPlasmaClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -493,7 +493,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesRadial3DClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -528,7 +528,7 @@
 												<default>1</default>
 												<size>22,21</size>
 												<hidden>1</hidden>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_RandomMotionClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -572,7 +572,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ColorWashCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -600,7 +600,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ColorWashHFadeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -628,7 +628,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ColorWashVFadeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -671,7 +671,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainEdgeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -705,7 +705,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainEffectClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -734,7 +734,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainSwagClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -759,7 +759,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainRepeatClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -797,7 +797,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireHeightClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -823,7 +823,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireWidthClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -851,7 +851,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireGrowClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -890,7 +890,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksNumberExplosionsClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -919,7 +919,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -949,7 +949,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksVelocityClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -978,7 +978,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksFadeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1015,7 +1015,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_GarlandsTypeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1041,7 +1041,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_GarlandsSpacingClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1078,7 +1078,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_LifeCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1106,7 +1106,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_LifeSpeedClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1143,7 +1143,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsTypeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1169,7 +1169,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsEffectClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1198,7 +1198,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1227,7 +1227,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsLengthClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1255,7 +1255,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsSwirlIntensityClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1305,7 +1305,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_Piano_StyleClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1336,7 +1336,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_Piano_NumKeysClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1367,7 +1367,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_Piano_KeyWidthClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1398,7 +1398,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_Piano_FilenameClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1459,7 +1459,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PicturesFilenameClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1504,7 +1504,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PicturesDirectionClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1534,7 +1534,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PicturesSpeedClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1578,7 +1578,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SnowflakesCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1607,7 +1607,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SnowflakesTypeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1644,7 +1644,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SnowstormCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1672,7 +1672,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SnowstormLengthClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1711,7 +1711,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1741,7 +1741,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsRotationClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1769,7 +1769,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsThicknessClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1799,7 +1799,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsDirectionClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1822,7 +1822,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_SpiralsBlendClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1852,7 +1852,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_Spirals3DClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1875,7 +1875,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_SpiralsGrowClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1905,7 +1905,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsShrinkClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1943,7 +1943,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpirographRClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1972,7 +1972,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpirographrClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2002,7 +2002,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpirographAnimateClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2030,7 +2030,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpirographdClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2080,7 +2080,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine1Click" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2108,7 +2108,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine2Click" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2152,7 +2152,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextFont1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2180,7 +2180,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2206,7 +2206,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextEffect1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2232,7 +2232,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextCount1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2260,7 +2260,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextPosition1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2299,7 +2299,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextFont2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2327,7 +2327,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextDir2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2353,7 +2353,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextEffect2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2379,7 +2379,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextCount2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2407,7 +2407,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>22,21</size>
-															<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextPosition2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2454,7 +2454,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TreeBranchesClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2493,7 +2493,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleCountClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2524,7 +2524,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleStepsClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2549,7 +2549,7 @@
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleStrobeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2770,7 +2770,7 @@
 									<bitmap code="padlock16x16_blue_xpm" />
 									<default>1</default>
 									<size>22,21</size>
-									<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnBitmapButton_LayerEffectClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2783,7 +2783,7 @@
 									<default>1</default>
 									<size>22,21</size>
 									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>1</border>
@@ -2795,7 +2795,7 @@
 									<default>1</default>
 									<size>22,21</size>
 									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -2807,7 +2807,7 @@
 									<default>1</default>
 									<size>22,21</size>
 									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>1</border>
@@ -2848,7 +2848,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>21,22</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2879,7 +2879,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2909,7 +2909,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2939,7 +2939,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2969,7 +2969,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2999,7 +2999,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3041,7 +3041,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_SpeedClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3097,7 +3097,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3127,7 +3127,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3160,7 +3160,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>22,21</size>
-											<style>wxBU_AUTODRAW|wxSIMPLE_BORDER</style>
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
