@@ -1317,7 +1317,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	SetSizer(FlexGridSizer1);
-	ColourDialog1 = new wxColourDialog(this);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
@@ -1728,9 +1727,12 @@ void EffectsPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
 void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 {
     wxButton* w=(wxButton*)event.GetEventObject();
-    if (ColourDialog1->ShowModal() == wxID_OK)
+    wxColour color = w->GetBackgroundColour();
+    colorData.SetColour(color);
+    wxColourDialog dialog(this, &colorData);
+    if (dialog.ShowModal() == wxID_OK)
     {
-        wxColourData retData = ColourDialog1->GetColourData();
+        wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
         SetButtonColor(w, &color);
         PaletteChanged=true;
@@ -1786,8 +1788,7 @@ void EffectsPanel::setlock(wxButton* button) //, EditState& islocked)
     {
         case Locked:
             islocked = Random;
-            button->SetBitmap(BitmapButton_random->GetBitmapLabel());
-            button->SetLabel("");
+            button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
             break;
 //        case Random:
 //            islocked = Normal;
@@ -1795,8 +1796,7 @@ void EffectsPanel::setlock(wxButton* button) //, EditState& islocked)
 //            break;
         default:
             islocked = Locked;
-            button->SetBitmap(BitmapButton_locked->GetBitmapLabel());
-            button->SetLabel("");
+            button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
             break;
     }
 }

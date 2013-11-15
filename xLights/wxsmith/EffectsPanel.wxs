@@ -3183,6 +3183,5 @@
 				<option>1</option>
 			</object>
 		</object>
-		<object class="wxColourDialog" variable="ColourDialog1" member="yes" />
 	</object>
 </wxsmith>

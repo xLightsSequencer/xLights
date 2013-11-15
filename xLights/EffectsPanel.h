@@ -7,7 +7,6 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
-#include <wx/colordlg.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
@@ -19,6 +18,7 @@
 #include <wx/filedlg.h>
 #include <wx/fontdlg.h>
 #include <unordered_map> //-DJ
+#include <wx/colordlg.h>
 
 class EffectsPanel: public wxPanel
 {
@@ -253,7 +253,6 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CirclesPlasma;
 		wxStaticText* StaticText137;
 		wxCheckBox* CheckBox_ColorWash_HFade;
-		wxColourDialog* ColourDialog1;
 		wxSlider* Slider_Garlands_Spacing;
 		wxCheckBox* CheckBox_ColorWash_VFade;
 		wxBitmapButton* BitmapButton_LifeSpeed;
@@ -779,6 +778,7 @@ class EffectsPanel: public wxPanel
 //friend class xLightsFrame; //debug only
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
+        wxColourData colorData;
 
 		DECLARE_EVENT_TABLE()
 public:
