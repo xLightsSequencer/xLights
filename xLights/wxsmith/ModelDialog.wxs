@@ -139,6 +139,7 @@
 							<value>1</value>
 							<min>1</min>
 							<size>60,21</size>
+							<handler function="OnSpinCtrl_parm3Change" entry="EVT_SPINCTRL" />
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
