@@ -2930,6 +2930,16 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         fullpath=oName.GetFullPath();
         WriteHLSFile(fullpath, numChan, SeqNumPeriods, dataBuf);
     }
+    else if (Out3 == wxT("Fal"))
+    {
+        wxString tempstr;
+        long stChan;
+        tempstr=modelNode->GetAttribute(wxT("StartChannel"),wxT("1"));
+        tempstr.ToLong(&stChan);
+        oName.SetExt(_("eseq"));
+        fullpath=oName.GetFullPath();
+        WriteFalconPiModelFile(fullpath, numChan, SeqNumPeriods, dataBuf, stChan, numChan);
+    }
 
     delete dataBuf;
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
