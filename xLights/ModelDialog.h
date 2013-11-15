@@ -124,6 +124,7 @@ private:
     void OnBitmapButtonCustomPasteClick(wxCommandEvent& event);
     void OnBitmapButtonCustomCopyClick(wxCommandEvent& event);
     void OnBitmapButtonCustomCutClick(wxCommandEvent& event);
+    void OnSpinCtrl_parm3Change(wxSpinEvent& event);
     //*)
 
     void SetReadOnly(bool);
