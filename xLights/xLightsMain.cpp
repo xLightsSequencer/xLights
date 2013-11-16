@@ -1851,6 +1851,19 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
     if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
     {
         retval = true;
+        if (event.ControlDown()) {
+            switch (uc)
+            {
+            case 'o':
+            case 'O':
+                uc = WXK_CONTROL_O;
+                break;
+            case 's':
+            case 'S':
+                uc = WXK_CONTROL_S;
+                break;
+            }
+        }
         switch (uc)
         {
         case WXK_F4:
