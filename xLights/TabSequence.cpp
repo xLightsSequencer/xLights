@@ -1292,7 +1292,6 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     bool EnableButtons=!filename.IsEmpty();
     ButtonPlayPreview->Enable(EnableButtons);
     ButtonStopPreview->Enable(EnableButtons);
-    ButtonRepeatPreview->Enable(EnableButtons);
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)

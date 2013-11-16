@@ -206,12 +206,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
-        PreviewStartPeriod=PlaybackPeriod;
         PlayerDlg->MediaCtrl->Play();
         break;
     case PAUSE_SEQ_ANIM:
-        PreviewStartPeriod=PlaybackPeriod;
-        ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        //ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
         break;
     default:
         for (int i=0; i<PreviewModels.size(); i++)
@@ -223,7 +221,6 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             return;
         }
-        PreviewStartPeriod=0;
         PlayCurrentXlightsFile();
         break;
     }
@@ -238,18 +235,6 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
     else
     {
         PlayerDlg->MediaCtrl->Pause();
-    }
-}
-
-void xLightsFrame::OnButtonRepeatPreviewClick(wxCommandEvent& event)
-{
-    if (mediaFilename.IsEmpty())
-    {
-        ResetTimer(PLAYING_SEQ_ANIM, PreviewStartPeriod * XTIMER_INTERVAL);
-    }
-    else
-    {
-        PlayerDlg->MediaCtrl->Seek(PreviewStartPeriod * XTIMER_INTERVAL);
     }
 }
 
@@ -290,75 +275,6 @@ void xLightsFrame::PreviewOutput(int period)
     }
     int amtdone = period * SliderPreviewTime->GetMax() / (SeqNumPeriods-1);
     SliderPreviewTime->SetValue(amtdone);
-}
-
-void xLightsFrame::TimerPreview(long msec)
-{
-    switch (SeqPlayerState)
-    {
-    case STARTING_SEQ_ANIM:
-        LastIntensity.clear();
-        LastIntensity.resize(SeqNumChannels,1);
-        ResetTimer(PLAYING_SEQ_ANIM);
-        break;
-    case PLAYING_SEQ_ANIM:
-        PlaybackPeriod = msec / XTIMER_INTERVAL;
-        if (xout && !xout->TxEmpty())
-        {
-            TxOverflowCnt++;
-            break;
-        }
-        ShowPreviewTime(msec);
-        if (PlaybackPeriod < SeqNumPeriods)
-        {
-            PreviewOutput(PlaybackPeriod);
-        }
-        else
-        {
-            ResetTimer(NO_SEQ);
-        }
-        break;
-    case PAUSE_SEQ_ANIM:
-        break;
-    case STARTING_SEQ:
-        if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
-        {
-            LastIntensity.clear();
-            LastIntensity.resize(SeqNumChannels,1);
-            ResetTimer(PLAYING_SEQ);
-        }
-        else
-        {
-            PlayerDlg->MediaCtrl->Play();
-        }
-        break;
-    case PLAYING_SEQ:
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
-        {
-            ResetTimer(PAUSE_SEQ);
-            return;
-        }
-        msec = PlayerDlg->MediaCtrl->Tell();
-        PlaybackPeriod = msec / XTIMER_INTERVAL;
-        if (xout && !xout->TxEmpty())
-        {
-            TxOverflowCnt++;
-            break;
-        }
-        ShowPreviewTime(msec);
-        if (PlaybackPeriod < SeqNumPeriods)
-        {
-            PreviewOutput(PlaybackPeriod);
-        }
-        break;
-    case PAUSE_SEQ:
-        if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
-        {
-            LastIntensity.resize(SeqNumChannels,1);
-            ResetTimer(PLAYING_SEQ);
-        }
-        break;
-    }
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)

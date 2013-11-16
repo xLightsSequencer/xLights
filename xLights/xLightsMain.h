@@ -345,7 +345,6 @@ private:
     void OnButtonModelsPreviewClick(wxCommandEvent& event);
     void OnButtonPlayPreviewClick(wxCommandEvent& event);
     void OnButtonStopPreviewClick(wxCommandEvent& event);
-    void OnButtonRepeatPreviewClick(wxCommandEvent& event);
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
     void OnPanelSequence2Char(wxKeyEvent& event);
@@ -460,7 +459,6 @@ private:
     static const long ID_STATICTEXT23;
     static const long ID_BUTTON_PLAY_PREVIEW;
     static const long ID_BUTTON_STOP_PREVIEW;
-    static const long ID_BUTTON_REPEAT_PREVIEW;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
     static const long ID_STATICTEXT21;
@@ -571,7 +569,6 @@ private:
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
     wxChoice* Choice_Models;
-    wxButton* ButtonRepeatPreview;
     wxButton* ButtonClearLog;
     wxCheckBox* CheckBoxSaveChannelNames;
     EffectsPanel* EffectsPanel1;
@@ -691,8 +688,8 @@ private:
     wxSlider* Slider_Contrast;
     wxButton* ButtonTestSave;
     wxStaticText* StaticTextShowEnd;
-    wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
+    wxStaticText* StaticText4;
     wxChoice* Choice_LayerMethod;
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
@@ -952,7 +949,6 @@ private:
     void InsertRow();
     void UpdatePreview();
     void ShowModelsDialog();
-    void TimerPreview(long msec);
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
@@ -996,7 +992,6 @@ private:
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
-    long PreviewStartPeriod, PlaybackPeriod;
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
