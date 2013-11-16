@@ -1980,7 +1980,6 @@
 								<object class="notebookpage">
 									<object class="wxPanel" name="ID_PANEL_CAL" variable="PanelCal" member="yes">
 										<pos>49,10</pos>
-										<hidden>1</hidden>
 										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 											<cols>2</cols>
 											<rows>2</rows>

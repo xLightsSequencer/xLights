@@ -825,6 +825,8 @@ private:
     void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
+                                          SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
