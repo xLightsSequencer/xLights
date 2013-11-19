@@ -174,7 +174,6 @@ const long xLightsFrame::ID_BUTTON_PREVIEW_OPEN = wxNewId();
 const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PLAY_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_PREVIEW = wxNewId();
-const long xLightsFrame::ID_BUTTON_REPEAT_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
@@ -708,14 +707,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticTextPreviewFileName = new wxStaticText(PanelPreview, ID_STATICTEXT23, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
     FlexGridSizer36->Add(StaticTextPreviewFileName, 1, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3->Add(FlexGridSizer36, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer31 = new wxFlexGridSizer(1, 5, 0, 0);
-    FlexGridSizer31->AddGrowableCol(4);
-    ButtonPlayPreview = new wxButton(PanelPreview, ID_BUTTON_PLAY_PREVIEW, _("Play (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_PREVIEW"));
+    FlexGridSizer31 = new wxFlexGridSizer(1, 4, 0, 0);
+    FlexGridSizer31->AddGrowableCol(3);
+    ButtonPlayPreview = new wxButton(PanelPreview, ID_BUTTON_PLAY_PREVIEW, _("Play"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_PREVIEW"));
     FlexGridSizer31->Add(ButtonPlayPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonStopPreview = new wxButton(PanelPreview, ID_BUTTON_STOP_PREVIEW, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_PREVIEW"));
     FlexGridSizer31->Add(ButtonStopPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonRepeatPreview = new wxButton(PanelPreview, ID_BUTTON_REPEAT_PREVIEW, _("Repeat"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REPEAT_PREVIEW"));
-    FlexGridSizer31->Add(ButtonRepeatPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxSize(58,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
@@ -1138,7 +1135,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_PREVIEW_OPEN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPreviewOpenClick);
     Connect(ID_BUTTON_PLAY_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
     Connect(ID_BUTTON_STOP_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
-    Connect(ID_BUTTON_REPEAT_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonRepeatPreviewClick);
     Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
@@ -1475,9 +1471,6 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
         break;
     case SEQUENCETAB:
         TimerRgbSeq(curtime);
-        break;
-    case PREVIEWTAB:
-        TimerPreview(curtime);
         break;
     default:
         OnTimerPlaylist(curtime);
@@ -1851,6 +1844,19 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
     if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
     {
         retval = true;
+        if (event.ControlDown()) {
+            switch (uc)
+            {
+            case 'o':
+            case 'O':
+                uc = WXK_CONTROL_O;
+                break;
+            case 's':
+            case 'S':
+                uc = WXK_CONTROL_S;
+                break;
+            }
+        }
         switch (uc)
         {
         case WXK_F4:

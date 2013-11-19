@@ -1204,12 +1204,12 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
-													<cols>5</cols>
+													<cols>4</cols>
 													<rows>1</rows>
-													<growablecols>4</growablecols>
+													<growablecols>3</growablecols>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_PLAY_PREVIEW" variable="ButtonPlayPreview" member="yes">
-															<label>Play (F4)</label>
+															<label>Play</label>
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1220,15 +1220,6 @@
 														<object class="wxButton" name="ID_BUTTON_STOP_PREVIEW" variable="ButtonStopPreview" member="yes">
 															<label>Pause</label>
 															<handler function="OnButtonStopPreviewClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_REPEAT_PREVIEW" variable="ButtonRepeatPreview" member="yes">
-															<label>Repeat</label>
-															<handler function="OnButtonRepeatPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

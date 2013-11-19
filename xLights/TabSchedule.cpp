@@ -504,6 +504,7 @@ void xLightsFrame::TimerOutput(int period)
 void xLightsFrame::OnTimerPlaylist(long msec)
 {
     int period;
+    bool ShowPreview = (Notebook1->GetSelection() == PREVIEWTAB);
     switch (SeqPlayerState)
     {
     case DELAY_AFTER_PLAY:
@@ -546,6 +547,10 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (period < SeqNumPeriods)
         {
             TimerOutput(period);
+            if (ShowPreview) {
+                ShowPreviewTime(msec);
+                PreviewOutput(period);
+            }
         }
         else
         {
@@ -580,6 +585,10 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (period < SeqNumPeriods)
         {
             TimerOutput(period);
+            if (ShowPreview) {
+                ShowPreviewTime(msec);
+                PreviewOutput(period);
+            }
         }
         break;
     case PAUSE_SEQ:
