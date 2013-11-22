@@ -1321,6 +1321,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PianoEffectStyles.Add("Player Piano (scrolling)");
     PianoEffectStyles.Add("RGB Icicles");
 
+    SingleStrandTypes.Add("Normal");
+    SingleStrandTypes.Add("3D Fades on chases");
+    SingleStrandTypes.Add("Auto reverse");
+    SingleStrandTypes.Add("Bounce");
+
+
     TextEffects.Add("normal");
     TextEffects.Add("vert text up");
     TextEffects.Add("vert text down");
@@ -1422,6 +1428,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count2->Set(TextCountDown);
     panel->Choice_Text_Count2->SetSelection(0);
     panel->CurrentDir = &CurrentDir;
+    panel->Choice_Chase_Type1->Set(SingleStrandTypes);
+    panel->Choice_Chase_Type2->Set(SingleStrandTypes);
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
@@ -1751,11 +1759,11 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
         return;
     }
 
- //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
+//if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
 
     wxString newDir = CurrentDir+wxFileName::GetPathSeparator()+wxString::Format(
-                                 wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
-                                 curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
+                          wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
+                          curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
 
     if ( wxNO == wxMessageBox(wxT("All xml files under 10MB in your xlights directory will be backed up to \"")+
                               newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
@@ -1800,7 +1808,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         }
         StatusBar1->SetStatusText(wxT("Copying File \"")+srcFile.GetFullPath());
         success = wxCopyFile(srcDirName+fname,
-                              targetDirName+wxFileName::GetPathSeparator()+fname);
+                             targetDirName+wxFileName::GetPathSeparator()+fname);
         if (!success)
         {
             wxMessageBox(wxT("Unable to copy file \"") + CurrentDir+wxFileName::GetPathSeparator()+fname+wxT("\""),
@@ -1817,10 +1825,10 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
     if(pclComponent)
     {
         pclComponent->Connect(wxID_ANY,
-                          wxEVT_CHAR,
-                          wxKeyEventHandler(xLightsFrame::OnPanelSequence2Char),
-                          (wxObject*) NULL,
-                          this);
+                              wxEVT_CHAR,
+                              wxKeyEventHandler(xLightsFrame::OnPanelSequence2Char),
+                              (wxObject*) NULL,
+                              this);
 
         wxWindowListNode* pclNode = pclComponent->GetChildren().GetFirst();
         while(pclNode)
@@ -1844,7 +1852,8 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
     if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
     {
         retval = true;
-        if (event.ControlDown()) {
+        if (event.ControlDown())
+        {
             switch (uc)
             {
             case 'o':
@@ -1862,7 +1871,7 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
         case WXK_F4:
             if (Button_PlayRgbSeq->IsEnabled())
             {
-                 PlayRgbSequence();
+                PlayRgbSequence();
             }
             else
             {
@@ -1938,18 +1947,18 @@ void xLightsFrame::setlock(wxBitmapButton* button) //, EditState& islocked)
 //    djdebug("ctl %s was %d", (const char*)parent.c_str(), islocked);
     switch (islocked) //cycle thru states
     {
-        case Locked:
-            islocked = Random;
-            button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
-            break;
+    case Locked:
+        islocked = Random;
+        button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
+        break;
 //        case Random:
 //            islocked = Normal;
 //            button->SetBitmapLabel(BitmapButton_normal->GetBitmapLabel());
 //            break;
-        default:
-            islocked = Locked;
-            button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
-            break;
+    default:
+        islocked = Locked;
+        button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
+        break;
     }
 }
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)

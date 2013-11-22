@@ -11,8 +11,8 @@ void RenderLife(int Count, int Type);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
 void RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
-void RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Speed1, bool Group_Arches1, bool R_TO_L1,
-                        int Color_Mix2,int Chase_Spacing2,int Chase_Speed2, bool Group_Arches2, bool R_TO_L2);
+void RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1, bool Group_Arches1, bool R_TO_L1,
+                        int Color_Mix2,int Chase_Spacing2,int Chase_Type2, bool Group_Arches2, bool R_TO_L2);
 void RenderSnowflakes(int Count, int SnowflakeType);
 void RenderSnowstorm(int Count, int Length);
 void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,

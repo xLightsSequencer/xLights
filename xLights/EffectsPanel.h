@@ -76,7 +76,6 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_TextPosition2;
 		wxBitmapButton* BitmapButton_TextDir1;
 		wxSlider* Slider_Life_Count;
-		wxSlider* Slider_Chase_Speed1;
 		wxBitmapButton* BitmapButton_CirclesRadial3D;
 		wxChoice* Choice_Curtain_Effect;
 		wxSlider* Slider_Twinkle_Steps;
@@ -125,7 +124,6 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_FitToTime;
 		wxStaticText* StaticText19;
 		wxChoice* Choice_Butterfly_Colors;
-		wxSlider* Slider_Chase_Speed2;
 		wxChoice* Choice_Text_Dir1;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
 		wxSlider* Slider_Garlands_Type;
@@ -164,6 +162,7 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Fire_Height;
 		wxSlider* Slider_Snowflakes_Type;
 		wxPanel* Panel1_Curtain;
+		wxChoice* Choice_Chase_Type2;
 		wxButton* Button_Palette3;
 		wxCheckBox* CheckBox_R_TO_L1;
 		wxBitmapButton* BitmapButton_Palette2;
@@ -269,6 +268,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_ButterflySkip;
 		wxSlider* Slider_Spirograph_R;
 		wxStaticText* StaticText4;
+		wxChoice* Choice_Chase_Type1;
 		wxStaticText* StaticText80;
 		wxBitmapButton* BitmapButton_TextCount2;
 		wxBitmapButton* BitmapButton_Piano_NumKeys;
@@ -597,7 +597,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT9;
 		static const long ID_SLIDER_Chase_Spacing1;
 		static const long ID_STATICTEXT10;
-		static const long ID_SLIDER_Chase_Speed1;
+		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_STATICTEXT11;
 		static const long ID_CHECKBOX_Group_Arches1;
 		static const long ID_STATICTEXT12;
@@ -608,7 +608,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT14;
 		static const long ID_SLIDER_Chase_Spacing2;
 		static const long ID_STATICTEXT15;
-		static const long ID_SLIDER_Chase_Speed2;
+		static const long ID_CHOICE_Chase_Type2;
 		static const long ID_STATICTEXT16;
 		static const long ID_CHECKBOX_Group_Arches2;
 		static const long ID_STATICTEXT17;

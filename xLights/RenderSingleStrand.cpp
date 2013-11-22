@@ -23,25 +23,21 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Speed1,bool Group_Arches1, bool R_TO_L1,
-                                    int Color_Mix2,int Chase_Spacing2,int Chase_Speed2,bool Group_Arches2, bool R_TO_L2)
+void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Group_Arches1, bool R_TO_L1,
+                                    int Color_Mix2,int Chase_Spacing2,int Chase_Type2,bool Group_Arches2, bool R_TO_L2)
 {
 
     int x,x1,x0,y,i,maxx,ColorIdx;
     int color_index,x1_mod;
     int MaxNodes,xt;
-    int xstart,xend;
+    int xstart,xend,xstart_group;
 
     if(Group_Arches1) srand (time(NULL)); // for strobe effect, make lights be random
     else srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
 
-
-
     size_t colorcnt=GetColorCount(); // global now set to how many colors have been picked
     y=BufferHt;
-
-
     i=0;
     int state_width = state/BufferWi;
     int state_col = (state_width*BufferWi) + state%10;
@@ -56,11 +52,14 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     if(Chase_Spacing1<1) Chase_Spacing1=1;
     int ymax=BufferHt;
     int chase_buffer[1000];
+    float brightness[1000];
     for(x=0; x<1000; x++) // fill up chase buffer with invalid ColorIndex value. Or in other words, intialize array
+    {
         chase_buffer[x]=-1;
-
+        brightness[x1] =1;
+    }
     if(Group_Arches1) MaxNodes= BufferWi*BufferHt;
-    else MaxNodes=BufferWi;
+    else MaxNodes=BufferWi*2;
 
     int MaxChase=MaxNodes*(Color_Mix1/100.0);
     if(MaxChase<1) MaxChase=1;
@@ -71,7 +70,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     {
         color_index = int(x1/nodes_per_color);
         chase_buffer[x1]=color_index;
-
+        brightness[x1] = 1.0-(x1%nodes_per_color)/(nodes_per_color*1.0);
     }
 
     hsv.value=0.0;
@@ -79,52 +78,94 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     hsv.hue=0.0;
 
 
-    xstart= (rtval*MaxNodes)*Chase_Speed1;
+    xstart = state % BufferWi;
+    xstart = (int)(state/4) % MaxNodes; // divide by 4 slows down chase
+    xstart_group = (int)(state/4) / MaxNodes; // divide by 4 slows down chase
+    if(xstart_group%2==1)
+        R_TO_L1=1;
+    else
+        R_TO_L1=0;
     xend = xstart+BufferHt;
     x0=xstart;
-
-
-    if(Group_Arches1)
-    {
-        for(x1=0; x1<MaxChase; x1++)
-        {
-            xt=x0-x1;
-            if(R_TO_L1) xt=MaxNodes-x0-x1;
-            if(xt<0) xt=0;
-            y=int (xt/BufferWi);
-            x=xt%BufferWi;
-            ColorIdx=chase_buffer[x1];
-            if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-            x1_mod=x1%Chase_Spacing1;
-            if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
-            {
-                hsv.value=0.0;
-                hsv.saturation=1.0;
-                hsv.hue=0.0;
-            }
-            SetPixel(x,y,hsv); // Turn pixel on
-        }
-    }
-    else
-    {
+    int FIT_TO_TIME=0;
+    if(FIT_TO_TIME==0)
         for(y=0; y<BufferHt; y++)
         {
             for(x1=0; x1<MaxChase; x1++)
             {
                 xt=x0-x1;
                 if(R_TO_L1) xt=MaxNodes-x0-x1;
+                if(xt<0) xt+=MaxNodes; // was xt=0;
+                //  y=int (xt/BufferWi);
+                x=xt%BufferWi;
+                ColorIdx=chase_buffer[x1];
+                if(R_TO_L1)   ColorIdx=chase_buffer[MaxChase-x1];
+                if(ColorIdx>=0)
+                {
+                    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+                    if(R_TO_L1)
+                        hsv.value=1.0-brightness[x1];
+                    else
+                        hsv.value=brightness[x1];
+
+                    x1_mod=x1%Chase_Spacing1;
+                    if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
+                    {
+                        hsv.value=0.0;
+                        hsv.saturation=1.0;
+                        hsv.hue=0.0;
+                    }
+                    SetPixel(x,y,hsv); // Turn pixel on
+                }
+            }
+        }
+
+    if(FIT_TO_TIME==1)
+    {
+
+
+        if(Group_Arches1)
+        {
+            for(x1=0; x1<MaxChase; x1++)
+            {
+                xt=x0-x1;
+                if(R_TO_L1) xt=MaxNodes-x0-x1;
                 if(xt<0) xt=0;
+                y=int (xt/BufferWi);
                 x=xt%BufferWi;
                 ColorIdx=chase_buffer[x1];
                 if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
                 x1_mod=x1%Chase_Spacing1;
-                if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 0  and x1_mod != 1))
+                if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
                 {
                     hsv.value=0.0;
                     hsv.saturation=1.0;
                     hsv.hue=0.0;
                 }
                 SetPixel(x,y,hsv); // Turn pixel on
+            }
+        }
+        else
+        {
+            for(y=0; y<BufferHt; y++)
+            {
+                for(x1=0; x1<MaxChase; x1++)
+                {
+                    xt=x0-x1;
+                    if(R_TO_L1) xt=MaxNodes-x0-x1;
+                    if(xt<0) xt=0;
+                    x=xt%BufferWi;
+                    ColorIdx=chase_buffer[x1];
+                    if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
+                    x1_mod=x1%Chase_Spacing1;
+                    if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 0  and x1_mod != 1))
+                    {
+                        hsv.value=0.0;
+                        hsv.saturation=1.0;
+                        hsv.hue=0.0;
+                    }
+                    SetPixel(x,y,hsv); // Turn pixel on
+                }
             }
         }
     }

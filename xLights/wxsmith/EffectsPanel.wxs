@@ -2581,7 +2581,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxSlider" name="ID_SLIDER_Color_Mix1" variable="Slider_Color_Mix1" member="yes">
-													<value>1</value>
+													<value>10</value>
 													<min>1</min>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2615,7 +2615,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Chase_Speed1" variable="Slider_Chase_Speed1" member="yes">
+												<object class="wxSlider" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes">
 													<value>1</value>
 													<min>1</min>
 													<max>10</max>
@@ -2707,7 +2707,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Chase_Speed2" variable="Slider_Chase_Speed2" member="yes">
+												<object class="wxSlider" name="ID_CHOICE_Chase_Type2" variable="Choice_Chase_Type2" member="yes">
 													<value>1</value>
 													<min>1</min>
 													<max>10</max>

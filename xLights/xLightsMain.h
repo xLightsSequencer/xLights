@@ -224,6 +224,7 @@ public:
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
+        eff_SINGLESTRAND,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -823,7 +824,7 @@ private:
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                          SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
+                                SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
@@ -983,6 +984,7 @@ private:
     wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString PianoEffectStyles;
+      wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString CurtainEdge;
@@ -1003,7 +1005,7 @@ private:
     void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
-friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
+    friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
 };
 
 #endif // XLIGHTSMAIN_H
