@@ -1321,9 +1321,11 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int EffectCnt = 0;
     size_t network,chindex;
     long cnt = 0;
+    LorTimingList.clear();
 
     ConversionInit();
     TextCtrlConversionStatus->AppendText(_("Reading LOR sequence\n"));
+    StatusBar1->SetLabelText(_("Reading LOR sequence"));
     int centisec = GetLorTrack1Length(filename);
     if (centisec > 0)
     {
@@ -1403,6 +1405,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 startper = startcsec * 10 / XTIMER_INTERVAL;
                 endper = endcsec * 10 / XTIMER_INTERVAL;
                 perdiff=endper - startper;  // # of 50ms ticks
+                LorTimingList.push_back(startper);
                 if (perdiff > 0)
                 {
                     intensity=intensity * 255 / MaxIntensity;
@@ -1511,6 +1514,9 @@ void xLightsFrame::ReadLorFile(const char* filename)
     TextCtrlConversionStatus->AppendText(_("Media file=")+mediaFilename+_("\n"));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("New # of time periods=%ld\n"),SeqNumPeriods));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("New data len=%ld\n"),SeqDataLen));
+    LorTimingList.sort();
+    LorTimingList.unique();
+    StatusBar1->SetLabelText(_("LOR sequence loaded successfully"));
 }
 
 void xLightsFrame::ClearLastPeriod()

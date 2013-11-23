@@ -65,7 +65,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE3" variable="ChoiceLorFiles" member="yes" />
+						<object class="wxChoice" name="ID_CHOICE3" variable="ChoiceLorFiles" member="yes">
+							<handler function="OnChoiceLorFilesSelect" entry="EVT_CHOICE" />
+						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

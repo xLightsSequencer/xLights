@@ -824,7 +824,7 @@ private:
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
+                                          SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
@@ -933,7 +933,7 @@ private:
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
     void ResetEffectStates();
-    void SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
+    bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
     void ImportAudacityTimings();
@@ -984,7 +984,7 @@ private:
     wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString PianoEffectStyles;
-      wxArrayString SingleStrandTypes;
+    wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString CurtainEdge;
@@ -994,6 +994,7 @@ private:
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
+    std::list<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
@@ -1005,7 +1006,7 @@ private:
     void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
-    friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
+friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
 };
 
 #endif // XLIGHTSMAIN_H
