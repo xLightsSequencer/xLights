@@ -513,7 +513,10 @@ private:
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL_Effect1;
     static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL_Effect2;
+    static const long ID_NOTEBOOK_Effects;
     static const long ID_PANEL32;
     static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL30;
@@ -661,6 +664,7 @@ private:
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     wxSlider* SliderFgColorB;
+    wxNotebook* Notebook_Effects;
     wxRadioButton* RadioButtonShimmer;
     wxMenuItem* MenuItemSavePlaylists;
     wxTextCtrl* txtCtrlSparkleFreq;
@@ -679,6 +683,7 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
+    wxPanel* Panel_Effect1;
     wxPanel* PanelTestStandard;
     wxPanel* SeqPanelRight;
     wxStaticText* StaticText20;
@@ -689,8 +694,8 @@ private:
     wxSlider* Slider_Contrast;
     wxButton* ButtonTestSave;
     wxStaticText* StaticTextShowEnd;
-    wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    wxRadioButton* RadioButtonAlt;
     wxChoice* Choice_LayerMethod;
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
@@ -733,6 +738,7 @@ private:
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxPanel* Panel_Effect2;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;

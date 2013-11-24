@@ -1727,6 +1727,7 @@ void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
     EffectChanged=true;
+//TODO: update PanelEffect label? -DJ
 }
 
 void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
