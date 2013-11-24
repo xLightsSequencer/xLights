@@ -98,6 +98,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_parm1" member="yes">
 							<value>1</value>
 							<min>1</min>
+							<max>300</max>
 							<size>60,21</size>
 							<handler function="OnSpinCtrl_parm1Change" entry="EVT_SPINCTRL" />
 						</object>
