@@ -2600,7 +2600,7 @@
 												<object class="wxSlider" name="ID_SLIDER_Chase_Spacing1" variable="Slider_Chase_Spacing1" member="yes">
 													<value>1</value>
 													<min>1</min>
-													<max>50</max>
+													<max>20</max>
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -2608,32 +2608,28 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText11" member="yes">
-													<label>Chase Speed</label>
+													<label>Chase Types</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes">
-													<value>1</value>
-													<min>1</min>
-													<max>10</max>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes" />
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText12" member="yes">
-													<label>Group All Arches</label>
+													<label>3d Fade</label>
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_Group_Arches1" variable="CheckBox_Group_Arches1" member="yes">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Chase_3dFade1" variable="CheckBox_Chase_3dFade1" member="yes">
 													<label>Yes</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2642,7 +2638,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText13" member="yes">
-													<label>R to L</label>
+													<label>Unused</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -2657,98 +2653,6 @@
 										</object>
 									</object>
 									<label>Chase1</label>
-								</object>
-								<object class="notebookpage">
-									<object class="wxPanel" name="ID_PANEL6" variable="Panel2" member="yes">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer25" member="no">
-											<cols>2</cols>
-											<rows>5</rows>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT13" variable="StaticText14" member="yes">
-													<label>Chase Size</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Color_Mix2" variable="Slider_Color_Mix2" member="yes">
-													<value>1</value>
-													<min>1</min>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT14" variable="StaticText15" member="yes">
-													<label>Chase Spacing</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Chase_Spacing2" variable="Slider_Chase_Spacing2" member="yes">
-													<value>1</value>
-													<min>1</min>
-													<max>50</max>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText16" member="yes">
-													<label>Chase Speed</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxSlider" name="ID_CHOICE_Chase_Type2" variable="Choice_Chase_Type2" member="yes">
-													<value>1</value>
-													<min>1</min>
-													<max>10</max>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText17" member="yes">
-													<label>Group All Arches</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_Group_Arches2" variable="CheckBox_Group_Arches2" member="yes">
-													<label>Yes</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT17" variable="StaticText18" member="yes">
-													<label>R to L</label>
-												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_R_TO_L2" variable="CheckBox_R_TO_L2" member="yes" />
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-										</object>
-									</object>
-									<label>Chase2</label>
 								</object>
 							</object>
 						</object>

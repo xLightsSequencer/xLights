@@ -358,7 +358,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.8)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.9)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1321,10 +1321,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PianoEffectStyles.Add("Player Piano (scrolling)");
     PianoEffectStyles.Add("RGB Icicles");
 
-    SingleStrandTypes.Add("Normal");
-    SingleStrandTypes.Add("3D Fades on chases");
-    SingleStrandTypes.Add("Auto reverse");
-    SingleStrandTypes.Add("Bounce");
+    SingleStrandTypes.Add("Left-Right");  // 0
+    SingleStrandTypes.Add("Right-Left");  // 1
+    SingleStrandTypes.Add("Auto reverse");  // 2
+    SingleStrandTypes.Add("Bounce");  //3
+    SingleStrandTypes.Add("Pacman");  //3
 
 
     TextEffects.Add("normal");
@@ -1429,7 +1430,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count2->SetSelection(0);
     panel->CurrentDir = &CurrentDir;
     panel->Choice_Chase_Type1->Set(SingleStrandTypes);
-    panel->Choice_Chase_Type2->Set(SingleStrandTypes);
+    panel->Choice_Chase_Type1->SetSelection(0); // Set Left-Right as default
+
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)

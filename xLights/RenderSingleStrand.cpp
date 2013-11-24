@@ -23,17 +23,19 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Group_Arches1, bool R_TO_L1,
-                                    int Color_Mix2,int Chase_Spacing2,int Chase_Type2,bool Group_Arches2, bool R_TO_L2)
+void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1)
 {
 
     int x,x1,x0,y,i,maxx,ColorIdx;
+    int x2=0;
+    int x_2=0;
+    int x2_mod=0;
     int color_index,x1_mod;
-    int MaxNodes,xt;
-    int xstart,xend,xstart_group;
-
-    if(Group_Arches1) srand (time(NULL)); // for strobe effect, make lights be random
-    else srand(1); // else always have the same random numbers for each frame (state)
+    int MaxNodes,xt,Dual_Chases=0;
+    int start1,start2,start1_mid,xend,start1_group;
+ bool R_TO_L1;
+    //srand (time(NULL)); // for strobe effect, make lights be random
+    srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
 
     size_t colorcnt=GetColorCount(); // global now set to how many colors have been picked
@@ -56,10 +58,10 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     for(x=0; x<1000; x++) // fill up chase buffer with invalid ColorIndex value. Or in other words, intialize array
     {
         chase_buffer[x]=-1;
-        brightness[x1] =1;
+        brightness[x] =1;
     }
-    if(Group_Arches1) MaxNodes= BufferWi*BufferHt;
-    else MaxNodes=BufferWi*2;
+    if(Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
+    else MaxNodes=BufferWi;
 
     int MaxChase=MaxNodes*(Color_Mix1/100.0);
     if(MaxChase<1) MaxChase=1;
@@ -77,16 +79,51 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     hsv.saturation=1.0;
     hsv.hue=0.0;
 
+    /*
+        Chase_Type1:
 
-    xstart = state % BufferWi;
-    xstart = (int)(state/4) % MaxNodes; // divide by 4 slows down chase
-    xstart_group = (int)(state/4) / MaxNodes; // divide by 4 slows down chase
-    if(xstart_group%2==1)
-        R_TO_L1=1;
-    else
+      SingleStrandTypes.Add("Normal. L-R");
+      SingleStrandTypes.Add("Normal. R-L");
+      SingleStrandTypes.Add("Auto reverse");
+      SingleStrandTypes.Add("Bounce");
+
+        */
+    int Fade3D,AutoReverse=0;
+    start1 = state % BufferWi;
+    start1 = (int)(state/4) % MaxNodes; // divide by 4 slows down chase
+    start1_group = (int)(state/4) / MaxNodes; // divide by 4 slows down chase
+    start2 = MaxNodes-start1;
+    start1_mid = MaxNodes/2;
+
+    switch (Chase_Type1)
+    {
+    case 0: // "Normal. L-R"
         R_TO_L1=0;
-    xend = xstart+BufferHt;
-    x0=xstart;
+        break;
+
+    case 1: // "Normal. R-L"
+        R_TO_L1=1;
+        break;
+
+    case 2: // "Auto reverse"
+        AutoReverse=1;
+        break;
+
+    case 3: // "Bounce"
+        Dual_Chases=1;
+        break;
+
+    }
+
+    if(AutoReverse==1)
+    {
+        if(start1_group%2==1)
+            R_TO_L1=1;
+        else
+            R_TO_L1=0;
+    }
+    xend = start1+BufferHt;
+    x0=start1;
     int FIT_TO_TIME=0;
     if(FIT_TO_TIME==0)
         for(y=0; y<BufferHt; y++)
@@ -95,19 +132,24 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
             {
                 xt=x0-x1;
                 if(R_TO_L1) xt=MaxNodes-x0-x1;
+                if(Dual_Chases==1) x2=MaxNodes-x0-x1;
                 if(xt<0) xt+=MaxNodes; // was xt=0;
+                if(x2<0) x2+=MaxNodes; // was xt=0;
                 //  y=int (xt/BufferWi);
                 x=xt%BufferWi;
+                x_2=x2%BufferWi;
                 ColorIdx=chase_buffer[x1];
                 if(R_TO_L1)   ColorIdx=chase_buffer[MaxChase-x1];
                 if(ColorIdx>=0)
                 {
                     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                    if(R_TO_L1)
-                        hsv.value=1.0-brightness[x1];
-                    else
-                        hsv.value=brightness[x1];
-
+                    if(Chase_Fade3d1==1)
+                    {
+                        if(R_TO_L1)
+                            hsv.value=1.0-brightness[x1];
+                        else
+                            hsv.value=brightness[x1];
+                    }
                     x1_mod=x1%Chase_Spacing1;
                     if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
                     {
@@ -116,6 +158,20 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
                         hsv.hue=0.0;
                     }
                     SetPixel(x,y,hsv); // Turn pixel on
+
+                    if(Dual_Chases==1)
+                    {
+
+
+                        x2_mod=x_2%Chase_Spacing1;
+                        if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x2_mod != 1))
+                        {
+                            hsv.value=0.0;
+                            hsv.saturation=1.0;
+                            hsv.hue=0.0;
+                        }
+                        SetPixel(x_2,y,hsv); // Turn pixel on
+                    }
                 }
             }
         }
@@ -124,7 +180,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     {
 
 
-        if(Group_Arches1)
+        if(Chase_Fade3d1)
         {
             for(x1=0; x1<MaxChase; x1++)
             {

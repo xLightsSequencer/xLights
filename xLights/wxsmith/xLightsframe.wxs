@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.8)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.9)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
