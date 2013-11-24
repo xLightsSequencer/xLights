@@ -119,6 +119,7 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Palette3;
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxNotebook* Notebook1;
+		wxBitmapButton* BitmapButton_Chase_3dFade1;
 		wxBitmapButton* BitmapButton_SpirographR;
 		wxBitmapButton* BitmapButton_FitToTime;
 		wxStaticText* StaticText19;
@@ -126,9 +127,11 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Text_Dir1;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
 		wxSlider* Slider_Garlands_Type;
+		wxBitmapButton* BitmapButton_R_TO_L1;
 		wxBitmapButton* BitmapButton_TextFont2;
 		wxStaticText* StaticText39;
 		wxBitmapButton* BitmapButton_Spirographd;
+		wxBitmapButton* BitmapButton_Chase_Spacing1;
 		wxCheckBox* CheckBox_FitToTime;
 		wxChoicebook* Choicebook1;
 		wxStaticText* StaticText10;
@@ -138,6 +141,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_MeteorsCount;
 		wxBitmapButton* BitmapButton_Direction;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
+		wxBitmapButton* BitmapButton_Chase_Type1;
 		wxSlider* Slider_Meteors_Length;
 		wxStaticText* StaticText78;
 		wxSlider* Slider_Fireworks_Fade;
@@ -223,6 +227,7 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel1_Snowflakes;
 		wxCheckBox* CheckBox_Palette4;
 		wxFlexGridSizer* FlexGridSizer_Palette;
+		wxBitmapButton* BitmapButton_Color_Mix1;
 		wxBitmapButton* BitmapButton_PicturesSpeed;
 		wxPanel* Panel1_Tree;
 		wxStaticText* StaticText31;
@@ -583,14 +588,19 @@ class EffectsPanel: public wxPanel
 		static const long ID_PANEL33;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER_Color_Mix1;
+		static const long ID_BITMAPBUTTON_SLIDER_Color_Mix1;
 		static const long ID_STATICTEXT9;
 		static const long ID_SLIDER_Chase_Spacing1;
+		static const long ID_BITMAPBUTTON_SLIDER_Chase_Spacing1;
 		static const long ID_STATICTEXT10;
 		static const long ID_CHOICE_Chase_Type1;
+		static const long ID_BITMAPBUTTON_CHOICE_Chase_Type1;
 		static const long ID_STATICTEXT11;
 		static const long ID_CHECKBOX_Chase_3dFade1;
+		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1;
 		static const long ID_STATICTEXT12;
 		static const long ID_CHECKBOX_R_TO_L1;
+		static const long ID_BITMAPBUTTON_CHECKBOX_R_TO_L1;
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL2;
@@ -737,6 +747,11 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_Piano_FilenameClick(wxCommandEvent& event);
 		void OnSlider_Piano_KeyWidthCmdScroll(wxScrollEvent& event);
 		void OnBitmapButton_Piano_KeyWidthClick(wxCommandEvent& event);
+		void OnBitmapButton_Color_Mix1Click(wxCommandEvent& event);
+		void OnBitmapButton_Chase_Spacing1Click(wxCommandEvent& event);
+		void OnBitmapButton_Chase_Type1Click(wxCommandEvent& event);
+		void OnBitmapButton_Chase_3dFade1Click(wxCommandEvent& event);
+		void OnBitmapButton_R_TO_L1Click(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);
