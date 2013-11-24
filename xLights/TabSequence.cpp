@@ -288,11 +288,11 @@ wxString xLightsFrame::CreateEffectStringRandom()
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
 #elif 0
-#define tostr(thing)  #thing
-#define EFFECT "Color Wash"
-#define SPFREQ  200
-#define BRIGHT  109
-#define CONTRAST  69
+ #define tostr(thing)  #thing
+ #define EFFECT "Color Wash"
+ #define SPFREQ  200
+ #define BRIGHT  109
+ #define CONTRAST  69
     s= EFFECT ",None,Effect 1,ID_SLIDER_SparkleFrequency= " tostr(SPREQ) ",ID_SLIDER_Brightness=" tostr(BRIGHT) ",ID_SLIDER_Contrast=" tostr(CONTRAST) ",ID_SLIDER_EffectLayerMix=0";
     s+=EffectsPanel1->GetRandomEffectString(eff1);
     s+=EffectsPanel2->GetRandomEffectString(eff2);
@@ -302,15 +302,15 @@ wxString xLightsFrame::CreateEffectStringRandom()
 }
 #if 0 //example: //-DJ
 Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=100,
-                            E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                            E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
+E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
 
-                                    Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
-                                                             E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                                                             E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
+Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
+E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
 #endif // 0
 
-                                                                     wxString xLightsFrame::CreateEffectString()
+wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -1995,6 +1995,7 @@ void xLightsFrame::ImportxLightsXMLTimings()
     }
 }
 
+// load the specified .xseq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
@@ -2005,7 +2006,9 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
     SeqChanCtrlColor=false;
 }
 
-void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
+// Load the xml file containing effects for a particular sequence
+// Returns true if file exists and was read successfully
+bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
     wxString tmpStr;
     // read xml sequence info
@@ -2016,7 +2019,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     if (!FileObj.FileExists())
     {
         if (ChooseModels) ChooseModelsForSequence();
-        return;
+        return false;
     }
 
     // read xml
@@ -2028,7 +2031,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     if (!doc.Load(SeqXmlFileName))
     {
         wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return;
+        return false;
     }
     wxXmlNode* root=doc.GetRoot();
     wxString tempstr=root->GetAttribute(wxT("BaseChannel"), wxT("1"));
@@ -2104,6 +2107,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
         }
     }
     EnableSequenceControls(true);
+    return true;
 }
 
 void xLightsFrame::ResetSequenceGrid()
@@ -2126,6 +2130,7 @@ void xLightsFrame::OpenSequence()
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
     nullString.Clear();
+    int interval=Timer1.GetInterval();
 
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
@@ -2139,16 +2144,16 @@ void xLightsFrame::OpenSequence()
         oName.SetFullName(filename);
         switch (ExtType(oName.GetExt()))
         {
-        case 'a':
-        case 'v':
-            MediaFiles.Add(oName.GetFullPath());
-            break;
-        case 'X':
-            XSeqFiles.Add(oName.GetFullPath());
-            break;
-        case 'L':
-            LorFiles.Add(oName.GetFullPath());
-            break;
+            case 'a':
+            case 'v':
+                MediaFiles.Add(oName.GetFullPath());
+                break;
+            case 'X':
+                XSeqFiles.Add(oName.GetFullPath());
+                break;
+            case 'L':
+                LorFiles.Add(oName.GetFullPath());
+                break;
         }
         cont = dir.GetNext(&filename);
     }
@@ -2204,7 +2209,31 @@ void xLightsFrame::OpenSequence()
     }
     else if (dialog.RadioButtonLor->GetValue())
     {
-        wxMessageBox(wxT("This feature is coming soon!"));
+        filename=dialog.ChoiceLorFiles->GetStringSelection();
+        ReadLorFile(filename);
+        oName.SetFullName( filename );
+        oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+        DisplayXlightsFilename(oName.GetFullPath());
+        oName.SetExt("xml");
+        SeqXmlFileName=oName.GetFullPath();
+        SeqBaseChannel=1;
+        SeqChanCtrlBasic=false;
+        SeqChanCtrlColor=false;
+        bool xmlFileLoaded=SeqLoadXlightsFile(filename, true);
+        if (!xmlFileLoaded)
+        {
+            // No xml file, so put LOR timing into grid
+            Grid1->AppendRows(LorTimingList.size());
+            int r=0;
+            for (std::list<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
+            {
+                int period=*it;
+                float seconds=(float)period*interval/1000.0;
+                Grid1->SetCellValue(r, 0, wxString::Format(wxT("%5.3f"),seconds));
+                r++;
+            }
+            wxMessageBox(wxT("Created new grid based on LOR effect timing"));
+        }
         return;
     }
     else if (dialog.RadioButtonNewMusic->GetValue())
@@ -2266,7 +2295,6 @@ void xLightsFrame::OpenSequence()
 
     SeqData.clear();
     SeqNumChannels=NetInfo.GetTotChannels();
-    int interval=Timer1.GetInterval();
     SeqNumPeriods=duration / interval;
     SeqDataLen=SeqNumPeriods * SeqNumChannels;
     SeqData.resize(SeqDataLen,0);

@@ -65,6 +65,7 @@ private:
     void OnRadioButtonNewMusicSelect(wxCommandEvent& event);
     void OnRadioButtonNewAnimSelect(wxCommandEvent& event);
     void OnRadioButtonLorSelect(wxCommandEvent& event);
+    void OnChoiceLorFilesSelect(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

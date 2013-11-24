@@ -91,6 +91,7 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonXlightsSelect);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceSeqFilesSelect);
     Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonLorSelect);
+    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceLorFilesSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewMusicSelect);
     Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceMediaFilesSelect);
     Connect(ID_RADIOBOX_Timing_Choice,wxEVT_COMMAND_RADIOBOX_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioBox1Select1);
@@ -139,4 +140,9 @@ void SeqOpenDialog::OnRadioButtonNewAnimSelect(wxCommandEvent& event)
 void SeqOpenDialog::OnRadioButtonLorSelect(wxCommandEvent& event)
 {
     RadioBoxTimingChoice->Disable();
+}
+
+void SeqOpenDialog::OnChoiceLorFilesSelect(wxCommandEvent& event)
+{
+    RadioButtonLor->SetValue(true);
 }
