@@ -10,6 +10,9 @@
 const long SeqOpenDialog::ID_RADIOBUTTON1 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT1 = wxNewId();
 const long SeqOpenDialog::ID_CHOICE1 = wxNewId();
+const long SeqOpenDialog::ID_RADIOBUTTON4 = wxNewId();
+const long SeqOpenDialog::ID_STATICTEXT4 = wxNewId();
+const long SeqOpenDialog::ID_CHOICE3 = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON2 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT2 = wxNewId();
 const long SeqOpenDialog::ID_CHOICE2 = wxNewId();
@@ -43,6 +46,13 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceSeqFiles = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE1"));
     FlexGridSizer2->Add(ChoiceSeqFiles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    RadioButtonLor = new wxRadioButton(this, ID_RADIOBUTTON4, _("LOR Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
+    FlexGridSizer2->Add(RadioButtonLor, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    ChoiceLorFiles = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+    FlexGridSizer2->Add(ChoiceLorFiles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonNewMusic = new wxRadioButton(this, ID_RADIOBUTTON2, _("New Musical Sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
     FlexGridSizer2->Add(RadioButtonNewMusic, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -57,7 +67,7 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     	_("Audacity"),
     	_("Xlights XML")
     };
-    RadioBoxTimingChoice = new wxRadioBox(this, ID_RADIOBOX_Timing_Choice, _("Timing Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, 0, wxDefaultValidator, _T("ID_RADIOBOX_Timing_Choice"));
+    RadioBoxTimingChoice = new wxRadioBox(this, ID_RADIOBOX_Timing_Choice, _("Timing Import"), wxDefaultPosition, wxDefaultSize, 3, __wxRadioBoxChoices_1, 1, wxRA_SPECIFY_ROWS, wxDefaultValidator, _T("ID_RADIOBOX_Timing_Choice"));
     RadioBoxTimingChoice->Disable();
     FlexGridSizer2->Add(RadioBoxTimingChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     RadioButtonNewAnim = new wxRadioButton(this, ID_RADIOBUTTON3, _("New animation sequence"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
@@ -80,6 +90,8 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 
     Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonXlightsSelect);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceSeqFilesSelect);
+    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonLorSelect);
+    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceLorFilesSelect);
     Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioButtonNewMusicSelect);
     Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnChoiceMediaFilesSelect);
     Connect(ID_RADIOBOX_Timing_Choice,wxEVT_COMMAND_RADIOBOX_SELECTED,(wxObjectEventFunction)&SeqOpenDialog::OnRadioBox1Select1);
@@ -123,4 +135,14 @@ void SeqOpenDialog::OnRadioButtonNewMusicSelect(wxCommandEvent& event)
 void SeqOpenDialog::OnRadioButtonNewAnimSelect(wxCommandEvent& event)
 {
     RadioBoxTimingChoice->Disable();
+}
+
+void SeqOpenDialog::OnRadioButtonLorSelect(wxCommandEvent& event)
+{
+    RadioBoxTimingChoice->Disable();
+}
+
+void SeqOpenDialog::OnChoiceLorFilesSelect(wxCommandEvent& event)
+{
+    RadioButtonLor->SetValue(true);
 }

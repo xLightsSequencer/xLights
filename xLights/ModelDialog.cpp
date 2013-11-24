@@ -222,6 +222,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_CHOICE_STRING_TYPE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_StringTypeSelect);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm1Change);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
+    Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
@@ -324,6 +325,7 @@ void ModelDialog::SetCustomGridData(const wxString& customChannelData)
 int ModelDialog::GetChannelsPerString()
 {
     wxString StringType=Choice_StringType->GetStringSelection();
+    wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
     if (ModelClass::HasSingleChannel(StringType)) return 1;
     if (ModelClass::HasSingleNode(StringType)) return 3;
     if (IsCustom())
@@ -347,7 +349,14 @@ int ModelDialog::GetChannelsPerString()
     }
     else
     {
-        return SpinCtrl_parm2->GetValue()*3;
+        if (DisplayAs != wxT("Window Frame"))
+        {
+            return SpinCtrl_parm2->GetValue()*3;
+        }
+        else
+        {
+            return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
+        }
     }
 }
 
@@ -814,5 +823,10 @@ void ModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
 void ModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(true);
+    UpdateStartChannels();
+}
+
+void ModelDialog::OnSpinCtrl_parm3Change(wxSpinEvent& event)
+{
     UpdateStartChannels();
 }

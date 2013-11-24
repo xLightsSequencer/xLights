@@ -77,6 +77,7 @@
 #include "PixelBuffer.h"
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
+#include "ExportModelSelect.h"
 
 class EffectTreeDialog;
 
@@ -223,6 +224,7 @@ public:
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
+        eff_SINGLESTRAND,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -344,7 +346,6 @@ private:
     void OnButtonModelsPreviewClick(wxCommandEvent& event);
     void OnButtonPlayPreviewClick(wxCommandEvent& event);
     void OnButtonStopPreviewClick(wxCommandEvent& event);
-    void OnButtonRepeatPreviewClick(wxCommandEvent& event);
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
     void OnPanelSequence2Char(wxKeyEvent& event);
@@ -352,6 +353,7 @@ private:
     void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
     void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
     void OnBitmapButton_ContrastClick(wxCommandEvent& event);
+    void OnButtonModelExportClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -458,7 +460,6 @@ private:
     static const long ID_STATICTEXT23;
     static const long ID_BUTTON_PLAY_PREVIEW;
     static const long ID_BUTTON_STOP_PREVIEW;
-    static const long ID_BUTTON_REPEAT_PREVIEW;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
     static const long ID_STATICTEXT21;
@@ -502,13 +503,14 @@ private:
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
     static const long ID_BUTTON2;
-    static const long ID_BUTTON1;
+    static const long ID_BUTTON_SeqExport;
+    static const long ID_BUTTON4;
+    static const long ID_BUTTON_CREATE_RANDOM;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
-    static const long ID_BUTTON_SeqExport;
-    static const long ID_BUTTON_CREATE_RANDOM;
+    static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS2;
@@ -568,7 +570,6 @@ private:
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
     wxChoice* Choice_Models;
-    wxButton* ButtonRepeatPreview;
     wxButton* ButtonClearLog;
     wxCheckBox* CheckBoxSaveChannelNames;
     EffectsPanel* EffectsPanel1;
@@ -598,6 +599,7 @@ private:
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
     wxButton* ButtonStopPreview;
+    wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
     wxBitmapButton* BitmapButton_Brightness;
     wxButton* Button_Palette;
@@ -795,6 +797,16 @@ private:
     TestFunctions TestFunc;
     void OnTimerTest(long curtime);
 
+    wxString mediaFilename;
+    wxString xlightsFilename;
+    SeqDataType SeqData;
+    long SeqDataLen;
+    long SeqNumPeriods;
+    long SeqNumChannels;
+    wxArrayString FileNames;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels);
     void ReadVixFile(const char* filename);
@@ -805,14 +817,20 @@ private:
     void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
     bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
-    void WriteVirFile(const wxString& filename); //       Vixen *.vir
+    void WriteVirFile(const wxString& filename);
+    void WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf); //       Vixen *.vir
     void WriteHLSFile(const wxString& filename);  //      HLS *.hlsnc
+    void WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      HLS *.hlsnc
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
+    void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
+                                          SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
+    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
     void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
+    void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void ClearLastPeriod();
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
@@ -820,15 +838,8 @@ private:
     wxString base64_encode();
     std::string base64_decode(const wxString& encoded_string);
 
-    wxString mediaFilename;
-    wxString xlightsFilename;
-    SeqDataType SeqData;
-    long SeqDataLen;
-    long SeqNumPeriods;
-    long SeqNumChannels;
-    wxArrayString FileNames;
-    wxArrayString ChannelNames;
-    wxArrayInt ChannelColors;
+    SeqDataType* RenderModelToData(wxXmlNode *modelNode);
+    wxXmlNode* SelectModelToExport();
 
     // schedule
     wxDateTime ShowStartDate,ShowEndDate;
@@ -922,7 +933,7 @@ private:
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
     void ResetEffectStates();
-    void SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
+    bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
     void ImportAudacityTimings();
@@ -939,7 +950,6 @@ private:
     void InsertRow();
     void UpdatePreview();
     void ShowModelsDialog();
-    void TimerPreview(long msec);
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
@@ -948,6 +958,7 @@ private:
     void GetSeqModelNames(wxArrayString& a);
     void UpdateChannelNames();
     void StopNow(void);
+    void PlayRgbSequence(void);
     void PlayEffect(void);
     bool HotKey(wxKeyEvent& event);
 
@@ -973,6 +984,7 @@ private:
     wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString PianoEffectStyles;
+    wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString CurtainEdge;
@@ -982,7 +994,7 @@ private:
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
-    long PreviewStartPeriod, PlaybackPeriod;
+    std::list<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects

@@ -20,6 +20,11 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
 
 void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 {
+    PlayRgbSequence();
+}
+
+void xLightsFrame::PlayRgbSequence()
+{
     if (SeqData.size() == 0)
     {
         wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
@@ -56,16 +61,9 @@ void xLightsFrame::ResetEffectStates()
 }
 
 
-//factored out from below so it can be reused by play/pause button -DJ
+
 void xLightsFrame::PlayEffect()
 {
-//    wxString lbltxt = Button_PlayEffect->GetLabel();
-//    if (SeqPlayerState == PLAYING_EFFECT) //already playing effect; pause -DJ
-//    {
-//        StopNow();
-//        Button_PlayEffect->SetLabel(_("Play Effect (F4)"));
-//        return;
-//    }
     int sel=Choice_Models->GetSelection();
     if (sel == wxNOT_FOUND)
     {
@@ -88,13 +86,19 @@ void xLightsFrame::PlayEffect()
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
     ResetTimer(PLAYING_EFFECT);
-    Button_PlayEffect->SetLabel(_("Pause Effect (F4)")); //toggle label -DJ
+    Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
 }
 
 void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
 {
-    if (SeqPlayerState == PLAYING_EFFECT) StopNow();
-    else PlayEffect();
+    if (SeqPlayerState == PLAYING_EFFECT)
+    {
+        StopNow();
+    }
+    else
+    {
+        PlayEffect();
+    }
 }
 
 void xLightsFrame::EnableSequenceControls(bool enable)
@@ -284,11 +288,11 @@ wxString xLightsFrame::CreateEffectStringRandom()
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
 #elif 0
- #define tostr(thing)  #thing
- #define EFFECT "Color Wash"
- #define SPFREQ  200
- #define BRIGHT  109
- #define CONTRAST  69
+#define tostr(thing)  #thing
+#define EFFECT "Color Wash"
+#define SPFREQ  200
+#define BRIGHT  109
+#define CONTRAST  69
     s= EFFECT ",None,Effect 1,ID_SLIDER_SparkleFrequency= " tostr(SPREQ) ",ID_SLIDER_Brightness=" tostr(BRIGHT) ",ID_SLIDER_Contrast=" tostr(CONTRAST) ",ID_SLIDER_EffectLayerMix=0";
     s+=EffectsPanel1->GetRandomEffectString(eff1);
     s+=EffectsPanel2->GetRandomEffectString(eff2);
@@ -298,15 +302,15 @@ wxString xLightsFrame::CreateEffectStringRandom()
 }
 #if 0 //example: //-DJ
 Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=100,
-E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
+                            E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+                            E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
 
-Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
-E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
+                                    Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
+                                                             E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
+                                                             E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
 #endif // 0
 
-wxString xLightsFrame::CreateEffectString()
+                                                                     wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -844,6 +848,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
                              );
     }
+    else if (effect == wxT("SingleStrand"))
+    {
+        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Color_Mix1")]),
+                                  wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Chase_Spacing1")]),
+                                  SingleStrandTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Chase_Type1")]),
+                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_3dFade1")]==wxT("1"));
+    }
     else if (effect == wxT("Snowflakes"))
     {
         buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Count")]),
@@ -1000,6 +1011,12 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
+    case eff_SINGLESTRAND:
+        buffer.RenderSingleStrand(panel->Slider_Color_Mix1->GetValue(),
+                                  panel->Slider_Chase_Spacing1->GetValue(),
+                                  panel->Choice_Chase_Type1->GetSelection(),
+                                  panel->CheckBox_Chase_3dFade1->GetValue());
+        break;
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
                                 panel->Slider_Snowflakes_Type->GetValue());
@@ -1152,8 +1169,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
-                Grid1->MakeCellVisible(NextGridRowToPlay,SeqPlayColumn);
+                Grid1->GoToCell(NextGridRowToPlay,SeqPlayColumn);
                 Grid1->SelectBlock(NextGridRowToPlay,SeqPlayColumn,NextGridRowToPlay,SeqPlayColumn);
+
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,SeqPlayColumn);
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())
@@ -1287,7 +1305,6 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     bool EnableButtons=!filename.IsEmpty();
     ButtonPlayPreview->Enable(EnableButtons);
     ButtonStopPreview->Enable(EnableButtons);
-    ButtonRepeatPreview->Enable(EnableButtons);
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)
@@ -1716,6 +1733,21 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //
     replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp");
     replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp");
+
+//  single strand effects
+    replace_str = replace_str + wxT("|E1_SLIDER_Single_Color_Mix1|ID_SLIDER_Single_Color_Mix1");
+    replace_str = replace_str + wxT("|E1_SLIDER_Single_Color_Spacing1|ID_SLIDER_Chase_Spacing1");
+    replace_str = replace_str + wxT("|E1_CHECKBOX_Single_Chase_3dFade1|ID_CHECKBOX_Chase_3dFade1");
+    replace_str = replace_str + wxT("|E2_SLIDER_Single_Color_Mix2|ID_SLIDER_Single_Color_Mix2");
+    replace_str = replace_str + wxT("|E2_SLIDER_Single_Color_Spacing2|ID_SLIDER_Chase_Spacing2");
+    replace_str = replace_str + wxT("|E2_CHECKBOX_Single_Group_Arches2|ID_CHECKBOX_Group_Arches2");
+
+    replace_str = replace_str + wxT("|ID_SLIDER_Single_Color_Mix1|E1_SLIDER_Color_Mix1");
+    replace_str = replace_str + wxT("|ID_SLIDER_Chase_Spacing1|E1_SLIDER_Chase_Spacing1");
+    replace_str = replace_str + wxT("|ID_CHECKBOX_Group_Arches1|E1_CHECKBOX_Chase_3dFade1");
+
+
+
     //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
 //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
 //
@@ -1903,7 +1935,11 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 //            linebuf += morebuf;
 //        }
         while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
-        if (line.empty()) { --r; continue; } //skip blank lines; don't add grid row
+        if (line.empty())
+        {
+            --r;    //skip blank lines; don't add grid row
+            continue;
+        }
 
         wxStringTokenizer tkz(line, wxT("\t"));
         wxString token = tkz.GetNextToken(); //first column = start time
@@ -1965,6 +2001,7 @@ void xLightsFrame::ImportxLightsXMLTimings()
     }
 }
 
+// load the specified .xseq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
@@ -1975,7 +2012,9 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
     SeqChanCtrlColor=false;
 }
 
-void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
+// Load the xml file containing effects for a particular sequence
+// Returns true if file exists and was read successfully
+bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
     wxString tmpStr;
     // read xml sequence info
@@ -1986,7 +2025,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     if (!FileObj.FileExists())
     {
         if (ChooseModels) ChooseModelsForSequence();
-        return;
+        return false;
     }
 
     // read xml
@@ -1998,7 +2037,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     if (!doc.Load(SeqXmlFileName))
     {
         wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return;
+        return false;
     }
     wxXmlNode* root=doc.GetRoot();
     wxString tempstr=root->GetAttribute(wxT("BaseChannel"), wxT("1"));
@@ -2074,6 +2113,7 @@ void xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
         }
     }
     EnableSequenceControls(true);
+    return true;
 }
 
 void xLightsFrame::ResetSequenceGrid()
@@ -2087,18 +2127,16 @@ void xLightsFrame::ResetSequenceGrid()
 
 void xLightsFrame::OpenSequence()
 {
-    wxArrayString SeqFiles,MediaFiles;
-    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
+    wxArrayString XSeqFiles,LorFiles,MediaFiles;
 
     // get list of media files
     wxFileName oName;
     wxString filename;
     wxString nullString;
-    char filetype;
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
     nullString.Clear();
-    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    int interval=Timer1.GetInterval();
 
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
@@ -2106,19 +2144,31 @@ void xLightsFrame::OpenSequence()
         return;
     }
 
+    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while ( cont )
     {
         oName.SetFullName(filename);
-        filetype=ExtType(oName.GetExt());
-        if (filetype=='a' || filetype=='v') MediaFiles.Add(oName.GetFullPath());
+        switch (ExtType(oName.GetExt()))
+        {
+        case 'a':
+        case 'v':
+            MediaFiles.Add(oName.GetFullPath());
+            break;
+        case 'X':
+            XSeqFiles.Add(oName.GetFullPath());
+            break;
+        case 'L':
+            LorFiles.Add(oName.GetFullPath());
+            break;
+        }
         cont = dir.GetNext(&filename);
     }
 
     // populate dialog
     SeqOpenDialog dialog(this);
-    if (SeqFiles.Count() > 0)
+    if (XSeqFiles.Count() > 0)
     {
-        dialog.ChoiceSeqFiles->Set(SeqFiles);
+        dialog.ChoiceSeqFiles->Set(XSeqFiles);
         dialog.ChoiceSeqFiles->SetSelection(0);
     }
     else
@@ -2127,6 +2177,16 @@ void xLightsFrame::OpenSequence()
         dialog.ChoiceSeqFiles->Enable(false);
         dialog.RadioBoxTimingChoice->Enable();
         dialog.RadioButtonNewMusic->SetValue(true);
+    }
+    if (LorFiles.Count() > 0)
+    {
+        dialog.ChoiceLorFiles->Set(LorFiles);
+        dialog.ChoiceLorFiles->SetSelection(0);
+    }
+    else
+    {
+        dialog.RadioButtonLor->Enable(false);
+        dialog.ChoiceLorFiles->Enable(false);
     }
     if (MediaFiles.Count() > 0)
     {
@@ -2151,6 +2211,35 @@ void xLightsFrame::OpenSequence()
     {
         SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
         SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection(), true);
+        return;
+    }
+    else if (dialog.RadioButtonLor->GetValue())
+    {
+        filename=dialog.ChoiceLorFiles->GetStringSelection();
+        ReadLorFile(filename);
+        oName.SetFullName( filename );
+        oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+        DisplayXlightsFilename(oName.GetFullPath());
+        oName.SetExt("xml");
+        SeqXmlFileName=oName.GetFullPath();
+        SeqBaseChannel=1;
+        SeqChanCtrlBasic=false;
+        SeqChanCtrlColor=false;
+        bool xmlFileLoaded=SeqLoadXlightsFile(filename, true);
+        if (!xmlFileLoaded)
+        {
+            // No xml file, so put LOR timing into grid
+            Grid1->AppendRows(LorTimingList.size());
+            int r=0;
+            for (std::list<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
+            {
+                int period=*it;
+                float seconds=(float)period*interval/1000.0;
+                Grid1->SetCellValue(r, 0, wxString::Format(wxT("%5.3f"),seconds));
+                r++;
+            }
+            wxMessageBox(wxT("Created new grid based on LOR effect timing"));
+        }
         return;
     }
     else if (dialog.RadioButtonNewMusic->GetValue())
@@ -2212,7 +2301,6 @@ void xLightsFrame::OpenSequence()
 
     SeqData.clear();
     SeqNumChannels=NetInfo.GetTotChannels();
-    int interval=Timer1.GetInterval();
     SeqNumPeriods=duration / interval;
     SeqDataLen=SeqNumPeriods * SeqNumChannels;
     SeqData.resize(SeqDataLen,0);
@@ -2328,6 +2416,94 @@ void xLightsFrame::RenderGridToSeqData()
     }
 }
 
+//FR Caller is responsible for deleting the returned data object
+SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
+{
+    MapStringString SettingsMap;
+    wxString ColName,msg, EffectStr;
+    long msec;
+    bool effectsToUpdate;
+    size_t ChannelLimit, NodeCnt;
+    int rowcnt=Grid1->GetNumberRows();
+    int colcnt=Grid1->GetNumberCols();
+    SeqDataType* retData;
+
+
+    //buffer.InitBuffer(modelNode);
+    NodeCnt = buffer.GetNodeCount();
+    retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
+
+    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
+    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    {
+        ColName=Grid1->GetColLabelValue(c);
+        if (ColName != buffer.name) continue;
+
+        NextGridRowToPlay=0;
+        for (int p=0; p<SeqNumPeriods; p++)
+        {
+            msec=p * XTIMER_INTERVAL;
+            buffer.Clear();
+
+            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            {
+                // start next effect
+                wxYield();
+                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
+
+                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                EffectStr.Trim();
+                if (!EffectStr.IsEmpty())
+                {
+                    //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
+                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    UpdateBufferPaletteFromMap(1,SettingsMap);
+                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    buffer.SetMixType(SettingsMap["LayerMethod"]);
+                    ResetEffectStates();
+                    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
+                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    buffer.SetSparkle(freq);
+
+                    int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                    buffer.SetBrightness(brightness);
+
+                    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+                    buffer.SetContrast(contrast);
+                    UpdateBufferFadesFromMap(1, SettingsMap);
+                    UpdateBufferFadesFromMap(2, SettingsMap);
+                    UpdateFitToTimeFromMap(1, SettingsMap);
+                    UpdateFitToTimeFromMap(2, SettingsMap);
+                }
+
+                UpdateEffectDuration();
+                NextGridRowToPlay++;
+            } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+
+            if (effectsToUpdate)
+            {
+                buffer.CalcOutput(p);
+                // update SeqData with contents of buffer
+                size_t chnum;
+                wxByte intensity;
+                size_t NodeCnt=buffer.GetNodeCount();
+                size_t cn=buffer.ChannelsPerNode();
+                for(size_t n=0; n<NodeCnt; n++)
+                {
+                    for(size_t c=0; c<cn; c++)
+                    {
+                        buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                        (*retData)[chnum*SeqNumPeriods+p]=intensity;
+                    }
+                }
+            }//if (effectsToUpdate)
+        } //for (int p=0; p<SeqNumPeriods; p++)
+    }
+    return retData;
+}
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
@@ -2708,6 +2884,123 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         WriteXLightsFile(fullpath);
     }
 
+    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+}
+
+wxXmlNode* xLightsFrame::SelectModelToExport()
+{
+    ExportModelSelect dialog(this);
+    wxString modelName;
+    int colcnt = Grid1->GetNumberCols();
+    wxASSERT(colcnt > XLIGHTS_SEQ_STATIC_COLUMNS);
+    for( int col=XLIGHTS_SEQ_STATIC_COLUMNS; col<colcnt; col++)
+    {
+        dialog.ModelChoice->Append(Grid1->GetColLabelValue(col));
+    }
+    dialog.ModelChoice->SetSelection(0);
+    if (dialog.ShowModal() != wxID_OK) return NULL;
+    return GetModelNode(dialog.ModelChoice->GetStringSelection());
+}
+
+
+void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
+{
+    if (SeqData.size() == 0)
+    {
+        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        return;
+    }
+    if (Grid1->GetNumberCols() <= XLIGHTS_SEQ_STATIC_COLUMNS)
+    {
+        wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
+        return;
+    }
+    if (Grid1->GetNumberRows() == 0)
+    {
+        wxMessageBox(wxT("No grid rows to save!"), wxT("Error"));
+        return;
+    }
+    int DlgResult;
+    bool ok;
+    wxString filename;
+    wxXmlNode* modelNode;
+    SeqDataType* dataBuf;
+    int numChan;
+    SeqExportDialog dialog(this);
+    dialog.ModelExportTypes();
+    do
+    {
+        ok=true;
+        DlgResult=dialog.ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            filename=dialog.TextCtrlFilename->GetValue();
+            filename.Trim();
+            if (filename.IsEmpty())
+            {
+                ok=false;
+                wxMessageBox(_("The file name cannot be empty"), _("ERROR"));
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    if (DlgResult != wxID_OK) return;
+
+    modelNode = SelectModelToExport();
+
+    if(!modelNode) return;
+
+    buffer.InitBuffer(modelNode,true);
+    numChan = buffer.GetChanCount();
+    dataBuf = RenderModelToData(modelNode);
+
+    wxFileName oName(filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath;
+    wxString format=dialog.ChoiceFormat->GetStringSelection();
+    wxStopWatch sw;
+    wxString Out3=format.Left(3);
+    StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
+
+    if (Out3 == wxT("Lcb"))
+    {
+        oName.SetExt(_("lcb"));
+        fullpath=oName.GetFullPath();
+        WriteLcbFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+
+    else if (Out3 == wxT("Vir"))
+    {
+        oName.SetExt(_("vir"));
+        fullpath=oName.GetFullPath();
+        WriteVirFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+    else if (Out3 == wxT("LSP"))
+    {
+        oName.SetExt(_("user"));
+        fullpath=oName.GetFullPath();
+        WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        return;
+    }
+    else if (Out3 == wxT("HLS"))
+    {
+        oName.SetExt(_("hlsnc"));
+        fullpath=oName.GetFullPath();
+        WriteHLSFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+    }
+    else if (Out3 == wxT("Fal"))
+    {
+        wxString tempstr;
+        long stChan;
+        tempstr=modelNode->GetAttribute(wxT("StartChannel"),wxT("1"));
+        tempstr.ToLong(&stChan);
+        oName.SetExt(_("eseq"));
+        fullpath=oName.GetFullPath();
+        WriteFalconPiModelFile(fullpath, numChan, SeqNumPeriods, dataBuf, stChan, numChan);
+    }
+
+    delete dataBuf;
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
 }
 

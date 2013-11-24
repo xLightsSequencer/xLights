@@ -2,6 +2,20 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+3.2.9               - Enhancement (Matt) You can now open an LOR sequence from the Nutcracker tab. 
+                  The first time you open an LOR sequence, the timing from the LOR file will 
+                  be imported into the grid (only the times where effects start are imported).
+               - Enhancement (Sean) Single Strand now has pull down to select chase types.
+               - Enhancement (Sean) Single Strand now has 3d Fade checkbox to apply to chases
+3.2.8:				- Enhancement (Sean) Re-release of single strand effects. Now they work without need to set
+						"fit to time".
+3.2.7:				- Bug (frankr) Windows model displayed wrong channel counts. 
+					- Enhancement (frankr) You can now export just one model instead of every channel that is in your setup
+						1st method: "export" This does not look at models and instead exports every channel that has been defined 
+									in your setup Tab
+						2nd method (new): "Export Model". You now can pick the model that is attached to your sequence and only export
+									those channels. For example, I have megatree, arches, eaves. If I select megatree only the channels
+									associated to that model will be exported. This will make much, much smaller LOR lms,lcb or vixen vix,vir files.
 3.2.6:				- Bug (Sean) Removed Linus and Lucy mp3 file from songs directory, we don't distribute mp3's
 					- Enhancement (Frankr and djulien). New hot keys created.
 						F3 Toggles between PLAY/STOP for far left "Play Effect" button

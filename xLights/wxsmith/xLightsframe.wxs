@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.6)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.9)</title>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1204,12 +1204,12 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer31" member="no">
-													<cols>5</cols>
+													<cols>4</cols>
 													<rows>1</rows>
-													<growablecols>4</growablecols>
+													<growablecols>3</growablecols>
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_PLAY_PREVIEW" variable="ButtonPlayPreview" member="yes">
-															<label>Play (F4)</label>
+															<label>Play</label>
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1220,15 +1220,6 @@
 														<object class="wxButton" name="ID_BUTTON_STOP_PREVIEW" variable="ButtonStopPreview" member="yes">
 															<label>Pause</label>
 															<handler function="OnButtonStopPreviewClick" entry="EVT_BUTTON" />
-														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_REPEAT_PREVIEW" variable="ButtonRepeatPreview" member="yes">
-															<label>Repeat</label>
-															<handler function="OnButtonRepeatPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1432,6 +1423,7 @@
 																			<cols>4</cols>
 																			<object class="sizeritem">
 																				<object class="wxButton" name="ID_BUTTON13" variable="Button_PlayEffect" member="yes">
+																					<label>Play (F3)</label>
 																					<enabled>0</enabled>
 																					<bg>#00FF00</bg>
 																					<handler function="OnButton_PlayEffectClick" entry="EVT_BUTTON" />
@@ -1564,7 +1556,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1606,7 +1599,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1646,7 +1640,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1684,7 +1679,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1695,8 +1691,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_normal" member="yes">
 																					<bitmap code="padlock16x16_green_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1707,8 +1704,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON13" variable="BitmapButton_locked" member="yes">
 																					<bitmap code="padlock16x16_red_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1719,8 +1717,9 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_random" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>16,16</size>
+																					<size>22,21</size>
 																					<hidden>1</hidden>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1761,111 +1760,137 @@
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
-																				<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
-																					<cols>10</cols>
+																				<object class="wxBoxSizer" variable="BoxSizer7" member="no">
+																					<orient>wxVERTICAL</orient>
 																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
-																							<label>Play (F4)</label>
-																							<bg>#00FF00</bg>
-																							<tooltip>Play from current grid cell</tooltip>
-																							<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
+																						<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
+																							<cols>5</cols>
+																							<rows>2</rows>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
+																									<label>Play (F4)</label>
+																									<bg>#00FF00</bg>
+																									<tooltip>Play from current grid cell</tooltip>
+																									<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>3</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON2" variable="ButtonDisplayElements" member="yes">
+																									<label>Display Elements</label>
+																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<handler function="OnButtonDisplayElementsClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
+																									<label>Export</label>
+																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON4" variable="ButtonModelExport" member="yes">
+																									<label>Model Export</label>
+																									<handler function="OnButtonModelExportClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON_CREATE_RANDOM" variable="Button_CreateRandom" member="yes">
+																									<label>Create Random Effects</label>
+																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
 																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>3</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON2" variable="ButtonDisplayElements" member="yes">
-																							<label>Display Elements</label>
-																							<bg>wxSYS_COLOUR_BTNFACE</bg>
-																							<handler function="OnButtonDisplayElementsClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
 																						<option>1</option>
 																					</object>
 																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON1" variable="Button_ChannelMap" member="yes">
-																							<label>Channel Map</label>
-																							<enabled>0</enabled>
-																							<hidden>1</hidden>
-																							<bg>wxSYS_COLOUR_BTNFACE</bg>
-																							<handler function="OnButton_ChannelMapClick" entry="EVT_BUTTON" />
+																						<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
+																							<cols>5</cols>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButtonOpenSeq" member="yes">
+																									<bitmap code="open_xpm" />
+																									<default>1</default>
+																									<size>48,23</size>
+																									<tooltip>Open Sequence</tooltip>
+																									<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButtonSaveSeq" member="yes">
+																									<bitmap code="save_xpm" />
+																									<default>1</default>
+																									<size>53,23</size>
+																									<tooltip>Save Sequence</tooltip>
+																									<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButtonInsertRow" member="yes">
+																									<bitmap code="insertrow_xpm" />
+																									<default>1</default>
+																									<size>50,23</size>
+																									<tooltip>Insert Row</tooltip>
+																									<handler function="OnBitmapButtonInsertRowClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButtonDeleteRow" member="yes">
+																									<bitmap code="deleterow_xpm" />
+																									<default>1</default>
+																									<size>49,23</size>
+																									<tooltip>Delete Row</tooltip>
+																									<handler function="OnBitmapButtonDeleteRowClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON1" variable="Button_ChannelMap" member="yes">
+																									<label>Channel Map</label>
+																									<enabled>0</enabled>
+																									<hidden>1</hidden>
+																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<handler function="OnButton_ChannelMapClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>3</border>
+																								<option>1</option>
+																							</object>
 																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>3</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButtonOpenSeq" member="yes">
-																							<bitmap code="open_xpm" />
-																							<default>1</default>
-																							<size>48,23</size>
-																							<tooltip>Open Sequence</tooltip>
-																							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButtonSaveSeq" member="yes">
-																							<bitmap code="save_xpm" />
-																							<default>1</default>
-																							<size>53,23</size>
-																							<tooltip>Save Sequence</tooltip>
-																							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButtonInsertRow" member="yes">
-																							<bitmap code="insertrow_xpm" />
-																							<default>1</default>
-																							<size>50,23</size>
-																							<tooltip>Insert Row</tooltip>
-																							<handler function="OnBitmapButtonInsertRowClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButtonDeleteRow" member="yes">
-																							<bitmap code="deleterow_xpm" />
-																							<default>1</default>
-																							<size>49,23</size>
-																							<tooltip>Delete Row</tooltip>
-																							<handler function="OnBitmapButtonDeleteRowClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
-																							<label>Export</label>
-																							<bg>wxSYS_COLOUR_BTNFACE</bg>
-																							<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																						<border>5</border>
-																						<option>1</option>
-																					</object>
-																					<object class="sizeritem">
-																						<object class="wxButton" name="ID_BUTTON_CREATE_RANDOM" variable="Button_CreateRandom" member="yes">
-																							<label>Create Random Effects</label>
-																							<bg>wxSYS_COLOUR_BTNFACE</bg>
-																							<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
-																						</object>
-																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<flag>wxTOP|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
 																						<option>1</option>
 																					</object>
 																				</object>
-																				<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
@@ -1946,7 +1971,6 @@
 								<object class="notebookpage">
 									<object class="wxPanel" name="ID_PANEL_CAL" variable="PanelCal" member="yes">
 										<pos>49,10</pos>
-										<hidden>1</hidden>
 										<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 											<cols>2</cols>
 											<rows>2</rows>

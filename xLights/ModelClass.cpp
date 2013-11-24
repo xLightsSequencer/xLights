@@ -25,7 +25,7 @@
 #include <wx/tokenzr.h>
 #include <wx/graphics.h>
 
-void ModelClass::SetFromXml(wxXmlNode* ModelNode)
+void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 {
     wxString tempstr,channelstr;
     wxString customModel,RGBorder;
@@ -109,7 +109,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
     for (i=0; i<NumberOfStrings; i++)
     {
         tempstr=StartChanAttrName(i);
-        if (HasIndividualStartChans && ModelNode->HasAttribute(tempstr))
+        if (!zeroBased && HasIndividualStartChans && ModelNode->HasAttribute(tempstr))
         {
             ModelNode->GetAttribute(tempstr, &channelstr);
             channelstr.ToLong(&channel);
@@ -117,7 +117,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode)
         }
         else
         {
-            stringStartChan[i] = StartChannel-1 + i*ChannelsPerString;
+            stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + i*ChannelsPerString;
         }
     }
 
@@ -770,6 +770,10 @@ size_t ModelClass::GetNodeCount()
     return Nodes.size();
 }
 
+int ModelClass::GetChanCount()
+{
+    return Nodes.size() * Nodes[0]->GetChanCount();
+}
 size_t ModelClass::GetCoordCount(size_t nodenum)
 {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;

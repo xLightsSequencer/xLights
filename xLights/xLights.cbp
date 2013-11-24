@@ -120,6 +120,8 @@
 		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
+		<Unit filename="ExportModelSelect.cpp" />
+		<Unit filename="ExportModelSelect.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
@@ -214,6 +216,7 @@
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
+		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
