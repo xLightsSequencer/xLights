@@ -159,6 +159,7 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Snowflakes_Type;
 		wxPanel* Panel1_Curtain;
 		wxButton* Button_Palette3;
+		wxCheckBox* CheckBox_R_TO_L1;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
 		wxStaticText* StaticText130;
@@ -208,6 +209,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_MeteorsLength;
 		wxStaticText* StaticText37;
 		wxCheckBox* CheckBox_Palette1;
+		wxStaticText* StaticText13;
 		wxStaticText* StaticText51;
 		wxStaticText* StaticText53;
 		wxStaticText* StaticText132;
@@ -587,6 +589,8 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHOICE_Chase_Type1;
 		static const long ID_STATICTEXT11;
 		static const long ID_CHECKBOX_Chase_3dFade1;
+		static const long ID_STATICTEXT12;
+		static const long ID_CHECKBOX_R_TO_L1;
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL2;
