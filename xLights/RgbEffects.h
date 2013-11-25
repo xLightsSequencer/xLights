@@ -34,6 +34,28 @@
 
 #include "../include/globals.h"
 
+//added hash_map, queue, vector: -DJ
+#ifdef _MSC_VER
+ #include <hash_map>
+#else
+ #include <unordered_map>
+ #define hash_map  unordered_map //c++ 2011
+#endif
+#include <queue> //priority_queue
+#include <deque>
+#include <vector>
+#define wxPoint_  long //std::pair<int, int> //kludge: wxPoint doesn't work with std::hash_map, so use equiv sttr
+
+//kludge to access protected members: -DJ
+template <typename Tdata, typename Tcontainer = std::vector<Tdata>, typename Tsorter = Tdata>
+class MyQueue: public std::priority_queue<Tdata, Tcontainer, Tsorter>
+{
+friend class RgbEffects;
+public:
+    inline void clear() { std::priority_queue<Tdata, Tcontainer, Tsorter>::c.clear(); } //add missing member
+};
+#define priority_queue  MyQueue //wedge in friend
+
 
 typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
@@ -237,6 +259,93 @@ protected:
     typedef std::list<SnowstormClass> SnowstormList;
 
 
+//added sprites + cues for piano and related fx: -DJ
+//NOTE: these could be used by other fx, or promoted/generalized to be part of all fx
+//convert a time string to frame#:
+
+//a Sprite is a rectangular portion of a larger bitmap
+//multiple related logical bitmaps can be loaded with only one physical file
+//TODO: subclass image/bitmap into sprites?
+    class Sprite
+    {
+    public:
+        wxString name;
+    //	wxString filename; //image file containing sprite
+        std::vector<wxPoint> xy; //size 1 => on/off; > 1 => animation
+        int ani_state; //display state; bumped after each state change while sprite is active
+    //	int repeat; //0 => one-shot, > 0 => loop count, < 0 => loop count with random delay
+        wxSize wh; //size in src image; might be scaled up/down when rendered onto canvas
+        wxPoint destxy; //where to place it on canvas
+        wxColor on, off; //first visible pixel color (from bottom left); used for on/off redraw (scrolling fx)
+        int destz; //controls draw order for overlapping sprites
+    public:
+//copy sprite image to canvas:
+//        bool render(int placement, bool clip) { return Piano_RenderKey(this, placement, clip); }
+    };
+
+//a Cue is a sprite with state info that changes pver a specific time interval
+//Audacity bar, beat, or onset timing marks can be used as cues
+//phonemes can also be used as cue for lip/face syncing
+//template<int sorter>
+    class Cue
+    {
+    public:
+//    int frames[2];
+        int start_frame; //int& start_frame = frames[0];
+        int stop_frame; //int& stop_frame = frames[1];
+//	int& sort_frame = stop_frame; //sorter? stop_frame: start_frame; //frames[sorter];
+//	int state; //state bumped during each active frame if repeat != 0;
+        Sprite* sprite;
+    public:
+//        Cue(void) {} //need to provide default ctor since nop-default also provided
+//        Cue(int frame): start_frame(frame) {} //ctor used with lower_bound()
+    public: //comparison operators for sorting
+        inline bool operator() (const Cue& lhs, const Cue& rhs) const { return lhs.stop_frame < rhs.stop_frame; } //used by priority_queue
+        inline bool operator() (Cue* lhs, Cue* rhs) const { return lhs->stop_frame < rhs->stop_frame; } //used by priority_queue?
+        static bool SortByStart(const Cue& lhs, const Cue& rhs) { return lhs.start_frame < rhs.start_frame; } //used by sort()
+        static bool SortByStop(const Cue& lhs, const Cue& rhs) { return lhs.stop_frame < rhs.stop_frame; } //used by sort()
+//    static bool ByStart(Cue* lhs, Cue* rhs) { return lhs->start_frame < rhs->start_frame; } //used by sort()
+    public:
+        static int Time2Frame(const wxString& timestr, int round)
+        {
+            double timeval;
+            int msec;
+
+            msec = timestr.ToDouble(&timeval)? (int)(timeval * 1000): 0;
+            return (round > 0)? (msec + 49)/ 50: (round < 0)? msec / 50: (msec + 25)/ 50; //round up/down/closest
+        }
+    };
+
+//cached state info:
+//NOTE: caching assumes only one Piano effect will be active
+//TODO: move these into RgbEffects.h?
+    wxString CachedCueFilename, CachedMapFilename, CachedShapeFilename; //keep track of which files are cached; only reload if changed
+    wxImage Shapes;
+//    std::vector</*wxColor*/ WXCOLORREF> ShapePalette; //color palette of Shapes
+    std::hash_map<std::string, Sprite> AllSprites; //can't use wxString here, so just use std::string
+//static /*std::*/vector</*std::*/vector<Sprite*>> ByLayer;
+//static vector<Sprite*> VisibleSprites; //only the sprites that appear on canvas
+//hash_map<Cue> CueList;
+    std::vector<Cue> CuesByStart; //all cues, sorted by start frame
+    /*std::*/priority_queue<Cue*, std::vector<Cue*>, Cue /*SortByStop*/> ActiveCues;
+//    std::deque<Cue*> ActiveCues; //sorted by stop frame
+    std::hash_map</*wxColor*/ WXCOLORREF, wxColor> ColorMap; //can't use wxColor as key, so use bare RGB value instead; OTOH SetPixel() wants a wxColor, so use it as value type
+//    std::vector</*wxColor*/ WXCOLORREF> PrevRender; //keep persistent pixels to reduce expensive redraws
+
+    void Piano_flush_cues(void);
+    void Piano_flush_map(void);
+    void Piano_flush_shapes(void);
+    void Piano_load_shapes(const wxString& filename);
+    void Piano_load_sprite_map(const wxString& filename);
+    void Piano_load_cues(const wxString& filename);
+    void Piano_update_bkg(int Style, wxSize& canvas, int rowh);
+    void Piano_map_colors(void);
+    bool Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, int placement, bool clip);
+    wxColor cached_rgb; //cached mapped pixel color
+    wxPoint cached_xy;
+//end of piano support stuff -DJ
+
+
     class PaletteClass
     {
     private:
@@ -304,6 +413,7 @@ protected:
 
     void SetPixel(int x, int y, const wxColour &color);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
+    void CopyPixel(int srcx, int srcy, int destx, int desty); //-DJ
     void SetTempPixel(int x, int y, const wxColour &color);
     void GetTempPixel(int x, int y, wxColour &color);
     wxUint32 GetTempPixelRGB(int x, int y);
@@ -345,6 +455,7 @@ protected:
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal
     int NumPixels;
+    bool InhibitClear; //allow canvas to be persistent for piano fx -DJ
     wxColourVector pixels; // this is the calculation buffer
     wxColourVector tempbuf;
     wxColourVector FirePalette;

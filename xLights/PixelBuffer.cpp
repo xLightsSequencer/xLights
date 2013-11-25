@@ -435,9 +435,9 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
     Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
-void PixelBufferClass::RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile) //added controls -DJ
+void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) //added more controls -DJ
 {
-    Effect[CurrentLayer].RenderPiano(Style, NumKeys, KeyWidth, NotesFile);
+    Effect[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
 void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)

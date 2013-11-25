@@ -1324,13 +1324,28 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectDirections.Add("up-right");
     EffectDirections.Add("down-right");
 
-//TODO: read these from controls (avoid dupplication)!
-    PianoEffectStyles.Add("Color Organ");
-    PianoEffectStyles.Add("Equalizer (bars)");
-    PianoEffectStyles.Add("Keyboard (edge view)");
-    PianoEffectStyles.Add("Keyboard (top view)");
-    PianoEffectStyles.Add("Player Piano (scrolling)");
-    PianoEffectStyles.Add("RGB Icicles");
+//read from choice list instead of hard-coded duplication: -DJ
+//    PianoEffectStyles.Add("Color Organ");
+//    PianoEffectStyles.Add("Equalizer (bars)");
+//    PianoEffectStyles.Add("Keyboard");
+//    PianoEffectStyles.Add("Player Piano (scroll)");
+//    PianoEffectStyles.Add("RGB Icicles (drip)");
+    for (int i = 0; i < EffectsPanel1->Choice_Piano_Style->GetCount(); ++i)
+        PianoEffectStyles.Add(EffectsPanel1->Choice_Piano_Style->GetString(i));
+
+//    PianoKeyPlacement.Add("Tile");
+//    PianoKeyPlacement.Add("Stretch/shrink");
+//    PianoKeyPlacement.Add("Top left");
+//    PianoKeyPlacement.Add("Top center");
+//    PianoKeyPlacement.Add("Top right");
+//    PianoKeyPlacement.Add("Middle left");
+//    PianoKeyPlacement.Add("Middle center");
+//    PianoKeyPlacement.Add("Middle right");
+//    PianoKeyPlacement.Add("Bottom left");
+//    PianoKeyPlacement.Add("Bottom middle");
+//    PianoKeyPlacement.Add("Bottom right");
+    for (int i = 0; i < EffectsPanel1->Choice_Piano_KeyPlacement->GetCount(); ++i)
+        PianoKeyPlacement.Add(EffectsPanel1->Choice_Piano_KeyPlacement->GetString(i));
 
     SingleStrandTypes.Add("Left-Right");  // 0
     SingleStrandTypes.Add("Right-Left");  // 1

@@ -838,8 +838,12 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap[LayerStr+wxT("CHOICE_Piano_Style")]),
                            wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_NumKeys")]),
-                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_KeyWidth")]),
-                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_Filename")]);
+                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_NumRows")]),
+                           PianoKeyPlacement.Index(SettingsMap[LayerStr+wxT("CHOICE_Piano_Placement")]),
+                           SettingsMap[LayerStr+wxT("CHECKBOX_Piano_Clipping")] == wxT("1"),
+                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_CueFilename")],
+                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_MapFilename")],
+                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_ShapeFilename")]);
     }
     else if (effect == wxT("Pictures"))
     {
@@ -1003,8 +1007,12 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_PIANO: //changed slider to choice list, added other controls -DJ
         buffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
                            panel->Slider_Piano_NumKeys->GetValue(),
-                           panel->Slider_Piano_KeyWidth->GetValue(),
-                           panel->TextCtrl_Piano_Filename->GetValue());
+                           panel->Slider_Piano_NumRows->GetValue(),
+                           panel->Choice_Piano_KeyPlacement->GetSelection(),
+                           panel->CheckBox_Piano_Clipping->GetValue(),
+                           panel->TextCtrl_Piano_CueFilename->GetValue(),
+                           panel->TextCtrl_Piano_MapFilename->GetValue(),
+                           panel->TextCtrl_Piano_ShapeFilename->GetValue());
         break;
     case eff_PICTURES:
         buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),

@@ -75,6 +75,7 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
 
 void RgbEffects::Clear(const wxColour& bgColor)
 {
+    if (InhibitClear) { InhibitClear = false; return; } //allow canvas to be persistent for piano fx (self-reseting for safety) -DJ
     for(size_t i=0; i<pixels.size(); i++)
     {
         pixels[i]=bgColor;
@@ -186,6 +187,15 @@ void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv)
     wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
     wxColour color(rgb.red,rgb.green,rgb.blue);
     SetPixel(x,y,color);
+}
+
+//copy src to dest: -DJ
+//TODO: use GDI+ functions?  (this would pull in a lot more functionality for free, on Windows at least)
+void RgbEffects::CopyPixel(int srcx, int srcy, int destx, int desty)
+{
+    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt))
+        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt))
+            pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
 }
 
 void RgbEffects::DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv)

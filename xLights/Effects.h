@@ -9,7 +9,7 @@ void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGarlands(int GarlandType, int Spacing);
 void RenderLife(int Count, int Type);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
-void RenderPiano(int Style, int NumKeys, int KeyWidth, const wxString& NotesFile); //added controls -DJ
+void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
 void RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1, bool Chase_3dFade1);
 void RenderSnowflakes(int Count, int SnowflakeType);

@@ -990,6 +990,7 @@ private:
     wxArrayString MeteorsEffect;
     wxArrayString EffectDirections;
     wxArrayString PianoEffectStyles;
+    wxArrayString PianoKeyPlacement;
     wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
