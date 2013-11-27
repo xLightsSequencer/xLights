@@ -1,0 +1,14 @@
+#example face cues - test only
+.1	5.0	EyesOpen
+.1	1.0	MouthMiddle
+1.0	1.2	MouthUpper
+1.0	1.2	MouthLower
+1.2	1.4	MouthMiddle
+#1.2	1.4	MouthUpper
+1.4	1.6	MouthRound
+1.4	1.6	MouthMiddle
+3.0	10.0	MouthLower
+5.0	5.2	EyesClosed
+5.2	5.4	EyesOpen
+5.4	5.6	EyesClosed
+5.6	10.0	EyesOpen
