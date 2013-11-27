@@ -46,4 +46,3 @@ int xLightsApp::FilterEvent(wxEvent& event)
     }
     return -1;
 }
-

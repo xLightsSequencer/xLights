@@ -1415,6 +1415,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
 
+    MainFrame = this; //allow others to find me -DJ
+
 //    ConnectOnChar(PanelSequence2);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 }
@@ -1846,6 +1848,18 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     }
     StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }
+
+/*static*/ xLightsFrame* xLightsFrame::MainFrame; //allow others to find me -DJ
+
+//update fx tab label according to currently selected fx: -DJ
+void xLightsFrame::SetEffectLabel(int which, wxString& fxname)
+{
+    if (which == -1) which = Notebook_Effects->GetSelection();
+    if (which == -1) return; //shouldn't happen; just ignore
+//    wxMessageBox(wxString::Format(wxT("set %d to 'Effect %d ("), which, which + 1) + fxname + ")'", "DEBUG", wxICON_ERROR | wxOK);
+    Notebook_Effects->SetPageText(which, wxString::Format(wxT("Effect %d ("), which + 1) + fxname + ")");
+}
+
 
 #if 0 //removed
 void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)

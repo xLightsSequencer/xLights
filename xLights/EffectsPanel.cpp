@@ -3,6 +3,10 @@
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 
+//allow call-back into main frame: -DJ
+#include <wx/app.h>
+#include "xLightsMain.h"
+
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
 #include <wx/settings.h>
@@ -1832,10 +1836,21 @@ void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
     }
 }
 
+//update PanelEffect label: -DJ
+void EffectsPanel::UpdateEffectTabLabel(int which)
+{
+//    xLightsFrame* mainFrame = GetMainFrame(); //(xLightsFrame*)GetTopWindow();
+    wxString curfx;
+    if (Choicebook1->GetSelection() != -1) curfx = Choicebook1->GetPageText(Choicebook1->GetSelection());
+    xLightsFrame::MainFrame->SetEffectLabel(which, curfx);
+}
+
 void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
     EffectChanged=true;
-//TODO: update PanelEffect label? -DJ
+    wxString myname = this->GetName();
+    int which = (myname.Find("1") != -1)? 0: (myname.Find("2") != -1)? 1: -1; //figure out which one i am
+    UpdateEffectTabLabel(which); //-DJ
 }
 
 void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)

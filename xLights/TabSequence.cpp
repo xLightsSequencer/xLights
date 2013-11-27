@@ -163,9 +163,11 @@ void xLightsFrame::SetEffectControls(wxString settings)
         {
         case 0:
             SetChoicebook(EffectsPanel1->Choicebook1,before);
+            EffectsPanel1->UpdateEffectTabLabel(0); //-DJ
             break;
         case 1:
             SetChoicebook(EffectsPanel2->Choicebook1,before);
+            EffectsPanel2->UpdateEffectTabLabel(1); //-DJ
             break;
         case 2:
             Choice_LayerMethod->SetStringSelection(before);

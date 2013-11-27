@@ -967,6 +967,8 @@ private:
     void PlayRgbSequence(void);
     void PlayEffect(void);
     bool HotKey(wxKeyEvent& event);
+    void SetEffectLabel(int which, wxString& fxname); //update tab labels -DJ
+    static xLightsFrame* MainFrame; //allow others to find me -DJ
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -1014,6 +1016,7 @@ private:
 
     DECLARE_EVENT_TABLE()
 friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
+friend class EffectsPanel; //kludge: allow choicebook to update tab labels -DJ
 };
 
 #endif // XLIGHTSMAIN_H
