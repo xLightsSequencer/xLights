@@ -173,10 +173,12 @@ class EffectsPanel: public wxPanel
 		wxButton* Button_Palette3;
 		wxCheckBox* CheckBox_R_TO_L1;
 		wxBitmapButton* BitmapButton_Palette2;
+		wxStaticText* StaticText14_layout_kludge2;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
 		wxStaticText* StaticText130;
 		wxPanel* Panel1_Piano;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText15_layout_kludge_1;
 		wxSlider* Slider_Meteors_Count;
 		wxTextCtrl* TextCtrl_Text_Line2;
 		wxChoice* Choice_Pictures_Direction;
@@ -231,8 +233,8 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Palette6;
 		wxStaticText* StaticText54;
 		wxPanel* Panel_Text2;
-		wxSlider* Slider_Meteors_Swirl_Intensity;
 		wxPanel* Panel1_Snowflakes;
+		wxSlider* Slider_Meteors_Swirl_Intensity;
 		wxCheckBox* CheckBox_Palette4;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxBitmapButton* BitmapButton_Color_Mix1;
@@ -489,10 +491,12 @@ class EffectsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_Piano_KeyPlacement;
 		static const long ID_BUTTON_Piano_CueFilename;
 		static const long ID_BITMAPBUTTON_Piano_Filename;
+		static const long ID_STATICTEXT14;
 		static const long ID_TEXTCTRL_Piano_CueFilename;
 		static const long ID_PANEL9;
 		static const long ID_BUTTON1;
 		static const long ID_BITMAPBUTTON_Piano_MapFilename;
+		static const long ID_STATICTEXT13;
 		static const long ID_TEXTCTRL_Piano_MapFilename;
 		static const long ID_PANEL11;
 		static const long ID_BUTTON2;

@@ -30,9 +30,12 @@
 //#include <string>
 #include <algorithm> //sort
 
-#define WANT_DEBUG  99
+//#define WANT_DEBUG  99
 //void djdebug(const char* fmt, ...);
-#include "djdebug.cpp"
+//#include "djdebug.cpp"
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
 
 #define wxColor  wxColour //kludge; American alias :)
 
@@ -361,7 +364,7 @@ void RgbEffects::Piano_update_bkg(int Style, wxSize& canvas, int rowh)
 //            PrevRender.resize(canvas.x * cnavas.y); //set all pixels off
             for (int x = 0; x < canvas.x; ++x)
                 for (int y = 0; y < canvas.y; ++y)
-                    SetPixel(x, y, c); //clear all
+                    SetPixel(x, y, c); //clear all (background canvas is persistent while piano effect is active)
             return;
         case PIANO_STYLE_SCROLLING: //scroll up one row
             debug_more(5, ", scroll %d x %d up by %d", canvas.x, canvas.y, rowh);
@@ -370,8 +373,9 @@ void RgbEffects::Piano_update_bkg(int Style, wxSize& canvas, int rowh)
                     if (y < canvas.y - rowh) { debug_more(30, ", (%d,%d)->(%d,%d)", x, canvas.y - y - rowh - 1, x, canvas.y - y - 1); CopyPixel(x, canvas.y - y - rowh - 1, x, canvas.y - y - 1); }
                     else { debug_more(30, ", (%d,%d)<-0", x, canvas.y - y - 1); SetPixel(x, canvas.y - y - 1, c); } //clear bottom row, scroll others
             return;
-        case PIANO_STYLE_EQBARS: //scroll down one row (bars decay)
+        case PIANO_STYLE_EQBARS: //scroll down one row (decaying bars)
             debug_more(5, ", scroll %d x %d down by %d", canvas.x, canvas.y, rowh);
+//            c.Set(255, 255, 255); //debug
             for (int x = 0; x < canvas.x; ++x)
                 for (int y = 0; y < canvas.y; ++y)
                     if (y < canvas.y - rowh) { debug_more(30, ", (%d,%d)->(%d,%d)", x, y + rowh, x, y); CopyPixel(x, y + rowh, x, y); }
@@ -438,7 +442,9 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
     if (NumRows > BufferHt) NumRows = BufferHt; //each row needs at least 1 pixel in order to be visible
     if (Style == PIANO_STYLE_ANIMAGE) NumKeys = NumRows = 1; //use entire canvas
     wxSize keywh(BufferWi / NumKeys, BufferHt / NumRows), /*BufferWH_full(BufferWi, BufferHt),*/ BufferWH_octave(7 * divup(NumKeys, 7) * keywh.x, NumRows * keywh.y); //wrap on octave boundaries only (so notes don't move); NOTE: only count white keys (black ones overlap), so octave width is actually 7 keys, not 12
+    wxSize keywh_1row(BufferWi / NumKeys, BufferHt / 5 + rand() % (BufferHt * 4/5 + 1)); //kludge: simulate varying amplitudes for eq bars
     if (Style == PIANO_STYLE_ANIMAGE) BufferWH_octave.x = keywh.x; //use entire canvas
+    if (Style == PIANO_STYLE_EQBARS) BufferWH_octave.y = BufferHt; //use entire height
 //    int yscroll = 0;
     debug_more(5, ": style %d, #keys %d, keyw %d/%d(%d), #rows %d, rowh %d/%d(%d)", Style, NumKeys, keywh.x, BufferWH_octave.x, BufferWi, NumRows, keywh.y, BufferWH_octave.y, BufferHt);
 
@@ -520,9 +526,10 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 	    debug(7, "activate: '%s' starts/stops %d/%d, has %d states", (const char*)cue_cursor->sprite->name.c_str(), cue_cursor->start_frame, cue_cursor->stop_frame, cue_cursor->sprite->xy.size());
 		cue_cursor->sprite->ani_state = 1; //first active state
 		if (Style != PIANO_STYLE_ANIMAGE)
-            Piano_RenderKey(cue_cursor->sprite, drawn, Style, BufferWH_octave, keywh, Placement, Clipping);
-		ActiveCues.push(&*cue_cursor);
-		if ((ActiveCues.size() > 1) && (ActiveCues.c[0]->stop_frame > ActiveCues.c[1]->stop_frame)) //paranoid check
+            Piano_RenderKey(cue_cursor->sprite, drawn, Style, BufferWH_octave, (Style == PIANO_STYLE_EQBARS)? keywh_1row: keywh, Placement, Clipping);
+		if (Style != PIANO_STYLE_EQBARS) //eq bars will age out by themselves
+            ActiveCues.push(&*cue_cursor);
+        else if ((ActiveCues.size() > 1) && (ActiveCues.c[0]->stop_frame > ActiveCues.c[1]->stop_frame)) //paranoid check
         {
             debug(5, "priority_queue broken! [0] %d > [1] %d", ActiveCues.c[0]->stop_frame, ActiveCues.c[1]->stop_frame);
 //        sort(ActiveCues.begin(), ActiveCues.end(), Cue::SortByStop); //kludge: priority_queue not working, so explicitly sort it
@@ -616,7 +623,8 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
             int wrapx = sprite->destxy.x + x, scrolly = sprite->destxy.y;
 //            if (style == PIANO_STYLE_ANIMAGE) { wrapx *= xscale; scrolly *= yscale; }
             if (!clip) wrapx %= canvas.x; //wrap on even key boundary
-            if ((style == PIANO_STYLE_ICICLES) || (style == PIANO_STYLE_EQBARS)) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
+//            if ((style == PIANO_STYLE_ICICLES) || (style == PIANO_STYLE_EQBARS)) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
+            if (style == PIANO_STYLE_ICICLES) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
             debug_more(20, ", (%d,%d)<-0x%x", wrapx, sprite->destxy.y + y, cached_rgb.GetRGB());
             SetPixel(wrapx, sprite->destxy.y + y, cached_rgb); //no vertical wrap, only horizontal wrap
         }
