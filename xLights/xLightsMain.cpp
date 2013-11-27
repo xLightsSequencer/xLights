@@ -1630,10 +1630,40 @@ bool xLightsFrame::EnableOutputs()
                 wxString ComPort=e->GetAttribute(wxT("ComPort"), wxT(""));
                 wxString BaudRate=e->GetAttribute(wxT("BaudRate"), wxT(""));
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
+
+#ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
+                static wxString choices;
+                TCHAR valname[32];
+                /*byte*/TCHAR portname[32];
+                DWORD vallen = sizeof(valname);
+                DWORD portlen = sizeof(portname);
+                HKEY hkey = NULL;
+                DWORD err = 0;
+
+//enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
+//logic based on http://www.cplusplus.com/forum/windows/73821/
+                if (choices.empty()) //should this be cached?  it's not really that expensive
+                {
+                    if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
+                        for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, NULL, NULL, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
+                        {
+                            if (err == ERROR_MORE_DATA) portname[sizeof(portname)/sizeof(portname[0]) - 1] = '\0'; //need to enlarge read buf if this happens; just truncate string for now
+//                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
+                            choices += _(", ") + portname;
+                            vallen = sizeof(valname);
+                            portlen = sizeof(portname);
+                        }
+                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(wxT("error %d (can't get serial comm ports from registry)"), err);
+                    if (hkey) RegCloseKey(hkey);
+//                    if (err) SetLastError(err); //tell caller about last real error
+                }
+#endif // __WXMSW__
                 wxString msg = _("Error occurred while connecting to ") + NetworkType+ _(" network on ") + ComPort +
+                                ((!choices.empty())? _("\n(available ports: ") + choices.substr(2) + _(")"): _("")) +
                                _("\n\nThings to check:\n1. Are all required cables plugged in?") +
                                _("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
                                _("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
+
                 try
                 {
                     xout->addnetwork(NetworkType,MaxChan,ComPort,baud);
