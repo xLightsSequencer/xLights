@@ -26,6 +26,8 @@
 
 #include "xlights_out.h"
 #include <wx/socket.h>
+#include <wx/msgdlg.h> //debug only -DJ
+#include <wx/filename.h> //-DJ
 #include "serial.h"
 
 bool xNetwork_E131_changed = false;
@@ -433,27 +435,27 @@ public:
             throw "max channels on E1.31 is 512";
         }
         num_channels=numchannels;
-        
+
         int i = num_channels + 1;
         wxByte NumHi = i >> 8;   // Channels (high)
         wxByte NumLo = i & 0xff; // Channels (low)
-        
+
         data[123]=NumHi;  // Property value count (high)
         data[124]=NumLo;  // Property value count (low)
-        
+
         i = 638 - 16 - (512 - num_channels);
         wxByte hi = i >> 8;   // (high)
         wxByte lo = i & 0xff; // (low)
-        
+
         data[16]=hi + 0x70;  // RLP Protocol flags and length (high)
         data[17]=lo;  // 0x26e = 638 - 16
-        
+
         i = 638 - 38 - (512 - num_channels);
         hi = i >> 8;   // (high)
         lo = i & 0xff; // (low)
         data[38]=hi + 0x70;  // Framing Protocol flags and length (high)
         data[39]=lo;  // 0x258 = 638 - 38
-        
+
         i = 638 - 115 - (512 - num_channels);
         hi = i >> 8;   // (high)
         lo = i & 0xff; // (low)
@@ -484,40 +486,76 @@ public:
 };
 
 
-
 // Should be called with: 0 <= chindex <= 1015 (max channels=127*8)
 class xNetwork_Renard: public xNetwork_Serial
 {
+public:
+    xNetwork_Renard(): hPlugin(NULL), fmtout(0), seqnum(0) //check for plug-in DLL -DJ
+    {
+#ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
+        wxString path;
+        { //inner scope to destroy pathbuf
+            wxStringBuffer pathbuf(path, MAX_PATH + 1);
+//        path.Alloc(MAX_PATH + 1);
+//        char* pathbuf = path.GetWriteBuf(MAX_PATH + 1);
+            GetModuleFileName(GetModuleHandle(NULL), pathbuf, MAX_PATH); //my exe path
+//        path.Truncate(strlen(pathbuf));
+//        path.UngetWriteBuf(strlen(pathbuf));
+        }
+        path = path.BeforeLast(wxFileName::GetPathSeparator());
+        path += wxFileName::GetPathSeparator();
+        path += "Plugin.dll"; //TODO: enumerate DLLs in a Plugins subfolder; for now, just load one generic name
+        if ((hPlugin = LoadLibrary(path.c_str())) != NULL)
+            fmtout = (plugin_entpt)GetProcAddress(hPlugin, "FormatOutput");
+//        wxMessageBox(wxString::Format(wxT("loaded plug-in '" + path + "'? %d, err %d"), HasPlugin(), GetLastError()), _("DEBUG"));
+#endif
+    }
+    ~xNetwork_Renard() //unload plug-in -DJ
+    {
+        fmtout = 0;
+        if (hPlugin != NULL) FreeLibrary(hPlugin);
+        hPlugin = NULL;
+    }
 protected:
-    wxByte data[1024];
+    int seqnum; //useful for debug
+    HINSTANCE hPlugin;
+    typedef int (*plugin_entpt)(int seqnum, const /*byte*/ void* inbuf, int inlen, byte* outbuf, size_t maxoutlen);
+    plugin_entpt fmtout;
+    wxByte data[10240+2]; //allow up to 10K channels -DJ
+    wxByte iobuf[250000 / (8+2) / 20]; //max data size @250k baud, 8N2, 20 fps -DJ
+    bool HasPlugin(void) const { return fmtout != 0; } //allow additional formatting before send -DJ
 
     void SetIntensity (size_t chindex, wxByte intensity)
     {
         wxByte RenIntensity;
-        switch (intensity)
+        if (HasPlugin()) data[chindex + 2] = intensity; //let plug-in handle esc codes -DJ
+        else
         {
-        case 0x7D:
-        case 0x7E:
-            RenIntensity=0x7C;
-            break;
-        case 0x7F:
-            RenIntensity=0x80;
-            break;
-        default:
-            RenIntensity=intensity;
+            switch (intensity)
+            {
+            case 0x7D:
+            case 0x7E:
+                RenIntensity=0x7C;
+                break;
+            case 0x7F:
+                RenIntensity=0x80;
+                break;
+            default:
+                RenIntensity=intensity;
+            }
+            data[chindex+2]=RenIntensity;
         }
-        data[chindex+2]=RenIntensity;
         changed=true;
     };
 
 public:
     void SetChannelCount(size_t numchannels)
     {
-        if (numchannels > 1016)
+        if (numchannels > sizeof(data)) //1016)
         {
-            throw "max channels on a Renard network is 1016";
+            throw wxString::Format(wxT("max channels on a Renard network is %d"), sizeof(data));
         }
-        if (numchannels % 8 != 0)
+        if (!HasPlugin() && ((numchannels % 8) != 0)) //restraint does not apply to plug-ins -DJ
         {
             throw "Number of Renard channels must be a multiple of 8";
         }
@@ -533,7 +571,13 @@ public:
     {
         if (changed && serptr)
         {
-            serptr->Write((char *)data,datalen);
+            if (HasPlugin()) //call plug-in to process data before sending -DJ
+            {
+                int iolen = (*fmtout)(++seqnum, data + 2, datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them
+//                wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d"), datalen - 2, sizeof(iobuf)), _("DEBUG"));
+                serptr->Write((char*)iobuf, iolen);
+            }
+            else serptr->Write((char *)data,datalen);
             changed=false;
         }
     };

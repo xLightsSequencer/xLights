@@ -146,6 +146,8 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
     // stopbits
     if(protocol[2] == '2')
         dcb.StopBits = TWOSTOPBITS;
+    else if (protocol[2] == 'H')
+        dcb.StopBits = ONE5STOPBITS; //-DJ
     else
         dcb.StopBits = ONESTOPBIT;
     // stopbits
