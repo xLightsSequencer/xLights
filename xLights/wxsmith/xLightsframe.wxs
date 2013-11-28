@@ -1765,7 +1765,7 @@
 																					<object class="sizeritem">
 																						<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
 																							<cols>5</cols>
-																							<rows>2</rows>
+																							<rows>1</rows>
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
 																									<label>Play (F4)</label>
@@ -1800,6 +1800,7 @@
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BUTTON4" variable="ButtonModelExport" member="yes">
 																									<label>Model Export</label>
+																									<bg>wxSYS_COLOUR_BTNFACE</bg>
 																									<handler function="OnButtonModelExportClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1823,7 +1824,8 @@
 																					</object>
 																					<object class="sizeritem">
 																						<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
-																							<cols>5</cols>
+																							<cols>8</cols>
+																							<rows>1</rows>
 																							<object class="sizeritem">
 																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" variable="BitmapButtonOpenSeq" member="yes">
 																									<bitmap code="open_xpm" />
@@ -1873,6 +1875,35 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_CUT" variable="BitmapButtonGridCut" member="yes">
+																									<bitmap stock_id="wxART_CUT" />
+																									<handler function="OnBitmapButtonGridCutClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_COPY" variable="BitmapButtonGridCopy" member="yes">
+																									<bitmap stock_id="wxART_COPY" />
+																									<default>1</default>
+																									<handler function="OnBitmapButtonGridCopyClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_PASTE" variable="BitmapButtonGridPaste" member="yes">
+																									<bitmap stock_id="wxART_PASTE" />
+																									<default>1</default>
+																									<handler function="OnBitmapButtonGridPasteClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BUTTON1" variable="Button_ChannelMap" member="yes">
 																									<label>Channel Map</label>
 																									<enabled>0</enabled>
@@ -1885,7 +1916,7 @@
 																								<option>1</option>
 																							</object>
 																						</object>
-																						<flag>wxTOP|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																						<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																						<border>5</border>
 																						<option>1</option>
 																					</object>

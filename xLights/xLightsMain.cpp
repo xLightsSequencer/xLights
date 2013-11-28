@@ -16,6 +16,7 @@
 #include <wx/persist.h>
 #include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
+#include <wx/clipbrd.h>
 
 
 
@@ -224,6 +225,9 @@ const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON_GRID_CUT = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON_GRID_COPY = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON_GRID_PASTE = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
@@ -871,7 +875,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticTextSequenceFileName = new wxStaticText(SeqPanelRight, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer32->Add(StaticTextSequenceFileName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
     BoxSizer7 = new wxBoxSizer(wxVERTICAL);
-    FlexGridSizer68 = new wxFlexGridSizer(2, 5, 0, 0);
+    FlexGridSizer68 = new wxFlexGridSizer(1, 5, 0, 0);
     Button_PlayRgbSeq = new wxButton(SeqPanelRight, ID_BUTTON_PLAY_RGB_SEQ, _("Play (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_RGB_SEQ"));
     Button_PlayRgbSeq->SetBackgroundColour(wxColour(0,255,0));
     Button_PlayRgbSeq->SetToolTip(_("Play from current grid cell"));
@@ -883,12 +887,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonSeqExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonModelExport = new wxButton(SeqPanelRight, ID_BUTTON4, _("Model Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    ButtonModelExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer68->Add(ButtonModelExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CreateRandom = new wxButton(SeqPanelRight, ID_BUTTON_CREATE_RANDOM, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CREATE_RANDOM"));
     Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer38 = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer38 = new wxFlexGridSizer(1, 8, 0, 0);
     BitmapButtonOpenSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON7, open_xpm, wxDefaultPosition, wxSize(48,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     BitmapButtonOpenSeq->SetDefault();
     BitmapButtonOpenSeq->SetToolTip(_("Open Sequence"));
@@ -905,12 +910,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButtonDeleteRow->SetDefault();
     BitmapButtonDeleteRow->SetToolTip(_("Delete Row"));
     FlexGridSizer38->Add(BitmapButtonDeleteRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonGridCut = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_CUT"));
+    FlexGridSizer38->Add(BitmapButtonGridCut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonGridCopy = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_COPY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_COPY")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_COPY"));
+    BitmapButtonGridCopy->SetDefault();
+    FlexGridSizer38->Add(BitmapButtonGridCopy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButtonGridPaste = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_PASTE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_PASTE")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_PASTE"));
+    BitmapButtonGridPaste->SetDefault();
+    FlexGridSizer38->Add(BitmapButtonGridPaste, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ChannelMap = new wxButton(SeqPanelRight, ID_BUTTON1, _("Channel Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     Button_ChannelMap->Disable();
     Button_ChannelMap->Hide();
     Button_ChannelMap->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer38->Add(Button_ChannelMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    BoxSizer7->Add(FlexGridSizer38, 1, wxTOP|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer7->Add(FlexGridSizer38, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(BoxSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(SeqPanelRight, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
@@ -1177,6 +1190,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonDeleteRowClick);
+    Connect(ID_BITMAPBUTTON_GRID_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridCutClick);
+    Connect(ID_BITMAPBUTTON_GRID_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridCopyClick);
+    Connect(ID_BITMAPBUTTON_GRID_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridPasteClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);

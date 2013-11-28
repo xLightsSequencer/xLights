@@ -354,6 +354,9 @@ private:
     void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
     void OnBitmapButton_ContrastClick(wxCommandEvent& event);
     void OnButtonModelExportClick(wxCommandEvent& event);
+    void OnBitmapButtonGridCutClick(wxCommandEvent& event);
+    void OnBitmapButtonGridCopyClick(wxCommandEvent& event);
+    void OnBitmapButtonGridPasteClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -510,6 +513,9 @@ private:
     static const long ID_BITMAPBUTTON9;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
+    static const long ID_BITMAPBUTTON_GRID_CUT;
+    static const long ID_BITMAPBUTTON_GRID_COPY;
+    static const long ID_BITMAPBUTTON_GRID_PASTE;
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
@@ -610,6 +616,7 @@ private:
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
+    wxBitmapButton* BitmapButtonGridCopy;
     wxButton* ButtonStopNow;
     wxStaticText* StaticText126;
     wxPanel* PanelConvert;
@@ -652,6 +659,7 @@ private:
     wxButton* Button_UpdateGrid;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
+    wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
     wxStaticText* StaticText16;
@@ -660,6 +668,7 @@ private:
     wxGrid* Grid1;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
+    wxBitmapButton* BitmapButtonGridCut;
     wxSlider* SliderFgColorB;
     wxRadioButton* RadioButtonShimmer;
     wxMenuItem* MenuItemSavePlaylists;
@@ -689,8 +698,8 @@ private:
     wxSlider* Slider_Contrast;
     wxButton* ButtonTestSave;
     wxStaticText* StaticTextShowEnd;
-    wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    wxRadioButton* RadioButtonAlt;
     wxChoice* Choice_LayerMethod;
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
@@ -961,6 +970,8 @@ private:
     void PlayRgbSequence(void);
     void PlayEffect(void);
     bool HotKey(wxKeyEvent& event);
+    void CutOrCopyToClipboard(bool IsCut);
+    bool IsValidEffectString(wxString& s);
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
