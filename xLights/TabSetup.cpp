@@ -573,6 +573,7 @@ void xLightsFrame::SetupDongle(wxXmlNode* e)
         Port=e->GetAttribute(wxT("ComPort"));
         BaudRate=e->GetAttribute(wxT("BaudRate"));
         LastChannel=e->GetAttribute(wxT("MaxChannels"));
+        SerialDlg.ChoiceProtocol->SetStringSelection(NetName); //preserve network type -DJ
         SerialDlg.ChoicePort->SetStringSelection(Port);
         SerialDlg.ChoiceBaudRate->SetStringSelection(BaudRate);
         SerialDlg.TextCtrlLastChannel->SetValue(LastChannel);
