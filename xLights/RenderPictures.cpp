@@ -140,6 +140,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int imght   =image.GetHeight();
     int yoffset =(BufferHt+imght)/2;
     int xoffset =(imgwidth-BufferWi)/2;
+    float xscale, yscale;
+    if (dir == 9) //src <- dest scale factor -DJ
+    {
+        xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
+        yscale = (imght > 1)? (float)BufferHt / imght: 1;
+    }
 
 // copy image to buffer
     wxColour c;
@@ -176,6 +182,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 case 8:
                     SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
                     break; // down-right
+                case 9: //scaled, no motion -DJ
+                    SetPixel(x * xscale, BufferHt - 1 - y * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    break;
                 default:
                     SetPixel(x-xoffset,yoffset-y,c);
                     break; // no movement - centered

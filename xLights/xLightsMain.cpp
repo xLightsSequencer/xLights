@@ -1314,15 +1314,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffect.Add("Implode");
     MeteorsEffect.Add("Explode");
 
-    EffectDirections.Add("left");
-    EffectDirections.Add("right");
-    EffectDirections.Add("up");
-    EffectDirections.Add("down");
-    EffectDirections.Add("none");
-    EffectDirections.Add("up-left");
-    EffectDirections.Add("down-left");
-    EffectDirections.Add("up-right");
-    EffectDirections.Add("down-right");
+    EffectDirections.Add("left"); //0
+    EffectDirections.Add("right"); //1
+    EffectDirections.Add("up"); //2
+    EffectDirections.Add("down"); //3
+    EffectDirections.Add("none"); //4
+    EffectDirections.Add("up-left"); //5
+    EffectDirections.Add("down-left"); //6
+    EffectDirections.Add("up-right"); //7
+    EffectDirections.Add("down-right"); //8
+    EffectDirections.Add("scaled"); //9; for when image size does not match model size -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -1656,10 +1657,12 @@ bool xLightsFrame::EnableOutputs()
                     if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(wxT("error %d (can't get serial comm ports from registry)"), err);
                     if (hkey) RegCloseKey(hkey);
 //                    if (err) SetLastError(err); //tell caller about last real error
+                    if (!choices.empty()) choices = "\n(available ports: "+ choices.substr(2) + ")";
+                    else choices = "\n(no available ports)";
                 }
 #endif // __WXMSW__
                 wxString msg = _("Error occurred while connecting to ") + NetworkType+ _(" network on ") + ComPort +
-                                ((!choices.empty())? _("\n(available ports: ") + choices.substr(2) + _(")"): _("")) +
+                                choices +
                                _("\n\nThings to check:\n1. Are all required cables plugged in?") +
                                _("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
                                _("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
