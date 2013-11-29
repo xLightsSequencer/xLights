@@ -2835,6 +2835,8 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
 
+
+    // REFACTOR -- FR: These extensions should all be based on Macros. For that matter all these compares should be as well.
     if (Out3 == wxT("LOR"))
     {
         if (mediaFilename.IsEmpty())
@@ -2884,6 +2886,12 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
         fullpath=oName.GetFullPath();
         WriteXLightsFile(fullpath);
+    }
+    else if (Out3 == wxT("Fal"))
+    {
+        oName.SetExt(_("fseq"));
+        fullpath=oName.GetFullPath();
+        WriteFalconPiFile(fullpath);
     }
 
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
