@@ -17,6 +17,7 @@ const long SerialPortWithRate::ID_STATICTEXT_RATE = wxNewId();
 const long SerialPortWithRate::ID_CHOICE_BAUD_RATE = wxNewId();
 const long SerialPortWithRate::ID_STATICTEXT3 = wxNewId();
 const long SerialPortWithRate::ID_TEXTCTRL_LAST_CHANNEL = wxNewId();
+const long SerialPortWithRate::ID_STATICTEXT1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SerialPortWithRate,wxDialog)
@@ -28,6 +29,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
 {
     //(*Initialize(SerialPortWithRate)
     wxStaticBoxSizer* StaticBoxSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -66,9 +68,13 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     FlexGridSizer2->Add(ChoiceBaudRate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
     TextCtrlLastChannel = new wxTextCtrl(this, ID_TEXTCTRL_LAST_CHANNEL, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_LAST_CHANNEL"));
     TextCtrlLastChannel->SetMaxLength(5);
-    FlexGridSizer2->Add(TextCtrlLastChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(TextCtrlLastChannel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("(3/rgb)"), wxDefaultPosition, wxSize(50,13), 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer4->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticBoxSizer2->Add(FlexGridSizer2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();

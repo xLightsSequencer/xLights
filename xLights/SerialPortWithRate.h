@@ -22,6 +22,7 @@ public:
     wxChoice* ChoiceProtocol;
     wxStaticText* StaticTextRate;
     wxChoice* ChoicePort;
+    wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     wxTextCtrl* TextCtrlLastChannel;
     wxStaticText* StaticTextExplanation;
@@ -41,6 +42,7 @@ protected:
     static const long ID_CHOICE_BAUD_RATE;
     static const long ID_STATICTEXT3;
     static const long ID_TEXTCTRL_LAST_CHANNEL;
+    static const long ID_STATICTEXT1;
     //*)
 
 private:
