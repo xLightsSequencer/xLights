@@ -505,6 +505,7 @@ public:
         path = path.BeforeLast(wxFileName::GetPathSeparator());
         path += wxFileName::GetPathSeparator();
         path += "Plugin.dll"; //TODO: enumerate DLLs in a Plugins subfolder; for now, just load one generic name
+        SetErrorMode(SEM_FAILCRITICALERRORS); //don't display errors
         if ((hPlugin = LoadLibrary(path.c_str())) != NULL)
             fmtout = (plugin_entpt)GetProcAddress(hPlugin, "FormatOutput");
 //        wxMessageBox(wxString::Format(wxT("loaded plug-in '" + path + "'? %d, err %d"), HasPlugin(), GetLastError()), _("DEBUG"));
@@ -519,10 +520,10 @@ public:
 protected:
     int seqnum; //useful for debug
     HINSTANCE hPlugin;
-    typedef int (*plugin_entpt)(int seqnum, const /*byte*/ void* inbuf, int inlen, byte* outbuf, size_t maxoutlen);
+    typedef size_t (*plugin_entpt)(int seqnum, const /*byte*/ void* inbuf, size_t inlen, byte* outbuf, size_t maxoutlen);
     plugin_entpt fmtout;
     wxByte data[10240+2]; //allow up to 10K channels -DJ
-    wxByte iobuf[250000 / (8+2) / 20]; //max data size @250k baud, 8N2, 20 fps -DJ
+    wxByte iobuf[250000 / (1+8+2) / 20]; //max data size @250k baud, 8N2, 20 fps -DJ
     bool HasPlugin(void) const { return fmtout != 0; } //allow additional formatting before send -DJ
 
     void SetIntensity (size_t chindex, wxByte intensity)
@@ -573,7 +574,7 @@ public:
         {
             if (HasPlugin()) //call plug-in to process data before sending -DJ
             {
-                int iolen = (*fmtout)(++seqnum, data + 2, datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them
+                int iolen = (*fmtout)(seqnum++, data + 2, datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them
 //                wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d"), datalen - 2, sizeof(iobuf)), _("DEBUG"));
                 serptr->Write((char*)iobuf, iolen);
             }
