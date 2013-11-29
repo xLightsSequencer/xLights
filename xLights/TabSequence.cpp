@@ -3106,29 +3106,45 @@ void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)
 // pass true for cutting, false for copying
 void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
 {
-int i,k;
+    int i,k;
     wxString copy_data;
     bool something_in_this_line;
 
-    for (i=0; i< Grid1->GetRows(); i++) {      // step through all lines
-        something_in_this_line = false;             // nothing found yet
-        for (k=0; k<Grid1->GetCols(); k++) {   // step through all colums
-            if (Grid1->IsInSelection(i,k)) {   // this field is selected!!!
-                if (!something_in_this_line) {      // first field in this line => may need a linefeed
-                    if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
-                        copy_data += wxT("\n");     // next LINE
+    if (Grid1->IsSelection())
+    {
+        // some cells are selected
+        for (i=0; i< Grid1->GetRows(); i++) {      // step through all lines
+            something_in_this_line = false;             // nothing found yet
+            for (k=0; k<Grid1->GetCols(); k++) {   // step through all colums
+                if (Grid1->IsInSelection(i,k)) {   // this field is selected!!!
+                    if (!something_in_this_line) {      // first field in this line => may need a linefeed
+                        if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
+                            copy_data += wxT("\n");     // next LINE
+                        }
+                        something_in_this_line = true;
+                    } else {                                // if not the first field in this line we need a field seperator (TAB)
+                        copy_data += wxT("\t");  // next COLUMN
                     }
-                    something_in_this_line = true;
-                } else {                                // if not the first field in this line we need a field seperator (TAB)
-                    copy_data += wxT("\t");  // next COLUMN
-                }
-                copy_data += Grid1->GetCellValue(i,k);    // finally we need the field value
-                if (IsCut)
-                {
-                    Grid1->SetCellValue(i,k,wxEmptyString);
-                    UnsavedChanges=true;
+                    copy_data += Grid1->GetCellValue(i,k);    // finally we need the field value
+                    if (IsCut)
+                    {
+                        Grid1->SetCellValue(i,k,wxEmptyString);
+                        UnsavedChanges=true;
+                    }
                 }
             }
+        }
+    }
+    else
+    {
+        // no cells selected, so copy current cell
+        i = Grid1->GetGridCursorRow();
+        k = Grid1->GetGridCursorCol();
+        copy_data = Grid1->GetCellValue(i,k);
+        if (IsCut)
+        {
+            Grid1->SetCellValue(i,k,wxEmptyString);
+            UnsavedChanges=true;
         }
     }
 
