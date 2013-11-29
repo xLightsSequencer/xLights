@@ -420,6 +420,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
                 {
                     Grid1->SetCellValue(r,c,v);
                     Grid1->SetCellTextColour(r,c,*wxBLACK);
+                    UnsavedChanges=true;
                 }
             }
         }
@@ -433,6 +434,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         {
             Grid1->SetCellValue(r,c,v);
             Grid1->SetCellTextColour(r,c,*wxBLACK);
+            UnsavedChanges=true;
         }
     }
 }
@@ -2843,6 +2845,8 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
 
+
+    // REFACTOR -- FR: These extensions should all be based on Macros. For that matter all these compares should be as well.
     if (Out3 == wxT("LOR"))
     {
         if (mediaFilename.IsEmpty())
@@ -2892,6 +2896,12 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
         fullpath=oName.GetFullPath();
         WriteXLightsFile(fullpath);
+    }
+    else if (Out3 == wxT("Fal"))
+    {
+        oName.SetExt(_("fseq"));
+        fullpath=oName.GetFullPath();
+        WriteFalconPiFile(fullpath);
     }
 
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
@@ -3109,4 +3119,133 @@ void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)
 {
     ScrolledWindow1->ClearBackground();
+}
+
+// pass true for cutting, false for copying
+void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
+{
+    int i,k;
+    wxString copy_data;
+    bool something_in_this_line;
+
+    if (Grid1->IsSelection())
+    {
+        // some cells are selected
+        for (i=0; i< Grid1->GetRows(); i++) {      // step through all lines
+            something_in_this_line = false;             // nothing found yet
+            for (k=0; k<Grid1->GetCols(); k++) {   // step through all colums
+                if (Grid1->IsInSelection(i,k)) {   // this field is selected!!!
+                    if (!something_in_this_line) {      // first field in this line => may need a linefeed
+                        if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
+                            copy_data += wxT("\n");     // next LINE
+                        }
+                        something_in_this_line = true;
+                    } else {                                // if not the first field in this line we need a field seperator (TAB)
+                        copy_data += wxT("\t");  // next COLUMN
+                    }
+                    copy_data += Grid1->GetCellValue(i,k);    // finally we need the field value
+                    if (IsCut)
+                    {
+                        Grid1->SetCellValue(i,k,wxEmptyString);
+                        UnsavedChanges=true;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        // no cells selected, so copy current cell
+        i = Grid1->GetGridCursorRow();
+        k = Grid1->GetGridCursorCol();
+        copy_data = Grid1->GetCellValue(i,k);
+        if (IsCut)
+        {
+            Grid1->SetCellValue(i,k,wxEmptyString);
+            UnsavedChanges=true;
+        }
+    }
+
+    if (wxTheClipboard->Open()) {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+    }
+}
+
+void xLightsFrame::OnBitmapButtonGridCutClick(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(true);
+}
+
+void xLightsFrame::OnBitmapButtonGridCopyClick(wxCommandEvent& event)
+{
+    CutOrCopyToClipboard(false);
+}
+
+// validate that s contains a valid effect
+// just a placeholder for now
+bool xLightsFrame::IsValidEffectString(wxString& s)
+{
+    return true;
+}
+
+void xLightsFrame::OnBitmapButtonGridPasteClick(wxCommandEvent& event)
+{
+    wxString copy_data;
+    wxString cur_line;
+    wxArrayString fields;
+    int i,k,fieldnum;
+
+    if (wxTheClipboard->Open()) {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+            wxTextDataObject data;
+
+            if (wxTheClipboard->GetData(data)) {
+                copy_data = data.GetText();
+            } else {
+                wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+            }
+        } else {
+            wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    } else {
+        wxMessageBox(_("Error opening clipboard."), _("Error"));
+        return;
+    }
+
+    i = Grid1->GetGridCursorRow();
+    k = Grid1->GetGridCursorCol();
+    int numrows=Grid1->GetNumberRows();
+    int numcols=Grid1->GetNumberCols();
+    bool errflag=false;
+
+    do {
+        cur_line = copy_data.BeforeFirst('\n');
+        copy_data = copy_data.AfterFirst('\n');
+        fields=wxSplit(cur_line,'\t');
+        for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
+        {
+            if (i < numrows && k+fieldnum < numcols && k+fieldnum >=XLIGHTS_SEQ_STATIC_COLUMNS) {
+                if (fields[fieldnum].IsEmpty() || IsValidEffectString(fields[fieldnum]))
+                {
+                    Grid1->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+                    UnsavedChanges=true;
+                }
+                else
+                {
+                    errflag=true;
+                }
+            }
+        }
+        i++;
+    } while (copy_data.IsEmpty() == false);
+    if (errflag)
+    {
+        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number"),_("Paste Error"));
+    }
 }

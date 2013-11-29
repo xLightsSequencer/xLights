@@ -38,6 +38,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     ChoiceFormat->Append(_("LSP, Light Show Pro "));
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights, *.xseq"));
+    ChoiceFormat->Append(_("Falcon, *.fseq"));
     FlexGridSizer2->Add(ChoiceFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
