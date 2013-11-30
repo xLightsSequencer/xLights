@@ -824,6 +824,7 @@ class EffectsPanel: public wxPanel
 		DECLARE_EVENT_TABLE()
 public:
         bool isRandom_(void);
+        void UpdateSpeedText();
 };
 
 #endif

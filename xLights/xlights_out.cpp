@@ -491,10 +491,11 @@ public:
 class xNetwork_Renard: public xNetwork_Serial
 {
 public:
-    xNetwork_Renard(): hPlugin(NULL), fmtout(0), seqnum(0) //check for plug-in DLL -DJ
+    xNetwork_Renard(): fmtout(0), seqnum(0) //check for plug-in DLL -DJ
     {
         data = std::vector<wxByte>(1024);
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
+        hPlugin = NULL;
         wxString path;
         { //inner scope to destroy pathbuf
             wxStringBuffer pathbuf(path, MAX_PATH + 1);
@@ -516,12 +517,17 @@ public:
     ~xNetwork_Renard() //unload plug-in -DJ
     {
         fmtout = 0;
+#ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
         if (hPlugin != NULL) FreeLibrary(hPlugin);
         hPlugin = NULL;
+#endif
     }
 protected:
     int seqnum; //useful for debug
+    
+#ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
     HINSTANCE hPlugin;
+#endif
     typedef size_t (*plugin_entpt)(const char* netname, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, byte* outbuf, size_t maxoutlen);
     plugin_entpt fmtout;
 //    wxByte data[1024];
