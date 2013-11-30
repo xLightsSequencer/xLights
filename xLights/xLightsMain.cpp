@@ -231,10 +231,7 @@ const long xLightsFrame::ID_BITMAPBUTTON_GRID_PASTE = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
-const long xLightsFrame::ID_PANEL_Effect1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
-const long xLightsFrame::ID_PANEL_Effect2 = wxNewId();
-const long xLightsFrame::ID_NOTEBOOK_Effects = wxNewId();
 const long xLightsFrame::ID_PANEL32 = wxNewId();
 const long xLightsFrame::ID_SPLITTERWINDOW2 = wxNewId();
 const long xLightsFrame::ID_PANEL30 = wxNewId();
@@ -304,6 +301,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer24;
     wxMenuItem* MenuItemCustomScript;
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
+    wxBoxSizer* BoxSizer5;
     wxFlexGridSizer* FlexGridSizer19;
     wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer7;
@@ -313,6 +311,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItemAddList;
+    wxStaticBoxSizer* StaticBoxSizer4;
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
@@ -324,13 +323,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer69;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxStaticText* StaticText21;
     wxMenuItem* MenuItemDelList;
     wxFlexGridSizer* FlexGridSizerNetworks;
-    wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
     wxStaticBoxSizer* StaticBoxSizer3;
@@ -355,6 +352,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer11;
     wxBoxSizer* BoxSizer3;
     wxFlexGridSizer* FlexGridSizer17;
+    wxStaticBoxSizer* StaticBoxSizer5;
     wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer68;
     wxFlexGridSizer* FlexGridSizer31;
@@ -939,25 +937,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer32->Add(Grid1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
     StaticBoxSizerSequenceButtons->Add(FlexGridSizer32, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer4->Add(StaticBoxSizerSequenceButtons, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Notebook_Effects = new wxNotebook(SeqPanelRight, ID_NOTEBOOK_Effects, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Effects"));
-    Notebook_Effects->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    Panel_Effect1 = new wxPanel(Notebook_Effects, ID_PANEL_Effect1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Effect1"));
-    FlexGridSizer69 = new wxFlexGridSizer(5, 1, 0, 0);
-    EffectsPanel1 = new EffectsPanel(Panel_Effect1, ID_PANEL_EFFECTS1, wxDefaultPosition, wxSize(227,151), wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
-    FlexGridSizer69->Add(EffectsPanel1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel_Effect1->SetSizer(FlexGridSizer69);
-    FlexGridSizer69->Fit(Panel_Effect1);
-    FlexGridSizer69->SetSizeHints(Panel_Effect1);
-    Panel_Effect2 = new wxPanel(Notebook_Effects, ID_PANEL_Effect2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Effect2"));
-    FlexGridSizer74 = new wxFlexGridSizer(0, 1, 0, 0);
-    EffectsPanel2 = new EffectsPanel(Panel_Effect2, ID_PANEL_EFFECTS2, wxDefaultPosition, wxSize(225,169), wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
-    FlexGridSizer74->Add(EffectsPanel2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel_Effect2->SetSizer(FlexGridSizer74);
-    FlexGridSizer74->Fit(Panel_Effect2);
-    FlexGridSizer74->SetSizeHints(Panel_Effect2);
-    Notebook_Effects->AddPage(Panel_Effect1, _("Effect 1"), false);
-    Notebook_Effects->AddPage(Panel_Effect2, _("Effect 2"), false);
-    BoxSizer4->Add(Notebook_Effects, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer5 = new wxBoxSizer(wxHORIZONTAL);
+    StaticBoxSizer4 = new wxStaticBoxSizer(wxVERTICAL, SeqPanelRight, _("Effect 1"));
+    EffectsPanel1 = new EffectsPanel(SeqPanelRight, ID_PANEL_EFFECTS1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
+    StaticBoxSizer4->Add(EffectsPanel1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer5->Add(StaticBoxSizer4, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer5 = new wxStaticBoxSizer(wxVERTICAL, SeqPanelRight, _("Effect 2"));
+    EffectsPanel2 = new EffectsPanel(SeqPanelRight, ID_PANEL_EFFECTS2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
+    StaticBoxSizer5->Add(EffectsPanel2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer5->Add(StaticBoxSizer5, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
+    BoxSizer4->Add(BoxSizer5, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SeqPanelRight->SetSizer(BoxSizer4);
     BoxSizer4->Fit(SeqPanelRight);
     BoxSizer4->SetSizeHints(SeqPanelRight);
@@ -1432,8 +1421,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
 
-    MainFrame = this; //allow others to find me -DJ
-
 //    ConnectOnChar(PanelSequence2);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 }
@@ -1897,18 +1884,6 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     }
     StatusBar1->SetStatusText(wxT("All xml files backed up."));
 }
-
-/*static*/ xLightsFrame* xLightsFrame::MainFrame; //allow others to find me -DJ
-
-//update fx tab label according to currently selected fx: -DJ
-void xLightsFrame::SetEffectLabel(int which, wxString& fxname)
-{
-    if (which == -1) which = Notebook_Effects->GetSelection();
-    if (which == -1) return; //shouldn't happen; just ignore
-//    wxMessageBox(wxString::Format(wxT("set %d to 'Effect %d ("), which, which + 1) + fxname + ")'", "DEBUG", wxICON_ERROR | wxOK);
-    Notebook_Effects->SetPageText(which, wxString::Format(wxT("Effect %d ("), which + 1) + fxname + ")");
-}
-
 
 #if 0 //removed
 void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)

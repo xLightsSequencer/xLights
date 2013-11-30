@@ -519,10 +519,7 @@ private:
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
-    static const long ID_PANEL_Effect1;
     static const long ID_PANEL_EFFECTS2;
-    static const long ID_PANEL_Effect2;
-    static const long ID_NOTEBOOK_Effects;
     static const long ID_PANEL32;
     static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL30;
@@ -673,7 +670,6 @@ private:
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
     wxSlider* SliderFgColorB;
-    wxNotebook* Notebook_Effects;
     wxRadioButton* RadioButtonShimmer;
     wxMenuItem* MenuItemSavePlaylists;
     wxTextCtrl* txtCtrlSparkleFreq;
@@ -692,7 +688,6 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
-    wxPanel* Panel_Effect1;
     wxPanel* PanelTestStandard;
     wxPanel* SeqPanelRight;
     wxStaticText* StaticText20;
@@ -747,7 +742,6 @@ private:
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxPanel* Panel_Effect2;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
@@ -978,8 +972,6 @@ private:
     bool HotKey(wxKeyEvent& event);
     void CutOrCopyToClipboard(bool IsCut);
     bool IsValidEffectString(wxString& s);
-    void SetEffectLabel(int which, wxString& fxname); //update tab labels -DJ
-    static xLightsFrame* MainFrame; //allow others to find me -DJ
 
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
@@ -1027,7 +1019,6 @@ private:
 
     DECLARE_EVENT_TABLE()
 friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
-friend class EffectsPanel; //kludge: allow choicebook to update tab labels -DJ
 };
 
 #endif // XLIGHTSMAIN_H

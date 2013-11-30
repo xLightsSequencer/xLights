@@ -1953,45 +1953,40 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxNotebook" name="ID_NOTEBOOK_Effects" variable="Notebook_Effects" member="yes">
-																	<bg>wxSYS_COLOUR_SCROLLBAR</bg>
-																	<object class="notebookpage">
-																		<object class="wxPanel" name="ID_PANEL_Effect1" variable="Panel_Effect1" member="yes">
-																			<object class="wxFlexGridSizer" variable="FlexGridSizer69" member="no">
-																				<cols>1</cols>
-																				<rows>5</rows>
-																				<object class="sizeritem">
-																					<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
-																						<size>227,151</size>
-																					</object>
-																					<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																					<border>5</border>
-																					<option>1</option>
-																				</object>
+																<object class="wxBoxSizer" variable="BoxSizer5" member="no">
+																	<object class="sizeritem">
+																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer4" member="no">
+																			<label>Effect 1</label>
+																			<orient>wxVERTICAL</orient>
+																			<object class="sizeritem">
+																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes" />
+																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
 																			</object>
 																		</object>
-																		<label>Effect 1</label>
+																		<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
 																	</object>
-																	<object class="notebookpage">
-																		<object class="wxPanel" name="ID_PANEL_Effect2" variable="Panel_Effect2" member="yes">
-																			<object class="wxFlexGridSizer" variable="FlexGridSizer74" member="no">
-																				<cols>1</cols>
-																				<object class="sizeritem">
-																					<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes">
-																						<size>225,169</size>
-																					</object>
-																					<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																					<border>5</border>
-																					<option>1</option>
-																				</object>
+																	<object class="sizeritem">
+																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer5" member="no">
+																			<label>Effect 2</label>
+																			<orient>wxVERTICAL</orient>
+																			<object class="sizeritem">
+																				<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes" />
+																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
 																			</object>
 																		</object>
-																		<label>Effect 2</label>
+																		<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																		<border>5</border>
+																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
-																<option>1</option>
 															</object>
 														</object>
 													</object>
