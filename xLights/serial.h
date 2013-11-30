@@ -12,8 +12,11 @@
 #include <termios.h>
 #endif
 
+class xNetwork_Renard;
+
 class SerialPort
 {
+friend class xNetwork_Renard; //kludge: give access to devname + other info
 protected:
     wxString m_devname;
     int callback;  // used in basic script

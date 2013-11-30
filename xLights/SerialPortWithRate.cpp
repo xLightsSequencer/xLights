@@ -65,6 +65,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     ChoiceBaudRate->Append(_("38400"));
     ChoiceBaudRate->Append(_("57600"));
     ChoiceBaudRate->Append(_("115200"));
+    ChoiceBaudRate->Append(_("250000"));
     FlexGridSizer2->Add(ChoiceBaudRate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Last Channel"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

@@ -81,6 +81,7 @@
 										<item>38400</item>
 										<item>57600</item>
 										<item>115200</item>
+										<item>250000</item>
 									</content>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
