@@ -825,6 +825,7 @@ class EffectsPanel: public wxPanel
 public:
         bool isRandom_(void);
         void UpdateEffectTabLabel(int which); //-DJ
+        void UpdateSpeedText();
 };
 
 #endif

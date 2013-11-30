@@ -232,6 +232,15 @@ void xLightsFrame::SetEffectControls(wxString settings)
         settings=after;
         cnt++;
     }
+    // set textbox values for sliders that have them
+    wxScrollEvent evt;
+    OnSlider_BrightnessCmdScroll(evt);
+    OnSlider_ContrastCmdScroll(evt);
+    OnSlider_EffectLayerMixCmdScroll(evt);
+    OnSlider_SparkleFrequencyCmdScroll(evt);
+    EffectsPanel1->UpdateSpeedText();
+    EffectsPanel2->UpdateSpeedText();
+
     MixTypeChanged=true;
     FadesChanged=true;
     EffectsPanel1->PaletteChanged=true;
@@ -2373,7 +2382,8 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
+                wxString msg=_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1));
+                StatusBar1->SetStatusText(msg);
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
                 EffectStr.Trim();
@@ -2381,7 +2391,9 @@ void xLightsFrame::RenderGridToSeqData()
                 {
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
-                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    //StatusBar1->SetStatusText(msg);
+                    //wxString effect=SettingsMap[wxT("E1_Effect")]+","+SettingsMap[wxT("E2_Effect")];
+                    //TextCtrlLog->AppendText(msg+" "+effect+"\n");
                     UpdateBufferPaletteFromMap(1,SettingsMap);
                     UpdateBufferPaletteFromMap(2,SettingsMap);
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
@@ -2409,6 +2421,7 @@ void xLightsFrame::RenderGridToSeqData()
 
             if (effectsToUpdate)
             {
+                //TextCtrlLog->AppendText(wxString::Format(wxT("  period %d\n"),p));
                 buffer.CalcOutput(p);
                 // update SeqData with contents of buffer
                 size_t chnum;
@@ -3094,7 +3107,6 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
     }
     UnsavedChanges = true;
 }
-
 
 void xLightsFrame::OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event)
 {

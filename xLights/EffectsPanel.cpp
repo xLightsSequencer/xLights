@@ -1855,9 +1855,14 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
     UpdateEffectTabLabel(which); //-DJ
 }
 
-void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
+void EffectsPanel::UpdateSpeedText()
 {
     TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
+}
+
+void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
+{
+    UpdateSpeedText();
 }
 
 
