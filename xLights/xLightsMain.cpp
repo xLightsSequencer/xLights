@@ -1647,9 +1647,9 @@ bool xLightsFrame::EnableOutputs()
                 wxString ComPort=e->GetAttribute(wxT("ComPort"), wxT(""));
                 wxString BaudRate=e->GetAttribute(wxT("BaudRate"), wxT(""));
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
+                static wxString choices;
 
 #ifdef __WXMSW__ //TODO: enumerate comm ports on all platforms -DJ
-                static wxString choices;
                 TCHAR valname[32];
                 /*byte*/TCHAR portname[32];
                 DWORD vallen = sizeof(valname);

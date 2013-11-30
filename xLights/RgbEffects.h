@@ -329,7 +329,7 @@ protected:
     std::vector<Cue> CuesByStart; //all cues, sorted by start frame
     /*std::*/priority_queue<Cue*, std::vector<Cue*>, Cue /*SortByStop*/> ActiveCues;
 //    std::deque<Cue*> ActiveCues; //sorted by stop frame
-    std::hash_map</*wxColor*/ WXCOLORREF, wxColor> ColorMap; //can't use wxColor as key, so use bare RGB value instead; OTOH SetPixel() wants a wxColor, so use it as value type
+    std::hash_map</*wxColor*/ wxUint32, wxColor> ColorMap; //can't use wxColor as key, so use bare RGB value instead; OTOH SetPixel() wants a wxColor, so use it as value type
 //    std::vector</*wxColor*/ WXCOLORREF> PrevRender; //keep persistent pixels to reduce expensive redraws
 
     void Piano_flush_cues(void);
