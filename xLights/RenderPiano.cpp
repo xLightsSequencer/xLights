@@ -183,7 +183,7 @@ void RgbEffects::Piano_load_shapes(const wxString& filename)
 
 
 //find first color in sprite:
-static wxColor& find_color(wxImage& Shapes, std::hash_map</*wxColor*/ WXCOLORREF, wxColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
+static wxColor& find_color(wxImage& Shapes, std::hash_map</*wxColor*/ wxUint32, wxColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
 {
     static wxColor color;
     for (int y = xy.y; y < xy.y + wh.y; ++y) //bottom->top
