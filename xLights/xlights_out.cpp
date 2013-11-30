@@ -28,6 +28,7 @@
 #include <wx/socket.h>
 #include <wx/msgdlg.h> //debug only -DJ
 #include <wx/filename.h> //-DJ
+#include <vector> //-DJ
 #include "serial.h"
 
 bool xNetwork_E131_changed = false;
@@ -492,6 +493,7 @@ class xNetwork_Renard: public xNetwork_Serial
 public:
     xNetwork_Renard(): hPlugin(NULL), fmtout(0), seqnum(0) //check for plug-in DLL -DJ
     {
+        data = std::vector<wxByte>(1024);
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
         wxString path;
         { //inner scope to destroy pathbuf
@@ -520,9 +522,10 @@ public:
 protected:
     int seqnum; //useful for debug
     HINSTANCE hPlugin;
-    typedef size_t (*plugin_entpt)(int seqnum, const /*byte*/ void* inbuf, size_t inlen, byte* outbuf, size_t maxoutlen);
+    typedef size_t (*plugin_entpt)(const char* netname, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, byte* outbuf, size_t maxoutlen);
     plugin_entpt fmtout;
-    wxByte data[10240+2]; //allow up to 10K channels -DJ
+//    wxByte data[1024];
+    std::vector<wxByte> data; //(1024); //alloc initial size, but allow more channels (dynamic alloc) -DJ
     wxByte iobuf[250000 / (1+8+2) / 20]; //max data size @250k baud, 8N2, 20 fps -DJ
     bool HasPlugin(void) const { return fmtout != 0; } //allow additional formatting before send -DJ
 
@@ -552,14 +555,15 @@ protected:
 public:
     void SetChannelCount(size_t numchannels)
     {
-        if (numchannels > sizeof(data)) //1016)
+        if (!HasPlugin() && (numchannels > data.size() - 2)) //1016)
         {
-            throw wxString::Format(wxT("max channels on a Renard network is %d"), sizeof(data));
+            throw wxString::Format(wxT("max channels on a Renard network is %d"), data.size());
         }
         if (!HasPlugin() && ((numchannels % 8) != 0)) //restraint does not apply to plug-ins -DJ
         {
             throw "Number of Renard channels must be a multiple of 8";
         }
+        if (HasPlugin()) data.resize(numchannels * 2 + 2); //allow more channels, 2 copies for delta analysis
         datalen=numchannels+2;
         data[0]=0x7E;               // start of message
         data[1]=0x80;               // start address
@@ -574,11 +578,11 @@ public:
         {
             if (HasPlugin()) //call plug-in to process data before sending -DJ
             {
-                int iolen = (*fmtout)(seqnum++, data + 2, datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them
+                int iolen = (*fmtout)(serptr->m_devname, seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
 //                wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d"), datalen - 2, sizeof(iobuf)), _("DEBUG"));
-                serptr->Write((char*)iobuf, iolen);
+                if (iolen > 0) serptr->Write((char*)iobuf, iolen);
             }
-            else serptr->Write((char *)data,datalen);
+            else serptr->Write((char *)&data[0],datalen);
             changed=false;
         }
     };
