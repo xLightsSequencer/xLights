@@ -528,7 +528,7 @@ protected:
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
     HINSTANCE hPlugin;
 #endif
-    typedef size_t (*plugin_entpt)(const char* netname, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, byte* outbuf, size_t maxoutlen);
+    typedef size_t (*plugin_entpt)(const char* netname, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, wxByte* outbuf, size_t maxoutlen);
     plugin_entpt fmtout;
 //    wxByte data[1024];
     std::vector<wxByte> data; //(1024); //alloc initial size, but allow more channels (dynamic alloc) -DJ
