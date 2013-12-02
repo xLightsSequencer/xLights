@@ -907,6 +907,7 @@ public:
     }
     ~ModelGraphics() {
         gc->DrawPath(path);
+        gc->Flush();
         delete gc;
     }
     void Translate(wxDouble x, wxDouble y) {
