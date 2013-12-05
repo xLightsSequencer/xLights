@@ -1329,6 +1329,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectDirections.Add("up-right"); //7
     EffectDirections.Add("down-right"); //8
     EffectDirections.Add("scaled"); //9; for when image size does not match model size -DJ
+    EffectDirections.Add("peekaboo"); //10; up+down 1x for hippo peekaboo -DJ
+    EffectDirections.Add("wiggle"); //11; move back+forth a little -DJ
+    EffectDirections.Add("zoom in"); //12; fast ~= explode -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");

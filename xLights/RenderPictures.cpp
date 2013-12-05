@@ -141,10 +141,31 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int yoffset =(BufferHt+imght)/2;
     int xoffset =(imgwidth-BufferWi)/2;
     float xscale, yscale;
-    if (dir == 9) //src <- dest scale factor -DJ
+    if ((dir == 9) || (dir == 12)) //src <- dest scale factor -DJ
     {
         xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
         yscale = (imght > 1)? (float)BufferHt / imght: 1;
+    }
+    if (dir == 10) //up+down 1x -DJ
+    {
+        yoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
+        if (yoffset > 0) yoffset = -yoffset; //reverse direction
+//        debug(1, "peekaboo: state %d, speed %d, draw at %d", state, speedfactor, yoffset);
+    }
+    if (dir == 11) //wiggle left-right -DJ
+    {
+        xoffset = state % (BufferWi / 4 * speedfactor);
+        if (xoffset > BufferWi / 8 * speedfactor) xoffset = BufferWi / 4 * speedfactor - xoffset; //reverse direction
+        xoffset -= BufferWi / 4; //* speedfactor; //center it on mid value
+        xoffset += (imgwidth-BufferWi) / 2; //add in original xoffset from above
+    }
+    if (dir == 12) //zoom in/explode -DJ
+    {
+        xscale += .001 * state * speedfactor;
+        yscale += .001 * state * speedfactor;
+//        xscale = log(xscale); xscale *= state * speedfactor / 4; xscale = exp(xscale); //raise to power
+//        yscale = log(yscale); yscale *= state * speedfactor / 4; yscale = exp(yscale);
+//        debug(1, "zoom: state %d, speed %d, scale %f %f", state, speedfactor, xscale, yscale);
     }
 
 // copy image to buffer
@@ -184,6 +205,15 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                     break; // down-right
                 case 9: //scaled, no motion -DJ
                     SetPixel(x * xscale, BufferHt - 1 - y * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    break;
+                case 10: //up+down 1x (peekaboo) -DJ
+                    SetPixel(x - xoffset, BufferHt + yoffset - y, c); // - BufferHt, c);
+                    break;
+                case 11: //back+forth a little (wiggle) -DJ
+                    SetPixel(x + xoffset, yoffset - y, c);
+                    break;
+                case 12: //zoom in (explode) -DJ
+                    SetPixel(x * xscale, (BufferHt - 1 - y) * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
                 default:
                     SetPixel(x-xoffset,yoffset-y,c);
