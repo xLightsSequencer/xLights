@@ -1353,6 +1353,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     for (int i = 0; i < EffectsPanel1->Choice_Piano_KeyPlacement->GetCount(); ++i)
         PianoKeyPlacement.Add(EffectsPanel1->Choice_Piano_KeyPlacement->GetString(i));
 
+//pre-set Piano style, shapes + map files:
+    wxString mydir;
+    wxFileName::SplitPath(::wxStandardPaths::Get().GetExecutablePath(), NULL, &mydir, NULL, NULL);
+    wxFileName myfile(mydir);
+//    myfile.RemoveLastDir();
+    myfile.AppendDir("bin"); //"songs"); //is this the correct location?
+    myfile.SetName("Piano-88KeyShapeMap");
+    myfile.SetExt("txt");
+    EffectsPanel1->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
+    EffectsPanel2->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
+    myfile.SetName("Piano-ExampleKeyTopShapes");
+    myfile.SetExt("png");
+    EffectsPanel1->TextCtrl_Piano_ShapeFilename->SetValue(myfile.GetFullPath());
+    EffectsPanel2->TextCtrl_Piano_ShapeFilename->SetValue(myfile.GetFullPath());
+    EffectsPanel1->Choice_Piano_Style->SetSelection(2); //keyboard
+    EffectsPanel2->Choice_Piano_Style->SetSelection(2); //keyboard
+
     SingleStrandTypes.Add("Left-Right");  // 0
     SingleStrandTypes.Add("Right-Left");  // 1
     SingleStrandTypes.Add("Auto reverse");  // 2
