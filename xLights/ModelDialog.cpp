@@ -753,21 +753,23 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     int numrows=GridCustom->GetNumberRows();
     int numcols=GridCustom->GetNumberCols();
     bool errflag=false;
+    wxString errdetails; //-DJ
 
     do {
         cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
-        fields=wxSplit(cur_line,'\t');
+        fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND)? ',': '\t'); //allow comma or tab delim -DJ
         for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
         {
             if (i < numrows && k+fieldnum < numcols) {
                 if (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))
                 {
-                    GridCustom->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+                    GridCustom->SetCellValue(i, k+fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
                 }
                 else
                 {
                     errflag=true;
+                    errdetails += wxString::Format(wxT("\n'%s' row %d/col %d of %d"), fields[fieldnum].c_str(), i - GridCustom->GetGridCursorRow(), fieldnum, fields.Count()); //tell the user what was wrong; show relative row#, col# (more user friendly) -DJ
                 }
             }
         }
@@ -776,7 +778,7 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     UpdateStartChannels();
     if (errflag)
     {
-        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number"),_("Paste Error"));
+        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number") + errdetails,_("Paste Error")); //-DJ
     }
 }
 
