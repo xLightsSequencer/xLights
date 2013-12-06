@@ -1361,7 +1361,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFileName::SplitPath(::wxStandardPaths::Get().GetExecutablePath(), NULL, &mydir, NULL, NULL);
     wxFileName myfile(mydir);
 //    myfile.RemoveLastDir();
+<<<<<<< HEAD
     myfile.AppendDir("piano"); //"songs"); //is this the correct location?
+=======
+    myfile.AppendDir("piano"); //piano files moved to separate subfolder
+>>>>>>> 1f1b21a4529a7eeb6921660e083a6eac7671e475
     myfile.SetName("Piano-88KeyShapeMap");
     myfile.SetExt("txt");
     EffectsPanel1->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
