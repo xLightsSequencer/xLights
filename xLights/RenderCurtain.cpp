@@ -54,8 +54,8 @@ void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
     } else {
         if(fitToTime)
         {
-            xlimit=position < 0.5 ? position * 2 * BufferWi: (1-position) * 2 * BufferWi ;
-            ylimit=position < 0.5 ? position * 2 * BufferHt: (1-position) * 2 * BufferHt ;
+            xlimit= position <= .5 ? position * 2 * BufferWi: (position -.5) * 2 * BufferWi ;
+            ylimit= position <= .5 ? position * 2 * BufferHt: (position -.5) * 2 * BufferHt ;
         }
         else
         {
