@@ -33,7 +33,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     int color_index,x1_mod;
     int MaxNodes,xt,Dual_Chases=0;
     int start1,start2,start1_mid,xend,start1_group;
- bool R_TO_L1;
+    bool R_TO_L1;
     //srand (time(NULL)); // for strobe effect, make lights be random
     srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
