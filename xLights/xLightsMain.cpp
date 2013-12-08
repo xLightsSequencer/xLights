@@ -362,7 +362,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.10)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.2.11)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
@@ -1361,11 +1361,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFileName::SplitPath(::wxStandardPaths::Get().GetExecutablePath(), NULL, &mydir, NULL, NULL);
     wxFileName myfile(mydir);
 //    myfile.RemoveLastDir();
-<<<<<<< HEAD
-    myfile.AppendDir("piano"); //"songs"); //is this the correct location?
-=======
+
     myfile.AppendDir("piano"); //piano files moved to separate subfolder
->>>>>>> 1f1b21a4529a7eeb6921660e083a6eac7671e475
+
     myfile.SetName("Piano-88KeyShapeMap");
     myfile.SetExt("txt");
     EffectsPanel1->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
