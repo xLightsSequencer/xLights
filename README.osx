@@ -60,10 +60,4 @@ Next, you will use Xcode to compile xLights. Most of the steps are listed here:
 
   http://wiki.wxwidgets.org/Creating_Xcode_projects_for_wxWidgets_applications
 
-In addition to the instructions on the wiki page above, you will also need to:
-  1) Fix the reference to the precompiled header file in each project. This can
-     be done by double-clicking on the xxxTarget.xcconfig file and then changing
-     the GCC_PREFIX_HEADER to wx_pch.h.
-  2) When configuring the project for xScheduler, set "Other Linker Flags" to
-     the output of: "./wx-config --libs std,media,aui".
-
+However, if you have the XCode command line tools installed, you should just be able to run "xcodebuild" and it should build and compile xLights automatically.
