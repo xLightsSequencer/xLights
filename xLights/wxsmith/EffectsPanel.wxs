@@ -659,6 +659,9 @@
 											<item>left</item>
 											<item>center</item>
 											<item>right</item>
+											<item>bottom</item>
+											<item>middle</item>
+											<item>top</item>
 										</content>
 										<selection>0</selection>
 									</object>

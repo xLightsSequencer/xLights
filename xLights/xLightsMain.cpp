@@ -1357,9 +1357,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         PianoKeyPlacement.Add(EffectsPanel1->Choice_Piano_KeyPlacement->GetString(i));
 
 //pre-set Piano style, shapes + map files:
-    wxString mydir;
-    wxFileName::SplitPath(::wxStandardPaths::Get().GetExecutablePath(), NULL, &mydir, NULL, NULL);
-    wxFileName myfile(mydir);
+//    wxString mydir;
+//    wxFileName::SplitPath(::wxStandardPaths::Get().GetExecutablePath(), NULL, &mydir, NULL, NULL);
+    wxFileName myfile(::wxStandardPaths::Get().GetExecutablePath()); //start in folder with .EXXE (there is no "bin" subfolder after an install)
 //    myfile.RemoveLastDir();
 
     myfile.AppendDir("piano"); //piano files moved to separate subfolder

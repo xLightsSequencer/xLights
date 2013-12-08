@@ -581,6 +581,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Choice_Curtain_Edge->SetSelection( Choice_Curtain_Edge->Append(_("left")) );
 	Choice_Curtain_Edge->Append(_("center"));
 	Choice_Curtain_Edge->Append(_("right"));
+	Choice_Curtain_Edge->Append(_("bottom"));
+	Choice_Curtain_Edge->Append(_("middle"));
+	Choice_Curtain_Edge->Append(_("top"));
 	FlexGridSizer7->Add(Choice_Curtain_Edge, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_CurtainEdge = new wxBitmapButton(Panel1_Curtain, ID_BITMAPBUTTON_CHOICE_Curtain_Edge, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Curtain_Edge"));
 	BitmapButton_CurtainEdge->SetDefault();

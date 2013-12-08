@@ -56,6 +56,14 @@ public:
 };
 #define priority_queue  MyQueue //wedge in friend
 
+typedef enum
+{
+    //effect: 0=open, 1=close, 2=open then close, 3=close then open
+    E_CURTAIN_OPEN =0,
+    E_CURTAIN_CLOSE,
+    E_CURTAIN_OPEN_CLOSE,
+    E_CURTAIN_CLOSE_OPEN
+} CURTAIN_EFFECT_e;
 
 typedef std::vector<wxColour> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
@@ -451,6 +459,7 @@ protected:
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
     void RenderMetaBalls(int numBalls);
     void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
+    void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
 
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal
