@@ -971,6 +971,7 @@ private:
     void PlayEffect(void);
     bool HotKey(wxKeyEvent& event);
     void CutOrCopyToClipboard(bool IsCut);
+    void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
 
     wxXmlDocument EffectsXml;

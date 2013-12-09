@@ -3205,7 +3205,12 @@ bool xLightsFrame::IsValidEffectString(wxString& s)
 
 void xLightsFrame::OnBitmapButtonGridPasteClick(wxCommandEvent& event)
 {
-    wxString copy_data;
+    PasteFromClipboard();
+}
+
+void xLightsFrame::PasteFromClipboard()
+{
+       wxString copy_data;
     wxString cur_line;
     wxArrayString fields;
     int i,k,fieldnum;

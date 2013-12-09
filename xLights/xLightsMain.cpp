@@ -1983,6 +1983,15 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 PlayEffect();
             }
             break;
+            case WXK_CONTROL_C:
+                CutOrCopyToClipboard(false);
+                break;
+            case WXK_CONTROL_X:
+                CutOrCopyToClipboard(true);
+                break;
+            case WXK_CONTROL_V:
+                PasteFromClipboard();
+                break;
         case WXK_F5:
             if (Button_UpdateGrid->IsEnabled())
             {
