@@ -33,7 +33,7 @@ bool xLightsApp::OnInit()
 //TODO: maybe use wxCmdLineParser instead?
     wxString unrecog, info;
     for (int i = 1; i < wxApp::argc; ++i)
-        if (!stricmp(wxApp::argv[i], "/debug"))
+        if (!strcasecmp(wxApp::argv[i], "/debug"))
         {
             WantDebug = true;
             info += _("Debug in ON\n");
