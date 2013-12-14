@@ -30,6 +30,19 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
     wxColour color;
     wxImage::HSVValue hsv,hsv2;
     size_t colorcnt=GetColorCount();
+
+#if 0 //experimental -DJ
+//NOTE: this helps a little, but there is still degradation somewhere along the render pipeline
+    if ((colorcnt == 1) && !HorizFade && !VertFade) //avoid color degradation; don't convert RGB->HSV->RGB -DJ
+    {
+//        color.Set(Shapes.GetRed(x, y), Shapes.GetGreen(x, y), Shapes.GetBlue(x, y));
+        palette.GetColor(0, color); //use true user-selected RGB color
+        for (x=0; x<BufferWi; x++)
+            for (y=0; y<BufferHt; y++)
+                SetPixel(x, y, color);
+        return;
+    }
+#endif
     int CycleLen=colorcnt*SpeedFactor;
     if (state > (colorcnt-1)*SpeedFactor*RepeatCount && RepeatCount < 10)
     {
