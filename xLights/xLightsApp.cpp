@@ -28,9 +28,24 @@ bool xLightsApp::OnInit()
     	SetTopWindow(Frame);
     }
     //*)
-    return wxsOK;
 
+//check for options on command line: -DJ
+//TODO: maybe use wxCmdLineParser instead?
+    wxString unrecog, info;
+    for (int i = 1; i < wxApp::argc; ++i)
+        if (!stricmp(wxApp::argv[i], "/debug"))
+        {
+            WantDebug = true;
+            info += _("Debug in ON\n");
+        }
+//        else if ... //check for other options
+        else unrecog += wxString::Format(wxT("\narg[%d/%d]: '%s'"), i, wxApp::argc, wxApp::argv[i]);
+
+    if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
+    else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
+    return wxsOK;
 }
+bool xLightsApp::WantDebug = false; //global debug flag from command line -DJ
 
 //re-added global keyboard handler: -DJ
 //couldn't get PanelSequence2 keyboard handler to work, so just use a global filter as suggested in
