@@ -212,13 +212,15 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         //ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
         break;
     default:
+        wxString details; //show details to help user -DJ
         for (int i=0; i<PreviewModels.size(); i++)
         {
+            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format(wxT("Last was model '%s' - ends on channel %d vs. %d channels in the sequence"), PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
             LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
         }
         if (LastPreviewChannel >= SeqNumChannels)
         {
-            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             return;
         }
         PlayCurrentXlightsFile();
