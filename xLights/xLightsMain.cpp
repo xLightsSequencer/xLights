@@ -1319,19 +1319,33 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffect.Add("Implode");
     MeteorsEffect.Add("Explode");
 
-    EffectDirections.Add("left"); //0
-    EffectDirections.Add("right"); //1
-    EffectDirections.Add("up"); //2
-    EffectDirections.Add("down"); //3
-    EffectDirections.Add("none"); //4
-    EffectDirections.Add("up-left"); //5
-    EffectDirections.Add("down-left"); //6
-    EffectDirections.Add("up-right"); //7
-    EffectDirections.Add("down-right"); //8
-    EffectDirections.Add("scaled"); //9; for when image size does not match model size -DJ
-    EffectDirections.Add("peekaboo"); //10; up+down 1x for hippo peekaboo -DJ
-    EffectDirections.Add("wiggle"); //11; move back+forth a little -DJ
-    EffectDirections.Add("zoom in"); //12; fast ~= explode -DJ
+    TextEffectDirections.Add("left"); //0
+    TextEffectDirections.Add("right"); //1
+    TextEffectDirections.Add("up"); //2
+    TextEffectDirections.Add("down"); //3
+    TextEffectDirections.Add("none"); //4
+    TextEffectDirections.Add("up-left"); //5
+    TextEffectDirections.Add("down-left"); //6
+    TextEffectDirections.Add("up-right"); //7
+    TextEffectDirections.Add("down-right"); //8
+
+    PictureEffectDirections.Add("left"); //0
+    PictureEffectDirections.Add("right"); //1
+    PictureEffectDirections.Add("up"); //2
+    PictureEffectDirections.Add("down"); //3
+    PictureEffectDirections.Add("none"); //4
+    PictureEffectDirections.Add("up-left"); //5
+    PictureEffectDirections.Add("down-left"); //6
+    PictureEffectDirections.Add("up-right"); //7
+    PictureEffectDirections.Add("down-right"); //8
+    PictureEffectDirections.Add("scaled"); //9; for when image size does not match model size -DJ
+    PictureEffectDirections.Add("peekaboo"); //10; up+down 1x for hippo peekaboo -DJ
+    PictureEffectDirections.Add("wiggle"); //11; move back+forth a little -DJ
+    PictureEffectDirections.Add("zoom in"); //12; fast ~= explode -DJ
+    PictureEffectDirections.Add("peekaboo 90"); //13; horizontal peekaboo -DJ
+    PictureEffectDirections.Add("peekaboo 180"); //14; upside down peekaboo -DJ
+    PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
+    PictureEffectDirections.Add("vix remap"); //16; animated csv or sdv file of pixel values -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -1468,11 +1482,11 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Meteors_Type->SetSelection(0);
     panel->Choice_Meteors_Effect->Set(MeteorsEffect);
     panel->Choice_Meteors_Effect->SetSelection(0);
-    panel->Choice_Pictures_Direction->Set(EffectDirections);
+    panel->Choice_Pictures_Direction->Set(PictureEffectDirections);
     panel->Choice_Pictures_Direction->SetSelection(0);
-    panel->Choice_Text_Dir1->Set(EffectDirections);
+    panel->Choice_Text_Dir1->Set(TextEffectDirections);
     panel->Choice_Text_Dir1->SetSelection(0);
-    panel->Choice_Text_Dir2->Set(EffectDirections);
+    panel->Choice_Text_Dir2->Set(TextEffectDirections);
     panel->Choice_Text_Dir2->SetSelection(0);
     panel->Choice_Text_Effect1->Set(TextEffects);
     panel->Choice_Text_Effect1->SetSelection(0);

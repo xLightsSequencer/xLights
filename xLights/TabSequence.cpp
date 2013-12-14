@@ -858,7 +858,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == wxT("Pictures"))
     {
-        buffer.RenderPictures(EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Pictures_Direction")]),
+        buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Pictures_Direction")]),
                               SettingsMap[LayerStr+wxT("TEXTCTRL_Pictures_Filename")],
                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
                              );
@@ -904,13 +904,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderText(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position1")]),
                           SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line1")],
                           SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font1")],
-                          EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir1")]),
+                          TextEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir1")]),
                           TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect1")]),
                           TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count1")]),
                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position2")]),
                           SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line2")],
                           SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font2")],
-                          EffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir2")]),
+                          TextEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir2")]),
                           TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect2")]),
                           TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count2")]));
     }

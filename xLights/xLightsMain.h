@@ -994,7 +994,8 @@ private:
     wxArrayString ButterflyEffectColors;
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
-    wxArrayString EffectDirections;
+    wxArrayString TextEffectDirections;
+    wxArrayString PictureEffectDirections;
     wxArrayString PianoEffectStyles;
     wxArrayString PianoKeyPlacement;
     wxArrayString SingleStrandTypes;
