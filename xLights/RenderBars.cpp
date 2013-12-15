@@ -32,7 +32,9 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
     int BarCount = PaletteRepeat * colorcnt;
     double position = GetEffectTimeIntervalPosition();
     if(BarCount<1) BarCount=1;
-    if (Direction < 4)
+
+
+    if (Direction < 4 || Direction == 8 || Direction == 9)
     {
         int BarHt = BufferHt/BarCount+1;
         if(BarHt<1) BarHt=1;
@@ -40,6 +42,9 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int BlockHt=colorcnt * BarHt;
         if(BlockHt<1) BlockHt=1;
         int f_offset = (fitToTime)?position*BlockHt: state/4 % BlockHt;
+        f_offset = Direction == 8 || Direction == 9 ? (state/20)*BarHt: f_offset;
+        Direction = Direction > 4?Direction-8:Direction;
+
         for (y=0; y<BufferHt; y++)
         {
             n=y+f_offset;
@@ -94,6 +99,8 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
         int BlockWi=colorcnt * BarWi;
         if(BlockWi<1) BlockWi=1;
         int f_offset = (fitToTime)?position*BlockWi:state/4 % BlockWi;
+        f_offset = Direction > 9 ? (state/20)*BarWi: f_offset;
+        Direction = Direction > 9?Direction-6:Direction;
         for (x=0; x<BufferWi; x++)
         {
             n=x+f_offset;

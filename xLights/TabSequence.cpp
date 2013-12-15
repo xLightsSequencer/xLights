@@ -3245,7 +3245,7 @@ void xLightsFrame::PasteFromClipboard()
         fields=wxSplit(cur_line,'\t');
         for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
         {
-            if (i < numrows && k+fieldnum < numcols && k+fieldnum >=XLIGHTS_SEQ_STATIC_COLUMNS) {
+            if (i < numrows && k+fieldnum < numcols /*&& k+fieldnum >=XLIGHTS_SEQ_STATIC_COLUMNS*/) {
                 if (fields[fieldnum].IsEmpty() || IsValidEffectString(fields[fieldnum]))
                 {
                     Grid1->SetCellValue(i,k+fieldnum,fields[fieldnum]);
