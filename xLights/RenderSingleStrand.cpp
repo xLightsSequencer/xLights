@@ -90,8 +90,8 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
         */
     int Fade3D,AutoReverse=0;
     start1 = state % BufferWi;
-    start1 = (int)(state/4) % MaxNodes; // divide by 4 slows down chase
-    start1_group = (int)(state/4) / MaxNodes; // divide by 4 slows down chase
+    start1 = (int)(state/2) % MaxNodes; // divide by 4 slows down chase
+    start1_group = (int)(state/2) / MaxNodes; // divide by 4 slows down chase
     start2 = MaxNodes-start1;
     start1_mid = MaxNodes/2;
 

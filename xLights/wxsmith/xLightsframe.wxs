@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.2.13)</title>
+		<title>xLights/Nutcracker  (Ver 3.2.14)</title>
+		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
@@ -1781,6 +1782,7 @@
 																								<object class="wxButton" name="ID_BUTTON2" variable="ButtonDisplayElements" member="yes">
 																									<label>Display Elements</label>
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<tooltip>Display Models that can be attached to your Sequence</tooltip>
 																									<handler function="OnButtonDisplayElementsClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1791,6 +1793,7 @@
 																								<object class="wxButton" name="ID_BUTTON_SeqExport" variable="ButtonSeqExport" member="yes">
 																									<label>Export</label>
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<tooltip>Export all Channels</tooltip>
 																									<handler function="OnButtonSeqExportClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1801,6 +1804,7 @@
 																								<object class="wxButton" name="ID_BUTTON4" variable="ButtonModelExport" member="yes">
 																									<label>Model Export</label>
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<tooltip>Export Channels for one model</tooltip>
 																									<handler function="OnButtonModelExportClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1811,6 +1815,7 @@
 																								<object class="wxButton" name="ID_BUTTON_CREATE_RANDOM" variable="Button_CreateRandom" member="yes">
 																									<label>Create Random Effects</label>
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
+																									<tooltip>Create a random effect for every unprotected cell in grid</tooltip>
 																									<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1877,6 +1882,7 @@
 																							<object class="sizeritem">
 																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_CUT" variable="BitmapButtonGridCut" member="yes">
 																									<bitmap stock_id="wxART_CUT" />
+																									<tooltip>Cut</tooltip>
 																									<handler function="OnBitmapButtonGridCutClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1887,6 +1893,7 @@
 																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_COPY" variable="BitmapButtonGridCopy" member="yes">
 																									<bitmap stock_id="wxART_COPY" />
 																									<default>1</default>
+																									<tooltip>Copy</tooltip>
 																									<handler function="OnBitmapButtonGridCopyClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1897,6 +1904,7 @@
 																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_GRID_PASTE" variable="BitmapButtonGridPaste" member="yes">
 																									<bitmap stock_id="wxART_PASTE" />
 																									<default>1</default>
+																									<tooltip>Paste</tooltip>
 																									<handler function="OnBitmapButtonGridPasteClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
