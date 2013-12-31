@@ -18,6 +18,27 @@ IMPLEMENT_APP(xLightsApp)
 
 bool xLightsApp::OnInit()
 {
+//check for options on command line: -DJ
+//TODO: maybe use wxCmdLineParser instead?
+//do this before instantiating xLightsFrame so it can use info gathered here
+    wxString unrecog, info;
+    for (int i = 1; i < wxApp::argc; ++i)
+        if (!strcasecmp(wxApp::argv[i], "/debug"))
+        {
+            WantDebug = true;
+            info += _("Debug is ON\n");
+        }
+        else if (!strcasecmp(wxApp::argv[i], "/noauto"))
+        {
+            RunPrompt = true;
+            info += _("Auto-run prompt is ON\n");
+        }
+//        else if ... //check for other options
+        else unrecog += wxString::Format(wxT("\narg[%d/%d]: '%s'"), i, wxApp::argc, wxApp::argv[i]);
+
+    if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
+    else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
@@ -29,23 +50,11 @@ bool xLightsApp::OnInit()
     }
     //*)
 
-//check for options on command line: -DJ
-//TODO: maybe use wxCmdLineParser instead?
-    wxString unrecog, info;
-    for (int i = 1; i < wxApp::argc; ++i)
-        if (!strcasecmp(wxApp::argv[i], "/debug"))
-        {
-            WantDebug = true;
-            info += _("Debug in ON\n");
-        }
-//        else if ... //check for other options
-        else unrecog += wxString::Format(wxT("\narg[%d/%d]: '%s'"), i, wxApp::argc, wxApp::argv[i]);
-
-    if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
-    else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
     return wxsOK;
 }
-bool xLightsApp::WantDebug = false; //global debug flag from command line -DJ
+//global flags from command line:
+bool xLightsApp::WantDebug = false;
+bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
 
 //re-added global keyboard handler: -DJ
 //couldn't get PanelSequence2 keyboard handler to work, so just use a global filter as suggested in

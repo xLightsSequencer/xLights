@@ -423,6 +423,7 @@ void xLightsFrame::OnTimerTest(long curtime)
                     TestSeqIdx = (TestSeqIdx + 1) % ChaseGrouping;
                     if (TestSeqIdx >= chArray.Count()) TestSeqIdx=0;
                 }
+                StatusBar1->SetStatusText(wxString::Format(_("Testing %ld channels; chase now at ch# %d"),static_cast<long>(chArray.Count()), TestSeqIdx)); //show current ch# -DJ
                 break;
             default:
                 break;
@@ -531,6 +532,7 @@ void xLightsFrame::OnTimerTest(long curtime)
                     TestSeqIdx = (TestSeqIdx + 1) % ChaseGrouping;
                     if (TestSeqIdx >= (chArray.Count()+2) / 3) TestSeqIdx=0;
                 }
+                StatusBar1->SetStatusText(wxString::Format(_("Testing %ld channels; chase now at ch# %d"),static_cast<long>(chArray.Count()), TestSeqIdx)); //show current ch# -DJ
                 break;
             default:
                 break;
