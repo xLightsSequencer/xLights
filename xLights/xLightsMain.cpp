@@ -17,7 +17,7 @@
 #include <wx/persist/toplevel.h>
 #include <wx/valnum.h>
 #include <wx/clipbrd.h>
-
+#include "xLightsApp.h" //global app run-time flags
 
 
 // xml
@@ -1432,6 +1432,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     long RunFlag=0;
     config->Read(_("RunSchedule"), &RunFlag);
     //delete config;  // close config before calling SetDir, which will open config
+    if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
+        if (wxMessageBox(wxT("Auto-run schedule?"), wxT("Confirm"), wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
 
     SetPlayMode(play_off);
     ResetEffectsXml();
@@ -1824,6 +1826,12 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
         wxMessageBox(_("Graceful Stop is only useful when a schedule or playlist is running"));
     }
 }
+
+//make these static so they can be accessed outside of xLightsFrame: -DJ
+//NOTE: this assumes there will only be one xLightsMain object
+wxString xLightsFrame::CurrentDir = "";
+wxString xLightsFrame::PlaybackMarker = "";
+wxString xLightsFrame::xlightsFilename = "";
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
 {
