@@ -541,7 +541,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
-            break;
+//            break; //keep going; might catch up -DJ
         }
         period = msec / XTIMER_INTERVAL;
         if (period < SeqNumPeriods)
