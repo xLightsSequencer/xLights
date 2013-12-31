@@ -35,7 +35,7 @@ Instructions for other Linux distributions will vary.
            FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
 
      $ cd ~
-     $ wget http://sourceforge.net/projects/wxwindows/files/latest/wxWidgets-2.9.5.tar.bz2
+     $ wget http://downloads.sourceforge.net/project/wxwindows/2.9.5/wxWidgets-2.9.5.tar.bz2
      $ tar xjf wxWidgets-2.9.5.tar.bz2
      $ cd wxWidgets-2.9.5
      $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl --enable-graphics_ctx
