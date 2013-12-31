@@ -3,6 +3,7 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 (next)
+					-Enhancement (djulien): pass controller responses to plug-in (in-coming or round-trip data); internal change only - should not affect standard usage, but listed here just in case
 					-Enhancement (djulien): add /noauto command line option to prompt for auto-run (allows easier schedule override)
 					-Bug fix/enhancement? (djulien): show channel# being tested during Chase test
 					-Bug fix/enhancement? (djulien): continue execution after comm output overflow in case controller can catch up

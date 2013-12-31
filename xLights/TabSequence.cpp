@@ -1168,6 +1168,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         ResetTimer(PLAYING_SEQ_ANIM, GetGridStartTimeMSec(NextGridRowToPlay));
         buffer.SetFadeTimes(0,0.0,0.0);
         buffer.SetFadeTimes(1,0.0,0.0);
+        xLightsFrame::PlaybackMarker = wxT("0,0"); //keep track of where we are within grid -DJ
         break;
     case PLAYING_SEQ_ANIM:
         if (xout && !xout->TxEmpty())
@@ -1196,6 +1197,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 if(!EffectStr.IsEmpty())
                 {
                     SetEffectControls(EffectStr);
+                    xLightsFrame::PlaybackMarker = wxString::Format("%d,%d", SeqPlayColumn, NextGridRowToPlay); //keep track of where we are within grid -DJ
                 }
                 buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));

@@ -25,6 +25,7 @@
  **************************************************************/
 
 #include "xlights_out.h"
+#include "xLightsMain.h"
 #include <wx/socket.h>
 #include <wx/msgdlg.h> //debug only -DJ
 #include <wx/filename.h> //-DJ
@@ -486,12 +487,12 @@ public:
     }
 };
 
-
+#include <unistd.h> //sleep
 // Should be called with: 0 <= chindex <= 1015 (max channels=127*8)
 class xNetwork_Renard: public xNetwork_Serial
 {
 public:
-    xNetwork_Renard(): fmtout(0), seqnum(0) //check for plug-in DLL -DJ
+    xNetwork_Renard(): fmtout(0), incoming(0), seqnum(0) //check for plug-in DLL -DJ
     {
         data = std::vector<wxByte>(1024);
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
@@ -510,26 +511,42 @@ public:
         path += "Plugin.dll"; //TODO: enumerate DLLs in a Plugins subfolder; for now, just load one generic name
         SetErrorMode(SEM_FAILCRITICALERRORS); //don't display errors
         if ((hPlugin = LoadLibrary(path.c_str())) != NULL)
-            fmtout = (plugin_entpt)GetProcAddress(hPlugin, "FormatOutput");
-//        wxMessageBox(wxString::Format(wxT("loaded plug-in '" + path + "'? %d, err %d"), HasPlugin(), GetLastError()), _("DEBUG"));
+        {
+            incoming = (plugin_entpt_in)GetProcAddress(hPlugin, "InputHook");
+            fmtout = (plugin_entpt_out)GetProcAddress(hPlugin, "FormatOutput");
+            plugin_entpt_cfg cfg = (plugin_entpt_cfg)GetProcAddress(hPlugin, "SetConfig");
+            wxString cfgdir = xLightsFrame::xlightsFilename;
+//            wxMessageBox(_(cfg? "found cfg ": "no cfg ") + _(cfgdir.empty()? "empty ": "!empty ") + xLightsFrame::CurrentDir);
+            if (cfgdir.empty()) cfgdir = xLightsFrame::CurrentDir + "\\no_seq-use_folder.txt"; //default to current dir; add dummy file name so force parent dir
+            if (cfg) (*cfg)(cfgdir); //use config from active folder
+//            byte test[4] = {1,2,3,4};
+//            if (incoming) (*incoming)(serptr->m_devname, 0, 0, test, 4);
+        }
+//        wxMessageBox(wxString::Format(wxT("loaded plug-in '%s'? %d, err %d, fo 0x%x, ih 0x%x"), path, HasPlugin(), GetLastError(), fmtout, incoming), _("DEBUG"));
+//        if (HasPlugin()) wxMessageBox(wxT("yes"), _("DEBUG"));
+//        else  wxMessageBox(wxT("no"), _("DEBUG"));
 #endif
     }
     ~xNetwork_Renard() //unload plug-in -DJ
     {
         fmtout = 0;
+        incoming = 0;
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
         if (hPlugin != NULL) FreeLibrary(hPlugin);
         hPlugin = NULL;
 #endif
     }
 protected:
-    int seqnum; //useful for debug
-    
+    int seqnum; //useful for debug or to notify plugin of start of sequence
+
 #ifdef __WXMSW__ //TODO: generalize this for dynamically loaded output plug-ins on all platforms -DJ
     HINSTANCE hPlugin;
 #endif
-    typedef size_t (*plugin_entpt)(const char* netname, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, wxByte* outbuf, size_t maxoutlen);
-    plugin_entpt fmtout;
+    typedef int (*plugin_entpt_cfg)(const char* cfgdir);
+    typedef size_t (*plugin_entpt_in)(const char* netname, const char* frameset, int seqnum, const wxByte* inbuf, size_t inlen);
+    typedef size_t (*plugin_entpt_out)(const char* netname, const char* frameset, int seqnum, const /*byte*/ void* inbuf, const /*byte*/ void* prev_inbuf, size_t inlen, wxByte* outbuf, size_t maxoutlen);
+    plugin_entpt_in incoming;
+    plugin_entpt_out fmtout;
 //    wxByte data[1024];
     std::vector<wxByte> data; //(1024); //alloc initial size, but allow more channels (dynamic alloc) -DJ
     wxByte iobuf[250000 / (1+8+2) / 20]; //max data size @250k baud, 8N2, 20 fps -DJ
@@ -584,14 +601,23 @@ public:
         {
             if (HasPlugin()) //call plug-in to process data before sending -DJ
             {
-                int iolen = (*fmtout)(serptr->m_devname, seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
-//                wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d"), datalen - 2, sizeof(iobuf)), _("DEBUG"));
+                int iolen = (*fmtout)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
+//                if (seqnum < 5) wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d, got back 0x%x"), datalen - 2, sizeof(iobuf), iolen), _("DEBUG"));
                 if (iolen > 0) serptr->Write((char*)iobuf, iolen);
             }
             else serptr->Write((char *)&data[0],datalen);
             changed=false;
         }
-    };
+        if (serptr && HasPlugin() && incoming) //check for incoming data (trigger or data echo) -DJ
+        {
+//            static int fido = 0;
+////            int rdlen = serptr->AvailableToRead();
+//            usleep(1000); //TODO: allow a little time to receive data?  OTOH, don't want to slow down xLights
+            int rdlen = serptr->Read((char*)iobuf, sizeof(iobuf)); //NOTE: might be split up
+//            if ((rdlen > 0) && (fido++ < 5)) wxMessageBox(wxString::Format(wxT("plugin: got %d bytes back, sent? %d"), rdlen, incoming? 1: 0), _("DEBUG"));
+            if (rdlen > 0) (*incoming)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum, iobuf, rdlen);
+        }
+    }
 };
 
 

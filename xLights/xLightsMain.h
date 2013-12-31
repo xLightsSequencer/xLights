@@ -242,7 +242,9 @@ public:
     };
     wxArrayString EffectNames;
     wxArrayString EffectLayerOptions;
-    wxString CurrentDir;
+    static wxString CurrentDir; //expose current folder name -DJ
+    static wxString PlaybackMarker; //keep track of where we are within grid -DJ
+    static wxString xlightsFilename; //expose current path name -DJ
 
 private:
 
@@ -807,7 +809,7 @@ private:
     void OnTimerTest(long curtime);
 
     wxString mediaFilename;
-    wxString xlightsFilename;
+//    wxString xlightsFilename;
     SeqDataType SeqData;
     long SeqDataLen;
     long SeqNumPeriods;
