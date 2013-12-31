@@ -868,7 +868,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Color_Mix1")]),
                                   wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Chase_Spacing1")]),
                                   SingleStrandTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Chase_Type1")]),
-                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_3dFade1")]==wxT("1"));
+                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_3dFade1")]==wxT("1"),
+                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_Group_All")]==wxT("1"));
     }
     else if (effect == wxT("Snowflakes"))
     {
@@ -1034,7 +1035,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderSingleStrand(panel->Slider_Color_Mix1->GetValue(),
                                   panel->Slider_Chase_Spacing1->GetValue(),
                                   panel->Choice_Chase_Type1->GetSelection(),
-                                  panel->CheckBox_Chase_3dFade1->GetValue());
+                                  panel->CheckBox_Chase_3dFade1->GetValue(),
+                                  panel->CheckBox_Chase_Group_All->GetValue());
         break;
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),

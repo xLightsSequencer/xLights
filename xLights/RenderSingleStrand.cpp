@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1)
+void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
     int x,x1,x0,y,i,maxx,ColorIdx;
@@ -31,7 +31,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     int x_2=0;
     int x2_mod=0;
     int color_index,x1_mod;
-    int MaxNodes,xt,Dual_Chases=0;
+    int MaxNodes,xt,Dual_Chases,All_Arches=0;
     int start1,start2,start1_mid,xend,start1_group;
     bool R_TO_L1;
     //srand (time(NULL)); // for strobe effect, make lights be random
@@ -60,7 +60,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
         chase_buffer[x]=-1;
         brightness[x] =1;
     }
-    if(Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
+    if(Chase_Group_All or Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
     else MaxNodes=BufferWi;
 
     int MaxChase=MaxNodes*(Color_Mix1/100.0);
@@ -112,7 +112,9 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     case 3: // "Bounce"
         Dual_Chases=1;
         break;
+ case 4: // "Pacman"
 
+        break;
     }
 
     if(AutoReverse==1)
@@ -178,8 +180,6 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
 
     if(FIT_TO_TIME==1)
     {
-
-
         if(Chase_Fade3d1)
         {
             for(x1=0; x1<MaxChase; x1++)

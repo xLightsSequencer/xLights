@@ -124,6 +124,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Text_Dir2;
 		wxBitmapButton* BitmapButton_SpiralsGrow;
 		wxPanel* Panel1_ColorWash;
+		wxCheckBox* CheckBox_Chase_Group_All;
 		wxCheckBox* CheckBox_Palette3;
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxNotebook* Notebook1;
@@ -171,7 +172,6 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Snowflakes_Type;
 		wxPanel* Panel1_Curtain;
 		wxButton* Button_Palette3;
-		wxCheckBox* CheckBox_R_TO_L1;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxStaticText* StaticText14_layout_kludge2;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
@@ -633,7 +633,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHECKBOX_Chase_3dFade1;
 		static const long ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1;
 		static const long ID_STATICTEXT12;
-		static const long ID_CHECKBOX_R_TO_L1;
+		static const long ID_CHECKBOX_Chase_Group_All;
 		static const long ID_BITMAPBUTTON_CHECKBOX_R_TO_L1;
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;

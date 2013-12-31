@@ -2884,14 +2884,14 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText13" member="yes">
-													<label>Unused</label>
+													<label>Group All Arches</label>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_R_TO_L1" variable="CheckBox_R_TO_L1" member="yes" />
+												<object class="wxCheckBox" name="ID_CHECKBOX_Chase_Group_All" variable="CheckBox_Chase_Group_All" member="yes" />
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>

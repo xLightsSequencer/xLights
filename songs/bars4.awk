@@ -19,7 +19,7 @@ directory2=a[1] "_2bars.txt";
 directory4=a[1] "_4bars.txt";
 n++;
 
-if(n%2==1) print n,$0 >> directory2;
-if(n%4==1) print n,$0 >> directory4;
+if(n%2==1) print $0 >> directory2;
+if(n%4==1) print $0 >> directory4;
 }
 #dir /b /w *_bars.txt* | gawk -f bar.awk
