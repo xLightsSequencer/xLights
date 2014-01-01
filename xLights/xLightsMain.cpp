@@ -1408,7 +1408,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SingleStrandTypes.Add("Bounce");  //3
     SingleStrandTypes.Add("Pacman");  //3
 
-
     TextEffects.Add("normal");
     TextEffects.Add("vert text up");
     TextEffects.Add("vert text down");
@@ -1419,7 +1418,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     TextCountDown.Add("none");
     TextCountDown.Add("seconds");
-    TextCountDown.Add("to date");
+    TextCountDown.Add("to date 'd h m s'");
+    TextCountDown.Add("to date 'h:m:s'"); //for smaller grids -DJ
+    TextCountDown.Add("to date 'm' or 's'"); //-DJ
+    TextCountDown.Add("to date 's'"); //for smallest grids -DJ
 
     InitEffectsPanel(EffectsPanel1);
     InitEffectsPanel(EffectsPanel2);

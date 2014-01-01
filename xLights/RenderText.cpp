@@ -118,6 +118,15 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 // Effect is 0: normal, 1: vertical text down, 2: vertical text up,
 //           3: timer in seconds, where Line is the starting value in seconds
 //           4: timer in days, hours, minute, seconds, where Line is the target date as YYYYMMDD
+
+//these must match list in xLightsMain.cpp: -DJ
+#define COUNTDOWN_NONE  0
+#define COUNTDOWN_SECONDS  1
+#define COUNTDOWN_D_H_M_S  2
+#define COUNTDOWN_H_M_S  3
+#define COUNTDOWN_M_or_S  4
+#define COUNTDOWN_S  5
+
 void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown)
 {
     long tempLong,longsecs;
@@ -130,7 +139,7 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
 
     switch(Countdown)
     {
-    case 1:
+    case COUNTDOWN_SECONDS:
         // countdown seconds
         if (state==0) {
             if (!Line.ToLong(&tempLong)) tempLong=0;
@@ -140,7 +149,10 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         if(seconds < 0) seconds=0;
         msg=wxString::Format(wxT("%i"),seconds);
         break;
-    case 2:
+    case COUNTDOWN_D_H_M_S:
+    case COUNTDOWN_H_M_S:
+    case COUNTDOWN_M_or_S:
+    case COUNTDOWN_S:
         // countdown to date
         if (state%20 == 0) {
             if ( dt.ParseDateTime(Line, &end) ) {
@@ -162,7 +174,16 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         hours = (longsecs / 60 / 60) % 24;
         minutes = (longsecs / 60) % 60;
         seconds = longsecs % 60;
-        msg=wxString::Format(wxT("%dd %dh %dm %ds"),days,hours,minutes,seconds);
+        if (Countdown == COUNTDOWN_D_H_M_S)
+            msg=wxString::Format(wxT("%dd %dh %dm %ds"),days,hours,minutes,seconds);
+        else if (Countdown == COUNTDOWN_H_M_S)
+            msg = wxString::Format(wxT("%d : %d : %d"), hours, minutes, seconds);
+        else if (Countdown == COUNTDOWN_S)
+            msg = wxString::Format(wxT("%d"), 60*60 * hours + 60 * minutes + seconds);
+        else if (60 * hours + minutes < 5*60) //COUNTDOWN_M_or_S: show seconds
+            msg = wxString::Format(wxT("%d s"), 60*60 * hours + 60 * minutes + seconds);
+        else //COUNTDOWN_M_or_S: show minutes
+            msg = wxString::Format(wxT("%d m"), 60 * hours + minutes);
         break;
     default:
         msg=Line;
