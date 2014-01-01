@@ -1341,6 +1341,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextEffectDirections.Add("down-left"); //6
     TextEffectDirections.Add("up-right"); //7
     TextEffectDirections.Add("down-right"); //8
+    TextEffectDirections.Add("wavey L-R/up-down"); //9
+//    TextEffectDirections.Add("bouncey L-R/up-down"); //TODO
+//TODO: should animation movement be factored out and applied to any effect? (at least the line-based effects, probably not for fills) -DJ
 
     PictureEffectDirections.Add("left"); //0
     PictureEffectDirections.Add("right"); //1

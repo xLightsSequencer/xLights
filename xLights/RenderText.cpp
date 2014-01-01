@@ -41,7 +41,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxMemoryDC dc(bitmap);
 
     long DefaultPixelHt=BufferHt/2;
-    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
+//    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
+    if (DefaultPixelHt < 8) DefaultPixelHt=8; // min height; allow smaller grids -DJ
     wxSize pixelSize(0,DefaultPixelHt);
     wxFont Font1(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
@@ -127,6 +128,27 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 #define COUNTDOWN_M_or_S  4
 #define COUNTDOWN_S  5
 
+//NOTE: parameter in the following is just for readability (rather than using an embedded comment):
+#define TEXTDIR_LEFT(comment)   0
+#define TEXTDIR_RIGHT(comment)  1
+#define TEXTDIR_UP(comment)  2
+#define TEXTDIR_DOWN(comment)  3
+#define TEXTDIR_NONE(comment)  4
+#define TEXTDIR_UPLEFT(comment)  5
+#define TEXTDIR_DOWNLEFT(comment)  6
+#define TEXTDIR_UPRIGHT(comment)  7
+#define TEXTDIR_DOWNRIGHT(comment)  8
+#define TEXTDIR_WAVEY_LRUPDOWN(comment)  9
+#define TEXTDIR_BOUNCING_LRUPDOWN(comment)  10 //TODO
+
+//provide back-and-forth movement (linear):
+//in future this could use exp/log functions for "gravity" type bounces, but for now linear is adequate
+#define zigzag(value, range)  \
+    ((((value) / (range)) & 1)? \
+        (value) % (range): /*increase during odd cycles*/ \
+        (range) - (value) % (range) - 1) /*descrease during even cycles*/
+
+
 void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown)
 {
     long tempLong,longsecs;
@@ -180,8 +202,8 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
             msg = wxString::Format(wxT("%d : %d : %d"), hours, minutes, seconds);
         else if (Countdown == COUNTDOWN_S)
             msg = wxString::Format(wxT("%d"), 60*60 * hours + 60 * minutes + seconds);
-        else if (60 * hours + minutes < 5*60) //COUNTDOWN_M_or_S: show seconds
-            msg = wxString::Format(wxT("%d s"), 60*60 * hours + 60 * minutes + seconds);
+        else if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
+            msg = wxString::Format(wxT("%d"), 60*60 * hours + 60 * minutes + seconds);
         else //COUNTDOWN_M_or_S: show minutes
             msg = wxString::Format(wxT("%d m"), 60 * hours + minutes);
         break;
@@ -261,14 +283,16 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         wxRect rect(0,0,BufferWi,BufferHt);
         switch (dir)
         {
-        case 0: rect.Offset(xlimit/16 - state % xlimit/8, OffsetTop); break; // left
-        case 1: rect.Offset(state % xlimit/8 - xlimit/16, OffsetTop); break; // right
-        case 2: rect.Offset(OffsetLeft, ylimit/16 - state % ylimit/8); break; // up
-        case 3: rect.Offset(OffsetLeft, state % ylimit/8 - ylimit/16); break; // down
-        case 5: rect.Offset(xlimit/16 - state % xlimit/8, ylimit/16 - state % ylimit/8); break; // up-left
-        case 6: rect.Offset(xlimit/16 - state % xlimit/8, state % ylimit/8 - ylimit/16); break; // down-left
-        case 7: rect.Offset(state % xlimit/8 - xlimit/16, ylimit/16 - state % ylimit/8); break; // up-right
-        case 8: rect.Offset(state % xlimit/8 - xlimit/16, state % ylimit/8 - ylimit/16); break; // down-right
+        case TEXTDIR_LEFT(0): rect.Offset(xlimit/16 - state % xlimit/8, OffsetTop); break; // left
+        case TEXTDIR_RIGHT(1): rect.Offset(state % xlimit/8 - xlimit/16, OffsetTop); break; // right
+        case TEXTDIR_UP(2): rect.Offset(OffsetLeft, ylimit/16 - state % ylimit/8); break; // up
+        case TEXTDIR_DOWN(3): rect.Offset(OffsetLeft, state % ylimit/8 - ylimit/16); break; // down
+        case TEXTDIR_UPLEFT(5): rect.Offset(xlimit/16 - state % xlimit/8, ylimit/16 - state % ylimit/8); break; // up-left
+        case TEXTDIR_DOWNLEFT(6): rect.Offset(xlimit/16 - state % xlimit/8, state % ylimit/8 - ylimit/16); break; // down-left
+        case TEXTDIR_UPRIGHT(7): rect.Offset(state % xlimit/8 - xlimit/16, ylimit/16 - state % ylimit/8); break; // up-right
+        case TEXTDIR_DOWNRIGHT(8): rect.Offset(state % xlimit/8 - xlimit/16, state % ylimit/8 - ylimit/16); break; // down-right
+        case TEXTDIR_WAVEY_LRUPDOWN(9): rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4); break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+        case TEXTDIR_NONE(4): //fall thru to default
         default: rect.Offset(0, OffsetTop); break; // static
         }
         dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
