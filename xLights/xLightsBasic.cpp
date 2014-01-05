@@ -136,6 +136,12 @@ protected:
         return HostFrame->TxOverflowCnt;
     }
 
+    //total overflow size since count was last reset -DJ
+    double do_txoverflowtotal(void)
+    {
+        return HostFrame->TxOverflowTotal;
+    }
+
     int do_setplaylist(void)
     {
         char *pName = stringexpr();
@@ -207,6 +213,7 @@ protected:
         if(1 <= idx && idx <= playlist->GetItemCount())
         {
             HostFrame->TxOverflowCnt = 0;
+            HostFrame->TxOverflowTotal = 0; //-DJ
             wxString filename = playlist->GetItemText(idx-1);
             wxString delay = playlist->GetItemText(idx-1,1);  // requires 2.9.1
             long idelay;
@@ -315,6 +322,7 @@ public:
     {
         runstate=0;
         AddNumericFunction("TXOVERFLOWCNT", static_cast<NumericFuncPtr>(&xlbasic::do_txoverflowcnt));
+        AddNumericFunction("TXOVERFLOWTOTAL", static_cast<NumericFuncPtr>(&xlbasic::do_txoverflowtotal));
         AddNumericFunction("SECONDSREMAINING", static_cast<NumericFuncPtr>(&xlbasic::do_secondsremaining));
         AddNumericFunction("PLAYLISTSIZE", static_cast<NumericFuncPtr>(&xlbasic::do_playlistsize));
         AddStringFunction("ITEMNAME$", static_cast<StringFuncPtr>(&xlbasic::do_itemname));
