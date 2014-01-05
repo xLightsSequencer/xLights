@@ -1331,6 +1331,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffect.Add("Right");
     MeteorsEffect.Add("Implode");
     MeteorsEffect.Add("Explode");
+    MeteorsEffect.Add("Icicles"); //random length drip effect -DJ
+    MeteorsEffect.Add("Icicles + bkg"); //with bkg (dim) icicles -DJ
 
     TextEffectDirections.Add("left"); //0
     TextEffectDirections.Add("right"); //1
@@ -1361,7 +1363,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("peekaboo 90"); //13; horizontal peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 180"); //14; upside down peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
-    PictureEffectDirections.Add("vix remap"); //16; animated csv or sdv file of pixel values -DJ
+    PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");

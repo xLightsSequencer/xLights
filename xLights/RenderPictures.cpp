@@ -25,6 +25,199 @@
 #include "wx/log.h"
 #include <wx/file.h>
 #include <wx/utils.h>
+#include <wx/string.h>
+#include <wx/tokenzr.h>
+#include <wx/regex.h>
+#include "xLightsApp.h"
+
+//CAUTION: these must match EffectDirections exactly:
+#define RENDER_PICTURE_LEFT  0
+#define RENDER_PICTURE_RIGHT  1
+#define RENDER_PICTURE_UP  2
+#define RENDER_PICTURE_DOWN  3
+#define RENDER_PICTURE_NONE  4
+#define RENDER_PICTURE_UPLEFT  5
+#define RENDER_PICTURE_DOWNLEFT  6
+#define RENDER_PICTURE_UPRIGHT  7
+#define RENDER_PICTURE_DOWNRIGHT  8
+#define RENDER_PICTURE_SCALED  9
+#define RENDER_PICTURE_PEEKABOO_0  10
+#define RENDER_PICTURE_WIGGLE  11
+#define RENDER_PICTURE_ZOOMIN  12
+#define RENDER_PICTURE_PEEKABOO_90  13
+#define RENDER_PICTURE_PEEKABOO_180  14
+#define RENDER_PICTURE_PEEKABOO_270  15
+#define RENDER_PICTURE_VIXREMAP  16
+
+
+#define wrdebug(msg, ...)  if (debug.IsOpened()) debug.Write(msg + "\n")
+
+
+//Vixen channel remap from Vixen 2.x back to xLights:
+//for use when you have cell-by-cell Vixen 2.x sequencing that you want to preserve in an xLights sequence
+//how it works:
+//1. look at which channels are on in Vixen during each frame (fixed time intervals)
+//2. using the current elapsed time from start of xLights effect to select a Vixen frame,
+//     reverse lookup thru the current xLights model to determine which screen pixels must be turned on to generate the same results
+//3. set those pixels as the effective output from the xLights effect
+//4. xLights will remap those pixels into target channels
+//net result is that the output of any effects from Vixen will be duplicated in the xLights sequence
+//however, using xLights they can be further manipulated or blended with addition effects to make variations of the original sequence patterns
+//NOTE: channels should be in same order between Vixen and xLights; use Vixen Reorder functions to accomplish that, since xLights only reorders within the model
+
+
+//this allows copy/paste from Vixen grid:
+void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
+{
+    imageCount = 0;
+    imageIndex = 0;
+    if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
+
+    if (!PictureName.CmpNoCase(filename)) { wrdebug(wxT("no change: ") + filename); return; }
+    if (!wxFileExists(filename)) { wrdebug(wxT("not found: ") + filename); return; }
+    wxTextFile f;
+    PixelsByFrame.clear();
+    if (!f.Open(filename.c_str())) { wrdebug(wxT("can't open: ") + filename); return; }
+
+//read channel values from Vixen grid or routine:
+//    std::vector<std::vector<std::pair<int, byte>>> ChannelsByFrame; //list of channel#s by frame and their associated value
+    int numch = 0, chbase = 0, nodesize = 1;
+    for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
+    {
+        std::string::size_type ofs;
+        if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
+        while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
+        if (linebuf.empty()) continue; //skip blank lines
+
+wrdebug(1, "read line '%s'", (const char*)linebuf.c_str());
+        static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
+        if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
+        {
+            chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1));
+            wrdebug(1, "got ch base %d", chbase);
+            continue;
+        }
+        static wxRegEx nodesize_re("^\\s*ChannelsPerNode\\s*=\\s*([13])\\s*$", wxRE_ICASE);
+        if (!PixelsByFrame.size() && nodesize_re.Matches(linebuf)) //allow channels to be shifted
+        {
+            nodesize = wxAtoi(nodesize_re.GetMatch(linebuf, 1));
+            wrdebug(1, "got node size %d", nodesize);
+            continue;
+        }
+
+        PixelsByFrame.emplace_back(); //add new frame
+        wrdebug(wxString::Format(wxT("load channels for frame %d (%.3f sec): '") + linebuf + wxT("'"), PixelsByFrame.size(), PixelsByFrame.size() * 50/1000.));
+        wxStringTokenizer tkz(linebuf, wxT(" "));
+        for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
+        {
+            byte chval = wxAtoi(tkz.GetNextToken());
+            wrdebug(1, "got chval %d for ch %d, frame %d", chval, chnum, PixelsByFrame.size());
+            if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
+            std::pair<wxPoint, wxColor> new_pixel;
+            static byte rgb[3];
+            switch (nodesize)
+            {
+                case 1: //map each Vixen channel to a monochrome pixel
+                    new_pixel.second.Set(chval, chval, chval); //grayscale
+                    break;
+                case 3: //map Vixen triplets to an RGB pixel
+                    switch (chnum % 3)
+                    {
+                        case 0: rgb[0] = chval; continue;
+                        case 1: rgb[1] = chval; continue;
+                        case 2: rgb[2] = chval; break;
+                    }
+            }
+            new_pixel.second.Set(rgb[0], rgb[1], rgb[2]);
+//            for (each wxPoint where chnum + chbase occurs in current model)
+                PixelsByFrame.back().push_back(new_pixel); //build list of pixels that must be set
+            if (chnum + 1 > numch) numch = chnum + 1; //vix grid or routine should be rectangular, but in case it isn't, pad out the shorter rows
+        }
+    }
+//now create an image to look like it was loaded like the other picture functions:
+//    image.Create(maxcol + 1, pixels.size());
+//    for (int y = 0; y < pixels.size(); ++y)
+//        for (int x = 0; x < pixels[y].size(); x += 3)
+//            image.SetRGB(x, y, pixels[y][x + 0], pixels[y][x + 1], pixels[y][x + 2]);
+
+    wrdebug(wxString::Format(wxT("read %d channels (relative to %d) x %d frames from Vixen, channels/node: %d"), numch, chbase, PixelsByFrame.size(), nodesize));
+//    imageCount = 1; //TODO: allow multiple?
+//    imageIndex = 0;
+    PictureName = filename;
+}
+
+//            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
+
+#if 0
+void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
+{
+    wxTextFile f;
+
+    if (!PictureName.CmpNoCase(filename)) { wrdebug(wxT("no change: " + filename)); return; }
+    if (!wxFileExists(filename)) { wrdebug(wxT("not found: " + filename)); return; }
+    if (!f.Open(filename.c_str())) { wrdebug(wxT("can't open: " + filename)); return; }
+
+//read pixel values 1-to-1 from file:
+//for ease of access, wrap them as an image
+//this should preobably be rewritten into a wx image handler, or maybe reuse one of the existing handlers
+    image.Clear();
+//        imageCount = 0;
+//        imageIndex = 0;
+    int maxcol = 0; //vix routine should be rectangular, but in case it isn't, pad out the shorter rows
+    std::vector<std::vector</*wxColor or WXCOLORREF*/ wxUint32>> pixels; //wxImage appears to have a static size, so we need to collect all the pixels first before creating the wxImage
+    for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
+    {
+        std::string::size_type ofs;
+        if ((ofs = linebuf.find("#")) != std::string::npos) linebuf.erase(ofs); //remove comments
+        while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
+        if (linebuf.empty()) continue; //skip blank lines
+
+        pixels.emplace_back(); //add new row
+        wrdebug(wxT("got line '") + linebuf + wxT("'"));
+        wxStringTokenizer tkz(linebuf, wxT(" "));
+#ifdef ASRGB //use channel triplets to make each pixel
+        for (int col = tkz.CountTokens(); col > 0; col -= 3)
+        {
+            if (col > maxcol) maxcol = col;
+//for now assume channels are in R, G, B order:
+//            wxColour c;
+//            c.Set(gray, gray, gray);
+            byte r = wxAtoi(tkz.GetNextToken());
+            byte g = wxAtoi(tkz.GetNextToken());
+            byte b = wxAtoi(tkz.GetNextToken());
+//            c.Set(r, g, b);
+            pixels.back().push_back(r); //c.GetRGB()); //image.Set(x, y, c);
+            pixels.back().push_back(g);
+            pixels.back().push_back(b);
+//            image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
+        }
+#endif // ASRGB
+#ifdef ASMONO //use one channel for each pixel; color can be added later
+        for (int col = tkz.CountTokens(); col > 0; --col)
+        {
+            if (col > maxcol) maxcol = col;
+            byte gray = wxAtoi(tkz.GetNextToken());
+//            wxColour c;
+//            c.Set(gray, gray, gray);
+            pixels.back().push_back(gray); //c.GetRGB()); //image.Set(x, y, c);
+            pixels.back().push_back(gray);
+            pixels.back().push_back(gray);
+        }
+#endif // ASMONO
+    }
+//now create an image to look like it was loaded like the other picture functions:
+    image.Create(maxcol + 1, pixels.size());
+    for (int y = 0; y < pixels.size(); ++y)
+        for (int x = 0; x < pixels[y].size(); x += 3)
+            image.SetRGB(x, y, pixels[y][x + 0], pixels[y][x + 1], pixels[y][x + 2]);
+
+    wrdebug(wxString::Format("read %d x %d pixels", maxcol, pixels.size()));
+    imageCount = 1; //TODO: allow multiple?
+    imageIndex = 0;
+    PictureName = filename;
+}
+#endif
+
 
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
@@ -33,9 +226,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
-    int createlog=0; // set to 1 to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
+    int createlog= xLightsApp::WantDebug; // use command-line switch to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
     wxFile f;
-
+#define debug f //shim; need to rework debug
 
     if(NewPictureName2.length()==0) return;
 
@@ -96,6 +289,19 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         f.Write(buff);
     }
 
+    if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
+    {
+        LoadPixelsFromTextFile(f, NewPictureName);
+        wrdebug(1, "vix remap render: frame %d vs. %d", state, PixelsByFrame.size());
+        if (state < PixelsByFrame.size()) //TODO: wrap?
+            for (auto /*std::vector<std::pair<wxPoint, wxColour>>::iterator*/ it = PixelsByFrame[state].begin(); it != PixelsByFrame[state].end(); ++it)
+            {
+                wrdebug(1, "set pixel (%d, %d) to color [%d. %d. %d]", it->first.x, it->first.y, it->second.Red(), it->second.Green(), it->second.Blue());
+                SetPixel(it->first.x, it->first.y, it->second);
+            }
+        return;
+    }
+
     if (NewPictureName != PictureName)
     {
         wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
@@ -138,38 +344,53 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     int imgwidth=image.GetWidth();
     int imght   =image.GetHeight();
-    int yoffset =(BufferHt+imght)/2;
-    int xoffset =(imgwidth-BufferWi)/2;
+    int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
+    int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
+    wrdebug(10, "pic: state %d, img w/h %d/%d, buf w/h %d/%d, x/y ofs %d/%d", state, imgwidth, imght, BufferWi, BufferHt, xoffset, yoffset);
     float xscale, yscale;
-    if ((dir == 9) || (dir == 12)) //src <- dest scale factor -DJ
+    switch (dir) //prep
     {
-        xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
-        yscale = (imght > 1)? (float)BufferHt / imght: 1;
+        case RENDER_PICTURE_SCALED:
+        case RENDER_PICTURE_ZOOMIN: //src <- dest scale factor -DJ
+            xscale = (imgwidth > 1)? (float)BufferWi / imgwidth: 1;
+            yscale = (imght > 1)? (float)BufferHt / imght: 1;
+            if (dir == 12) //zoom in/explode -DJ
+            {
+                xscale += .001 * state * speedfactor;
+                yscale += .001 * state * speedfactor;
+//              xscale = log(xscale); xscale *= state * speedfactor / 4; xscale = exp(xscale); //raise to power
+//              yscale = log(yscale); yscale *= state * speedfactor / 4; yscale = exp(yscale);
+//              wrdebug(1, "zoom: state %d, speed %d, scale %f %f", state, speedfactor, xscale, yscale);
+            }
+            break;
+        case RENDER_PICTURE_PEEKABOO_0: //up+down 1x -DJ
+        case RENDER_PICTURE_PEEKABOO_180: //up+down 1x -DJ
+            yoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
+            if (yoffset > 10) yoffset = -yoffset + 10; //reverse direction
+            else if (yoffset > 0) yoffset = 0; //pause in middle
+//            wrdebug(1, "peekaboo: state %d, speed %d, draw at %d", state, speedfactor, yoffset);
+            break;
+        case RENDER_PICTURE_WIGGLE: //wiggle left-right -DJ
+            xoffset = state % (BufferWi / 4 * speedfactor);
+            if (xoffset > BufferWi / 8 * speedfactor) xoffset = BufferWi / 4 * speedfactor - xoffset; //reverse direction
+            xoffset -= BufferWi / 4; //* speedfactor; //center it on mid value
+            xoffset += (imgwidth-BufferWi) / 2; //add in original xoffset from above
+            break;
+        case RENDER_PICTURE_PEEKABOO_90: //peekaboo 90
+        case RENDER_PICTURE_PEEKABOO_270: //peekaboo 270
+            yoffset = (imght - BufferWi) / 2; //adjust offsets for other axis
+//            xoffset = (imgwidth - BufferHt) / 2;
+            xoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
+            if (xoffset > 10) xoffset = -xoffset + 10; //reverse direction
+            else if (xoffset > 0) xoffset = 0; //pause in middle
+            break;
     }
-    if (dir == 10) //up+down 1x -DJ
-    {
-        yoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
-        if (yoffset > 0) yoffset = -yoffset; //reverse direction
-//        debug(1, "peekaboo: state %d, speed %d, draw at %d", state, speedfactor, yoffset);
-    }
-    if (dir == 11) //wiggle left-right -DJ
-    {
-        xoffset = state % (BufferWi / 4 * speedfactor);
-        if (xoffset > BufferWi / 8 * speedfactor) xoffset = BufferWi / 4 * speedfactor - xoffset; //reverse direction
-        xoffset -= BufferWi / 4; //* speedfactor; //center it on mid value
-        xoffset += (imgwidth-BufferWi) / 2; //add in original xoffset from above
-    }
-    if (dir == 12) //zoom in/explode -DJ
-    {
-        xscale += .001 * state * speedfactor;
-        yscale += .001 * state * speedfactor;
-//        xscale = log(xscale); xscale *= state * speedfactor / 4; xscale = exp(xscale); //raise to power
-//        yscale = log(yscale); yscale *= state * speedfactor / 4; yscale = exp(yscale);
-//        debug(1, "zoom: state %d, speed %d, scale %f %f", state, speedfactor, xscale, yscale);
-    }
+//    if (state < 4) wrdebug(1, "pic: state %d, style %d, img (%d, %d), wnd (%d, %d)", state, dir, imgwidth, imght, BufferWi, BufferHt);
+//    if (state < 4) wxMessageBox(xLightsApp::WantDebug? "DEBUG ON": "debug off");
 
 // copy image to buffer
     wxColour c;
+    int debug_count = 0;
     for(int x=0; x<imgwidth; x++)
     {
         for(int y=0; y<imght; y++)
@@ -179,44 +400,60 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 c.Set(image.GetRed(x,y),image.GetGreen(x,y),image.GetBlue(x,y));
                 switch (dir)
                 {
-                case 0:
+                case RENDER_PICTURE_LEFT: //0:
                     SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,yoffset-y,c);
                     break; // left
-                case 1:
+                case RENDER_PICTURE_RIGHT: //1:
                     SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,yoffset-y,c);
                     break; // right
-                case 2:
+                case RENDER_PICTURE_UP: //2:
                     SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
                     break; // up
-                case 3:
+                case RENDER_PICTURE_DOWN: //3:
                     SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
                     break; // down
-                case 5:
+                case RENDER_PICTURE_UPLEFT: //5:
                     SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
                     break; // up-left
-                case 6:
+                case RENDER_PICTURE_DOWNLEFT: //6:
                     SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
                     break; // down-left
-                case 7:
+                case RENDER_PICTURE_UPRIGHT: //7:
                     SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
                     break; // up-right
-                case 8:
+                case RENDER_PICTURE_DOWNRIGHT: //8:
                     SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
                     break; // down-right
-                case 9: //scaled, no motion -DJ
+                case RENDER_PICTURE_SCALED: //9: //scaled, no motion -DJ
+//TODO: use rescale or resize?
+//                    wrdebug(1, "zoom[%d]: pic (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, x, y, imgwidth, imght, (int)(x * xscale), (int)(BufferHt - 1 - y * yscale), BufferWi, BufferHt, c.GetRGB());
                     SetPixel(x * xscale, BufferHt - 1 - y * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
-                case 10: //up+down 1x (peekaboo) -DJ
+                case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
                     SetPixel(x - xoffset, BufferHt + yoffset - y, c); // - BufferHt, c);
                     break;
-                case 11: //back+forth a little (wiggle) -DJ
+                case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
                     SetPixel(x + xoffset, yoffset - y, c);
                     break;
-                case 12: //zoom in (explode) -DJ
+                case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
+//TODO: use rescale or resize?
                     SetPixel(x * xscale, (BufferHt - 1 - y) * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
+//NOTE: a Rotation option should probably be added to all effects rather than just doing it here -DJ
+                case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
+//                    wrdebug(1, "peeka 90[%d] xofs %d, yofs %d, (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, xoffset, yoffset, x, y, imgwidth, imght, BufferWi + xoffset - y, x - yoffset, BufferWi, BufferHt, c.GetRGB());
+                    SetPixel(BufferWi + xoffset - y, x - yoffset, c);
+                    break;
+                case RENDER_PICTURE_PEEKABOO_180: //14: //peekaboo 180 -DJ
+                    SetPixel(x - xoffset, y - yoffset, c);
+                    break;
+                case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
+                    SetPixel(y - xoffset, BufferHt + yoffset - x, c);
+//                    SetPixel(y - yoffset - BufferHt, x - xoffset, c);
+                    break;
                 default:
-                    SetPixel(x-xoffset,yoffset-y,c);
+                    if (debug_count++ < 2100) wrdebug(20, "pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1); //NOTE: wxColor is BGR internally
+                    SetPixel(x-xoffset,yoffset-y - 1,c);
                     break; // no movement - centered
                 }
             }

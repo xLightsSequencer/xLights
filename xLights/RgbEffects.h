@@ -31,6 +31,7 @@
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
 #include <wx/image.h>
+#include <wx/textfile.h>
 
 #include "../include/globals.h"
 
@@ -354,6 +355,13 @@ protected:
     wxColor cached_rgb; //cached mapped pixel color
     wxPoint cached_xy;
 //end of piano support stuff -DJ
+
+//cached list of pixels to turn on, indexed by frame (timestamp):
+//this is the required output after applying the effect in Nutcracker
+//xLights will then remap these pixels thru the custom or built-in model back to xLights channels
+    std::vector<std::vector<std::pair<wxPoint, wxColor>>> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
+//remapped Vixen channels for Picture effect: -DJ
+    void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);
 
 
     class PaletteClass
