@@ -3,6 +3,7 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 (next)
+					-Enhancement (djulien): allow cancelled schedule to re-run that same day
 					-Enhancement (djulien): show serial outbuf overflow amount
 					-Enhancement (djulien): add a couple of icicle options to Meteors
 					-Enhancement (djulien): add wavey left-to-right up/down option for text

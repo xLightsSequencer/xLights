@@ -453,7 +453,7 @@ void xLightsFrame::CheckSchedule()
                         userscript=CreateScript(Notebook1->GetPageText(nbidx),RepeatOptions[0]=='R',RepeatOptions[1]=='F',RepeatOptions[2]=='L',false,RepeatOptions[3]=='X');
                     }
                     StartMoDay=CurrentMoDay;
-                    AlreadyPlayed.Add(EventString);
+//                    AlreadyPlayed.Add(EventString); //don't do this until show ends (might have restarted it) -DJ
                     RunPlaylist(nbidx,userscript);
                 }
                 else
@@ -541,6 +541,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
+            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
         period = msec / XTIMER_INTERVAL;
@@ -578,7 +579,8 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
-            break;
+            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
+//            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->MediaCtrl->Tell();
         period = msec / XTIMER_INTERVAL;
@@ -1381,7 +1383,7 @@ wxString xLightsFrame::CreateScript(wxString ListName, bool Repeat, bool FirstIt
         script.Append(_("302 REM *\n"));
         if (LightsOff) script.Append(_("305 LIGHTSOFF\n"));
         script.Append(_("307 IF TXOVERFLOWCNT = 0 THEN 310\n"));
-        script.Append(_("308 PRINT \"Serial transmit overflows:\",TXOVERFLOWCNT\n"));
+        script.Append(_("308 PRINT \"Serial transmit overflows:\",TXOVERFLOWCNT,\", length:\", TXOVERFLOWTOTAL\n")); //show overflow length as well -DJ
         script.Append(_("310 IF SECONDSREMAINING <= 0 THEN 400\n"));
         script.Append(_("320 LET NextItem=LastItemPlayed+1\n"));
         script.Append(_("330 IF NextItem <= ") + loopend + _(" THEN 200\n"));
