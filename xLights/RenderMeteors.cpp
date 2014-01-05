@@ -24,6 +24,17 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+#define numents(thing)  (sizeof(thing) / sizeof(thing[0]))
+
+//these must match list indexes in xLightsMain.h: -DJ
+#define METEORS_DOWN  0
+#define METEORS_UP  1
+#define METEORS_LEFT  2
+#define METEORS_RIGHT  3
+#define METEORS_IMPLODE  4
+#define METEORS_EXPLODE  5
+#define METEORS_ICICLES  6 //random length drip effect -DJ
+#define METEORS_ICICLES_BKG  7 //with bkg (dim) icicles -DJ
 
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
@@ -31,20 +42,25 @@
 void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
     switch (MeteorsEffect) {
-        case 0:
-        case 1:
+        case METEORS_DOWN: //0:
+        case METEORS_UP: //1:
             RenderMeteorsVertical(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
             break;
-        case 2:
-        case 3:
+        case METEORS_LEFT: //2:
+        case METEORS_RIGHT: //3:
             RenderMeteorsHorizontal(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
             break;
-        case 4:
+        case METEORS_IMPLODE: //4:
             RenderMeteorsImplode(ColorScheme, Count, Length, SwirlIntensity);
             break;
-        case 5:
+        case METEORS_EXPLODE: //5:
             RenderMeteorsExplode(ColorScheme, Count, Length, SwirlIntensity);
             break;
+        case METEORS_ICICLES: //6
+            RenderIcicleDrip(ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity);
+            break;
+        case METEORS_ICICLES_BKG: //7
+            RenderIcicleDrip(ColorScheme, Count, -Length, MeteorsEffect, SwirlIntensity);
     }
 }
 
@@ -163,11 +179,20 @@ public:
     }
 };
 
+//predicate to remove variable length meteors (icicles):
+class RgbEffects::IcicleHasExpired
+{
+public:
+    bool operator()(const MeteorClass& obj) { return obj.y < -obj.h; }
+};
+//bool end_of_icicle(const MeteorClass& obj) { return obj.y > obj.h; }
+
+
 void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
     if (state == 0) meteors.clear();
     int mspeed=state/4;
-    state-=mspeed*4;
+    state-=mspeed*4; //what does this do?
     double swirl_phase;
 
     MeteorClass m;
@@ -237,6 +262,173 @@ void RgbEffects::RenderMeteorsVertical(int ColorScheme, int Count, int Length, i
     // delete old meteors
     meteors.remove_if(MeteorHasExpiredY(TailLength));
 }
+
+//#define WANT_DEBUG 100
+////#define WANT_DEBUG_IMPL 100
+//#include "djdebug.cpp"
+
+//icicle drip effect, based on RenderMeteorsVertical: -DJ
+void RgbEffects::RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+{
+    if (state == 0) meteors.clear();
+    int mspeed=state/4;
+    state-=mspeed*4; //what does this do?
+    double swirl_phase;
+    bool want_bkg = (Length < 0);
+    if (want_bkg) Length = -Length; //kludge; too lazy to add another parameter ;)
+
+    MeteorClass m;
+    wxImage::HSVValue hsv,hsv0,hsv1;
+    palette.GetHSV(0,hsv0);
+    palette.GetHSV(1,hsv1);
+    size_t colorcnt=GetColorCount();
+    int TailLength=(BufferHt < 10) ? Length / 10 : BufferHt * Length / 100;
+    if (TailLength < 1) TailLength=1;
+
+    // create new meteors
+
+    for(int i=0; i<BufferWi; i++)
+    {
+        if (rand() % 200 < Count) {
+            m.x=i;
+            m.y=BufferHt - 1;
+//            m.h = TailLength;
+            m.h = (rand() % (2 * BufferHt))/3; //somewhat variable length -DJ
+
+            switch (ColorScheme)
+            {
+            case 1:
+                SetRangeColor(hsv0,hsv1,m.hsv);
+                break;
+            case 2:
+                palette.GetHSV(rand()%colorcnt, m.hsv);
+                break;
+            }
+            meteors.push_back(m);
+        }
+    }
+
+    // render meteors
+
+//draw some dim icicles for bkg:
+    if (want_bkg)
+    {
+        wxColour c;
+        c.Set(100, 100, 255); //light blue
+        Color2HSV(c, m.hsv);
+//        m.hue = 240;
+//        m.hsv.saturation = 0.5;
+//        m.hsv.value = 1.0;
+
+        int ystaggered[] = {0, 5, 1, 2, 4};
+        for (int x = 0; x < BufferWi; x += 3)
+            for (int y = 0; y < BufferHt; y += 3)
+                SetPixel(x, y + ystaggered[(x/3) % numents(ystaggered)], m.hsv);
+    }
+
+    int x,y,dx,n=0;
+    for (MeteorList::iterator it=meteors.begin(); it!=meteors.end(); ++it)
+    {
+        n++;
+        for(int ph=0; ph<=TailLength; ph++)
+        {
+#if 0
+            switch (ColorScheme)
+            {
+            case 0:
+                hsv.hue=double(rand() % 1000) / 1000.0;
+                hsv.saturation=1.0;
+                hsv.value=1.0;
+                break;
+            default:
+                hsv=it->hsv;
+                break;
+            }
+            hsv.value*= 1.0 - double(ph)/TailLength;
+#endif
+            if (!ph || (ph <= it->h - it->y)) hsv = it->hsv; //only make the end of the drip colored
+            else { hsv.value = .4; hsv.hue = hsv.saturation = 0; } //white icicle
+
+            // we adjust x axis with some sine function if swirl1 or swirl2
+            // swirling more than 25% of the buffer width doesn't look good
+            swirl_phase=double(it->y)/5.0+double(n)/100.0;
+            dx=int(double(SwirlIntensity*BufferWi)/80.0*sin(swirl_phase));
+
+            x=it->x+dx;
+            y=it->y+ph;
+            if (MeteorsEffect==1) y=BufferHt-y;
+            if (y < it->h) continue; //variable length icicle drips -DJ
+            SetPixel(x,y,hsv);
+        }
+
+        it->y -= mspeed;
+    }
+
+    // delete old meteors
+//    meteors.remove_if(MeteorHasExpiredY(TailLength));
+    meteors.remove_if(IcicleHasExpired());
+}
+#if 0
+
+            switch (ColorScheme)
+            {
+            case 1:
+                SetRangeColor(hsv0,hsv1,m.hsv);
+                break;
+            case 2:
+                palette.GetHSV(rand()%colorcnt, m.hsv);
+                break;
+            }
+//            debug(1, "cre icicle[%d]: x %d, y %d, h %d, hsv %f,%f,%f", state, m.x, m.y, m.h, m.hsv.hue, m.hsv.saturation, m.hsv.value);
+            meteors.push_back(m);
+        }
+    }
+
+    // render meteors
+
+    int x,y,dx,n=0;
+    for (MeteorList::iterator it=meteors.begin(); it!=meteors.end(); ++it)
+    {
+        n++;
+        for(int ph=0; ph<=/*TailLength*/ it->h; ph++)
+        {
+            switch (/*ColorScheme*/ 99)
+            {
+            case 0:
+                hsv.hue=double(rand() % 1000) / 1000.0;
+                hsv.saturation=1.0;
+                hsv.value=1.0;
+                break;
+            case 99: //white icicle, colored tail -DJ
+                if (ph < it->h)
+                {
+                    hsv.hue = hsv.saturation = 0; //not too bright
+                    hsv.value = .4; //((ph + it->x)& 1)? 0: 0.4; //staggered, alternating to look more like incand icicles
+                }
+                else if (ph == it->h) hsv = m.hsv;
+                else hsv.value = 0; //variable length -DJ
+//                debug(1, "render icicle[%d]: ph %d/%d, where %d", /*it - meteors.begin()*/ n, ph, TailLength, (ph < it->h - 1)? 1: (ph == it->h - 1)? 2: 3);
+                break;
+            default:
+                hsv=it->hsv;
+                break;
+            }
+//            hsv.value*= 1.0 - double(ph)/TailLength;
+
+            // we adjust x axis with some sine function if swirl1 or swirl2
+            // swirling more than 25% of the buffer width doesn't look good
+            swirl_phase=double(it->y)/5.0+double(n)/100.0;
+            dx=int(double(SwirlIntensity*BufferWi)/80.0*sin(swirl_phase));
+
+            x=it->x+dx;
+            y=it->y+ ph;
+            if (MeteorsEffect==1) y=BufferHt-y;
+            SetPixel(x,y,hsv);
+        }
+
+        it->y -= mspeed;
+    }
+#endif
 
 /*
  * *************************************************************

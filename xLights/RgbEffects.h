@@ -229,6 +229,7 @@ protected:
     class MeteorHasExpiredY;
     class MeteorHasExpiredImplode;
     class MeteorHasExpiredExplode;
+    class IcicleHasExpired; //reuse meteor code for icicle drip effect -DJ
 
     class MeteorClass
     {
@@ -236,6 +237,7 @@ protected:
 
         int x,y;
         wxImage::HSVValue hsv;
+        int h; //variable length; only used for icicle drip -DJ
     };
 
     // for radial meteor effect
@@ -455,6 +457,7 @@ protected:
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
+    void RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
     void RenderMetaBalls(int numBalls);
