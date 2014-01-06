@@ -1090,11 +1090,16 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     return retval;
 }
 
+//#define WANT_DEBUG 99
+//#define WANT_DEBUG_IMPL
+//#include "djdebug.cpp"
 
 void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 {
     wxString s;
-    buffer.Clear();
+//    debug(1, "play rgb: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
+    if (!EffectsPanel1->WantOverlayBkg() && !EffectsPanel2->WantOverlayBkg()) //allow effects to overlay onto other effects (useful for composite models) -DJ
+        buffer.Clear();
 
     // update SparkleFrequency
     int freq=Slider_SparkleFrequency->GetValue();
@@ -1176,7 +1181,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
-            break;
+            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
+//            break; //keep going; might catch up -DJ
         }
         EffectPeriod = msec / XTIMER_INTERVAL;
         if (EffectPeriod >= SeqNumPeriods)
@@ -1230,7 +1236,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if (xout && !xout->TxEmpty())
         {
             TxOverflowCnt++;
-            break;
+            TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
+//            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->MediaCtrl->Tell();
         EffectPeriod = msec / XTIMER_INTERVAL;

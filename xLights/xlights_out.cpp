@@ -120,6 +120,10 @@ public:
         }
     };
 
+    size_t TxNonEmptyCount(void)
+    {
+        return serptr? serptr->WaitingToWrite(): 0;
+    }
     bool TxEmpty()
     {
         if (serptr) return (serptr->WaitingToWrite() == 0);
@@ -481,6 +485,10 @@ public:
         }
     };
 
+    size_t TxNonEmptyCount(void)
+    {
+        return 0;
+    }
     bool TxEmpty()
     {
         return true;
@@ -893,6 +901,17 @@ void xOutput::TimerEnd()
     {
         networks[i]->TimerEnd();
     }
+}
+
+//tell how much: -DJ
+size_t xOutput::TxNonEmptyCount(void)
+{
+    size_t total = 0;
+    for(size_t i=0; i < networks.GetCount(); ++i)
+    {
+        total += networks[i]->TxNonEmptyCount();
+    }
+    return total;
 }
 
 bool xOutput::TxEmpty()

@@ -45,7 +45,7 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 void PixelBufferClass::Clear()
 {
     wxColour bgColor=*wxBLACK;
-    for(size_t i=0; i<2; i++)
+    for(size_t i=0; i<2; i++) //why does this clear canvas twice? isn't it the same set of pixels for each2? -DJ
     {
         Effect[i].Clear(bgColor);
     }

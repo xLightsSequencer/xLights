@@ -327,6 +327,8 @@ const long EffectsPanel::ID_TEXTCTRL_Fadeout = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadeout = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_FitToTime = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_FitToTime = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -1389,6 +1391,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	BitmapButton_FitToTime = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_FitToTime, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FitToTime"));
 	BitmapButton_FitToTime->SetDefault();
 	FlexGridSizer23->Add(BitmapButton_FitToTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	CheckBox_OverlayBkg = new wxCheckBox(this, ID_CHECKBOX_OverlayBkg, _("Overlay"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
+	CheckBox_OverlayBkg->SetValue(false);
+	FlexGridSizer23->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_OverlayBkg = new wxBitmapButton(this, ID_BITMAPBUTTON_OverlayBkg, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
+	BitmapButton_OverlayBkg->SetDefault();
+	FlexGridSizer23->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
@@ -1518,6 +1527,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FadeOutClick);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FadeInClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_FitToTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FitToTimeClick);
+	Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_OverlayBkgClick);
 	//*)
 
     this->SetName(name);
@@ -1769,6 +1779,13 @@ wxString EffectsPanel::GetEffectString()
     return s;
 }
 
+//selectable clear canvas before render: -DJ
+//this allows multiple effects to be overlayed for composite models
+bool EffectsPanel::WantOverlayBkg(void)
+{
+    return CheckBox_OverlayBkg->GetValue();
+}
+
 
 void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
 {
@@ -1935,6 +1952,7 @@ showlock(Speed)
 showlock(FadeOut)
 showlock(FadeIn)
 showlock(FitToTime)
+showlock(OverlayBkg)
 showlock(PaletteRep)
 showlock(Direction)
 showlock(Highlight)

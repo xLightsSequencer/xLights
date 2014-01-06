@@ -31,6 +31,7 @@
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
 #include <wx/image.h>
+#include <wx/textfile.h>
 
 #include "../include/globals.h"
 
@@ -229,6 +230,7 @@ protected:
     class MeteorHasExpiredY;
     class MeteorHasExpiredImplode;
     class MeteorHasExpiredExplode;
+    class IcicleHasExpired; //reuse meteor code for icicle drip effect -DJ
 
     class MeteorClass
     {
@@ -236,6 +238,7 @@ protected:
 
         int x,y;
         wxImage::HSVValue hsv;
+        int h; //variable length; only used for icicle drip -DJ
     };
 
     // for radial meteor effect
@@ -353,6 +356,13 @@ protected:
     wxPoint cached_xy;
 //end of piano support stuff -DJ
 
+//cached list of pixels to turn on, indexed by frame (timestamp):
+//this is the required output after applying the effect in Nutcracker
+//xLights will then remap these pixels thru the custom or built-in model back to xLights channels
+    std::vector<std::vector<std::pair<wxPoint, wxColor>>> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
+//remapped Vixen channels for Picture effect: -DJ
+    void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);
+
 
     class PaletteClass
     {
@@ -455,6 +465,7 @@ protected:
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
+    void RenderIcicleDrip(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2);
     void RenderMeteorsExplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
     void RenderMetaBalls(int numBalls);

@@ -185,7 +185,7 @@ public:
         REMOVE_SCRIPT_BUTTON
     };
     long SecondsRemaining, EndTimeSec;
-    int TxOverflowCnt;
+    int TxOverflowCnt, TxOverflowTotal;
     xOutput* xout;
 
     void BasicPrompt(char* prompt, char* buff, int size);

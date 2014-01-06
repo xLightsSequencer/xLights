@@ -86,6 +86,7 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel1_SingleStrand;
 		wxStaticText* StaticText41;
 		wxPanel* Panel1;
+		wxCheckBox* CheckBox_OverlayBkg;
 		wxBitmapButton* BitmapButton_Palette5;
 		wxPanel* Panel1_Spirograph;
 		wxBitmapButton* BitmapButton_FadeOut;
@@ -145,6 +146,7 @@ class EffectsPanel: public wxPanel
 		wxChoicebook* Choicebook1;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText35;
+		wxBitmapButton* BitmapButton_OverlayBkg;
 		wxBitmapButton* BitmapButton_TwinkleCount;
 		wxBitmapButton* BitmapButton_TextDir2;
 		wxBitmapButton* BitmapButton_MeteorsCount;
@@ -673,6 +675,8 @@ class EffectsPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadeout;
 		static const long ID_CHECKBOX_FitToTime;
 		static const long ID_BITMAPBUTTON_CHECKBOX_FitToTime;
+		static const long ID_CHECKBOX_OverlayBkg;
+		static const long ID_BITMAPBUTTON_OverlayBkg;
 		//*)
 
 	private:
@@ -800,6 +804,7 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_Chase_Type1Click(wxCommandEvent& event);
 		void OnBitmapButton_Chase_3dFade1Click(wxCommandEvent& event);
 		void OnBitmapButton_R_TO_L1Click(wxCommandEvent& event);
+		void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);
@@ -825,6 +830,7 @@ class EffectsPanel: public wxPanel
 public:
         bool isRandom_(void);
         void UpdateSpeedText();
+        bool WantOverlayBkg(void); //selectable clear canvas before render -DJ
 };
 
 #endif

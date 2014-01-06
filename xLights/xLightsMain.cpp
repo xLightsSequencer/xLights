@@ -1331,6 +1331,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffect.Add("Right");
     MeteorsEffect.Add("Implode");
     MeteorsEffect.Add("Explode");
+    MeteorsEffect.Add("Icicles"); //random length drip effect -DJ
+    MeteorsEffect.Add("Icicles + bkg"); //with bkg (dim) icicles -DJ
 
     TextEffectDirections.Add("left"); //0
     TextEffectDirections.Add("right"); //1
@@ -1341,6 +1343,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextEffectDirections.Add("down-left"); //6
     TextEffectDirections.Add("up-right"); //7
     TextEffectDirections.Add("down-right"); //8
+    TextEffectDirections.Add("wavey L-R/up-down"); //9
+//    TextEffectDirections.Add("bouncey L-R/up-down"); //TODO
+//TODO: should animation movement be factored out and applied to any effect? (at least the line-based effects, probably not for fills) -DJ
 
     PictureEffectDirections.Add("left"); //0
     PictureEffectDirections.Add("right"); //1
@@ -1358,7 +1363,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("peekaboo 90"); //13; horizontal peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 180"); //14; upside down peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
-    PictureEffectDirections.Add("vix remap"); //16; animated csv or sdv file of pixel values -DJ
+    PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -1408,7 +1413,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SingleStrandTypes.Add("Bounce");  //3
     SingleStrandTypes.Add("Pacman");  //3
 
-
     TextEffects.Add("normal");
     TextEffects.Add("vert text up");
     TextEffects.Add("vert text down");
@@ -1419,7 +1423,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     TextCountDown.Add("none");
     TextCountDown.Add("seconds");
-    TextCountDown.Add("to date");
+    TextCountDown.Add("to date 'd h m s'");
+    TextCountDown.Add("to date 'h:m:s'"); //for smaller grids -DJ
+    TextCountDown.Add("to date 'm' or 's'"); //-DJ
+    TextCountDown.Add("to date 's'"); //for smallest grids -DJ
 
     InitEffectsPanel(EffectsPanel1);
     InitEffectsPanel(EffectsPanel2);

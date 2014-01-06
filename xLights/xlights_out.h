@@ -49,6 +49,7 @@ public:
     virtual ~xNetwork();
     void CloseSerialPort();
     virtual bool TxEmpty() = 0;
+    virtual size_t TxNonEmptyCount() = 0;
     void SetNetworkDesc(wxString& NetworkDesc);
     wxString GetNetworkDesc();
     size_t GetChannelCount();
@@ -91,6 +92,7 @@ public:
     void TimerEnd();
     void ClosePorts();
     bool TxEmpty();
+    size_t TxNonEmptyCount(void);
 };
 
 #endif // XLIGHTSOUT_H
