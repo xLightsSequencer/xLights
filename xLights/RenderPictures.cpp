@@ -110,11 +110,11 @@ wrdebug(1, "read line '%s'", (const char*)linebuf.c_str());
         wxStringTokenizer tkz(linebuf, wxT(" "));
         for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
         {
-            byte chval = wxAtoi(tkz.GetNextToken());
+            wxByte chval = wxAtoi(tkz.GetNextToken());
             wrdebug(1, "got chval %d for ch %d, frame %d", chval, chnum, PixelsByFrame.size());
             if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
             std::pair<wxPoint, wxColor> new_pixel;
-            static byte rgb[3];
+            static wxByte rgb[3];
             switch (nodesize)
             {
                 case 1: //map each Vixen channel to a monochrome pixel
