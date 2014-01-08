@@ -11,7 +11,7 @@ xLights/Nutcracker on Mac OS/X.
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 2.9.5.
+of wxWidgets for xLights/Nutcracker is 3.0.0.
 
 Unfortunately, xLights/Nutcracker cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
