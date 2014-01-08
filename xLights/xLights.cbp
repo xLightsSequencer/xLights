@@ -31,7 +31,7 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mthreads" />
-					<Add library="libwxmsw29ud.a" />
+					<Add library="libwxmsw30ud.a" />
 				</Linker>
 			</Target>
 			<Target title="ReleaseWindows">
@@ -59,7 +59,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="-mthreads" />
-					<Add library="libwxmsw29u.a" />
+					<Add library="libwxmsw30u.a" />
 				</Linker>
 			</Target>
 			<Target title="DebugLinux">
