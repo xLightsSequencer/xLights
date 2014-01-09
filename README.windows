@@ -10,7 +10,7 @@ http://www.nutcracker123.com/nutcracker/releases/
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 2.9.4.  Do not use the pre-compiled 
+of wxWidgets for xLights/Nutcracker is 3.0.0.  Do not use the pre-compiled 
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
 
@@ -22,7 +22,7 @@ Here are the steps to compile xLights/Nutcracker for Windows.
         http://www.codeblocks.org/downloads
      This includes Code::Blocks and the GNU C++ compiler needed for building xLights.
 
-  c) wxWidgets for Windows (currently using version 2.9.5)
+  c) wxWidgets for Windows (currently using version 3.0.0)
 
      NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
            WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
@@ -33,10 +33,14 @@ Here are the steps to compile xLights/Nutcracker for Windows.
         http://www.wxwidgets.org/downloads/
      The installer only puts the wxWidgets source code on your system, you will need
      to compile it yourself to create the dll. To compile it yourself:
+
      1) Open a command prompt
      2) cd to the build\msw directory under your wxWidgets base directory
      3) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
      4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
+     5) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version, 
+        then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
+        (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
 
   d) In Code::Blocks:
      1) select Settings > Compiler
@@ -49,7 +53,7 @@ Here are the steps to compile xLights/Nutcracker for Windows.
      5) Make sure "wx" is defined under Settings > Global Variables
         as described in the Code::Blocks documentation. It should be
         set to your wxWidgets base directory. Just the "Base" field
-        needs to be filled in - to something like "C:\wxWidgets-2.9.5",
+        needs to be filled in - to something like "C:\wxWidgets-3.0.0",
         assuming that is where your copy of wxWidgets is located.
 
   e) Now you are ready to use Code::Blocks to build xLights
