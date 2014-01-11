@@ -698,13 +698,13 @@ char xLightsFrame::ExtType(const wxString& ext)
     }
     else if (ext == _("wav") || ext == _("mp3") ||
              ext == _("wma") || ext == _("aac") ||
-             ext == _("mid"))
+             ext == _("mid") || ext == _("m4a"))
     {
         return 'a';
     }
     else if (ext == _("avi") || ext == _("mp4") ||
              ext == _("wmv") || ext == _("mov") ||
-             ext == _("mpg"))
+             ext == _("mpg") || ext == _("3gp"))
     {
         return 'v';
     }
