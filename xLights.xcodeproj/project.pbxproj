@@ -79,6 +79,7 @@
 		67C7968F17B578B100CEE775 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67C7968E17B578B100CEE775 /* icon.icns */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
+		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -465,6 +466,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,

@@ -1,3 +1,19 @@
+/***************************************************************
+ * Name:      xLightsMain.cpp
+ * Purpose:   Code for Application Frame
+ * Author:    Matt Brown (dowdybrown@yahoo.com)
+ * Created:   2012-11-03
+ * Copyright: Matt Brown ()
+ * License:
+ **************************************************************/
+
+#include "xLightsMain.h"
+
+// xml
+#include "../include/xml-irr-1.2/irrXML.h"
+using namespace irr;
+using namespace io;
+
 /*
  * ********************************************
  * ********************************************
@@ -1321,6 +1337,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int EffectCnt = 0;
     size_t network,chindex;
     long cnt = 0;
+    std::vector<int> unitSizes;
+    int lastNet = 0;
     LorTimingList.clear();
 
     ConversionInit();
@@ -1363,9 +1381,20 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 wxYield();
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
+                if (network != lastNet) {
+                    unitSizes.clear();
+                    lastNet = network;
+                }
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
                 circuit = xml->getAttributeValueAsInt("circuit");
+                if (unit > unitSizes.size()) {
+                    unitSizes.resize(unitSizes.size() + 1);
+                    unitSizes[unit - 1] = 16;
+                }
+                if (circuit > unitSizes[unit - 1]) {
+                    unitSizes[unit - 1] = circuit;
+                }
                 if (deviceType.Left(3) == wxT("DMX"))
                 {
                     chindex=circuit-1;
@@ -1373,7 +1402,11 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 }
                 else
                 {
-                    chindex=(unit-1)*16+circuit-1;
+                    chindex = 0;
+                    for (int z = 0; z < (unit - 1); z++) {
+                        chindex += unitSizes[z];
+                    }
+                    chindex += circuit-1;
                 }
                 ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
                 curchannel = NetInfo.CalcAbsChannel(network,chindex);

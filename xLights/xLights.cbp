@@ -172,10 +172,7 @@
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
 		<Unit filename="ShowDatesDialog.h" />
-		<Unit filename="TabConvert.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="TabConvert.cpp" />
 		<Unit filename="TabPreview.cpp">
 			<Option compile="0" />
 			<Option link="0" />
