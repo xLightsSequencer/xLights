@@ -95,9 +95,9 @@ void xLightsFrame::GetTestPresetNames(wxArrayString& PresetNames)
     if (!root) return;
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("testpreset"))
+        if (e->GetName() == "testpreset")
         {
-            name=e->GetAttribute(wxT("name"), wxT(""));
+            name=e->GetAttribute("name", "");
             if (!name.IsEmpty()) PresetNames.Add(name);
         }
     }
@@ -128,11 +128,11 @@ void xLightsFrame::OnButtonTestLoadClick(wxCommandEvent& event)
     wxXmlNode* root=NetworkXML.GetRoot();
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("testpreset") && e->GetAttribute(wxT("name"), wxT("")) == name)
+        if (e->GetName() == "testpreset" && e->GetAttribute("name", "") == name)
         {
             for( wxXmlNode* c=e->GetChildren(); c!=NULL; c=c->GetNext() )
             {
-                if (c->GetName() == wxT("channel") && c->GetAttribute(wxT("id"), &chidstr) && chidstr.ToLong(&chid) && chid >= 0 && chid < ChCount)
+                if (c->GetName() == "channel" && c->GetAttribute("id", &chidstr) && chidstr.ToLong(&chid) && chid >= 0 && chid < ChCount)
                 {
                     CheckListBoxTestChannels->Check(chid,true);
                 }
@@ -173,16 +173,16 @@ void xLightsFrame::OnButtonTestSaveClick(wxCommandEvent& event)
     }
     else
     {
-        PresetNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("testpreset") );
-        PresetNode->AddAttribute( wxT("name"), name);
+        PresetNode = new wxXmlNode( wxXML_ELEMENT_NODE, "testpreset" );
+        PresetNode->AddAttribute( "name", name);
         root->AddChild( PresetNode );
         int ChCount = CheckListBoxTestChannels->GetCount();
         for (int c=0; c < ChCount; c++)
         {
             if (CheckListBoxTestChannels->IsChecked(c))
             {
-                channel = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("channel") );
-                channel->AddAttribute( wxT("id"), wxString::Format(wxT("%d"),c));
+                channel = new wxXmlNode( wxXML_ELEMENT_NODE, "channel" );
+                channel->AddAttribute( "id", wxString::Format("%d",c));
                 PresetNode->AddChild( channel );
             }
         }

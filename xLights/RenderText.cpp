@@ -80,10 +80,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
              lf.lfPitchAndFamily,
              lf.lfFaceName);*/
     wxString s = Font1.GetNativeFontInfoDesc();
-    s.Replace(wxT(";2;"),wxT(";3;"),false);
+    s.Replace(";2;",";3;",false);
     Font1.SetNativeFontInfo(s);
     s = Font2.GetNativeFontInfoDesc();
-    s.Replace(wxT(";2;"),wxT(";3;"),false);
+    s.Replace(";2;",";3;",false);
     Font2.SetNativeFontInfo(s);
 #endif
 
@@ -169,7 +169,7 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         }
         seconds=(timer_countdown[idx]-curPeriod)/20;
         if(seconds < 0) seconds=0;
-        msg=wxString::Format(wxT("%i"),seconds);
+        msg=wxString::Format("%i",seconds);
         break;
     case COUNTDOWN_D_H_M_S:
     case COUNTDOWN_H_M_S:
@@ -197,15 +197,15 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         minutes = (longsecs / 60) % 60;
         seconds = longsecs % 60;
         if (Countdown == COUNTDOWN_D_H_M_S)
-            msg=wxString::Format(wxT("%dd %dh %dm %ds"),days,hours,minutes,seconds);
+            msg=wxString::Format("%dd %dh %dm %ds",days,hours,minutes,seconds);
         else if (Countdown == COUNTDOWN_H_M_S)
-            msg = wxString::Format(wxT("%d : %d : %d"), hours, minutes, seconds);
+            msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
         else if (Countdown == COUNTDOWN_S)
-            msg = wxString::Format(wxT("%d"), 60*60 * hours + 60 * minutes + seconds);
+            msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
         else if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-            msg = wxString::Format(wxT("%d"), 60*60 * hours + 60 * minutes + seconds);
+            msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
         else //COUNTDOWN_M_or_S: show minutes
-            msg = wxString::Format(wxT("%d m"), 60 * hours + minutes);
+            msg = wxString::Format("%d m", 60 * hours + minutes);
         break;
     default:
         msg=Line;

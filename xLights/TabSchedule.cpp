@@ -239,7 +239,7 @@ void xLightsFrame::OnButtonPlaylistAddClick(wxCommandEvent& event)
     if (!selid.IsOk() || root==selid) return;
     wxString selstr = TreeCtrlFiles->GetItemText(selid);
     long newidx = ListBoxPlay->InsertItem(ListBoxPlay->GetItemCount(), selstr);
-    ListBoxPlay->SetItem(newidx,1,wxT("0"));
+    ListBoxPlay->SetItem(newidx,1,"0");
     ListBoxPlay->SetColumnWidth(0,wxLIST_AUTOSIZE);
     UnsavedChanges=true;
     ScanForFiles();
@@ -259,7 +259,7 @@ void xLightsFrame::OnButtonPlaylistAddAllClick(wxCommandEvent& event)
         if (item != root)
         {
             long newidx = ListBoxPlay->InsertItem(ListBoxPlay->GetItemCount(), TreeCtrlFiles->GetItemText(item));
-            ListBoxPlay->SetItem(newidx,1,wxT("0"));
+            ListBoxPlay->SetItem(newidx,1,"0");
             UnsavedChanges=true;
             cnt++;
         }
@@ -331,7 +331,7 @@ void xLightsFrame::CheckSchedule()
     wxDateTime n=wxDateTime::Now();
     long SecPastMidnight=n.GetHour()*60*60 + n.GetMinute()*60 + n.GetSecond();
     if (LastSecPastMidnight == SecPastMidnight) return;
-    wxString CurrentMoDay = n.Format(wxT("%m%d"));
+    wxString CurrentMoDay = n.Format("%m%d");
     //StatusBar1->SetStatusText(_("OnSchedTimer: ") + n.FormatISOTime());
 
     if (basic.IsRunning())
@@ -404,8 +404,8 @@ void xLightsFrame::CheckSchedule()
                 if (SecPastMidnight < EndTimeSec && AlreadyPlayed.Index(EventString) == wxNOT_FOUND)
                 {
                     MoreShowsToday = true;
-                    strStartTime = StartTime.Left(2) + wxT(":") + StartTime.Right(2);
-                    strEndTime = EndTime.Left(2) + wxT(":") + EndTime.Right(2);
+                    strStartTime = StartTime.Left(2) + ":" + StartTime.Right(2);
+                    strEndTime = EndTime.Left(2) + ":" + EndTime.Right(2);
                     break;
                 }
                 i++;
@@ -692,19 +692,19 @@ char xLightsFrame::ExtType(const wxString& ext)
     {
         return 'X';
     }
-    else if (ext == _("lms") || ext == _("las"))
+    else if (ext == "lms" || ext == "las")
     {
         return 'L';
     }
-    else if (ext == _("wav") || ext == _("mp3") ||
-             ext == _("wma") || ext == _("aac") ||
-             ext == _("mid") || ext == _("m4a"))
+    else if (ext == "wav" || ext == "mp3" ||
+             ext == "wma" || ext == "aac" ||
+             ext == "mid" || ext == "m4a")
     {
         return 'a';
     }
-    else if (ext == _("avi") || ext == _("mp4") ||
-             ext == _("wmv") || ext == _("mov") ||
-             ext == _("mpg") || ext == _("3gp"))
+    else if (ext == "avi" || ext == "mp4" ||
+             ext == "wmv" || ext == "mov" ||
+             ext == "mpg" || ext == "3gp")
     {
         return 'v';
     }
@@ -739,7 +739,7 @@ void xLightsFrame::OnButtonSetDelayClick(wxCommandEvent& event)
                                         _("Enter the number of seconds (0-3600)"), _("Set Delay"), CurrentValue, 0, 3600, this);
     if (NewValue >= 0)
     {
-        delay = wxString::Format(wxT("%ld"),NewValue);
+        delay = wxString::Format("%ld",NewValue);
         ListBoxPlay->SetItem(SelectedItem, 1, delay);
         UnsavedChanges=true;
     }
@@ -877,7 +877,7 @@ void xLightsFrame::OnButtonUpClick(wxCommandEvent& event)
             ColText[c].Add(listcol.GetText());
         }
     }
-    //wxMessageBox(wxString::Format(wxT("SelectedItem=%ld"),SelectedItem), wxT("DEBUG"));
+    //wxMessageBox(wxString::Format("SelectedItem=%ld",SelectedItem), "DEBUG");
 
     ListBoxPlay->DeleteAllItems();
 
@@ -950,7 +950,7 @@ void xLightsFrame::OnButtonDownClick(wxCommandEvent& event)
             ColText[c].Add(listcol.GetText());
         }
     }
-    //wxMessageBox(wxString::Format(wxT("SelectedItem=%ld"),SelectedItem), wxT("DEBUG"));
+    //wxMessageBox(wxString::Format("SelectedItem=%ld",SelectedItem), "DEBUG");
 
     ListBoxPlay->DeleteAllItems();
 
@@ -1063,32 +1063,32 @@ void xLightsFrame::SaveScheduleFile()
     wxTextCtrl* TextCtrlLogic;
     wxXmlDocument doc;
     wxXmlNode *item, *plist, *scriptnode, *scripttext;
-    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("xSchedule") );
-    root->AddAttribute( wxT("computer"), wxGetHostName());
+    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xSchedule" );
+    root->AddAttribute( "computer", wxGetHostName());
     doc.SetRoot( root );
 
     // save schedule
-    wxXmlNode* sched = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("schedule") );
-    sched->AddAttribute( wxT("schedstart"), ShowStartDate.FormatISODate() );
-    sched->AddAttribute( wxT("schedend"), ShowEndDate.FormatISODate() );
+    wxXmlNode* sched = new wxXmlNode( wxXML_ELEMENT_NODE, "schedule" );
+    sched->AddAttribute( "schedstart", ShowStartDate.FormatISODate() );
+    sched->AddAttribute( "schedend", ShowEndDate.FormatISODate() );
     root->AddChild(sched);
     int cnt=ShowEvents.GetCount();
     for (int i=0; i<cnt; i++)
     {
         item = new wxXmlNode( wxXML_ELEMENT_NODE, _("calevent") );
-        item->AddAttribute( wxT("schedcode"), ShowEvents[i] );
+        item->AddAttribute( "schedcode", ShowEvents[i] );
         sched->AddChild( item );
     }
 
     // save playlists
-    wxXmlNode* lists = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("playlists") );
+    wxXmlNode* lists = new wxXmlNode( wxXML_ELEMENT_NODE, "playlists" );
     root->AddChild(lists);
 
     cnt=Notebook1->GetPageCount();
     for (int pagenum=FixedPages; pagenum < cnt; pagenum++)
     {
-        plist = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("playlist") );
-        plist->AddAttribute( wxT("name"), Notebook1->GetPageText(pagenum) );
+        plist = new wxXmlNode( wxXML_ELEMENT_NODE, "playlist" );
+        plist->AddAttribute( "name", Notebook1->GetPageText(pagenum) );
         baseid=1000*pagenum;
         wxListCtrl* ListBoxPlay=(wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
         for (int i=CHKBOX_AUDIO; i<=CHKBOX_MOVIEMODE; i++)
@@ -1105,20 +1105,20 @@ void xLightsFrame::SaveScheduleFile()
         for (unsigned int r=0; r < RowCount; r++ )
         {
             item = new wxXmlNode( wxXML_ELEMENT_NODE, _("listitem") );
-            item->AddAttribute( wxT("name"), ListBoxPlay->GetItemText(r) );
+            item->AddAttribute( "name", ListBoxPlay->GetItemText(r) );
             column1.SetId(r);
             column1.SetColumn(1);
             column1.SetMask(wxLIST_MASK_TEXT);
             ListBoxPlay->GetItem(column1);
-            item->AddAttribute( wxT("delay"), column1.GetText() );
+            item->AddAttribute( "delay", column1.GetText() );
             plist->AddChild( item );
         }
 
         TextCtrlLogic = (wxTextCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LOGIC,Notebook1);
         if (TextCtrlLogic && TextCtrlLogic->IsShown())
         {
-            scriptnode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("script") );
-            scripttext = new wxXmlNode( wxXML_TEXT_NODE, wxT("scripttext") );
+            scriptnode = new wxXmlNode( wxXML_ELEMENT_NODE, "script" );
+            scripttext = new wxXmlNode( wxXML_TEXT_NODE, "scripttext" );
             scripttext->SetContent( TextCtrlLogic->GetValue() );
             plist->AddChild( scriptnode );
             scriptnode->AddChild( scripttext );
@@ -1173,20 +1173,20 @@ void xLightsFrame::LoadSchedule(wxXmlNode* n)
 {
     wxDateTime NewStart = wxDateTime::Now();
     wxDateTime NewEnd = wxDateTime::Now();
-    if (n->HasAttribute(wxT("schedstart")))
+    if (n->HasAttribute("schedstart"))
     {
-        NewStart.ParseFormat(n->GetAttribute( wxT("schedstart"), wxT("")), wxT("%Y-%m-%d"));
+        NewStart.ParseFormat(n->GetAttribute( "schedstart", ""), "%Y-%m-%d");
     }
-    if (n->HasAttribute(wxT("schedend")))
+    if (n->HasAttribute("schedend"))
     {
-        NewEnd.ParseFormat(n->GetAttribute( wxT("schedend"), wxT("")), wxT("%Y-%m-%d"));
+        NewEnd.ParseFormat(n->GetAttribute( "schedend", ""), "%Y-%m-%d");
     }
     UpdateShowDates(NewStart,NewEnd);
     for( wxXmlNode* e=n->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == _("calevent"))
         {
-            wxString schedcode = e->GetAttribute( wxT("schedcode"), wxT(""));
+            wxString schedcode = e->GetAttribute( "schedcode", "");
             if (schedcode.Len() > 10) ShowEvents.Add(schedcode);
         }
     }
@@ -1207,7 +1207,7 @@ void xLightsFrame::LoadPlaylist(wxXmlNode* n)
 {
     wxCheckBox* chkbox;
     wxString chkval;
-    wxString name = n->GetAttribute( wxT("name"), wxT(""));
+    wxString name = n->GetAttribute( "name", "");
     int baseid=1000*Notebook1->GetPageCount();
     AddPlaylist(name);
     for (int i=CHKBOX_AUDIO; i<=CHKBOX_MOVIEMODE; i++)
@@ -1216,7 +1216,7 @@ void xLightsFrame::LoadPlaylist(wxXmlNode* n)
         if (!chkbox) continue;
         wxString label = chkbox->GetLabelText();
         label.Replace(_(" "), _(""));
-        chkval = n->GetAttribute(label, wxT("0"));
+        chkval = n->GetAttribute(label, "0");
         chkbox->SetValue( chkval == _("1") );
     }
     wxListCtrl* ListBoxPlay = (wxListCtrl*)wxWindow::FindWindowById(baseid+PLAYLIST_LISTBOX,Notebook1);
@@ -1227,8 +1227,8 @@ void xLightsFrame::LoadPlaylist(wxXmlNode* n)
     {
         if (e->GetName() == _("listitem"))
         {
-            ListBoxPlay->InsertItem(cnt,e->GetAttribute(wxT("name"), wxT("")));
-            ListBoxPlay->SetItem(cnt,1,e->GetAttribute(wxT("delay"), wxT("0")));
+            ListBoxPlay->InsertItem(cnt,e->GetAttribute("name", ""));
+            ListBoxPlay->SetItem(cnt,1,e->GetAttribute("delay", "0"));
             cnt++;
         }
         else if (e->GetName() == _("script"))
@@ -1287,32 +1287,32 @@ void xLightsFrame::RunPlaylist(int nbidx, wxString& script)
 
 void xLightsFrame::SendToLogAndStatusBar(const wxString& msg)
 {
-    TextCtrlLog->AppendText(msg + wxT("\n"));
+    TextCtrlLog->AppendText(msg + "\n");
     StatusBar1->SetStatusText(msg);
 }
 
 wxString xLightsFrame::OnOffString(bool b)
 {
-    return b ? wxT("on") : wxT("off");
+    return b ? "on" : "off";
 }
 
 wxString xLightsFrame::CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random)
 {
     wxString script,loopsize;
-    wxString endoflist = Repeat ? wxT("180") : wxT("400");
-    wxString loopstart = FirstItemOnce ? wxT("2") : wxT("1");
-    wxString loopend = LastItemOnce ? wxT("PLAYLISTSIZE-1") : wxT("PLAYLISTSIZE");
+    wxString endoflist = Repeat ? "180" : "400";
+    wxString loopstart = FirstItemOnce ? "2" : "1";
+    wxString loopend = LastItemOnce ? "PLAYLISTSIZE-1": "PLAYLISTSIZE";
     if (FirstItemOnce && LastItemOnce)
     {
-        loopsize=wxT("PLAYLISTSIZE-2");
+        loopsize="PLAYLISTSIZE-2";
     }
     else if (FirstItemOnce || LastItemOnce)
     {
-        loopsize=wxT("PLAYLISTSIZE-1");
+        loopsize="PLAYLISTSIZE-1";
     }
     else
     {
-        loopsize=wxT("PLAYLISTSIZE");
+        loopsize="PLAYLISTSIZE";
     }
 
     script.Append(_("100 REM *\n"));
@@ -1471,7 +1471,7 @@ void xLightsFrame::OnButtonRunPlaylistClick(wxCommandEvent& event)
 int xLightsFrame::Time2Seconds(const wxString& hhmm)
 {
     long t;
-    if (hhmm == wxT("2359"))
+    if (hhmm == "2359")
     {
         return 24*60*60 - 1;
     }
@@ -1504,8 +1504,8 @@ void xLightsFrame::PopulateShowDialog(AddShowDialog& dialog, wxSortedArrayString
     wxDateTime SchedDay =  ShowStartDate;
     while (SchedDay <= ShowEndDate)
     {
-        MonthDayStr = SchedDay.Format(wxT("%m%d"));
-        idx = dialog.ListBoxDates->Append(SchedDay.Format(wxT("%a, %b %d, %Y")));
+        MonthDayStr = SchedDay.Format("%m%d");
+        idx = dialog.ListBoxDates->Append(SchedDay.Format("%a, %b %d, %Y"));
         if (SelectedDates.Index(MonthDayStr) != wxNOT_FOUND) dialog.ListBoxDates->Select(idx);
         SchedDay += wxTimeSpan::Day();
     }
@@ -1582,8 +1582,8 @@ int xLightsFrame::DisplayScheduleOneDay(const wxDateTime& d, const wxTreeItemId&
 {
     wxString EventDesc, RepeatDesc, StartTime, EndTime, RepeatOptions, Playlist;
     int cnt=0;
-    wxString MonthDayStr = d.Format(wxT("%m%d"));
-    wxString MonthDayHeading =d.Format(wxT("%A, %B %d, %Y"));
+    wxString MonthDayStr = d.Format("%m%d");
+    wxString MonthDayHeading =d.Format("%A, %B %d, %Y");
     wxTreeItemId DayItemId = ListBoxSched->AppendItem(root, MonthDayHeading);
     ListBoxSched->SetItemBold(DayItemId);
     for (unsigned int i=0; i < ShowEvents.Count(); i++)
@@ -1607,12 +1607,12 @@ int xLightsFrame::DisplayScheduleOneDay(const wxDateTime& d, const wxTreeItemId&
             {
                 RepeatDesc.clear();
             }
-            EventDesc=wxT("   ") + StartTime.Left(2) + wxT(":") + StartTime.Mid(2) + wxT(" to ") + EndTime.Left(2) + wxT(":") + EndTime.Mid(2) + wxT("  ") + Playlist + RepeatDesc;
+            EventDesc="   " + StartTime.Left(2) + ":" + StartTime.Mid(2) + " to " + EndTime.Left(2) + ":" + EndTime.Mid(2) + "  " + Playlist + RepeatDesc;
             ListBoxSched->AppendItem(DayItemId, EventDesc, -1, -1, new SchedTreeData(ShowEvents[i]));
             cnt++;
         }
     }
-    //if (cnt == 0) ListBoxSched->AppendItem(DayItemId, wxT("   <no show scheduled>"));
+    //if (cnt == 0) ListBoxSched->AppendItem(DayItemId, "   <no show scheduled>");
     return cnt;
 }
 
@@ -1640,7 +1640,7 @@ void xLightsFrame::DisplaySchedule()
 // adds the event to ShowEvents[]
 void xLightsFrame::AddShow(const wxDateTime& d, const wxString& StartStop, const wxString& Playlist)
 {
-    wxString MonthDayStr = d.Format(wxT("%m%d"));
+    wxString MonthDayStr = d.Format("%m%d");
     wxString SchedCode = MonthDayStr + StartStop + Playlist;
     ShowEvents.Add(SchedCode);
     UnsavedChanges=true;

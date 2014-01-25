@@ -56,43 +56,43 @@ void PixelBufferClass::Clear(int which)
 // convert MixName to MixType enum
 void PixelBufferClass::SetMixType(const wxString& MixName)
 {
-    if (MixName == wxT("Effect 1"))
+    if (MixName == "Effect 1")
     {
         MixType=Mix_Effect1;
     }
-    else if (MixName == wxT("Effect 2"))
+    else if (MixName == "Effect 2")
     {
         MixType=Mix_Effect2;
     }
-    else if (MixName == wxT("1 is Mask"))
+    else if (MixName == "1 is Mask")
     {
         MixType=Mix_Mask1;
     }
-    else if (MixName == wxT("2 is Mask"))
+    else if (MixName == "2 is Mask")
     {
         MixType=Mix_Mask2;
     }
-    else if (MixName == wxT("1 is Unmask"))
+    else if (MixName == "1 is Unmask")
     {
         MixType=Mix_Unmask1;
     }
-    else if (MixName == wxT("2 is Unmask"))
+    else if (MixName == "2 is Unmask")
     {
         MixType=Mix_Unmask2;
     }
-    else if (MixName == wxT("Layered"))
+    else if (MixName == "Layered")
     {
         MixType=Mix_Layered;
     }
-    else if (MixName == wxT("Average"))
+    else if (MixName == "Average")
     {
         MixType=Mix_Average;
     }
-    else if (MixName == wxT("Bottom-Top"))
+    else if (MixName == "Bottom-Top")
     {
         MixType=Mix_BottomTop;
     }
-    else if (MixName == wxT("Left-Right"))
+    else if (MixName == "Left-Right")
     {
         MixType=Mix_LeftRight;
     }
@@ -337,18 +337,18 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
                 case 1:
                 case 7:
                     // too dim
-                    //color.Set(wxT("#444444"));
+                    //color.Set("#444444");
                     break;
                 case 2:
                 case 6:
-                    color.Set(wxT("#888888"));
+                    color.Set("#888888");
                     break;
                 case 3:
                 case 5:
-                    color.Set(wxT("#BBBBBB"));
+                    color.Set("#BBBBBB");
                     break;
                 case 4:
-                    color.Set(wxT("#FFFFFF"));
+                    color.Set("#FFFFFF");
                     break;
                 }
                 Nodes[i]->sparkle++;

@@ -99,9 +99,9 @@ void PaletteMgmtDialog::ReloadPaletteList()
     ListBox1->Clear();
     for(wxXmlNode* e=PalettesNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("palette"))
+        if (e->GetName() == "palette")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
                 ListBox1->Append(name,e);
@@ -116,7 +116,7 @@ void PaletteMgmtDialog::LoadPalette(wxXmlNode* PaletteNode, EffectsPanel* panel)
     wxColour color;
     if (!PaletteNode) return;
     for (int i=1; i<=6; i++) {
-        AttrName.Printf(wxT("color%d"),i);
+        AttrName.Printf("color%d",i);
         color.Set(PaletteNode->GetAttribute(AttrName));
         panel->SetPaletteColor(i,&color);
     }
@@ -176,10 +176,10 @@ void PaletteMgmtDialog::SavePalette(EffectsPanel* panel)
     name.Trim(true);
     if (name.IsEmpty()) return; // user pressed cancel
     wxXmlNode* NewPalette = new wxXmlNode(wxXML_ELEMENT_NODE, _("palette"));
-    NewPalette->AddAttribute(wxT("name"), name);
+    NewPalette->AddAttribute("name", name);
     for (int i=1; i<=6; i++) {
         color=panel->GetPaletteColor(i);
-        AttrName.Printf(wxT("color%d"),i);
+        AttrName.Printf("color%d",i);
         NewPalette->AddAttribute(AttrName, color.GetAsString(wxC2S_HTML_SYNTAX));
     }
     PalettesNode->AddChild(NewPalette);

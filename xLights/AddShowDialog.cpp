@@ -147,7 +147,7 @@ wxString AddShowDialog::PartialEventCode()
     wxString PartialCode;
     int StartTime = SpinCtrlStartHour->GetValue()*100 + SpinCtrlStartMinute->GetValue();
     int EndTime = SpinCtrlEndHour->GetValue()*100 + SpinCtrlEndMinute->GetValue();
-    PartialCode.Printf(wxT("%04d-%04d %c%c%c%c"),StartTime,EndTime,
+    PartialCode.Printf("%04d-%04d %c%c%c%c",StartTime,EndTime,
                        CheckBoxRepeat->IsChecked() ? 'R' : '-',
                        CheckBoxFirstItem->IsChecked() ? 'F' : '-',
                        CheckBoxLastItem->IsChecked() ? 'L' : '-',

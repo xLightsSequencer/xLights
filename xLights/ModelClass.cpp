@@ -37,17 +37,17 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     StrobeRate=0;
     Nodes.clear();
 
-    name=ModelNode->GetAttribute(wxT("name"));
-    DisplayAs=ModelNode->GetAttribute(wxT("DisplayAs"));
-    if (ModelNode->HasAttribute(wxT("StringType")))
+    name=ModelNode->GetAttribute("name");
+    DisplayAs=ModelNode->GetAttribute("DisplayAs");
+    if (ModelNode->HasAttribute("StringType"))
     {
         // post 3.1.4
-        StringType=ModelNode->GetAttribute(wxT("StringType"));
+        StringType=ModelNode->GetAttribute("StringType");
     }
     else
     {
         // 3.1.4 and earlier
-        StringType=ModelNode->GetAttribute(wxT("Order"),wxT("RGB"))+wxT(" Nodes");
+        StringType=ModelNode->GetAttribute("Order","RGB")+" Nodes";
     }
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
@@ -56,49 +56,49 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     rgbidx[1]=std::max(RGBorder.Find('G'),0);
     rgbidx[2]=std::max(RGBorder.Find('B'),0);
 
-    tempstr=ModelNode->GetAttribute(wxT("parm1"));
+    tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);
-    tempstr=ModelNode->GetAttribute(wxT("parm2"));
+    tempstr=ModelNode->GetAttribute("parm2");
     tempstr.ToLong(&parm2);
-    tempstr=ModelNode->GetAttribute(wxT("parm3"));
+    tempstr=ModelNode->GetAttribute("parm3");
     tempstr.ToLong(&parm3);
-    tempstr=ModelNode->GetAttribute(wxT("StartChannel"),wxT("1"));
+    tempstr=ModelNode->GetAttribute("StartChannel","1");
     tempstr.ToLong(&StartChannel);
-    tempstr=ModelNode->GetAttribute(wxT("Dir"));
-    IsLtoR=tempstr != wxT("R");
-    if (ModelNode->HasAttribute(wxT("StartSide")))
+    tempstr=ModelNode->GetAttribute("Dir");
+    IsLtoR=tempstr != "R";
+    if (ModelNode->HasAttribute("StartSide"))
     {
-        tempstr=ModelNode->GetAttribute(wxT("StartSide"));
-        isBotToTop = (tempstr == wxT("B"));
+        tempstr=ModelNode->GetAttribute("StartSide");
+        isBotToTop = (tempstr == "B");
     }
     else
     {
         isBotToTop=true;
     }
-    if (ModelNode->HasAttribute(wxT("CustomModel")))
+    if (ModelNode->HasAttribute("CustomModel"))
     {
-        customModel = ModelNode->GetAttribute(wxT("CustomModel"));
+        customModel = ModelNode->GetAttribute("CustomModel");
     }
 
-    tempstr=ModelNode->GetAttribute(wxT("Antialias"),wxT("0"));
+    tempstr=ModelNode->GetAttribute("Antialias","0");
     tempstr.ToLong(&Antialias);
     AliasFactor=1 << Antialias;
     MyDisplay=IsMyDisplay(ModelNode);
 
-    tempstr=ModelNode->GetAttribute(wxT("offsetXpct"),wxT("0"));
+    tempstr=ModelNode->GetAttribute("offsetXpct","0");
     tempstr.ToDouble(&offsetXpct);
-    tempstr=ModelNode->GetAttribute(wxT("offsetYpct"),wxT("0"));
+    tempstr=ModelNode->GetAttribute("offsetYpct","0");
     tempstr.ToDouble(&offsetYpct);
-    tempstr=ModelNode->GetAttribute(wxT("PreviewScale"),wxT("0.333"));
+    tempstr=ModelNode->GetAttribute("PreviewScale","0.333");
     tempstr.ToDouble(&PreviewScale);
-    tempstr=ModelNode->GetAttribute(wxT("PreviewRotation"),wxT("0"));
+    tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
     PreviewRotation=degrees;
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
-    tempstr=ModelNode->GetAttribute(wxT("Advanced"),wxT("0"));
-    bool HasIndividualStartChans=tempstr == wxT("1");
+    tempstr=ModelNode->GetAttribute("Advanced","0");
+    bool HasIndividualStartChans=tempstr == "1";
     int ChannelsPerString=parm2*3;
     if (SingleChannel)
         ChannelsPerString=1;
@@ -122,51 +122,51 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     }
 
     // initialize model based on the DisplayAs value
-    wxStringTokenizer tkz(DisplayAs, wxT(" "));
+    wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    if (token == wxT("Tree"))
+    if (token == "Tree")
     {
         InitVMatrix();
         token = tkz.GetNextToken();
         token.ToLong(&degrees);
         SetTreeCoord(degrees);
     }
-    else if (DisplayAs == wxT("Custom"))
+    else if (DisplayAs == "Custom")
     {
         InitCustomMatrix(customModel);
         CopyBufCoord2ScreenCoord();
     }
-    else if (DisplayAs == wxT("Vert Matrix"))
+    else if (DisplayAs == "Vert Matrix")
     {
         InitVMatrix();
         CopyBufCoord2ScreenCoord();
     }
-    else if (DisplayAs == wxT("Horiz Matrix"))
+    else if (DisplayAs == "Horiz Matrix")
     {
         InitHMatrix();
         CopyBufCoord2ScreenCoord();
     }
-    else if (DisplayAs == wxT("Single Line"))
+    else if (DisplayAs == "Single Line")
     {
         InitLine();
         SetLineCoord();
     }
-    else if (DisplayAs == wxT("Arches"))
+    else if (DisplayAs == "Arches")
     {
         InitHMatrix(); // Old call was InitLine();
         SetArchCoord();
     }
-    else if (DisplayAs == wxT("Window Frame"))
+    else if (DisplayAs == "Window Frame")
     {
         InitFrame();
         CopyBufCoord2ScreenCoord();
     }
-    else if (DisplayAs == wxT("Star"))
+    else if (DisplayAs == "Star")
     {
         InitStar();
         CopyBufCoord2ScreenCoord();
     }
-    else if (DisplayAs == wxT("Wreath"))
+    else if (DisplayAs == "Wreath")
     {
         InitWreath();
         CopyBufCoord2ScreenCoord();
@@ -197,7 +197,7 @@ void ModelClass::SetChanIntensityAll(size_t nodenum, uint8_t intensity)
 // only valid for rgb nodes and dumb strings (not traditional strings)
 wxChar ModelClass::GetChannelColorLetter(wxByte chidx)
 {
-    wxString rgb=wxT("RGB");
+    wxString rgb="RGB";
     return rgb[rgbidx[chidx]];
 }
 
@@ -360,7 +360,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
             for(size_t col=0; col < cols.size(); col++)
             {
                 value=cols[col];
-                if (!value.IsEmpty() && value != wxT("0"))
+                if (!value.IsEmpty() && value != "0")
                 {
                     Nodes[0]->AddBufCoord(col,height - row - 1);
                 }
@@ -375,7 +375,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
             for(size_t col=0; col < cols.size(); col++)
             {
                 value=cols[col];
-                if (!value.IsEmpty() && value != wxT("0"))
+                if (!value.IsEmpty() && value != "0")
                 {
                     // add a node
                     newnode=new NodeBaseClass();
@@ -411,7 +411,7 @@ void ModelClass::SetTreeCoord(long degrees)
     double radius=RenderWi/2.0;
     double StartAngle=-radians/2.0;
     double AngleIncr=radians/double(BufferWi-1);
-    //wxString msg=wxString::Format(wxT("BufferHt=%d, BufferWi=%d, factor=%d, RenderHt=%d, RenderWi=%d\n"),BufferHt,BufferWi,factor,RenderHt,RenderWi);
+    //wxString msg=wxString::Format("BufferHt=%d, BufferWi=%d, factor=%d, RenderHt=%d, RenderWi=%d\n",BufferHt,BufferWi,factor,RenderHt,RenderWi);
     size_t NodeCount=GetNodeCount();
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -708,19 +708,19 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
 {
     size_t n;
     if (SingleNode) {
-        if (StringType==wxT("Single Color Red")) {
+        if (StringType=="Single Color Red") {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString)));
-        } else if (StringType==wxT("Single Color Green")) {
+        } else if (StringType=="Single Color Green") {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString)));
-        } else if (StringType==wxT("Single Color Blue")) {
+        } else if (StringType=="Single Color Blue") {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString)));
-        } else if (StringType==wxT("Single Color White")) {
+        } else if (StringType=="Single Color White") {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
-        } else if (StringType==wxT("Strobes White 3fps")) {
+        } else if (StringType=="Strobes White 3fps") {
             StrobeRate=7;  // 1 out of every 7 frames
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
@@ -740,7 +740,7 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
 
 bool ModelClass::CanRotate()
 {
-    return DisplayAs == wxT("Single Line");
+    return DisplayAs == "Single Line";
 }
 
 void ModelClass::Rotate(int degrees)
@@ -787,42 +787,42 @@ wxString ModelClass::ChannelLayoutHtml()
     wxString bgcolor;
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
-    bool IsCustom = DisplayAs == wxT("Custom");
+    bool IsCustom = DisplayAs == "Custom";
     wxString direction;
     if (IsCustom) {
-        direction=wxT("n/a");
+        direction="n/a";
     } else if (!IsLtoR) {
         if(!isBotToTop)
-            direction=wxT("Top Right");
+            direction="Top Right";
         else
-            direction=wxT("Bottom Right");
+            direction="Bottom Right";
     } else {
         if (!isBotToTop)
-            direction=wxT("Top Left");
+            direction="Top Left";
         else
-            direction=wxT("Bottom Left");
+            direction="Bottom Left";
     }
 
-    wxString html = wxT("<html><body><table border=0>");
-    html+=wxT("<tr><td>Name:</td><td>")+name+wxT("</td></tr>");
-    html+=wxT("<tr><td>Display As:</td><td>")+DisplayAs+wxT("</td></tr>");
-    html+=wxT("<tr><td>String Type:</td><td>")+StringType+wxT("</td></tr>");
-    html+=wxT("<tr><td>Start Corner:</td><td>")+direction+wxT("</td></tr>");
-    html+=wxString::Format(wxT("<tr><td>Total nodes:</td><td>%d</td></tr>"),NodeCount);
-    html+=wxString::Format(wxT("<tr><td>Height:</td><td>%d</td></tr>"),BufferHt);
-    html+=wxT("</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>");
+    wxString html = "<html><body><table border=0>";
+    html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
+    html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
+    html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
+    html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
+    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
+    html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
     if (BufferHt == 1)
     {
         // single line or arch
-        html+=wxT("<tr>");
+        html+="<tr>";
         for(i=1; i<=NodeCount; i++)
         {
             n=IsLtoR ? i : NodeCount-i+1;
             s=Nodes[n-1]->StringNum+1;
-            bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
-            html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
+            bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
+            html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
         }
-        html+=wxT("</tr>");
+        html+="</tr>";
     }
     else if (BufferHt > 1)
     {
@@ -834,29 +834,29 @@ wxString ModelClass::ChannelLayoutHtml()
         }
         for(y=BufferHt-1; y>=0; y--)
         {
-            html+=wxT("<tr>");
+            html+="<tr>";
             for(x=0; x<BufferWi; x++)
             {
                 n=chmap[y*BufferWi+x];
                 if (n==0)
                 {
-                    html+=wxT("<td></td>");
+                    html+="<td></td>";
                 }
                 else
                 {
                     s=Nodes[n-1]->StringNum+1;
-                    bgcolor=s%2 == 1 ? wxT("#ADD8E6") : wxT("#90EE90");
-                    html+=wxString::Format(wxT("<td bgcolor='")+bgcolor+wxT("'>n%ds%d</td>"),n,s);
+                    bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
+                    html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
                 }
             }
-            html+=wxT("</tr>");
+            html+="</tr>";
         }
     }
     else
     {
-        html+=wxT("<tr><td>Error - invalid height</td></tr>");
+        html+="<tr><td>Error - invalid height</td></tr>";
     }
-    html+=wxT("</table></body></html>");
+    html+="</table></body></html>";
     return html;
 }
 
@@ -880,14 +880,14 @@ void ModelClass::CopyBufCoord2ScreenCoord()
 
 void ModelClass::UpdateXmlWithScale()
 {
-    ModelXml->DeleteAttribute(wxT("offsetXpct"));
-    ModelXml->DeleteAttribute(wxT("offsetYpct"));
-    ModelXml->DeleteAttribute(wxT("PreviewScale"));
-    ModelXml->DeleteAttribute(wxT("PreviewRotation"));
-    ModelXml->AddAttribute(wxT("offsetXpct"), wxString::Format(wxT("%6.4f"),offsetXpct));
-    ModelXml->AddAttribute(wxT("offsetYpct"), wxString::Format(wxT("%6.4f"),offsetYpct));
-    ModelXml->AddAttribute(wxT("PreviewScale"), wxString::Format(wxT("%6.4f"),PreviewScale));
-    ModelXml->AddAttribute(wxT("PreviewRotation"), wxString::Format(wxT("%d"),PreviewRotation));
+    ModelXml->DeleteAttribute("offsetXpct");
+    ModelXml->DeleteAttribute("offsetYpct");
+    ModelXml->DeleteAttribute("PreviewScale");
+    ModelXml->DeleteAttribute("PreviewRotation");
+    ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
+    ModelXml->AddAttribute("offsetYpct", wxString::Format("%6.4f",offsetYpct));
+    ModelXml->AddAttribute("PreviewScale", wxString::Format("%6.4f",PreviewScale));
+    ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
 }
 
 

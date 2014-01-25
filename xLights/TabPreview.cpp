@@ -81,9 +81,9 @@ void xLightsFrame::CompareMyDisplayToSeq()
     // reset My Display flags
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             ModelClass::SetMyDisplay(e,SeqModels.Index(name) != wxNOT_FOUND);
         }
     }
@@ -125,7 +125,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
     m_previous_mouse_y = event.GetPosition().y;
-    //StatusBar1->SetStatusText(wxString::Format(wxT("x=%d y=%d"),m_previous_mouse_x,m_previous_mouse_y));
+    //StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
@@ -215,7 +215,7 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         wxString details; //show details to help user -DJ
         for (int i=0; i<PreviewModels.size(); i++)
         {
-            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format(wxT("Last was model '%s' - ends on channel %d vs. %d channels in the sequence"), PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
+            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format("Last was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
             LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
         }
         if (LastPreviewChannel >= SeqNumChannels)
@@ -246,7 +246,7 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
     int seconds=ElapsedMSec / 1000;
     int minutes=seconds / 60;
     seconds=seconds % 60;
-    TextCtrlPreviewTime->SetValue(wxString::Format(wxT("%d:%02d:%03d"),minutes,seconds,msec));
+    TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d:%03d",minutes,seconds,msec));
 }
 
 void xLightsFrame::PreviewOutput(int period)

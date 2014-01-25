@@ -232,7 +232,7 @@ void RgbEffects::Piano_load_sprite_map(const wxString& filename) //, int BufferW
 //#Sprite-name	Xon	Yon	Xoff	Yoff	W	H	DestX	DestY	DestZ
         debug(20, "got line '%s'", (const char*)linebuf.c_str());
         linebuf += "\teol"; //end-of-line check for missing params
-        wxStringTokenizer tkz(linebuf, wxT("\t"));
+        wxStringTokenizer tkz(linebuf, "\t");
         Sprite spr;
         spr.name = tkz.GetNextToken(); //first column = sprite name
         if (spr.name.find(".") == -1) spr.name += ".000"; //kludge: change name to match Audacity Polyphonic nodes
@@ -303,7 +303,7 @@ void RgbEffects::Piano_load_cues(const wxString& filename)
 //start-time    end-time    shape-name
         debug(20, "got line '%s'", (const char*)linebuf.c_str());
 //        linebuf += "\teol"; //end-of-line check for missing params
-        wxStringTokenizer tkz(linebuf, wxT("\t"));
+        wxStringTokenizer tkz(linebuf, "\t");
         Cue cue;
         cue.start_frame = Cue::Time2Frame(tkz.GetNextToken(), -1); //first column = start time (round down)
         cue.stop_frame = Cue::Time2Frame(tkz.GetNextToken(), +1); //second column = stop time (round up)

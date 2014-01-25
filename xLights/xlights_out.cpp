@@ -110,7 +110,7 @@ public:
     void InitSerialPort(const wxString& portname, int baudrate)
     {
         static char errmsg[100];
-        if (portname == wxT("NotConnected")) return;
+        if (portname == "NotConnected") return;
         serptr=new SerialPort();
         int errcode=serptr->Open(portname, baudrate, SerialConfig);
         if (errcode < 0)
@@ -301,8 +301,8 @@ private:
         // CID/UUID
 
         wxChar msb,lsb;
-        wxString id=wxT(XLIGHTS_UUID);
-        id.Replace(wxT("-"), wxT(""));
+        wxString id = XLIGHTS_UUID;
+        id.Replace("-", "");
         id.MakeLower();
         if (id.Len() != 32) throw "invalid CID";
         for (int i=0,j=22; i < 32; i+=2)
@@ -415,15 +415,15 @@ private:
 
         wxIPV4address localaddr;
         localaddr.AnyAddress();
-        //localaddr.Hostname(wxT("192.168.2.100"));
+        //localaddr.Hostname("192.168.2.100");
         localaddr.Service(0x8000 | NetNum);
         datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         //datagram = new wxDatagramSocket(localaddr, wxSOCKET_WAITALL);
 
-        if (ipaddr.StartsWith(wxT("239.255.")) || ipaddr == wxT("MULTICAST"))
+        if (ipaddr.StartsWith("239.255.") || ipaddr == "MULTICAST")
         {
             // multicast - universe number must be in lower 2 bytes
-            wxString ipaddrWithUniv = wxString::Format(wxT("%d.%d.%d.%d"),239,255,(int)UnivHi,(int)UnivLo);
+            wxString ipaddrWithUniv = wxString::Format("%d.%d.%d.%d",239,255,(int)UnivHi,(int)UnivLo);
             remoteAddr.Hostname (ipaddrWithUniv);
         }
         else
@@ -530,9 +530,9 @@ public:
 //            byte test[4] = {1,2,3,4};
 //            if (incoming) (*incoming)(serptr->m_devname, 0, 0, test, 4);
         }
-//        wxMessageBox(wxString::Format(wxT("loaded plug-in '%s'? %d, err %d, fo 0x%x, ih 0x%x"), path, HasPlugin(), GetLastError(), fmtout, incoming), _("DEBUG"));
-//        if (HasPlugin()) wxMessageBox(wxT("yes"), _("DEBUG"));
-//        else  wxMessageBox(wxT("no"), _("DEBUG"));
+//        wxMessageBox(wxString::Format("loaded plug-in '%s'? %d, err %d, fo 0x%x, ih 0x%x", path, HasPlugin(), GetLastError(), fmtout, incoming), _("DEBUG"));
+//        if (HasPlugin()) wxMessageBox("yes", _("DEBUG"));
+//        else  wxMessageBox("no", _("DEBUG"));
 #endif
     }
     ~xNetwork_Renard() //unload plug-in -DJ
@@ -588,7 +588,7 @@ public:
     {
         if (!HasPlugin() && (numchannels > data.size() - 2)) //1016)
         {
-            throw wxString::Format(wxT("max channels on a Renard network is %d"), data.size());
+            throw wxString::Format("max channels on a Renard network is %d", data.size());
         }
         if (!HasPlugin() && ((numchannels % 8) != 0)) //restraint does not apply to plug-ins -DJ
         {
@@ -610,7 +610,7 @@ public:
             if (HasPlugin()) //call plug-in to process data before sending -DJ
             {
                 int iolen = (*fmtout)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum++, &data[2], &data[datalen], datalen - 2, iobuf, sizeof(iobuf)); //don't pre-fill first 2 bytes; plug-in might not need them; provide prev data in case plug-in needs to look back
-//                if (seqnum < 5) wxMessageBox(wxString::Format(wxT("called plug-in: in %d -> out %d, got back 0x%x"), datalen - 2, sizeof(iobuf), iolen), _("DEBUG"));
+//                if (seqnum < 5) wxMessageBox(wxString::Format("called plug-in: in %d -> out %d, got back 0x%x", datalen - 2, sizeof(iobuf), iolen), _("DEBUG"));
                 if (iolen > 0) serptr->Write((char*)iobuf, iolen);
             }
             else serptr->Write((char *)&data[0],datalen);
@@ -622,7 +622,7 @@ public:
 ////            int rdlen = serptr->AvailableToRead();
 //            usleep(1000); //TODO: allow a little time to receive data?  OTOH, don't want to slow down xLights
             int rdlen = serptr->Read((char*)iobuf, sizeof(iobuf)); //NOTE: might be split up
-//            if ((rdlen > 0) && (fido++ < 5)) wxMessageBox(wxString::Format(wxT("plugin: got %d bytes back, sent? %d"), rdlen, incoming? 1: 0), _("DEBUG"));
+//            if ((rdlen > 0) && (fido++ < 5)) wxMessageBox(wxString::Format("plugin: got %d bytes back, sent? %d", rdlen, incoming? 1: 0), _("DEBUG"));
             if (rdlen > 0) (*incoming)(serptr->m_devname, xLightsFrame::PlaybackMarker.c_str(), seqnum, iobuf, rdlen);
         }
     }
@@ -769,31 +769,31 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
 {
     xNetwork* netobj;
     wxString nettype3 = NetworkType.Upper().Left(3);
-    if (nettype3 == wxT("LOR"))
+    if (nettype3 == "LOR")
     {
         netobj = new xNetwork_LOR();
     }
-    else if (nettype3 == wxT("D-L"))
+    else if (nettype3 == "D-L")
     {
         netobj = new xNetwork_LOR();
     }
-    else if (nettype3 == wxT("REN"))
+    else if (nettype3 == "REN")
     {
         netobj = new xNetwork_Renard();
     }
-    else if (nettype3 == wxT("DMX"))
+    else if (nettype3 == "DMX")
     {
         netobj = new xNetwork_DMXpro();
     }
-    else if (nettype3 == wxT("OPE"))
+    else if (nettype3 == "OPE")
     {
         netobj = new xNetwork_DMXopen();
     }
-    else if (nettype3 == wxT("PIX"))
+    else if (nettype3 == "PIX")
     {
         netobj = new xNetwork_Pixelnet();
     }
-    else if (nettype3 == wxT("E13"))
+    else if (nettype3 == "E13")
     {
         netobj = new xNetwork_E131();
     }
@@ -808,9 +808,9 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     {
         channels.push_back(std::make_pair(netnum, ch));
     }
-    wxString description = NetworkType + wxT(" on ") + portname;
+    wxString description = NetworkType + " on " + portname;
     netobj->SetNetworkDesc(description);
-    if (nettype3 == wxT("E13"))
+    if (nettype3 == "E13")
     {
         netobj->InitNetwork(portname, baudrate, (wxUint16) netnum);  // portname is ip address and baudrate is universe number
     }
@@ -829,7 +829,7 @@ int xOutput::GetChannelCount(size_t netnum)
 
 wxString xOutput::GetNetworkDesc(size_t netnum)
 {
-    if (netnum >= networks.GetCount()) return wxT("");
+    if (netnum >= networks.GetCount()) return "";
     return networks[netnum]->GetNetworkDesc();
 }
 

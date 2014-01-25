@@ -102,8 +102,8 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    e->DeleteAttribute(wxT("name"));
-    e->AddAttribute(wxT("name"),NewName);
+    e->DeleteAttribute("name");
+    e->AddAttribute("name",NewName);
     ListBox1->SetString(sel,NewName);
 }
 

@@ -61,7 +61,7 @@ PlayerFrame::PlayerFrame(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     bool bOK = MediaCtrl->Create(this, wxID_MEDIACTRL, wxEmptyString,
                                  wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, MediaBackend);
 
-    wxASSERT_MSG(bOK, wxT("Could not create media control!"));
+    wxASSERT_MSG(bOK, "Could not create media control!");
     wxUnusedVar(bOK);
 
     sizer->Add(MediaCtrl, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 0);

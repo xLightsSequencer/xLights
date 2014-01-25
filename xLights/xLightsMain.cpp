@@ -1279,7 +1279,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     int menuID, idx;
     for (int i=0; i<MRU_LENGTH; i++)
     {
-        mru_name=wxString::Format(wxT("mru%d"),i);
+        mru_name=wxString::Format("mru%d",i);
         dir.clear();
         if ( config->Read(mru_name, &dir) )
         {
@@ -1440,7 +1440,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     config->Read(_("RunSchedule"), &RunFlag);
     //delete config;  // close config before calling SetDir, which will open config
     if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
-        if (wxMessageBox(wxT("Auto-run schedule?"), wxT("Confirm"), wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
+        if (wxMessageBox("Auto-run schedule?", "Confirm", wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
 
     SetPlayMode(play_off);
     ResetEffectsXml();
@@ -1453,7 +1453,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsPanel1->PaletteChanged=true;
     EffectsPanel2->PaletteChanged=true;
     MixTypeChanged=true;
-    HtmlEasyPrint=new wxHtmlEasyPrinting(wxT("xLights Printing"), this);
+    HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
     PlayerDlg = new PlayerFrame(this, ID_PLAYER_DIALOG);
 
@@ -1684,13 +1684,13 @@ bool xLightsFrame::EnableOutputs()
         for( wxXmlNode* e=NetworkXML.GetRoot()->GetChildren(); e!=NULL && ok; e=e->GetNext() )
         {
             wxString tagname=e->GetName();
-            if (tagname == wxT("network"))
+            if (tagname == "network")
             {
-                wxString tempstr=e->GetAttribute(wxT("MaxChannels"), wxT("0"));
+                wxString tempstr=e->GetAttribute("MaxChannels", "0");
                 tempstr.ToLong(&MaxChan);
-                wxString NetworkType=e->GetAttribute(wxT("NetworkType"), wxT(""));
-                wxString ComPort=e->GetAttribute(wxT("ComPort"), wxT(""));
-                wxString BaudRate=e->GetAttribute(wxT("BaudRate"), wxT(""));
+                wxString NetworkType=e->GetAttribute("NetworkType", "");
+                wxString ComPort=e->GetAttribute("ComPort", "");
+                wxString BaudRate=e->GetAttribute("BaudRate", "");
                 int baud = (BaudRate == _("n/a")) ? 115200 : wxAtoi(BaudRate);
                 static wxString choices;
 
@@ -1715,7 +1715,7 @@ bool xLightsFrame::EnableOutputs()
                             vallen = sizeof(valname);
                             portlen = sizeof(portname);
                         }
-                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(wxT("error %d (can't get serial comm ports from registry)"), err);
+                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format("error %d (can't get serial comm ports from registry)", err);
                     if (hkey) RegCloseKey(hkey);
 //                    if (err) SetLastError(err); //tell caller about last real error
                     if (!choices.empty()) choices = "\n(available ports: "+ choices.substr(2) + ")";
@@ -1881,27 +1881,27 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
 
 
 //  first make sure there is a Backup sub directory
-    wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+wxT("Backup");
+    wxString newDirBackup = CurrentDir+wxFileName::GetPathSeparator()+"Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        wxMessageBox(wxT("Unable to create directory Backup!"),"Error", wxICON_ERROR|wxOK);
+        wxMessageBox("Unable to create directory Backup!","Error", wxICON_ERROR|wxOK);
         return;
     }
 
 //if(curTime.ParseFormat("2003-xx-xx yy:yy", "%Y-%m-%d_%H%M%S"))
 
     wxString newDir = CurrentDir+wxFileName::GetPathSeparator()+wxString::Format(
-                          wxT("Backup%c%s-%s"),wxFileName::GetPathSeparator(),
-                          curTime.FormatISODate(),curTime.Format(wxT("%H%M%S")));
+                          "Backup%c%s-%s",wxFileName::GetPathSeparator(),
+                          curTime.FormatISODate(),curTime.Format("%H%M%S"));
 
-    if ( wxNO == wxMessageBox(wxT("All xml files under 10MB in your xlights directory will be backed up to \"")+
-                              newDir+wxT("\". Proceed?"),wxT("Backup"),wxICON_QUESTION | wxYES_NO))
+    if ( wxNO == wxMessageBox("All xml files under 10MB in your xlights directory will be backed up to \""+
+                              newDir+"\". Proceed?","Backup",wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox(wxT("Unable to create directory!"),"Error", wxICON_ERROR|wxOK);
+        wxMessageBox("Unable to create directory!","Error", wxICON_ERROR|wxOK);
         return;
     }
     BackupDirectory(newDir);
@@ -1923,7 +1923,7 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
         return;
     }
 
-    bool cont = srcDir.GetFirst(&fname, wxT("*.xml"), wxDIR_FILES);
+    bool cont = srcDir.GetFirst(&fname, "*.xml", wxDIR_FILES);
 
     while (cont)
     {
@@ -1935,17 +1935,17 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
             srcDir.GetNext(&fname);
             continue;
         }
-        StatusBar1->SetStatusText(wxT("Copying File \"")+srcFile.GetFullPath());
+        StatusBar1->SetStatusText("Copying File \""+srcFile.GetFullPath());
         success = wxCopyFile(srcDirName+fname,
                              targetDirName+wxFileName::GetPathSeparator()+fname);
         if (!success)
         {
-            wxMessageBox(wxT("Unable to copy file \"") + CurrentDir+wxFileName::GetPathSeparator()+fname+wxT("\""),
+            wxMessageBox("Unable to copy file \"" + CurrentDir+wxFileName::GetPathSeparator()+fname+"\"",
                          "Error", wxICON_ERROR|wxOK);
         }
         cont = srcDir.GetNext(&fname);
     }
-    StatusBar1->SetStatusText(wxT("All xml files backed up."));
+    StatusBar1->SetStatusText("All xml files backed up.");
 }
 
 #if 0 //removed

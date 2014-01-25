@@ -1,6 +1,6 @@
 void xLightsFrame::CreateDefaultEffectsXml()
 {
-    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("xrgb") );
+    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
     EffectsXml.SetRoot( root );
 }
 
@@ -10,9 +10,9 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
     wxXmlNode* e;
     for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            if (name == e->GetAttribute(wxT("name"))) return e;
+            if (name == e->GetAttribute("name")) return e;
         }
     }
     return NULL;
@@ -27,13 +27,13 @@ void xLightsFrame::PlayRgbSequence()
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     SeqPlayColumn=Grid1->GetGridCursorCol();
     if (SeqPlayColumn < XLIGHTS_SEQ_STATIC_COLUMNS)
     {
-        wxMessageBox(wxT("Select a cell in a display element column before clicking Play"), wxT("Error"));
+        wxMessageBox("Select a cell in a display element column before clicking Play", "Error");
         return;
     }
     NextGridRowToPlay=Grid1->GetGridCursorRow();
@@ -172,15 +172,15 @@ void xLightsFrame::SetEffectControls(wxString settings)
             break;
         default:
             name=before.BeforeFirst('=');
-            if (name.StartsWith(wxT("E1_")))
+            if (name.StartsWith("E1_"))
             {
                 ContextWin=EffectsPanel1;
-                name=wxT("ID_")+name.Mid(3);
+                name="ID_"+name.Mid(3);
             }
-            else if (name.StartsWith(wxT("E2_")))
+            else if (name.StartsWith("E2_"))
             {
                 ContextWin=EffectsPanel2;
-                name=wxT("ID_")+name.Mid(3);
+                name="ID_"+name.Mid(3);
             }
             else
             {
@@ -190,40 +190,40 @@ void xLightsFrame::SetEffectControls(wxString settings)
             CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
             if (CtrlWin)
             {
-                if (name.StartsWith(wxT("ID_SLIDER")))
+                if (name.StartsWith("ID_SLIDER"))
                 {
                     wxSlider* ctrl=(wxSlider*)CtrlWin;
                     if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong);
                 }
-                else if (name.StartsWith(wxT("ID_TEXTCTRL")))
+                else if (name.StartsWith("ID_TEXTCTRL"))
                 {
                     wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
                     ctrl->SetValue(value);
                 }
-                else if (name.StartsWith(wxT("ID_CHOICE")))
+                else if (name.StartsWith("ID_CHOICE"))
                 {
                     wxChoice* ctrl=(wxChoice*)CtrlWin;
                     ctrl->SetStringSelection(value);
                 }
-                else if (name.StartsWith(wxT("ID_BUTTON")))
+                else if (name.StartsWith("ID_BUTTON"))
                 {
                     color.Set(value);
                     CtrlWin->SetBackgroundColour(color);
                     //SetTextColor(CtrlWin);
                 }
-                else if (name.StartsWith(wxT("ID_CHECKBOX")))
+                else if (name.StartsWith("ID_CHECKBOX"))
                 {
                     wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
                     if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
                 }
                 else
                 {
-                    wxMessageBox(wxT("Unknown type: ")+name, wxT("Internal Error"));
+                    wxMessageBox("Unknown type: "+name, "Internal Error");
                 }
             }
             else
             {
-                wxMessageBox(wxT("Unable to find: ")+name, wxT("Internal Error"));
+                wxMessageBox("Unable to find: "+name, "Internal Error");
             }
             break;
         }
@@ -248,9 +248,9 @@ void xLightsFrame::SetEffectControls(wxString settings)
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
-    wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("effect"));
-    NewXml->AddAttribute(wxT("name"), name);
-    NewXml->AddAttribute(wxT("settings"), CreateEffectString());
+    wxXmlNode* NewXml=new wxXmlNode(wxXML_ELEMENT_NODE, "effect");
+    NewXml->AddAttribute("name", name);
+    NewXml->AddAttribute("settings", CreateEffectString());
     return NewXml;
 }
 
@@ -278,22 +278,22 @@ wxString xLightsFrame::CreateEffectStringRandom()
     }
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
-    s = EffectNames[eff1] + wxT(",")+EffectNames[eff2] + wxT(",") + EffectLayerOptions[layerOp];
-    s += wxT(",ID_SLIDER_SparkleFrequency=") + wxString::Format(wxT("%d"), isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
-    s += wxT(",ID_SLIDER_Brightness=") + wxString::Format(wxT("%d"), isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
-    s += wxT(",ID_SLIDER_Contrast=") + wxString::Format(wxT("%d"), isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
+    s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
+    s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
+    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
+    s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
     s += EffectsPanel1->GetRandomEffectString(eff1);
     s += EffectsPanel2->GetRandomEffectString(eff2);
 #if 0 //partially random -DJ
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
-    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+wxT(",")+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
-    s+=wxT(",")+Choice_LayerMethod->GetStringSelection();
-    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
-    s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
-    s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
-    s+=wxT(",ID_SLIDER_EffectLayerMix=")+wxString::Format(wxT("%d"),Slider_EffectLayerMix->GetValue());
+    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
+    s+=","+Choice_LayerMethod->GetStringSelection();
+    s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
+    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
+    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
+    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
 #elif 0
@@ -324,12 +324,12 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
-    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+wxT(",")+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
-    s+=wxT(",")+Choice_LayerMethod->GetStringSelection();
-    s+=wxT(",ID_SLIDER_SparkleFrequency=")+wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue());
-    s+=wxT(",ID_SLIDER_Brightness=")+wxString::Format(wxT("%d"),Slider_Brightness->GetValue());
-    s+=wxT(",ID_SLIDER_Contrast=")+wxString::Format(wxT("%d"),Slider_Contrast->GetValue());
-    s+=wxT(",ID_SLIDER_EffectLayerMix=")+wxString::Format(wxT("%d"),Slider_EffectLayerMix->GetValue());
+    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
+    s+=","+Choice_LayerMethod->GetStringSelection();
+    s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
+    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
+    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
+    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
     return s;
@@ -529,9 +529,9 @@ void xLightsFrame::ShowModelsDialog()
     wxXmlNode* e;
     for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
                 dialog.ListBox1->Append(name,e);
@@ -572,9 +572,9 @@ void xLightsFrame::UpdateModelsList()
     PreviewModels.clear();
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
                 Choice_Models->Append(name,e);
@@ -624,31 +624,31 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         CreateDefaultEffectsXml();
     }
     wxXmlNode* root=EffectsXml.GetRoot();
-    if (root->GetName() != wxT("xrgb"))
+    if (root->GetName() != "xrgb")
     {
         wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
         CreateDefaultEffectsXml();
     }
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("models")) ModelsNode=e;
-        if (e->GetName() == wxT("effects")) EffectsNode=e;
-        if (e->GetName() == wxT("palettes")) PalettesNode=e;
+        if (e->GetName() == "models") ModelsNode=e;
+        if (e->GetName() == "effects") EffectsNode=e;
+        if (e->GetName() == "palettes") PalettesNode=e;
     }
     if (ModelsNode == 0)
     {
-        ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("models") );
+        ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
         root->AddChild( ModelsNode );
     }
     if (EffectsNode == 0)
     {
-        EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("effects") );
-        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
+        EffectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "effects" );
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
         root->AddChild( EffectsNode );
     }
     if (PalettesNode == 0)
     {
-        PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("palettes") );
+        PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
         root->AddChild( PalettesNode );
     }
     return effectsFile.GetFullPath();
@@ -658,16 +658,16 @@ void xLightsFrame::LoadEffectsFile()
 {
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?
-    wxString version=EffectsNode->GetAttribute(wxT("version"), wxT("0000"));
-    if (version < wxT(XLIGHTS_RGBEFFECTS_VERSION))
+    wxString version=EffectsNode->GetAttribute("version", "0000");
+    if (version < XLIGHTS_RGBEFFECTS_VERSION)
     {
         // convert file
         FixVersionDifferences( filename );
         // load converted file
         LoadEffectsFileNoCheck();
         // update version
-        EffectsNode->DeleteAttribute(wxT("version"));
-        EffectsNode->AddAttribute(wxT("version"), wxT(XLIGHTS_RGBEFFECTS_VERSION));
+        EffectsNode->DeleteAttribute("version");
+        EffectsNode->AddAttribute("version", XLIGHTS_RGBEFFECTS_VERSION);
         // re-save
         EffectsXml.Save( filename );
     }
@@ -696,9 +696,9 @@ void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& S
     wxColourVector newcolors;
     for (int i=1; i<=6; i++)
     {
-        if (SettingsMap[wxString::Format(wxT("E%d_CHECKBOX_Palette%d"),PaletteNum,i)] ==  wxT("1"))
+        if (SettingsMap[wxString::Format("E%d_CHECKBOX_Palette%d",PaletteNum,i)] ==  "1")
         {
-            newcolors.push_back(wxColour(SettingsMap[wxString::Format(wxT("E%d_BUTTON_Palette%d"),PaletteNum,i)]));
+            newcolors.push_back(wxColour(SettingsMap[wxString::Format("E%d_BUTTON_Palette%d",PaletteNum,i)]));
         }
     }
     buffer.SetPalette(PaletteNum-1,newcolors);
@@ -710,9 +710,9 @@ void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& Sett
     wxString tmpStr;
     double fadeIn, fadeOut;
 
-    tmpStr = SettingsMap[wxString::Format(wxT("E%d_TEXTCTRL_Fadein"),effectNum)] ;
+    tmpStr = SettingsMap[wxString::Format("E%d_TEXTCTRL_Fadein",effectNum)] ;
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = SettingsMap[wxString::Format(wxT("E%d_TEXTCTRL_Fadeout"),effectNum)] ;
+    tmpStr = SettingsMap[wxString::Format("E%d_TEXTCTRL_Fadeout",effectNum)] ;
     tmpStr.ToDouble(&fadeOut);
 
     buffer.SetFadeTimes(effectNum-1, fadeIn, fadeOut);
@@ -722,7 +722,7 @@ void xLightsFrame::UpdateFitToTimeFromMap(int effectNum, MapStringString& Settin
 {
     bool fitToTime;
 
-    fitToTime = (SettingsMap[wxString::Format(wxT("E%d_CHECKBOX_FitToTime"),effectNum)] == wxT("1"));
+    fitToTime = (SettingsMap[wxString::Format("E%d_CHECKBOX_FitToTime",effectNum)] == "1");
 
     buffer.SetFitToTime(effectNum-1, fitToTime);
 }
@@ -763,167 +763,167 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
 {
     bool retval=true;
     bool fitToTime;
-    wxString LayerStr=layer==0 ? wxT("E1_") : wxT("E2_");
-    wxString SpeedStr=SettingsMap[LayerStr+wxT("SLIDER_Speed")];
+    wxString LayerStr=layer==0 ? "E1_" : "E2_";
+    wxString SpeedStr=SettingsMap[LayerStr+"SLIDER_Speed"];
     buffer.SetLayer(layer,period,wxAtoi(SpeedStr),ResetEffectState[layer]);
     ResetEffectState[layer]=false;
-    wxString effect=SettingsMap[LayerStr+wxT("Effect")];
-    if (effect == wxT("None"))
+    wxString effect=SettingsMap[LayerStr+"Effect"];
+    if (effect == "None")
     {
         retval = false;
     }
-    else if (effect == wxT("Bars"))
+    else if (effect == "Bars")
     {
-        buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Bars_BarCount")]),
-                          BarEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Bars_Direction")]),
-                          SettingsMap[LayerStr+wxT("CHECKBOX_Bars_Highlight")]==wxT("1"),
-                          SettingsMap[LayerStr+wxT("CHECKBOX_Bars_3D")]==wxT("1"));
+        buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+"SLIDER_Bars_BarCount"]),
+                          BarEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Bars_Direction"]),
+                          SettingsMap[LayerStr+"CHECKBOX_Bars_Highlight"]=="1",
+                          SettingsMap[LayerStr+"CHECKBOX_Bars_3D"]=="1");
     }
-    else if (effect == wxT("Butterfly"))
+    else if (effect == "Butterfly")
     {
-        buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[LayerStr+wxT("CHOICE_Butterfly_Colors")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Style")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Chunks")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Butterfly_Skip")]));
+        buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Colors"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Style"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Chunks"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Skip"]));
     }
-    else if (effect == wxT("Circles"))
+    else if (effect == "Circles")
     {
 
-        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Count")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Circles_Size")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Bounce")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Collide")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Random_m")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Radial_3D")]==wxT("1"),
+        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+"SLIDER_Circles_Count"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Circles_Size"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Bounce"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Collide"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Random_m"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Radial"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Radial_3D"]=="1",
                              buffer.BufferWi/2, buffer.BufferHt/2,
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Circles_Plasma")]==wxT("1")
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Plasma"]=="1"
                             );
 
     }
-    else if (effect == wxT("Color Wash"))
+    else if (effect == "Color Wash")
     {
-        buffer.RenderColorWash(SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_HFade")]==wxT("1"),
-                               SettingsMap[LayerStr+wxT("CHECKBOX_ColorWash_VFade")]==wxT("1"),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_ColorWash_Count")]));
+        buffer.RenderColorWash(SettingsMap[LayerStr+"CHECKBOX_ColorWash_HFade"]=="1",
+                               SettingsMap[LayerStr+"CHECKBOX_ColorWash_VFade"]=="1",
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_ColorWash_Count"]));
     }
-    else if (effect == wxT("Curtain"))
+    else if (effect == "Curtain")
     {
-        buffer.RenderCurtain(CurtainEdge.Index(SettingsMap[LayerStr+wxT("CHOICE_Curtain_Edge")]),
-                             CurtainEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_Curtain_Effect")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Curtain_Swag")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Curtain_Repeat")]==wxT("1"));
+        buffer.RenderCurtain(CurtainEdge.Index(SettingsMap[LayerStr+"CHOICE_Curtain_Edge"]),
+                             CurtainEffect.Index(SettingsMap[LayerStr+"CHOICE_Curtain_Effect"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Curtain_Swag"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Curtain_Repeat"]=="1");
     }
-    else if (effect == wxT("Fire"))
+    else if (effect == "Fire")
     {
-        buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_Height")]),
-                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fire_HueShift")]),
-                          SettingsMap[LayerStr+wxT("CHECKBOX_Fire_GrowFire")]==wxT("1"));
+        buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+"SLIDER_Fire_Height"]),
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Fire_HueShift"]),
+                          SettingsMap[LayerStr+"CHECKBOX_Fire_GrowFire"]=="1");
     }
-    else if (effect == wxT("Fireworks"))
+    else if (effect == "Fireworks")
     {
-        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Number_Explosions")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Count")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Velocity")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Fireworks_Fade")]));
+        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Number_Explosions"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Count"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Velocity"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Fade"]));
     }
-    else if (effect == wxT("Garlands"))
+    else if (effect == "Garlands")
     {
-        buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Garlands_Type")]),
-                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Garlands_Spacing")]));
+        buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Type"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Spacing"]));
     }
-    else if (effect == wxT("Life"))
+    else if (effect == "Life")
     {
-        buffer.RenderLife(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Life_Count")]),
-                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Life_Seed")]));
+        buffer.RenderLife(wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Count"]),
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Seed"]));
     }
-    else if (effect == wxT("Meteors"))
+    else if (effect == "Meteors")
     {
-        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Type")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Count")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Length")]),
-                             MeteorsEffect.Index(SettingsMap[LayerStr+wxT("CHOICE_Meteors_Effect")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Meteors_Swirl_Intensity")]));
+        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+"CHOICE_Meteors_Type"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Meteors_Count"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Meteors_Length"]),
+                             MeteorsEffect.Index(SettingsMap[LayerStr+"CHOICE_Meteors_Effect"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Meteors_Swirl_Intensity"]));
     }
-    else if (effect == wxT("Piano"))
+    else if (effect == "Piano")
     {
-        buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap[LayerStr+wxT("CHOICE_Piano_Style")]),
-                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_NumKeys")]),
-                           wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Piano_NumRows")]),
-                           PianoKeyPlacement.Index(SettingsMap[LayerStr+wxT("CHOICE_Piano_Placement")]),
-                           SettingsMap[LayerStr+wxT("CHECKBOX_Piano_Clipping")] == wxT("1"),
-                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_CueFilename")],
-                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_MapFilename")],
-                           SettingsMap[LayerStr+wxT("TEXTCTRL_Piano_ShapeFilename")]);
+        buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap[LayerStr+"CHOICE_Piano_Style"]),
+                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Piano_NumKeys"]),
+                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Piano_NumRows"]),
+                           PianoKeyPlacement.Index(SettingsMap[LayerStr+"CHOICE_Piano_Placement"]),
+                           SettingsMap[LayerStr+"CHECKBOX_Piano_Clipping"] == "1",
+                           SettingsMap[LayerStr+"TEXTCTRL_Piano_CueFilename"],
+                           SettingsMap[LayerStr+"TEXTCTRL_Piano_MapFilename"],
+                           SettingsMap[LayerStr+"TEXTCTRL_Piano_ShapeFilename"]);
     }
-    else if (effect == wxT("Pictures"))
+    else if (effect == "Pictures")
     {
-        buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Pictures_Direction")]),
-                              SettingsMap[LayerStr+wxT("TEXTCTRL_Pictures_Filename")],
-                              wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Pictures_GifType")])
+        buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Pictures_Direction"]),
+                              SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"],
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
                              );
     }
-    else if (effect == wxT("SingleStrand"))
+    else if (effect == "SingleStrand")
     {
-        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Color_Mix1")]),
-                                  wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Chase_Spacing1")]),
-                                  SingleStrandTypes.Index(SettingsMap[LayerStr+wxT("CHOICE_Chase_Type1")]),
-                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_3dFade1")]==wxT("1"),
-                                  SettingsMap[LayerStr+wxT("CHECKBOX_Chase_Group_All")]==wxT("1"));
+        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
+                                  wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
+                                  SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
+                                  SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
+                                  SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
     }
-    else if (effect == wxT("Snowflakes"))
+    else if (effect == "Snowflakes")
     {
-        buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Count")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowflakes_Type")]));
+        buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowflakes_Count"]),
+                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowflakes_Type"]));
     }
-    else if (effect == wxT("Snowstorm"))
+    else if (effect == "Snowstorm")
     {
-        buffer.RenderSnowstorm(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowstorm_Count")]),
-                               wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Snowstorm_Length")]));
+        buffer.RenderSnowstorm(wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowstorm_Count"]),
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowstorm_Length"]));
     }
-    else if (effect == wxT("Spirals"))
+    else if (effect == "Spirals")
     {
-        buffer.RenderSpirals(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Count")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Direction")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Rotation")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirals_Thickness")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Blend")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_3D")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Grow")]==wxT("1"),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Spirals_Shrink")]==wxT("1")
+        buffer.RenderSpirals(wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Count"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Direction"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Rotation"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Thickness"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Spirals_Blend"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Spirals_3D"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Spirals_Grow"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Spirals_Shrink"]=="1"
                             );
     }
-    else if (effect == wxT("Spirograph"))
+    else if (effect == "Spirograph")
     {
-        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_R")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_r")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_d")]),
-                                wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Spirograph_Animate")]));
+        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_R"]),
+                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_r"]),
+                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_d"]),
+                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_Animate"]));
     }
-    else if (effect == wxT("Text"))
+    else if (effect == "Text")
     {
-        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position1")]),
-                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line1")],
-                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font1")],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir1")]),
-                          TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect1")]),
-                          TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count1")]),
-                          wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Text_Position2")]),
-                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Line2")],
-                          SettingsMap[LayerStr+wxT("TEXTCTRL_Text_Font2")],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Dir2")]),
-                          TextEffects.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Effect2")]),
-                          TextCountDown.Index(SettingsMap[LayerStr+wxT("CHOICE_Text_Count2")]));
+        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
+                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
+                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect1"]),
+                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count1"]),
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position2"]),
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line2"],
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font2"],
+                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir2"]),
+                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect2"]),
+                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]));
     }
-    else if (effect == wxT("Tree"))
+    else if (effect == "Tree")
     {
-        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Tree_Branches")]));
+        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+"SLIDER_Tree_Branches"]));
     }
-    else if (effect == wxT("Twinkle"))
+    else if (effect == "Twinkle")
     {
-        buffer.RenderTwinkle(wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Count")]),
-                             wxAtoi(SettingsMap[LayerStr+wxT("SLIDER_Twinkle_Steps")]),
-                             SettingsMap[LayerStr+wxT("CHECKBOX_Twinkle_Strobe")]==wxT("1"));
+        buffer.RenderTwinkle(wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Count"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Steps"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Twinkle_Strobe"]=="1");
     }
     return retval;
 }
@@ -1157,7 +1157,7 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype)
 {
     int m=seconds/60;
     int s=seconds%60;
-    StatusBar1->SetStatusText(wxString::Format(wxT("Playback: RGB ")+seqtype+wxT(" sequence %d:%02d"),m,s));
+    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
 }
 
 void xLightsFrame::TimerRgbSeq(long msec)
@@ -1179,7 +1179,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         ResetTimer(PLAYING_SEQ_ANIM, GetGridStartTimeMSec(NextGridRowToPlay));
         buffer.SetFadeTimes(0,0.0,0.0);
         buffer.SetFadeTimes(1,0.0,0.0);
-        xLightsFrame::PlaybackMarker = wxT("0,0"); //keep track of where we are within grid -DJ
+        xLightsFrame::PlaybackMarker = "0,0"; //keep track of where we are within grid -DJ
         break;
     case PLAYING_SEQ_ANIM:
         if (xout && !xout->TxEmpty())
@@ -1219,7 +1219,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
             }
             PlayRgbEffect(EffectPeriod);
-            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,wxT("animation"));
+            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,"animation");
         }
         break;
     case STARTING_SEQ:
@@ -1273,8 +1273,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
             }
             PlayRgbEffect(EffectPeriod);
-            //TextCtrlLog->AppendText(wxString::Format(wxT("msec=%ld, period=%d\n"),msec,EffectPeriod));
-            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,wxT("music"));
+            //TextCtrlLog->AppendText(wxString::Format("msec=%ld, period=%d\n",msec,EffectPeriod));
+            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,"music");
         }
         break;
     }
@@ -1356,9 +1356,9 @@ void xLightsFrame::GetModelNames(wxArrayString& a)
     wxString name;
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
                 a.Add(name);
@@ -1380,7 +1380,7 @@ void xLightsFrame::ChooseModelsForSequence()
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     SeqParmsDialog dialog(this);
@@ -1395,11 +1395,11 @@ void xLightsFrame::ChooseModelsForSequence()
     // populate the listbox with all models
     for(e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == wxT("model"))
+        if (e->GetName() == "model")
         {
-            name=e->GetAttribute(wxT("name"));
+            name=e->GetAttribute("name");
             // allow only models where MyDisplay is set?
-            //if (!name.IsEmpty() && e->GetAttribute(wxT("MyDisplay"),wxT("0"))==wxT("1")) {
+            //if (!name.IsEmpty() && e->GetAttribute("MyDisplay","0")=="1") {
             if (!name.IsEmpty())
             {
                 dialog.CheckListBox1->Append(name);
@@ -1462,7 +1462,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     ChannelMapDialog dialog(this);
@@ -1483,7 +1483,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool INSERT)
 {
     int pos;
-    wxStringTokenizer tkz(missing_array, wxT("|"));
+    wxStringTokenizer tkz(missing_array, "|");
     wxString replacement;
     wxString token1 = tkz.GetNextToken(); // get first two dummy tokens out
     wxString token2 = tkz.GetNextToken();
@@ -1492,10 +1492,10 @@ wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool IN
         token1 = tkz.GetNextToken();
         token2 = tkz.GetNextToken();
         pos=str.find(token1,0);
-        replacement = wxT(",") + token2 + wxT("</td>");
+        replacement = "," + token2 + "</td>";
         if(pos<=0 and INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
         {
-            str.Replace(wxT("</td>"),replacement);
+            str.Replace("</td>",replacement);
         }
         else if(pos>0 and !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
         {
@@ -1528,16 +1528,16 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //  list all new tags that might have occured in previous versions
     //  list is pair. first token is what to search for, if it is missing, then put in 2nd token into xml string
     //
-    missing      = missing + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100");
-    missing      = missing + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0");
+    missing      = missing + "|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100";
+    missing      = missing + "|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0";
 
-    /*  missing      = missing + wxT("|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0");
-      missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0");
-      missing      = missing + wxT("|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0");
-      missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadein|ID_TEXTCTRL_Effect2_Fadein=0");
-      missing      = missing + wxT("|ID_TEXTCTRL_Effect2_Fadeout|ID_TEXTCTRL_Effect2_Fadeout=0");
-      missing      = missing + wxT("|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0");
-      missing      = missing + wxT("|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0");
+    /*  missing      = missing + "|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0";
+      missing      = missing + "|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0";
+      missing      = missing + "|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0";
+      missing      = missing + "|ID_TEXTCTRL_Effect2_Fadein|ID_TEXTCTRL_Effect2_Fadein=0";
+      missing      = missing + "|ID_TEXTCTRL_Effect2_Fadeout|ID_TEXTCTRL_Effect2_Fadeout=0";
+      missing      = missing + "|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0";
+      missing      = missing + "|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0";
       */
 
     /*
@@ -1548,17 +1548,17 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     */
     //
 
-//   Meteors1 = Meteors1 + wxT("|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0");
-//    Meteors2 = Meteors2 + wxT("|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0");
-    Meteors1 = Meteors1 + wxT("|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor");
-    Meteors2 = Meteors2 + wxT("|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor");
-    Meteors1 = Meteors1 + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10");
-    Meteors2 = Meteors2 + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10");
+//   Meteors1 = Meteors1 + "|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0";
+//    Meteors2 = Meteors2 + "|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0";
+    Meteors1 = Meteors1 + "|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor";
+    Meteors2 = Meteors2 + "|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor";
+    Meteors1 = Meteors1 + "|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10";
+    Meteors2 = Meteors2 + "|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10";
 
-    Fire1 = Fire1 + wxT("|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0");
-    Fire2 = Fire2 + wxT("|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0");
-    Fire1 = Fire1 + wxT("|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0");
-    Fire2 = Fire2 + wxT("|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0");
+    Fire1 = Fire1 + "|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0";
+    Fire2 = Fire2 + "|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0";
+    Fire1 = Fire1 + "|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0";
+    Fire2 = Fire2 + "|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0";
 
 
     // Lots of variables to check for  text effect
@@ -1572,218 +1572,218 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 
 
 
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_3|E1_BUTTON_Palette3");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_4|E1_BUTTON_Palette4");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_5|E1_BUTTON_Palette5");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette1_6|E1_BUTTON_Palette6");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_1|E2_BUTTON_Palette1");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_2|E2_BUTTON_Palette2");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_3|E2_BUTTON_Palette3");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_4|E2_BUTTON_Palette4");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_5|E2_BUTTON_Palette5");
-    replace_str = replace_str + wxT("|ID_BUTTON_Palette2_6|E2_BUTTON_Palette6");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Bars1_3D|E1_CHECKBOX_Bars_3D");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Bars1_Highlight|E1_CHECKBOX_Bars_Highlight");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Bars2_3D|E2_CHECKBOX_Bars_3D");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Bars2_Highlight|E2_CHECKBOX_Bars_Highlight");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles1_Bounce|E1_CHECKBOX_Circles_Bounce");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles1_Collide|E1_CHECKBOX_Circles_Collide");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles1_Radial|E1_CHECKBOX_Circles_Radial");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles1_Random_m|E1_CHECKBOX_Circles_Random_m");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles2_Bounce|E2_CHECKBOX_Circles_Bounce");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles2_Collide|E2_CHECKBOX_Circles_Collide");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles2_Radial|E2_CHECKBOX_Circles_Radial");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Circles2_Random_m|E2_CHECKBOX_Circles_Random_m");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_ColorWash1_HFade|E1_CHECKBOX_ColorWash_HFade");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_ColorWash1_VFade|E1_CHECKBOX_ColorWash_VFade");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_ColorWash2_HFade|E2_CHECKBOX_ColorWash_HFade");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_ColorWash2_VFade|E2_CHECKBOX_ColorWash_VFade");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Fire1_GrowFire|E1_CHECKBOX_Fire_GrowFire");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Fire2_GrowFire|E2_CHECKBOX_Fire_GrowFire");
-//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
-//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_1|E1_CHECKBOX_Palette1");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_2|E1_CHECKBOX_Palette2");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_3|E1_CHECKBOX_Palette3");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_4|E1_CHECKBOX_Palette4");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_5|E1_CHECKBOX_Palette5");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette1_6|E1_CHECKBOX_Palette6");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_1|E2_CHECKBOX_Palette1");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_2|E2_CHECKBOX_Palette2");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_3|E2_CHECKBOX_Palette3");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_4|E2_CHECKBOX_Palette4");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_5|E2_CHECKBOX_Palette5");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Palette2_6|E2_CHECKBOX_Palette6");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirals1_3D|E1_CHECKBOX_Spirals_3D");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirals1_Blend|E1_CHECKBOX_Spirals_Blend");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirals2_3D|E2_CHECKBOX_Spirals_3D");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirals2_Blend|E2_CHECKBOX_Spirals_Blend");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirograph1_Animate|E1_CHECKBOX_Spirograph_Animate");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Spirograph2_Animate|E2_CHECKBOX_Spirograph_Animate");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Twinkle1_Strobe|E1_CHECKBOX_Twinkle_Strobe");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Twinkle2_Strobe|E2_CHECKBOX_Twinkle_Strobe");
-    replace_str = replace_str + wxT("|ID_CHOICE_Bars1_Direction|E1_CHOICE_Bars_Direction");
-    replace_str = replace_str + wxT("|ID_CHOICE_Bars2_Direction|E2_CHOICE_Bars_Direction");
-    replace_str = replace_str + wxT("|ID_CHOICE_Butterfly1_Colors|E1_CHOICE_Butterfly_Colors");
-    replace_str = replace_str + wxT("|ID_CHOICE_Butterfly2_Colors|E2_CHOICE_Butterfly_Colors");
-    replace_str = replace_str + wxT("|ID_CHOICE_LayerMethod|ID_CHOICE_LayerMethod");
-    replace_str = replace_str + wxT("|ID_CHOICE_Meteors1_Effect|E1_CHOICE_Meteors_Effect");
-    replace_str = replace_str + wxT("|ID_CHOICE_Meteors1_Type|E1_CHOICE_Meteors_Type");
-    replace_str = replace_str + wxT("|ID_CHOICE_Meteors2_Effect|E2_CHOICE_Meteors_Effect");
-    replace_str = replace_str + wxT("|ID_CHOICE_Meteors2_Type|E2_CHOICE_Meteors_Type");
-    replace_str = replace_str + wxT("|ID_CHOICE_Pictures1_Direction|E1_CHOICE_Pictures_Direction");
-    replace_str = replace_str + wxT("|ID_CHOICE_Pictures2_Direction|E2_CHOICE_Pictures_Direction");
+    replace_str = replace_str + "|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1";
+    replace_str = replace_str + "|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2";
+    replace_str = replace_str + "|ID_BUTTON_Palette1_3|E1_BUTTON_Palette3";
+    replace_str = replace_str + "|ID_BUTTON_Palette1_4|E1_BUTTON_Palette4";
+    replace_str = replace_str + "|ID_BUTTON_Palette1_5|E1_BUTTON_Palette5";
+    replace_str = replace_str + "|ID_BUTTON_Palette1_6|E1_BUTTON_Palette6";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_1|E2_BUTTON_Palette1";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_2|E2_BUTTON_Palette2";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_3|E2_BUTTON_Palette3";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_4|E2_BUTTON_Palette4";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_5|E2_BUTTON_Palette5";
+    replace_str = replace_str + "|ID_BUTTON_Palette2_6|E2_BUTTON_Palette6";
+    replace_str = replace_str + "|ID_CHECKBOX_Bars1_3D|E1_CHECKBOX_Bars_3D";
+    replace_str = replace_str + "|ID_CHECKBOX_Bars1_Highlight|E1_CHECKBOX_Bars_Highlight";
+    replace_str = replace_str + "|ID_CHECKBOX_Bars2_3D|E2_CHECKBOX_Bars_3D";
+    replace_str = replace_str + "|ID_CHECKBOX_Bars2_Highlight|E2_CHECKBOX_Bars_Highlight";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles1_Bounce|E1_CHECKBOX_Circles_Bounce";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles1_Collide|E1_CHECKBOX_Circles_Collide";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles1_Radial|E1_CHECKBOX_Circles_Radial";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles1_Random_m|E1_CHECKBOX_Circles_Random_m";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles2_Bounce|E2_CHECKBOX_Circles_Bounce";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles2_Collide|E2_CHECKBOX_Circles_Collide";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles2_Radial|E2_CHECKBOX_Circles_Radial";
+    replace_str = replace_str + "|ID_CHECKBOX_Circles2_Random_m|E2_CHECKBOX_Circles_Random_m";
+    replace_str = replace_str + "|ID_CHECKBOX_ColorWash1_HFade|E1_CHECKBOX_ColorWash_HFade";
+    replace_str = replace_str + "|ID_CHECKBOX_ColorWash1_VFade|E1_CHECKBOX_ColorWash_VFade";
+    replace_str = replace_str + "|ID_CHECKBOX_ColorWash2_HFade|E2_CHECKBOX_ColorWash_HFade";
+    replace_str = replace_str + "|ID_CHECKBOX_ColorWash2_VFade|E2_CHECKBOX_ColorWash_VFade";
+    replace_str = replace_str + "|ID_CHECKBOX_Fire1_GrowFire|E1_CHECKBOX_Fire_GrowFire";
+    replace_str = replace_str + "|ID_CHECKBOX_Fire2_GrowFire|E2_CHECKBOX_Fire_GrowFire";
+//    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp";
+//    replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_1|E1_CHECKBOX_Palette1";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_2|E1_CHECKBOX_Palette2";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_3|E1_CHECKBOX_Palette3";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_4|E1_CHECKBOX_Palette4";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_5|E1_CHECKBOX_Palette5";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette1_6|E1_CHECKBOX_Palette6";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_1|E2_CHECKBOX_Palette1";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_2|E2_CHECKBOX_Palette2";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_3|E2_CHECKBOX_Palette3";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_4|E2_CHECKBOX_Palette4";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_5|E2_CHECKBOX_Palette5";
+    replace_str = replace_str + "|ID_CHECKBOX_Palette2_6|E2_CHECKBOX_Palette6";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirals1_3D|E1_CHECKBOX_Spirals_3D";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirals1_Blend|E1_CHECKBOX_Spirals_Blend";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirals2_3D|E2_CHECKBOX_Spirals_3D";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirals2_Blend|E2_CHECKBOX_Spirals_Blend";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirograph1_Animate|E1_CHECKBOX_Spirograph_Animate";
+    replace_str = replace_str + "|ID_CHECKBOX_Spirograph2_Animate|E2_CHECKBOX_Spirograph_Animate";
+    replace_str = replace_str + "|ID_CHECKBOX_Twinkle1_Strobe|E1_CHECKBOX_Twinkle_Strobe";
+    replace_str = replace_str + "|ID_CHECKBOX_Twinkle2_Strobe|E2_CHECKBOX_Twinkle_Strobe";
+    replace_str = replace_str + "|ID_CHOICE_Bars1_Direction|E1_CHOICE_Bars_Direction";
+    replace_str = replace_str + "|ID_CHOICE_Bars2_Direction|E2_CHOICE_Bars_Direction";
+    replace_str = replace_str + "|ID_CHOICE_Butterfly1_Colors|E1_CHOICE_Butterfly_Colors";
+    replace_str = replace_str + "|ID_CHOICE_Butterfly2_Colors|E2_CHOICE_Butterfly_Colors";
+    replace_str = replace_str + "|ID_CHOICE_LayerMethod|ID_CHOICE_LayerMethod";
+    replace_str = replace_str + "|ID_CHOICE_Meteors1_Effect|E1_CHOICE_Meteors_Effect";
+    replace_str = replace_str + "|ID_CHOICE_Meteors1_Type|E1_CHOICE_Meteors_Type";
+    replace_str = replace_str + "|ID_CHOICE_Meteors2_Effect|E2_CHOICE_Meteors_Effect";
+    replace_str = replace_str + "|ID_CHOICE_Meteors2_Type|E2_CHOICE_Meteors_Type";
+    replace_str = replace_str + "|ID_CHOICE_Pictures1_Direction|E1_CHOICE_Pictures_Direction";
+    replace_str = replace_str + "|ID_CHOICE_Pictures2_Direction|E2_CHOICE_Pictures_Direction";
 
-    replace_str = replace_str + wxT("|ID_SLIDER_Bars1_BarCount|E1_SLIDER_Bars_BarCount");
-    replace_str = replace_str + wxT("|ID_SLIDER_Bars2_BarCount|E2_SLIDER_Bars_BarCount");
-    replace_str = replace_str + wxT("|ID_SLIDER_Brightness|ID_SLIDER_Brightness");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly1_Chunks|E1_SLIDER_Butterfly_Chunks");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly1_Skip|E1_SLIDER_Butterfly_Skip");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly1_Style|E1_SLIDER_Butterfly_Style");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly2_Chunks|E2_SLIDER_Butterfly_Chunks");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly2_Skip|E2_SLIDER_Butterfly_Skip");
-    replace_str = replace_str + wxT("|ID_SLIDER_Butterfly2_Style|E2_SLIDER_Butterfly_Style");
-    replace_str = replace_str + wxT("|ID_SLIDER_Circles1_Count|E1_SLIDER_Circles_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Circles1_Size|E1_SLIDER_Circles_Size");
-    replace_str = replace_str + wxT("|ID_SLIDER_Circles2|E2_SLIDER_Circles");
-    replace_str = replace_str + wxT("|ID_SLIDER_Circles2_count|E2_SLIDER_Circles_count");
-    replace_str = replace_str + wxT("|ID_SLIDER_ColorWash1_Count|E1_SLIDER_ColorWash_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_ColorWash2_Count|E2_SLIDER_ColorWash_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Contrast|ID_SLIDER_Contrast");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fire1_Height|E1_SLIDER_Fire_Height");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fire1_HueShift|E1_SLIDER_Fire_HueShift");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fire2_Height|E2_SLIDER_Fire_Height");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fire2_HueShift|E2_SLIDER_Fire_HueShift");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks1_Count|E1_SLIDER_Fireworks_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks1_Fade|E1_SLIDER_Fireworks_Fade");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks1_Number_Explosions|E1_SLIDER_Fireworks_Number_Explosions");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks1_Velocity|E1_SLIDER_Fireworks_Velocity");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks2_Count|E2_SLIDER_Fireworks_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks2_Fade|E2_SLIDER_Fireworks_Fade");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks2_Number_Explosions|E2_SLIDER_Fireworks_Number_Explosions");
-    replace_str = replace_str + wxT("|ID_SLIDER_Fireworks2_Velocity|E2_SLIDER_Fireworks_Velocity");
-    replace_str = replace_str + wxT("|ID_SLIDER_Garlands1_Spacing|E1_SLIDER_Garlands_Spacing");
-    replace_str = replace_str + wxT("|ID_SLIDER_Garlands1_Type|E1_SLIDER_Garlands_Type");
-    replace_str = replace_str + wxT("|ID_SLIDER_Garlands2_Spacing|E2_SLIDER_Garlands_Spacing");
-    replace_str = replace_str + wxT("|ID_SLIDER_Garlands2_Type|E2_SLIDER_Garlands_Type");
-    replace_str = replace_str + wxT("|ID_SLIDER_Life1_Count|E1_SLIDER_Life_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Life1_Seed|E1_SLIDER_Life_Seed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Life2_Count|E2_SLIDER_Life_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Life2_Seed|E2_SLIDER_Life_Seed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors1_Count|E1_SLIDER_Meteors_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors1_Length|E1_SLIDER_Meteors_Length");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors1_Swirl_Intensity|E1_SLIDER_Meteors_Swirl_Intensity");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors2_Count|E2_SLIDER_Meteors_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors2_Length|E2_SLIDER_Meteors_Length");
-    replace_str = replace_str + wxT("|ID_SLIDER_Meteors2_Swirl_Intensity|E2_SLIDER_Meteors_Swirl_Intensity");
-    replace_str = replace_str + wxT("|ID_SLIDER_Piano1_Keyboard|E1_SLIDER_Piano_Keyboard");
-    replace_str = replace_str + wxT("|ID_SLIDER_Piano2_Keyboard|E2_SLIDER_Piano_Keyboard");
-    replace_str = replace_str + wxT("|ID_SLIDER_Pictures1_GifSpeed|E1_SLIDER_Pictures_GifSpeed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Pictures2_GifSpeed|E2_SLIDER_Pictures_GifSpeed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowflakes1_Count|E1_SLIDER_Snowflakes_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowflakes1_Type|E1_SLIDER_Snowflakes_Type");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowflakes2_Count|E2_SLIDER_Snowflakes_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowflakes2_Type|E2_SLIDER_Snowflakes_Type");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowstorm1_Count|E1_SLIDER_Snowstorm_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowstorm1_Length|E1_SLIDER_Snowstorm_Length");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowstorm2_Count|E2_SLIDER_Snowstorm_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Snowstorm2_Length|E2_SLIDER_Snowstorm_Length");
-    replace_str = replace_str + wxT("|ID_SLIDER_SparkleFrequency|ID_SLIDER_SparkleFrequency");
-    replace_str = replace_str + wxT("|ID_SLIDER_Speed1|E1_SLIDER_Speed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Speed2|E2_SLIDER_Speed");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals1_Count|E1_SLIDER_Spirals_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals1_Direction|E1_SLIDER_Spirals_Direction");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals1_Rotation|E1_SLIDER_Spirals_Rotation");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals1_Thickness|E1_SLIDER_Spirals_Thickness");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals2_Count|E2_SLIDER_Spirals_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals2_Direction|E2_SLIDER_Spirals_Direction");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals2_Rotation|E2_SLIDER_Spirals_Rotation");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirals2_Thickness|E2_SLIDER_Spirals_Thickness");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph1_d|E1_SLIDER_Spirograph_d");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph1_R|E1_SLIDER_Spirograph_R");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph1_r|E1_SLIDER_Spirograph_r");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_d|E2_SLIDER_Spirograph_d");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_R|E2_SLIDER_Spirograph_R");
-    replace_str = replace_str + wxT("|ID_SLIDER_Spirograph2_r|E2_SLIDER_Spirograph_r");
+    replace_str = replace_str + "|ID_SLIDER_Bars1_BarCount|E1_SLIDER_Bars_BarCount";
+    replace_str = replace_str + "|ID_SLIDER_Bars2_BarCount|E2_SLIDER_Bars_BarCount";
+    replace_str = replace_str + "|ID_SLIDER_Brightness|ID_SLIDER_Brightness";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly1_Chunks|E1_SLIDER_Butterfly_Chunks";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly1_Skip|E1_SLIDER_Butterfly_Skip";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly1_Style|E1_SLIDER_Butterfly_Style";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly2_Chunks|E2_SLIDER_Butterfly_Chunks";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly2_Skip|E2_SLIDER_Butterfly_Skip";
+    replace_str = replace_str + "|ID_SLIDER_Butterfly2_Style|E2_SLIDER_Butterfly_Style";
+    replace_str = replace_str + "|ID_SLIDER_Circles1_Count|E1_SLIDER_Circles_Count";
+    replace_str = replace_str + "|ID_SLIDER_Circles1_Size|E1_SLIDER_Circles_Size";
+    replace_str = replace_str + "|ID_SLIDER_Circles2|E2_SLIDER_Circles";
+    replace_str = replace_str + "|ID_SLIDER_Circles2_count|E2_SLIDER_Circles_count";
+    replace_str = replace_str + "|ID_SLIDER_ColorWash1_Count|E1_SLIDER_ColorWash_Count";
+    replace_str = replace_str + "|ID_SLIDER_ColorWash2_Count|E2_SLIDER_ColorWash_Count";
+    replace_str = replace_str + "|ID_SLIDER_Contrast|ID_SLIDER_Contrast";
+    replace_str = replace_str + "|ID_SLIDER_Fire1_Height|E1_SLIDER_Fire_Height";
+    replace_str = replace_str + "|ID_SLIDER_Fire1_HueShift|E1_SLIDER_Fire_HueShift";
+    replace_str = replace_str + "|ID_SLIDER_Fire2_Height|E2_SLIDER_Fire_Height";
+    replace_str = replace_str + "|ID_SLIDER_Fire2_HueShift|E2_SLIDER_Fire_HueShift";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks1_Count|E1_SLIDER_Fireworks_Count";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks1_Fade|E1_SLIDER_Fireworks_Fade";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks1_Number_Explosions|E1_SLIDER_Fireworks_Number_Explosions";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks1_Velocity|E1_SLIDER_Fireworks_Velocity";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks2_Count|E2_SLIDER_Fireworks_Count";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks2_Fade|E2_SLIDER_Fireworks_Fade";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks2_Number_Explosions|E2_SLIDER_Fireworks_Number_Explosions";
+    replace_str = replace_str + "|ID_SLIDER_Fireworks2_Velocity|E2_SLIDER_Fireworks_Velocity";
+    replace_str = replace_str + "|ID_SLIDER_Garlands1_Spacing|E1_SLIDER_Garlands_Spacing";
+    replace_str = replace_str + "|ID_SLIDER_Garlands1_Type|E1_SLIDER_Garlands_Type";
+    replace_str = replace_str + "|ID_SLIDER_Garlands2_Spacing|E2_SLIDER_Garlands_Spacing";
+    replace_str = replace_str + "|ID_SLIDER_Garlands2_Type|E2_SLIDER_Garlands_Type";
+    replace_str = replace_str + "|ID_SLIDER_Life1_Count|E1_SLIDER_Life_Count";
+    replace_str = replace_str + "|ID_SLIDER_Life1_Seed|E1_SLIDER_Life_Seed";
+    replace_str = replace_str + "|ID_SLIDER_Life2_Count|E2_SLIDER_Life_Count";
+    replace_str = replace_str + "|ID_SLIDER_Life2_Seed|E2_SLIDER_Life_Seed";
+    replace_str = replace_str + "|ID_SLIDER_Meteors1_Count|E1_SLIDER_Meteors_Count";
+    replace_str = replace_str + "|ID_SLIDER_Meteors1_Length|E1_SLIDER_Meteors_Length";
+    replace_str = replace_str + "|ID_SLIDER_Meteors1_Swirl_Intensity|E1_SLIDER_Meteors_Swirl_Intensity";
+    replace_str = replace_str + "|ID_SLIDER_Meteors2_Count|E2_SLIDER_Meteors_Count";
+    replace_str = replace_str + "|ID_SLIDER_Meteors2_Length|E2_SLIDER_Meteors_Length";
+    replace_str = replace_str + "|ID_SLIDER_Meteors2_Swirl_Intensity|E2_SLIDER_Meteors_Swirl_Intensity";
+    replace_str = replace_str + "|ID_SLIDER_Piano1_Keyboard|E1_SLIDER_Piano_Keyboard";
+    replace_str = replace_str + "|ID_SLIDER_Piano2_Keyboard|E2_SLIDER_Piano_Keyboard";
+    replace_str = replace_str + "|ID_SLIDER_Pictures1_GifSpeed|E1_SLIDER_Pictures_GifSpeed";
+    replace_str = replace_str + "|ID_SLIDER_Pictures2_GifSpeed|E2_SLIDER_Pictures_GifSpeed";
+    replace_str = replace_str + "|ID_SLIDER_Snowflakes1_Count|E1_SLIDER_Snowflakes_Count";
+    replace_str = replace_str + "|ID_SLIDER_Snowflakes1_Type|E1_SLIDER_Snowflakes_Type";
+    replace_str = replace_str + "|ID_SLIDER_Snowflakes2_Count|E2_SLIDER_Snowflakes_Count";
+    replace_str = replace_str + "|ID_SLIDER_Snowflakes2_Type|E2_SLIDER_Snowflakes_Type";
+    replace_str = replace_str + "|ID_SLIDER_Snowstorm1_Count|E1_SLIDER_Snowstorm_Count";
+    replace_str = replace_str + "|ID_SLIDER_Snowstorm1_Length|E1_SLIDER_Snowstorm_Length";
+    replace_str = replace_str + "|ID_SLIDER_Snowstorm2_Count|E2_SLIDER_Snowstorm_Count";
+    replace_str = replace_str + "|ID_SLIDER_Snowstorm2_Length|E2_SLIDER_Snowstorm_Length";
+    replace_str = replace_str + "|ID_SLIDER_SparkleFrequency|ID_SLIDER_SparkleFrequency";
+    replace_str = replace_str + "|ID_SLIDER_Speed1|E1_SLIDER_Speed";
+    replace_str = replace_str + "|ID_SLIDER_Speed2|E2_SLIDER_Speed";
+    replace_str = replace_str + "|ID_SLIDER_Spirals1_Count|E1_SLIDER_Spirals_Count";
+    replace_str = replace_str + "|ID_SLIDER_Spirals1_Direction|E1_SLIDER_Spirals_Direction";
+    replace_str = replace_str + "|ID_SLIDER_Spirals1_Rotation|E1_SLIDER_Spirals_Rotation";
+    replace_str = replace_str + "|ID_SLIDER_Spirals1_Thickness|E1_SLIDER_Spirals_Thickness";
+    replace_str = replace_str + "|ID_SLIDER_Spirals2_Count|E2_SLIDER_Spirals_Count";
+    replace_str = replace_str + "|ID_SLIDER_Spirals2_Direction|E2_SLIDER_Spirals_Direction";
+    replace_str = replace_str + "|ID_SLIDER_Spirals2_Rotation|E2_SLIDER_Spirals_Rotation";
+    replace_str = replace_str + "|ID_SLIDER_Spirals2_Thickness|E2_SLIDER_Spirals_Thickness";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph1_d|E1_SLIDER_Spirograph_d";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph1_R|E1_SLIDER_Spirograph_R";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph1_r|E1_SLIDER_Spirograph_r";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph2_d|E2_SLIDER_Spirograph_d";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph2_R|E2_SLIDER_Spirograph_R";
+    replace_str = replace_str + "|ID_SLIDER_Spirograph2_r|E2_SLIDER_Spirograph_r";
 
-    replace_str = replace_str + wxT("|ID_SLIDER_Tree1_Branches|E1_SLIDER_Tree_Branches");
-    replace_str = replace_str + wxT("|ID_SLIDER_Tree2_Branches|E2_SLIDER_Tree_Branches");
-    replace_str = replace_str + wxT("|ID_SLIDER_Twinkle1_Count|E1_SLIDER_Twinkle_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Twinkle1_Steps|E1_SLIDER_Twinkle_Steps");
-    replace_str = replace_str + wxT("|ID_SLIDER_Twinkle2_Count|E2_SLIDER_Twinkle_Count");
-    replace_str = replace_str + wxT("|ID_SLIDER_Twinkle2_Steps|E2_SLIDER_Twinkle_Steps");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures1_Filename|E1_TEXTCTRL_Pictures_Filename");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Pictures2_Filename|E2_TEXTCTRL_Pictures_Filename");
+    replace_str = replace_str + "|ID_SLIDER_Tree1_Branches|E1_SLIDER_Tree_Branches";
+    replace_str = replace_str + "|ID_SLIDER_Tree2_Branches|E2_SLIDER_Tree_Branches";
+    replace_str = replace_str + "|ID_SLIDER_Twinkle1_Count|E1_SLIDER_Twinkle_Count";
+    replace_str = replace_str + "|ID_SLIDER_Twinkle1_Steps|E1_SLIDER_Twinkle_Steps";
+    replace_str = replace_str + "|ID_SLIDER_Twinkle2_Count|E2_SLIDER_Twinkle_Count";
+    replace_str = replace_str + "|ID_SLIDER_Twinkle2_Steps|E2_SLIDER_Twinkle_Steps";
+    replace_str = replace_str + "|ID_TEXTCTRL_Pictures1_Filename|E1_TEXTCTRL_Pictures_Filename";
+    replace_str = replace_str + "|ID_TEXTCTRL_Pictures2_Filename|E2_TEXTCTRL_Pictures_Filename";
 
 
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=");
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=");
-    Text1 = Text1 + wxT("|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=");
-    Text2 = Text2 + wxT("|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left");
-    Text1 = Text1 + wxT("|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left");
-    Text2 = Text2 + wxT("|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0");
-    Text2 = Text2 + wxT("|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0");
-    Text1 = Text1 + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0");
-    Text2 = Text2 + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0");
+    Text1 = Text1 + "|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=";
+    Text2 = Text2 + "|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=";
+    Text1 = Text1 + "|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=";
+    Text2 = Text2 + "|ID_TEXTCTRL_Text2_2_Font|ID_TEXTCTRL_Text2_2_Font=";
+    Text1 = Text1 + "|ID_CHOICE_Text1_1_Dir|ID_CHOICE_Text1_1_Dir=left";
+    Text2 = Text2 + "|ID_CHOICE_Text2_1_Dir|ID_CHOICE_Text2_1_Dir=left";
+    Text1 = Text1 + "|ID_CHOICE_Text1_2_Dir|ID_CHOICE_Text1_2_Dir=left";
+    Text2 = Text2 + "|ID_CHOICE_Text2_2_Dir|ID_CHOICE_Text2_2_Dir=left";
+    Text1 = Text1 + "|ID_SLIDER_Text1_1_Position|ID_SLIDER_Text1_1_Position=50";
+    Text2 = Text2 + "|ID_SLIDER_Text2_1_Position|ID_SLIDER_Text2_1_Position=50";
+    Text1 = Text1 + "|ID_SLIDER_Text1_2_Position|ID_SLIDER_Text1_2_Position=50";
+    Text2 = Text2 + "|ID_SLIDER_Text2_2_Position|ID_SLIDER_Text2_2_Position=50";
+    Text1 = Text1 + "|ID_SLIDER_Text1_1_TextRotation|ID_SLIDER_Text1_1_TextRotation=0";
+    Text2 = Text2 + "|ID_SLIDER_Text2_1_TextRotation|ID_SLIDER_Text2_1_TextRotation=0";
+    Text1 = Text1 + "|ID_SLIDER_Text1_2_TextRotation|ID_SLIDER_Text1_2_TextRotation=0";
+    Text2 = Text2 + "|ID_SLIDER_Text2_2_TextRotation|ID_SLIDER_Text2_2_TextRotation=0";
+    Text1 = Text1 + "|ID_CHECKBOX_Text1_COUNTDOWN1|ID_CHECKBOX_Text1_COUNTDOWN1=0";
+    Text2 = Text2 + "|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0";
+    Text1 = Text1 + "|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0";
+    Text2 = Text2 + "|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0";
 
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_1_Font|E1_TEXTCTRL_Text_Font1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_2_Font|E1_TEXTCTRL_Text_Font2");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_1_Font|E2_TEXTCTRL_Text_Font1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_2_Font|E2_TEXTCTRL_Text_Font2");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line1|E2_TEXTCTRL_Text_Line1");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Text2_Line2|E2_TEXTCTRL_Text_Line2");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1");
-    replace_str = replace_str + wxT("|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2");
+    replace_str = replace_str + "|ID_TEXTCTRL_Text1_1_Font|E1_TEXTCTRL_Text_Font1";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text1_2_Font|E1_TEXTCTRL_Text_Font2";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text2_1_Font|E2_TEXTCTRL_Text_Font1";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text2_2_Font|E2_TEXTCTRL_Text_Font2";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text1_Line1|E1_TEXTCTRL_Text_Line1";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text1_Line2|E1_TEXTCTRL_Text_Line2";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text2_Line1|E2_TEXTCTRL_Text_Line1";
+    replace_str = replace_str + "|ID_TEXTCTRL_Text2_Line2|E2_TEXTCTRL_Text_Line2";
+    replace_str = replace_str + "|ID_SLIDER_Text1_1_Position|E1_SLIDER_Text_Position1";
+    replace_str = replace_str + "|ID_SLIDER_Text1_2_Position|E1_SLIDER_Text_Position2";
+    replace_str = replace_str + "|ID_SLIDER_Text2_1_Position|E2_SLIDER_Text_Position1";
+    replace_str = replace_str + "|ID_SLIDER_Text2_2_Position|E2_SLIDER_Text_Position2";
+    replace_str = replace_str + "|ID_CHOICE_Text1_1_Count|E1_CHOICE_Text_Count1";
+    replace_str = replace_str + "|ID_CHOICE_Text1_2_Count|E1_CHOICE_Text_Count2";
+    replace_str = replace_str + "|ID_CHOICE_Text2_1_Count|E2_CHOICE_Text_Count1";
+    replace_str = replace_str + "|ID_CHOICE_Text2_2_Count|E2_CHOICE_Text_Count2";
+    replace_str = replace_str + "|ID_CHOICE_Text1_1_Dir|E1_CHOICE_Text_Dir1";
+    replace_str = replace_str + "|ID_CHOICE_Text1_2_Dir|E1_CHOICE_Text_Dir2";
+    replace_str = replace_str + "|ID_CHOICE_Text2_1_Dir|E2_CHOICE_Text_Dir1";
+    replace_str = replace_str + "|ID_CHOICE_Text2_2_Dir|E2_CHOICE_Text_Dir2";
+    replace_str = replace_str + "|ID_CHOICE_Text1_1_Effect|E1_CHOICE_Text_Effect1";
+    replace_str = replace_str + "|ID_CHOICE_Text1_2_Effect|E1_CHOICE_Text_Effect2";
+    replace_str = replace_str + "|ID_CHOICE_Text2_1_Effect|E2_CHOICE_Text_Effect1";
+    replace_str = replace_str + "|ID_CHOICE_Text2_2_Effect|E2_CHOICE_Text_Effect2";
     //
     //
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp");
+    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp";
+    replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp";
 
 //  single strand effects
-    replace_str = replace_str + wxT("|E1_SLIDER_Single_Color_Mix1|ID_SLIDER_Single_Color_Mix1");
-    replace_str = replace_str + wxT("|E1_SLIDER_Single_Color_Spacing1|ID_SLIDER_Chase_Spacing1");
-    replace_str = replace_str + wxT("|E1_CHECKBOX_Single_Chase_3dFade1|ID_CHECKBOX_Chase_3dFade1");
-    replace_str = replace_str + wxT("|E2_SLIDER_Single_Color_Mix2|ID_SLIDER_Single_Color_Mix2");
-    replace_str = replace_str + wxT("|E2_SLIDER_Single_Color_Spacing2|ID_SLIDER_Chase_Spacing2");
-    replace_str = replace_str + wxT("|E2_CHECKBOX_Single_Group_Arches2|ID_CHECKBOX_Group_Arches2");
+    replace_str = replace_str + "|E1_SLIDER_Single_Color_Mix1|ID_SLIDER_Single_Color_Mix1";
+    replace_str = replace_str + "|E1_SLIDER_Single_Color_Spacing1|ID_SLIDER_Chase_Spacing1";
+    replace_str = replace_str + "|E1_CHECKBOX_Single_Chase_3dFade1|ID_CHECKBOX_Chase_3dFade1";
+    replace_str = replace_str + "|E2_SLIDER_Single_Color_Mix2|ID_SLIDER_Single_Color_Mix2";
+    replace_str = replace_str + "|E2_SLIDER_Single_Color_Spacing2|ID_SLIDER_Chase_Spacing2";
+    replace_str = replace_str + "|E2_CHECKBOX_Single_Group_Arches2|ID_CHECKBOX_Group_Arches2";
 
-    replace_str = replace_str + wxT("|ID_SLIDER_Single_Color_Mix1|E1_SLIDER_Color_Mix1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Chase_Spacing1|E1_SLIDER_Chase_Spacing1");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Group_Arches1|E1_CHECKBOX_Chase_3dFade1");
+    replace_str = replace_str + "|ID_SLIDER_Single_Color_Mix1|E1_SLIDER_Color_Mix1";
+    replace_str = replace_str + "|ID_SLIDER_Chase_Spacing1|E1_SLIDER_Chase_Spacing1";
+    replace_str = replace_str + "|ID_CHECKBOX_Group_Arches1|E1_CHECKBOX_Chase_3dFade1";
 
 
 
-    //    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp");
-//    replace_str = replace_str + wxT("|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp");
+    //    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp";
+//    replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp";
 //
 
 //    E1_TEXTCTRL_Text_Font1=
@@ -1811,32 +1811,32 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 
 
     //  this set will convert old, unsed tokens into a new not used token. this eliminates the error messages
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_1_TextRotation|E2_SLIDER_Text_Rotation1");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text2_2_TextRotation|E2_SLIDER_Text_Rotation2");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN1|E1_Text1_COUNTDOWN");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN1|E1_Text2_COUNTDOWN");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Text1_COUNTDOWN2|E2_Text1_COUNTDOWN");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Text2_COUNTDOWN2|E2_Text2_COUNTDOWN");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation1|E1_SLIDER_Text_Rotation");
-    replace_str = replace_str + wxT("|ID_SLIDER_Text_Rotation2|E2_SLIDER_Text_Rotation");
-    replace_str = replace_str + wxT("|ID_Text1_Countdown|E1_Text_Countdown");
-    replace_str = replace_str + wxT("|ID_Text2_Countdown|E2_Text_Countdown");
-    replace_str = replace_str + wxT("|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN");
-    replace_str = replace_str + wxT("|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN");
+    replace_str = replace_str + "|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1";
+    replace_str = replace_str + "|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2";
+    replace_str = replace_str + "|ID_SLIDER_Text2_1_TextRotation|E2_SLIDER_Text_Rotation1";
+    replace_str = replace_str + "|ID_SLIDER_Text2_2_TextRotation|E2_SLIDER_Text_Rotation2";
+    replace_str = replace_str + "|ID_CHECKBOX_Text1_COUNTDOWN1|E1_Text1_COUNTDOWN";
+    replace_str = replace_str + "|ID_CHECKBOX_Text2_COUNTDOWN1|E1_Text2_COUNTDOWN";
+    replace_str = replace_str + "|ID_CHECKBOX_Text1_COUNTDOWN2|E2_Text1_COUNTDOWN";
+    replace_str = replace_str + "|ID_CHECKBOX_Text2_COUNTDOWN2|E2_Text2_COUNTDOWN";
+    replace_str = replace_str + "|ID_SLIDER_Text_Rotation1|E1_SLIDER_Text_Rotation";
+    replace_str = replace_str + "|ID_SLIDER_Text_Rotation2|E2_SLIDER_Text_Rotation";
+    replace_str = replace_str + "|ID_Text1_Countdown|E1_Text_Countdown";
+    replace_str = replace_str + "|ID_Text2_Countdown|E2_Text_Countdown";
+    replace_str = replace_str + "|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN";
+    replace_str = replace_str + "|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN";
 
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein");
-    replace_str = replace_str + wxT("|ID_TEXTCTRL_Effect2_Fadeout|E2_TEXTCTRL_Fadeout");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Effect1_Fit|E1_CHECKBOX_FitToTime");
-    replace_str = replace_str + wxT("|ID_CHECKBOX_Effect2_Fit|E2_CHECKBOX_FitToTime");
+    replace_str = replace_str + "|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein";
+    replace_str = replace_str + "|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout";
+    replace_str = replace_str + "|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein";
+    replace_str = replace_str + "|ID_TEXTCTRL_Effect2_Fadeout|E2_TEXTCTRL_Fadeout";
+    replace_str = replace_str + "|ID_CHECKBOX_Effect1_Fit|E1_CHECKBOX_FitToTime";
+    replace_str = replace_str + "|ID_CHECKBOX_Effect2_Fit|E2_CHECKBOX_FitToTime";
 
-    replace_str = replace_str + wxT("|vertical text up|vert text up");
-    replace_str = replace_str + wxT("|vertical dext down|vert text down");
-    replace_str = replace_str + wxT("|count down seconds|seconds");
-    replace_str = replace_str + wxT("|count down to date|to date");
+    replace_str = replace_str + "|vertical text up|vert text up";
+    replace_str = replace_str + "|vertical dext down|vert text down";
+    replace_str = replace_str + "|count down seconds|seconds";
+    replace_str = replace_str + "|count down to date|to date";
 
     if (!f.Create(fileout,true))
     {
@@ -1867,7 +1867,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
             if(pos_SLIDER_Slider>0) // if we have SLIDER_Slider bad text,
             {
                 modified=true;  // yes,fix it
-                str.Replace(wxT("SLIDER_Slider"),wxT("SLIDER"));
+                str.Replace("SLIDER_Slider","SLIDER");
             }
 
 // do we have the old text1 font token?
@@ -1875,7 +1875,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
             if(pos_ID_TEXTCTRL4>0) // if we have ID_TEXTCTRL4 bad text,
             {
                 modified=true;  // yes,fix it
-                str.Replace(wxT("ID_TEXTCTRL4"),wxT("ID_TEXTCTRL_Text1_1_Font"));
+                str.Replace("ID_TEXTCTRL4","ID_TEXTCTRL_Text1_1_Font");
             }
 
 //  166 tokens
@@ -1975,7 +1975,7 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
             continue;
         }
 
-        wxStringTokenizer tkz(line, wxT("\t"));
+        wxStringTokenizer tkz(line, "\t");
         wxString token = tkz.GetNextToken(); //first column = start time
 #if 1 //pull in lyrics or other label text -DJ
         tkz.GetNextToken(); //second column = end time; ignored by Nutcracker
@@ -2074,12 +2074,12 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
         return false;
     }
     wxXmlNode* root=doc.GetRoot();
-    wxString tempstr=root->GetAttribute(wxT("BaseChannel"), wxT("1"));
+    wxString tempstr=root->GetAttribute("BaseChannel", "1");
     tempstr.ToLong(&SeqBaseChannel);
-    tempstr=root->GetAttribute(wxT("ChanCtrlBasic"), wxT("0"));
-    SeqChanCtrlBasic=tempstr!=wxT("0");
-    tempstr=root->GetAttribute(wxT("ChanCtrlColor"), wxT("0"));
-    SeqChanCtrlColor=tempstr!=wxT("0");
+    tempstr=root->GetAttribute("ChanCtrlBasic", "0");
+    SeqChanCtrlBasic=tempstr!="0";
+    tempstr=root->GetAttribute("ChanCtrlColor", "0");
+    SeqChanCtrlColor=tempstr!="0";
 
     wxXmlNode *tr, *td;
     wxString ColName;
@@ -2092,14 +2092,14 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     int r,c; // row 0=heading, >=1 are data rows
     for(tr=root->GetChildren(), r=0; tr!=NULL; tr=tr->GetNext(), r++ )
     {
-        if (tr->GetName() != wxT("tr")) continue;
+        if (tr->GetName() != "tr") continue;
         if (r > 0)
         {
             Grid1->AppendRows();
         }
         for(td=tr->GetChildren(), c=0, gridCol=0; td!=NULL; td=td->GetNext(), c++ )
         {
-            if (td->GetName() != wxT("td")) continue;
+            if (td->GetName() != "td") continue;
             if (r==0)
             {
                 if (c >= XLIGHTS_SEQ_STATIC_COLUMNS)
@@ -2107,7 +2107,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
                     ColName=td->GetNodeContent();
                     if (ModelNames.Index(ColName) == wxNOT_FOUND)
                     {
-                        dialog.StaticTextMessage->SetLabel(wxT("Element '")+ColName+wxT("'\ndoes not exist in your list of models"));
+                        dialog.StaticTextMessage->SetLabel("Element '"+ColName+"'\ndoes not exist in your list of models");
                         dialog.Fit();
                         dialog.ShowModal();
                         if (dialog.RadioButtonAdd->GetValue())
@@ -2135,7 +2135,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
             {
 
                 Grid1->SetCellValue(r-1,gridCol,td->GetNodeContent());
-                if(td->GetAttribute(wxT("Protected"),&tmpStr) && tmpStr == wxT("1"))
+                if(td->GetAttribute("Protected",&tmpStr) && tmpStr == "1")
                 {
                     Grid1->SetCellTextColour(r-1, gridCol, *wxBLUE);
                 }
@@ -2269,10 +2269,10 @@ void xLightsFrame::OpenSequence()
             {
                 int period=*it;
                 float seconds=(float)period*interval/1000.0;
-                Grid1->SetCellValue(r, 0, wxString::Format(wxT("%5.3f"),seconds));
+                Grid1->SetCellValue(r, 0, wxString::Format("%5.3f",seconds));
                 r++;
             }
-            wxMessageBox(wxT("Created new grid based on LOR effect timing"));
+            wxMessageBox("Created new grid based on LOR effect timing");
         }
         return;
     }
@@ -2287,7 +2287,7 @@ void xLightsFrame::OpenSequence()
 
         if (!PlayerDlg->Play(mediaFilename))
         {
-            wxMessageBox(wxT("Unable to load:\n")+mediaFilename,wxT("ERROR"));
+            wxMessageBox("Unable to load:\n"+mediaFilename,"ERROR");
             return;
         }
         for (int cnt=0; cnt < 50; cnt++)
@@ -2300,7 +2300,7 @@ void xLightsFrame::OpenSequence()
         PlayerDlg->MediaCtrl->Stop();
         if (duration <= 0)
         {
-            wxMessageBox(wxT("Unable to determine the length of:\n")+mediaFilename,wxT("ERROR"));
+            wxMessageBox("Unable to determine the length of:\n"+mediaFilename,"ERROR");
             return;
         }
         switch (dialog.RadioBoxTimingChoice->GetSelection())
@@ -2327,7 +2327,7 @@ void xLightsFrame::OpenSequence()
         DisplayXlightsFilename(nullString);
         if (duration <= 0)
         {
-            wxMessageBox(wxT("Invalid value for duration"),wxT("ERROR"));
+            wxMessageBox("Invalid value for duration","ERROR");
             return;
         }
         duration*=1000;  // convert to milliseconds
@@ -2341,7 +2341,7 @@ void xLightsFrame::OpenSequence()
     int nSeconds=duration/1000;
     int nMinutes=nSeconds/60;
     nSeconds%=60;
-    wxMessageBox(wxString::Format(wxT("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d"),
+    wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
                                   SeqNumChannels,SeqNumPeriods,interval,nMinutes,nSeconds));
 }
 
@@ -2361,7 +2361,7 @@ void xLightsFrame::RenderGridToSeqData()
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
 
-    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
+    LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
@@ -2375,10 +2375,10 @@ void xLightsFrame::RenderGridToSeqData()
         if (ChannelLimit > SeqNumChannels)
         {
             // need to add more channels to existing sequence
-            msg=wxString::Format(wxT("Increasing sequence channel count from %ld to %d"),SeqNumChannels,ChannelLimit);
+            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
             if (ChannelLimit > NetInfo.GetTotChannels())
             {
-                msg+=wxT("\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!");
+                msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
             }
             wxMessageBox(msg);
             SeqNumChannels=ChannelLimit;
@@ -2400,7 +2400,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                wxString msg=_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1));
+                wxString msg=_(wxString::Format("%s: Saving row %ld",ColName,NextGridRowToPlay+1));
                 StatusBar1->SetStatusText(msg);
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
@@ -2410,7 +2410,7 @@ void xLightsFrame::RenderGridToSeqData()
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
                     //StatusBar1->SetStatusText(msg);
-                    //wxString effect=SettingsMap[wxT("E1_Effect")]+","+SettingsMap[wxT("E2_Effect")];
+                    //wxString effect=SettingsMap["E1_Effect"]+","+SettingsMap["E2_Effect"];
                     //TextCtrlLog->AppendText(msg+" "+effect+"\n");
                     UpdateBufferPaletteFromMap(1,SettingsMap);
                     UpdateBufferPaletteFromMap(2,SettingsMap);
@@ -2439,7 +2439,7 @@ void xLightsFrame::RenderGridToSeqData()
 
             if (effectsToUpdate)
             {
-                //TextCtrlLog->AppendText(wxString::Format(wxT("  period %d\n"),p));
+                //TextCtrlLog->AppendText(wxString::Format("  period %d\n",p));
                 buffer.CalcOutput(p);
                 // update SeqData with contents of buffer
                 size_t chnum;
@@ -2476,7 +2476,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     NodeCnt = buffer.GetNodeCount();
     retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
 
-    LoadSettingsMap(wxT("None,None,Effect 1"), SettingsMap);
+    LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         ColName=Grid1->GetColLabelValue(c);
@@ -2496,7 +2496,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
             {
                 // start next effect
                 wxYield();
-                StatusBar1->SetStatusText(_(wxString::Format(wxT("%s: Saving row %ld"),ColName,NextGridRowToPlay+1)));
+                StatusBar1->SetStatusText(_(wxString::Format("%s: Saving row %ld",ColName,NextGridRowToPlay+1)));
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
                 EffectStr.Trim();
@@ -2504,7 +2504,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                 {
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
-                    // TextCtrlLog->AppendText(wxT("effect")+LayerStr+wxT("=")+effect+wxT(", speed=")+SpeedStr+wxT("\n"));
+                    // TextCtrlLog->AppendText("effect"+LayerStr+"="+effect+", speed="+SpeedStr+"\n");
                     UpdateBufferPaletteFromMap(1,SettingsMap);
                     UpdateBufferPaletteFromMap(2,SettingsMap);
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
@@ -2562,7 +2562,7 @@ void xLightsFrame::SaveSequence()
     bool ok;
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
 
@@ -2571,15 +2571,15 @@ void xLightsFrame::SaveSequence()
     int colcnt=Grid1->GetNumberCols();
     if (colcnt <= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
-        wxMessageBox(wxT("No models in the grid!"), wxT("Warning"));
+        wxMessageBox("No models in the grid!", "Warning");
     }
     if (rowcnt == 0)
     {
-        wxMessageBox(wxT("No grid rows to save!"), wxT("Warning"));
+        wxMessageBox("No grid rows to save!", "Warning");
     }
     if (xlightsFilename.IsEmpty())
     {
-        wxTextEntryDialog dialog(this,wxT("Enter a name for the sequence:"),wxT("Save As"));
+        wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         do
         {
             if (dialog.ShowModal() != wxID_OK) return;
@@ -2607,31 +2607,31 @@ void xLightsFrame::SaveSequence()
     int r,c;
     wxXmlDocument doc;
     wxXmlNode *tr, *td;
-    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, wxT("xsequence") );
+    wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xsequence" );
     doc.SetRoot( root );
-    root->AddAttribute(wxT("BaseChannel"), wxString::Format(wxT("%ld"),SeqBaseChannel));
-    root->AddAttribute(wxT("ChanCtrlBasic"), SeqChanCtrlBasic ? wxT("1") : wxT("0"));
-    root->AddAttribute(wxT("ChanCtrlColor"), SeqChanCtrlColor ? wxT("1") : wxT("0"));
+    root->AddAttribute("BaseChannel", wxString::Format("%ld",SeqBaseChannel));
+    root->AddAttribute("ChanCtrlBasic", SeqChanCtrlBasic ? "1" : "0");
+    root->AddAttribute("ChanCtrlColor", SeqChanCtrlColor ? "1" : "0");
 
     // new items get added to the TOP of the xml structure, so add everything in reverse order
 
     // save data rows
     for (r=rowcnt-1; r>=0; r--)
     {
-        tr=new wxXmlNode(root, wxXML_ELEMENT_NODE, wxT("tr"));
+        tr=new wxXmlNode(root, wxXML_ELEMENT_NODE, "tr");
         for (c=colcnt-1; c>=0; c--)
         {
-            td=new wxXmlNode(tr, wxXML_ELEMENT_NODE, wxT("td"));
+            td=new wxXmlNode(tr, wxXML_ELEMENT_NODE, "td");
             td->AddChild(new wxXmlNode(td, wxXML_TEXT_NODE, wxEmptyString, Grid1->GetCellValue(r,c)));
-            td->AddAttribute(wxT("Protected"),(Grid1->GetCellTextColour(r,c) == *wxBLUE)?wxT("1"):wxT("0"));
+            td->AddAttribute("Protected",(Grid1->GetCellTextColour(r,c) == *wxBLUE)?"1":"0");
         }
     }
 
     // save labels to first row
-    tr=new wxXmlNode(root, wxXML_ELEMENT_NODE, wxT("tr"));
+    tr=new wxXmlNode(root, wxXML_ELEMENT_NODE, "tr");
     for (c=colcnt-1; c>=0; c--)
     {
-        td=new wxXmlNode(tr, wxXML_ELEMENT_NODE, wxT("td"));
+        td=new wxXmlNode(tr, wxXML_ELEMENT_NODE, "td");
         td->AddChild(new wxXmlNode(td, wxXML_TEXT_NODE, wxEmptyString, Grid1->GetColLabelValue(c)));
     }
     doc.Save(SeqXmlFileName);
@@ -2682,7 +2682,7 @@ void xLightsFrame::InsertRow()
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     int r=Grid1->GetGridCursorRow();
@@ -2700,7 +2700,7 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     if ( Grid1->IsSelection() )
@@ -2721,7 +2721,7 @@ void xLightsFrame::OnButtonDisplayElementsClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     ChooseModelsForSequence();
@@ -2834,17 +2834,17 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     if (Grid1->GetNumberCols() <= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
-        wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
+        wxMessageBox("No models in the grid!", "Error");
         return;
     }
     if (Grid1->GetNumberRows() == 0)
     {
-        wxMessageBox(wxT("No grid rows to save!"), wxT("Error"));
+        wxMessageBox("No grid rows to save!", "Error");
         return;
     }
     int DlgResult;
@@ -2878,11 +2878,11 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
-    StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
+    StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
 
 
     // REFACTOR -- FR: These extensions should all be based on Macros. For that matter all these compares should be as well.
-    if (Out3 == wxT("LOR"))
+    if (Out3 == "LOR")
     {
         if (mediaFilename.IsEmpty())
         {
@@ -2895,51 +2895,51 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
         fullpath=oName.GetFullPath();
         WriteLorFile(fullpath);
     }
-    else if (Out3 == wxT("Lcb"))
+    else if (Out3 == "Lcb")
     {
         oName.SetExt(_("lcb"));
         fullpath=oName.GetFullPath();
         WriteLcbFile(fullpath);
     }
-    else if (Out3 == wxT("Vix"))
+    else if (Out3 == "Vix")
     {
         oName.SetExt(_("vix"));
         fullpath=oName.GetFullPath();
         WriteVixenFile(fullpath);
     }
-    else if (Out3 == wxT("Vir"))
+    else if (Out3 == "Vir")
     {
         oName.SetExt(_("vir"));
         fullpath=oName.GetFullPath();
         WriteVirFile(fullpath);
     }
-    else if (Out3 == wxT("LSP"))
+    else if (Out3 == "LSP")
     {
         oName.SetExt(_("user"));
         fullpath=oName.GetFullPath();
         WriteLSPFile(fullpath);
         return;
     }
-    else if (Out3 == wxT("HLS"))
+    else if (Out3 == "HLS")
     {
         oName.SetExt(_("hlsnc"));
         fullpath=oName.GetFullPath();
         WriteHLSFile(fullpath);
     }
-    else if (Out3 == wxT("xLi"))
+    else if (Out3 == "xLi")
     {
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
         fullpath=oName.GetFullPath();
         WriteXLightsFile(fullpath);
     }
-    else if (Out3 == wxT("Fal"))
+    else if (Out3 == "Fal")
     {
         oName.SetExt(_("fseq"));
         fullpath=oName.GetFullPath();
         WriteFalconPiFile(fullpath);
     }
 
-    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 }
 
 wxXmlNode* xLightsFrame::SelectModelToExport()
@@ -2962,17 +2962,17 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 {
     if (SeqData.size() == 0)
     {
-        wxMessageBox(wxT("You must open a sequence first!"), wxT("Error"));
+        wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     if (Grid1->GetNumberCols() <= XLIGHTS_SEQ_STATIC_COLUMNS)
     {
-        wxMessageBox(wxT("No models in the grid!"), wxT("Error"));
+        wxMessageBox("No models in the grid!", "Error");
         return;
     }
     if (Grid1->GetNumberRows() == 0)
     {
-        wxMessageBox(wxT("No grid rows to save!"), wxT("Error"));
+        wxMessageBox("No grid rows to save!", "Error");
         return;
     }
     int DlgResult;
@@ -3016,39 +3016,39 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
-    StatusBar1->SetStatusText(_("Starting Export for ") + format + wxT("-") + Out3);
+    StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
 
-    if (Out3 == wxT("Lcb"))
+    if (Out3 == "Lcb")
     {
         oName.SetExt(_("lcb"));
         fullpath=oName.GetFullPath();
         WriteLcbFile(fullpath, numChan, SeqNumPeriods, dataBuf);
     }
 
-    else if (Out3 == wxT("Vir"))
+    else if (Out3 == "Vir")
     {
         oName.SetExt(_("vir"));
         fullpath=oName.GetFullPath();
         WriteVirFile(fullpath, numChan, SeqNumPeriods, dataBuf);
     }
-    else if (Out3 == wxT("LSP"))
+    else if (Out3 == "LSP")
     {
         oName.SetExt(_("user"));
         fullpath=oName.GetFullPath();
         WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf);
         return;
     }
-    else if (Out3 == wxT("HLS"))
+    else if (Out3 == "HLS")
     {
         oName.SetExt(_("hlsnc"));
         fullpath=oName.GetFullPath();
         WriteHLSFile(fullpath, numChan, SeqNumPeriods, dataBuf);
     }
-    else if (Out3 == wxT("Fal"))
+    else if (Out3 == "Fal")
     {
         wxString tempstr;
         long stChan;
-        tempstr=modelNode->GetAttribute(wxT("StartChannel"),wxT("1"));
+        tempstr=modelNode->GetAttribute("StartChannel","1");
         tempstr.ToLong(&stChan);
         oName.SetExt(_("eseq"));
         fullpath=oName.GetFullPath();
@@ -3056,7 +3056,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     }
 
     delete dataBuf;
-    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(wxT(" in %ld ms "),sw.Time()));
+    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 }
 
 void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
@@ -3107,11 +3107,11 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 #if 0 //debug
     wxString buf;
     for (auto it = buttonState.begin(); it != buttonState.end(); ++it)
-        buf += it->first + wxString::Format(wxT("=%d,"), it->second);
+        buf += it->first + wxString::Format("=%d,", it->second);
     for (auto it = EffectsPanel1->buttonState.begin(); it != EffectsPanel1->buttonState.end(); ++it)
-        buf += wxT("FX1:") + it->first + wxString::Format(wxT("=%d,"), it->second);
+        buf += "FX1:" + it->first + wxString::Format("=%d,", it->second);
     for (auto it = EffectsPanel2->buttonState.begin(); it != EffectsPanel2->buttonState.end(); ++it)
-        buf += wxT("FX2:") + it->first + wxString::Format(wxT("=%d,"), it->second);
+        buf += "FX2:" + it->first + wxString::Format("=%d,", it->second);
 //    djdebug("InsertRandomEffects: %s", (const char*)buf.c_str());
 //    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
 #endif
@@ -3171,11 +3171,11 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
                 if (Grid1->IsInSelection(i,k)) {   // this field is selected!!!
                     if (!something_in_this_line) {      // first field in this line => may need a linefeed
                         if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
-                            copy_data += wxT("\n");     // next LINE
+                            copy_data += "\n";     // next LINE
                         }
                         something_in_this_line = true;
                     } else {                                // if not the first field in this line we need a field seperator (TAB)
-                        copy_data += wxT("\t");  // next COLUMN
+                        copy_data += "\t";  // next COLUMN
                     }
                     copy_data += Grid1->GetCellValue(i,k);    // finally we need the field value
                     if (IsCut)

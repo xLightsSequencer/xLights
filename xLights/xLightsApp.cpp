@@ -34,7 +34,7 @@ bool xLightsApp::OnInit()
             info += _("Auto-run prompt is ON\n");
         }
 //        else if ... //check for other options
-        else unrecog += wxString::Format(wxT("\narg[%d/%d]: '%s'"), i, wxApp::argc, wxApp::argv[i]);
+        else unrecog += wxString::Format("\narg[%d/%d]: '%s'", i, wxApp::argc, wxApp::argv[i]);
 
     if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
     else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback

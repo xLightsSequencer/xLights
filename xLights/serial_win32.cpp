@@ -35,7 +35,7 @@ enum SerialLineState
 
 SerialPort::SerialPort()
 {
-    m_devname = wxT("");
+    m_devname = "";
     callback = -1;
     memset( &ov, 0, sizeof( OVERLAPPED ) );
     fd = INVALID_HANDLE_VALUE;

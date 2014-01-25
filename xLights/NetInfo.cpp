@@ -60,7 +60,7 @@ void NetInfoClass::GetAllChannelNames(wxArrayString& names)
     {
         for(size_t NetCh=0; NetCh < NetMaxChannel[NetNum]; NetCh++)
         {
-            names.Add(wxString::Format(wxT("Ch %d: Net %d #%d"),int(ChNum+1),int(NetNum+1),int(NetCh+1)));
+            names.Add(wxString::Format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1)));
             ChNum++;
         }
     }
@@ -74,9 +74,9 @@ wxString NetInfoClass::GetChannelName(int ChNum)
     {
         if (NetCh < NetMaxChannel[NetNum])
         {
-            return wxString::Format(wxT("Ch %d: Net %d #%d"),int(ChNum+1),int(NetNum+1),int(NetCh+1));
+            return wxString::Format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1));
         }
         NetCh-=NetMaxChannel[NetNum];
     }
-    return wxString::Format(wxT("Ch %d: invalid"),ChNum);
+    return wxString::Format("Ch %d: invalid",ChNum);
 }

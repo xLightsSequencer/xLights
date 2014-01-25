@@ -17,7 +17,7 @@
 
 SerialPort::SerialPort()
 {
-    m_devname = wxT("");
+    m_devname = "";
     callback = -1;
     fd = -1;
 };

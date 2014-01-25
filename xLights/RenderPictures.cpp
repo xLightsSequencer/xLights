@@ -50,7 +50,7 @@
 #define RENDER_PICTURE_VIXREMAP  16
 
 
-#define wrdebug(msg, ...)  if (debug.IsOpened()) debug.Write(msg + "\n")
+#define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
 
 
 //Vixen channel remap from Vixen 2.x back to xLights:
@@ -73,11 +73,11 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
     imageIndex = 0;
     if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
 
-    if (!PictureName.CmpNoCase(filename)) { wrdebug(wxT("no change: ") + filename); return; }
-    if (!wxFileExists(filename)) { wrdebug(wxT("not found: ") + filename); return; }
+    if (!PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
+    if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
     wxTextFile f;
     PixelsByFrame.clear();
-    if (!f.Open(filename.c_str())) { wrdebug(wxT("can't open: ") + filename); return; }
+    if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
 
 //read channel values from Vixen grid or routine:
 //    std::vector<std::vector<std::pair<int, byte>>> ChannelsByFrame; //list of channel#s by frame and their associated value
@@ -89,29 +89,29 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
         while (!linebuf.empty() && isspace(linebuf.Last())) linebuf.RemoveLast(); //trim trailing spaces
         if (linebuf.empty()) continue; //skip blank lines
 
-wrdebug(1, "read line '%s'", (const char*)linebuf.c_str());
+        wrdebug(wxString::Format("read line '%s'", (const char*)linebuf.c_str()));
         static wxRegEx chbase_re("^\\s*ChannelBase\\s*=\\s*(-?[0-9]+)\\s*$", wxRE_ICASE);
         if (!PixelsByFrame.size() && chbase_re.Matches(linebuf)) //allow channels to be shifted
         {
             chbase = wxAtoi(chbase_re.GetMatch(linebuf, 1));
-            wrdebug(1, "got ch base %d", chbase);
+            wrdebug(wxString::Format("got ch base %d", chbase));
             continue;
         }
         static wxRegEx nodesize_re("^\\s*ChannelsPerNode\\s*=\\s*([13])\\s*$", wxRE_ICASE);
         if (!PixelsByFrame.size() && nodesize_re.Matches(linebuf)) //allow channels to be shifted
         {
             nodesize = wxAtoi(nodesize_re.GetMatch(linebuf, 1));
-            wrdebug(1, "got node size %d", nodesize);
+            wrdebug(wxString::Format("got node size %d", nodesize));
             continue;
         }
 
         PixelsByFrame.emplace_back(); //add new frame
-        wrdebug(wxString::Format(wxT("load channels for frame %d (%.3f sec): '") + linebuf + wxT("'"), PixelsByFrame.size(), PixelsByFrame.size() * 50/1000.));
-        wxStringTokenizer tkz(linebuf, wxT(" "));
+        wrdebug(wxString::Format("load channels for frame %d (%.3f sec): '" + linebuf + "'", PixelsByFrame.size(), PixelsByFrame.size() * 50/1000.));
+        wxStringTokenizer tkz(linebuf, " ");
         for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
         {
             wxByte chval = wxAtoi(tkz.GetNextToken());
-            wrdebug(1, "got chval %d for ch %d, frame %d", chval, chnum, PixelsByFrame.size());
+            wrdebug(wxString::Format("got chval %d for ch %d, frame %d", (int)chval, chnum, PixelsByFrame.size()));
             if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
             std::pair<wxPoint, wxColor> new_pixel;
             static wxByte rgb[3];
@@ -140,7 +140,7 @@ wrdebug(1, "read line '%s'", (const char*)linebuf.c_str());
 //        for (int x = 0; x < pixels[y].size(); x += 3)
 //            image.SetRGB(x, y, pixels[y][x + 0], pixels[y][x + 1], pixels[y][x + 2]);
 
-    wrdebug(wxString::Format(wxT("read %d channels (relative to %d) x %d frames from Vixen, channels/node: %d"), numch, chbase, PixelsByFrame.size(), nodesize));
+    wrdebug(wxString::Format("read %d channels (relative to %d) x %d frames from Vixen, channels/node: %d", numch, chbase, PixelsByFrame.size(), nodesize));
 //    imageCount = 1; //TODO: allow multiple?
 //    imageIndex = 0;
     PictureName = filename;
@@ -153,9 +153,9 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 {
     wxTextFile f;
 
-    if (!PictureName.CmpNoCase(filename)) { wrdebug(wxT("no change: " + filename)); return; }
-    if (!wxFileExists(filename)) { wrdebug(wxT("not found: " + filename)); return; }
-    if (!f.Open(filename.c_str())) { wrdebug(wxT("can't open: " + filename)); return; }
+    if (!PictureName.CmpNoCase(filename)) { wrdebug("no change: " + filename); return; }
+    if (!wxFileExists(filename)) { wrdebug("not found: " + filename); return; }
+    if (!f.Open(filename.c_str())) { wrdebug("can't open: " + filename); return; }
 
 //read pixel values 1-to-1 from file:
 //for ease of access, wrap them as an image
@@ -173,8 +173,8 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
         if (linebuf.empty()) continue; //skip blank lines
 
         pixels.emplace_back(); //add new row
-        wrdebug(wxT("got line '") + linebuf + wxT("'"));
-        wxStringTokenizer tkz(linebuf, wxT(" "));
+        wrdebug("got line '" + linebuf + "'");
+        wxStringTokenizer tkz(linebuf, " ");
 #ifdef ASRGB //use channel triplets to make each pixel
         for (int col = tkz.CountTokens(); col > 0; col -= 3)
         {
@@ -255,12 +255,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
         //  build the next filename. the frame counter is incrementing through all frames
 
-        sPicture = wxString::Format(wxT("%s-%d.%s"),BasePicture,frame,extension);
+        sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
         if(state==0) // only once, try 10000 files to find how high is frame count
         {
             for (frame=1; frame<=9999; frame++)
             {
-                sPicture = wxString::Format(wxT("%s-%d.%s"),BasePicture,frame,extension);
+                sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
                 if(wxFileExists(sPicture))
                 {
                     maxmovieframes=frame+1;
@@ -285,18 +285,18 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
             return;
         }
 
-        buff = wxString::Format(wxT("NewPictureName %s, PictureName %s, NewPictureName2=%s, suffix=%s, frame=%d\n"),NewPictureName,PictureName,NewPictureName2,suffix,frame);
+        buff = wxString::Format("NewPictureName %s, PictureName %s, NewPictureName2=%s, suffix=%s, frame=%d\n",NewPictureName,PictureName,NewPictureName2,suffix,frame);
         f.Write(buff);
     }
 
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {
         LoadPixelsFromTextFile(f, NewPictureName);
-        wrdebug(1, "vix remap render: frame %d vs. %d", state, PixelsByFrame.size());
+        wrdebug(wxString::Format("vix remap render: frame %d vs. %d", state, PixelsByFrame.size()));
         if (state < PixelsByFrame.size()) //TODO: wrap?
             for (auto /*std::vector<std::pair<wxPoint, wxColour>>::iterator*/ it = PixelsByFrame[state].begin(); it != PixelsByFrame[state].end(); ++it)
             {
-                wrdebug(1, "set pixel (%d, %d) to color [%d. %d. %d]", it->first.x, it->first.y, it->second.Red(), it->second.Green(), it->second.Blue());
+                wrdebug(wxString::Format("set pixel (%d, %d) to color [%d. %d. %d]", it->first.x, it->first.y, it->second.Red(), it->second.Green(), it->second.Blue()));
                 SetPixel(it->first.x, it->first.y, it->second);
             }
         return;
@@ -346,7 +346,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int imght   =image.GetHeight();
     int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
     int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
-    wrdebug(10, "pic: state %d, img w/h %d/%d, buf w/h %d/%d, x/y ofs %d/%d", state, imgwidth, imght, BufferWi, BufferHt, xoffset, yoffset);
+    wrdebug(wxString::Format("pic: state %d, img w/h %d/%d, buf w/h %d/%d, x/y ofs %d/%d", state, imgwidth, imght, BufferWi, BufferHt, xoffset, yoffset));
     float xscale, yscale;
     switch (dir) //prep
     {
@@ -452,7 +452,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //                    SetPixel(y - yoffset - BufferHt, x - xoffset, c);
                     break;
                 default:
-                    if (debug_count++ < 2100) wrdebug(20, "pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1); //NOTE: wxColor is BGR internally
+                    if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: wxColor is BGR internally
                     SetPixel(x-xoffset,yoffset-y - 1,c);
                     break; // no movement - centered
                 }

@@ -228,7 +228,7 @@ void ChannelMapDialog::SetChannelNames()
     int BaseChannel=SpinCtrlBaseChannel->GetValue();
     for(int i=0; i<=16; i++)
     {
-        wxStaticText* TextWin=(wxStaticText*)wxWindow::FindWindowByName(wxString::Format(wxT("ID_STATICTEXT_CH%d"),i));
+        wxStaticText* TextWin=(wxStaticText*)wxWindow::FindWindowByName(wxString::Format("ID_STATICTEXT_CH%d",i));
         name=NetInfo->GetChannelName(BaseChannel-1+i);
         if (TextWin) TextWin->SetLabel(name);
     }

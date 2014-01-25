@@ -1632,7 +1632,7 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
 wxString EffectsPanel::GetAttrPrefix()
 {
     wxString WinName=this->GetName();
-    return wxT(",E") + WinName.Right(1) + wxT("_");
+    return ",E" + WinName.Right(1) + "_";
 }
 
 // this is recursive
@@ -1646,29 +1646,29 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
     {
         wxWindow *ChildWin = (wxWindow *)node->GetData();
         ChildName=ChildWin->GetName();
-        AttrName=prefix+ChildName.Mid(3)+wxT("=");
-        if (ChildName.StartsWith(wxT("ID_SLIDER")))
+        AttrName=prefix+ChildName.Mid(3)+"=";
+        if (ChildName.StartsWith("ID_SLIDER"))
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s+=AttrName+wxString::Format(wxT("%d"),ctrl->GetValue());
+            s+=AttrName+wxString::Format("%d",ctrl->GetValue());
         }
-        else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
+        else if (ChildName.StartsWith("ID_TEXTCTRL"))
         {
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
             s+=AttrName+ctrl->GetValue();
         }
-        else if (ChildName.StartsWith(wxT("ID_CHOICE")))
+        else if (ChildName.StartsWith("ID_CHOICE"))
         {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s+=AttrName+ctrl->GetStringSelection();
         }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
+        else if (ChildName.StartsWith("ID_CHECKBOX"))
         {
             wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(ctrl->IsChecked()) ? wxT("1") : wxT("0");
+            wxString v=(ctrl->IsChecked()) ? "1" : "0";
             s+=AttrName+v;
         }
-        else if (ChildName.StartsWith(wxT("ID_NOTEBOOK")))
+        else if (ChildName.StartsWith("ID_NOTEBOOK"))
         {
             wxNotebook* ctrl=(wxNotebook*)ChildWin;
             for(i=0;i<ctrl->GetPageCount();i++) {
@@ -1690,7 +1690,7 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
 //    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
 
     // get speed
-    s = prefix + wxString::Format(wxT("SLIDER_Speed=%d"), GetRandomSliderValue(Slider_Speed));
+    s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
     wxWindowList &ChildList = Choicebook1->GetPage(effidx)->GetChildren();
@@ -1698,41 +1698,41 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     {
         wxWindow *ChildWin = (wxWindow *)node->GetData();
         ChildName = ChildWin->GetName();
-        AttrName = prefix + ChildName.Mid(3) + wxT("=");
-        if (ChildName.StartsWith(wxT("ID_SLIDER")))
+        AttrName = prefix + ChildName.Mid(3) + "=";
+        if (ChildName.StartsWith("ID_SLIDER"))
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            if (ChildName.Contains(wxT("Spirograph_r")))
+            if (ChildName.Contains("Spirograph_r"))
             {
                 // always set little radius, r, to its minimum value
-                s += AttrName + wxString::Format(wxT("%d"), 0);
+                s += AttrName + wxString::Format("%d", 0);
             }
             else
             {
-                s += AttrName + wxString::Format(wxT("%d"), GetRandomSliderValue(ctrl));
+                s += AttrName + wxString::Format("%d", GetRandomSliderValue(ctrl));
             }
         }
-        else if (ChildName.StartsWith(wxT("ID_TEXTCTRL")))
+        else if (ChildName.StartsWith("ID_TEXTCTRL"))
         {
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
             s+=AttrName+ctrl->GetValue();
         }
-        else if (ChildName.StartsWith(wxT("ID_CHOICE")))
+        else if (ChildName.StartsWith("ID_CHOICE"))
         {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s += AttrName + ctrl->GetString(isRandom(ctrl)? rand()%ctrl->GetCount(): ctrl->GetSelection()); //-DJ
         }
-        else if (ChildName.StartsWith(wxT("ID_CHECKBOX")))
+        else if (ChildName.StartsWith("ID_CHECKBOX"))
         {
-            if(ChildName.Contains(wxT("Spirograph_Animate")))
+            if(ChildName.Contains("Spirograph_Animate"))
             {
                 // always animate spirograph
-                s+=AttrName+wxString::Format(wxT("%d"), 1 );
+                s+=AttrName+wxString::Format("%d", 1 );
             }
             else
             {
                 wxCheckBox* ctrl = (wxCheckBox*)ChildWin;
-                wxString v = (isRandom(ctrl)? (rand()%2): ctrl->GetValue())? wxT("1") : wxT("0"); //want random? -DJ
+                wxString v = (isRandom(ctrl)? (rand()%2): ctrl->GetValue())? "1" : "0"; //want random? -DJ
                 s += AttrName + v;
             }
         }
@@ -1743,10 +1743,10 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     for (int i=1; i<=PALETTE_SIZE; i++)
     {
         color = GetPaletteColor(i);
-        AttrName.Printf(wxT("BUTTON_Palette%d="), i);
+        AttrName.Printf("BUTTON_Palette%d=", i);
         s += prefix+AttrName + color.GetAsString(wxC2S_HTML_SYNTAX);
-        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? wxT("1") : wxT("0");
-        AttrName.Printf(wxT("CHECKBOX_Palette%d="), i);
+        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
+        AttrName.Printf("CHECKBOX_Palette%d=", i);
         s += prefix + AttrName + v;
     }
     return s;
@@ -1757,11 +1757,11 @@ wxString EffectsPanel::GetEffectString()
 {
     wxString s,ChildName,AttrName;
     wxString prefix=GetAttrPrefix();
-    s=prefix+wxString::Format(wxT("SLIDER_Speed=%d"),Slider_Speed->GetValue());
-    s+=prefix+wxT("TEXTCTRL_Fadein=")+TextCtrl_Fadein->GetValue();
-    s+=prefix+wxT("TEXTCTRL_Fadeout=")+TextCtrl_Fadeout->GetValue();
-    s+=prefix+wxString::Format(wxT("CHECKBOX_FitToTime=%d"),CheckBox_FitToTime->GetValue()?1:0);
-    s+=prefix+wxString::Format(wxT("CHECKBOX_OverlayBkg=%d"),CheckBox_OverlayBkg->GetValue()?1:0);
+    s=prefix+wxString::Format("SLIDER_Speed=%d",Slider_Speed->GetValue());
+    s+=prefix+"TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue();
+    s+=prefix+"TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue();
+    s+=prefix+wxString::Format("CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0);
+    s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
 
     // get effect controls
     s+=GetEffectStringFromWindow(Choicebook1->GetCurrentPage());
@@ -1770,12 +1770,12 @@ wxString EffectsPanel::GetEffectString()
     wxColour color;
     for (int i=1; i<=PALETTE_SIZE; i++) {
         color=GetPaletteColor(i);
-        AttrName.Printf(wxT("BUTTON_Palette%d="),i);
+        AttrName.Printf("BUTTON_Palette%d=",i);
         s+=prefix+AttrName+color.GetAsString(wxC2S_HTML_SYNTAX);
-        AttrName.Printf(wxT("CHECKBOX_Palette%d"),i);
-        wxCheckBox* ctrl=(wxCheckBox*)wxWindow::FindWindowByName(wxT("ID_")+AttrName,this);
-        wxString v=(ctrl->IsChecked()) ? wxT("1") : wxT("0");
-        s+=prefix+AttrName+wxT("=")+v;
+        AttrName.Printf("CHECKBOX_Palette%d",i);
+        wxCheckBox* ctrl=(wxCheckBox*)wxWindow::FindWindowByName("ID_"+AttrName,this);
+        wxString v=(ctrl->IsChecked()) ? "1" : "0";
+        s+=prefix+AttrName+"="+v;
     }
     return s;
 }
@@ -1821,7 +1821,7 @@ void EffectsPanel::UpdateFont(wxTextCtrl* FontCtrl)
     if (newfont.IsOk())
     {
         wxString FontDesc=newfont.GetNativeFontInfoUserDesc();
-        FontDesc.Replace(wxT(" unknown-90"),wxT(""));
+        FontDesc.Replace(" unknown-90","");
         FontCtrl->SetValue(FontDesc);
     }
 }

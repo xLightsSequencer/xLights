@@ -111,7 +111,7 @@ wxString SerialPortWithRate::GetRateString()
     wxString NetName = ChoiceProtocol->GetStringSelection();
     if (NetName == _("OpenDMX"))
     {
-        return wxT("250000");
+        return "250000";
     }
     else if (ChoiceBaudRate->IsEnabled())
     {
@@ -119,7 +119,7 @@ wxString SerialPortWithRate::GetRateString()
     }
     else
     {
-        return wxT("n/a");
+        return "n/a";
     }
 }
 
@@ -168,34 +168,34 @@ void SerialPortWithRate::SetLabel(const wxString& newlabel)
 
 void SerialPortWithRate::PopulatePortChooser(wxArrayString *chooser)
 {
-    chooser->Add(wxT("NotConnected"));
+    chooser->Add("NotConnected");
 #ifdef __WXMSW__
     // Windows
-    chooser->Add(wxT("COM1"));
-    chooser->Add(wxT("COM2"));
-    chooser->Add(wxT("COM3"));
-    chooser->Add(wxT("COM4"));
-    chooser->Add(wxT("COM5"));
-    chooser->Add(wxT("COM6"));
-    chooser->Add(wxT("COM7"));
-    chooser->Add(wxT("COM8"));
-    chooser->Add(wxT("COM9"));
-    chooser->Add(wxT("\\\\.\\COM10"));
-    chooser->Add(wxT("\\\\.\\COM11"));
-    chooser->Add(wxT("\\\\.\\COM12"));
-    chooser->Add(wxT("\\\\.\\COM13"));
-    chooser->Add(wxT("\\\\.\\COM14"));
-    chooser->Add(wxT("\\\\.\\COM15"));
-    chooser->Add(wxT("\\\\.\\COM16"));
-    chooser->Add(wxT("\\\\.\\COM17"));
-    chooser->Add(wxT("\\\\.\\COM18"));
-    chooser->Add(wxT("\\\\.\\COM19"));
-    chooser->Add(wxT("\\\\.\\COM20"));
+    chooser->Add("COM1");
+    chooser->Add("COM2");
+    chooser->Add("COM3");
+    chooser->Add("COM4");
+    chooser->Add("COM5");
+    chooser->Add("COM6");
+    chooser->Add("COM7");
+    chooser->Add("COM8");
+    chooser->Add("COM9");
+    chooser->Add("\\\\.\\COM10");
+    chooser->Add("\\\\.\\COM11");
+    chooser->Add("\\\\.\\COM12");
+    chooser->Add("\\\\.\\COM13");
+    chooser->Add("\\\\.\\COM14");
+    chooser->Add("\\\\.\\COM15");
+    chooser->Add("\\\\.\\COM16");
+    chooser->Add("\\\\.\\COM17");
+    chooser->Add("\\\\.\\COM18");
+    chooser->Add("\\\\.\\COM19");
+    chooser->Add("\\\\.\\COM20");
 #elif __WXOSX__
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
     wxArrayString output,errors;
-    wxExecute(wxT("ls -1 /dev"), output, errors, wxEXEC_SYNC);
+    wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty())
     {
         wxMessageBox(errors.Last(), _("Error"));
@@ -208,24 +208,24 @@ void SerialPortWithRate::PopulatePortChooser(wxArrayString *chooser)
     {
         for (int i=0; i<output.Count(); i++)
         {
-            if (output[i].StartsWith(wxT("cu.")))
+            if (output[i].StartsWith("cu."))
             {
-                chooser->Add(wxT("/dev/") + output[i]);
+                chooser->Add("/dev/" + output[i]);
             }
         }
     }
 #else
     // Linux
-    chooser->Add(wxT("/dev/ttyS0"));
-    chooser->Add(wxT("/dev/ttyS1"));
-    chooser->Add(wxT("/dev/ttyS2"));
-    chooser->Add(wxT("/dev/ttyS3"));
-    chooser->Add(wxT("/dev/ttyUSB0"));
-    chooser->Add(wxT("/dev/ttyUSB1"));
-    chooser->Add(wxT("/dev/ttyUSB2"));
-    chooser->Add(wxT("/dev/ttyUSB3"));
-    chooser->Add(wxT("/dev/ttyUSB4"));
-    chooser->Add(wxT("/dev/ttyUSB5"));
+    chooser->Add("/dev/ttyS0");
+    chooser->Add("/dev/ttyS1");
+    chooser->Add("/dev/ttyS2");
+    chooser->Add("/dev/ttyS3");
+    chooser->Add("/dev/ttyUSB0");
+    chooser->Add("/dev/ttyUSB1");
+    chooser->Add("/dev/ttyUSB2");
+    chooser->Add("/dev/ttyUSB3");
+    chooser->Add("/dev/ttyUSB4");
+    chooser->Add("/dev/ttyUSB5");
 #endif
 }
 

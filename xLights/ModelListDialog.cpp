@@ -115,8 +115,8 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
             ok=ValidateModelName(name);
             if (ok)
             {
-                wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("model"));
-                e->AddAttribute(wxT("name"), name);
+                wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
+                e->AddAttribute("name", name);
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
             }
@@ -197,8 +197,8 @@ void ModelListDialog::OnButton_RenameClick(wxCommandEvent& event)
     while (DlgResult == wxID_OK && !ok);
     if (DlgResult != wxID_OK) return;
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
-    e->DeleteAttribute(wxT("name"));
-    e->AddAttribute(wxT("name"),NewName);
+    e->DeleteAttribute("name");
+    e->AddAttribute("name",NewName);
     ListBox1->SetString(sel,NewName);
 }
 
@@ -228,8 +228,8 @@ void ModelListDialog::OnButton_CopyClick(wxCommandEvent& event)
             ok=ValidateModelName(name);
             if (ok)
             {
-                wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, wxT("model"));
-                e->AddAttribute(wxT("name"), name);
+                wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
+                e->AddAttribute("name", name);
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
             }
