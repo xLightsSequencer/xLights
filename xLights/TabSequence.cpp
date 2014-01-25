@@ -1098,8 +1098,12 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 {
     wxString s;
 //    debug(1, "play rgb: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
-    if (!EffectsPanel1->WantOverlayBkg() && !EffectsPanel2->WantOverlayBkg()) //allow effects to overlay onto other effects (useful for composite models) -DJ
-        buffer.Clear();
+//    if (!EffectsPanel1->WantOverlayBkg() && !EffectsPanel2->WantOverlayBkg()) //allow effects to overlay onto other effects (useful for composite models) -DJ
+//        buffer.Clear();
+    if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+        buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+    if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+        buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
 
     // update SparkleFrequency
     int freq=Slider_SparkleFrequency->GetValue();
@@ -2385,7 +2389,12 @@ void xLightsFrame::RenderGridToSeqData()
         for (int p=0; p<SeqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-            buffer.Clear();
+//            buffer.Clear();
+//            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
+            if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+                buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+            if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+                buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
 
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
@@ -2477,7 +2486,11 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
         for (int p=0; p<SeqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-            buffer.Clear();
+//            buffer.Clear();
+            if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+                buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+            if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+                buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
 
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {

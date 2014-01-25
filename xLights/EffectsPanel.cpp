@@ -1391,7 +1391,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 	BitmapButton_FitToTime = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_FitToTime, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FitToTime"));
 	BitmapButton_FitToTime->SetDefault();
 	FlexGridSizer23->Add(BitmapButton_FitToTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	CheckBox_OverlayBkg = new wxCheckBox(this, ID_CHECKBOX_OverlayBkg, _("Overlay"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
+	CheckBox_OverlayBkg = new wxCheckBox(this, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
 	CheckBox_OverlayBkg->SetValue(false);
 	FlexGridSizer23->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1761,6 +1761,7 @@ wxString EffectsPanel::GetEffectString()
     s+=prefix+wxT("TEXTCTRL_Fadein=")+TextCtrl_Fadein->GetValue();
     s+=prefix+wxT("TEXTCTRL_Fadeout=")+TextCtrl_Fadeout->GetValue();
     s+=prefix+wxString::Format(wxT("CHECKBOX_FitToTime=%d"),CheckBox_FitToTime->GetValue()?1:0);
+    s+=prefix+wxString::Format(wxT("CHECKBOX_OverlayBkg=%d"),CheckBox_OverlayBkg->GetValue()?1:0);
 
     // get effect controls
     s+=GetEffectStringFromWindow(Choicebook1->GetCurrentPage());
@@ -1781,6 +1782,7 @@ wxString EffectsPanel::GetEffectString()
 
 //selectable clear canvas before render: -DJ
 //this allows multiple effects to be overlayed for composite models
+//also provides useful "bread crumbs" for some effects such as Spirograph
 bool EffectsPanel::WantOverlayBkg(void)
 {
     return CheckBox_OverlayBkg->GetValue();

@@ -66,7 +66,7 @@ public:
     PixelBufferClass();
     ~PixelBufferClass();
     void InitBuffer(wxXmlNode* ModelNode, bool zeroBased=false);
-    void Clear();
+    void Clear(int which);
     // not used: size_t GetColorCount(int layer);
     void SetMixType(const wxString& MixName);
     void SetPalette(int layer, wxColourVector& newcolors);
