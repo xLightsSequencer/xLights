@@ -1,42 +1,26 @@
+Notes to create the Nutcracker DLL project
+Updated 26 Jan 2014, by Matt Brown
 
+* The Visual Studio project is located in xLights\nccdll directory
+* Requires MS Visual Studio 2010 or later
+* Make sure the vc\bin directory is in your path (e.g. C:\Program Files\Microsoft Visual Studio 10.0\VC\bin)
 
-Just some rambling notes I don't want to forget related to the Nutcracker DLL project.
+-- First need to create 32b static libs  (debug/release)
 
+* Create a fresh copy of the wxWidgets source (e.g. C:\wxWidgets-3.0.0vc) - do not reuse the wxWidgets directory compiled for xLights
+* Open a command prompt
+* cd to the fresh copy's build/msw subdirectory (e.g. C:\wxWidgets-3.0.0vc\build\msw)
+* Run: vcvars32.bat
+* Run: nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=debug
+* Run: nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=release
+* Close command prompt
 
-Setting up for CodeBlocks & wxWidgets instructions pretty good.
--just one issue for me: my path had too much 'stuff' in it that confused the wx buld.
--Path=C:\Windows\system32;C:\Windows;C:\mingw\bin
--then build worked fine
+-- Now build DLL using Visual Studio
 
-
-First pass:
--Create an nccdll (Nutcracker core dll) dir under xLights
--Using VS10 to create the dll
--Create sln and vcproj in there along with any other needed stuff
--Add RgbEffects and the RenderXXX files from the parent dir
--Hit build and....
--Use of wxXXX classes needs addressing...
--Also had to use full path to my wx dir in extra cmdline opts... revisit
-
--First try... reimplement what NC needs...
--create local wx dir in nccdll for re-impl of the wx stuff used.
--Mosly some simple classes easy to re-do.
--Got a build, but had to leave out Pictures and Text for adj wx usage
--Talked to Sean... they have no reason to avoid wx stuff (too bad for me)
-
--Plan B... try using static versions of wx libs in dll...
--first need to get 32b static libs  (debug/release)
--in wx build/msw dir...
--use Path=C:\Windows\system32;C:\Windows  plus  vs10\vc\vcvarsall  (x86 vars)
--nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=debug
--nmake -f makefile.vc SHARED=0 UNICODE=1 BUILD=release
-(apparently monolithic is not advisable with shared=0)
--re-jigger the project to use real includes and libs just built
--got a build...
--massage RgbEffects a bit to tighen up the interface...
-
-
-
-
-
+* Open .sln file in xLights\nccdll directory using Visual Studio
+* Right click on "nccdll" in Solution Explorer, select Properties from menu
+* Click on VC++ Directories. Edit the Include and Library directories to match the wxWidgets location above.
+* Set build type to Debug or Release, depending on your needs
+* Build solution!
+* DLL file will be in the Debug or Release subdirectory under nccdll.
 

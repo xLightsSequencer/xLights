@@ -105,7 +105,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
             continue;
         }
 
-        PixelsByFrame.emplace_back(); //add new frame
+        PixelVector frame;
         wrdebug(wxString::Format("load channels for frame %d (%.3f sec): '" + linebuf + "'", PixelsByFrame.size(), PixelsByFrame.size() * 50/1000.));
         wxStringTokenizer tkz(linebuf, " ");
         for (int chnum = 0; tkz.HasMoreTokens(); ++chnum)
@@ -130,9 +130,10 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
             }
             new_pixel.second.Set(rgb[0], rgb[1], rgb[2]);
 //            for (each wxPoint where chnum + chbase occurs in current model)
-                PixelsByFrame.back().push_back(new_pixel); //build list of pixels that must be set
+                frame.push_back(new_pixel); //build list of pixels that must be set
             if (chnum + 1 > numch) numch = chnum + 1; //vix grid or routine should be rectangular, but in case it isn't, pad out the shorter rows
         }
+		PixelsByFrame.push_back(frame); //add new frame, MSVC 2010 doesn't support emplace_back
     }
 //now create an image to look like it was loaded like the other picture functions:
 //    image.Create(maxcol + 1, pixels.size());
@@ -226,7 +227,12 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
-    int createlog= xLightsApp::WantDebug; // use command-line switch to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
+
+	// --------------
+	// doesn't work when creating DLL (MHB 26 Jan 2014)
+	//int createlog= xLightsApp::WantDebug; // use command-line switch to log variables to a log file. this is becaus debug in wxWidgets doesnt display strings
+	//  -------------
+
     wxFile f;
 #define debug f //shim; need to rework debug
 
@@ -276,7 +282,10 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         maxframes=frame-1;
         return;
     }
-    if(createlog==1)
+
+#if 0
+    // not compatible with DLL
+	if(createlog==1)
     {
         wxRemoveFile(filename);
         if (!f.Create(filename,false))
@@ -288,6 +297,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         buff = wxString::Format("NewPictureName %s, PictureName %s, NewPictureName2=%s, suffix=%s, frame=%d\n",NewPictureName,PictureName,NewPictureName2,suffix,frame);
         f.Write(buff);
     }
+#endif
 
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {

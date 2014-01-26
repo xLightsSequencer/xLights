@@ -38,6 +38,10 @@
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
  #include <hash_map>
+  #define snprintf _snprintf 
+  #define vsnprintf _vsnprintf 
+  #define strcasecmp _stricmp 
+  #define strncasecmp _strnicmp 
 #else
  #include <unordered_map>
  #define hash_map  unordered_map //c++ 2011
@@ -359,7 +363,8 @@ protected:
 //cached list of pixels to turn on, indexed by frame (timestamp):
 //this is the required output after applying the effect in Nutcracker
 //xLights will then remap these pixels thru the custom or built-in model back to xLights channels
-    std::vector<std::vector<std::pair<wxPoint, wxColor>>> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
+	typedef std::vector<std::pair<wxPoint, wxColor>> PixelVector;
+    std::vector<PixelVector> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
 //remapped Vixen channels for Picture effect: -DJ
     void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);
 

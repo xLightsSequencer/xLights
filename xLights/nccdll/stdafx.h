@@ -20,18 +20,3 @@
 
 #pragma warning( disable : 4244 4305 4101 4018)
 
-#include <wx/wxprec.h>
-
- #define and    &&
- #define or     ||
-/*
- #define and_eq &=
- #define bitand &
- #define bitor  |
- #define compl  ~
- #define not    !
- #define not_eq !=
- #define or_eq  |=
- #define xor    ^
- #define xor_eq ^=
-*/

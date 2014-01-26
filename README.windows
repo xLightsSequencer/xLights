@@ -24,11 +24,6 @@ Here are the steps to compile xLights/Nutcracker for Windows.
 
   c) wxWidgets for Windows (currently using version 3.0.0)
 
-     NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
-           WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
-           SEE UPDATED STEPS 3 & 4
-           FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
-
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
      The installer only puts the wxWidgets source code on your system, you will need
@@ -36,9 +31,13 @@ Here are the steps to compile xLights/Nutcracker for Windows.
 
      1) Open a command prompt
      2) cd to the build\msw directory under your wxWidgets base directory
-     3) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
-     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
-     5) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version, 
+     3) Some users have reported that their path variable was too long, which confused the wx buld.
+        If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\mingw\bin
+     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
+        (last changed 7 SEPT 2013)
+     5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
+        (last changed 7 SEPT 2013)
+     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version, 
         then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
         (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
 

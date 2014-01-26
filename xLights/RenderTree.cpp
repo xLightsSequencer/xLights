@@ -41,7 +41,7 @@ void RgbEffects::RenderTree(int Branches)
 
     maxFrame=(Branches+1) *BufferWi;
     size_t colorcnt=GetColorCount();
-    if(state>0 and maxFrame>0) frame = (state/4)%maxFrame;
+    if(state>0 && maxFrame>0) frame = (state/4)%maxFrame;
     else frame=1;
 
     i=0;
@@ -98,13 +98,13 @@ void RgbEffects::RenderTree(int Branches)
             f_mod_odd = BufferWi-f_mod+1;
 
             if(branch<=b && x<=frame && // for branches below or equal to current row
-                    (((row==3 or (number_garlands==2 and row==6)) and (m==1 or m==6))
+                    (((row==3 || (number_garlands==2 && row==6)) && (m==1 || m==6))
                      ||
-                     ((row==2 or (number_garlands==2 and row==5)) and (m==2 or m==5))
+                     ((row==2 || (number_garlands==2 && row==5)) && (m==2 || m==5))
                      ||
-                     ((row==1 or (number_garlands==2 and row==4)) and (m==3 or m==4))
+                     ((row==1 || (number_garlands==2 && row==4)) && (m==3 || m==4))
                     ))
-                if((odd_even ==0 and x<=f_mod) || (odd_even ==1 and s_odd_row<=f_mod))
+                if((odd_even ==0 && x<=f_mod) || (odd_even ==1 && s_odd_row<=f_mod))
                 {
                     hsv.hue = H;
                     hsv.saturation=1.0;
@@ -116,11 +116,11 @@ void RgbEffects::RenderTree(int Branches)
 //	}
 //	else if(branch==b)
 //	{
-//		if(odd_even ==0 and x>f_mod)
+//		if(odd_even ==0 && x>f_mod)
 //		{
 //			$rgb_val=$orig_rgbval;// we are even row ,counting from bottom as zero
 //		}
-//		if(odd_even ==1 and s_odd_row>f_mod)
+//		if(odd_even ==1 && s_odd_row>f_mod)
 //		{
 //			$rgb_val=$orig_rgbval;// we are even row ,counting from bottom as zero
 //		}

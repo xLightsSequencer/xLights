@@ -27,7 +27,6 @@
 #include <wx/tokenzr.h>
 
 #include <ctype.h>
-//#include <string>
 #include <algorithm> //sort
 
 //#define WANT_DEBUG  99
@@ -508,7 +507,7 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 		if (Style != PIANO_STYLE_ANIMAGE)
             Piano_RenderKey(ActiveCues.top()->sprite, drawn, Style, BufferWH_octave, keywh, Placement, Clipping);
 		ActiveCues.pop(); //remove first element (soonest to expire)
-		if (ActiveCues.size()) debug_more(7, ", next is '%s' %d, ", (const char*)ActiveCues.top()->sprite->name.c_str(), ActiveCues.top()->stop_frame);
+		if (ActiveCues.size()) { debug_more(7, ", next is '%s' %d, ", (const char*)ActiveCues.top()->sprite->name.c_str(), ActiveCues.top()->stop_frame); }
 		repaint = true;
 	}
 
