@@ -5,7 +5,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 3.3.1				-Enhancement (djulien): change "Overlay" to "Persistent" for clarity; 
 					-Bug fix(djulien): save/restore value within XML
 					-Enhancement (sean): add "1 reveals 2", "2 reveals 1" as new layer methods
-					-Endhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
+					-Enhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
 3.3.0				-Enhancement (djulien): vixen 2.x routine as picture
 					-Enhancement (djulien): add checkbox to Effects panel to inhibit canvas clear before effect (for layers across models)
 					-Enhancement (djulien): allow cancelled schedule to re-run that same day
