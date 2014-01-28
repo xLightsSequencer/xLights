@@ -1335,7 +1335,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int MappedChannelCnt = 0;
     int MaxIntensity = 100;
     int EffectCnt = 0;
-    size_t network,chindex;
+    size_t network,chindex = -1;
     long cnt = 0;
     std::vector<int> unitSizes;
     int lastNet = 0;
@@ -1387,29 +1387,43 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 }
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
+                if (unit == 0) {
+                    unit = 1;
+                }
                 circuit = xml->getAttributeValueAsInt("circuit");
-                if (unit > unitSizes.size()) {
+                if (unit >= unitSizes.size()) {
                     unitSizes.resize(unitSizes.size() + 1);
                     unitSizes[unit - 1] = 16;
                 }
                 if (circuit > unitSizes[unit - 1]) {
                     unitSizes[unit - 1] = circuit;
                 }
+                ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
+                
                 if (deviceType.Left(3) == "DMX")
                 {
                     chindex=circuit-1;
                     network--;
+                    curchannel = NetInfo.CalcAbsChannel(network,chindex);
                 }
-                else
+                else if (deviceType.Left(3) == "LOR")
                 {
                     chindex = 0;
                     for (int z = 0; z < (unit - 1); z++) {
                         chindex += unitSizes[z];
                     }
                     chindex += circuit-1;
+                    curchannel = NetInfo.CalcAbsChannel(network,chindex);
                 }
-                ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
-                curchannel = NetInfo.CalcAbsChannel(network,chindex);
+                else
+                {
+                    chindex++;
+                    if (chindex < NetInfo.GetTotChannels()) {
+                        curchannel = chindex;
+                    } else {
+                        curchannel = -1;
+                    }
+                }
                 if (curchannel >= 0)
                 {
                     //TextCtrlConversionStatus->AppendText(wxString::Format(_("curchannel %d\n"),curchannel));
