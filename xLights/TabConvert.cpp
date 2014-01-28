@@ -1287,43 +1287,6 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     delete xml;
 }
 
-// returns length of first track in centiseconds
-int xLightsFrame::GetLorTrack1Length(const char* filename)
-{
-    int centisec = -1;
-    int nodecnt=0;
-    wxString NodeName;
-    IrrXMLReader* xml = createIrrXMLReader(filename);
-
-    // parse the file until end reached
-    while(xml && xml->read() && centisec < 0)
-    {
-        switch(xml->getNodeType())
-        {
-        case EXN_TEXT:
-            break;
-        case EXN_ELEMENT:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            nodecnt++;
-            if (nodecnt > 1000)
-            {
-                nodecnt=0;
-                wxYield();
-            }
-            if (NodeName == _("track"))
-            {
-                centisec = xml->getAttributeValueAsInt("totalCentiseconds");
-            }
-            break;
-        default:
-            break;
-        }
-    }
-    delete xml;
-    TextCtrlConversionStatus->AppendText(wxString::Format(_("Track 1 length = %d centiseconds\n"),centisec));
-    return centisec;
-}
-
 void xLightsFrame::ReadLorFile(const char* filename)
 {
     wxString NodeName,msg,EffectType,ChannelName,deviceType;
@@ -1337,14 +1300,76 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int EffectCnt = 0;
     size_t network,chindex = -1;
     long cnt = 0;
-    std::vector<int> unitSizes;
+    std::vector<std::vector<int>> unitSizes;
     int lastNet = 0;
     LorTimingList.clear();
 
     ConversionInit();
     TextCtrlConversionStatus->AppendText(_("Reading LOR sequence\n"));
     StatusBar1->SetLabelText(_("Reading LOR sequence"));
-    int centisec = GetLorTrack1Length(filename);
+    
+    
+    int centisec = -1;
+    int nodecnt=0;
+    IrrXMLReader* xml = createIrrXMLReader(filename);
+
+    //pass 1, read the length, determine number of networks, units/network, channels per unit
+    while(xml && xml->read() && centisec < 0)
+    {
+        switch(xml->getNodeType())
+        {
+            case EXN_TEXT:
+                break;
+            case EXN_ELEMENT:
+                NodeName = wxString::FromAscii( xml->getNodeName() );
+                context.Add(NodeName);
+                cnt++;
+
+                nodecnt++;
+                if (nodecnt > 1000)
+                {
+                    nodecnt=0;
+                    wxYield();
+                }
+                if (NodeName == _("track"))
+                {
+                    centisec = xml->getAttributeValueAsInt("totalCentiseconds");
+                }
+                else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
+                {
+                    wxYield();
+                    deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
+                    network = xml->getAttributeValueAsInt("network");
+                    unit = xml->getAttributeValueAsInt("unit");
+                    if (unit < 0) unit+=256;
+                    if (unit == 0) {
+                        unit = 1;
+                    }
+                    circuit = xml->getAttributeValueAsInt("circuit");
+                    if (network >= unitSizes.size()) {
+                        unitSizes.resize(network + 1);
+                    }
+                    if (unit > unitSizes[network].size()) {
+                        unitSizes[network].resize(unit);
+                    }
+                    if (circuit == 0) {
+                        unitSizes[network][unit - 1]++;
+                    } else if (circuit > unitSizes[network][unit - 1]) {
+                        unitSizes[network][unit - 1] = circuit;
+                    }
+                }
+                break;
+            case EXN_ELEMENT_END:
+                if (cnt > 0) context.RemoveAt(cnt-1);
+                cnt = context.GetCount();
+                break;
+            default:
+                break;
+        }
+    }
+    delete xml;
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("Track 1 length = %d centiseconds\n"),centisec));
+    
     if (centisec > 0)
     {
         SeqNumPeriods = centisec * 10 / XTIMER_INTERVAL;
@@ -1357,8 +1382,10 @@ void xLightsFrame::ReadLorFile(const char* filename)
         ConversionError(_("Unable to determine the length of this LOR sequence (looked for length of track 1)"));
         return;
     }
-    IrrXMLReader* xml = createIrrXMLReader(filename);
 
+    xml = createIrrXMLReader(filename);
+    cnt = 0;
+    context.clear();
     // parse the file until end reached
     while(xml && xml->read())
     {
@@ -1367,6 +1394,14 @@ void xLightsFrame::ReadLorFile(const char* filename)
         case EXN_TEXT:
             break;
         case EXN_ELEMENT:
+                
+            nodecnt++;
+            if (nodecnt > 1000)
+            {
+                nodecnt=0;
+                wxYield();
+            }
+                
             NodeName = wxString::FromAscii( xml->getNodeName() );
             context.Add(NodeName);
             cnt++;
@@ -1378,26 +1413,15 @@ void xLightsFrame::ReadLorFile(const char* filename)
             }
             if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
             {
-                wxYield();
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
-                if (network != lastNet) {
-                    unitSizes.clear();
-                    lastNet = network;
-                }
+
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
                 if (unit == 0) {
                     unit = 1;
                 }
                 circuit = xml->getAttributeValueAsInt("circuit");
-                if (unit >= unitSizes.size()) {
-                    unitSizes.resize(unitSizes.size() + 1);
-                    unitSizes[unit - 1] = 16;
-                }
-                if (circuit > unitSizes[unit - 1]) {
-                    unitSizes[unit - 1] = circuit;
-                }
                 ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
                 
                 if (deviceType.Left(3) == "DMX")
@@ -1410,7 +1434,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 {
                     chindex = 0;
                     for (int z = 0; z < (unit - 1); z++) {
-                        chindex += unitSizes[z];
+                        chindex += unitSizes[network][z];
                     }
                     chindex += circuit-1;
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
