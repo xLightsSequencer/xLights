@@ -47,10 +47,10 @@ void PixelBufferClass::Clear(int which)
     wxColour bgColor=*wxBLACK;
     if (which != -1) Effect[which].Clear(bgColor); //just clear this one
     else //clear them all
-    for(size_t i=0; i<2; i++) //why does this clear canvas twice? isn't it the same set of pixels for each2? -DJ
-    {
-        Effect[i].Clear(bgColor);
-    }
+        for(size_t i=0; i<2; i++) //why does this clear canvas twice? isn't it the same set of pixels for each2? -DJ
+        {
+            Effect[i].Clear(bgColor);
+        }
 }
 
 // convert MixName to MixType enum
@@ -80,6 +80,14 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
     {
         MixType=Mix_Unmask2;
     }
+    else if (MixName == "1 reveals 2")
+    {
+        MixType=Mix_1_reveals_2;
+    }
+    else if (MixName == "2 reveals 1")
+    {
+        MixType=Mix_2_reveals_1;
+    }
     else if (MixName == "Layered")
     {
         MixType=Mix_Layered;
@@ -96,6 +104,7 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
     {
         MixType=Mix_LeftRight;
     }
+
 }
 
 void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
@@ -221,6 +230,12 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         break;
     case Mix_LeftRight:
         c=x < BufferWi/2 ? c0 : c1;
+        break;
+    case Mix_1_reveals_2:
+        c = hsv0.value > effectMixThreshold ? c0 : c1; // if effect 1 is non black
+        break;
+    case Mix_2_reveals_1:
+        c = hsv1.value > effectMixThreshold ? c1 : c0; // if effect 2 is non black
         break;
     }
 }

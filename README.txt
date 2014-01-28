@@ -2,11 +2,10 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
-<next>
-				-Enhancement (djulien): change "Overlay" to "Persistent" for clarity; bug fix: save/restore value within XML
-
-3.3.1 - Endhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
-
+3.3.1				-Enhancement (djulien): change "Overlay" to "Persistent" for clarity; 
+					-Bug fix(djulien): save/restore value within XML
+					-Enhancement (sean): add "1 reveals 2", "2 reveals 1" as new layer methods
+					-Endhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
 3.3.0				-Enhancement (djulien): vixen 2.x routine as picture
 					-Enhancement (djulien): add checkbox to Effects panel to inhibit canvas clear before effect (for layers across models)
 					-Enhancement (djulien): allow cancelled schedule to re-run that same day
