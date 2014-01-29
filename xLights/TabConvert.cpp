@@ -1382,6 +1382,14 @@ void xLightsFrame::ReadLorFile(const char* filename)
         ConversionError(_("Unable to determine the length of this LOR sequence (looked for length of track 1)"));
         return;
     }
+    
+    for (network = 0; network < unitSizes.size(); network++) {
+        cnt = 0;
+        for (int u = 0; u < unitSizes[network].size(); u++) {
+            cnt += unitSizes[network][u];
+        }
+        TextCtrlConversionStatus->AppendText(wxString::Format(_("Network %d:  %d channels\n"),network,cnt));
+    }
 
     xml = createIrrXMLReader(filename);
     cnt = 0;
@@ -1427,7 +1435,10 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 if (deviceType.Left(3) == "DMX")
                 {
                     chindex=circuit-1;
-                    network--;
+                    if (unitSizes[0].size() == 0) {
+                        //all DMX so ignore network 0
+                        network--;
+                    }
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
                 }
                 else if (deviceType.Left(3) == "LOR")
