@@ -1300,7 +1300,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int EffectCnt = 0;
     size_t network,chindex = -1;
     long cnt = 0;
-    std::vector<std::vector<int>> unitSizes;
+    std::vector<std::vector<int>> lorUnitSizes;
+    std::vector<std::vector<int>> dmxUnitSizes;
     int lastNet = 0;
     LorTimingList.clear();
 
@@ -1346,16 +1347,23 @@ void xLightsFrame::ReadLorFile(const char* filename)
                         unit = 1;
                     }
                     circuit = xml->getAttributeValueAsInt("circuit");
-                    if (network >= unitSizes.size()) {
-                        unitSizes.resize(network + 1);
+                    std::vector<std::vector<int>> *unitSizes;
+                    if (deviceType.Left(3) == "DMX") {
+                        unitSizes = &dmxUnitSizes;
+                    } else {
+                        unitSizes = &lorUnitSizes;
                     }
-                    if (unit > unitSizes[network].size()) {
-                        unitSizes[network].resize(unit);
+                    
+                    if (network >= unitSizes->size()) {
+                        unitSizes->resize(network + 1);
+                    }
+                    if (unit > (*unitSizes)[network].size()) {
+                        (*unitSizes)[network].resize(unit);
                     }
                     if (circuit == 0) {
-                        unitSizes[network][unit - 1]++;
-                    } else if (circuit > unitSizes[network][unit - 1]) {
-                        unitSizes[network][unit - 1] = circuit;
+                        (*unitSizes)[network][unit - 1]++;
+                    } else if (circuit > (*unitSizes)[network][unit - 1]) {
+                        (*unitSizes)[network][unit - 1] = circuit;
                     }
                 }
                 break;
@@ -1383,12 +1391,19 @@ void xLightsFrame::ReadLorFile(const char* filename)
         return;
     }
     
-    for (network = 0; network < unitSizes.size(); network++) {
+    for (network = 0; network < lorUnitSizes.size(); network++) {
         cnt = 0;
-        for (int u = 0; u < unitSizes[network].size(); u++) {
-            cnt += unitSizes[network][u];
+        for (int u = 0; u < lorUnitSizes[network].size(); u++) {
+            cnt += lorUnitSizes[network][u];
         }
-        TextCtrlConversionStatus->AppendText(wxString::Format(_("Network %d:  %d channels\n"),network,cnt));
+        TextCtrlConversionStatus->AppendText(wxString::Format(_("LOR Network %d:  %d channels\n"),network,cnt));
+    }
+    for (network = 1; network < dmxUnitSizes.size(); network++) {
+        cnt = 0;
+        for (int u = 0; u < dmxUnitSizes[network].size(); u++) {
+            cnt += dmxUnitSizes[network][u];
+        }
+        TextCtrlConversionStatus->AppendText(wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
     }
 
     xml = createIrrXMLReader(filename);
@@ -1435,17 +1450,15 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 if (deviceType.Left(3) == "DMX")
                 {
                     chindex=circuit-1;
-                    if (unitSizes[0].size() == 0) {
-                        //all DMX so ignore network 0
-                        network--;
-                    }
+                    network--;
+                    network += lorUnitSizes.size();
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
                 }
                 else if (deviceType.Left(3) == "LOR")
                 {
                     chindex = 0;
                     for (int z = 0; z < (unit - 1); z++) {
-                        chindex += unitSizes[network][z];
+                        chindex += lorUnitSizes[network][z];
                     }
                     chindex += circuit-1;
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
