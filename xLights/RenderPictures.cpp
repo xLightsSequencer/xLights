@@ -48,6 +48,7 @@
 #define RENDER_PICTURE_PEEKABOO_180  14
 #define RENDER_PICTURE_PEEKABOO_270  15
 #define RENDER_PICTURE_VIXREMAP  16
+#define RENDER_PICTURE_FLAGWAVE  17
 
 
 #define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
@@ -219,6 +220,9 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 }
 #endif
 
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG 100
+//#include "djdebug.cpp"
 
 void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
@@ -235,6 +239,8 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
     wxFile f;
 #define debug f //shim; need to rework debug
+//#undef wrdebug
+//#define wrdebug(x)
 
     if(NewPictureName2.length()==0) return;
 
@@ -356,6 +362,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
     int imght   =image.GetHeight();
     int yoffset =(BufferHt+imght)/2; //centered if sizes don't match
     int xoffset =(imgwidth-BufferWi)/2; //centered if sizes don't match
+    int waveX, waveY, waveW, waveN; //location of first wave, height adjust, width, wave# -DJ
     wrdebug(wxString::Format("pic: state %d, img w/h %d/%d, buf w/h %d/%d, x/y ofs %d/%d", state, imgwidth, imght, BufferWi, BufferHt, xoffset, yoffset));
     float xscale, yscale;
     switch (dir) //prep
@@ -393,6 +400,16 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
             xoffset = state / speedfactor - BufferHt; // * speedfactor; //draw_at = (state < BufferHt)? state
             if (xoffset > 10) xoffset = -xoffset + 10; //reverse direction
             else if (xoffset > 0) xoffset = 0; //pause in middle
+            break;
+        case RENDER_PICTURE_FLAGWAVE: //flag wave -DJ
+            if (!GifSpeed) GifSpeed = 3; //KLUDGE: GifSpeed broken during Scheduler Playback, so default to reasonable value
+            waveW = GifSpeed? BufferWi / GifSpeed: BufferWi; //avoid /0; re-use slider as wave count
+            if (waveW < 2) waveW = BufferWi; //too many waves
+//            waveW += BufferWi / 10; //leave a little gap between waves
+            waveX = state / speedfactor; // % (2 * BufferWi) + 1; //location of first wave
+            waveN = waveX / waveW;
+//            if (waveX > BufferWi) waveX = BufferWi - waveX; //alternate: 1..W,-1..-W
+//            debug(1, "wave: gifsp %d, bufwi %d => wavew %d => %d, wavex %d, wave# %d", GifSpeed, BufferWi, GifSpeed? BufferWi / GifSpeed: -1, waveW, waveX, waveN);
             break;
     }
 //    if (state < 4) wrdebug(1, "pic: state %d, style %d, img (%d, %d), wnd (%d, %d)", state, dir, imgwidth, imght, BufferWi, BufferHt);
@@ -460,6 +477,25 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
                     SetPixel(y - xoffset, BufferHt + yoffset - x, c);
 //                    SetPixel(y - yoffset - BufferHt, x - xoffset, c);
+                    break;
+                case RENDER_PICTURE_FLAGWAVE: //17: //flag wave in wind -DJ
+//                    if (!x) rippleY = 0; //flag pole edge never moves?
+//                    else if (x < abs(rippleX)) rippleY = (rippleX > 0)? +1: -1;
+//                    else
+                    if (BufferHt < 20) //small grid => small waves
+                    {
+                        waveN = (x - waveX) / waveW;
+                        waveY = !x? 0: (waveN & 1)? -1: 0;
+//                        waveN = (x - waveX) / (waveW / 2); //use half-wave to skew waves more down than up
+//                        waveY = !x? 0: (waveN & 3)? 0: -1;
+                    }
+                    else //larger grid => larger waves
+                    {
+                        waveY = !x? 0: (waveN & 1)? 0: (waveN & 2)? -1: +1;
+                        if (waveX < 0) waveY *= -1;
+                    }
+//                    if (y == 5) debug(1, "draw: x %d, wavex %d => wave# %d, wavey %d", x, waveX, waveN, waveY);
+                    SetPixel(x - xoffset, yoffset - y + waveY - 1, c);
                     break;
                 default:
                     if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: wxColor is BGR internally

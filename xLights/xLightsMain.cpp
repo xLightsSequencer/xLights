@@ -1369,6 +1369,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("peekaboo 180"); //14; upside down peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
     PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
+    PictureEffectDirections.Add("flag wave"); //17; flag waving in wind -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
