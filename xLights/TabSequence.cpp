@@ -52,6 +52,7 @@ void xLightsFrame::PlayRgbSequence()
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
     PlayCurrentXlightsFile();
+    heartbeat("playback seq", true); //tell fido to start watching -DJ
 }
 
 void xLightsFrame::ResetEffectStates()
@@ -87,6 +88,7 @@ void xLightsFrame::PlayEffect()
     EnableSequenceControls(false);
     ResetTimer(PLAYING_EFFECT);
     Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
+    heartbeat("playback effect", true); //tell fido to start watching -DJ
 }
 
 void xLightsFrame::OnButton_PlayEffectClick(wxCommandEvent& event)
@@ -1131,6 +1133,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
         FadesChanged=false;
     }
 
+    heartbeat("playback active", false); //tell fido we're still alive -DJ
 //    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);

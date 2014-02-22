@@ -1748,10 +1748,12 @@ void xLightsFrame::CheckRunSchedule()
     {
         ForceScheduleCheck();
         StatusBar1->SetStatusText(_("Starting scheduler"), 1);
+        heartbeat("schedule start", true); //tell fido to start watching -DJ
     }
     else
     {
         StatusBar1->SetStatusText(_("Scheduler not running"), 1);
+        heartbeat("schedule stop", true); //tell fido to stop watching -DJ
     }
 }
 

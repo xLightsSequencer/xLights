@@ -224,6 +224,7 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             return;
         }
         PlayCurrentXlightsFile();
+        heartbeat("playback preview", true); //tell fido to start watching -DJ
         break;
     }
 }

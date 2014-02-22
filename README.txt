@@ -3,6 +3,7 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 <next>
+					-Enhancement (djulien): write playback checkpoints to file for crash monitoring
 					-Enhancement (djulien): add flag waving option to Pictures (useful for 4th of July, Memorial Day, etc)
 3.3.2				-Bug fix (dkulp): When importing LOR *.lms files, certain missing data 
 						would cause a crash. 	conversion now fills in any of those missing

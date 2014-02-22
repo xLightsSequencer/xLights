@@ -8,6 +8,7 @@
  **************************************************************/
 
 #include "xLightsApp.h"
+//#include "heartbeat.h" //DJ
 
 //(*AppHeaders
 #include "xLightsMain.h"
@@ -18,6 +19,7 @@ IMPLEMENT_APP(xLightsApp)
 
 bool xLightsApp::OnInit()
 {
+//    heartbeat("init", true); //tell monitor active now -DJ
 //check for options on command line: -DJ
 //TODO: maybe use wxCmdLineParser instead?
 //do this before instantiating xLightsFrame so it can use info gathered here

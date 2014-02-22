@@ -190,6 +190,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="heartbeat.cpp" />
+		<Unit filename="heartbeat.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="DebugWindows" />
