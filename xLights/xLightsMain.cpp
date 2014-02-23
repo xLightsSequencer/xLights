@@ -18,6 +18,7 @@
 #include <wx/valnum.h>
 #include <wx/clipbrd.h>
 #include "xLightsApp.h" //global app run-time flags
+#include "heartbeat.h" //DJ
 
 
 // xml
@@ -1369,6 +1370,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("peekaboo 180"); //14; upside down peekaboo -DJ
     PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
     PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
+    PictureEffectDirections.Add("flag wave"); //17; flag waving in wind -DJ
 
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
@@ -1648,6 +1650,7 @@ void xLightsFrame::AllLightsOff()
 
 void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
+    heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=Notebook1->GetSelection();
     if (pagenum == TESTTAB && !xout)
     {
@@ -1802,6 +1805,7 @@ void xLightsFrame::StopNow(void)
         CheckBoxRunSchedule->SetValue(false);
         CheckRunSchedule();
     }
+    heartbeat("playback end", true); //tell fido to stop watching -DJ
     if (basic.IsRunning()) basic.halt();
     SetPlayMode(play_off);
     ResetTimer(NO_SEQ);
@@ -1832,6 +1836,7 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
     {
         SecondsRemaining = 0;
         StatusBar1->SetStatusText(_("Finishing playlist"));
+        heartbeat("exit", true); //tell fido about graceful exit -DJ
     }
     else
     {
@@ -1869,6 +1874,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         return;
     }
 
+    heartbeat("exit", true); //tell fido about graceful exit -DJ
     // Disconnect the resize events, otherwise they get called as we are shutting down
     ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
