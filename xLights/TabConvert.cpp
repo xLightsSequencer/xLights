@@ -528,6 +528,114 @@ void xLightsFrame::WriteLSPFile(const wxString& filename )
 
 void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
+    /*  MrChristnas2000 (from DLA forum) investigated the lsp xml file for LSP 2.8
+
+Here are some of his notes
+
+eff="1" -- effect is Ramp Up
+eff="2" -- effect is Ramp Down
+eff="3" -- effect is ON
+eff="4" -- effect is OFF
+eff="5" -- effect is Twinkle
+eff="6" -- effect is Shimmer
+eff="7" -- effect is NO Change
+
+One second is = 88200
+Note pos="2000" is the TimeInterval timing mark point.
+
+First observation
+Each track allways ends with the line
+<TimeInterval eff="7" dat="" gui="" in="1" out="1" pos="100000000" sin="-1" att="0" />
+It is the only line with the value of att="0"
+
+
+Second pattern created is a 5 second with 1 ch Red, 1 ch Blue, 1 ch Green and last Ch OFF
+Group Name = Test Patterns
+Effect Name = Ch1R.Ch2B.Ch3G.Ch4Off
+
+Next observation is that the two entries are the color of the RGB effect
+bst="-16711936" ben="-16711936" have to do with the color in and the color out.
+
+Effect Name = Ch1RB.Ch2BG.Ch3GW.Ch4Off
+
+Red to Blue
+bst="-65536" ben="-16776961"
+Blue to Green
+bst="-16776961" ben="-16711936"
+Green to White
+bst="-16711936" ben="-1"
+
+Off
+bst="-1" ben="-1"
+
+Next obversation
+is that the first and last line in every track has the value
+att="0"
+As well as any line that has a effect value
+
+Next obversation
+Lines with continuation of an effect has the value
+eff="7" dat="" gui="" in="1" out="1" pos="2000" sin="-1" att="2"
+The only changing value is the time position 'pos'
+
+Effect Name = Ch1Ronoff.Ch2Bonoff.Ch3Gonoff.Ch4Off
+
+Another observation is when an ON effect is added/changed that the line contains the following full data block
+dat="&lt;?xml version=&quot;1.0&quot;
+		  encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;
+		  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;
+		  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;"
+		  gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}"
+This does not seem change from pattern to pattern save.
+I also removed it from a saved pattern and it didn't seem to make any difference with or without it.
+
+Another observation is that an OFF line is allways:
+ <TimeInterval eff="4" dat="" gui="{09A9DFBE-9833-413c-95FA-4FFDFEBF896F}" in="1" out="1" pos="4410" sin="-1" att="0" bst="-1" ben="-1" />
+The only changing value is the time position 'pos'
+
+Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Shmr
+
+Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Twnkl
+
+
+Last obversation is that only when a change in effect type is a value in the gui="" inserted
+
+
+Reference info.
+Mili Sec	Tim Mk Val
+1	4410
+2	8820
+3	13230
+4	17640
+5	22050
+6	26460
+7	30870
+8	35280
+9	39690
+10	44100
+11	48510
+12	52920
+13	57330
+14	61740
+15	66150
+16	70560
+17	74970
+18	79380
+19	83790
+20	88200
+
+This table seems to hold from save to save of effects.
+Effect 2 gui value
+49E1F143-321A-4f5b-9F39-32984FF12410
+Effect 1 gui value
+1B0F1B59-7161-4782-B068-98E021A6E048
+Effect 3 gui value
+DA98BD5D-9C00-40fe-A11C-AD3242573443
+Effect 4 gui value
+09A9DFBE-9833-413c-95FA-4FFDFEBF896F
+
+*/
+
     wxString ChannelName,TestName;
     int ch,p,csec;
     int seqidx=0;
@@ -561,6 +669,17 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     for (ch=0; ch < numChans; ch++ )
     {
 
+/*
+<TrackGuid>9457745f-d601-4443-acd5-8ba77bd98082</TrackGuid>
+<IsHidden>false</IsHidden>
+<IsPrimaryTrack>false</IsPrimaryTrack>
+<TrackColorName/>
+<TrackColorARGB>-2302756</TrackColorARGB>
+<TrackID>0</TrackID>
+<TrackType>0</TrackType>
+<WiiMapping inv="0" ibn="" inbn="" ani="0" ain="" hty="-1" fed="0" wind="-1" wibt="0" cint="False" ceff="False" hefsd="True" lef="3" lefl="1" intb="0" efd="0"/>
+<Name/>
+*/
         f.Write("\t<Track>\n");
         f.Write("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n");
         f.Write("\t\t<IsHidden>false</IsHidden>\n");
@@ -571,6 +690,16 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
         f.Write("\t\t<TrackType>0</TrackType>\n");
         //    f.Write("\t\t<WiiMapping inv=\"0\" ibn=\"\" inbn=\"\" ani=\"0\" ain=\"\" hty=\"-1\" fed=\"0"\ wind=\"-1\" wibt=\"0\" cint=\"False\" ceff=\"False\" hefsd=\"True\" lef=\"3\" lefl=\"1\" intb=\"0\" efd=\"0\" />\n");
         f.Write("\t\t<Name />\n");
+
+        /*
+        <Intervals>
+<TimeInterval eff="1" dat="" gui="{1B0F1B59-7161-4782-B068-98E021A6E048}" a="128" b="128" in="1" out="100" pos="88200" sin="-1" att="0"/>
+<TimeInterval eff="2" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" in="100" out="1" pos="176400" sin="-1" att="0"/>
+<TimeInterval eff="7" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" pos="264600" sin="-1" att="0"/>
+<TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="352800" sin="-1" att="0"/>
+<TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="441000" sin="-1" att="0"/>
+</Intervals>
+*/
         f.Write("\t\t<Intervals>\n");
         for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
         {
@@ -584,17 +713,17 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
                 bst=rgb;
                 ben=rgb;
                 // 4410 = 1/20th of a second. 88200/20
-                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n",pos,bst,ben));
+                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n",pos,bst,ben));
                 bst=ben=0;
-                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;\" gui=\"{DA98BD5D-9C00-40fe-A11C-AD3242573443}\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n",pos+4410,bst,ben));
+         //       f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"352800\" sin=\"-1\" att=\"0\"/>\n",pos+4410));
             }
             else
             {
-
-
                 //  f.Write(wxString::Format("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n",pos));
             }
         }
+         f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
+
         f.Write("</Intervals>\n");
         f.Write("</Track>\n");
     }
@@ -1308,8 +1437,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
     ConversionInit();
     TextCtrlConversionStatus->AppendText(_("Reading LOR sequence\n"));
     StatusBar1->SetLabelText(_("Reading LOR sequence"));
-    
-    
+
+
     int centisec = -1;
     int nodecnt=0;
     IrrXMLReader* xml = createIrrXMLReader(filename);
@@ -1353,7 +1482,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     } else {
                         unitSizes = &lorUnitSizes;
                     }
-                    
+
                     if (network >= unitSizes->size()) {
                         unitSizes->resize(network + 1);
                     }
@@ -1377,7 +1506,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
     }
     delete xml;
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Track 1 length = %d centiseconds\n"),centisec));
-    
+
     if (centisec > 0)
     {
         SeqNumPeriods = centisec * 10 / XTIMER_INTERVAL;
@@ -1390,7 +1519,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
         ConversionError(_("Unable to determine the length of this LOR sequence (looked for length of track 1)"));
         return;
     }
-    
+
     for (network = 0; network < lorUnitSizes.size(); network++) {
         cnt = 0;
         for (int u = 0; u < lorUnitSizes[network].size(); u++) {
@@ -1417,14 +1546,14 @@ void xLightsFrame::ReadLorFile(const char* filename)
         case EXN_TEXT:
             break;
         case EXN_ELEMENT:
-                
+
             nodecnt++;
             if (nodecnt > 1000)
             {
                 nodecnt=0;
                 wxYield();
             }
-                
+
             NodeName = wxString::FromAscii( xml->getNodeName() );
             context.Add(NodeName);
             cnt++;
@@ -1446,7 +1575,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 }
                 circuit = xml->getAttributeValueAsInt("circuit");
                 ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
-                
+
                 if (deviceType.Left(3) == "DMX")
                 {
                     chindex=circuit-1;
