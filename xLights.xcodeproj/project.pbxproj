@@ -77,6 +77,7 @@
 		67B4C91A17B536D60006B951 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67B4C91917B536D60006B951 /* icon.icns */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C7968F17B578B100CEE775 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67C7968E17B578B100CEE775 /* icon.icns */; };
+		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
@@ -189,6 +190,8 @@
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
 		67C7968E17B578B100CEE775 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
+		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
+		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
 		67E491B117C459B800FE40EA /* RenderCurtain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCurtain.cpp; sourceTree = "<group>"; };
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
@@ -288,6 +291,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
+				67CA857F18BE86B800A6268C /* heartbeat.h */,
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
 				67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */,
 				67E491B117C459B800FE40EA /* RenderCurtain.cpp */,
@@ -474,6 +479,7 @@
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
+				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
 				67A61A2E17B51C0F008E95BB /* ModelClass.cpp in Sources */,
 				67A61A2F17B51C0F008E95BB /* ModelDialog.cpp in Sources */,
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
