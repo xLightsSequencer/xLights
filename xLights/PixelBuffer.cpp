@@ -489,10 +489,14 @@ void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
 }
 
 void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int Effect1,int Countdown1,
-                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2)
+                                  int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2,
+                                  int Position3, const wxString& Line3, const wxString& FontString3,int dir3,int Effect3,int Countdown3,
+                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,int Effect4,int Countdown4)
 {
     Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,Effect1,Countdown1,
-                                    Position2,Line2,FontString2,dir2,Effect2,Countdown2);
+                                    Position2,Line2,FontString2,dir2,Effect2,Countdown2,
+                                    Position3,Line3,FontString3,dir3,Effect3,Countdown3,
+                                    Position4,Line4,FontString4,dir4,Effect4,Countdown4);
 }
 
 void PixelBufferClass::RenderTree(int Branches)

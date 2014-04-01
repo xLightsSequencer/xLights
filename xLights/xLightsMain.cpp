@@ -1211,6 +1211,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
+    EffectsPanel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnEffectsPanel1Paint,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1513,18 +1514,34 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Meteors_Effect->SetSelection(0);
     panel->Choice_Pictures_Direction->Set(PictureEffectDirections);
     panel->Choice_Pictures_Direction->SetSelection(0);
+
     panel->Choice_Text_Dir1->Set(TextEffectDirections);
     panel->Choice_Text_Dir1->SetSelection(0);
     panel->Choice_Text_Dir2->Set(TextEffectDirections);
     panel->Choice_Text_Dir2->SetSelection(0);
+    panel->Choice_Text_Dir3->Set(TextEffectDirections);
+    panel->Choice_Text_Dir3->SetSelection(0);
+    panel->Choice_Text_Dir4->Set(TextEffectDirections);
+    panel->Choice_Text_Dir4->SetSelection(0);
+
     panel->Choice_Text_Effect1->Set(TextEffects);
     panel->Choice_Text_Effect1->SetSelection(0);
     panel->Choice_Text_Effect2->Set(TextEffects);
     panel->Choice_Text_Effect2->SetSelection(0);
+    panel->Choice_Text_Effect3->Set(TextEffects);
+    panel->Choice_Text_Effect3->SetSelection(0);
+    panel->Choice_Text_Effect4->Set(TextEffects);
+    panel->Choice_Text_Effect4->SetSelection(0);
+
     panel->Choice_Text_Count1->Set(TextCountDown);
     panel->Choice_Text_Count1->SetSelection(0);
     panel->Choice_Text_Count2->Set(TextCountDown);
     panel->Choice_Text_Count2->SetSelection(0);
+    panel->Choice_Text_Count3->Set(TextCountDown);
+    panel->Choice_Text_Count3->SetSelection(0);
+    panel->Choice_Text_Count4->Set(TextCountDown);
+    panel->Choice_Text_Count4->SetSelection(0);
+
     panel->CurrentDir = &CurrentDir;
     panel->Choice_Chase_Type1->Set(SingleStrandTypes);
     panel->Choice_Chase_Type1->SetSelection(0); // Set Left-Right as default
@@ -2140,3 +2157,7 @@ showlock(Contrast)
 {
 }
 */
+
+void xLightsFrame::OnEffectsPanel1Paint(wxPaintEvent& event)
+{
+}

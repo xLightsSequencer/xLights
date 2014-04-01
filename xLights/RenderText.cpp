@@ -34,7 +34,9 @@
 //           3: timer in seconds, where Line is the starting value in seconds
 //           4: timer in days, hours, minute, seconds, where Line is the target date as YYYYMMDD
 void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int Effect1,int Countdown1,
-                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2)
+                            int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int Effect2,int Countdown2,
+                            int Position3, const wxString& Line3, const wxString& FontString3,int dir3,int Effect3,int Countdown3,
+                            int Position4, const wxString& Line4, const wxString& FontString4,int dir4,int Effect4,int Countdown4)
 {
     wxColour c;
     wxBitmap bitmap(BufferWi,BufferHt);
@@ -46,11 +48,23 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxSize pixelSize(0,DefaultPixelHt);
     wxFont Font1(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    if (!FontString1.IsEmpty()) {
+    wxFont Font3(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
+    wxFont Font4(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
+    if (!FontString1.IsEmpty())
+    {
         Font1.SetNativeFontInfoUserDesc(FontString1);
     }
-    if (!FontString2.IsEmpty()) {
+    if (!FontString2.IsEmpty())
+    {
         Font2.SetNativeFontInfoUserDesc(FontString2);
+    }
+    if (!FontString3.IsEmpty())
+    {
+        Font3.SetNativeFontInfoUserDesc(FontString3);
+    }
+    if (!FontString4.IsEmpty())
+    {
+        Font4.SetNativeFontInfoUserDesc(FontString4);
     }
 
 #ifndef __WXMSW__
@@ -82,9 +96,18 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxString s = Font1.GetNativeFontInfoDesc();
     s.Replace(";2;",";3;",false);
     Font1.SetNativeFontInfo(s);
+
     s = Font2.GetNativeFontInfoDesc();
     s.Replace(";2;",";3;",false);
     Font2.SetNativeFontInfo(s);
+
+    s = Font3.GetNativeFontInfoDesc();
+    s.Replace(";2;",";3;",false);
+    Font3.SetNativeFontInfo(s);
+
+    s = Font4.GetNativeFontInfoDesc();
+    s.Replace(";2;",";3;",false);
+    Font4.SetNativeFontInfo(s);
 #endif
 
     dc.SetFont(Font1);
@@ -100,6 +123,22 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         dc.SetTextForeground(c);
     }
     RenderTextLine(dc,1,Position2,Line2,dir2,Effect2,Countdown2);
+
+    dc.SetFont(Font3);
+    if(colorcnt>2)
+    {
+        palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+        dc.SetTextForeground(c);
+    }
+    RenderTextLine(dc,2,Position3,Line3,dir3,Effect3,Countdown3);
+
+    dc.SetFont(Font4);
+    if(colorcnt>3)
+    {
+        palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+        dc.SetTextForeground(c);
+    }
+    RenderTextLine(dc,3,Position4,Line4,dir4,Effect4,Countdown4);
 
     //convert to image to get the pixel data
     wxImage image(bitmap.ConvertToImage());
@@ -163,7 +202,8 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     {
     case COUNTDOWN_SECONDS:
         // countdown seconds
-        if (state==0) {
+        if (state==0)
+        {
             if (!Line.ToLong(&tempLong)) tempLong=0;
             timer_countdown[idx] = curPeriod+tempLong*20+19;  // capture 0 period
         }
@@ -176,20 +216,26 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     case COUNTDOWN_M_or_S:
     case COUNTDOWN_S:
         // countdown to date
-        if (state%20 == 0) {
-            if ( dt.ParseDateTime(Line, &end) ) {
+        if (state%20 == 0)
+        {
+            if ( dt.ParseDateTime(Line, &end) )
+            {
                 // dt is valid, so calc # of seconds until then
                 ts=dt.Subtract(wxDateTime::Now());
                 wxLongLong ll=ts.GetSeconds();
                 if (ll > LONG_MAX) ll=LONG_MAX;
                 if (ll < 0) ll=0;
                 longsecs=ll.ToLong();
-            } else {
+            }
+            else
+            {
                 // invalid date/time
                 longsecs=0;
             }
             timer_countdown[idx]=longsecs;
-        } else {
+        }
+        else
+        {
             longsecs=timer_countdown[idx];
         }
         days = longsecs / 60 / 60 / 24;
@@ -279,35 +325,76 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
 
-    if (TextRotation == 0.0) {
+    if (TextRotation == 0.0)
+    {
         wxRect rect(0,0,BufferWi,BufferHt);
         switch (dir)
         {
-        case TEXTDIR_LEFT(0): rect.Offset(xlimit/16 - state % xlimit/8, OffsetTop); break; // left
-        case TEXTDIR_RIGHT(1): rect.Offset(state % xlimit/8 - xlimit/16, OffsetTop); break; // right
-        case TEXTDIR_UP(2): rect.Offset(OffsetLeft, ylimit/16 - state % ylimit/8); break; // up
-        case TEXTDIR_DOWN(3): rect.Offset(OffsetLeft, state % ylimit/8 - ylimit/16); break; // down
-        case TEXTDIR_UPLEFT(5): rect.Offset(xlimit/16 - state % xlimit/8, ylimit/16 - state % ylimit/8); break; // up-left
-        case TEXTDIR_DOWNLEFT(6): rect.Offset(xlimit/16 - state % xlimit/8, state % ylimit/8 - ylimit/16); break; // down-left
-        case TEXTDIR_UPRIGHT(7): rect.Offset(state % xlimit/8 - xlimit/16, ylimit/16 - state % ylimit/8); break; // up-right
-        case TEXTDIR_DOWNRIGHT(8): rect.Offset(state % xlimit/8 - xlimit/16, state % ylimit/8 - ylimit/16); break; // down-right
-        case TEXTDIR_WAVEY_LRUPDOWN(9): rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4); break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+        case TEXTDIR_LEFT(0):
+            rect.Offset(xlimit/16 - state % xlimit/8, OffsetTop);
+            break; // left
+        case TEXTDIR_RIGHT(1):
+            rect.Offset(state % xlimit/8 - xlimit/16, OffsetTop);
+            break; // right
+        case TEXTDIR_UP(2):
+            rect.Offset(OffsetLeft, ylimit/16 - state % ylimit/8);
+            break; // up
+        case TEXTDIR_DOWN(3):
+            rect.Offset(OffsetLeft, state % ylimit/8 - ylimit/16);
+            break; // down
+        case TEXTDIR_UPLEFT(5):
+            rect.Offset(xlimit/16 - state % xlimit/8, ylimit/16 - state % ylimit/8);
+            break; // up-left
+        case TEXTDIR_DOWNLEFT(6):
+            rect.Offset(xlimit/16 - state % xlimit/8, state % ylimit/8 - ylimit/16);
+            break; // down-left
+        case TEXTDIR_UPRIGHT(7):
+            rect.Offset(state % xlimit/8 - xlimit/16, ylimit/16 - state % ylimit/8);
+            break; // up-right
+        case TEXTDIR_DOWNRIGHT(8):
+            rect.Offset(state % xlimit/8 - xlimit/16, state % ylimit/8 - ylimit/16);
+            break; // down-right
+        case TEXTDIR_WAVEY_LRUPDOWN(9):
+            rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4);
+            break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
         case TEXTDIR_NONE(4): //fall thru to default
-        default: rect.Offset(0, OffsetTop); break; // static
+        default:
+            rect.Offset(0, OffsetTop);
+            break; // static
         }
         dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
-    } else {
+    }
+    else
+    {
         switch (dir)
         {
-        case 0: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation); break; // left
-        case 1: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation); break; // right
-        case 2: dc.DrawRotatedText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up
-        case 3: dc.DrawRotatedText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation); break; // down
-        case 5: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up-left
-        case 6: dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation); break; // down-left
-        case 7: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation); break; // up-right
-        case 8: dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation); break; // down-right
-        default: dc.DrawRotatedText(msg, 0, OffsetTop, TextRotation); break; // static
+        case 0:
+            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
+            break; // left
+        case 1:
+            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation);
+            break; // right
+        case 2:
+            dc.DrawRotatedText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up
+        case 3:
+            dc.DrawRotatedText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation);
+            break; // down
+        case 5:
+            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up-left
+        case 6:
+            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            break; // down-left
+        case 7:
+            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            break; // up-right
+        case 8:
+            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            break; // down-right
+        default:
+            dc.DrawRotatedText(msg, 0, OffsetTop, TextRotation);
+            break; // static
         }
     }
 }

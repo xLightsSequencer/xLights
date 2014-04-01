@@ -1972,7 +1972,9 @@
 																			<label>Effect 1</label>
 																			<orient>wxVERTICAL</orient>
 																			<object class="sizeritem">
-																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes" />
+																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
+																					<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
+																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
 																				<option>1</option>

@@ -339,8 +339,8 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long nu
         for (p=0; p < numPeriods; p++, seqidx++)
         {
             rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
-               ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
-               ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+                  ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
+                  ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
             if(p<numPeriods-1)
                 buff += wxString::Format("%d ",rgb);
             else
@@ -431,9 +431,9 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format("Writing time period %ld\n",period+1));
         wxYield();
-        for(ch=0;ch<stepSize;ch++)
+        for(ch=0; ch<stepSize; ch++)
         {
-          buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
+            buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
         }
         f.Write(buf,stepSize);
     }
@@ -441,7 +441,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
 }
 
 void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                          SeqDataType *dataBuf, int startAddr, int modelSize)
+        SeqDataType *dataBuf, int startAddr, int modelSize)
 {
     wxUint16 fixedHeaderLength = 20;
     wxUint32 stepSize = numChans + (numChans%4);
@@ -489,9 +489,9 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
     {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format("Writing time period %ld\n",period+1));
         wxYield();
-        for(ch=0;ch<stepSize;ch++)
+        for(ch=0; ch<stepSize; ch++)
         {
-          buf[ch] = ch < numChans ? (*dataBuf)[(ch *numPeriods) + period] : 0;
+            buf[ch] = ch < numChans ? (*dataBuf)[(ch *numPeriods) + period] : 0;
         }
         f.Write(buf,stepSize);
     }
@@ -530,117 +530,118 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
 {
     /*  MrChristnas2000 (from DLA forum) investigated the lsp xml file for LSP 2.8
 
-Here are some of his notes
+    Here are some of his notes
 
-eff="1" -- effect is Ramp Up
-eff="2" -- effect is Ramp Down
-eff="3" -- effect is ON
-eff="4" -- effect is OFF
-eff="5" -- effect is Twinkle
-eff="6" -- effect is Shimmer
-eff="7" -- effect is NO Change
+    eff="1" -- effect is Ramp Up
+    eff="2" -- effect is Ramp Down
+    eff="3" -- effect is ON
+    eff="4" -- effect is OFF
+    eff="5" -- effect is Twinkle
+    eff="6" -- effect is Shimmer
+    eff="7" -- effect is NO Change
 
-One second is = 88200
-Note pos="2000" is the TimeInterval timing mark point.
+    One second is = 88200
+    Note pos="2000" is the TimeInterval timing mark point.
 
-First observation
-Each track allways ends with the line
-<TimeInterval eff="7" dat="" gui="" in="1" out="1" pos="100000000" sin="-1" att="0" />
-It is the only line with the value of att="0"
-
-
-Second pattern created is a 5 second with 1 ch Red, 1 ch Blue, 1 ch Green and last Ch OFF
-Group Name = Test Patterns
-Effect Name = Ch1R.Ch2B.Ch3G.Ch4Off
-
-Next observation is that the two entries are the color of the RGB effect
-bst="-16711936" ben="-16711936" have to do with the color in and the color out.
-
-Effect Name = Ch1RB.Ch2BG.Ch3GW.Ch4Off
-
-Red to Blue
-bst="-65536" ben="-16776961"
-Blue to Green
-bst="-16776961" ben="-16711936"
-Green to White
-bst="-16711936" ben="-1"
-
-Off
-bst="-1" ben="-1"
-
-Next obversation
-is that the first and last line in every track has the value
-att="0"
-As well as any line that has a effect value
-
-Next obversation
-Lines with continuation of an effect has the value
-eff="7" dat="" gui="" in="1" out="1" pos="2000" sin="-1" att="2"
-The only changing value is the time position 'pos'
-
-Effect Name = Ch1Ronoff.Ch2Bonoff.Ch3Gonoff.Ch4Off
-
-Another observation is when an ON effect is added/changed that the line contains the following full data block
-dat="&lt;?xml version=&quot;1.0&quot;
-		  encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;
-		  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;
-		  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;"
-		  gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}"
-This does not seem change from pattern to pattern save.
-I also removed it from a saved pattern and it didn't seem to make any difference with or without it.
-
-Another observation is that an OFF line is allways:
- <TimeInterval eff="4" dat="" gui="{09A9DFBE-9833-413c-95FA-4FFDFEBF896F}" in="1" out="1" pos="4410" sin="-1" att="0" bst="-1" ben="-1" />
-The only changing value is the time position 'pos'
-
-Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Shmr
-
-Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Twnkl
+    First observation
+    Each track allways ends with the line
+    <TimeInterval eff="7" dat="" gui="" in="1" out="1" pos="100000000" sin="-1" att="0" />
+    It is the only line with the value of att="0"
 
 
-Last obversation is that only when a change in effect type is a value in the gui="" inserted
+    Second pattern created is a 5 second with 1 ch Red, 1 ch Blue, 1 ch Green and last Ch OFF
+    Group Name = Test Patterns
+    Effect Name = Ch1R.Ch2B.Ch3G.Ch4Off
+
+    Next observation is that the two entries are the color of the RGB effect
+    bst="-16711936" ben="-16711936" have to do with the color in and the color out.
+
+    Effect Name = Ch1RB.Ch2BG.Ch3GW.Ch4Off
+
+    Red to Blue
+    bst="-65536" ben="-16776961"
+    Blue to Green
+    bst="-16776961" ben="-16711936"
+    Green to White
+    bst="-16711936" ben="-1"
+
+    Off
+    bst="-1" ben="-1"
+
+    Next obversation
+    is that the first and last line in every track has the value
+    att="0"
+    As well as any line that has a effect value
+
+    Next obversation
+    Lines with continuation of an effect has the value
+    eff="7" dat="" gui="" in="1" out="1" pos="2000" sin="-1" att="2"
+    The only changing value is the time position 'pos'
+
+    Effect Name = Ch1Ronoff.Ch2Bonoff.Ch3Gonoff.Ch4Off
+
+    Another observation is when an ON effect is added/changed that the line contains the following full data block
+    dat="&lt;?xml version=&quot;1.0&quot;
+    	  encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;
+    	  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;
+    	  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;"
+    	  gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}"
+    This does not seem change from pattern to pattern save.
+    I also removed it from a saved pattern and it didn't seem to make any difference with or without it.
+
+    Another observation is that an OFF line is allways:
+    <TimeInterval eff="4" dat="" gui="{09A9DFBE-9833-413c-95FA-4FFDFEBF896F}" in="1" out="1" pos="4410" sin="-1" att="0" bst="-1" ben="-1" />
+    The only changing value is the time position 'pos'
+
+    Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Shmr
+
+    Effect Name = Ch1RrDn.Ch2BRu.Ch3GRd.Ch4Twnkl
 
 
-Reference info.
-Mili Sec	Tim Mk Val
-1	4410
-2	8820
-3	13230
-4	17640
-5	22050
-6	26460
-7	30870
-8	35280
-9	39690
-10	44100
-11	48510
-12	52920
-13	57330
-14	61740
-15	66150
-16	70560
-17	74970
-18	79380
-19	83790
-20	88200
+    Last obversation is that only when a change in effect type is a value in the gui="" inserted
 
-This table seems to hold from save to save of effects.
-Effect 2 gui value
-49E1F143-321A-4f5b-9F39-32984FF12410
-Effect 1 gui value
-1B0F1B59-7161-4782-B068-98E021A6E048
-Effect 3 gui value
-DA98BD5D-9C00-40fe-A11C-AD3242573443
-Effect 4 gui value
-09A9DFBE-9833-413c-95FA-4FFDFEBF896F
 
-*/
+    Reference info.
+    Mili Sec	Tim Mk Val
+    1	4410
+    2	8820
+    3	13230
+    4	17640
+    5	22050
+    6	26460
+    7	30870
+    8	35280
+    9	39690
+    10	44100
+    11	48510
+    12	52920
+    13	57330
+    14	61740
+    15	66150
+    16	70560
+    17	74970
+    18	79380
+    19	83790
+    20	88200
 
-    wxString ChannelName,TestName;
+    This table seems to hold from save to save of effects.
+    Effect 2 gui value
+    49E1F143-321A-4f5b-9F39-32984FF12410
+    Effect 1 gui value
+    1B0F1B59-7161-4782-B068-98E021A6E048
+    Effect 3 gui value
+    DA98BD5D-9C00-40fe-A11C-AD3242573443
+    Effect 4 gui value
+    09A9DFBE-9833-413c-95FA-4FFDFEBF896F
+
+    */
+
+    wxString ChannelName,TestName,xmlString,guiString;
     int ch,p,csec;
     int seqidx=0;
     int pos,bst,ben,byte;
     unsigned long rgb;
+    int DATA_FOUND=0;
     float seconds;
     wxFile f;
     if (!f.Create(filename,true))
@@ -661,6 +662,8 @@ Effect 4 gui value
     f.Write("\t<Image>\n");
     f.Write("\t\t<Width>999</Width>\n");
     f.Write("\t\t<Height>200</Height>\n");
+    f.Write("\t\t<BMPBytes>/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAUAFADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDvrm5nFxcgTyACQ4+c+tMN1cb3/fy9P75ptz/x83X/AF0P86Yfvv8A7te6kv6+RS2X9dyeK5n81f38n3f75q3HcTean76T7w/iNZ8X+tX/AHauRf61P94V4mZaVFbt/mephEvYS+f5GuZZMn943T1oEsmR+8bp60w9T9KB1H0rxbs+Uu+T5GfJcTea/wC+k+8f4jVSW5n81v38n3f75qeX/Wv/ALxqnL/rW/3a9rLdajv2/wAj6vFpewj8vyHi6uN6fv5en980+2uZzcWwM8hBkGfnPrVcffT/AHafbf8AHza/9dB/OvbaX9fM8t7P+uxsTaVA00zF5Pmck8j1+lM/smDcx3y8j1H+FFFeJ7Wp/M/vLS0/rzFGlQKciSXIXHUf4U9dOjBUiWXI+n+FFFZybnrLUuM5R0T0JPs7f8/Ev5L/AIUfZ2/5+JfyX/Ciio9nDsjD2cOXZEbadGSxMsuT9P8ACmHSoGOTJLkrjqP8KKKuDcNY6G8pylo3oJ/ZMG5Tvl4HqP8ACnw6VAs0LB5PlcEcj1+lFFae2qfzP7yGtP68j//Z</BMPBytes>\n");
+
     f.Write("\t</Image>\n");
     f.Write("\t<Tracks>\n");
 
@@ -669,17 +672,29 @@ Effect 4 gui value
     for (ch=0; ch < numChans; ch++ )
     {
 
-/*
-<TrackGuid>9457745f-d601-4443-acd5-8ba77bd98082</TrackGuid>
-<IsHidden>false</IsHidden>
-<IsPrimaryTrack>false</IsPrimaryTrack>
-<TrackColorName/>
-<TrackColorARGB>-2302756</TrackColorARGB>
-<TrackID>0</TrackID>
-<TrackType>0</TrackType>
-<WiiMapping inv="0" ibn="" inbn="" ani="0" ain="" hty="-1" fed="0" wind="-1" wibt="0" cint="False" ceff="False" hefsd="True" lef="3" lefl="1" intb="0" efd="0"/>
-<Name/>
-*/
+        /*
+        <TrackGuid>9457745f-d601-4443-acd5-8ba77bd98082</TrackGuid>
+        <IsHidden>false</IsHidden>
+        <IsPrimaryTrack>false</IsPrimaryTrack>
+        <TrackColorName/>
+        <TrackColorARGB>-2302756</TrackColorARGB>
+        <TrackID>0</TrackID>
+        <TrackType>0</TrackType>
+        <WiiMapping inv="0" ibn="" inbn="" ani="0" ain="" hty="-1" fed="0" wind="-1" wibt="0" cint="False" ceff="False" hefsd="True" lef="3" lefl="1" intb="0" efd="0"/>
+        <Name/>
+        */
+
+        //  Let us first check if this channel has any data, if it does not we will skip this channel to not create huge LSP files
+        DATA_FOUND=0;
+        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
+        {
+            byte = (*dataBuf)[seqidx];
+            if(byte != 0) DATA_FOUND=1;
+        }
+        if(!DATA_FOUND) break;
+
+
+
         f.Write("\t<Track>\n");
         f.Write("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n");
         f.Write("\t\t<IsHidden>false</IsHidden>\n");
@@ -693,13 +708,16 @@ Effect 4 gui value
 
         /*
         <Intervals>
-<TimeInterval eff="1" dat="" gui="{1B0F1B59-7161-4782-B068-98E021A6E048}" a="128" b="128" in="1" out="100" pos="88200" sin="-1" att="0"/>
-<TimeInterval eff="2" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" in="100" out="1" pos="176400" sin="-1" att="0"/>
-<TimeInterval eff="7" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" pos="264600" sin="-1" att="0"/>
-<TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="352800" sin="-1" att="0"/>
-<TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="441000" sin="-1" att="0"/>
-</Intervals>
-*/
+        <TimeInterval eff="1" dat="" gui="{1B0F1B59-7161-4782-B068-98E021A6E048}" a="128" b="128" in="1" out="100" pos="88200" sin="-1" att="0"/>
+        <TimeInterval eff="2" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" in="100" out="1" pos="176400" sin="-1" att="0"/>
+        <TimeInterval eff="7" dat="" gui="{49E1F143-321A-4f5b-9F39-32984FF12410}" a="128" b="128" pos="264600" sin="-1" att="0"/>
+        <TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="352800" sin="-1" att="0"/>
+        <TimeInterval eff="4" dat="" gui="" a="128" b="128" in="1" out="1" pos="441000" sin="-1" att="0"/>
+        </Intervals>
+        */
+        xmlString = wxString::Format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
+        guiString = wxString::Format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
+        guiString= wxString::Format("");
         f.Write("\t\t<Intervals>\n");
         for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
         {
@@ -713,19 +731,21 @@ Effect 4 gui value
                 bst=rgb;
                 ben=rgb;
                 // 4410 = 1/20th of a second. 88200/20
-                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n",pos,bst,ben));
-                bst=ben=0;
-         //       f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"352800\" sin=\"-1\" att=\"0\"/>\n",pos+4410));
+                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"%s\" gui=\"%s\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",xmlString,guiString,pos,bst,ben));
+// <TimeInterval eff="3" dat="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;" gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}" in="100" out="100" pos="8820" sin="-1" att="0" bst="-16776961" ben="-16776961" />
+
+                bst=ben=1;
+                //       f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"352800\" sin=\"-1\" att=\"0\"/>\n",pos+4410));
             }
             else
             {
                 //  f.Write(wxString::Format("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n",pos));
             }
         }
-         f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
+        //  f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
 
-        f.Write("</Intervals>\n");
-        f.Write("</Track>\n");
+        f.Write("\t\t</Intervals>\n");
+        f.Write("\t\t</Track>\n");
     }
 
 
@@ -833,11 +853,12 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
         }
         f.Write("\t\t</channel>\n");
         if ( ch < CheckListBoxTestChannels->GetCount() &&
-             (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
+                (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
         {
             rgbChanIndexes[curRgbChanCount++]= index;
             if (curRgbChanCount == 3)
-            {   index++;
+            {
+                index++;
                 f.Write("\t\t<rgbChannel name=\""+ChannelName.Left(ChannelName.size()-1)+
                         wxString::Format("(RGB)\" totalCentiseconds=\"%d\" savedIndex=\"%d\">\n", centiseconds, index));
                 savedIndexes[savedIndexCount++] = index;
@@ -1250,61 +1271,68 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     {
         switch(xml->getNodeType())
         {
-            case EXN_TEXT:
-                NodeValue = wxString::FromAscii( xml->getNodeData() );
-                if (context[cnt - 1] == _("MilliSecPerTimeUnit")) NodeValue.ToLong(&msPerCell);
-                if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
-                if (context[cnt - 1] == _("AudioSourcePcmFile")) {
-                    mediaFilename = NodeValue;
-                    if (mediaFilename.EndsWith(".PCM")) {
-                        //nothing can deal with PCM files, we'll assume this came from an mp3
-                        mediaFilename.Remove(mediaFilename.size() - 4);
-                        mediaFilename += ".mp3";
-                    }
-                }
-                if (context[cnt - 1] == _("ChannelsInUniverse")) {
-                    NodeValue.ToLong(&channelsInUniverse);
-                    channels += channelsInUniverse;
-                }
-                if (context[cnt - 1] == _("UniverseNumber")) {
-                    NodeValue.ToLong(&tmp);
-                    universe = tmp;
-                }
-                break;
-            case EXN_ELEMENT:
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                context.Add(NodeName);
-                cnt++;
-
-                if (xml->isEmptyElement())
+        case EXN_TEXT:
+            NodeValue = wxString::FromAscii( xml->getNodeData() );
+            if (context[cnt - 1] == _("MilliSecPerTimeUnit")) NodeValue.ToLong(&msPerCell);
+            if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
+            if (context[cnt - 1] == _("AudioSourcePcmFile"))
+            {
+                mediaFilename = NodeValue;
+                if (mediaFilename.EndsWith(".PCM"))
                 {
-                    context.RemoveAt(cnt-1);
-                    cnt--;
+                    //nothing can deal with PCM files, we'll assume this came from an mp3
+                    mediaFilename.Remove(mediaFilename.size() - 4);
+                    mediaFilename += ".mp3";
                 }
+            }
+            if (context[cnt - 1] == _("ChannelsInUniverse"))
+            {
+                NodeValue.ToLong(&channelsInUniverse);
+                channels += channelsInUniverse;
+            }
+            if (context[cnt - 1] == _("UniverseNumber"))
+            {
+                NodeValue.ToLong(&tmp);
+                universe = tmp;
+            }
+            break;
+        case EXN_ELEMENT:
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            context.Add(NodeName);
+            cnt++;
 
-                break;
-            case EXN_ELEMENT_END:
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                if (NodeName == _("Universe")) {
-                    map.Add(universe);
-                    map.Add(channelsInUniverse);
-                    for (tmp = map.size() - 2; tmp > 0; tmp -= 2) {
-                        if (map[tmp] < map[tmp - 2]) {
-                            long t1 = map[tmp];
-                            long t2 = map[tmp + 1];
-                            map[tmp] = map[tmp - 2];
-                            map[tmp + 1] = map[tmp - 1];
-                            map[tmp - 2] = t1;
-                            map[tmp - 1] = t2;
-                        }
+            if (xml->isEmptyElement())
+            {
+                context.RemoveAt(cnt-1);
+                cnt--;
+            }
+
+            break;
+        case EXN_ELEMENT_END:
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            if (NodeName == _("Universe"))
+            {
+                map.Add(universe);
+                map.Add(channelsInUniverse);
+                for (tmp = map.size() - 2; tmp > 0; tmp -= 2)
+                {
+                    if (map[tmp] < map[tmp - 2])
+                    {
+                        long t1 = map[tmp];
+                        long t2 = map[tmp + 1];
+                        map[tmp] = map[tmp - 2];
+                        map[tmp + 1] = map[tmp - 1];
+                        map[tmp - 2] = t1;
+                        map[tmp - 1] = t2;
                     }
                 }
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                if (cnt > 0) context.RemoveAt(cnt-1);
-                cnt = context.GetCount();
-                break;
-            default:
-                break;
+            }
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            if (cnt > 0) context.RemoveAt(cnt-1);
+            cnt = context.GetCount();
+            break;
+        default:
+            break;
         }
     }
     delete xml;
@@ -1327,7 +1355,8 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     ChannelColors.resize(channels);
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2) {
+    for (tmp = 0; tmp < map.size(); tmp += 2)
+    {
         int i = map[tmp + 1];
         map[tmp + 1] = channels;
         channels += i;
@@ -1340,77 +1369,91 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     {
         switch(xml->getNodeType())
         {
-            case EXN_TEXT:
-                if (context[cnt - 1] == _("ChanInfo")) {
-                    //channel name and type
-                    ChannelName = wxString::FromAscii( xml->getNodeData() );
-                }
-                if (context[cnt - 1] == _("Block")) {
-                    NodeValue = wxString::FromAscii( xml->getNodeData() );
+        case EXN_TEXT:
+            if (context[cnt - 1] == _("ChanInfo"))
+            {
+                //channel name and type
+                ChannelName = wxString::FromAscii( xml->getNodeData() );
+            }
+            if (context[cnt - 1] == _("Block"))
+            {
+                NodeValue = wxString::FromAscii( xml->getNodeData() );
 
-                    int idx = NodeValue.Find("-");
-                    Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
-                }
-                if (context[cnt - 1] == _("UniverseNumber")) {
-                    NodeValue = wxString::FromAscii( xml->getNodeData() );
-                    NodeValue.ToLong(&tmp);
-                    universe = tmp;
-                    for (tmp = 0; tmp < map.size() ; tmp += 2) {
-                        if (universe == map[tmp]) {
-                            channels = map[tmp + 1];
-                        }
-                    }
-                }
-                break;
-            case EXN_ELEMENT:
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                context.Add(NodeName);
-                cnt++;
-
-                if (xml->isEmptyElement())
+                int idx = NodeValue.Find("-");
+                Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
+            }
+            if (context[cnt - 1] == _("UniverseNumber"))
+            {
+                NodeValue = wxString::FromAscii( xml->getNodeData() );
+                NodeValue.ToLong(&tmp);
+                universe = tmp;
+                for (tmp = 0; tmp < map.size() ; tmp += 2)
                 {
-                    context.RemoveAt(cnt-1);
-                    cnt--;
+                    if (universe == map[tmp])
+                    {
+                        channels = map[tmp + 1];
+                    }
                 }
+            }
+            break;
+        case EXN_ELEMENT:
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            context.Add(NodeName);
+            cnt++;
 
-                break;
-            case EXN_ELEMENT_END:
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                if (NodeName == _("ChannelData")) {
-                    //finished reading this channel, map the data
-                    int idx = ChannelName.find(", ");
-                    wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
-                    wxString origName = ChannelNames[channels];
-                    if (type == _("RGB-R")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
-                        ChannelColors[channels] = 0x000000FF;
-                    } else if (type == _("RGB-G")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
-                        ChannelColors[channels] = 0x0000FF00;
-                    } else if (type == _("RGB-B")) {
-                        ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
-                        ChannelColors[channels] = 0x00FF0000;
-                    } else {
-                        ChannelNames[channels] = ChannelName.Left(idx);
-                        ChannelColors[channels] = 0x00FFFFFF;
-                    }
-                    wxString o2 = NetInfo.GetChannelName(channels);
-                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
-                                                                        ChannelNames[channels],origName,o2));
-                    for (long newper = 0; newper < SeqNumPeriods; newper++) {
-                        int hlsper = newper * timeCells / SeqNumPeriods;
-                        long intensity;
-                        Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
-                        SeqData[channels * SeqNumPeriods + newper] = intensity;
-                    }
-                    Data.Clear();
-                    channels++;
+            if (xml->isEmptyElement())
+            {
+                context.RemoveAt(cnt-1);
+                cnt--;
+            }
+
+            break;
+        case EXN_ELEMENT_END:
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            if (NodeName == _("ChannelData"))
+            {
+                //finished reading this channel, map the data
+                int idx = ChannelName.find(", ");
+                wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
+                wxString origName = ChannelNames[channels];
+                if (type == _("RGB-R"))
+                {
+                    ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
+                    ChannelColors[channels] = 0x000000FF;
                 }
-                if (cnt > 0) context.RemoveAt(cnt-1);
-                cnt = context.GetCount();
-                break;
-            default:
-                break;
+                else if (type == _("RGB-G"))
+                {
+                    ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
+                    ChannelColors[channels] = 0x0000FF00;
+                }
+                else if (type == _("RGB-B"))
+                {
+                    ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
+                    ChannelColors[channels] = 0x00FF0000;
+                }
+                else
+                {
+                    ChannelNames[channels] = ChannelName.Left(idx);
+                    ChannelColors[channels] = 0x00FFFFFF;
+                }
+                wxString o2 = NetInfo.GetChannelName(channels);
+                TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
+                                                     ChannelNames[channels],origName,o2));
+                for (long newper = 0; newper < SeqNumPeriods; newper++)
+                {
+                    int hlsper = newper * timeCells / SeqNumPeriods;
+                    long intensity;
+                    Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
+                    SeqData[channels * SeqNumPeriods + newper] = intensity;
+                }
+                Data.Clear();
+                channels++;
+            }
+            if (cnt > 0) context.RemoveAt(cnt-1);
+            cnt = context.GetCount();
+            break;
+        default:
+            break;
         }
     }
     delete xml;
@@ -1448,60 +1491,69 @@ void xLightsFrame::ReadLorFile(const char* filename)
     {
         switch(xml->getNodeType())
         {
-            case EXN_TEXT:
-                break;
-            case EXN_ELEMENT:
-                NodeName = wxString::FromAscii( xml->getNodeName() );
-                context.Add(NodeName);
-                cnt++;
+        case EXN_TEXT:
+            break;
+        case EXN_ELEMENT:
+            NodeName = wxString::FromAscii( xml->getNodeName() );
+            context.Add(NodeName);
+            cnt++;
 
-                nodecnt++;
-                if (nodecnt > 1000)
+            nodecnt++;
+            if (nodecnt > 1000)
+            {
+                nodecnt=0;
+                wxYield();
+            }
+            if (NodeName == _("track"))
+            {
+                centisec = xml->getAttributeValueAsInt("totalCentiseconds");
+            }
+            else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
+            {
+                wxYield();
+                deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
+                network = xml->getAttributeValueAsInt("network");
+                unit = xml->getAttributeValueAsInt("unit");
+                if (unit < 0) unit+=256;
+                if (unit == 0)
                 {
-                    nodecnt=0;
-                    wxYield();
+                    unit = 1;
                 }
-                if (NodeName == _("track"))
+                circuit = xml->getAttributeValueAsInt("circuit");
+                std::vector<std::vector<int>> *unitSizes;
+                if (deviceType.Left(3) == "DMX")
                 {
-                    centisec = xml->getAttributeValueAsInt("totalCentiseconds");
+                    unitSizes = &dmxUnitSizes;
                 }
-                else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
+                else
                 {
-                    wxYield();
-                    deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
-                    network = xml->getAttributeValueAsInt("network");
-                    unit = xml->getAttributeValueAsInt("unit");
-                    if (unit < 0) unit+=256;
-                    if (unit == 0) {
-                        unit = 1;
-                    }
-                    circuit = xml->getAttributeValueAsInt("circuit");
-                    std::vector<std::vector<int>> *unitSizes;
-                    if (deviceType.Left(3) == "DMX") {
-                        unitSizes = &dmxUnitSizes;
-                    } else {
-                        unitSizes = &lorUnitSizes;
-                    }
+                    unitSizes = &lorUnitSizes;
+                }
 
-                    if (network >= unitSizes->size()) {
-                        unitSizes->resize(network + 1);
-                    }
-                    if (unit > (*unitSizes)[network].size()) {
-                        (*unitSizes)[network].resize(unit);
-                    }
-                    if (circuit == 0) {
-                        (*unitSizes)[network][unit - 1]++;
-                    } else if (circuit > (*unitSizes)[network][unit - 1]) {
-                        (*unitSizes)[network][unit - 1] = circuit;
-                    }
+                if (network >= unitSizes->size())
+                {
+                    unitSizes->resize(network + 1);
                 }
-                break;
-            case EXN_ELEMENT_END:
-                if (cnt > 0) context.RemoveAt(cnt-1);
-                cnt = context.GetCount();
-                break;
-            default:
-                break;
+                if (unit > (*unitSizes)[network].size())
+                {
+                    (*unitSizes)[network].resize(unit);
+                }
+                if (circuit == 0)
+                {
+                    (*unitSizes)[network][unit - 1]++;
+                }
+                else if (circuit > (*unitSizes)[network][unit - 1])
+                {
+                    (*unitSizes)[network][unit - 1] = circuit;
+                }
+            }
+            break;
+        case EXN_ELEMENT_END:
+            if (cnt > 0) context.RemoveAt(cnt-1);
+            cnt = context.GetCount();
+            break;
+        default:
+            break;
         }
     }
     delete xml;
@@ -1520,16 +1572,20 @@ void xLightsFrame::ReadLorFile(const char* filename)
         return;
     }
 
-    for (network = 0; network < lorUnitSizes.size(); network++) {
+    for (network = 0; network < lorUnitSizes.size(); network++)
+    {
         cnt = 0;
-        for (int u = 0; u < lorUnitSizes[network].size(); u++) {
+        for (int u = 0; u < lorUnitSizes[network].size(); u++)
+        {
             cnt += lorUnitSizes[network][u];
         }
         TextCtrlConversionStatus->AppendText(wxString::Format(_("LOR Network %d:  %d channels\n"),network,cnt));
     }
-    for (network = 1; network < dmxUnitSizes.size(); network++) {
+    for (network = 1; network < dmxUnitSizes.size(); network++)
+    {
         cnt = 0;
-        for (int u = 0; u < dmxUnitSizes[network].size(); u++) {
+        for (int u = 0; u < dmxUnitSizes[network].size(); u++)
+        {
             cnt += dmxUnitSizes[network][u];
         }
         TextCtrlConversionStatus->AppendText(wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
@@ -1570,7 +1626,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
 
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
-                if (unit == 0) {
+                if (unit == 0)
+                {
                     unit = 1;
                 }
                 circuit = xml->getAttributeValueAsInt("circuit");
@@ -1586,7 +1643,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 else if (deviceType.Left(3) == "LOR")
                 {
                     chindex = 0;
-                    for (int z = 0; z < (unit - 1); z++) {
+                    for (int z = 0; z < (unit - 1); z++)
+                    {
                         chindex += lorUnitSizes[network][z];
                     }
                     chindex += circuit-1;
@@ -1595,9 +1653,12 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 else
                 {
                     chindex++;
-                    if (chindex < NetInfo.GetTotChannels()) {
+                    if (chindex < NetInfo.GetTotChannels())
+                    {
                         curchannel = chindex;
-                    } else {
+                    }
+                    else
+                    {
                         curchannel = -1;
                     }
                 }
@@ -1919,7 +1980,7 @@ void xLightsFrame::OnButtonStartConversionClick(wxCommandEvent& event)
     wxString OutputFormat = ChoiceOutputFormat->GetStringSelection();
     TextCtrlConversionStatus->Clear();
 
-    // check user inputs
+    // check inputs
     if (FileNames.IsEmpty())
     {
         wxMessageBox(_("Please select one or more sequence files"), _("Error"));

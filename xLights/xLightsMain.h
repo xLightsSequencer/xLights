@@ -359,6 +359,7 @@ private:
     void OnBitmapButtonGridCutClick(wxCommandEvent& event);
     void OnBitmapButtonGridCopyClick(wxCommandEvent& event);
     void OnBitmapButtonGridPasteClick(wxCommandEvent& event);
+    void OnEffectsPanel1Paint(wxPaintEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

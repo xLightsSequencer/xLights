@@ -910,12 +910,27 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect1"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count1"]),
+                          //
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position2"]),
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line2"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font2"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir2"]),
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect2"]),
-                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]));
+                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]),
+                          //
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position3"]),
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line3"],
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font3"],
+                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir3"]),
+                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect3"]),
+                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count3"]),
+                          //
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position4"]),
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line4"],
+                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font4"],
+                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir4"]),
+                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect4"]),
+                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count4"]));
     }
     else if (effect == "Tree")
     {
@@ -1071,12 +1086,27 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->Choice_Text_Dir1->GetSelection(),
                           panel->Choice_Text_Effect1->GetSelection(),
                           panel->Choice_Text_Count1->GetSelection(),
+                          //
                           panel->Slider_Text_Position2->GetValue(),
                           panel->TextCtrl_Text_Line2->GetValue(),
                           panel->TextCtrl_Text_Font2->GetValue(),
                           panel->Choice_Text_Dir2->GetSelection(),
                           panel->Choice_Text_Effect2->GetSelection(),
-                          panel->Choice_Text_Count2->GetSelection());
+                          panel->Choice_Text_Count2->GetSelection(),
+                          //
+                          panel->Slider_Text_Position3->GetValue(),
+                          panel->TextCtrl_Text_Line3->GetValue(),
+                          panel->TextCtrl_Text_Font3->GetValue(),
+                          panel->Choice_Text_Dir3->GetSelection(),
+                          panel->Choice_Text_Effect3->GetSelection(),
+                          panel->Choice_Text_Count3->GetSelection(),
+                          //
+                          panel->Slider_Text_Position4->GetValue(),
+                          panel->TextCtrl_Text_Line4->GetValue(),
+                          panel->TextCtrl_Text_Font4->GetValue(),
+                          panel->Choice_Text_Dir4->GetSelection(),
+                          panel->Choice_Text_Effect4->GetSelection(),
+                          panel->Choice_Text_Count4->GetSelection());
 
         break;
     case eff_TREE:
@@ -2875,13 +2905,19 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 
     RenderGridToSeqData();
 
-    wxFileName oName(filename);
-    oName.SetPath( CurrentDir );
-    wxString fullpath;
+
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+
+if (Out3 == "LSP")
+    {
+      filename = filename + "_USER";
+    }
+wxFileName oName(filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath;
 
 
     // REFACTOR -- FR: These extensions should all be based on Macros. For that matter all these compares should be as well.
@@ -2918,7 +2954,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     }
     else if (Out3 == "LSP")
     {
-        oName.SetExt(_("user"));
+        oName.SetExt(_("xml"));
         fullpath=oName.GetFullPath();
         WriteLSPFile(fullpath);
         return;
@@ -3168,16 +3204,23 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
     if (Grid1->IsSelection())
     {
         // some cells are selected
-        for (i=0; i< Grid1->GetRows(); i++) {      // step through all lines
+        for (i=0; i< Grid1->GetRows(); i++)        // step through all lines
+        {
             something_in_this_line = false;             // nothing found yet
-            for (k=0; k<Grid1->GetCols(); k++) {   // step through all colums
-                if (Grid1->IsInSelection(i,k)) {   // this field is selected!!!
-                    if (!something_in_this_line) {      // first field in this line => may need a linefeed
-                        if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
+            for (k=0; k<Grid1->GetCols(); k++)     // step through all colums
+            {
+                if (Grid1->IsInSelection(i,k))     // this field is selected!!!
+                {
+                    if (!something_in_this_line)        // first field in this line => may need a linefeed
+                    {
+                        if (!copy_data.IsEmpty())       // ... if it is not the very first field
+                        {
                             copy_data += "\n";     // next LINE
                         }
                         something_in_this_line = true;
-                    } else {                                // if not the first field in this line we need a field seperator (TAB)
+                    }
+                    else                                    // if not the first field in this line we need a field seperator (TAB)
+                    {
                         copy_data += "\t";  // next COLUMN
                     }
                     copy_data += Grid1->GetCellValue(i,k);    // finally we need the field value
@@ -3203,12 +3246,16 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
         }
     }
 
-    if (wxTheClipboard->Open()) {
-        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+    if (wxTheClipboard->Open())
+    {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
+        {
             wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
         }
         wxTheClipboard->Close();
-    } else {
+    }
+    else
+    {
         wxMessageBox(_("Error opening clipboard."), _("Error"));
     }
 }
@@ -3237,25 +3284,34 @@ void xLightsFrame::OnBitmapButtonGridPasteClick(wxCommandEvent& event)
 
 void xLightsFrame::PasteFromClipboard()
 {
-       wxString copy_data;
+    wxString copy_data;
     wxString cur_line;
     wxArrayString fields;
     int i,k,fieldnum;
 
-    if (wxTheClipboard->Open()) {
-        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+    if (wxTheClipboard->Open())
+    {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT))
+        {
             wxTextDataObject data;
 
-            if (wxTheClipboard->GetData(data)) {
+            if (wxTheClipboard->GetData(data))
+            {
                 copy_data = data.GetText();
-            } else {
+            }
+            else
+            {
                 wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
             }
-        } else {
+        }
+        else
+        {
             wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
         }
         wxTheClipboard->Close();
-    } else {
+    }
+    else
+    {
         wxMessageBox(_("Error opening clipboard."), _("Error"));
         return;
     }
@@ -3266,13 +3322,15 @@ void xLightsFrame::PasteFromClipboard()
     int numcols=Grid1->GetNumberCols();
     bool errflag=false;
 
-    do {
+    do
+    {
         cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
         fields=wxSplit(cur_line,'\t');
         for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
         {
-            if (i < numrows && k+fieldnum < numcols /*&& k+fieldnum >=XLIGHTS_SEQ_STATIC_COLUMNS*/) {
+            if (i < numrows && k+fieldnum < numcols /*&& k+fieldnum >=XLIGHTS_SEQ_STATIC_COLUMNS*/)
+            {
                 if (fields[fieldnum].IsEmpty() || IsValidEffectString(fields[fieldnum]))
                 {
                     Grid1->SetCellValue(i,k+fieldnum,fields[fieldnum]);
@@ -3285,7 +3343,8 @@ void xLightsFrame::PasteFromClipboard()
             }
         }
         i++;
-    } while (copy_data.IsEmpty() == false);
+    }
+    while (copy_data.IsEmpty() == false);
     if (errflag)
     {
         wxMessageBox(_("One or more of the values were not pasted because they did not contain a number"),_("Paste Error"));

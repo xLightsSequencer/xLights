@@ -38,10 +38,10 @@
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
  #include <hash_map>
-  #define snprintf _snprintf 
-  #define vsnprintf _vsnprintf 
-  #define strcasecmp _stricmp 
-  #define strncasecmp _strnicmp 
+  #define snprintf _snprintf
+  #define vsnprintf _vsnprintf
+  #define strcasecmp _stricmp
+  #define strncasecmp _strnicmp
 #else
  #include <unordered_map>
  #define hash_map  unordered_map //c++ 2011
@@ -512,7 +512,7 @@ protected:
     RgbFireworks fireworkBursts[20000];
     RgbBalls balls[rgb_MAX_BALLS];
     int maxmovieframes;
-    long timer_countdown[1];
+    long timer_countdown[4]; // was  long timer_countdown[1];
     bool fitToTime;
 
     double GetEffectPeriodPosition();
