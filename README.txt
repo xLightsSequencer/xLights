@@ -3,6 +3,10 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 <next>
+					-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; format is <delim>target-date<delim>format-string
+						for example: #4/1/2014 12:00:00#only %S seconds until noon on April 1!
+						NOTE: don't use "," within Text; there is an XML parsing bug in xLights when the file is reloaded
+					-Enhancement, requested (djulien): copy same random effect to all unlocked cells horizontally when Shift key used with Create Random Events button
 					-Enhancement (djulien): write playback checkpoints to file for crash monitoring
 					-Enhancement (djulien): add flag waving option to Pictures (useful for 4th of July, Memorial Day, etc)
 3.3.2				-Bug fix (dkulp): When importing LOR *.lms files, certain missing data 
