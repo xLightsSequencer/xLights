@@ -2911,11 +2911,11 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
 
-if (Out3 == "LSP")
+    if (Out3 == "LSP")
     {
-      filename = filename + "_USER";
+        filename = filename + "_USER";
     }
-wxFileName oName(filename);
+    wxFileName oName(filename);
     oName.SetPath( CurrentDir );
     wxString fullpath;
 
@@ -3049,12 +3049,18 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     numChan = buffer.GetChanCount();
     dataBuf = RenderModelToData(modelNode);
 
-    wxFileName oName(filename);
-    oName.SetPath( CurrentDir );
-    wxString fullpath;
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
+
+    if (Out3 == "LSP")
+    {
+        filename = filename + "_USER";
+    }
+    wxFileName oName(filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath;
+
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
 
     if (Out3 == "Lcb")
@@ -3072,7 +3078,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     }
     else if (Out3 == "LSP")
     {
-        oName.SetExt(_("user"));
+        oName.SetExt(_("xml"));
         fullpath=oName.GetFullPath();
         WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf);
         return;

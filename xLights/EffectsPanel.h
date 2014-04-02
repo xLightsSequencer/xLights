@@ -350,7 +350,6 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText33;
 		wxPanel* Panel1_Text;
 		wxCheckBox* CheckBox_ColorWash_VFade;
-		wxBitmapButton* BitmapButton1;
 		wxBitmapButton* BitmapButton_SnowflakesCount;
 		wxTextCtrl* TextCtrl_Pictures_Filename;
 		wxBitmapButton* BitmapButton_TextFont3;
@@ -378,6 +377,7 @@ class EffectsPanel: public wxPanel
 		wxButton* Button_Palette2;
 		wxStaticText* StaticText94;
 		wxStaticText* StaticText46;
+		wxBitmapButton* BitmapButton_TextDir4;
 		wxBitmapButton* BitmapButton_SpiralsRotation;
 		wxStaticText* StaticText83;
 		wxBitmapButton* BitmapButton_TextCount3;
@@ -883,6 +883,19 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
 		void OnButton_Text_Font3Click(wxCommandEvent& event);
 		void OnButton_Text_Font4Click(wxCommandEvent& event);
+		void OnBitmapButton_TextLine3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextLine4Click(wxCommandEvent& event);
+		void OnBitmapButton_TextFont3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextDir3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextEffect3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextCount3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextPosition3Click(wxCommandEvent& event);
+		void OnBitmapButton_TextFont4Click(wxCommandEvent& event);
+		void OnBitmapButton_TextEffect4Click(wxCommandEvent& event);
+		void OnBitmapButton1Click(wxCommandEvent& event);
+		void OnBitmapButton_TextCount4Click(wxCommandEvent& event);
+		void OnBitmapButton_TextPosition4Click(wxCommandEvent& event);
+		void OnBitmapButton_TextDir4Click(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);

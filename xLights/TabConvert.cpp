@@ -637,9 +637,9 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     */
 
     wxString ChannelName,TestName,xmlString,guiString;
-    int ch,p,csec;
-    int seqidx=0;
-    int pos,bst,ben,byte;
+    int ch,p,csec,r_idx,g_idx,b_idx;
+    int seqidx=0,seqidx0=0;
+    int pos,bst,old_bst,ben,byte;
     unsigned long rgb;
     int DATA_FOUND=0;
     float seconds;
@@ -657,7 +657,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
 
     f.Write("<ArrayOfPattern xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n");
     f.Write("\t<Pattern>\n");
-    f.Write("\t<GroupName>Nutcracker-1</GroupName>\n");
+    f.Write("\t<GroupName>Nutcracker</GroupName>\n");
     f.Write("\t<Name>" + filename + "</Name>\n");
     f.Write("\t<Image>\n");
     f.Write("\t\t<Width>999</Width>\n");
@@ -671,7 +671,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
 
     for (ch=0; ch < numChans; ch++ )
     {
-
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
         /*
         <TrackGuid>9457745f-d601-4443-acd5-8ba77bd98082</TrackGuid>
         <IsHidden>false</IsHidden>
@@ -685,16 +685,18 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
         */
 
         //  Let us first check if this channel has any data, if it does not we will skip this channel to not create huge LSP files
-        DATA_FOUND=0;
-        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
-        {
-            byte = (*dataBuf)[seqidx];
-            if(byte != 0) DATA_FOUND=1;
-        }
-        if(!DATA_FOUND) break;
 
+        /*
+         DATA_FOUND=0;
+                for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx0++)
+                {
+                    byte = (*dataBuf)[seqidx0];
+                    if(byte != 0) DATA_FOUND=1;
+                }
+                if(!DATA_FOUND) continue;
 
-
+        */
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. Writing Track ",ch));
         f.Write("\t<Track>\n");
         f.Write("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n");
         f.Write("\t\t<IsHidden>false</IsHidden>\n");
@@ -722,28 +724,41 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
         for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
         {
             seconds = (p*50)/1000.0;
+            if(p==1430)
+            {
+                rgb=0;
+            }
             pos = seconds * 88200;
+            StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
             byte = (*dataBuf)[seqidx];
-            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 | ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 | ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+            r_idx = g_idx= b_idx = (ch*numPeriods)+p;
+            if(ch < numChans-1)
+            {
+                g_idx=(ch+1)*numPeriods+p;
+            }
+            if(ch < numChans-2)
+            {
+                b_idx=(ch+2)*numPeriods+p;
+            }
+            rgb = ((*dataBuf)[r_idx]& 0xff) << 16 | ((*dataBuf)[g_idx]& 0xff) << 8 | ((*dataBuf)[b_idx]& 0xff); // we want a 24bit value for HLS
 
-            if(rgb>0)
+            if(rgb>0 or rgb<0)
             {
                 bst=rgb;
                 ben=rgb;
                 // 4410 = 1/20th of a second. 88200/20
-                f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"%s\" gui=\"%s\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",xmlString,guiString,pos,bst,ben));
+                if(bst==old_bst)
+                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"7\" dat=\"\" gui=\"\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",pos,bst,ben));
+                else
+                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"%s\" gui=\"%s\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",xmlString,guiString,pos,bst,ben));
 // <TimeInterval eff="3" dat="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;" gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}" in="100" out="100" pos="8820" sin="-1" att="0" bst="-16776961" ben="-16776961" />
 
-                bst=ben=1;
+                old_bst=bst;
+
                 //       f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"352800\" sin=\"-1\" att=\"0\"/>\n",pos+4410));
-            }
-            else
-            {
-                //  f.Write(wxString::Format("\t\t\t <TimeInterval eff=\"7\" dat=\"\" gui=\"\" in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" />\n",pos));
             }
         }
         //  f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
-
         f.Write("\t\t</Intervals>\n");
         f.Write("\t\t</Track>\n");
     }
@@ -753,7 +768,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     f.Write("\t</Pattern>\n");
     f.Write("</ArrayOfPattern>\n");
     f.Close();
-
+    StatusBar1->SetStatusText(_("Status: Export Complete"));
 }
 
 
@@ -927,9 +942,9 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<channelsClipboard version=\"1\" name=\"" + m_Name + "\">\n");
 
-//  <channels>
-//  <channel>
-//  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
+    //  <channels>
+    //  <channel>
+    //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     f.Write("<cellDemarcations>\n");
     for (p=0,csec=0; p < numPeriods; p++, csec+=interval)
     {

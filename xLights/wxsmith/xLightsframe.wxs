@@ -1562,7 +1562,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>22,21</size>
+																					<size>20,20</size>
+																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1605,7 +1606,8 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>22,21</size>
+																					<size>21,21</size>
+																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1646,13 +1648,12 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>22,21</size>
+																					<size>20,20</size>
+																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>1</border>
-																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText127" member="yes">
@@ -1685,13 +1686,12 @@
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
-																					<size>22,21</size>
+																					<size>20,20</size>
+																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>1</border>
-																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_normal" member="yes">
