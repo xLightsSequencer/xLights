@@ -1435,6 +1435,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextCountDown.Add("to date 'h:m:s'"); //for smaller grids -DJ
     TextCountDown.Add("to date 'm' or 's'"); //-DJ
     TextCountDown.Add("to date 's'"); //for smallest grids -DJ
+    TextCountDown.Add("!to date!%fmt"); //free fmt countdown -DJ
 
     InitEffectsPanel(EffectsPanel1);
     InitEffectsPanel(EffectsPanel2);

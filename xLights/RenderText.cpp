@@ -166,6 +166,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 #define COUNTDOWN_H_M_S  3
 #define COUNTDOWN_M_or_S  4
 #define COUNTDOWN_S  5
+#define COUNTDOWN_FREEFMT  6
 
 //NOTE: parameter in the following is just for readability (rather than using an embedded comment):
 #define TEXTDIR_LEFT(comment)   0
@@ -188,7 +189,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         (range) - (value) % (range) - 1) /*descrease during even cycles*/
 
 
-void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, int Effect, int Countdown)
+void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line_orig, int dir, int Effect, int Countdown)
 {
     long tempLong,longsecs;
     wxString msg,tempmsg;
@@ -196,6 +197,8 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     wxDateTime dt;
     wxTimeSpan ts;
     wxString::const_iterator end;
+    wxString fmt, Line = Line_orig; //make copy so it can be modified -DJ
+    wxChar delim;
     if (Line.IsEmpty()) return;
 
     switch(Countdown)
@@ -211,12 +214,61 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
         if(seconds < 0) seconds=0;
         msg=wxString::Format("%i",seconds);
         break;
+
+    case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
+#if 0
+wxTimeSpan format chars are described at: http://docs.wxwidgets.org/trunk/classwx_time_span.html
+The following format specifiers are allowed after %:
+•H - Number of Hours
+•M - Number of Minutes
+•S - Number of Seconds
+•l - Number of Milliseconds
+•D - Number of Days
+•E - Number of Weeks
+•% - The percent character
+
+//Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
+TIME FORMAT CHARACTERS:
+%a Abbreviated weekday name eg. Thu
+%A Full weekday name eg. Thursday
+%b Abbreviated month name eg. Aug
+%B Full month name eg. August
+%c Date and time representation eg. Thu Aug 23 14:55:02 2001
+%d Day of the month (01-31) eg. 23
+%H Hour in 24h format (00-23) eg. 14
+%I Hour in 12h format (01-12) eg. 02
+%j Day of the year (001-366) eg. 235
+%m Month as a decimal number (01-12) eg. 08
+%M Minute (00-59) eg. 55
+%p AM or PM designation eg. PM
+%S Second (00-61) eg. 02
+%U Week number with the first Sunday as the first day of week one (00-53) eg. 33
+%w Weekday as a decimal number with Sunday as 0 (0-6) eg. 4
+%W Week number with the first Monday as the first day of week one (00-53) eg. 34
+%x Date representation eg. 08/23/01
+%X Time representation eg. 14:55:02
+%y Year, last two digits (00-99) eg. 01
+%Y Year eg. 2001
+%Z Timezone name or abbreviation CDT
+%% A % sign eg. %
+#endif // 0
+//time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
+        if (Line.size() >= 4)
+        {
+            delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
+            Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
+//            Line.RemoveLast(); //remove delimiter
+            fmt = Line.After(delim);
+            Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
+        }
+        else fmt.Empty();
+//CAUTION: fall thru here
     case COUNTDOWN_D_H_M_S:
     case COUNTDOWN_H_M_S:
     case COUNTDOWN_M_or_S:
     case COUNTDOWN_S:
         // countdown to date
-        if (state%20 == 0)
+        if (state%20 == 0) //1x/sec
         {
             if ( dt.ParseDateTime(Line, &end) )
             {
@@ -230,14 +282,16 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
             else
             {
                 // invalid date/time
-                longsecs=0;
+                longsecs = 0;
             }
             timer_countdown[idx]=longsecs;
         }
         else
         {
             longsecs=timer_countdown[idx];
+            ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
         }
+        if (!longsecs) { msg = _T("invalid date"); break; } //show when invalid -DJ
         days = longsecs / 60 / 60 / 24;
         hours = (longsecs / 60 / 60) % 24;
         minutes = (longsecs / 60) % 60;
@@ -248,10 +302,14 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
             msg = wxString::Format("%d : %d : %d", hours, minutes, seconds);
         else if (Countdown == COUNTDOWN_S)
             msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
-        else if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
-            msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
-        else //COUNTDOWN_M_or_S: show minutes
-            msg = wxString::Format("%d m", 60 * hours + minutes);
+        else if (Countdown == COUNTDOWN_FREEFMT)
+//            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
+            msg = ts.Format(fmt); //dt.Format(fmt)
+        else //if (Countdown == COUNTDOWN_M_or_S)
+            if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
+                msg = wxString::Format("%d", 60*60 * hours + 60 * minutes + seconds);
+            else //COUNTDOWN_M_or_S: show minutes
+                msg = wxString::Format("%d m", 60 * hours + minutes);
         break;
     default:
         msg=Line;
