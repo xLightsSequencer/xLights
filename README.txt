@@ -2,110 +2,109 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
-<next>
-					-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; format is <delim>target-date<delim>format-string
-						for example: #4/1/2014 12:00:00#only %S seconds until noon on April 1!
-						NOTE: don't use "," within Text; there is an XML parsing bug in xLights when the file is reloaded
-					-Enhancement, requested (djulien): copy same random effect to all unlocked cells horizontally when Shift key used with Create Random Events button
-					-Enhancement (djulien): write playback checkpoints to file for crash monitoring
-					-Enhancement (djulien): add flag waving option to Pictures (useful for 4th of July, Memorial Day, etc)
-3.3.2				-Bug fix (dkulp): When importing LOR *.lms files, certain missing data 
-						would cause a crash. 	conversion now fills in any of those missing
-						parameters and conversion completes.
-3.3.1				-Enhancement (djulien): change "Overlay" to "Persistent" for clarity; 
-					-Bug fix(djulien): save/restore value within XML
-					-Enhancement (sean): add "1 reveals 2", "2 reveals 1" as new layer methods
-					-Enhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
-3.3.0				-Enhancement (djulien): vixen 2.x routine as picture
-					-Enhancement (djulien): add checkbox to Effects panel to inhibit canvas clear before effect (for layers across models)
-					-Enhancement (djulien): allow cancelled schedule to re-run that same day
-					-Enhancement (djulien): show serial outbuf overflow amount
-					-Enhancement (djulien): add a couple of icicle options to Meteors
-					-Enhancement (djulien): add wavey left-to-right up/down option for text
-					-Enhancement (djulien): added additional format options for date count-down
-					-Enhancement (djulien): pass controller responses to plug-in (in-coming or round-trip data); internal change only - should not affect standard usage, but listed here just in case
-					-Enhancement (djulien): add /noauto command line option to prompt for auto-run (allows easier schedule override)
-					-Bug fix/enhancement? (djulien): show channel# being tested during Chase test
-					-Bug fix/enhancement? (djulien): continue execution after comm output overflow in case controller can catch up
-3.2.14				-Enhancement (Sean): SingleStrand effects are now moving twice as fast.
-					-Enhancement (Frankr) * Added alternating bands options to the bars effect.
-					-Enhancement (Frankr) Removed limitation on pasting into the timings and label columns.
-3.2.13				-Bug fix (djulien): display some details about channel count error
-					-Bug fix (djulien): split Effects Direction into separate lists for Text and Picture (some Picture are not applicable to Text)
-					-Enhancement (djulien): More movement options in the pictures effect.
-					-Enhancement (Sean): Added new song to songs directory.
-					(It Must've Been Ol') Santa Claus, Harry Connick Jr.
-3.2.12				- Enhancement (Sean) Updated all files in songs directory to have readme files showing
-						link to where to purchase music. Added some new songs.
-3.2.11				- Enhancement (Frankr) Nodes per string increased to 65536, You can now create a model that
-						will do your entire house.
-					-Bug fix (djulien): set Piano shape + map default file path to Piano subfolder within xLights folder, not up one level
-3.2.10				- Enhancement (Djulien) Piano effect now has been released
-					- Enhancement (Frankr) Number of nodes on a single string has been increased from 300 to 1000
-                    - Enhancement (Matt) Added cut, copy, and paste to Nutcracker tab.
-					- Enhancement (Sean) Create a subdirectory in songs for each song rather than all files in one
+3.3.3	-Enhancement, (sean) Added two more lines of text to text effect. Now you can have 4 lines of text.
+		-Bug fix (sean). Fixed LSP export
+		-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; format is <delim>target-date<delim>format-string
+			for example: #4/1/2014 12:00:00#only %S seconds until noon on April 1!
+			NOTE: don't use "," within Text; there is an XML parsing bug in xLights when the file is reloaded
+		-Enhancement, requested (djulien): copy same random effect to all unlocked cells horizontally when Shift key used with Create Random Events button
+		-Enhancement (djulien): write playback checkpoints to file for crash monitoring
+		-Enhancement (djulien): add flag waving option to Pictures (useful for 4th of July, Memorial Day, etc)
+3.3.2	-Bug fix (dkulp): When importing LOR *.lms files, certain missing data 
+			would cause a crash. 	conversion now fills in any of those missing
+			parameters and conversion completes.
+3.3.1	-Enhancement (djulien): change "Overlay" to "Persistent" for clarity; 
+		-Bug fix(djulien): save/restore value within XML
+		-Enhancement (sean): add "1 reveals 2", "2 reveals 1" as new layer methods
+		-Enhancement (dkulp): Don't assume LOR units are 16 channels to try and convert CCR based sequences.
+3.3.0	-Enhancement (djulien): vixen 2.x routine as picture
+		-Enhancement (djulien): add checkbox to Effects panel to inhibit canvas clear before effect (for layers across models)
+		-Enhancement (djulien): allow cancelled schedule to re-run that same day
+		-Enhancement (djulien): show serial outbuf overflow amount
+		-Enhancement (djulien): add a couple of icicle options to Meteors
+		-Enhancement (djulien): add wavey left-to-right up/down option for text
+		-Enhancement (djulien): added additional format options for date count-down
+		-Enhancement (djulien): pass controller responses to plug-in (in-coming or round-trip data); internal change only - should not affect standard usage, but listed here just in case
+		-Enhancement (djulien): add /noauto command line option to prompt for auto-run (allows easier schedule override)
+		-Bug fix/enhancement? (djulien): show channel# being tested during Chase test
+		-Bug fix/enhancement? (djulien): continue execution after comm output overflow in case controller can catch up
+3.2.14	-Enhancement (Sean): SingleStrand effects are now moving twice as fast.
+		-Enhancement (Frankr) * Added alternating bands options to the bars effect.
+		-Enhancement (Frankr) Removed limitation on pasting into the timings and label columns.
+3.2.13	-Bug fix (djulien): display some details about channel count error
+		-Bug fix (djulien): split Effects Direction into separate lists for Text and Picture (some Picture are not applicable to Text)
+		-Enhancement (djulien): More movement options in the pictures effect.
+		-Enhancement (Sean): Added new song to songs directory.
+			(It Must've Been Ol') Santa Claus, Harry Connick Jr.
+3.2.12	- Enhancement (Sean) Updated all files in songs directory to have readme files showing
+			link to where to purchase music. Added some new songs.
+3.2.11	- Enhancement (Frankr) Nodes per string increased to 65536, You can now create a model that
+			will do your entire house.
+		-Bug fix (djulien): set Piano shape + map default file path to Piano subfolder within xLights folder, not up one level
+3.2.10	- Enhancement (Djulien) Piano effect now has been released
+		- Enhancement (Frankr) Number of nodes on a single string has been increased from 300 to 1000
+                - Enhancement (Matt) Added cut, copy, and paste to Nutcracker tab.
+		- Enhancement (Sean) Create a subdirectory in songs for each song rather than all files in one
 					place.
-3.2.9               - Enhancement (Matt) You can now open an LOR sequence from the Nutcracker tab. 
+3.2.9   - Enhancement (Matt) You can now open an LOR sequence from the Nutcracker tab. 
                       The first time you open an LOR sequence, the timing from the LOR file will 
                       be imported into the grid (only the times where effects start are imported).
-                    - Enhancement (Sean) Single Strand now has pull down to select chase types.
-                    - Enhancement (Sean) Single Strand now has 3d Fade checkbox to apply to chases
-3.2.8:				- Enhancement (Sean) Re-release of single strand effects. Now they work without need to set
-						"fit to time".
-3.2.7:				- Bug (frankr) Windows model displayed wrong channel counts. 
-					- Enhancement (frankr) You can now export just one model instead of every channel that is in your setup
-						1st method: "export" This does not look at models and instead exports every channel that has been defined 
-									in your setup Tab
-						2nd method (new): "Export Model". You now can pick the model that is attached to your sequence and only export
-									those channels. For example, I have megatree, arches, eaves. If I select megatree only the channels
-									associated to that model will be exported. This will make much, much smaller LOR lms,lcb or vixen vix,vir files.
-3.2.6:				- Bug (Sean) Removed Linus and Lucy mp3 file from songs directory, we don't distribute mp3's
-					- Enhancement (Frankr and djulien). New hot keys created.
-						F3 Toggles between PLAY/STOP for far left "Play Effect" button
-						F4 Toggles between PLAY/STOP for top "Play" button
-						F3 -- will start to play an effect (left play) if none is playing and no sequence is playing
-							if an effect is playing it will stop playing. if a sequence is playing it will
-							stop playing and the current effect will play.  This allows for easy editing of an effect.
-						F4 -- Starts playing a sequence (top play) from the current selected cell
-							If a sequence is playing it will be stopped.
-						F5 Same as clicking the "Update Grid" button
-						Ctl-o Same as clicking the open button
-						Ctl-s save as clicking the save file button
-3.2.5:				- Bug (Frankr) removed 'U' for updating grid. Now only F5 is shortcut key. The 'u' caused a problem 
-							when typing in text.
-3.2.4:				- Enhancement (Djulien) New  filtering on every slider and checkbox for "Create Random Effects"
-					- Enhancement (Frankr) F5 or 'U' now performs an update grid
-					- Enhancement (Sean) New directory "songs" has audacity label files for many songs. Find the new directory
-									at C:\Program Files (x86)\xLights\songs
-3.2.3:
-					- Bug: (Dan) Schedule tab missing on Linux
-                                        - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
-					- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
-					- Enhancement: (Sean) New Single Strand Effect class. Use this for arches and eaves
-3.2.2:
-					- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
-					- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
-					- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
-					- Bug: (Dan) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
-					- Bug: (Dan) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
+                - Enhancement (Sean) Single Strand now has pull down to select chase types.
+                - Enhancement (Sean) Single Strand now has 3d Fade checkbox to apply to chases
+3.2.8:	- Enhancement (Sean) Re-release of single strand effects. Now they work without need to set
+			"fit to time".
+3.2.7:	- Bug (frankr) Windows model displayed wrong channel counts. 
+		- Enhancement (frankr) You can now export just one model instead of every channel that is in your setup
+			1st method: "export" This does not look at models and instead exports every channel that has been defined 
+				in your setup Tab
+			2nd method (new): "Export Model". You now can pick the model that is attached to your sequence and only export
+				those channels. For example, I have megatree, arches, eaves. If I select megatree only the channels
+				associated to that model will be exported. This will make much, much smaller LOR lms,lcb or vixen vix,vir files.
+3.2.6:	- Bug (Sean) Removed Linus and Lucy mp3 file from songs directory, we don't distribute mp3's
+		- Enhancement (Frankr and djulien). New hot keys created.
+			F3 Toggles between PLAY/STOP for far left "Play Effect" button
+			F4 Toggles between PLAY/STOP for top "Play" button
+			F3 -- will start to play an effect (left play) if none is playing and no sequence is playing
+				if an effect is playing it will stop playing. if a sequence is playing it will
+				stop playing and the current effect will play.  This allows for easy editing of an effect.
+			F4 -- Starts playing a sequence (top play) from the current selected cell
+				If a sequence is playing it will be stopped.
+			F5 Same as clicking the "Update Grid" button
+			Ctl-o Same as clicking the open button
+			Ctl-s save as clicking the save file button
+3.2.5:	- Bug (Frankr) removed 'U' for updating grid. Now only F5 is shortcut key. The 'u' caused a problem 
+			when typing in text.
+3.2.4:	- Enhancement (Djulien) New  filtering on every slider and checkbox for "Create Random Effects"
+		- Enhancement (Frankr) F5 or 'U' now performs an update grid
+		- Enhancement (Sean) New directory "songs" has audacity label files for many songs. Find the new directory
+				at C:\Program Files (x86)\xLights\songs
+3.2.3:	- Bug: (Dan) Schedule tab missing on Linux
+                - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
+		- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
+		- Enhancement: (Sean) New Single Strand Effect class. Use this for arches and eaves
+3.2.2:	- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
+		- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
+		- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
+		- Bug: (Dan) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
+		- Bug: (Dan) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
 				
-3.2.1:  Sep 12,2013 - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
-					- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
-					- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
-					- Bug: (Matt). Smart RGB arches are only producing a single channel. Fixed
-					- Enhancement: (Matt). F1 will bring up help if you are in the Profile tab
-3.2.0:  Sep 09,2013 - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can pick RED, GREEN,BLUE, WHITE as single colour strings.
-					- Enhancement: (Matt). You can now select a string type that is strobe lights. This light will flash 3 times per second
-						for each bulb.
-					- Enhancement: (Matt). You can now pick a multi pointed star as a display element.
-					- Enhancement: (Matt). You can select a wreath as a display element.
-					- Enhancement: (matt). You can select a string type of 3 channel RGB (In other words dumb rgb strings)
-					NOTE! With the change to the latest wxWidgets 2.9.5 , Mac 10.6.8 is no longer supported. We now will only support 10.7 and higher
-3.1.4:  Sep 03,2013 - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
-                    - Enhancement: (Matt) You can now copy models.
-					- Enhancement: (Matt) You can now rotate single strand models in the preview window.
-					- Enhancement: (Matt) There is a Sequence open button on the Preview tab. If you use this to open a sequence there is
-						an option to set the "Part of my Display" checkboxes to match the models that just got opened.
+3.2.1:  - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
+		- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
+		- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
+		- Bug: (Matt). Smart RGB arches are only producing a single channel. Fixed
+		- Enhancement: (Matt). F1 will bring up help if you are in the Profile tab
+3.2.0:  - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can pick RED, GREEN,BLUE, WHITE as single colour strings.
+		- Enhancement: (Matt). You can now select a string type that is strobe lights. This light will flash 3 times per second
+				for each bulb.
+		- Enhancement: (Matt). You can now pick a multi pointed star as a display element.
+		- Enhancement: (Matt). You can select a wreath as a display element.
+		- Enhancement: (matt). You can select a string type of 3 channel RGB (In other words dumb rgb strings)
+	NOTE! With the change to the latest wxWidgets 2.9.5 , Mac 10.6.8 is no longer supported. We now will only support 10.7 and higher
+3.1.4:  - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
+                - Enhancement: (Matt) You can now copy models.
+		- Enhancement: (Matt) You can now rotate single strand models in the preview window.
+		- Enhancement: (Matt) There is a Sequence open button on the Preview tab. If you use this to open a sequence there is
+				an option to set the "Part of my Display" checkboxes to match the models that just got opened.
 3.1.3:  Aug 27,2013 - Enhancement: (Matt). New Effect Curtain.
 					- Enhancement: (Matt)  New tab PREVIEW. There is a new tab that will allow you to see all of your models displaying effects.
 					- Bug (Frank) Fixed channel numbering for single string and Window models

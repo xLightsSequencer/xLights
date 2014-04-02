@@ -729,7 +729,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
                 rgb=0;
             }
             pos = seconds * 88200;
-            StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
+         //   StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
             byte = (*dataBuf)[seqidx];
             r_idx = g_idx= b_idx = (ch*numPeriods)+p;
             if(ch < numChans-1)
