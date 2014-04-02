@@ -1,3 +1,5 @@
+#include <wx/utils.h> //check keyboard state -DJ
+
 void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
@@ -3142,6 +3144,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 
     int nRows = Grid1->GetNumberRows();
     int nCols = Grid1->GetNumberCols();
+    bool apply_horiz = wxGetKeyState(WXK_SHIFT); //use Shift state to apply horizontally -DJ
 
 #if 0 //debug
     wxString buf;
@@ -3155,13 +3158,17 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 //    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
 #endif
 
-    for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
+//    if (apply_horiz) wxMessageBox(_("Apply horiz."), _("DEBUG")); //-DJ
+//    for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
+    for (r=0; r<nRows; r++) //reversed order of loops -DJ
     {
-        for (r=0; r<nRows; r++)
+        v.Empty(); //no random effect for this row yet -DJ
+//        for (r=0; r<nRows; r++)
+        for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
         {
             if( Grid1->GetCellTextColour(r,c) == *wxBLACK )
             {
-                v=CreateEffectStringRandom();
+                if (!apply_horiz || v.empty()) v = CreateEffectStringRandom();
                 Grid1->SetCellValue(r,c,v);
             }
         }
