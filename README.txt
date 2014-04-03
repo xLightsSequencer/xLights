@@ -2,6 +2,8 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
+<next>
+		-Enhancement, requested (djulien): add Copy Effect Across Row menu item; copies selected cell (random effect) into other cells on the same row
 3.3.3	-Enhancement, (sean) Added two more lines of text to text effect. Now you can have 4 lines of text.
 		-Bug fix (sean). Fixed LSP export
 		-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; format is <delim>target-date<delim>format-string

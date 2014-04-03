@@ -412,6 +412,45 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         }
     }
 }
+
+//copy random effect into other cells on this same row -DJ
+void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
+{
+    int nCols = Grid1->GetNumberCols();
+    wxString v;
+    int r, c;
+
+    if ( Grid1->IsSelection() )
+    {
+        // iterate over entire grid looking for selected cells
+        int nRows = Grid1->GetNumberRows();
+        for (r = 0; r < nRows; r++)
+        {
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
+                if (Grid1->IsInSelection(r,c))
+                {
+                    v = Grid1->GetCellValue(r, c);
+                    break;
+                }
+            if (c < nCols) //found a selected cell
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+                    Grid1->SetCellValue(r, c, v);
+        }
+    }
+    else
+    {
+        r = curCell->GetRow();
+        c = curCell->GetCol();
+        if (c >= XLIGHTS_SEQ_STATIC_COLUMNS - 1) //NOTE: allow click in label column as an easy way to clear entire row
+        {
+            v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
+//wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+                Grid1->SetCellValue(r, c, v);
+        }
+    }
+}
+
 void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
 {
     int r,c;
@@ -3118,6 +3157,7 @@ void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
     mnu.Append(ID_IGNORE_CLICK, 	"Ignore Click");
     mnu.AppendSeparator();
     mnu.Append(ID_DELETE_EFFECT, 	"Delete Highlighted Effect");
+    mnu.Append(ID_COPYROW_EFFECT, 	"Copy Effect Across Row"); //requested by Sean -DJ
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
     PopupMenu(&mnu);
 }
@@ -3140,6 +3180,8 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     {
         UnprotectSelectedEffects(event);
     }
+    if (event.GetId() == ID_COPYROW_EFFECT)
+        CopyEffectAcrossRow(event); //-DJ
 }
 
 //void djdebug(const char* fmt, ...); //_DJ

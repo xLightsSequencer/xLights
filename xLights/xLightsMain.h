@@ -367,6 +367,7 @@ private:
     void InsertRandomEffects(wxCommandEvent &evt);
     void UnprotectSelectedEffects(wxCommandEvent& evt);
     void ProtectSelectedEffects(wxCommandEvent& evt);
+    void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
@@ -570,6 +571,7 @@ private:
     static const long ID_PROTECT_EFFECT;
     static const long ID_UNPROTECT_EFFECT;
     static const long ID_RANDOM_EFFECT;
+    static const long ID_COPYROW_EFFECT; //copy random effect across row -DJ
 
     //(*Declarations(xLightsFrame)
     wxRadioButton* RadioButtonRgbChase;

@@ -280,6 +280,7 @@ const long xLightsFrame::ID_IGNORE_CLICK = wxNewId();
 const long xLightsFrame::ID_PROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_UNPROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
+const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
 
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
