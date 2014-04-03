@@ -1564,6 +1564,7 @@
 																					<default>1</default>
 																					<size>20,20</size>
 																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																					<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1608,6 +1609,7 @@
 																					<default>1</default>
 																					<size>21,21</size>
 																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																					<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1650,6 +1652,7 @@
 																					<default>1</default>
 																					<size>20,20</size>
 																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																					<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1688,6 +1691,7 @@
 																					<default>1</default>
 																					<size>20,20</size>
 																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																					<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1776,7 +1780,7 @@
 																								<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
 																									<label>Play (F4)</label>
 																									<bg>#00FF00</bg>
-																									<tooltip>Play from current grid cell</tooltip>
+																									<tooltip>Play your sequence. Before pressing Play, highlight a grid cell under a model. You will see that model show in the window. If you want to see all models switch over to the PREVIEW window.</tooltip>
 																									<handler function="OnButton_PlayAllClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1841,7 +1845,7 @@
 																									<bitmap code="open_xpm" />
 																									<default>1</default>
 																									<size>48,23</size>
-																									<tooltip>Open Sequence</tooltip>
+																									<tooltip>Open Sequence, Create a Sequence</tooltip>
 																									<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1853,7 +1857,7 @@
 																									<bitmap code="save_xpm" />
 																									<default>1</default>
 																									<size>53,23</size>
-																									<tooltip>Save Sequence</tooltip>
+																									<tooltip>Save Sequence. The save will be done for every model you have. The save will start with the leftmost model and finish with the rightmost</tooltip>
 																									<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -2279,6 +2279,7 @@
 												<default>1</default>
 												<size>20,20</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine1Click" entry="EVT_BUTTON" />
 											</object>
