@@ -205,6 +205,7 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
 
     for (int ch=0; ch < SeqNumChannels; ch++ )
     {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         node = new wxXmlNode( wxXML_ELEMENT_NODE, "Channel" );
         node->AddAttribute( "output", wxString::Format("%d",ch));
@@ -300,6 +301,7 @@ void xLightsFrame::WriteVirFile(const wxString& filename, long numChans, long nu
 
     for (ch=0; ch < numChans; ch++ )
     {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         buff="";
         for (p=0; p < numPeriods; p++, seqidx++)
@@ -333,6 +335,7 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long nu
 
     for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         buff="";
 
@@ -634,10 +637,23 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     Effect 4 gui value
     09A9DFBE-9833-413c-95FA-4FFDFEBF896F
 
+
+    for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
+    {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
+
+        buff="";
+
+        for (p=0; p < numPeriods; p++, seqidx++)
+        {
+            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
+                  ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
+                  ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+
     */
 
     wxString ChannelName,TestName,xmlString,guiString;
-    int ch,p,csec,r_idx,g_idx,b_idx;
+    int ch,p,csec,r_idx,g_idx,b_idx,channels_exported=0;
     int seqidx=0,seqidx0=0;
     int pos,bst,old_bst,ben,byte;
     unsigned long rgb;
@@ -658,7 +674,12 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     f.Write("<ArrayOfPattern xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n");
     f.Write("\t<Pattern>\n");
     f.Write("\t<GroupName>Nutcracker</GroupName>\n");
-    f.Write("\t<Name>" + filename + "</Name>\n");
+
+
+    wxString m_Path, m_Name, m_Ext;
+    wxFileName::SplitPath(filename, &m_Path, &m_Name, &m_Ext);
+
+    f.Write("\t<Name>" + m_Name + "</Name>\n");
     f.Write("\t<Image>\n");
     f.Write("\t\t<Width>999</Width>\n");
     f.Write("\t\t<Height>200</Height>\n");
@@ -668,35 +689,12 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     f.Write("\t<Tracks>\n");
 
 
-
-    for (ch=0; ch < numChans; ch++ )
+    old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
+    for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
     {
-        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
-        /*
-        <TrackGuid>9457745f-d601-4443-acd5-8ba77bd98082</TrackGuid>
-        <IsHidden>false</IsHidden>
-        <IsPrimaryTrack>false</IsPrimaryTrack>
-        <TrackColorName/>
-        <TrackColorARGB>-2302756</TrackColorARGB>
-        <TrackID>0</TrackID>
-        <TrackType>0</TrackType>
-        <WiiMapping inv="0" ibn="" inbn="" ani="0" ain="" hty="-1" fed="0" wind="-1" wibt="0" cint="False" ceff="False" hefsd="True" lef="3" lefl="1" intb="0" efd="0"/>
-        <Name/>
-        */
+        old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
 
-        //  Let us first check if this channel has any data, if it does not we will skip this channel to not create huge LSP files
-
-        /*
-         DATA_FOUND=0;
-                for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx0++)
-                {
-                    byte = (*dataBuf)[seqidx0];
-                    if(byte != 0) DATA_FOUND=1;
-                }
-                if(!DATA_FOUND) continue;
-
-        */
-        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. Writing Track ",ch));
+        if(ch%9==0) StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. ",ch));
         f.Write("\t<Track>\n");
         f.Write("\t\t<TrackGuid>60cc0c76-f458-4e67-abb4-5d56a9c1d97c</TrackGuid>\n");
         f.Write("\t\t<IsHidden>false</IsHidden>\n");
@@ -718,57 +716,69 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
         </Intervals>
         */
         xmlString = wxString::Format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
-        guiString = wxString::Format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
-        guiString= wxString::Format("");
+        xmlString = wxString::Format("");
+
+        if(ch==156)
+        {
+            rgb=0;
+        }
+
+        guiString= wxString::Format("{DA98BD5D-9C00-40fe-A11C-AD3242573443}");
         f.Write("\t\t<Intervals>\n");
-        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
+        //  for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
+
+        channels_exported+=3;
+
+        for (p=0; p < numPeriods; p++)
         {
             seconds = (p*50)/1000.0;
-            if(p==1430)
-            {
-                rgb=0;
-            }
+            //  StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
             pos = seconds * 88200;
-         //   StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
+            //   StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
+
+
+            /*
             byte = (*dataBuf)[seqidx];
             r_idx = g_idx= b_idx = (ch*numPeriods)+p;
-            if(ch < numChans-1)
+            // if(ch < numChans-1)
             {
                 g_idx=(ch+1)*numPeriods+p;
             }
-            if(ch < numChans-2)
+            //  if(ch < numChans-2)
             {
                 b_idx=(ch+2)*numPeriods+p;
             }
             rgb = ((*dataBuf)[r_idx]& 0xff) << 16 | ((*dataBuf)[g_idx]& 0xff) << 8 | ((*dataBuf)[b_idx]& 0xff); // we want a 24bit value for HLS
+            */
+            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
+                  ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
+                  ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
 
-            if(rgb>0 or rgb<0)
+            //  if(rgb>0 or rgb<0)
             {
                 bst=rgb;
                 ben=rgb;
                 // 4410 = 1/20th of a second. 88200/20
-                if(bst==old_bst)
-                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"7\" dat=\"\" gui=\"\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",pos,bst,ben));
+                if(rgb==0)
+                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\"  bst=\"-1\" ben=\"-1\"/>\n",pos));
+                else if(bst==old_bst)
+                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"7\" dat=\"\" gui=\"\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\"  />\n",pos));
                 else
-                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"%s\" gui=\"%s\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"2\" bst=\"%ld\" ben=\"%ld\" />\n",xmlString,guiString,pos,bst,ben));
-// <TimeInterval eff="3" dat="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;" gui="{DA98BD5D-9C00-40fe-A11C-AD3242573443}" in="100" out="100" pos="8820" sin="-1" att="0" bst="-16776961" ben="-16776961" />
-
+                    f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"3\" dat=\"%s\" gui=\"%s\"  in=\"100\" out=\"100\" pos=\"%d\" sin=\"-1\" att=\"0\" bst=\"%ld\" ben=\"%ld\" />\n",xmlString,guiString,pos,bst,ben));
                 old_bst=bst;
-
-                //       f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"352800\" sin=\"-1\" att=\"0\"/>\n",pos+4410));
             }
+            //  old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
         }
         //  f.Write(wxString::Format("\t\t\t<TimeInterval eff=\"4\" dat=\"\" gui=\"\" a=\"128\" b=\"128\" in=\"1\" out=\"1\" pos=\"100000000\" sin=\"-1\" att=\"1\"/>\n"));
         f.Write("\t\t</Intervals>\n");
         f.Write("\t\t</Track>\n");
     }
-
-
     f.Write("\t\t</Tracks>\n");
     f.Write("\t</Pattern>\n");
     f.Write("</ArrayOfPattern>\n");
     f.Close();
-    StatusBar1->SetStatusText(_("Status: Export Complete"));
+    StatusBar1->SetStatusText(_("Status: Export Complete. " )+wxString::Format(" Channels exported=%4d ",channels_exported));
+
 }
 
 
@@ -806,6 +816,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write("\t<channels>\n");
     for (ch=0; ch < SeqNumChannels; ch++ )
     {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         if (ch < CheckListBoxTestChannels->GetCount())
         {
@@ -957,6 +968,8 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
     f.Write("<channels>\n");
     for (ch=0; ch < numChans; ch++ )
     {
+        StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
+
         f.Write("\t<channel>\n");
         LastIntensity=0;
         for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)

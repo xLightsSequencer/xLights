@@ -364,7 +364,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.3.100)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.3.3)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -828,7 +828,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(txtCtlEffectMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_EffectLayerMix = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_EffectLayerMix, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
     BitmapButton_EffectLayerMix->SetDefault();
-    BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer33->Add(BitmapButton_EffectLayerMix, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText22 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT24, _("Sparkles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
     FlexGridSizer33->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -838,7 +838,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_SparkleFrequency = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
     BitmapButton_SparkleFrequency->SetDefault();
-    BitmapButton_SparkleFrequency->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_SparkleFrequency->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer33->Add(BitmapButton_SparkleFrequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText126 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT127, _("Brightness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT127"));
     FlexGridSizer33->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -848,7 +848,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Brightness = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Brightness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
     BitmapButton_Brightness->SetDefault();
-    BitmapButton_Brightness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Brightness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer33->Add(BitmapButton_Brightness, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StaticText127 = new wxStaticText(SeqPanelLeft, ID_STATICTEXT128, _("Contrast"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT128"));
     FlexGridSizer33->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -858,7 +858,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer33->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Contrast = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_SLIDER_Contrast, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
     BitmapButton_Contrast->SetDefault();
-    BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer33->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     BitmapButton_normal = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON11, padlock16x16_green_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
     BitmapButton_normal->SetDefault();
@@ -906,7 +906,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer68->Add(ButtonModelExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CreateRandom = new wxButton(SeqPanelRight, ID_BUTTON_CREATE_RANDOM, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CREATE_RANDOM"));
     Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    Button_CreateRandom->SetToolTip(_("Create a random effect for every unprotected cell in grid"));
+    Button_CreateRandom->SetToolTip(_("Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking \"Create Random Effects\", a random effect will be created and assigned to every model on a row."));
     FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer38 = new wxFlexGridSizer(1, 8, 0, 0);

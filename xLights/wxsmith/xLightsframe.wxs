@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.3.100)</title>
+		<title>xLights/Nutcracker  (Ver 3.3.3)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -1563,7 +1563,7 @@
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>20,20</size>
-																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1607,7 +1607,7 @@
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>21,21</size>
-																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_SparkleFrequencyClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1649,7 +1649,7 @@
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>20,20</size>
-																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_BrightnessClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1687,7 +1687,7 @@
 																					<bitmap code="padlock16x16_blue_xpm" />
 																					<default>1</default>
 																					<size>20,20</size>
-																					<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_ContrastClick" entry="EVT_BUTTON" />
 																				</object>
@@ -1820,7 +1820,7 @@
 																								<object class="wxButton" name="ID_BUTTON_CREATE_RANDOM" variable="Button_CreateRandom" member="yes">
 																									<label>Create Random Effects</label>
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
-																									<tooltip>Create a random effect for every unprotected cell in grid</tooltip>
+																									<tooltip>Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking &quot;Create Random Effects&quot;, a random effect will be created and assigned to every model on a row.</tooltip>
 																									<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -1108,7 +1108,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer65->Add(TextCtrl_Text_Line1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextLine1 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line1"));
     BitmapButton_TextLine1->SetDefault();
-    BitmapButton_TextLine1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextLine1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer65->Add(BitmapButton_TextLine1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText54 = new wxStaticText(Panel1_Text, ID_STATICTEXT54, _("Line 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT54"));
     FlexGridSizer65->Add(StaticText54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1117,24 +1117,24 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer65->Add(TextCtrl_Text_Line2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextLine2 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line2"));
     BitmapButton_TextLine2->SetDefault();
-    BitmapButton_TextLine2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextLine2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer65->Add(BitmapButton_TextLine2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText19 = new wxStaticText(Panel1_Text, ID_STATICTEXT22, _("Line 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
     FlexGridSizer65->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line3 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line3"));
     TextCtrl_Text_Line3->SetMaxLength(256);
-    TextCtrl_Text_Line3->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer65->Add(TextCtrl_Text_Line3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextLine3 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line3"));
     BitmapButton_TextLine3->SetDefault();
-    BitmapButton_TextLine3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextLine3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer65->Add(BitmapButton_TextLine3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     StaticText20 = new wxStaticText(Panel1_Text, ID_STATICTEXT23, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
     FlexGridSizer65->Add(StaticText20, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Text_Line4 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line4"));
-    FlexGridSizer65->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl_Text_Line4 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line4, wxEmptyString, wxDefaultPosition, wxSize(174,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line4"));
+    TextCtrl_Text_Line4->SetMaxLength(256);
+    FlexGridSizer65->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextLine4 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line4"));
-    BitmapButton_TextLine4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextLine4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer65->Add(BitmapButton_TextLine4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer46->Add(FlexGridSizer65, 1, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Notebook_Text1 = new wxNotebook(Panel1_Text, ID_NOTEBOOK_Text1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Text1"));
@@ -1149,7 +1149,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(TextCtrl_Text_Font1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextFont1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_TEXTCTRL_Text_Font1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Font1"));
     BitmapButton_TextFont1->SetDefault();
-    BitmapButton_TextFont1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextFont1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextFont1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText78 = new wxStaticText(Panel_Text1, ID_STATICTEXT79, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT79"));
     FlexGridSizer69->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1157,7 +1157,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(Choice_Text_Dir1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextDir1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Dir1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir1"));
     BitmapButton_TextDir1->SetDefault();
-    BitmapButton_TextDir1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextDir1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextDir1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText107 = new wxStaticText(Panel_Text1, ID_STATICTEXT108, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT108"));
     FlexGridSizer69->Add(StaticText107, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1165,7 +1165,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(Choice_Text_Effect1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextEffect1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Effect1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Effect1"));
     BitmapButton_TextEffect1->SetDefault();
-    BitmapButton_TextEffect1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextEffect1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextEffect1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText98 = new wxStaticText(Panel_Text1, ID_STATICTEXT99, _("Count down"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT99"));
     FlexGridSizer69->Add(StaticText98, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1173,7 +1173,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(Choice_Text_Count1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextCount1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Count1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Count1"));
     BitmapButton_TextCount1->SetDefault();
-    BitmapButton_TextCount1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextCount1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextCount1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText100 = new wxStaticText(Panel_Text1, ID_STATICTEXT101, _("Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT101"));
     FlexGridSizer69->Add(StaticText100, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1181,7 +1181,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(Slider_Text_Position1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextPosition1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_SLIDER_Text_Position1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Text_Position1"));
     BitmapButton_TextPosition1->SetDefault();
-    BitmapButton_TextPosition1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_TextPosition1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer69->Add(BitmapButton_TextPosition1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     Panel_Text1->SetSizer(FlexGridSizer69);
     FlexGridSizer69->Fit(Panel_Text1);
@@ -1462,7 +1462,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette1 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette1"));
     BitmapButton_Palette1->SetDefault();
-    BitmapButton_Palette1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_Palette2 = new wxCheckBox(this, ID_CHECKBOX_Palette2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette2"));
     CheckBox_Palette2->SetValue(true);
@@ -1472,7 +1472,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette2 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette2"));
     BitmapButton_Palette2->SetDefault();
-    BitmapButton_Palette2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_Palette3 = new wxCheckBox(this, ID_CHECKBOX_Palette3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette3"));
     CheckBox_Palette3->SetValue(false);
@@ -1482,7 +1482,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette3 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette3"));
     BitmapButton_Palette3->SetDefault();
-    BitmapButton_Palette3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_Palette4 = new wxCheckBox(this, ID_CHECKBOX_Palette4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette4"));
     CheckBox_Palette4->SetValue(false);
@@ -1492,7 +1492,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette4 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette4"));
     BitmapButton_Palette4->SetDefault();
-    BitmapButton_Palette4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_Palette5 = new wxCheckBox(this, ID_CHECKBOX_Palette5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette5"));
     CheckBox_Palette5->SetValue(false);
@@ -1502,7 +1502,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette5 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette5, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette5"));
     BitmapButton_Palette5->SetDefault();
-    BitmapButton_Palette5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_Palette6 = new wxCheckBox(this, ID_CHECKBOX_Palette6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette6"));
     CheckBox_Palette6->SetValue(false);
@@ -1512,7 +1512,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer_Palette->Add(Button_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Palette6 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette6, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette6"));
     BitmapButton_Palette6->SetDefault();
-    BitmapButton_Palette6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_Palette6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer_Palette->Add(BitmapButton_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer9->Add(FlexGridSizer_Palette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1536,7 +1536,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer22->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_FadeOut = new wxBitmapButton(this, ID_BITMAPBUTTON_TEXTCTRL_Fadein, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadein"));
     BitmapButton_FadeOut->SetDefault();
-    BitmapButton_FadeOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_FadeOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer22->Add(BitmapButton_FadeOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Fade Out"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer22->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -1545,7 +1545,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer22->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_FadeIn = new wxBitmapButton(this, ID_BITMAPBUTTON_TEXTCTRL_Fadeout, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadeout"));
     BitmapButton_FadeIn->SetDefault();
-    BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer22->Add(BitmapButton_FadeIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer2->Add(FlexGridSizer22, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer23 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1555,7 +1555,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     BitmapButton_FitToTime = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_FitToTime, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FitToTime"));
     BitmapButton_FitToTime->SetDefault();
-    BitmapButton_FitToTime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_FitToTime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer23->Add(BitmapButton_FitToTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_OverlayBkg = new wxCheckBox(this, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
     CheckBox_OverlayBkg->SetValue(false);
@@ -1563,7 +1563,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_OverlayBkg = new wxBitmapButton(this, ID_BITMAPBUTTON_OverlayBkg, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
     BitmapButton_OverlayBkg->SetDefault();
-    BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWFRAME));
+    BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer23->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);

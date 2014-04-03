@@ -2278,7 +2278,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>20,20</size>
-												<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine1Click" entry="EVT_BUTTON" />
 											</object>
@@ -2307,7 +2307,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>20,20</size>
-												<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine2Click" entry="EVT_BUTTON" />
 											</object>
@@ -2326,7 +2326,6 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
 												<maxlength>256</maxlength>
-												<fg>wxSYS_COLOUR_ACTIVECAPTION</fg>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -2337,7 +2336,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
 												<size>20,20</size>
-												<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_TextLine3Click" entry="EVT_BUTTON" />
 											</object>
@@ -2352,8 +2351,11 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes" />
-											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
+												<maxlength>256</maxlength>
+												<size>174,21</size>
+											</object>
+											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -2361,7 +2363,7 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Text_Line4" variable="BitmapButton_TextLine4" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>20,20</size>
-												<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<handler function="OnBitmapButton_TextLine4Click" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2405,7 +2407,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
-															<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextFont1Click" entry="EVT_BUTTON" />
 														</object>
@@ -2434,7 +2436,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
-															<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
 														</object>
@@ -2461,7 +2463,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
-															<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextEffect1Click" entry="EVT_BUTTON" />
 														</object>
@@ -2488,7 +2490,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
-															<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextCount1Click" entry="EVT_BUTTON" />
 														</object>
@@ -2517,7 +2519,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
-															<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_TextPosition1Click" entry="EVT_BUTTON" />
 														</object>
@@ -3372,7 +3374,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
 										</object>
@@ -3404,7 +3406,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
 										</object>
@@ -3435,7 +3437,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
 										</object>
@@ -3466,7 +3468,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
 										</object>
@@ -3497,7 +3499,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
 										</object>
@@ -3528,7 +3530,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
 										</object>
@@ -3627,7 +3629,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
 										</object>
@@ -3658,7 +3660,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
 										</object>
@@ -3692,7 +3694,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
 										</object>
@@ -3718,7 +3720,7 @@
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
 											<size>20,20</size>
-											<bg>wxSYS_COLOUR_WINDOWFRAME</bg>
+											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
 										</object>
