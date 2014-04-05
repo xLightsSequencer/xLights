@@ -143,6 +143,7 @@
 		<Unit filename="RenderCircles.cpp" />
 		<Unit filename="RenderColorWash.cpp" />
 		<Unit filename="RenderCurtain.cpp" />
+		<Unit filename="RenderFaces.cpp" />
 		<Unit filename="RenderFire.cpp" />
 		<Unit filename="RenderFireworks.cpp" />
 		<Unit filename="RenderGarlands.cpp" />

@@ -4,6 +4,7 @@ void RenderCircles(int number,int radius, bool bounce, bool collide, bool random
                    bool radial, bool radial_3D,  int start_x, int start_y, bool plasma);
 void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
 void RenderCurtain(int edge, int effect, int swag, bool repeat);
+void RenderFaces(int ColorScheme, int Style, int Chunks, int Skip);
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGarlands(int GarlandType, int Spacing);

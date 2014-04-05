@@ -225,6 +225,7 @@ public:
         eff_TREE,
         eff_TWINKLE,
         eff_SINGLESTRAND,
+        eff_FACES,
         eff_LASTEFFECT //Always the last entry
     };
 

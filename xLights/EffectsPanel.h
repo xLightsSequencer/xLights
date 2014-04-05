@@ -149,6 +149,7 @@ class EffectsPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Fadeout;
 		wxStaticText* StaticText32;
 		wxPanel* Panel1_SingleStrand;
+		wxStaticText* StaticText14;
 		wxStaticText* StaticText36;
 		wxStaticText* StaticText134;
 		wxPanel* Panel5;
@@ -208,6 +209,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_TextFont1;
 		wxTextCtrl* TextCtrl_Piano_ShapeFilename;
 		wxStaticText* StaticText14_layout_kludge2;
+		wxPanel* Panel1_Faces;
 		wxCheckBox* CheckBox_Fire_GrowFire;
 		wxBitmapButton* BitmapButton_TextEffect3;
 		wxTextCtrl* TextCtrl_Text_Line2;
@@ -336,6 +338,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText31;
 		wxChoice* Choice_Bars_Direction;
 		wxChoice* Choice_Text_Effect1;
+		wxChoice* Choice1;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
 		wxBitmapButton* BitmapButton_SpirographR;
 		wxChoice* Choice_Text_Count3;
@@ -716,6 +719,9 @@ class EffectsPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL2;
+		static const long ID_STATICTEXT15;
+		static const long ID_CHOICE1;
+		static const long ID_PANEL6;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON87;
