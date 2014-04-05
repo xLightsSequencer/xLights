@@ -251,7 +251,8 @@ void ModelClass::InitVMatrix()
     SetRenderSize(PixelsPerStrand,NumStrands);
 
     // create output mapping
-    if (SingleNode) {
+    if (SingleNode)
+    {
         x=0;
         for (size_t n=0; n<Nodes.size(); n++)
         {
@@ -271,7 +272,9 @@ void ModelClass::InitVMatrix()
                 }
             }
         }
-    } else {
+    }
+    else
+    {
         for (x=0; x < NumStrands; x++)
         {
             stringnum=x / parm3;
@@ -303,7 +306,8 @@ void ModelClass::InitHMatrix()
     SetRenderSize(NumStrands,PixelsPerStrand);
 
     // create output mapping
-    if (SingleNode) {
+    if (SingleNode)
+    {
         y=0;
         for (size_t n=0; n<Nodes.size(); n++)
         {
@@ -323,7 +327,9 @@ void ModelClass::InitHMatrix()
                 }
             }
         }
-    } else {
+    }
+    else
+    {
         for (y=0; y < NumStrands; y++)
         {
             stringnum=y / parm3;
@@ -350,7 +356,8 @@ void ModelClass::InitCustomMatrix(wxString customModel)
 
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    if (SingleNode) {
+    if (SingleNode)
+    {
         SetNodeCount(1,0);
         Nodes[0]->ActChan=stringStartChan[0];
         for(size_t row=0; row < rows.size(); row++)
@@ -366,7 +373,9 @@ void ModelClass::InitCustomMatrix(wxString customModel)
                 }
             }
         }
-    } else {
+    }
+    else
+    {
         // rgb nodes
         for(size_t row=0; row < rows.size(); row++)
         {
@@ -619,33 +628,42 @@ void ModelClass::InitFrame()
     int chan=stringStartChan[0];
     int ChanIncr=SingleChannel ?  1 : 3;
 
-    int xincr[4]={0,1,0,-1};  // indexed by side
-    int yincr[4]={1,0,-1,0};
+    int xincr[4]= {0,1,0,-1}; // indexed by side
+    int yincr[4]= {1,0,-1,0};
     x=IsLtoR ? 0 : FrameWidth-1;
     y=isBotToTop ? 0 : parm2-1;
     int dir=1;            // 1=clockwise
     int side=x>0 ? 2 : 0; // 0=left, 1=top, 2=right, 3=bottom
     int SideIncr=1;       // 1=clockwise
-    if ((parm1 > parm3 && x>0) || (parm3 > parm1 && x==0)) {
+    if ((parm1 > parm3 && x>0) || (parm3 > parm1 && x==0))
+    {
         // counter-clockwise
         dir=-1;
         SideIncr=3;
     }
 
     // determine starting position
-    if (parm1 > parm3) {
+    if (parm1 > parm3)
+    {
         // more nodes on top, must start at bottom
         y=0;
-    } else if (parm3 > parm1) {
+    }
+    else if (parm3 > parm1)
+    {
         // more nodes on bottom, must start at top
         y=parm2-1;
-    } else {
+    }
+    else
+    {
         // equal top and bottom, can start in any corner
         // assume clockwise numbering
-        if (x>0 && y==0) {
+        if (x>0 && y==0)
+        {
             // starting in lower right
             side=3;
-        } else if (x==0 && y>0) {
+        }
+        else if (x==0 && y>0)
+        {
             // starting in upper left
             side=1;
         }
@@ -663,7 +681,8 @@ void ModelClass::InitFrame()
             Nodes[n]->Coords[c].bufY=y;
             newx=x+xincr[side]*dir;
             newy=y+yincr[side]*dir;
-            if (newx < 0 || newx >= FrameWidth || newy < 0 || newy >= parm2) {
+            if (newx < 0 || newx >= FrameWidth || newy < 0 || newy >= parm2)
+            {
                 // move to the next side
                 side=(side+SideIncr) % 4;
                 newx=x+xincr[side]*dir;
@@ -707,24 +726,36 @@ int ModelClass::ChannelsPerNode()
 void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
 {
     size_t n;
-    if (SingleNode) {
-        if (StringType=="Single Color Red") {
+    if (SingleNode)
+    {
+        if (StringType=="Single Color Red")
+        {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString)));
-        } else if (StringType=="Single Color Green") {
+        }
+        else if (StringType=="Single Color Green")
+        {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString)));
-        } else if (StringType=="Single Color Blue") {
+        }
+        else if (StringType=="Single Color Blue")
+        {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString)));
-        } else if (StringType=="Single Color White") {
+        }
+        else if (StringType=="Single Color White")
+        {
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
-        } else if (StringType=="Strobes White 3fps") {
+        }
+        else if (StringType=="Strobes White 3fps")
+        {
             StrobeRate=7;  // 1 out of every 7 frames
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
-        } else {
+        }
+        else
+        {
             // 3 Channel RGB
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString)));
@@ -789,14 +820,19 @@ wxString ModelClass::ChannelLayoutHtml()
     chmap.resize(BufferHt * BufferWi,0);
     bool IsCustom = DisplayAs == "Custom";
     wxString direction;
-    if (IsCustom) {
+    if (IsCustom)
+    {
         direction="n/a";
-    } else if (!IsLtoR) {
+    }
+    else if (!IsLtoR)
+    {
         if(!isBotToTop)
             direction="Top Right";
         else
             direction="Bottom Right";
-    } else {
+    }
+    else
+    {
         if (!isBotToTop)
             direction="Top Left";
         else
@@ -892,9 +928,11 @@ void ModelClass::UpdateXmlWithScale()
 
 
 #ifdef __WXOSX__
-class ModelGraphics {
+class ModelGraphics
+{
 public:
-    ModelGraphics(wxWindow *window) : lastColor(*wxBLACK) {
+    ModelGraphics(wxWindow *window) : lastColor(*wxBLACK)
+    {
         gc = wxGraphicsContext::Create(window);
         gc->SetAntialiasMode(wxANTIALIAS_NONE);
         gc->Scale(1, -1);
@@ -905,33 +943,41 @@ public:
         brush.SetColour(lastColor);
         gc->SetBrush(brush);
     }
-    ~ModelGraphics() {
+    ~ModelGraphics()
+    {
         gc->DrawPath(path);
         gc->Flush();
         delete gc;
     }
-    void Translate(wxDouble x, wxDouble y) {
+    void Translate(wxDouble x, wxDouble y)
+    {
         gc->Translate(x, y);
     }
-    void GetSize(wxDouble *x, wxDouble *y) {
+    void GetSize(wxDouble *x, wxDouble *y)
+    {
         gc->GetSize(x, y);
     }
 
-    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
-        if (lastColor != color) {
+    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size)
+    {
+        if (lastColor != color)
+        {
             flush(color);
         }
         path.AddRectangle(x, y, size, size);
     }
-    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter) {
-        if (lastColor != color) {
+    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter)
+    {
+        if (lastColor != color)
+        {
             flush(color);
         }
         path.AddEllipse(x, y, diameter, diameter);
     }
 
 private:
-    void flush(const wxColour &color) {
+    void flush(const wxColour &color)
+    {
         gc->DrawPath(path);
         path = gc->CreatePath();
         lastColor = color;
@@ -948,9 +994,11 @@ private:
 };
 
 #else
-class ModelGraphics {
+class ModelGraphics
+{
 public:
-    ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED) {
+    ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED)
+    {
         dc.SetAxisOrientation(true,true);
         //dc.SetLogicalScale(1.0, -1.0);
         pen.SetColour(lastColor);
@@ -959,39 +1007,49 @@ public:
         brush.SetColour(lastColor);
         dc.SetBrush(brush);
     }
-    ~ModelGraphics() {
+    ~ModelGraphics()
+    {
     }
-    void Translate(wxDouble x, wxDouble y) {
+    void Translate(wxDouble x, wxDouble y)
+    {
         dc.SetDeviceOrigin(x, -y);
     }
-    void GetSize(wxDouble *x, wxDouble *y) {
+    void GetSize(wxDouble *x, wxDouble *y)
+    {
         int x2, y2;
         dc.GetSize(&x2, &y2);
         *x = int(x2);
         *y = int(y2);
     }
 
-    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size) {
-        if (lastColor != color) {
+    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size)
+    {
+        if (lastColor != color)
+        {
             flush(color);
         }
-        if (size < 2) {
+        if (size < 2)
+        {
             size = 2;
         }
         dc.DrawRectangle(x,y,size,size);
     }
-    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter) {
-        if (lastColor != color) {
+    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter)
+    {
+        if (lastColor != color)
+        {
             flush(color);
         }
-        if (diameter < 2) {
+        if (diameter < 2)
+        {
             diameter = 2;
         }
         dc.DrawEllipse(x - (diameter/2), y - (diameter / 2), diameter, diameter);
     }
 
 private:
-    void flush(const wxColour &color) {
+    void flush(const wxColour &color)
+    {
         lastColor = color;
         pen.SetColour(lastColor);
         dc.SetPen(pen);
@@ -1015,6 +1073,7 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
     wxPen pen;
     wxDouble w, h;
     ModelGraphics gc(window);
+
     /*
     // this isn't an ideal scaling algorithm - room for improvement here
     double windowDiagonal=sqrt(w*w+h*h);
@@ -1024,9 +1083,10 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 
     gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    double scrx,scry;
     gc.Translate(int(offsetXpct*w)+w/2,
-                  -(int(offsetYpct*h)+h-
-                     std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+                 -(int(offsetYpct*h)+h-
+                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
 
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -1037,6 +1097,9 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
             gc.AddSquare(*color,sx*scale,sy*scale,0.0);
+            scrx = sx*scale;
+            scry = sy*scale;
+            //      StatusBar1->SetStatusText(_("Status: DisplayModelOnWindow " )+wxString::Format(" x=%5ld y=%5ld ",scrx,scry));
         }
     }
 }
@@ -1062,11 +1125,12 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
     gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
     gc.Translate(int(offsetXpct*w)+w/2,
-                  -(int(offsetYpct*h)+h-
-                    std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+                 -(int(offsetYpct*h)+h-
+                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
 
     // avoid performing StrobeRate test in inner loop for performance reasons
-    if (StrobeRate==0) {
+    if (StrobeRate==0)
+    {
         // no strobing
         for(size_t n=0; n<NodeCount; n++)
         {
@@ -1080,7 +1144,9 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                 gc.AddSquare(color,sx*scale,sy*scale,0.0);
             }
         }
-    } else {
+    }
+    else
+    {
         // flash individual nodes according to StrobeRate
         for(size_t n=0; n<NodeCount; n++)
         {
@@ -1091,7 +1157,8 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
             {
                 wxColor c2 = *wxBLACK;
                 // draw node on screen
-                if (CanFlash && rand() % StrobeRate == 0) {
+                if (CanFlash && rand() % StrobeRate == 0)
+                {
                     c2 = color;
                 }
 
@@ -1119,7 +1186,8 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
     gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
     double radius = scale/2.0;
-    if (radius < 0.5) {
+    if (radius < 0.5)
+    {
         radius = 0.5;
     }
 
