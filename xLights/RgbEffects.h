@@ -518,6 +518,9 @@ protected:
     double GetEffectTimeIntervalPosition();
     MetaBall metaballs[10];
 
+    size_t GetNodeCount();
+
+
 public:
     double GetEffectPeriodPosition(); //made public -DJ
 

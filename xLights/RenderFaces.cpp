@@ -25,18 +25,58 @@
 
 void RgbEffects::RenderFaces(int Phoneme)
 {
-    int x,y,d,ColorIdx;
-    double n,x1,y1,f;
-    double h=0.0;
-    static const double pi2=6.283185307;
+    int ColorIdx;
+    size_t i,idx;
+    int n,x,y,s;
+
+
     wxColour color;
     wxImage::HSVValue hsv;
     int maxframe=BufferHt*2;
     int frame=(BufferHt * state / 200)%maxframe;
     double offset=double(state)/100.0;
-
     size_t colorcnt=GetColorCount();
-   // StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Phoneme %d ",Phoneme));
+
+
+    std::vector<int> chmap;
+    chmap.resize(BufferHt * BufferWi,0);
+    wxString html = "<html><body><table border=0>";
+
+
+    /*
+    //  I need this code to work. This should allow me to see what the string and node# are from the custom
+    //    model.
+
+      size_t NodeCount=GetNodeCount();
+       for(i=0; i<NodeCount; i++)
+       {
+           idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
+           if (idx < chmap.size()) chmap[idx]=GetNodeNumber(i);
+       }
+       for(y=BufferHt-1; y>=0; y--)
+       {
+           html+="<tr>";
+           for(x=0; x<BufferWi; x++)
+           {
+               n=chmap[y*BufferWi+x];
+               if (n==0)
+               {
+                   html+="<td></td>";
+               }
+               else
+               {
+                   s=Nodes[n-1]->StringNum+1;
+                   bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
+                   html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
+               }
+           }
+           html+="</tr>";
+       }
+    */
+
+
+// the following is just code to generate some "twinkle" lights for now. later
+//  we will put in real code
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
