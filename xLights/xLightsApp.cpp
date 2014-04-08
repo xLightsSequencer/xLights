@@ -68,7 +68,7 @@ int xLightsApp::FilterEvent(wxEvent& event)
     if (event.GetEventType() == wxEVT_CHAR)
     {
         xLightsFrame* Frame = (xLightsFrame*)GetTopWindow();
-        if (Frame->HotKey((wxKeyEvent&)event)) return true;
+        if (Frame->HotKey((wxKeyEvent&)event)) return Event_Processed; //true;
     }
-    return -1;
+    return Event_Skip; //-1;
 }

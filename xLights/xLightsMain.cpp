@@ -196,6 +196,8 @@ const long xLightsFrame::ID_BUTTON58 = wxNewId();
 const long xLightsFrame::ID_CHOICE7 = wxNewId();
 const long xLightsFrame::ID_BUTTON59 = wxNewId();
 const long xLightsFrame::ID_BUTTON_Palette = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_LayerMorph = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON_CHECKBOX_LayerMorph = wxNewId();
 const long xLightsFrame::ID_CHOICE_LayerMethod = wxNewId();
 const long xLightsFrame::ID_SLIDER_EffectLayerMix = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_LayerMix = wxNewId();
@@ -281,6 +283,7 @@ const long xLightsFrame::ID_PROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_UNPROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
+const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
 
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
@@ -805,8 +808,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_Palette->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_Palette->SetToolTip(_("Ckick here to load Palettes of colors."));
     FlexGridSizer33->Add(Button_Palette, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    CheckBox_LayerMorph = new wxCheckBox(SeqPanelLeft, ID_CHECKBOX_LayerMorph, _("!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LayerMorph"));
+    CheckBox_LayerMorph->SetValue(false);
+    FlexGridSizer33->Add(CheckBox_LayerMorph, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_CheckBox_LayerMorph = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON_CHECKBOX_LayerMorph, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
+    BitmapButton_CheckBox_LayerMorph->SetDefault();
+    BitmapButton_CheckBox_LayerMorph->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    BitmapButton_CheckBox_LayerMorph->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
+    FlexGridSizer33->Add(BitmapButton_CheckBox_LayerMorph, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_LayerMethod = new wxChoice(SeqPanelLeft, ID_CHOICE_LayerMethod, wxDefaultPosition, wxDefaultSize, 0, 0, wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator, _T("ID_CHOICE_LayerMethod"));
     Choice_LayerMethod->SetSelection( Choice_LayerMethod->Append(_("Effect 1")) );
     Choice_LayerMethod->Append(_("Effect 2"));
@@ -1188,6 +1197,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON58,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ModelsClick);
     Connect(ID_BUTTON59,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PresetsClick);
     Connect(ID_BUTTON_Palette,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PaletteClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_LayerMorph,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_CheckBox_LayerMorphClick);
     Connect(ID_CHOICE_LayerMethod,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_LayerMethodSelect);
     Connect(ID_SLIDER_EffectLayerMix,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_EffectLayerMixCmdScroll);
     Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_EffectLayerMixCmdScroll);
@@ -1220,6 +1230,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
+    Grid1->Connect(wxEVT_SET_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1SetFocus,0,this);
+    Grid1->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1KillFocus,0,this);
     EffectsPanel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnEffectsPanel1Paint,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
@@ -1246,6 +1258,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     //*)
 
 
+    Grid1HasFocus = false; //set this before grid gets any events -DJ
 
     SetIcon(wxIcon(xlights_xpm));
     SetName("xLights");
@@ -2062,15 +2075,18 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 PlayEffect();
             }
             break;
-            case WXK_CONTROL_C:
-                CutOrCopyToClipboard(false);
-                break;
-            case WXK_CONTROL_X:
-                CutOrCopyToClipboard(true);
-                break;
-            case WXK_CONTROL_V:
-                PasteFromClipboard();
-                break;
+        case WXK_CONTROL_C:
+            if (Grid1HasFocus) CutOrCopyToClipboard(false);
+            else retval = false; //allow other text controls to get the event -DJ
+            break;
+        case WXK_CONTROL_X:
+            if (Grid1HasFocus) CutOrCopyToClipboard(true);
+            else retval = false; //allow other text controls to get the event -DJ
+            break;
+        case WXK_CONTROL_V:
+            if (Grid1HasFocus) PasteFromClipboard();
+            else retval = false; //allow other text controls to get the event -DJ
+            break;
         case WXK_F5:
             if (Button_UpdateGrid->IsEnabled())
             {
@@ -2162,6 +2178,7 @@ showlock(EffectLayerMix)
 showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
+showlock(CheckBox_LayerMorph)
 
 /*void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 {
@@ -2170,4 +2187,14 @@ showlock(Contrast)
 
 void xLightsFrame::OnEffectsPanel1Paint(wxPaintEvent& event)
 {
+}
+
+void xLightsFrame::OnGrid1SetFocus(wxFocusEvent& event)
+{
+    Grid1HasFocus = true;
+}
+
+void xLightsFrame::OnGrid1KillFocus(wxFocusEvent& event)
+{
+    Grid1HasFocus = false;
 }

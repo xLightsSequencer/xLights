@@ -1898,7 +1898,9 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_TEXTCTRL"))
         {
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            s+=AttrName+ctrl->GetValue();
+            wxString v = ctrl->GetValue();
+            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
+            s += AttrName + v;
         }
         else if (ChildName.StartsWith("ID_CHOICE"))
         {
@@ -1959,7 +1961,9 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
         else if (ChildName.StartsWith("ID_TEXTCTRL"))
         {
             wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            s+=AttrName+ctrl->GetValue();
+            wxString v = ctrl->GetValue();
+            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
+            s += AttrName + v;
         }
         else if (ChildName.StartsWith("ID_CHOICE"))
         {

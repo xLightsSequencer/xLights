@@ -128,6 +128,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     rgbVal = wxImage::HSVtoRGB(hsv1);
     c1.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
 
+    if (effectMixVaries) //vary mix threshold gradually during effect interval -DJ
+        effectMixThreshold = Effect[0].GetEffectPeriodPosition();
 
 
     switch (MixType)
@@ -267,9 +269,10 @@ void PixelBufferClass::SetContrast(int value)
     contrast=value;
 }
 
-void PixelBufferClass::SetMixThreshold(int value)
+void PixelBufferClass::SetMixThreshold(int value, bool varies)
 {
     effectMixThreshold= (float)value/100.0;
+    effectMixVaries = varies;
 }
 
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetState)

@@ -515,10 +515,11 @@ protected:
     long timer_countdown[4]; // was  long timer_countdown[1];
     bool fitToTime;
 
-    double GetEffectPeriodPosition();
     double GetEffectTimeIntervalPosition();
     MetaBall metaballs[10];
 
+public:
+    double GetEffectPeriodPosition(); //made public -DJ
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
