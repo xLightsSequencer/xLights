@@ -1504,14 +1504,26 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
-																			<object class="spacer">
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
+																					<label>!</label>
+																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>1</border>
+																				<border>5</border>
 																				<option>1</option>
 																			</object>
-																			<object class="spacer">
+																			<object class="sizeritem">
+																				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
+																					<bitmap code="padlock16x16_blue_xpm" />
+																					<default>1</default>
+																					<size>20,20</size>
+																					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																					<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																					<handler function="OnBitmapButton_CheckBox_LayerMorphClick" entry="EVT_BUTTON" />
+																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>1</border>
+																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1954,6 +1966,8 @@
 																					<handler function="OnGrid1CellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
 																					<handler function="OnGrid1CellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 																					<handler function="OnGrid1CellLeftClick" entry="EVT_CMD_GRID_SELECT_CELL" />
+																					<handler function="OnGrid1SetFocus" entry="EVT_SET_FOCUS" />
+																					<handler function="OnGrid1KillFocus" entry="EVT_KILL_FOCUS" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																				<border>5</border>

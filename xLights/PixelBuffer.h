@@ -60,6 +60,7 @@ private:
     int contrast;
     int CurrentLayer;  // 0 or 1
     float effectMixThreshold;
+    bool effectMixVaries; //allow varying mix threshold -DJ
     MixTypes MixType;
     RgbEffects Effect[2];
     void GetMixedColor(wxCoord x, wxCoord y, wxColour& c);
@@ -80,7 +81,7 @@ public:
     void SetSparkle(int freq);
     void SetBrightness(int value);
     void SetContrast(int value);
-    void SetMixThreshold(int value);
+    void SetMixThreshold(int value, bool varies);
     void CalcOutput(int EffectPeriod);
 
 #include "Effects.h"

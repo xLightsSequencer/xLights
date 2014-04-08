@@ -361,6 +361,10 @@ private:
     void OnBitmapButtonGridCopyClick(wxCommandEvent& event);
     void OnBitmapButtonGridPasteClick(wxCommandEvent& event);
     void OnEffectsPanel1Paint(wxPaintEvent& event);
+    void OnGrid1SetFocus(wxFocusEvent& event);
+    void OnGrid1KillFocus(wxFocusEvent& event);
+    void OnBitmapButton_CheckBox_LayerMorphClick(wxCommandEvent& event);
+    void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -369,6 +373,7 @@ private:
     void UnprotectSelectedEffects(wxCommandEvent& evt);
     void ProtectSelectedEffects(wxCommandEvent& evt);
     void CopyEffectAcrossRow(wxCommandEvent& evt); //-DJ
+    void ClearEffectRow(wxCommandEvent& evt); //-DJ
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
@@ -488,6 +493,8 @@ private:
     static const long ID_CHOICE7;
     static const long ID_BUTTON59;
     static const long ID_BUTTON_Palette;
+    static const long ID_CHECKBOX_LayerMorph;
+    static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
     static const long ID_CHOICE_LayerMethod;
     static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
@@ -573,6 +580,7 @@ private:
     static const long ID_UNPROTECT_EFFECT;
     static const long ID_RANDOM_EFFECT;
     static const long ID_COPYROW_EFFECT; //copy random effect across row -DJ
+    static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
     //(*Declarations(xLightsFrame)
     wxRadioButton* RadioButtonRgbChase;
@@ -713,6 +721,7 @@ private:
     wxCheckBox* CheckBoxRunSchedule;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
+    wxCheckBox* CheckBox_LayerMorph;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
@@ -742,6 +751,7 @@ private:
     wxRadioButton* RadioButtonChase;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButtonTabInfo;
+    wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
     wxRadioButton* RadioButtonRgbCycle5;
@@ -980,6 +990,7 @@ private:
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
 
+    bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;
     wxXmlNode* ModelsNode;
