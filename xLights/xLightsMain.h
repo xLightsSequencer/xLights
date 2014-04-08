@@ -363,7 +363,7 @@ private:
     void OnEffectsPanel1Paint(wxPaintEvent& event);
     void OnGrid1SetFocus(wxFocusEvent& event);
     void OnGrid1KillFocus(wxFocusEvent& event);
-    void OnBitmapButton_Checkbox_LayerMorphClick(wxCommandEvent& event);
+    void OnBitmapButton_CheckBox_LayerMorphClick(wxCommandEvent& event);
     void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
     //*)
 
