@@ -1337,6 +1337,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButterflyEffectColors.Add("Rainbow");
     ButterflyEffectColors.Add("Palette");
 
+    FacesPhoneme.Add("AI");
+    FacesPhoneme.Add("E");
+    FacesPhoneme.Add("FV");
+    FacesPhoneme.Add("L");
+    FacesPhoneme.Add("MBP");
+    FacesPhoneme.Add("O");
+    FacesPhoneme.Add("U");
+    FacesPhoneme.Add("WQ");
+    FacesPhoneme.Add("etc");
+    FacesPhoneme.Add("rest");
+
+
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
     MeteorsEffectTypes.Add("Palette");
@@ -1516,12 +1528,15 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 {
     panel->Choice_Bars_Direction->Set(BarEffectDirections);
     panel->Choice_Bars_Direction->SetSelection(0);
+
     panel->Choice_Butterfly_Colors->Set(ButterflyEffectColors);
     panel->Choice_Butterfly_Colors->SetSelection(0);
+
     panel->Choice_Meteors_Type->Set(MeteorsEffectTypes);
     panel->Choice_Meteors_Type->SetSelection(0);
     panel->Choice_Meteors_Effect->Set(MeteorsEffect);
     panel->Choice_Meteors_Effect->SetSelection(0);
+
     panel->Choice_Pictures_Direction->Set(PictureEffectDirections);
     panel->Choice_Pictures_Direction->SetSelection(0);
 
@@ -1556,6 +1571,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Chase_Type1->Set(SingleStrandTypes);
     panel->Choice_Chase_Type1->SetSelection(0); // Set Left-Right as default
 
+    panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
+    panel->Choice_Faces_Phoneme->SetSelection(0);
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
@@ -1758,7 +1775,7 @@ bool xLightsFrame::EnableOutputs()
                 }
 #endif // __WXMSW__
                 wxString msg = _("Error occurred while connecting to ") + NetworkType+ _(" network on ") + ComPort +
-                                choices +
+                               choices +
                                _("\n\nThings to check:\n1. Are all required cables plugged in?") +
                                _("\n2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.") +
                                _("\n3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n");
@@ -2062,15 +2079,15 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 PlayEffect();
             }
             break;
-            case WXK_CONTROL_C:
-                CutOrCopyToClipboard(false);
-                break;
-            case WXK_CONTROL_X:
-                CutOrCopyToClipboard(true);
-                break;
-            case WXK_CONTROL_V:
-                PasteFromClipboard();
-                break;
+        case WXK_CONTROL_C:
+            CutOrCopyToClipboard(false);
+            break;
+        case WXK_CONTROL_X:
+            CutOrCopyToClipboard(true);
+            break;
+        case WXK_CONTROL_V:
+            PasteFromClipboard();
+            break;
         case WXK_F5:
             if (Button_UpdateGrid->IsEnabled())
             {

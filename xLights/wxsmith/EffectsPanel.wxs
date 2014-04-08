@@ -57,6 +57,7 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Bars_Direction" variable="Choice_Bars_Direction" member="yes">
 										<selection>0</selection>
+										<handler function="OnChoice_Bars_DirectionSelect" entry="EVT_CHOICE" />
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -3298,19 +3299,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
-										<content>
-											<item>AI</item>
-											<item>E</item>
-											<item>FV</item>
-											<item>L</item>
-											<item>MBP</item>
-											<item>O</item>
-											<item>U</item>
-											<item>WQ</item>
-											<item>etc</item>
-											<item>rest</item>
-										</content>
+									<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" variable="Choice_Faces_Phoneme" member="yes">
 										<selection>1</selection>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

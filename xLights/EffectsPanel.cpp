@@ -331,7 +331,7 @@ const long EffectsPanel::ID_PANEL3 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
 const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
-const long EffectsPanel::ID_CHOICE1 = wxNewId();
+const long EffectsPanel::ID_CHOICE_Faces_Phoneme = wxNewId();
 const long EffectsPanel::ID_PANEL6 = wxNewId();
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
@@ -1424,18 +1424,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer47 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText14 = new wxStaticText(Panel1_Faces, ID_STATICTEXT15, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
     FlexGridSizer47->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice1 = new wxChoice(Panel1_Faces, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice1->Append(_("AI"));
-    Choice1->SetSelection( Choice1->Append(_("E")) );
-    Choice1->Append(_("FV"));
-    Choice1->Append(_("L"));
-    Choice1->Append(_("MBP"));
-    Choice1->Append(_("O"));
-    Choice1->Append(_("U"));
-    Choice1->Append(_("WQ"));
-    Choice1->Append(_("etc"));
-    Choice1->Append(_("rest"));
-    FlexGridSizer47->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Faces_Phoneme = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
+    FlexGridSizer47->Add(Choice_Faces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
@@ -1601,6 +1591,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PaletteRepClick);
+    Connect(ID_CHOICE_Bars_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnChoice_Bars_DirectionSelect);
     Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_DirectionClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_HighlightClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Bars_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_3DClick);
@@ -2328,3 +2319,7 @@ showlock(R_TO_L1)
 
 
 
+
+void EffectsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
+{
+}

@@ -996,8 +996,10 @@ private:
     int NextGridRowToPlay;
     int SeqPlayColumn;
     bool ResetEffectState[2];
+
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
+    wxArrayString FacesPhoneme;
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
     wxArrayString TextEffectDirections;
@@ -1011,6 +1013,7 @@ private:
     wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
     EffectTreeDialog *EffectTreeDlg;
+
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;

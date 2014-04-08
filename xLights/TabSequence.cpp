@@ -859,10 +859,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Faces")
     {
-        buffer.RenderFaces(ButterflyEffectColors.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Colors"]),
-                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Style"]),
-                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Chunks"]),
-                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Skip"]));
+        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]));
     }
     else if (effect == "Fire")
     {
@@ -1055,11 +1052,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Curtain_Swag->GetValue(),
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
-          case eff_FACES:
-        buffer.RenderFaces(panel->Choice_Butterfly_Colors->GetSelection(),
-                               panel->Slider_Butterfly_Style->GetValue(),
-                               panel->Slider_Butterfly_Chunks->GetValue(),
-                               panel->Slider_Butterfly_Skip->GetValue());
+    case eff_FACES:
+        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
     case eff_FIRE:
         buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),

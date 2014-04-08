@@ -291,6 +291,7 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel_Text3;
 		wxChoice* Choice_Piano_Style;
 		wxBitmapButton* BitmapButton_ColorWashVFade;
+		wxChoice* Choice_Faces_Phoneme;
 		wxStaticText* StaticText100;
 		wxSlider* Slider_Circles_Count;
 		wxBitmapButton* BitmapButton_FireworksFade;
@@ -338,7 +339,6 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText31;
 		wxChoice* Choice_Bars_Direction;
 		wxChoice* Choice_Text_Effect1;
-		wxChoice* Choice1;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
 		wxBitmapButton* BitmapButton_SpirographR;
 		wxChoice* Choice_Text_Count3;
@@ -720,7 +720,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_NOTEBOOK1;
 		static const long ID_PANEL2;
 		static const long ID_STATICTEXT15;
-		static const long ID_CHOICE1;
+		static const long ID_CHOICE_Faces_Phoneme;
 		static const long ID_PANEL6;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON_CHOICEBOOK1;
@@ -902,6 +902,8 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_TextCount4Click(wxCommandEvent& event);
 		void OnBitmapButton_TextPosition4Click(wxCommandEvent& event);
 		void OnBitmapButton_TextDir4Click(wxCommandEvent& event);
+		void OnPaint(wxPaintEvent& event);
+		void OnChoice_Bars_DirectionSelect(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);
