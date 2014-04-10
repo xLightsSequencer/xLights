@@ -1906,6 +1906,7 @@ void xLightsFrame::OnButtonGracefulStopClick(wxCommandEvent& event)
 wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
+std::vector<ModelClassPtr> xLightsFrame::PreviewModels;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
 {

@@ -138,7 +138,7 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     bool ok;
     ModelDialog dialog(this);
     dialog.SetFromXml(e);
-    dialog.TextCtrl_Name->Enable(false); // do not allow name changes
+    dialog.TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
     {
         ok=true;
