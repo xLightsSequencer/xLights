@@ -23,6 +23,8 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+
+
 RgbEffects::RgbEffects()
 {
     //ctor
@@ -388,5 +390,4 @@ void RgbEffects::GetEffectPeriods( int& start, int& next, int& endp)
     next = nextEffTimePeriod;
     endp = curEffEndPer;
 }
-
 

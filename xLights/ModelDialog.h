@@ -75,7 +75,7 @@ protected:
     static const long ID_STATICTEXT1;
     static const long ID_TEXTCTRL1;
     static const long ID_STATICTEXT5;
-    static const long ID_CHOICE1;
+    static const long ID_CHOICE_DisplayAs;
     static const long ID_STATICTEXT12;
     static const long ID_CHOICE_STRING_TYPE;
     static const long ID_STATICTEXT2;

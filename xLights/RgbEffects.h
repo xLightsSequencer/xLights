@@ -37,14 +37,14 @@
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
- #include <hash_map>
-  #define snprintf _snprintf
-  #define vsnprintf _vsnprintf
-  #define strcasecmp _stricmp
-  #define strncasecmp _strnicmp
+#include <hash_map>
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #else
- #include <unordered_map>
- #define hash_map  unordered_map //c++ 2011
+#include <unordered_map>
+#define hash_map  unordered_map //c++ 2011
 #endif
 #include <queue> //priority_queue
 #include <deque>
@@ -55,9 +55,12 @@
 template <typename Tdata, typename Tcontainer = std::vector<Tdata>, typename Tsorter = Tdata>
 class MyQueue: public std::priority_queue<Tdata, Tcontainer, Tsorter>
 {
-friend class RgbEffects;
+    friend class RgbEffects;
 public:
-    inline void clear() { std::priority_queue<Tdata, Tcontainer, Tsorter>::c.clear(); } //add missing member
+    inline void clear()
+    {
+        std::priority_queue<Tdata, Tcontainer, Tsorter>::c.clear();    //add missing member
+    }
 };
 #define priority_queue  MyQueue //wedge in friend
 
@@ -82,13 +85,13 @@ typedef wxImage::HSVValue HSVValue;
 // and to switch its value based on creating vs using the dll
 // NCCDLLIMPL is set by the project creating the dll
 #ifdef _MSC_VER
-	#ifdef NCCDLLIMPL
-		#define NCCDLLEXPORT __declspec(dllexport)
-	#else
-		#define NCCDLLEXPORT __declspec(dllimport)
-	#endif
+#ifdef NCCDLLIMPL
+#define NCCDLLEXPORT __declspec(dllexport)
 #else
-	#define NCCDLLEXPORT
+#define NCCDLLEXPORT __declspec(dllimport)
+#endif
+#else
+#define NCCDLLEXPORT
 #endif
 
 class NCCDLLEXPORT RgbEffects
@@ -127,7 +130,7 @@ protected:
     class RgbFireworks
     {
     public:
-    //static const float velocity = 2.5;
+        //static const float velocity = 2.5;
         static const int maxCycle = 4096;
         static const int maxNewBurstFlakes = 10;
         float _x;
@@ -199,19 +202,23 @@ protected:
 
         void Bounce(int width, int height)
         {
-            if (_x-_radius<=0) {
+            if (_x-_radius<=0)
+            {
                 _dx=abs(_dx);
                 if (_dx < 0.2) _dx=0.2;
             }
-            if (_x+_radius>=width) {
+            if (_x+_radius>=width)
+            {
                 _dx=-abs(_dx);
                 if (_dx > -0.2) _dx=-0.2;
             }
-            if (_y-_radius<=0) {
+            if (_y-_radius<=0)
+            {
                 _dy=abs(_dy);
                 if (_dy < 0.2) _dy=0.2;
             }
-            if (_y+_radius>=height) {
+            if (_y+_radius>=height)
+            {
                 _dy=-abs(_dy);
                 if (_dy > -0.2) _dy=-0.2;
             }
@@ -285,10 +292,10 @@ protected:
     {
     public:
         wxString name;
-    //	wxString filename; //image file containing sprite
+        //	wxString filename; //image file containing sprite
         std::vector<wxPoint> xy; //size 1 => on/off; > 1 => animation
         int ani_state; //display state; bumped after each state change while sprite is active
-    //	int repeat; //0 => one-shot, > 0 => loop count, < 0 => loop count with random delay
+        //	int repeat; //0 => one-shot, > 0 => loop count, < 0 => loop count with random delay
         wxSize wh; //size in src image; might be scaled up/down when rendered onto canvas
         wxPoint destxy; //where to place it on canvas
         wxColor on, off; //first visible pixel color (from bottom left); used for on/off redraw (scrolling fx)
@@ -315,10 +322,22 @@ protected:
 //        Cue(void) {} //need to provide default ctor since nop-default also provided
 //        Cue(int frame): start_frame(frame) {} //ctor used with lower_bound()
     public: //comparison operators for sorting
-        inline bool operator() (const Cue& lhs, const Cue& rhs) const { return lhs.stop_frame < rhs.stop_frame; } //used by priority_queue
-        inline bool operator() (Cue* lhs, Cue* rhs) const { return lhs->stop_frame < rhs->stop_frame; } //used by priority_queue?
-        static bool SortByStart(const Cue& lhs, const Cue& rhs) { return lhs.start_frame < rhs.start_frame; } //used by sort()
-        static bool SortByStop(const Cue& lhs, const Cue& rhs) { return lhs.stop_frame < rhs.stop_frame; } //used by sort()
+        inline bool operator() (const Cue& lhs, const Cue& rhs) const
+        {
+            return lhs.stop_frame < rhs.stop_frame;    //used by priority_queue
+        }
+        inline bool operator() (Cue* lhs, Cue* rhs) const
+        {
+            return lhs->stop_frame < rhs->stop_frame;    //used by priority_queue?
+        }
+        static bool SortByStart(const Cue& lhs, const Cue& rhs)
+        {
+            return lhs.start_frame < rhs.start_frame;    //used by sort()
+        }
+        static bool SortByStop(const Cue& lhs, const Cue& rhs)
+        {
+            return lhs.stop_frame < rhs.stop_frame;    //used by sort()
+        }
 //    static bool ByStart(Cue* lhs, Cue* rhs) { return lhs->start_frame < rhs->start_frame; } //used by sort()
     public:
         static int Time2Frame(const wxString& timestr, int round)
@@ -363,7 +382,7 @@ protected:
 //cached list of pixels to turn on, indexed by frame (timestamp):
 //this is the required output after applying the effect in Nutcracker
 //xLights will then remap these pixels thru the custom or built-in model back to xLights channels
-	typedef std::vector<std::pair<wxPoint, wxColor>> PixelVector;
+    typedef std::vector<std::pair<wxPoint, wxColor>> PixelVector;
     std::vector<PixelVector> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
 //remapped Vixen channels for Picture effect: -DJ
     void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);
@@ -476,6 +495,11 @@ protected:
     void RenderMetaBalls(int numBalls);
     void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
+    void mouth(int Phoneme,int BufferHt, int BufferWt);
+    void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
+    void drawline2(int Phoneme,int x1,int x2,int y1,int y2,int y3,int y4);
+    void facesCircle(int Phoneme, int xc,int yc,double radius);
+    void drawline3 (int Phoneme, int x1,int x2,int y6,int y7);
 
     int BufferHt,BufferWi;  // size of the buffer
     int DiagLen;  // length of the diagonal

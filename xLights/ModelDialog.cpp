@@ -15,7 +15,7 @@
 const long ModelDialog::ID_STATICTEXT1 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT5 = wxNewId();
-const long ModelDialog::ID_CHOICE1 = wxNewId();
+const long ModelDialog::ID_CHOICE_DisplayAs = wxNewId();
 const long ModelDialog::ID_STATICTEXT12 = wxNewId();
 const long ModelDialog::ID_CHOICE_STRING_TYPE = wxNewId();
 const long ModelDialog::ID_STATICTEXT2 = wxNewId();
@@ -76,7 +76,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer2->Add(TextCtrl_Name, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Display As"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_DisplayAs = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    Choice_DisplayAs = new wxChoice(this, ID_CHOICE_DisplayAs, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_DisplayAs"));
     Choice_DisplayAs->SetSelection( Choice_DisplayAs->Append(_("Tree 360")) );
     Choice_DisplayAs->Append(_("Tree 270"));
     Choice_DisplayAs->Append(_("Tree 180"));
@@ -218,7 +218,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->SetSizeHints(this);
     Center();
 
-    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_DisplayAsSelect);
+    Connect(ID_CHOICE_DisplayAs,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_DisplayAsSelect);
     Connect(ID_CHOICE_STRING_TYPE,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelDialog::OnChoice_StringTypeSelect);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm1Change);
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
