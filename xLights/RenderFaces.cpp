@@ -22,6 +22,12 @@
 **************************************************************/
 #include <cmath>
 #include "RgbEffects.h"
+#include "xLightsMain.h" //xLightsFrame
+
+#define WANT_DEBUG_IMPL
+#define WANT_DEBUG  99
+#include "djdebug.cpp"
+
 
 void RgbEffects::RenderFaces(int Phoneme)
 {
@@ -87,6 +93,22 @@ void RgbEffects::RenderFaces(int Phoneme)
            html+="</tr>";
        }
     */
+//    above is from ModelClass::ChannelLayoutHtml()
+
+#if 1 //DEBUG
+//get list of models:
+    wxString buf;
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+        buf += ", " + (*it)->name; //ModelClassPtr*
+    debug(1, "faces: models = %s", (const char*)buf + 2);
+
+//get info about one of the models:
+    buf = xLightsFrame::PreviewModels[0]->name;
+    debug(1, "first model is %s", (const char*)buf);
+    buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
+    if (buf.size() > 500) buf.resize(500);
+    debug(1, "first 500 char of layout html = %s", (const char*)buf);
+#endif
 
 
 // the following is just code to generate some "twinkle" lights for now. later
