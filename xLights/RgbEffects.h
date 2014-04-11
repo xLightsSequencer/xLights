@@ -497,8 +497,9 @@ protected:
     void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void mouth(int Phoneme,int BufferHt, int BufferWt);
     void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
-    void drawline2(int Phoneme,int x1,int x2,int y1,int y2,int y3,int y4);
-    void facesCircle(int Phoneme, int xc,int yc,double radius);
+    void drawoutline(int Phoneme,int BufferHt,int BufferWi);
+
+    void facesCircle(int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees);
     void drawline3 (int Phoneme, int x1,int x2,int y6,int y7);
 
     int BufferHt,BufferWi;  // size of the buffer

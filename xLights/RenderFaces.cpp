@@ -24,10 +24,10 @@
 #include "RgbEffects.h"
 #include "xLightsMain.h" //xLightsFrame
 
+
 #define WANT_DEBUG_IMPL
 #define WANT_DEBUG  99
 #include "djdebug.cpp"
-
 
 void RgbEffects::RenderFaces(int Phoneme)
 {
@@ -61,38 +61,11 @@ void RgbEffects::RenderFaces(int Phoneme)
     int Ht, Wt;
     Ht = BufferHt;
     Wt = BufferWi;
-    mouth( Phoneme, Ht,  Wt);
-//size_t NodeCount=GetNodeCount();
-    /*
-    //  I need this code to work. This should allow me to see what the string and node# are from the custom
-    //    model.
+    mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
 
-      size_t NodeCount=GetNodeCount();
-       for(i=0; i<NodeCount; i++)
-       {
-           idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
-           if (idx < chmap.size()) chmap[idx]=GetNodeNumber(i);
-       }
-       for(y=BufferHt-1; y>=0; y--)
-       {
-           html+="<tr>";
-           for(x=0; x<BufferWi; x++)
-           {
-               n=chmap[y*BufferWi+x];
-               if (n==0)
-               {
-                   html+="<td></td>";
-               }
-               else
-               {
-                   s=Nodes[n-1]->StringNum+1;
-                   bgcolor=s%2 == 1 ? "#ADD8E6" : "#90EE90";
-                   html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%ds%d</td>",n,s);
-               }
-           }
-           html+="</tr>";
-       }
-    */
+
+//size_t NodeCount=GetNodeCount();
+
 //    above is from ModelClass::ChannelLayoutHtml()
 
 #if 1 //DEBUG
@@ -111,20 +84,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 #endif
 
 
-// the following is just code to generate some "twinkle" lights for now. later
-//  we will put in real code
-    /*
-     for (x=0; x<BufferWi; x++)
-     {
-         for (y=0; y<BufferHt; y++)
-         {
-             ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-             palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-             SetPixel(x,y,hsv); // Turn pixel on
 
-         }
-     }
-     */
 }
 
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
@@ -178,59 +138,60 @@ void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
 
     int Wt, Ht, x1,x2,x3,x4,y1,y2,y3,y4,y5,y6,y7;
     int xc,yc;
-    double radius;
+    double radius,offset=0.0;
     Ht = BufferHt-1;
     Wt = BufferWi-1;
-    x1=(int)(0.5 + Wt*0.15);
-    x2=(int)(0.5 + Wt*0.85);
-    x3=(int)(0.5 + Wt*0.30);
-    x4=(int)(0.5 + Wt*0.70);
-    y1=(int)(0.5 + Ht*0.48);
-    y2=(int)(0.5 + Ht*0.44);
-    y3=(int)(0.5 + Ht*0.05);
-    y4=(int)(0.5 + Ht*0.03);
-    y5=(int)(0.5 + Ht*0.25);
-    y6=(int)(0.5 + Ht*0.20);
-    y7=(int)(0.5 + Ht*0.30);
+    x1=(int)(offset + Wt*0.25);
+    x2=(int)(offset + Wt*0.75);
+    x3=(int)(offset + Wt*0.30);
+    x4=(int)(offset + Wt*0.70);
+
+    y1=(int)(offset + Ht*0.48);
+    y2=(int)(offset + Ht*0.40);
+    y3=(int)(offset + Ht*0.25);
+    y4=(int)(offset + Ht*0.20);
+    y5=(int)(offset + Ht*0.30);
+    y6=(int)(offset + Ht*0.20);
+    y7=(int)(offset + Ht*0.30);
 
     // eyes
-    xc = (int)(0.5 + Wt*0.33); // left eye
-    yc = (int)(0.5 + Ht*0.75);
-    radius = Wt*0.08;
-    facesCircle( Phoneme,xc, yc, radius);
-    xc = (int)(0.5 + Wt*0.66); // right eye
-    yc = (int)(0.5 + Ht*0.75);
-    radius = Wt*0.08;
-    facesCircle(Phoneme,xc, yc, radius);
 
+
+    drawoutline(Phoneme,BufferHt,BufferWi);
 
     switch (Phoneme)
     {
     case 0:         // AI
+
         drawline1( Phoneme, x1, x2, y1,y2);
-        drawline1( Phoneme, x1, x2, y1,y3);
+        drawline1( Phoneme, x1, x2, y1,y4);
         break;
     case 3:
-    case 1:       // E,L
+    case 1:       // E, L
         drawline1( Phoneme, x1, x2, y1,y2);
         drawline1( Phoneme, x1, x2, y1,y3);
         break;
-    case 2:
+    case 2:       // FV
+        drawline1( Phoneme, x1, x2, y1,y2);
+        drawline1( Phoneme, x1, x2, y1,y2-1);
+        break;
     case 4:
-    case 9:     // FV, MBP,rest
+    case 9:     //  MBP,rest
 
         drawline1( Phoneme, x1, x2, y1,y2);
         break;
     case 5:
-    case 6:       // O,U
-        xc = (int)(0.5 + Wt*0.50);
-        yc = (int)(0.5 + Ht*0.25);
-        radius = Wt*0.20;
-        facesCircle(Phoneme,xc, yc, radius);
-        break;
+    case 6:       // O,U,WQ
     case 7:
+        xc = (int)(0.5 + Wt*0.50);
+        yc = (int) (y2-y5)/2 + y5;
+        radius = Wt*0.15;  // O
+        if(Phoneme==6) radius = Wt*0.10;  // U
+        if(Phoneme==7) radius = Wt*0.05;  // WQ
+        facesCircle(Phoneme,xc, yc, radius,0,360);
+        break;
     case 8:       // WQ, etc
-        drawline3( Phoneme, x3, x4, y6, y7);
+        drawline3( Phoneme, x3, x4, y5, y2);
         break;
 
     }
@@ -250,46 +211,25 @@ void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
     hsv.value=1.0;
 
 
-    for(x=x1; x<=x2; x++)
+    for(x=x1+1; x<x2; x++)
     {
         SetPixel(x,y2,hsv); // Turn pixel on
     }
-    for(y=y1; y<=y2; y++)
+    for(y=y2+1; y<=y1; y++)
     {
         SetPixel(x1,y,hsv); // Left side of mouyh
         SetPixel(x2,y,hsv); // rightside
     }
 }
 
-void RgbEffects::drawline2(int Phoneme, int x1,int x2,int y1,int y2,int y3,int y4)
-{
-    wxColour color;
-    wxImage::HSVValue hsv;
-    int ColorIdx,x,y;
-    size_t colorcnt=GetColorCount();
 
-
-    ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-    palette.GetHSV(ColorIdx, hsv);
-    hsv.hue = (float)Phoneme/10.0;
-    hsv.value=1.0;
-
-    for(y=y1; y<=y4; y++)
-    {
-        SetPixel(x1,y,hsv); // Left side of mouyh
-        SetPixel(x2,y,hsv); // rightside
-    }
-    for(x=x1; x<=x2; x++)
-    {
-        SetPixel(x,y4,hsv); // Bottom
-    }
-}
 
 void RgbEffects::drawline3 (int Phoneme, int x1,int x2,int y6,int y7)
 {
     wxColour color;
     wxImage::HSVValue hsv;
-    int ColorIdx,x,y;
+    double radius;
+    int ColorIdx,x,y,xc,yc,dy;
     size_t colorcnt=GetColorCount();
 
 
@@ -298,21 +238,31 @@ void RgbEffects::drawline3 (int Phoneme, int x1,int x2,int y6,int y7)
     hsv.hue = (float)Phoneme/10.0;
     hsv.value=1.0;
 
-    for(y=y6; y<=y7; y++)
+    for(y=y6+1; y<y7; y++)
     {
         SetPixel(x1,y,hsv); // Left side of mouyh
         SetPixel(x2,y,hsv); // rightside
     }
-    for(x=x1; x<=x2; x++)
+    for(x=x1+1; x<x2; x++)
     {
         SetPixel(x,y6,hsv); // Bottom
         SetPixel(x,y7,hsv); // Bottom
     }
+    /*
+    dy = (y7-y6)/2;
+    xc = x1+dy;
+    yc = y7+dy;
+    radius = (double) dy;
+    facesCircle(Phoneme,xc, yc, radius,90,270);
+    xc = x1-dy;
+    facesCircle(Phoneme,xc, yc, radius,270,630);
+    */
+
 }
 /*
 faces draw circle
 */
-void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius)
+void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees)
 {
     int x,y,degrees;
     wxImage::HSVValue hsv;
@@ -320,11 +270,79 @@ void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius)
     hsv.hue = (float)Phoneme/10.0;
     hsv.value=1.0;
     double angle,t,PI=3.1415926;
-    for(degrees=0; degrees<360; degrees+=10)
+    for(degrees=start_degrees; degrees<end_degrees; degrees+=1)
     {
         t = degrees * (PI/180);
         x = (int)xc+radius*cos(t);
         y = (int)yc+radius*sin(t);
         SetPixel(x,y,hsv); // Bottom
     }
+}
+
+void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
+{
+    wxColour color;
+    wxImage::HSVValue hsv;
+    double radius;
+    int ColorIdx,x,y,xc,yc,dy;
+    int Ht, Wt;
+    size_t colorcnt=GetColorCount();
+    Ht = BufferHt-1;
+    Wt = BufferWi-1;
+
+
+    ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+    palette.GetHSV(ColorIdx, hsv);
+    hsv.hue = 0.0;
+    hsv.saturation = 1.0;
+    hsv.value=1.0;
+
+//  DRAW EYES
+    int start_degrees=0;
+    int end_degrees=360;
+    if(Phoneme==5  or Phoneme==6 or Phoneme==7)
+    {
+        start_degrees=180;
+        end_degrees=360;
+    }
+    xc = (int)(0.5 + Wt*0.33); // left eye
+    yc = (int)(0.5 + Ht*0.75);
+    radius = Wt*0.08;
+    facesCircle( Phoneme,xc, yc, radius,start_degrees,end_degrees);
+    xc = (int)(0.5 + Wt*0.66); // right eye
+    yc = (int)(0.5 + Ht*0.75);
+    radius = Wt*0.08;
+    facesCircle(Phoneme,xc, yc, radius,start_degrees,end_degrees);
+
+
+    /*
+    ...********...
+    ..*
+    .*
+    *
+    *
+    *
+    */
+
+    for(y=3; y<BufferHt-3; y++)
+    {
+        SetPixel(0,y,hsv); // Left side of mouyh
+        SetPixel(BufferWi-1,y,hsv); // rightside
+    }
+    for(x=3; x<BufferWi-3; x++)
+    {
+        SetPixel(x,0,hsv); // Bottom
+        SetPixel(x,BufferHt-1,hsv); // Bottom
+    }
+    SetPixel(2,1,hsv); // Bottom left
+    SetPixel(1,2,hsv); //
+
+    SetPixel(BufferWi-3,1,hsv); // Bottom Right
+    SetPixel(BufferWi-2,2,hsv); //
+
+    SetPixel(BufferWi-3,BufferHt-2,hsv); // Bottom Right
+    SetPixel(BufferWi-2,BufferHt-3,hsv); //
+
+    SetPixel(2,BufferHt-2,hsv); // Bottom Right
+    SetPixel(1,BufferHt-3,hsv); //
 }
