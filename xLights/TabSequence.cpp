@@ -159,7 +159,63 @@ void xLightsFrame::SetEffectControls(wxString settings)
     wxWindow *CtrlWin, *ContextWin;
     wxString before,after,name,value;
     int cnt=0;
+
+//NOTE: the settings loop after this section does not initialize controls.
+//For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
+//A loop needs to be added to initialize the wx controls to a predictable value.
+//For now, a few recently added controls are explicitly initialized here:
+//(not sure if there will be side effects to using a full loop) -DJ
+#if 1
     CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
+#else
+    wxString prefix=GetAttrPrefix();
+    wxWindowList &ChildList = ParentWin->GetChildren();
+    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
+    {
+        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        ChildName=ChildWin->GetName();
+        AttrName=prefix+ChildName.Mid(3)+"=";
+        if (ChildName.StartsWith("ID_SLIDER"))
+        {
+            wxSlider* ctrl=(wxSlider*)ChildWin;
+            s+=AttrName+wxString::Format("%d",ctrl->GetValue());
+        }
+        else if (ChildName.StartsWith("ID_TEXTCTRL"))
+        {
+            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
+            wxString v = ctrl->GetValue();
+            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
+            s += AttrName + v;
+        }
+        else if (ChildName.StartsWith("ID_CHOICE"))
+        {
+            wxChoice* ctrl=(wxChoice*)ChildWin;
+            s+=AttrName+ctrl->GetStringSelection();
+        }
+        else if (ChildName.StartsWith("ID_CHECKBOX"))
+        {
+            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
+            wxString v=(ctrl->IsChecked()) ? "1" : "0";
+            s+=AttrName+v;
+        }
+        else if (ChildName.StartsWith("ID_NOTEBOOK"))
+        {
+            wxNotebook* ctrl=(wxNotebook*)ChildWin;
+            for(i=0; i<ctrl->GetPageCount(); i++)
+            {
+                s+=GetEffectStringFromWindow(ctrl->GetPage(i));
+            }
+        }
+    }
+#endif // 1
 
     while (!settings.IsEmpty())
     {
@@ -987,6 +1043,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
+                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter1"]) != 0,
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect1"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count1"]),
                           //
@@ -994,6 +1051,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line2"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font2"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir2"]),
+                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter2"]) != 0,
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect2"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]),
                           //
@@ -1001,6 +1059,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line3"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font3"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir3"]),
+                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter3"]) != 0,
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect3"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count3"]),
                           //
@@ -1008,6 +1067,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line4"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font4"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir4"]),
+                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter4"]) != 0,
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect4"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count4"]));
     }
@@ -1166,6 +1226,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->TextCtrl_Text_Line1->GetValue(),
                           panel->TextCtrl_Text_Font1->GetValue(),
                           panel->Choice_Text_Dir1->GetSelection(),
+                          panel->CheckBox_TextToCenter1->GetValue(),
                           panel->Choice_Text_Effect1->GetSelection(),
                           panel->Choice_Text_Count1->GetSelection(),
                           //
@@ -1173,6 +1234,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->TextCtrl_Text_Line2->GetValue(),
                           panel->TextCtrl_Text_Font2->GetValue(),
                           panel->Choice_Text_Dir2->GetSelection(),
+                          panel->CheckBox_TextToCenter2->GetValue(),
                           panel->Choice_Text_Effect2->GetSelection(),
                           panel->Choice_Text_Count2->GetSelection(),
                           //
@@ -1180,6 +1242,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->TextCtrl_Text_Line3->GetValue(),
                           panel->TextCtrl_Text_Font3->GetValue(),
                           panel->Choice_Text_Dir3->GetSelection(),
+                          panel->CheckBox_TextToCenter3->GetValue(),
                           panel->Choice_Text_Effect3->GetSelection(),
                           panel->Choice_Text_Count3->GetSelection(),
                           //
@@ -1187,6 +1250,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                           panel->TextCtrl_Text_Line4->GetValue(),
                           panel->TextCtrl_Text_Font4->GetValue(),
                           panel->Choice_Text_Dir4->GetSelection(),
+                          panel->CheckBox_TextToCenter4->GetValue(),
                           panel->Choice_Text_Effect4->GetSelection(),
                           panel->Choice_Text_Count4->GetSelection());
 

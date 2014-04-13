@@ -18,9 +18,9 @@ void RenderSnowstorm(int Count, int Length);
 void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
 void RenderSpirograph(int R, int r, int d,bool Animate);
-void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,int TextRotation1,int Effect1,
-                int Position2, const wxString& Line2, const wxString& FontString2,int dir2,int TextRotation2,int Effect2,
-                int Position3, const wxString& Line3, const wxString& FontString3,int dir3,int TextRotation3,int Effect3,
-                int Position4, const wxString& Line4, const wxString& FontString4,int dir4,int TextRotation4,int Effect4);
+void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1,
+                int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int TextRotation2,int Effect2,
+                int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int TextRotation3,int Effect3,
+                int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4);
 void RenderTree(int Branches);
 void RenderTwinkle(int Count,int Steps,bool Strobe);

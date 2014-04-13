@@ -2425,24 +2425,53 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Text_Dir1" variable="Choice_Text_Dir1" member="yes">
-															<selection>0</selection>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer48" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxChoice" name="ID_CHOICE_Text_Dir1" variable="Choice_Text_Dir1" member="yes">
+																	<selection>0</selection>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir1" variable="BitmapButton_TextDir1" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<default>1</default>
+																	<size>20,20</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter1" variable="CheckBox_TextToCenter1" member="yes">
+																	<label>C</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir1" variable="BitmapButton_TextDir1" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter1" variable="BitmapButton_TextToCenter1" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextDir1Click" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_TextToCenter1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2578,24 +2607,53 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Text_Dir2" variable="Choice_Text_Dir2" member="yes">
-															<selection>0</selection>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer49" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxChoice" name="ID_CHOICE_Text_Dir2" variable="Choice_Text_Dir2" member="yes">
+																	<selection>0</selection>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir2" variable="BitmapButton_TextDir2" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<default>1</default>
+																	<size>20,20</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_TextDir2Click" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter2" variable="CheckBox_TextToCenter2" member="yes">
+																	<label>C</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir2" variable="BitmapButton_TextDir2" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Text2Center2" variable="BitmapButton_TextToCenter2" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextDir2Click" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_TextToCenter2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2732,22 +2790,51 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Text_Dir3" variable="Choice_Text_Dir3" member="yes" />
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer50" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxChoice" name="ID_CHOICE_Text_Dir3" variable="Choice_Text_Dir3" member="yes" />
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir3" variable="BitmapButton_TextDir3" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<default>1</default>
+																	<size>20,20</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_TextDir3Click" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_TextToCenter3" member="yes">
+																	<label>C</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir3" variable="BitmapButton_TextDir3" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter3" variable="BitmapButton_TextToCenter3" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
 															<size>20,20</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextDir3Click" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_TextToCenter3Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2882,21 +2969,50 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Text_Dir4" variable="Choice_Text_Dir4" member="yes" />
-														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>2</border>
+														<object class="wxFlexGridSizer" variable="FlexGridSizer52" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxChoice" name="ID_CHOICE_Text_Dir4" variable="Choice_Text_Dir4" member="yes" />
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir4" variable="BitmapButton_TextDir4" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>20,20</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																	<handler function="OnBitmapButton_TextDir4Click" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>1</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_TextToCenter4" member="yes">
+																	<label>C</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir4" variable="BitmapButton_TextDir4" member="yes">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter4" variable="BitmapButton_TextToCenter4" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
+															<default>1</default>
 															<size>20,20</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-															<handler function="OnBitmapButton_TextDir4Click" entry="EVT_BUTTON" />
+															<handler function="OnBitmapButton_TextToCenter4Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>1</border>
+														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">

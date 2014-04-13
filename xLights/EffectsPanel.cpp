@@ -239,6 +239,8 @@ const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT79 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir1 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_TextToCenter1 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_TextToCenter1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT108 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Effect1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Effect1 = wxNewId();
@@ -255,6 +257,8 @@ const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT57 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir2 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_TextToCenter2 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Text2Center2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT109 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Effect2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Effect2 = wxNewId();
@@ -271,6 +275,8 @@ const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font3 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT16 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir3 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX3 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_TextToCenter3 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT17 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Effect3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Effect3 = wxNewId();
@@ -287,6 +293,8 @@ const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font4 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT24 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Dir4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Dir4 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX5 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_TextToCenter4 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT29 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Text_Effect4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Text_Effect4 = wxNewId();
@@ -405,20 +413,24 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer69;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer74;
+    wxFlexGridSizer* FlexGridSizer52;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
+    wxFlexGridSizer* FlexGridSizer49;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer20;
+    wxFlexGridSizer* FlexGridSizer50;
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer35;
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer46;
+    wxFlexGridSizer* FlexGridSizer48;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer33;
     wxFlexGridSizer* FlexGridSizer43;
@@ -1157,12 +1169,21 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer69->Add(BitmapButton_TextFont1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText78 = new wxStaticText(Panel_Text1, ID_STATICTEXT79, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT79"));
     FlexGridSizer69->Add(StaticText78, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer48 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Text_Dir1 = new wxChoice(Panel_Text1, ID_CHOICE_Text_Dir1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Dir1"));
-    FlexGridSizer69->Add(Choice_Text_Dir1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer48->Add(Choice_Text_Dir1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextDir1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_CHOICE_Text_Dir1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir1"));
     BitmapButton_TextDir1->SetDefault();
     BitmapButton_TextDir1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer69->Add(BitmapButton_TextDir1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer48->Add(BitmapButton_TextDir1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    CheckBox_TextToCenter1 = new wxCheckBox(Panel_Text1, ID_CHECKBOX_TextToCenter1, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter1"));
+    CheckBox_TextToCenter1->SetValue(false);
+    FlexGridSizer48->Add(CheckBox_TextToCenter1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer69->Add(FlexGridSizer48, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_TextToCenter1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_TextToCenter1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter1"));
+    BitmapButton_TextToCenter1->SetDefault();
+    BitmapButton_TextToCenter1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer69->Add(BitmapButton_TextToCenter1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText107 = new wxStaticText(Panel_Text1, ID_STATICTEXT108, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT108"));
     FlexGridSizer69->Add(StaticText107, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text_Effect1 = new wxChoice(Panel_Text1, ID_CHOICE_Text_Effect1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Effect1"));
@@ -1204,12 +1225,21 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer74->Add(BitmapButton_TextFont2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText57 = new wxStaticText(Panel_Text2, ID_STATICTEXT57, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT57"));
     FlexGridSizer74->Add(StaticText57, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer49 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Text_Dir2 = new wxChoice(Panel_Text2, ID_CHOICE_Text_Dir2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Dir2"));
-    FlexGridSizer74->Add(Choice_Text_Dir2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer49->Add(Choice_Text_Dir2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextDir2 = new wxBitmapButton(Panel_Text2, ID_BITMAPBUTTON_CHOICE_Text_Dir2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir2"));
     BitmapButton_TextDir2->SetDefault();
     BitmapButton_TextDir2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer74->Add(BitmapButton_TextDir2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer49->Add(BitmapButton_TextDir2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    CheckBox_TextToCenter2 = new wxCheckBox(Panel_Text2, ID_CHECKBOX_TextToCenter2, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter2"));
+    CheckBox_TextToCenter2->SetValue(false);
+    FlexGridSizer49->Add(CheckBox_TextToCenter2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer74->Add(FlexGridSizer49, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_TextToCenter2 = new wxBitmapButton(Panel_Text2, ID_BITMAPBUTTON_Text2Center2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Text2Center2"));
+    BitmapButton_TextToCenter2->SetDefault();
+    BitmapButton_TextToCenter2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer74->Add(BitmapButton_TextToCenter2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText108 = new wxStaticText(Panel_Text2, ID_STATICTEXT109, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT109"));
     FlexGridSizer74->Add(StaticText108, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text_Effect2 = new wxChoice(Panel_Text2, ID_CHOICE_Text_Effect2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Effect2"));
@@ -1250,12 +1280,21 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer25->Add(BitmapButton_TextFont3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText15 = new wxStaticText(Panel_Text3, ID_STATICTEXT16, _("Movement"), wxDefaultPosition, wxSize(51,15), 0, _T("ID_STATICTEXT16"));
     FlexGridSizer25->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer50 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Text_Dir3 = new wxChoice(Panel_Text3, ID_CHOICE_Text_Dir3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Dir3"));
-    FlexGridSizer25->Add(Choice_Text_Dir3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer50->Add(Choice_Text_Dir3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextDir3 = new wxBitmapButton(Panel_Text3, ID_BITMAPBUTTON_CHOICE_Text_Dir3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir3"));
     BitmapButton_TextDir3->SetDefault();
     BitmapButton_TextDir3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer25->Add(BitmapButton_TextDir3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer50->Add(BitmapButton_TextDir3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    CheckBox_TextToCenter3 = new wxCheckBox(Panel_Text3, ID_CHECKBOX3, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+    CheckBox_TextToCenter3->SetValue(false);
+    FlexGridSizer50->Add(CheckBox_TextToCenter3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer25->Add(FlexGridSizer50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_TextToCenter3 = new wxBitmapButton(Panel_Text3, ID_BITMAPBUTTON_TextToCenter3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter3"));
+    BitmapButton_TextToCenter3->SetDefault();
+    BitmapButton_TextToCenter3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer25->Add(BitmapButton_TextToCenter3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText16 = new wxStaticText(Panel_Text3, ID_STATICTEXT17, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT17"));
     FlexGridSizer25->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text_Effect3 = new wxChoice(Panel_Text3, ID_CHOICE_Text_Effect3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Effect3"));
@@ -1295,11 +1334,20 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer29->Add(BitmapButton_TextFont4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText22 = new wxStaticText(Panel_Text4, ID_STATICTEXT24, _("Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
     FlexGridSizer29->Add(StaticText22, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer52 = new wxFlexGridSizer(0, 3, 0, 0);
     Choice_Text_Dir4 = new wxChoice(Panel_Text4, ID_CHOICE_Text_Dir4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Dir4"));
-    FlexGridSizer29->Add(Choice_Text_Dir4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer52->Add(Choice_Text_Dir4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_TextDir4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_CHOICE_Text_Dir4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Text_Dir4"));
     BitmapButton_TextDir4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer29->Add(BitmapButton_TextDir4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer52->Add(BitmapButton_TextDir4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    CheckBox_TextToCenter4 = new wxCheckBox(Panel_Text4, ID_CHECKBOX5, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
+    CheckBox_TextToCenter4->SetValue(false);
+    FlexGridSizer52->Add(CheckBox_TextToCenter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer29->Add(FlexGridSizer52, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_TextToCenter4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_TextToCenter4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter4"));
+    BitmapButton_TextToCenter4->SetDefault();
+    BitmapButton_TextToCenter4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer29->Add(BitmapButton_TextToCenter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText29 = new wxStaticText(Panel_Text4, ID_STATICTEXT29, _("Effect"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT29"));
     FlexGridSizer29->Add(StaticText29, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Text_Effect4 = new wxChoice(Panel_Text4, ID_CHOICE_Text_Effect4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_Effect4"));
@@ -1671,24 +1719,28 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BUTTON_TEXT_FONT1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font1Click);
     Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir1Click);
+    Connect(ID_BITMAPBUTTON_TextToCenter1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount1Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition1Click);
     Connect(ID_BUTTON_TEXT_FONT2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font2Click);
     Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir2Click);
+    Connect(ID_BITMAPBUTTON_Text2Center2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect2Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount2Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition2Click);
     Connect(ID_BUTTON_TEXT_FONT3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font3Click);
     Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir3Click);
+    Connect(ID_BITMAPBUTTON_TextToCenter3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect3Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount3Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition3Click);
     Connect(ID_BUTTON_TEXT_FONT4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font4Click);
     Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont4Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir4Click);
+    Connect(ID_BITMAPBUTTON_TextToCenter4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextToCenter4Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Effect4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextEffect4Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Count4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextCount4Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Text_Position4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextPosition4Click);
@@ -2285,24 +2337,28 @@ showlock(TextLine4)
 
 showlock(TextFont1)
 showlock(TextDir1)
+showlock(TextToCenter1)
 showlock(TextEffect1)
 showlock(TextCount1)
 showlock(TextPosition1)
 
 showlock(TextFont2)
 showlock(TextDir2)
+showlock(TextToCenter2)
 showlock(TextEffect2)
 showlock(TextCount2)
 showlock(TextPosition2)
 
 showlock(TextFont3)
 showlock(TextDir3)
+showlock(TextToCenter3)
 showlock(TextEffect3)
 showlock(TextCount3)
 showlock(TextPosition3)
 
 showlock(TextFont4)
 showlock(TextDir4)
+showlock(TextToCenter4)
 showlock(TextEffect4)
 showlock(TextCount4)
 showlock(TextPosition4)
