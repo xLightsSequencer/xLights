@@ -2812,7 +2812,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter3" variable="CheckBox_TextToCenter3" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_TextToCenter3" member="yes">
 																	<label>C</label>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2990,7 +2990,7 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter4" variable="CheckBox_TextToCenter4" member="yes">
+																<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_TextToCenter4" member="yes">
 																	<label>C</label>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
