@@ -27,6 +27,10 @@
 #include <wx/font.h>
 #include <wx/fontutil.h>
 
+
+#define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
+
+
 // Render 4 independent strings of text
 // FontString is a value that can be fed to SetNativeFontInfoUserDesc
 // dir is 0: move left, 1: move right, 2: up, 3: down, 4: 5: , 6: no movement
@@ -110,35 +114,43 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     Font4.SetNativeFontInfo(s);
 #endif
 
-    dc.SetFont(Font1);
-    size_t colorcnt=GetColorCount();
-    palette.GetColor(0,c);
-    dc.SetTextForeground(c);
-    RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1);
-
-    dc.SetFont(Font2);
-    if(colorcnt>1)
+    for (int pass = 0; pass < 2; ++pass)
     {
-        palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
-        dc.SetTextForeground(c);
-    }
-    RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2);
+#ifndef WANT_TEXT_LINES_SYNCED
+        if (!pass) continue; //don't need 2 passes
+#endif // WANT_TEXT_LINES_SYNCED
 
-    dc.SetFont(Font3);
-    if(colorcnt>2)
-    {
-        palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+        dc.SetFont(Font1);
+        size_t colorcnt=GetColorCount();
+        palette.GetColor(0,c);
         dc.SetTextForeground(c);
-    }
-    RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3);
+        RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass);
 
-    dc.SetFont(Font4);
-    if(colorcnt>3)
-    {
-        palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
-        dc.SetTextForeground(c);
+        dc.SetFont(Font2);
+        if(colorcnt>1)
+        {
+            palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+            dc.SetTextForeground(c);
+        }
+        RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass);
+
+        dc.SetFont(Font3);
+        if(colorcnt>2)
+        {
+            palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+            dc.SetTextForeground(c);
+        }
+        RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass);
+
+        dc.SetFont(Font4);
+        if(colorcnt>3)
+        {
+            palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
+            dc.SetTextForeground(c);
+        }
+        RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass);
     }
-    RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4);
+
 
     //convert to image to get the pixel data
     wxImage image(bitmap.ConvertToImage());
@@ -153,6 +165,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         }
     }
 }
+
 
 // dir is 0: move left, 1: move right, 2: up, 3: down, 4: no movement
 // Effect is 0: normal, 1: vertical text down, 2: vertical text up,
@@ -181,6 +194,11 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 #define TEXTDIR_WAVEY_LRUPDOWN(comment)  9
 #define TEXTDIR_BOUNCING_LRUPDOWN(comment)  10 //TODO
 
+#define IsGoingLeft(dir)  (((dir) == TEXTDIR_LEFT(0)) || ((dir) == TEXTDIR_UPLEFT(5)) || ((dir) == TEXTDIR_DOWNLEFT(6)))
+#define IsGoingRight(dir)  (((dir) == TEXTDIR_RIGHT(1)) || ((dir) == TEXTDIR_UPRIGHT(7)) || ((dir) == TEXTDIR_DOWNRIGHT(8)))
+#define IsGoingUp(dir)  (((dir) == TEXTDIR_UP(2)) || ((dir) == TEXTDIR_UPLEFT(5)) || ((dir) == TEXTDIR_UPRIGHT(7)))
+#define IsGoingDown(dir)  (((dir) == TEXTDIR_DOWN(3)) || ((dir) == TEXTDIR_DOWNLEFT(6)) || ((dir) == TEXTDIR_DOWNRIGHT(8)))
+
 //provide back-and-forth movement (linear):
 //in future this could use exp/log functions for "gravity" type bounces, but for now linear is adequate
 #define zigzag(value, range)  \
@@ -191,7 +209,19 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 //#define WANT_DEBUG 99
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown)
+static wxString StripLeft(wxString str, wxString pattern)
+{
+    while (str.StartsWith(pattern, &str));
+    return str;
+}
+
+static wxString StripRight(wxString str, wxString pattern)
+{
+    while (str.EndsWith(pattern, &str));
+    return str;
+}
+
+void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
 {
     long tempLong,longsecs;
     wxString msg,tempmsg;
@@ -315,6 +345,7 @@ TIME FORMAT CHARACTERS:
         break;
     default:
         msg=Line;
+        msg.Replace("\\n", "\n", true); //allow vertical spacing (mainly for up/down) -DJ
         break;
     }
 
@@ -342,6 +373,13 @@ TIME FORMAT CHARACTERS:
     }
 
     wxSize textsize = dc.GetMultiLineTextExtent(msg);
+    int extra_left = IsGoingLeft(dir)? textsize.x - dc.GetMultiLineTextExtent(wxString(msg).Trim(false)).x: 0; //CAUTION: trim() alters object, so make a copy first
+    int extra_right = IsGoingRight(dir)? textsize.x - dc.GetMultiLineTextExtent(wxString(msg).Trim(true)).x: 0;
+    int extra_down = IsGoingDown(dir)? textsize.y - dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y: 0;
+    int extra_up = IsGoingUp(dir)? textsize.y - dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y: 0;
+//    debug(1, "size %d lstrip %d, rstrip %d, = %d, %d, text %s", dc.GetMultiLineTextExtent(msg).y, dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y, dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y, extra_down, extra_up, (const char*)StripLeft(msg, "\n"));
+    int lineh = dc.GetMultiLineTextExtent("X").y;
+//    wxString debmsg = msg; debmsg.Replace("\n","\\n", true);
     int xoffset=0;
     int yoffset=0;
 
@@ -377,6 +415,23 @@ TIME FORMAT CHARACTERS:
     }
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
 
+#ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
+    static wxSize synced_textsize;
+    if (!WantRender) //for synced text lines, collect info first and then render after info is available
+    {
+        if (!idx) synced_textsize = textsize;
+        else //keep max value
+        {
+            if (textsize.x > synced_textsize.x) synced_textsize.x = textsize.x;
+            if (textsize.y > synced_textsize.y) synced_textsize.y = textsize.y;
+        }
+//        debug(1, "text[%d]: pass %d, txtsiz %d/%d, synced %d/%d", idx, WantRender, textsize.x, textsize.y, synced_textsize.x, synced_textsize.y);
+        return;
+    }
+    else textsize.x = synced_textsize.x; //use composite size
+//    debug(1, "text[%d]: pass %d, synced txtsiz %d/%d", idx, WantRender, textsize.x, textsize.y);
+#endif // WANT_TEXT_LINES_SYNCED
+
     int txtwidth=textsize.GetWidth();
     int totwidth=BufferWi+txtwidth;
     int totheight=BufferHt+textsize.GetHeight();
@@ -391,33 +446,34 @@ TIME FORMAT CHARACTERS:
         switch (dir)
         {
         case TEXTDIR_LEFT(0):
-//            debug(1, "l2r[%d], center? %d: xlim/16 %d, state %d, xofs %d", idx, center, xlimit/16, state, center? std::max((int)(xlimit/8 - state /*% xlimit/8*/), 0): xlimit/16 - state % xlimit/8);
-            rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit/8*/), 0): xlimit/16 - state % xlimit/8, OffsetTop);
+//            debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
+            rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
             break; // left, optionally stop at center
         case TEXTDIR_RIGHT(1):
-            rect.Offset(center? std::min((int)(state % xlimit/8 - xlimit/16), 0): state % xlimit/8 - xlimit/16, OffsetTop);
+            rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, OffsetTop);
             break; // right, optionally stop at center
         case TEXTDIR_UP(2):
-            rect.Offset(OffsetLeft, center? std::max((int)(ylimit/16 - state % ylimit/8), 0): ylimit/16 - state % ylimit/8);
+            rect.Offset(OffsetLeft, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
             break; // up, optionally stop at center
         case TEXTDIR_DOWN(3):
-            rect.Offset(OffsetLeft, center? std::min((int)(state % ylimit/8 - ylimit/16), 0): state % ylimit/8 - ylimit/16);
+//            debug(1, "t2b[%d] center? %d, totht %d, ylimit %d, extra u %d d %d, lineh %d, text %s => yofs min(%d - %d, %d + %d)", idx, center, totheight, ylimit, extra_up, extra_down, lineh, (const char*)debmsg, state /*% ylimit*/ /8, ylimit/16, -lineh/2, extra_down/2);
+            rect.Offset(OffsetLeft, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
             break; // down, optionally stop at center
         case TEXTDIR_UPLEFT(5):
-            rect.Offset(center? std::max((int)(xlimit/16 - state % xlimit/8), 0): xlimit/16 - state % xlimit/8, center? std::max((int)(ylimit/16 - state % ylimit/8), 0): ylimit/16 - state % ylimit/8);
+            rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
             break; // up-left, optionally stop at center
         case TEXTDIR_DOWNLEFT(6):
-            rect.Offset(center? std::max((int)(xlimit/16 - state % xlimit/8), 0): xlimit/16 - state % xlimit/8, center? std::min((int)(state % ylimit/8 - ylimit/16), 0): state % ylimit/8 - ylimit/16);
+            rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
             break; // down-left, optionally stop at center
         case TEXTDIR_UPRIGHT(7):
-            rect.Offset(center? std::min((int)(state % xlimit/8 - xlimit/16), 0): state % xlimit/8 - xlimit/16, center? std::max((int)(ylimit/16 - state % ylimit/8), 0): ylimit/16 - state % ylimit/8);
+            rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, center? std::max((int)(ylimit/16 - state /*% ylimit*/ /8), lineh/2 - extra_up/2): ylimit/16 - state % ylimit/8);
             break; // up-right, optionally stop at center
         case TEXTDIR_DOWNRIGHT(8):
-            rect.Offset(center? std::min((int)(state % xlimit/8 - xlimit/16), 0): state % xlimit/8 - xlimit/16, center? std::min((int)(state % ylimit/8 - ylimit/16), 0): state % ylimit/8 - ylimit/16);
+            rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, center? std::min((int)(state /*% ylimit*/ /8 - ylimit/16), -lineh/2 + extra_down/2): state % ylimit/8 - ylimit/16);
             break; // down-right, optionally stop at center
         case TEXTDIR_WAVEY_LRUPDOWN(9):
             if (center) //does to-center make sense with this one?
-                rect.Offset(std::min((int)(state % xlimit/8 - xlimit/16), 0), std::max((int)zigzag(state/4, totheight)/2 - totheight/4, 0));
+                rect.Offset(std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2), std::max((int)zigzag(state/4, totheight)/2 - totheight/4, -extra_left/2));
             else
                 rect.Offset(xlimit/16 - state % xlimit/8, zigzag(state/4, totheight)/2 - totheight/4);
             break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
@@ -462,4 +518,6 @@ TIME FORMAT CHARACTERS:
         }
     }
 }
-
+//#ifndef WANT_TEXT_LINES_SYNCED
+//static void FinishRender(wxMemoryDC& dc, int BufferWi, int BufferHt, int state, int idx, wxSize& textsize)
+//#endif // WANT_TEXT_LINES_SYNCED
