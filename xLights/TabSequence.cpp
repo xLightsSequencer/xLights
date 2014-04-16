@@ -166,7 +166,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
 //For now, a few recently added controls are explicitly initialized here:
 //(not sure if there will be side effects to using a full loop) -DJ
 #if 1
-    CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
+  // <SCM>  CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
@@ -343,7 +343,11 @@ wxString xLightsFrame::CreateEffectStringRandom()
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
     s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
+#if 1 // <SCM>
+    s += ",ID_CHECKBOX_LayerMorph=0";
+#else
     s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
+#endif // 1
     s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
     s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
     s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
@@ -384,14 +388,20 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
                                                              E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
 #endif // 0
 
-wxString xLightsFrame::CreateEffectString()
+                                                                     wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
     wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
     s+=","+Choice_LayerMethod->GetStringSelection();
+    #if 1 // <SCM>
+    s += ",ID_CHECKBOX_LayerMorph=0";
+#else
     s+=",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", CheckBox_LayerMorph->GetValue()? 1: 0);
+#endif // 1
+
+
     s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
     s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
     s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
@@ -1295,7 +1305,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     buffer.SetContrast(contrast);
 
     int effectMixThreshold=Slider_EffectLayerMix->GetValue();
-    buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
+// <SCM>    buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
 
     if (MixTypeChanged)
     {

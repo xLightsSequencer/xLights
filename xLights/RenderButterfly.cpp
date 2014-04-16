@@ -46,7 +46,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 d = x*x + y*y;
                 if(d>0.001) h=n/d;
                 else
-                    d=0.0;
+                    h=0.0;
                 break;
             case 2:
                 f=(frame < maxframe/2) ? frame+1 : maxframe - frame;

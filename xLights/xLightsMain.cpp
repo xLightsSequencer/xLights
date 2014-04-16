@@ -2183,7 +2183,9 @@ showlock(EffectLayerMix)
 showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
+#if 0   // <SCM>
 showlock(CheckBox_LayerMorph)
+#endif
 
 /*void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 {
