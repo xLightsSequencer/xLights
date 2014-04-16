@@ -3,7 +3,7 @@ LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 <next>
-		-Enhancement, requested (djulien): add center-and-stop option to text movement options (new checkbox)
+		-Enhancement, requested (djulien): add center-and-stop option to text movement options (new checkbox); sync text lines; use left/right spaces to delay left/right movement or left/right "\n" to delay up/down movement
 		-Bug fix (djulien): allow "," within Text lines (caused "not found" error)
 		-Enhancement (djulien): add checkbox to enable gradual Effect 1 -> Effect 2 transition; can be used for ramp/fade, morph text or image, etc.
 		-Enhancement, requested (djulien): add menu item to clear all effects on this row

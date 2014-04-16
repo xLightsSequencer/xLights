@@ -485,7 +485,7 @@ protected:
     void ClearWaveBuffer1();
     void ClearWaveBuffer2();
     int Life_CountNeighbors(int x, int y);
-    void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, bool center, int Effect, int Countdown);
+    void RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line, int dir, bool center, int Effect, int Countdown, bool WantRender);
     void RenderMeteorsVertical(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsHorizontal(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
     void RenderMeteorsImplode(int ColorScheme, int Count, int Length, int SwirlIntensity);
