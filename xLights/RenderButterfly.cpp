@@ -43,8 +43,10 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
             {
             case 1:
                 n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi))));
-                d = x*x + y*y+1;
-                h=n/d;
+                d = x*x + y*y;
+                if(d>0.001) h=n/d;
+                else
+                    d=0.0;
                 break;
             case 2:
                 f=(frame < maxframe/2) ? frame+1 : maxframe - frame;

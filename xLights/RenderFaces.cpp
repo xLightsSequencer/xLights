@@ -27,7 +27,7 @@
 
 #define WANT_DEBUG_IMPL
 #define WANT_DEBUG  99
-#include "djdebug.cpp"
+//#include "djdebug.cpp"
 
 void RgbEffects::RenderFaces(int Phoneme)
 {
@@ -68,7 +68,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 
 //    above is from ModelClass::ChannelLayoutHtml()
 
-#if 1 //DEBUG
+#if 0 //DEBUG
 //get list of models:
     wxString buf;
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
