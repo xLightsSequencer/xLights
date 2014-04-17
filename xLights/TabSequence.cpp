@@ -166,7 +166,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
 //For now, a few recently added controls are explicitly initialized here:
 //(not sure if there will be side effects to using a full loop) -DJ
 #if 1
-  // <SCM>  CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
+    CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
@@ -343,7 +343,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
     s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
-#if 1 // <SCM>
+#if 0 // <SCM>
     s += ",ID_CHECKBOX_LayerMorph=0";
 #else
     s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
@@ -395,7 +395,7 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
     wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
     s+=","+Choice_LayerMethod->GetStringSelection();
-    #if 1 // <SCM>
+#if 0 // <SCM>
     s += ",ID_CHECKBOX_LayerMorph=0";
 #else
     s+=",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", CheckBox_LayerMorph->GetValue()? 1: 0);
@@ -1305,7 +1305,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     buffer.SetContrast(contrast);
 
     int effectMixThreshold=Slider_EffectLayerMix->GetValue();
-// <SCM>    buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
+    buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
 
     if (MixTypeChanged)
     {

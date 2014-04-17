@@ -672,7 +672,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT16;
 		static const long ID_CHOICE_Text_Dir3;
 		static const long ID_BITMAPBUTTON_CHOICE_Text_Dir3;
-		static const long ID_CHECKBOX3;
+		static const long ID_CHECKBOX_TextToCenter3;
 		static const long ID_BITMAPBUTTON_TextToCenter3;
 		static const long ID_STATICTEXT17;
 		static const long ID_CHOICE_Text_Effect3;
@@ -690,7 +690,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_STATICTEXT24;
 		static const long ID_CHOICE_Text_Dir4;
 		static const long ID_BITMAPBUTTON_CHOICE_Text_Dir4;
-		static const long ID_CHECKBOX5;
+		static const long ID_CHECKBOX_TextToCenter4;
 		static const long ID_BITMAPBUTTON_TextToCenter4;
 		static const long ID_STATICTEXT29;
 		static const long ID_CHOICE_Text_Effect4;
