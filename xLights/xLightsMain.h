@@ -493,6 +493,8 @@ private:
     static const long ID_CHOICE7;
     static const long ID_BUTTON59;
     static const long ID_BUTTON_Palette;
+    static const long ID_CHECKBOX_LayerMorph;
+    static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
     static const long ID_CHOICE_LayerMethod;
     static const long ID_SLIDER_EffectLayerMix;
     static const long ID_TEXTCTRL_LayerMix;
@@ -719,6 +721,7 @@ private:
     wxCheckBox* CheckBoxRunSchedule;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
+    wxCheckBox* CheckBox_LayerMorph;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
@@ -748,6 +751,7 @@ private:
     wxRadioButton* RadioButtonChase;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButtonTabInfo;
+    wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
     wxRadioButton* RadioButtonRgbCycle5;
