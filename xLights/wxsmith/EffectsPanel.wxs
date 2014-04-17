@@ -182,7 +182,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Butterfly_Style" variable="Slider_Butterfly_Style" member="yes">
 										<value>1</value>
 										<min>1</min>
-										<max>3</max>
+										<max>4</max>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>

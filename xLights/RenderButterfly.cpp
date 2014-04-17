@@ -23,6 +23,15 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+/*
+01) x*y^3-y*x^3
+(02) (x^2+3*y^2)*e^(-x^2-y^2)
+	(03) -x*y*e^(-x^2-y^2)
+	(04) -1/(x^2+y^2)
+	(05) cos(abs(x)+abs(y))
+	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
+*/
+
 void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip)
 {
     int x,y,d;
@@ -33,7 +42,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     wxImage::HSVValue hsv;
     int maxframe=BufferHt*2;
     int frame=(BufferHt * state / 200)%maxframe;
-    double offset=double(state)/100.0;
+    double offset=double(state)/200.0;
 
     for (x=0; x<BufferWi; x++)
     {
@@ -42,8 +51,14 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
             switch (Style)
             {
             case 1:
+                x1=x*sin(frame);
+                y1=y*cos(frame);
                 n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi))));
+                n = abs((x1*x1 - y1*y1) * sin (offset + ((x1+y1)*pi2 / (BufferHt+BufferWi))));
+               n = abs((x1*x1 - y1*y1));
                 d = x*x + y*y;
+
+                d = x1*x1 + y1*y1;
                 if(d>0.001) h=n/d;
                 else
                     h=0.0;
@@ -61,7 +76,11 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 y1 = (y-BufferHt/2.0)/f;
                 h=sin(x1) * cos(y1);
                 break;
-
+            case 4:
+                h=cos(abs(x)+abs(y))*(abs(x)+abs(y));
+                f=(frame < maxframe/2) ? frame+1 : maxframe - frame;
+                h=h/f;
+                break;
             }
             hsv.saturation=1.0;
             hsv.value=1.0;
