@@ -326,6 +326,7 @@ private:
     void OnButton_PaletteClick(wxCommandEvent& event);
     void OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event);
     void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
+
     void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
     void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
     void OnMenuItemBackupSelected(wxCommandEvent& event);
@@ -849,7 +850,7 @@ private:
     void WriteXLightsFile(const wxString& filename); //   xLights *.xseq
     void WriteFalconPiFile(const wxString& filename); //  Falcon Pi Player *.pseq
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                          SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
+                                SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
@@ -1040,7 +1041,7 @@ private:
     void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
-friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
+    friend class xLightsApp; //kludge: allow xLightsApp to call OnPanelSequence2Char -DJ
 public:
     static std::vector<ModelClassPtr> PreviewModels; //make public and static for easier access -DJ
 };

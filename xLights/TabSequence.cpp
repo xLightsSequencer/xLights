@@ -299,7 +299,10 @@ void xLightsFrame::SetEffectControls(wxString settings)
     OnSlider_BrightnessCmdScroll(evt);
     OnSlider_ContrastCmdScroll(evt);
     OnSlider_EffectLayerMixCmdScroll(evt);
+
     OnSlider_SparkleFrequencyCmdScroll(evt);
+ //   OnSlider_SparkleSliderCmdScroll(evt);
+
     EffectsPanel1->UpdateSpeedText();
     EffectsPanel2->UpdateSpeedText();
 
@@ -1159,6 +1162,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
+
     case eff_FIRE:
         buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
                           panel->Slider_Fire_HueShift->GetValue(),
@@ -3351,6 +3355,8 @@ void xLightsFrame::OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event)
 {
     txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
 }
+
+
 
 void xLightsFrame::OnSlider_BrightnessCmdScroll(wxScrollEvent& event)
 {

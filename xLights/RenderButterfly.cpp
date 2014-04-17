@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      RgbEffects.cpp
+ * Name:      RenderButterfly.cpp
  * Purpose:   Implements RGB effects
  * Author:    Matt Brown (dowdybrown@yahoo.com)
  * Created:   2012-12-23
@@ -51,14 +51,9 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
             switch (Style)
             {
             case 1:
-                x1=x*sin(frame);
-                y1=y*cos(frame);
-                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi))));
-                n = abs((x1*x1 - y1*y1) * sin (offset + ((x1+y1)*pi2 / (BufferHt+BufferWi))));
-               n = abs((x1*x1 - y1*y1));
-                d = x*x + y*y;
 
-                d = x1*x1 + y1*y1;
+                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi))));
+                d = x*x + y*y;
                 if(d>0.001) h=n/d;
                 else
                     h=0.0;
@@ -77,9 +72,24 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 h=sin(x1) * cos(y1);
                 break;
             case 4:
-                h=cos(abs(x)+abs(y))*(abs(x)+abs(y));
-                f=(frame < maxframe/2) ? frame+1 : maxframe - frame;
-                h=h/f;
+                /*
+                The butterfly curve is a transcendental plane curve discovered by Temple H. Fay. The curve is given by the following parametric equations:
+
+                x = \sin(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over 12}\right)\right)
+                y = \cos(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over 12}\right)\right)
+                or by the following polar equation:
+
+                r=e^{\cos \theta} - 2 \cos (4 \theta ) + \sin^5\left(\frac{2 \theta - \pi}{24}\right)
+
+
+                x = \cos(a t) - \cos(b t)^j
+                y = \sin(c t) - \sin(d t)^k
+
+                x=2*sin(3*t)*cos(t)
+                y=2*sin(3*t)*sin(t)
+                */
+                h=2*sin(3*x)*cos(y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi)));
+h =  x*(y^3) - y*(x^3);
                 break;
             }
             hsv.saturation=1.0;

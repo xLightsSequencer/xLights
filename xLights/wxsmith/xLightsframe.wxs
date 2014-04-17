@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.3.3)</title>
+		<title>xLights/Nutcracker  (Ver 3.3.4)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -1506,7 +1506,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxCheckBox" name="ID_CHECKBOX_LayerMorph" variable="CheckBox_LayerMorph" member="yes">
-																					<label>!</label>
+																					<label>Morph</label>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1564,7 +1564,7 @@
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_LayerMix" variable="txtCtlEffectMix" member="yes">
 																					<value>0</value>
 																					<size>32,20</size>
-																					<style>wxTE_READONLY</style>
+																					<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1609,7 +1609,7 @@
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
 																					<value>200</value>
 																					<size>32,20</size>
-																					<style>wxTE_READONLY</style>
+																					<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1652,7 +1652,7 @@
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
 																					<value>100</value>
 																					<size>32,20</size>
-																					<style>wxTE_READONLY</style>
+																					<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>
@@ -1691,7 +1691,7 @@
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
 																					<value>0</value>
 																					<size>32,20</size>
-																					<style>wxTE_READONLY</style>
+																					<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>

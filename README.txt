@@ -2,19 +2,25 @@ xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler. Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches. 
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
-<next>
-		-Enhancement, requested (djulien): add center-and-stop option to text movement options (new checkbox); sync text lines; use left/right spaces to delay left/right movement or left/right "\n" to delay up/down movement
+3.3.4	-Enhancement, (sean). Faces effect now creates a scalable face on your matrix or megatree
+		-Bug fix, (Sean). Entering a RETURN in the text fields of the the TEXT effect no longer crashes xLights
+		-Enhancement, requested (djulien): add center-and-stop option to text movement options (new checkbox); 
+			sync text lines; use left/right spaces to delay left/right movement or left/right "\n" to delay up/down movement
 		-Bug fix (djulien): allow "," within Text lines (caused "not found" error)
-		-Enhancement (djulien): add checkbox to enable gradual Effect 1 -> Effect 2 transition; can be used for ramp/fade, morph text or image, etc.
+		-Enhancement (djulien): add MORPH checkbox to enable gradual Effect 1 -> Effect 2 transition; 
+			can be used for ramp/fade, morph text or image, etc.
 		-Enhancement, requested (djulien): add menu item to clear all effects on this row
 		-Bug fix (djulien): copy/paste text to Text effect Line 1 - 4, don't interfere with grid
-3.3.3	-Enhancement, requested (djulien): add Copy Effect Across Row menu item; copies selected cell (random effect) into other cells on the same row
+3.3.3	-Enhancement, requested (djulien): add Copy Effect Across Row menu item; copies selected cell (random effect) 
+			into other cells on the same row
 		-Enhancement, (sean) Added two more lines of text to text effect. Now you can have 4 lines of text.
 		-Bug fix (sean). Fixed LSP export. Yeah!
-		-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; format is <delim>target-date<delim>format-string
+		-Enhancement, requested (djulien): allow user-specified format string with Countdown Text effect; 
+			format is <delim>target-date<delim>format-string
 			for example: #4/1/2014 12:00:00#only %S seconds until noon on April 1!
 			NOTE: don't use "," within Text; there is an XML parsing bug in xLights when the file is reloaded
-		-Enhancement, requested (djulien): copy same random effect to all unlocked cells horizontally when Shift key used with Create Random Events button
+		-Enhancement, requested (djulien): copy same random effect to all unlocked cells horizontally 
+			when Shift key used with Create Random Events button
 		-Enhancement (djulien): write playback checkpoints to file for crash monitoring
 		-Enhancement (djulien): add flag waving option to Pictures (useful for 4th of July, Memorial Day, etc)
 3.3.2	-Bug fix (dkulp): When importing LOR *.lms files, certain missing data 
@@ -31,7 +37,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 		-Enhancement (djulien): add a couple of icicle options to Meteors
 		-Enhancement (djulien): add wavey left-to-right up/down option for text
 		-Enhancement (djulien): added additional format options for date count-down
-		-Enhancement (djulien): pass controller responses to plug-in (in-coming or round-trip data); internal change only - should not affect standard usage, but listed here just in case
+		-Enhancement (djulien): pass controller responses to plug-in (in-coming or round-trip data); internal 
+			change only - should not affect standard usage, but listed here just in case
 		-Enhancement (djulien): add /noauto command line option to prompt for auto-run (allows easier schedule override)
 		-Bug fix/enhancement? (djulien): show channel# being tested during Chase test
 		-Bug fix/enhancement? (djulien): continue execution after comm output overflow in case controller can catch up
@@ -86,34 +93,40 @@ XLIGHTS/NUTCRACKER RELEASE NOTES: http://nutcracker123.com/nutcracker/releases/
 		- Enhancement (Sean) New directory "songs" has audacity label files for many songs. Find the new directory
 				at C:\Program Files (x86)\xLights\songs
 3.2.3:	- Bug: (Dan) Schedule tab missing on Linux
-                - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. (Lower network traffic, less processing needed)
+        - Enhancement: (Dan) When outputting e1.31, only output the used channels instead of the full 512 universe. 
+				(Lower network traffic, less processing needed)
 		- Bug: (Dan) Text Effect not rendering on OSX.  Fixed.
 		- Enhancement: (Sean) New Single Strand Effect class. Use this for arches and eaves
 3.2.2:	- Enhancement: (Dan) When importing hlsIdata, sort by the universes number to make the import predictable and repeatable.
 		- Enhancement: (Dan) When importing hlsIdata, change the file extension for the Audio from PCM to mp3.
-		- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
+		- Bug: (Dan) If there is a named test setup, much of the functionality on the Setup tab (up/down arrows, 
+			modifying a network, etc..) did not work properly and could result in modifying the wrong network.  Fixed.
 		- Bug: (Dan) Preview/Nutcracker tab drawing on the Mac would result in "ghosts" of the flashing lights due to anti-aliasing. Fixed.
 		- Bug: (Dan) At certain screen sizes, some pixels in mega-trees and other Nutcracker models may not display.  Fixed.
 				
 3.2.1:  - Enhancement: (Frank). In the Model section you now see start and end channels, not just start
 		- Bug: (Sean). When exporting HLS sequences if the number of channels was not evely divisible by 3, xLights would crash. Fixed.
-		- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling windows so that larger data sets can be handled.
+		- Enhancement: (Frank). Switched the grids for start channel and custom model to be in scrolling 
+			windows so that larger data sets can be handled.
 		- Bug: (Matt). Smart RGB arches are only producing a single channel. Fixed
 		- Enhancement: (Matt). F1 will bring up help if you are in the Profile tab
-3.2.0:  - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. There are new string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can pick RED, GREEN,BLUE, WHITE as single colour strings.
+3.2.0:  - Enhancement: (Matt). In the Model creation you can now select type of string that the model will use. 
+			There are new string types available. You can pick non-rgb strings. These will use a single channel, For preview purposes you can pick RED, GREEN,BLUE, WHITE as single colour strings.
 		- Enhancement: (Matt). You can now select a string type that is strobe lights. This light will flash 3 times per second
 				for each bulb.
 		- Enhancement: (Matt). You can now pick a multi pointed star as a display element.
 		- Enhancement: (Matt). You can select a wreath as a display element.
 		- Enhancement: (matt). You can select a string type of 3 channel RGB (In other words dumb rgb strings)
 	NOTE! With the change to the latest wxWidgets 2.9.5 , Mac 10.6.8 is no longer supported. We now will only support 10.7 and higher
-3.1.4:  - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, you can define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
-                - Enhancement: (Matt) You can now copy models.
+3.1.4:  - Enhancement: (Matt). Custom Model now uses pixel count 1..n. Models can be put on preview. For example, 
+			you can define a candy cane out of rgb pixels and then place candy cane in the preview window. Very Nice!
+        - Enhancement: (Matt) You can now copy models.
 		- Enhancement: (Matt) You can now rotate single strand models in the preview window.
 		- Enhancement: (Matt) There is a Sequence open button on the Preview tab. If you use this to open a sequence there is
 				an option to set the "Part of my Display" checkboxes to match the models that just got opened.
 3.1.3:  Aug 27,2013 - Enhancement: (Matt). New Effect Curtain.
-					- Enhancement: (Matt)  New tab PREVIEW. There is a new tab that will allow you to see all of your models displaying effects.
+					- Enhancement: (Matt)  New tab PREVIEW. There is a new tab that will allow you to see all of your 
+					models displaying effects.
 					- Bug (Frank) Fixed channel numbering for single string and Window models
 3.1.2:  Aug 17,2013 - Enhancement: (Frankr). Circle effect now has new option called plasma.
 					- Enhancement: (Matt Brown).  bars compress & expand so that the two halves mirror each other.

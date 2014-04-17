@@ -2269,6 +2269,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line1" variable="TextCtrl_Text_Line1" member="yes">
 												<maxlength>256</maxlength>
 												<size>216,21</size>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -2298,6 +2299,7 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line2" variable="TextCtrl_Text_Line2" member="yes">
 												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -2327,6 +2329,7 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line3" variable="TextCtrl_Text_Line3" member="yes">
 												<maxlength>256</maxlength>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
@@ -2355,6 +2358,7 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Text_Line4" variable="TextCtrl_Text_Line4" member="yes">
 												<maxlength>256</maxlength>
 												<size>174,21</size>
+												<style>wxTE_PROCESS_ENTER</style>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
