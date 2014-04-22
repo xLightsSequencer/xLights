@@ -1361,6 +1361,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FacesPhoneme.Add("etc");
     FacesPhoneme.Add("rest");
 
+    WaveType.Add("Sine");
+    WaveType.Add("Triangle");
+    WaveType.Add("Square");
 
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
@@ -1586,6 +1589,9 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);
+
+    panel->Choice_Wave_Type->Set(WaveType);
+    panel->Choice_Wave_Type->SetSelection(0);
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)

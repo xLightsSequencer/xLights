@@ -1094,6 +1094,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Steps"]),
                              SettingsMap[LayerStr+"CHECKBOX_Twinkle_Strobe"]=="1");
     }
+     else if (effect == "Wave")
+    {
+        buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]));
+    }
     return retval;
 }
 
@@ -1276,6 +1280,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
                              panel->Slider_Twinkle_Steps->GetValue(),
                              panel->CheckBox_Twinkle_Strobe->GetValue());
+        break;
+         case eff_WAVE:
+        buffer.RenderWave(panel->Choice_Wave_Type->GetSelection());
         break;
 
     }

@@ -226,6 +226,7 @@ public:
         eff_TWINKLE,
         eff_SINGLESTRAND,
         eff_FACES,
+        eff_WAVE,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -1021,6 +1022,8 @@ private:
     wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
+     wxArrayString WaveType;
+
     wxArrayString CurtainEdge;
     wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
