@@ -1022,7 +1022,10 @@ private:
     wxArrayString SingleStrandTypes;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
-     wxArrayString WaveType;
+    wxArrayString WaveType;
+    wxArrayString FillColors;
+    wxArrayString WaveDirection;
+
 
     wxArrayString CurtainEdge;
     wxArrayString CurtainEffect;

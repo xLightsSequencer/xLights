@@ -517,7 +517,8 @@ void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
     Effect[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
 }
 
-void PixelBufferClass::RenderWave(int WaveType)
+void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int NumberWaves,int ThicknessWave,
+                                  int WaveHeight, int WaveDirection)
 {
-    Effect[CurrentLayer].RenderWave(WaveType);
+    Effect[CurrentLayer].RenderWave(WaveType, FillColor, InvertFillColor, NumberWaves, ThicknessWave, WaveHeight, WaveDirection);
 }

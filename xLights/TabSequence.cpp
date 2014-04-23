@@ -301,7 +301,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
     OnSlider_EffectLayerMixCmdScroll(evt);
 
     OnSlider_SparkleFrequencyCmdScroll(evt);
- //   OnSlider_SparkleSliderCmdScroll(evt);
+//   OnSlider_SparkleSliderCmdScroll(evt);
 
     EffectsPanel1->UpdateSpeedText();
     EffectsPanel2->UpdateSpeedText();
@@ -1094,9 +1094,15 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Steps"]),
                              SettingsMap[LayerStr+"CHECKBOX_Twinkle_Strobe"]=="1");
     }
-     else if (effect == "Wave")
+    else if (effect == "Wave")
     {
-        buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]));
+        buffer.RenderWave(wxAtoi(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
+                          wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]),
+                          SettingsMap[LayerStr+"CheckBox_Invert_Fill"]=="1",
+                          wxAtoi(SettingsMap[LayerStr+"Slider_Number_Waves"]),
+                          wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]),
+                          wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]),
+                          wxAtoi(SettingsMap[LayerStr+"CHOICE_Wave_Direction"]));
     }
     return retval;
 }
@@ -1281,8 +1287,14 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Twinkle_Steps->GetValue(),
                              panel->CheckBox_Twinkle_Strobe->GetValue());
         break;
-         case eff_WAVE:
-        buffer.RenderWave(panel->Choice_Wave_Type->GetSelection());
+    case eff_WAVE:
+        buffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
+                          panel->Choice_Fill_Colors->GetSelection(),
+                          panel->CheckBox_Invert_Fill->GetValue(),
+                          panel->Slider_Number_Waves->GetValue(),
+                          panel->Slider_Thickness_Percentage->GetValue(),
+                          panel->Slider_Wave_Height->GetValue(),
+                          panel->Choice_Wave_Direction->GetSelection());
         break;
 
     }

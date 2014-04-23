@@ -25,32 +25,90 @@
 
 
 
-void RgbEffects::RenderWave(int WaveType)
+void RgbEffects::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
 {
-    int x,y,d;
-    double n,rx,ry,r;
-    double h=0.0;
+    /*
+    WaveType.Add("Sine");       // 0
+    WaveType.Add("Triangle");   // 1
+    WaveType.Add("Square");     //2
+    FillColors.Add("None");     // 0
+    FillColors.Add("Rainbow");  // 1
+    FillColors.Add("Palette");  // 2
+    */
+
+    int x,y,y1,y2,ystart,d;
+    double n,rx,ry,r,yc,deltay;
+    double degree,radian,degree_per_x,h=0.0;
     static const double pi2=6.283185307;
+    static const double pi_180 = 0.01745329;
     wxColour color;
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
     size_t colorcnt=GetColorCount();
 
-    int maxframe=BufferHt*2;
-    int frame=(BufferHt * state / 200)%maxframe;
-    double offset=double(state)/200.0;
-    r = BufferHt/2.0;
+    yc = BufferHt/2.0;
+    r=yc;
+    degree_per_x = NumberWaves/BufferWi;
+    degree = 1+ state%NumberWaves;
+    hsv.saturation=1.0;
+    hsv.value=1.0;
+    hsv.hue=1.0;
     for (x=0; x<BufferWi; x++)
     {
-        rx=(x / (state%BufferWi)) * 3.1415926;;
-
-        y = (int) (r * sin(rx) +r);
+        if (WaveDirection==0)
+            degree = x * degree_per_x + state; // state causes it to move
+        else
+            degree = x * degree_per_x - state; // state causes it to move
+        radian = degree * pi_180;
+        ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
 
 //        x=r * cos(t);
 //        y=r * sin(t);
-        if(x>=0 and x<BufferWi and y>=0 and y <BufferHt)
-            SetPixel(x,y,hsv);
+        if(x>=0 and x<BufferWi and ystart>=0 and ystart <BufferHt)
+        {
+            //  SetPixel(x,ystart,hsv0);  // just leading edge
 
+
+            y1=(int) (ystart - (r*(ThicknessWave/100.0)));
+            y2=(int) (ystart + (r*(ThicknessWave/100.0)));
+
+            deltay = y2-y1;
+
+
+            if(WaveType==2) // Square Wave
+            {
+                if(sin(radian)>0.0)
+                {
+                    y1=yc+1;
+                    y2=yc + yc*(WaveHeight/100.0);
+                }
+                else
+                {
+                    y1=yc - yc*(WaveHeight/100.0);
+                    y2=yc;
+                }
+            }
+            for (y=y1; y<y2; y++)
+            {
+                if(FillColor==0)
+                {
+                    SetPixel(x,y,hsv0);  // fill with color 2
+                    //       hsv.hue=(double)(BufferHt-y)/deltay;
+                }
+                else if(FillColor==1)
+                {
+
+                    hsv.hue=(double)(y-y1)/deltay;
+                    SetPixel(x,y,hsv); // rainbow
+                }
+                else if(FillColor==2)
+                {
+                    hsv.hue=(double)(y-y1)/deltay;
+                    GetMultiColorBlend(hsv.hue,false,color);
+                    SetPixel(x,y,color); // palete fill
+                }
+            }
+        }
     }
 }
