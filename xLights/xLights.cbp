@@ -159,6 +159,7 @@
 		<Unit filename="RenderText.cpp" />
 		<Unit filename="RenderTree.cpp" />
 		<Unit filename="RenderTwinkle.cpp" />
+		<Unit filename="RenderWave.cpp" />
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />

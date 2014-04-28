@@ -25,7 +25,7 @@
 
 
 
-void RgbEffects::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
+void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
 {
     /*
     WaveType.Add("Sine");       // 0
@@ -36,8 +36,8 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int 
     FillColors.Add("Palette");  // 2
     */
 
-    int x,y,y1,y2,ystart,d;
-    double n,rx,ry,r,yc,deltay;
+    int x,y,y1,y2,y1mirror,y2mirror,ystart,d,dy,modx,modx2;
+    double a,n,rx,ry,r,yc,deltay;
     double degree,radian,degree_per_x,h=0.0;
     static const double pi2=6.283185307;
     static const double pi_180 = 0.01745329;
@@ -61,18 +61,81 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int 
         else
             degree = x * degree_per_x - state; // state causes it to move
         radian = degree * pi_180;
-        ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
+        if(WaveType==1) // Triangle
+        {
+            /*
+            .
+            .
+            .      x
+            .     x x
+            .    x   x
+            .   x     x
+            .  x       x
+            . x         x
+            ******************************************** yc
+            .      a
+            .
+            .
+            .
+            .
+            .
+            .
+            */
 
+            a = BufferWi/(NumberWaves/180) ;
+            if (a <1) a=1;
+
+            dy = a/2;
+            if(dy<1) dy=1;
+
+            modx = state%(int) dy;
+            modx2 = state%(int) a;
+            if(modx2>dy)
+                ystart = yc - modx*dy ;
+            else
+                ystart = yc + modx*dy ;
+
+
+            //  if( sin(radian)<0.0) ystart=-ystart;
+        }
+        else
+        {
+            ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
+        }
 //        x=r * cos(t);
 //        y=r * sin(t);
+
         if(x>=0 and x<BufferWi and ystart>=0 and ystart <BufferHt)
         {
             //  SetPixel(x,ystart,hsv0);  // just leading edge
+            /*
+
+                BufferHt
+                .
+                .
+                .
+                x <- y2
+                x <- ystart. calculated point of wave
+                x <- y1
+                .
+                .
+                + < - yc
+               .
+                .
+                x <- y2mirror
+                x
+                x <- y1mirror
+                .
+                .
+                .
+                0
+            */
 
 
             y1=(int) (ystart - (r*(ThicknessWave/100.0)));
             y2=(int) (ystart + (r*(ThicknessWave/100.0)));
-
+            y1mirror= yc + (yc -y1);
+            y2mirror= yc + (yc -y2);
             deltay = y2-y1;
 
 
@@ -107,6 +170,42 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool InvertFillColor,int 
                     hsv.hue=(double)(y-y1)/deltay;
                     GetMultiColorBlend(hsv.hue,false,color);
                     SetPixel(x,y,color); // palete fill
+                }
+            }
+
+            if(MirrorWave)
+            {
+
+                if(y1mirror<y2mirror)
+                {
+                    y1=y1mirror;
+                    y2=y2mirror;
+                }
+                else
+                {
+                    y2=y1mirror;
+                    y1=y2mirror;
+                }
+
+                for (y=y1; y<y2; y++)
+                {
+                    if(FillColor==0)
+                    {
+                        SetPixel(x,y,hsv0);  // fill with color 2
+                        //       hsv.hue=(double)(BufferHt-y)/deltay;
+                    }
+                    else if(FillColor==1)
+                    {
+
+                        hsv.hue=(double)(y-y1)/deltay;
+                        SetPixel(x,y,hsv); // rainbow
+                    }
+                    else if(FillColor==2)
+                    {
+                        hsv.hue=(double)(y-y1)/deltay;
+                        GetMultiColorBlend(hsv.hue,false,color);
+                        SetPixel(x,y,color); // palete fill
+                    }
                 }
             }
         }

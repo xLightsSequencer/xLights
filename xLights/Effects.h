@@ -24,4 +24,4 @@ void RenderText(int Position1, const wxString& Line1, const wxString& FontString
                 int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int TextRotation4,int Effect4);
 void RenderTree(int Branches);
 void RenderTwinkle(int Count,int Steps,bool Strobe);
-void RenderWave(int WaveType,int FillColor,bool InvertFillColor,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection);
+void RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection);

@@ -132,6 +132,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_LifeSpeed;
 		wxSlider* Slider_Garlands_Spacing;
 		wxBitmapButton* BitmapButton_CirclesCount;
+		wxCheckBox* CheckBox_Mirror_Wave;
 		wxBitmapButton* BitmapButton_SpiralsCount;
 		wxStaticText* StaticText24;
 		wxStaticText* StaticText104;
@@ -398,7 +399,6 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText16;
 		wxBitmapButton* BitmapButton_TextLine2;
 		wxSlider* Slider_Fireworks_Fade;
-		wxCheckBox* CheckBox_Invert_Fill;
 		wxBitmapButton* BitmapButton_Piano_ShapeFilename;
 		wxChoice* Choice_Text_Count1;
 		wxBitmapButton* BitmapButton_FireworksVelocity;
@@ -767,7 +767,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHOICE_Fill_Colors;
 		static const long ID_BITMAPBUTTON3;
 		static const long ID_STATICTEXT52;
-		static const long ID_CHECKBOX_Invert_Fill;
+		static const long ID_CHECKBOX_Mirror_Wave;
 		static const long ID_BITMAPBUTTON4;
 		static const long ID_STATICTEXT55;
 		static const long ID_SLIDER_Number_Waves;

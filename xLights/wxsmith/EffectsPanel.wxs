@@ -870,7 +870,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire" variable="BitmapButton_FireGrow" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireGrowClick" entry="EVT_BUTTON" />
 									</object>
@@ -909,7 +910,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions" variable="BitmapButton_FireworksNumberExplosions" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksNumberExplosionsClick" entry="EVT_BUTTON" />
 									</object>
@@ -938,7 +940,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Count" variable="BitmapButton_FireworksCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksCountClick" entry="EVT_BUTTON" />
 									</object>
@@ -968,7 +971,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Velocity" variable="BitmapButton_FireworksVelocity" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksVelocityClick" entry="EVT_BUTTON" />
 									</object>
@@ -997,7 +1001,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_Fade" variable="BitmapButton_FireworksFade" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_FireworksFadeClick" entry="EVT_BUTTON" />
 									</object>
@@ -1034,7 +1039,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Garlands_Type" variable="BitmapButton_GarlandsType" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_GarlandsTypeClick" entry="EVT_BUTTON" />
 									</object>
@@ -1060,7 +1066,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Garlands_Spacing" variable="BitmapButton_GarlandsSpacing" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_GarlandsSpacingClick" entry="EVT_BUTTON" />
 									</object>
@@ -1097,7 +1104,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Count" variable="BitmapButton_LifeCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_LifeCountClick" entry="EVT_BUTTON" />
 									</object>
@@ -1125,7 +1133,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Life_Seed" variable="BitmapButton_LifeSpeed" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_LifeSpeedClick" entry="EVT_BUTTON" />
 									</object>
@@ -1162,7 +1171,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Meteors_Type" variable="BitmapButton_MeteorsType" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsTypeClick" entry="EVT_BUTTON" />
 									</object>
@@ -1188,7 +1198,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Meteors_Effect" variable="BitmapButton_MeteorsEffect" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsEffectClick" entry="EVT_BUTTON" />
 									</object>
@@ -1217,7 +1228,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Count" variable="BitmapButton_MeteorsCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsCountClick" entry="EVT_BUTTON" />
 									</object>
@@ -1246,7 +1258,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Length" variable="BitmapButton_MeteorsLength" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsLengthClick" entry="EVT_BUTTON" />
 									</object>
@@ -1274,7 +1287,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity" variable="BitmapButton_MeteorsSwirlIntensity" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>20,20</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_MeteorsSwirlIntensityClick" entry="EVT_BUTTON" />
 									</object>
@@ -3507,14 +3521,14 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT52" variable="StaticText49" member="yes">
-										<label>Invert Fill Color</label>
+										<label>Mirror Wave</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Invert_Fill" variable="CheckBox_Invert_Fill" member="yes" />
+									<object class="wxCheckBox" name="ID_CHECKBOX_Mirror_Wave" variable="CheckBox_Mirror_Wave" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
@@ -3539,7 +3553,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Number_Waves" variable="Slider_Number_Waves" member="yes">
-										<value>720</value>
+										<value>900</value>
 										<min>180</min>
 										<max>3600</max>
 									</object>
@@ -3567,7 +3581,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Thickness_Percentage" variable="Slider_Thickness_Percentage" member="yes">
-										<value>100</value>
+										<value>5</value>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -3593,7 +3607,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Wave_Height" variable="Slider_Wave_Height" member="yes">
-										<value>100</value>
+										<value>50</value>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

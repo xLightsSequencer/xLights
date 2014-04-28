@@ -1098,7 +1098,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderWave(wxAtoi(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
                           wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]),
-                          SettingsMap[LayerStr+"CheckBox_Invert_Fill"]=="1",
+                          SettingsMap[LayerStr+"CheckBox_Mirror_Wave"]=="1",
                           wxAtoi(SettingsMap[LayerStr+"Slider_Number_Waves"]),
                           wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]),
                           wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]),
@@ -1290,7 +1290,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_WAVE:
         buffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
                           panel->Choice_Fill_Colors->GetSelection(),
-                          panel->CheckBox_Invert_Fill->GetValue(),
+                          panel->CheckBox_Mirror_Wave->GetValue(),
                           panel->Slider_Number_Waves->GetValue(),
                           panel->Slider_Thickness_Percentage->GetValue(),
                           panel->Slider_Wave_Height->GetValue(),
