@@ -409,9 +409,9 @@ void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlig
     Effect[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);
 }
 
-void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip)
+void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
 {
-    Effect[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip);
+    Effect[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection);
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,

@@ -32,7 +32,7 @@
 	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
 */
 
-void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip)
+void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
 {
     int x,y,d;
     double n,x1,y1,f;
@@ -43,7 +43,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     int maxframe=BufferHt*2;
     int frame=(BufferHt * state / 200)%maxframe;
     double offset=double(state)/200.0;
-
+    if(ButterflyDirection==1) offset = -offset;
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
@@ -89,7 +89,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 y=2*sin(3*t)*sin(t)
                 */
                 h=2*sin(3*x)*cos(y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi)));
-h =  x*(y^3) - y*(x^3);
+                h =  x*(y^3) - y*(x^3);
                 break;
             }
             hsv.saturation=1.0;

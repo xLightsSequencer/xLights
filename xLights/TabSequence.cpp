@@ -930,7 +930,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Colors"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Style"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Chunks"]),
-                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Skip"]));
+                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Skip"]),
+                               ButterflyDirection.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Direction"]));
     }
     else if (effect == "Circles")
     {
@@ -1143,7 +1144,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
                                panel->Slider_Butterfly_Style->GetValue(),
                                panel->Slider_Butterfly_Chunks->GetValue(),
-                               panel->Slider_Butterfly_Skip->GetValue());
+                               panel->Slider_Butterfly_Skip->GetValue(),
+                               panel->Choice_Butterfly_Direction->GetSelection());
         break;
     case eff_CIRCLES:
         buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),

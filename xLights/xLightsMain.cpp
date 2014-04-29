@@ -367,7 +367,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.3.5)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.3.6)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -1350,6 +1350,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     ButterflyEffectColors.Add("Rainbow");
     ButterflyEffectColors.Add("Palette");
+    ButterflyDirection.Add("Normal");
+    ButterflyDirection.Add("Reverse");
 
     FacesPhoneme.Add("AI");
     FacesPhoneme.Add("E");
@@ -1369,7 +1371,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FillColors.Add("Rainbow");
     FillColors.Add("Palette");
     WaveDirection.Add("Right to Left");
-     WaveDirection.Add("Left to Right");
+    WaveDirection.Add("Left to Right");
 
 
     MeteorsEffectTypes.Add("Rainbow");
@@ -1554,6 +1556,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
     panel->Choice_Butterfly_Colors->Set(ButterflyEffectColors);
     panel->Choice_Butterfly_Colors->SetSelection(0);
+    panel->Choice_Butterfly_Direction->Set(ButterflyDirection);
+    panel->Choice_Butterfly_Direction->SetSelection(0);
 
     panel->Choice_Meteors_Type->Set(MeteorsEffectTypes);
     panel->Choice_Meteors_Type->SetSelection(0);
@@ -1599,9 +1603,9 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
     panel->Choice_Wave_Type->Set(WaveType);
     panel->Choice_Wave_Type->SetSelection(0);
-     panel->Choice_Fill_Colors->Set(FillColors);
+    panel->Choice_Fill_Colors->Set(FillColors);
     panel->Choice_Fill_Colors->SetSelection(0);
-      panel->Choice_Wave_Direction->Set(WaveDirection);
+    panel->Choice_Wave_Direction->Set(WaveDirection);
     panel->Choice_Wave_Direction->SetSelection(0);
 }
 

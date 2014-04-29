@@ -1012,6 +1012,7 @@ private:
 
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
+      wxArrayString ButterflyDirection;
     wxArrayString FacesPhoneme;
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;

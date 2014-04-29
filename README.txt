@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.3.6	April xx, 2014 
+	-Enhancement (sean) Added direction drop down for butterfly effect. "Normal" is the effect moving from
+		right to left. this is the way it has always been. "Reverse" changes direction
 3.3.5	April 23, 2014
 	-Enhancement (Sean). New effect called Wave. This effect will plot a Sine , 
 		Triangle and square wave on your display.
