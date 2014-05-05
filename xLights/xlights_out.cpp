@@ -495,7 +495,6 @@ public:
     }
 };
 
-#include <unistd.h> //sleep
 // Should be called with: 0 <= chindex <= 1015 (max channels=127*8)
 class xNetwork_Renard: public xNetwork_Serial
 {

@@ -1825,12 +1825,6 @@ bool xLightsFrame::EnableOutputs()
                     wxMessageBox(msg + errmsg, _("Communication Error"));
                     ok = false;
                 }
-                catch (char *str)
-                {
-                    wxString errmsg(str,wxConvUTF8);
-                    wxMessageBox(msg + errmsg, _("Communication Error"));
-                    ok = false;
-                }
             }
         }
         if (!ok)

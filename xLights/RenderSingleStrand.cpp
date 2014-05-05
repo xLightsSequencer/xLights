@@ -60,7 +60,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
         chase_buffer[x]=-1;
         brightness[x] =1;
     }
-    if(Chase_Group_All or Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
+    if(Chase_Group_All || Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
     else MaxNodes=BufferWi;
 
     int MaxChase=MaxNodes*(Color_Mix1/100.0);
@@ -153,7 +153,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
                             hsv.value=brightness[x1];
                     }
                     x1_mod=x1%Chase_Spacing1;
-                    if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
+                    if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 1))
                     {
                         hsv.value=0.0;
                         hsv.saturation=1.0;
@@ -166,7 +166,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
 
 
                         x2_mod=x_2%Chase_Spacing1;
-                        if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x2_mod != 1))
+                        if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x2_mod != 1))
                         {
                             hsv.value=0.0;
                             hsv.saturation=1.0;
@@ -192,7 +192,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
                 ColorIdx=chase_buffer[x1];
                 if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
                 x1_mod=x1%Chase_Spacing1;
-                if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 1))
+                if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 1))
                 {
                     hsv.value=0.0;
                     hsv.saturation=1.0;
@@ -214,7 +214,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
                     ColorIdx=chase_buffer[x1];
                     if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
                     x1_mod=x1%Chase_Spacing1;
-                    if(x>=BufferWi or x<0 or (Chase_Spacing1>1 and x1_mod != 0  and x1_mod != 1))
+                    if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 0 && x1_mod != 1))
                     {
                         hsv.value=0.0;
                         hsv.saturation=1.0;
