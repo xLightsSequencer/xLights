@@ -1187,8 +1187,8 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
         PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
-    SeqNumPeriods=f.Length()/(x_width*y_height*3);
-    SeqNumChannels=(x_width*y_height*3); // 3072 = 32*32*3
+    SeqNumPeriods=f.Length()/(x_width*3*y_height);
+    SeqNumChannels=(x_width*3*y_height); // 3072 = 32*32*3
     SeqDataLen=SeqNumPeriods * SeqNumChannels;
 
     SetMediaFilename(filename);
