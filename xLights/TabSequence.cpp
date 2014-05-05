@@ -1707,11 +1707,11 @@ wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool IN
         token2 = tkz.GetNextToken();
         pos=str.find(token1,0);
         replacement = "," + token2 + "</td>";
-        if(pos<=0 and INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
+        if(pos<=0 && INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
         {
             str.Replace("</td>",replacement);
         }
-        else if(pos>0 and !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
+        else if(pos>0 && !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
         {
             str.Replace(token1,token2);
         }

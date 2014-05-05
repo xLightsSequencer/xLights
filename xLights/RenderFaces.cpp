@@ -300,7 +300,7 @@ void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
 //  DRAW EYES
     int start_degrees=0;
     int end_degrees=360;
-    if(Phoneme==5  or Phoneme==6 or Phoneme==7)
+    if(Phoneme==5 || Phoneme==6 || Phoneme==7)
     {
         start_degrees=180;
         end_degrees=360;

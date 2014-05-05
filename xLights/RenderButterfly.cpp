@@ -88,7 +88,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 x=2*sin(3*t)*cos(t)
                 y=2*sin(3*t)*sin(t)
                 */
-                h=2*sin(3*x)*cos(y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi)));
+                h=2*sin(double(x)*3.0)*cos(double(y)) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi)));
                 h =  x*(y^3) - y*(x^3);
                 break;
             }

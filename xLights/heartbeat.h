@@ -26,6 +26,6 @@
 #define HEARTBEAT_H
 
 
-void heartbeat(const char* msg, bool always);
+void heartbeat(const wxString& msg, bool always);
 
 #endif // HEARTBEAT_H

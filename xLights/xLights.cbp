@@ -6,7 +6,137 @@
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="DebugWindows">
+			<Target title="MSVC_Debug">
+				<Option platforms="Windows;" />
+				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="msvc10" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MDd" />
+					<Add option="/EHc" />
+					<Add option="/EHs" />
+					<Add option="/W3" />
+					<Add option="/Zc:auto" />
+					<Add option="/Zc:wchar_t" />
+					<Add option="/Zi" />
+					<Add option="/DWIN32" />
+					<Add option="/D__WIN32__" />
+					<Add option="/D__WXMSW__" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/D_CRT_SECURE_DEPRECATE" />
+					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+					<Add option="/DNCCDLLIMPL" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D__WXDEBUG__" />
+					<Add directory="$(#wx)/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/DEBUG" />
+					<Add option="/NODEFAULTLIB:libcmtd.lib" />
+					<Add option="/NODEFAULTLIB:msvcrt.lib" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/SUBSYSTEM:WINDOWS" />
+					<Add library="msvcrtd.lib" />
+					<Add library="wxmsw30ud_core" />
+					<Add library="wxbase30ud" />
+					<Add library="wxmsw30ud_html" />
+					<Add library="wxbase30ud_xml" />
+					<Add library="wxmsw30ud_adv" />
+					<Add library="wxmsw30ud_media" />
+					<Add library="wxbase30ud_net" />
+					<Add library="wxtiffd" />
+					<Add library="wxpngd" />
+					<Add library="wxjpegd" />
+					<Add library="wxregexud" />
+					<Add library="wxexpatd" />
+					<Add library="wxzlibd" />
+					<Add library="advapi32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="user32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="comctl32.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="rpcrt4.lib" />
+					<Add library="winspool.lib" />
+					<Add library="shell32.lib" />
+					<Add library="wsock32.lib" />
+					<Add directory="C:/wxWidgets-3.0.0vc/lib/vc_lib" />
+				</Linker>
+			</Target>
+			<Target title="MSVC_Release">
+				<Option platforms="Windows;" />
+				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="msvc10" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/EHc" />
+					<Add option="/EHs" />
+					<Add option="/O2" />
+					<Add option="/Ox" />
+					<Add option="/W3" />
+					<Add option="/Zc:auto" />
+					<Add option="/Zc:wchar_t" />
+					<Add option="/DWIN32" />
+					<Add option="/D__WIN32__" />
+					<Add option="/D__WXMSW__" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/D_CRT_SECURE_DEPRECATE" />
+					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+					<Add option="/DNCCDLLIMPL" />
+					<Add option="/DNDEBUG" />
+					<Add directory="$(#wx)/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcmt.lib" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/SUBSYSTEM:WINDOWS" />
+					<Add library="msvcrt.lib" />
+					<Add library="wxmsw30u_core" />
+					<Add library="wxbase30u" />
+					<Add library="wxmsw30u_html" />
+					<Add library="wxbase30u_xml" />
+					<Add library="wxmsw30u_adv" />
+					<Add library="wxmsw30u_media" />
+					<Add library="wxbase30u_net" />
+					<Add library="wxtiff" />
+					<Add library="wxpng" />
+					<Add library="wxjpeg" />
+					<Add library="wxregexu" />
+					<Add library="wxexpat" />
+					<Add library="wxzlib" />
+					<Add library="advapi32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="user32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="comctl32.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="rpcrt4.lib" />
+					<Add library="winspool.lib" />
+					<Add library="shell32.lib" />
+					<Add library="wsock32.lib" />
+					<Add directory="$(#wx)/lib/vc_lib" />
+				</Linker>
+			</Target>
+			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
@@ -34,7 +164,7 @@
 					<Add library="libwxmsw30ud.a" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseWindows">
+			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
@@ -62,7 +192,7 @@
 					<Add library="libwxmsw30u.a" />
 				</Linker>
 			</Target>
-			<Target title="DebugLinux">
+			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
@@ -81,7 +211,7 @@
 					<Add option="`wx-config --libs std,media`" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseLinux">
+			<Target title="Linux_Release">
 				<Option platforms="Unix;" />
 				<Option output="../bin/xLights" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />

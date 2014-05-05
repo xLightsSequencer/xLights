@@ -105,7 +105,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
 //        x=r * cos(t);
 //        y=r * sin(t);
 
-        if(x>=0 and x<BufferWi and ystart>=0 and ystart <BufferHt)
+        if(x>=0 && x<BufferWi && ystart>=0 && ystart <BufferHt)
         {
             //  SetPixel(x,ystart,hsv0);  // just leading edge
             /*

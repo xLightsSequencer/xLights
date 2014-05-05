@@ -62,7 +62,7 @@ static struct
 //    std::vector<std::string> fifo; //log file contents
     std::string fifo; //log file contents
     int numents; //#ents in log file
-    /*wxDateTime*/ time_t latest; //time of last entry
+    wxDateTime latest; //time of last entry
 } state;
 
 
@@ -137,7 +137,7 @@ static void get_cfg(void)
 //try to read config file, extract info:
     std::ifstream stream;
     std::string linebuf;
-    stream.open(fullpath);
+    stream.open(fullpath.ToStdWstring());
     if (!stream.is_open()) return;
     while (std::getline(stream, linebuf))
     {
@@ -169,30 +169,24 @@ static void get_cfg(void)
 
 
 //write status message to heartbeat log file (if configured):
-void heartbeat(const char* msg, bool always)
+void heartbeat(const wxString& msg, bool always)
 {
     static bool first = TRUE;
 //    debug(1, "hb(%s) first? %d, always? %d", msg, first, always);
     if (first) get_cfg();
     first = FALSE;
 
-    time_t now; time(&now);
+    wxDateTime now = wxDateTime::Now();
 //    debug(1, "cfg: path '%s', intv %d, max %d", cfg.logpath.c_str(), cfg.interval, cfg.maxents);
     if (cfg.logpath.empty()) return; //no logging
     if (!always)
     {
-//        wxTimeSpan elapsed = wxDateTime::Now().Subtract(state.latest); //msec
-        int elapsed = now - state.latest;
+        wxTimeSpan elapsed = now.Subtract(state.latest);
 //            if ( dt.ParseDateTime(Line, &end) )
 //        debug(1, "last age: %d vs. %d", elapsed, cfg.interval);
-        if (elapsed < cfg.interval) return; //not time to log yet
+        if (elapsed.GetMilliseconds() < cfg.interval) return; //not time to log yet
     }
-    std::string linebuf;
-//    wxDateTime now& = wxDateTime::Now();
-    struct tm* nowtm = localtime(&now);
-    linebuf.resize(24);
-    linebuf.resize(snprintf((char*)linebuf.c_str(), 20, "[%d/%d/%2d %d:%.2d:%.2d] ", nowtm->tm_mon + 1, nowtm->tm_mday, nowtm->tm_year - 2000 + 1900, nowtm->tm_hour, nowtm->tm_min, nowtm->tm_sec));
-//    linebuf.resize(strlen(linebuf.c_str()));
+    wxString linebuf = now.Format("[%F %T] ");
     linebuf += msg;
 //    debug(1, "wr ent '%s'", linebuf.c_str());
     append(state.fifo, linebuf.c_str());
