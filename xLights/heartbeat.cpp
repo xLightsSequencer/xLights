@@ -137,7 +137,7 @@ static void get_cfg(void)
 //try to read config file, extract info:
     std::ifstream stream;
     std::string linebuf;
-    stream.open(fullpath.ToStdWstring());
+    stream.open(fullpath.ToStdString());
     if (!stream.is_open()) return;
     while (std::getline(stream, linebuf))
     {
