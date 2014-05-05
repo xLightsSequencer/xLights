@@ -840,6 +840,7 @@ private:
     void ReadLorFile(const char* filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
+    void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
@@ -1012,7 +1013,7 @@ private:
 
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
-      wxArrayString ButterflyDirection;
+    wxArrayString ButterflyDirection;
     wxArrayString FacesPhoneme;
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;

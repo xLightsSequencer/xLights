@@ -1170,6 +1170,45 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
     f.Close();
 }
 
+void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
+{
+    wxFile f;
+    char hdr[512],filetype[10];
+    char row[16384];
+    int fileversion,numch,numper,scancnt;
+    int x,y,x1,x2,x3,ch,ch2,ch3;
+    int x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    wxString filename=wxString::Format(_("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
+    size_t readcnt;
+
+    ConversionInit();
+    if (!f.Open(FileName.c_str()))
+    {
+        PlayerError(_("Unable to load sequence:\n")+FileName);
+        return;
+    }
+    SeqNumPeriods=f.Length()/(x_width*y_height*3);
+    SeqNumChannels=(x_width*y_height*3); // 3072 = 32*32*3
+    SeqDataLen=SeqNumPeriods * SeqNumChannels;
+
+    SetMediaFilename(filename);
+
+
+    SeqData.resize(SeqDataLen);
+    readcnt = f.Read((char *)&SeqData.front(),SeqDataLen);
+    if (readcnt < SeqDataLen)
+    {
+        PlayerError(_("Unable to read all event data from:\n")+FileName);
+    }
+
+
+#ifndef NDEBUG
+    TextCtrlLog->AppendText(wxString::Format(_("ReadGlediatorFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+#endif
+
+    f.Close();
+}
+
 void xLightsFrame::ConversionInit()
 {
     long TotChannels=NetInfo.GetTotChannels();
@@ -1877,6 +1916,15 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
             return;
         }
         ReadConductorFile(Filename);
+    }
+    else if (ext == _("gled"))
+    {
+        if (Out3 == "Gle")
+        {
+            ConversionError(_("Cannot convert from Glediator file to Glediator file!"));
+            return;
+        }
+        ReadGlediatorFile(Filename);
     }
     else if (ext == _("hlsIdata"))
     {
