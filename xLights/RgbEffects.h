@@ -179,8 +179,8 @@ protected:
             _dy=speed*sin(angle);
             _radius = radius;
             hsvcolor = color;
-            _t=M_PI/6.0;
-            dir =1.0;
+            _t=(float)M_PI/6.0;
+            dir =1.0f;
 
         }
         void updatePositionArc(int x,int y, int r)
@@ -204,23 +204,23 @@ protected:
         {
             if (_x-_radius<=0)
             {
-                _dx=abs(_dx);
-                if (_dx < 0.2) _dx=0.2;
+                _dx=fabs(_dx);
+                if (_dx < 0.2f) _dx=0.2f;
             }
             if (_x+_radius>=width)
             {
-                _dx=-abs(_dx);
-                if (_dx > -0.2) _dx=-0.2;
+                _dx=-fabs(_dx);
+                if (_dx > -0.2f) _dx=-0.2f;
             }
             if (_y-_radius<=0)
             {
-                _dy=abs(_dy);
-                if (_dy < 0.2) _dy=0.2;
+                _dy=fabs(_dy);
+                if (_dy < 0.2f) _dy=0.2f;
             }
             if (_y+_radius>=height)
             {
-                _dy=-abs(_dy);
-                if (_dy > -0.2) _dy=-0.2;
+                _dy=-fabs(_dy);
+                if (_dy > -0.2f) _dy=-0.2f;
             }
         }
 
