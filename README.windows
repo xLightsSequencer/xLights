@@ -1,5 +1,6 @@
+=========================================================
 xLights/Nutcracker Version 3.x Windows build instructions
-------------------------------------------------------------------------------
+=========================================================
 
 xLights/Nutcracker can be built and run on Linux, Mac OS/X, or Windows. This
 document describes how **developers** should set up their tool chain to build
@@ -10,19 +11,82 @@ http://www.nutcracker123.com/nutcracker/releases/
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is 3.0.0.  Do not use the pre-compiled 
+of wxWidgets for xLights/Nutcracker is 3.0.0.  Do not use the pre-compiled
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
+We are in the process of transitioning from the MinGW compiler to the
+MS Visual C++ compiler for Windows builds. Support for the MinGW compiler
+will removed sometime in 2014.
 
-Here are the steps to compile xLights/Nutcracker for Windows.
 
-  a) Install Code::Blocks for Windows (currently using version 12.11)
+Instructions for MS Visual C++
+==============================
 
-     Download and install the codeblocks-12.11mingw-setup_user.exe file from here:
+Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
+
+  a) Install Code::Blocks for Windows (currently using version 13.12)
+
+     Download and install the "codeblocks-13.12-setup.exe" file from here:
+        http://www.codeblocks.org/downloads
+     This is the version WITHOUT the MinGW compiler.
+     
+  b) If you don't already have MS Visual Studio, then download "Visual C++ 2010 Express"
+     from http://www.visualstudio.com/downloads/download-visual-studio-vs
+
+  c) Download the Windows SDK for your version of Windows from the Microsoft
+     Download Center. Note that some versions of Visual Studio already come
+     with the Windows SDK.
+     
+  d) wxWidgets for Windows (currently using version 3.0.0)
+
+     Download the version with the Windows installer from here:
+        http://www.wxwidgets.org/downloads/
+     The installer only puts the wxWidgets source code on your system, you will need
+     to compile it yourself to create the lib files. The process is described here:
+     http://wiki.wxwidgets.org/Compiling_Using_MSVC_On_The_Commandline
+     To compile it yourself:
+
+     1) Open a command prompt
+     2) cd to the build\msw directory under your wxWidgets base directory
+     3) run: nmake.exe -f makefile.vc
+     4) run: nmake.exe -f makefile.vc BUILD=release
+
+  e) In Code::Blocks:
+     1) Make sure "wxvc" is defined under Settings > Global Variables
+        as described in the Code::Blocks documentation. It should be
+        set to your wxWidgets base directory. Just the "Base" field
+        needs to be filled in - to something like "C:\wxWidgets-3.0.0",
+        assuming that is where your copy of wxWidgets is located.
+     2) select Settings > Compiler from the menu, then choose 
+        "Microsoft Visual C++ 2010" from the list of compilers
+     3) click the Search Directories tab
+     4) Under Compiler sub-tab should be 2 entries:
+          C:\Program Files\Microsoft SDKs\Windows\v7.0\Include       (location of the Windows SDK)
+          C:\Program Files\Microsoft Visual Studio 10.0\VC\include   (location of Visual Studio)
+     5) Under Linker sub-tab should be:
+          C:\Program Files\Microsoft SDKs\Windows\v7.0\Lib           (location of the Windows SDK)
+          C:\Program Files\Microsoft Visual Studio 10.0\VC\Lib       (location of Visual Studio)
+     4) Under Resource Compiler sub-tab should be 2 entries:
+          C:\Program Files\Microsoft SDKs\Windows\v7.0\Include       (location of the Windows SDK)
+          C:\Program Files\Microsoft Visual Studio 10.0\VC\include   (location of Visual Studio)
+
+  f) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the cbp file in the xLights directory.
+     Make sure you set the build target to MSVC_Debug or MSVC_Release!
+
+
+Instructions for MinGW (kept here for reference)
+================================================
+
+Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
+
+  a) Install Code::Blocks for Windows (currently using version 13.12)
+
+     Download and install the codeblocks-13.12mingw-setup.exe file from here:
         http://www.codeblocks.org/downloads
      This includes Code::Blocks and the GNU C++ compiler needed for building xLights.
 
-  c) wxWidgets for Windows (currently using version 3.0.0)
+  b) wxWidgets for Windows (currently using version 3.0.0)
 
      Download the version with the Windows installer from here:
         http://www.wxwidgets.org/downloads/
@@ -34,14 +98,12 @@ Here are the steps to compile xLights/Nutcracker for Windows.
      3) Some users have reported that their path variable was too long, which confused the wx buld.
         If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\mingw\bin
      4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
-        (last changed 7 SEPT 2013)
      5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
-        (last changed 7 SEPT 2013)
-     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version, 
+     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
         then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
         (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
 
-  d) In Code::Blocks:
+  c) In Code::Blocks:
      1) select Settings > Compiler
      2) click Search Directories tab
      3) Under Compiler sub-tab should be:
@@ -55,11 +117,13 @@ Here are the steps to compile xLights/Nutcracker for Windows.
         needs to be filled in - to something like "C:\wxWidgets-3.0.0",
         assuming that is where your copy of wxWidgets is located.
 
-  e) Now you are ready to use Code::Blocks to build xLights
-     by double-clicking on the cbp file in the version2/xLights directory.
+  d) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the cbp file in the xLights directory.
+     Make sure you set the build target to MinGW_Debug or MinGW_Release!
 
-     
+
 Windows Installer
+=================
 
     We use Inno Setup to create the setup.exe for xLights/Nutcracker
     http://www.jrsoftware.org/isinfo.php

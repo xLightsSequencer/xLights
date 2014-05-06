@@ -7,7 +7,7 @@ xLights/Nutcracker on Linux.
 
 xLights/Nutcracker is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights/Nutcracker is v2.9.5.  This can be compiled from
+of wxWidgets for xLights/Nutcracker is v3.0.0.  This can be compiled from
 source or installed via packages if they are available for your distribution.
 This document describes how to build wxWidgets if you need to to that yourself.
 
@@ -28,16 +28,16 @@ Instructions for other Linux distributions will vary.
      libgstreamer0.10-dev
      libgstreamer-plugins-base0.10-dev
 
-  b) Build wxWidgets 2.9.5
+  b) Build wxWidgets 3.0.0
 
      NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
            WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
            FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
 
      $ cd ~
-     $ wget http://downloads.sourceforge.net/project/wxwindows/2.9.5/wxWidgets-2.9.5.tar.bz2
-     $ tar xjf wxWidgets-2.9.5.tar.bz2
-     $ cd wxWidgets-2.9.5
+     $ wget http://downloads.sourceforge.net/project/wxwindows/3.0.0/wxWidgets-3.0.0.tar.bz2
+     $ tar xjf wxWidgets-3.0.0.tar.bz2
+     $ cd wxWidgets-3.0.0
      $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl --enable-graphics_ctx
      $ make
      $ sudo make install
