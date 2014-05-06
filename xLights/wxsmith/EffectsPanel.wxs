@@ -2446,7 +2446,6 @@
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT1" variable="Button_Text_Font1" member="yes">
 															<label>Font1</label>
 															<size>48,23</size>
-															<bg>wxSYS_COLOUR_BTNFACE</bg>
 															<handler function="OnButton_Text_Font1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2627,8 +2626,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT2" variable="Button_Text_Font2" member="yes">
 															<label>Font2</label>
-															<size>48,24</size>
-															<bg>wxSYS_COLOUR_BTNFACE</bg>
+															<size>48,23</size>
 															<handler function="OnButton_Text_Font2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2841,7 +2839,6 @@
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT16" variable="StaticText15" member="yes">
 															<label>Movement</label>
-															<size>51,15</size>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -2924,7 +2921,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT18" variable="StaticText17" member="yes">
-															<label>Countdown</label>
+															<label>Count down</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -2991,7 +2988,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT4" variable="Button_Text_Font4" member="yes">
 															<label>Font4</label>
-															<size>46,23</size>
+															<size>48,23</size>
 															<handler function="OnButton_Text_Font4Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -3083,7 +3080,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxChoice" name="ID_CHOICE_Text_Effect4" variable="Choice_Text_Effect4" member="yes" />
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3102,7 +3099,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT47" variable="StaticText42" member="yes">
-															<label>Count Down</label>
+															<label>Count down</label>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -3110,7 +3107,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxChoice" name="ID_CHOICE_Text_Count4" variable="Choice_Text_Count4" member="yes" />
-														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3139,7 +3136,7 @@
 															<value>50</value>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
