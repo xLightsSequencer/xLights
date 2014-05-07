@@ -388,6 +388,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
         return;
     }
 
+
     // Header Information
     // Format Identifier
     buf[0] = 'P';

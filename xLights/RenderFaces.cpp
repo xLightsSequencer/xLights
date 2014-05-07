@@ -29,6 +29,7 @@
 #define WANT_DEBUG  99
 //#include "djdebug.cpp"
 
+
 void RgbEffects::RenderFaces(int Phoneme)
 {
     int ColorIdx;
@@ -221,6 +222,7 @@ void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
         SetPixel(x2,y,hsv); // rightside
     }
 }
+
 
 
 
