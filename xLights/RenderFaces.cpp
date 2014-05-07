@@ -32,9 +32,7 @@
 
 void RgbEffects::RenderFaces(int Phoneme)
 {
-    int ColorIdx;
-    size_t i,idx;
-    int n,x,y,s;
+
 
     /*
         FacesPhoneme.Add("AI");     0
@@ -230,8 +228,8 @@ void RgbEffects::drawline3 (int Phoneme, int x1,int x2,int y6,int y7)
 {
     wxColour color;
     wxImage::HSVValue hsv;
-    double radius;
-    int ColorIdx,x,y,xc,yc,dy;
+
+    int ColorIdx,x,y;
     size_t colorcnt=GetColorCount();
 
 
@@ -271,7 +269,7 @@ void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius,int start_
     palette.GetHSV(0, hsv);
     hsv.hue = (float)Phoneme/10.0;
     hsv.value=1.0;
-    double angle,t,PI=3.1415926;
+    double t,PI=3.1415926;
     for(degrees=start_degrees; degrees<end_degrees; degrees+=1)
     {
         t = degrees * (PI/180);
@@ -286,7 +284,7 @@ void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
     wxColour color;
     wxImage::HSVValue hsv;
     double radius;
-    int ColorIdx,x,y,xc,yc,dy;
+    int ColorIdx,x,y,xc,yc;
     int Ht, Wt;
     size_t colorcnt=GetColorCount();
     Ht = BufferHt-1;

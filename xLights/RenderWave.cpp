@@ -36,8 +36,8 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     FillColors.Add("Palette");  // 2
     */
 
-    int x,y,y1,y2,y1mirror,y2mirror,ystart,d,dy,modx,modx2;
-    double a,n,rx,ry,r,yc,deltay;
+    int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
+    double a,rx,r,yc,deltay;
     double degree,radian,degree_per_x,h=0.0;
     static const double pi2=6.283185307;
     static const double pi_180 = 0.01745329;

@@ -654,7 +654,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     */
 
     wxString ChannelName,TestName,xmlString,guiString;
-    int ch,p,csec,r_idx,g_idx,b_idx,channels_exported=0;
+    int ch,p,channels_exported=0;
     int seqidx=0,seqidx0=0;
     int pos,bst,old_bst,ben,byte;
     unsigned long rgb;
@@ -1174,10 +1174,10 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
 void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
 {
     wxFile f;
-    char hdr[512],filetype[10];
+
     char row[16384];
-    int fileversion,numch,numper,scancnt;
-    int x,y,x1,x2,x3,ch,ch2,ch3;
+
+
     int x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     wxString filename=wxString::Format(_("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;

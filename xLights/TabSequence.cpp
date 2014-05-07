@@ -908,7 +908,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
-    bool fitToTime;
+
     wxString LayerStr=layer==0 ? "E1_" : "E2_";
     wxString SpeedStr=SettingsMap[LayerStr+"SLIDER_Speed"];
     buffer.SetLayer(layer,period,wxAtoi(SpeedStr),ResetEffectState[layer]);
@@ -2680,7 +2680,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     wxString ColName,msg, EffectStr;
     long msec;
     bool effectsToUpdate;
-    size_t ChannelLimit, NodeCnt;
+    size_t  NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     SeqDataType* retData;

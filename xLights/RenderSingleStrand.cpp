@@ -26,7 +26,7 @@
 void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
-    int x,x1,x0,y,i,maxx,ColorIdx;
+    int x,x1,x0,y,i,ColorIdx;
     int x2=0;
     int x_2=0;
     int x2_mod=0;
@@ -88,7 +88,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
       SingleStrandTypes.Add("Bounce");
 
         */
-    int Fade3D,AutoReverse=0;
+    int AutoReverse=0;
     start1 = state % BufferWi;
     start1 = (int)(state/2) % MaxNodes; // divide by 4 slows down chase
     start1_group = (int)(state/2) / MaxNodes; // divide by 4 slows down chase
