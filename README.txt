@@ -7,6 +7,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
 <next>
+	-Bug fix (djulien) avoid horiz or vert line flashes with plasma balls (Circles effect, Plasma option)
 	-Bug fix (djulien) fix piano color caching (reported by multiple people)
 3.3.6	April xx, 2014 
 	-Enhancement (sean) Added direction drop down for butterfly effect. "Normal" is the effect moving from
