@@ -31,10 +31,10 @@
 					<Add option="/DNCCDLLIMPL" />
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXDEBUG__" />
-					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wxvc)/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wxvc)/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/DEBUG" />
@@ -69,7 +69,7 @@
 					<Add library="winspool.lib" />
 					<Add library="shell32.lib" />
 					<Add library="wsock32.lib" />
-					<Add directory="C:/wxWidgets-3.0.0vc/lib/vc_lib" />
+					<Add directory="$(#wxvc)/lib/vc_lib" />
 				</Linker>
 			</Target>
 			<Target title="MSVC_Release">
@@ -97,10 +97,10 @@
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 					<Add option="/DNCCDLLIMPL" />
 					<Add option="/DNDEBUG" />
-					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wxvc)/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wxvc)/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/NODEFAULTLIB:libcmt.lib" />
@@ -133,7 +133,7 @@
 					<Add library="winspool.lib" />
 					<Add library="shell32.lib" />
 					<Add library="wsock32.lib" />
-					<Add directory="$(#wx)/lib/vc_lib" />
+					<Add directory="$(#wxvc)/lib/vc_lib" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Debug">
