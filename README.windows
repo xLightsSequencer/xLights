@@ -46,10 +46,11 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
      http://wiki.wxwidgets.org/Compiling_Using_MSVC_On_The_Commandline
      To compile it yourself:
 
-     1) Open a command prompt
-     2) cd to the build\msw directory under your wxWidgets base directory
-     3) run: nmake.exe -f makefile.vc
-     4) run: nmake.exe -f makefile.vc BUILD=release
+     1) Copy setup file from include\wx\msw\setup.h (or setup0.h) to include\wx\msw\setup.h
+     2) Open a command prompt
+     3) cd to the build\msw directory under your wxWidgets base directory
+     4) run: nmake.exe -f makefile.vc
+     5) run: nmake.exe -f makefile.vc BUILD=release
 
   e) In Code::Blocks:
      1) Make sure "wxvc" is defined under Settings > Global Variables
