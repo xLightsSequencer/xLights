@@ -148,7 +148,8 @@ void RgbEffects::Piano_load_shapes(const wxString& filename)
 {
     debug_function(10); //Debug debug("load_shapes('%s')", (const char*)filename.c_str());
     debug(1, "load shapes file '%s'", (const char*)filename.c_str());
-    if (!CachedShapeFilename.CmpNoCase(filename)) { debug_more(2, ", no change"); return; } //no change
+//reload shapes even if file name hasn't changed; color map might be different now
+//    if (!CachedShapeFilename.CmpNoCase(filename)) { debug_more(2, ", no change"); return; } //no change
     if (!wxFileExists(filename)) return;
     Piano_flush_shapes(); //invalidate cached data
     if (!Shapes.LoadFile(filename, wxBITMAP_TYPE_ANY, 0) || !Shapes.IsOk())
