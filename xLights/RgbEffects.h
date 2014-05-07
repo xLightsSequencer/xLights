@@ -231,7 +231,8 @@ protected:
     public:
         float Equation(float x, float y)
         {
-            if(x==_x || y==_y) return 1;
+//            if(x==_x || y==_y) return 1; //this is incorrect
+            if((x==_x) && (y==_y)) return 1; //only return 1 if *both* coordinates match; else gives extraneous horiz or vert lines -DJ
             return (_radius/(sqrt(pow(x-_x,2)+pow(y-_y,2))));
         }
     };
