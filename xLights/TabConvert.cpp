@@ -73,11 +73,9 @@ wxString xLightsFrame::base64_encode()
     unsigned char char_array_3[3];
     unsigned char char_array_4[4];
 
-    for(long SeqDataIdx = 0; SeqDataIdx < SeqDataLen; SeqDataIdx++)
-    {
+    for(long SeqDataIdx = 0; SeqDataIdx < SeqDataLen; SeqDataIdx++) {
         char_array_3[i++] = SeqData[SeqDataIdx];
-        if (i == 3)
-        {
+        if (i == 3) {
             char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
             char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
             char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
@@ -89,8 +87,7 @@ wxString xLightsFrame::base64_encode()
         }
     }
 
-    if (i)
-    {
+    if (i) {
         for(j = i; j < 3; j++)
             char_array_3[j] = '\0';
 
@@ -119,12 +116,10 @@ std::string xLightsFrame::base64_decode(const wxString& encoded_string)
     unsigned char char_array_4[4], char_array_3[3];
     std::string ret;
 
-    while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
-    {
+    while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
         char_array_4[i++] = encoded_string[in_];
         in_++;
-        if (i ==4)
-        {
+        if (i ==4) {
             for (i = 0; i <4; i++)
                 char_array_4[i] = base64_chars.find(char_array_4[i]);
 
@@ -138,8 +133,7 @@ std::string xLightsFrame::base64_decode(const wxString& encoded_string)
         }
     }
 
-    if (i)
-    {
+    if (i) {
         for (j = i; j <4; j++)
             char_array_4[j] = 0;
 
@@ -160,12 +154,10 @@ void xLightsFrame::OnButtonChooseFileClick(wxCommandEvent& event)
 {
     wxArrayString ShortNames;
     wxString AllNames;
-    if (FileDialogConvert->ShowModal() == wxID_OK)
-    {
+    if (FileDialogConvert->ShowModal() == wxID_OK) {
         FileDialogConvert->GetPaths(FileNames);
         FileDialogConvert->GetFilenames(ShortNames);
-        for (size_t i=0; i < ShortNames.GetCount(); i++)
-        {
+        for (size_t i=0; i < ShortNames.GetCount(); i++) {
             AllNames.Append(ShortNames[i]);
             AllNames.Append("\n");
         }
@@ -203,8 +195,7 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
     chparent = new wxXmlNode( root, wxXML_ELEMENT_NODE, "Channels" );
 
 
-    for (int ch=0; ch < SeqNumChannels; ch++ )
-    {
+    for (int ch=0; ch < SeqNumChannels; ch++ ) {
         StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         node = new wxXmlNode( wxXML_ELEMENT_NODE, "Channel" );
@@ -212,42 +203,27 @@ bool xLightsFrame::WriteVixenFile(const wxString& filename)
         node->AddAttribute( "id", "0");
         node->AddAttribute( "enabled", "True");
         chparent->AddChild( node );
-        if (ch < CheckListBoxTestChannels->GetCount())
-        {
+        if (ch < CheckListBoxTestChannels->GetCount()) {
             TestName=CheckListBoxTestChannels->GetString(ch);
-        }
-        else
-        {
+        } else {
             TestName=wxString::Format("Ch: %d",ch);
         }
-        if (ch < ChannelNames.size() && !ChannelNames[ch].IsEmpty())
-        {
+        if (ch < ChannelNames.size() && !ChannelNames[ch].IsEmpty()) {
             ChannelName = ChannelNames[ch];
-        }
-        else
-        {
+        } else {
             ChannelName = TestName;
         }
         // LOR is BGR with high bits=0
         // Vix is RGB with high bits=1
-        if (ch < ChannelColors.size() && ChannelColors[ch] > 0)
-        {
+        if (ch < ChannelColors.size() && ChannelColors[ch] > 0) {
             ChannelColor = 0xff000000 | (ChannelColors[ch] >> 16 & 0x0000ff) | (ChannelColors[ch] & 0x00ff00) | (ChannelColors[ch] << 16 & 0xff0000);
-        }
-        else if (TestName.Last() == 'R')
-        {
+        } else if (TestName.Last() == 'R') {
             ChannelColor = 0xffff0000;
-        }
-        else if (TestName.Last() == 'G')
-        {
+        } else if (TestName.Last() == 'G') {
             ChannelColor = 0xff00ff00;
-        }
-        else if (TestName.Last() == 'B')
-        {
+        } else if (TestName.Last() == 'B') {
             ChannelColor = 0xff0000ff;
-        }
-        else
-        {
+        } else {
             // default to white
             ChannelColor = 0xffffffff;
         }
@@ -293,19 +269,16 @@ void xLightsFrame::WriteVirFile(const wxString& filename, long numChans, long nu
     int ch,p;
     int seqidx=0;
     wxFile f;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
 
-    for (ch=0; ch < numChans; ch++ )
-    {
+    for (ch=0; ch < numChans; ch++ ) {
         StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         buff="";
-        for (p=0; p < numPeriods; p++, seqidx++)
-        {
+        for (p=0; p < numPeriods; p++, seqidx++) {
             buff += wxString::Format("%d ",(*dataBuf)[seqidx]);
         }
         buff += wxString::Format("\n");
@@ -327,20 +300,17 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long nu
     int seqidx=0;
 
     wxFile f;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
 
-    for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
-    {
+    for (ch=0; ch+2 < numChans; ch+=3 ) { // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
         StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         buff="";
 
-        for (p=0; p < numPeriods; p++, seqidx++)
-        {
+        for (p=0; p < numPeriods; p++, seqidx++) {
             rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
                   ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
                   ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
@@ -382,8 +352,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
 
     size_t ch;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
@@ -431,12 +400,10 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename)
     buf[27] = 0;
     f.Write(buf,fixedHeaderLength);
 
-    for (long period=0; period < SeqNumPeriods; period++)
-    {
+    for (long period=0; period < SeqNumPeriods; period++) {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format("Writing time period %ld\n",period+1));
         wxYield();
-        for(ch=0; ch<stepSize; ch++)
-        {
+        for(ch=0; ch<stepSize; ch++) {
             buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
         }
         f.Write(buf,stepSize);
@@ -455,8 +422,7 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
     buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
 
     size_t ch;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
@@ -489,12 +455,10 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
     buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
     f.Write(buf,fixedHeaderLength);
 
-    for (long period=0; period < numPeriods; period++)
-    {
+    for (long period=0; period < numPeriods; period++) {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format("Writing time period %ld\n",period+1));
         wxYield();
-        for(ch=0; ch<stepSize; ch++)
-        {
+        for(ch=0; ch<stepSize; ch++) {
             buf[ch] = ch < numChans ? (*dataBuf)[(ch *numPeriods) + period] : 0;
         }
         f.Write(buf,stepSize);
@@ -506,13 +470,11 @@ void xLightsFrame::WriteXLightsFile(const wxString& filename)
     wxFile f;
     char hdr[512];
     memset(hdr,0,512);
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
-    if (mediaFilename.size() > 470)
-    {
+    if (mediaFilename.size() > 470) {
         ConversionError(_("Media file name is too long"));
         return;
     }
@@ -628,6 +590,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     19	83790
     20	88200
 
+
     This table seems to hold from save to save of effects.
     Effect 2 gui value
     49E1F143-321A-4f5b-9F39-32984FF12410
@@ -656,13 +619,12 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
     wxString ChannelName,TestName,xmlString,guiString;
     int ch,p,channels_exported=0;
     int seqidx=0,seqidx0=0;
-    int pos,bst,old_bst,ben,byte;
+    int pos,bst,old_bst,ben;
     unsigned long rgb;
     int DATA_FOUND=0;
     float seconds;
     wxFile f;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
@@ -691,8 +653,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
 
 
     old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
-    for (ch=0; ch+2 < numChans; ch+=3 ) // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
-    {
+    for (ch=0; ch+2 < numChans; ch+=3 ) { // since we want to combine 3 channels into one 24 bit rgb value, we jump by 3
         old_bst=999;   // pick a value to gaurantee we will use a eff=3 line on the next pass
 
         if(ch%9==0) StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld. ",ch));
@@ -719,8 +680,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
         xmlString = wxString::Format("&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-16&quot;?&gt;&#xD;&#xA;&lt;ec&gt;&#xD;&#xA;  &lt;in&gt;100&lt;/in&gt;&#xD;&#xA;  &lt;out&gt;100&lt;/out&gt;&#xD;&#xA;&lt;/ec&gt;");
         xmlString = wxString::Format("");
 
-        if(ch==156)
-        {
+        if(ch==156) {
             rgb=0;
         }
 
@@ -730,8 +690,7 @@ void xLightsFrame::WriteLSPFile(const wxString& filename, long numChans, long nu
 
         channels_exported+=3;
 
-        for (p=0; p < numPeriods; p++)
-        {
+        for (p=0; p < numPeriods; p++) {
             seconds = (p*50)/1000.0;
             //  StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
             pos = seconds * 88200;
@@ -799,8 +758,7 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     int rgbChanIndexes[3] = {0,0,0};
     int curRgbChanCount = 0;
 
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
@@ -809,98 +767,72 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<sequence saveFileVersion=\"3\"");
-    if (!mediaFilename.IsEmpty())
-    {
+    if (!mediaFilename.IsEmpty()) {
         f.Write(" musicFilename=\""+mediaFilename+"\"");
     }
     f.Write(">\n");
     f.Write("\t<channels>\n");
-    for (ch=0; ch < SeqNumChannels; ch++ )
-    {
+    for (ch=0; ch < SeqNumChannels; ch++ ) {
         StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
-        if (ch < CheckListBoxTestChannels->GetCount())
-        {
+        if (ch < CheckListBoxTestChannels->GetCount()) {
             TestName=CheckListBoxTestChannels->GetString(ch);
-        }
-        else
-        {
+        } else {
             TestName=wxString::Format("Ch: %d",ch);
         }
-        if (ch < ChannelNames.size() && !ChannelNames[ch].IsEmpty())
-        {
+        if (ch < ChannelNames.size() && !ChannelNames[ch].IsEmpty()) {
             ChannelName = ChannelNames[ch];
-        }
-        else
-        {
+        } else {
             ChannelName = TestName;
         }
         // LOR is BGR with high bits=0
         // Vix is RGB with high bits=1
-        if (ch < ChannelColors.size() && ChannelColors[ch] > 0)
-        {
+        if (ch < ChannelColors.size() && ChannelColors[ch] > 0) {
             ChannelColor = ChannelColors[ch];
-        }
-        else if (TestName.Last() == 'R')
-        {
+        } else if (TestName.Last() == 'R') {
             ChannelColor = 0x000000ff;
-        }
-        else if (TestName.Last() == 'G')
-        {
+        } else if (TestName.Last() == 'G') {
             ChannelColor = 0x0000ff00;
-        }
-        else if (TestName.Last() == 'B')
-        {
+        } else if (TestName.Last() == 'B') {
             ChannelColor = 0x00ff0000;
-        }
-        else
-        {
+        } else {
             // default to white
             ChannelColor = 0x00ffffff;
         }
         f.Write("\t\t<channel name=\""+ChannelName+wxString::Format("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n",ChannelColor,centiseconds,index));
         // write intensity values for this channel
         LastIntensity=0;
-        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
-        {
+        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++) {
             intensity=SeqData[seqidx] * 100 / 255;
-            if (intensity != LastIntensity)
-            {
-                if (LastIntensity != 0)
-                {
+            if (intensity != LastIntensity) {
+                if (LastIntensity != 0) {
                     f.Write(wxString::Format("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",StartCSec,csec,LastIntensity));
                 }
                 StartCSec=csec;
             }
             LastIntensity=intensity;
         }
-        if (LastIntensity != 0)
-        {
+        if (LastIntensity != 0) {
             f.Write(wxString::Format("\t\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",StartCSec,csec,LastIntensity));
         }
         f.Write("\t\t</channel>\n");
         if ( ch < CheckListBoxTestChannels->GetCount() &&
-                (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B'))
-        {
+                (TestName.Last() == 'R' || TestName.Last() == 'G' || TestName.Last() == 'B')) {
             rgbChanIndexes[curRgbChanCount++]= index;
-            if (curRgbChanCount == 3)
-            {
+            if (curRgbChanCount == 3) {
                 index++;
                 f.Write("\t\t<rgbChannel name=\""+ChannelName.Left(ChannelName.size()-1)+
                         wxString::Format("(RGB)\" totalCentiseconds=\"%d\" savedIndex=\"%d\">\n", centiseconds, index));
                 savedIndexes[savedIndexCount++] = index;
                 f.Write("\t\t\t<channels>\n");
-                for ( ii =0; ii <3 ; ii++)
-                {
+                for ( ii =0; ii <3 ; ii++) {
                     f.Write(wxString::Format("\t\t\t\t<channel savedIndex=\"%d\"/>\n",rgbChanIndexes[ii]));
                 }
                 f.Write("\t\t\t</channels>\n");
                 f.Write("\t\t</rgbChannel>\n");
                 curRgbChanCount = 0;
             }
-        }
-        else
-        {
+        } else {
             savedIndexes[savedIndexCount++] = index;
         }
         index++;
@@ -909,14 +841,12 @@ void xLightsFrame::WriteLorFile(const wxString& filename)
     f.Write("\t<tracks>\n");
     f.Write(wxString::Format("\t\t<track totalCentiseconds=\"%ld\">\n",centiseconds));
     f.Write("\t\t\t<channels>\n");
-    for (ii=0; ii < savedIndexCount; ii++ )
-    {
+    for (ii=0; ii < savedIndexCount; ii++ ) {
         f.Write(wxString::Format("\t\t\t\t<channel savedIndex=\"%d\"/>\n",savedIndexes[ii]));
     }
     f.Write("\t\t\t</channels>\n");
     f.Write("\t\t\t<timings>\n");
-    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval)
-    {
+    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval) {
         f.Write(wxString::Format("\t\t\t\t<timing centisecond=\"%d\"/>\n",csec));
     }
     f.Write("\t\t\t</timings>\n");
@@ -938,8 +868,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
     int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
@@ -958,8 +887,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
     //  <channel>
     //  <effect type="intensity" startCentisecond="0" endCentisecond="10" intensity="83" />
     f.Write("<cellDemarcations>\n");
-    for (p=0,csec=0; p < numPeriods; p++, csec+=interval)
-    {
+    for (p=0,csec=0; p < numPeriods; p++, csec+=interval) {
         f.Write(wxString::Format("\t<cellDemarcation centisecond=\"%d\"/>\n",csec));
     }
     f.Write("</cellDemarcations>\n");
@@ -967,19 +895,15 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
     // LOR is BGR with high bits=0
     // Vix is RGB with high bits=1
     f.Write("<channels>\n");
-    for (ch=0; ch < numChans; ch++ )
-    {
+    for (ch=0; ch < numChans; ch++ ) {
         StatusBar1->SetStatusText(_("Status: " )+wxString::Format(" Channel %ld ",ch));
 
         f.Write("\t<channel>\n");
         LastIntensity=0;
-        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
-        {
+        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++) {
             intensity=(*dataBuf)[seqidx] * 100 / 255;
-            if (intensity != LastIntensity)
-            {
-                if (LastIntensity != 0)
-                {
+            if (intensity != LastIntensity) {
+                if (LastIntensity != 0) {
                     f.Write(wxString::Format("\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",
                                              StartCSec,csec,LastIntensity));
                 }
@@ -987,8 +911,7 @@ void xLightsFrame::WriteLcbFile(const wxString& filename, long numChans, long nu
             }
             LastIntensity=intensity;
         }
-        if (LastIntensity != 0)
-        {
+        if (LastIntensity != 0) {
             f.Write(wxString::Format("\t\t<effect type=\"intensity\" startCentisecond=\"%d\" endCentisecond=\"%d\" intensity=\"%d\"/>\n",
                                      StartCSec,csec,LastIntensity));
         }
@@ -1005,19 +928,15 @@ void xLightsFrame::WriteConductorFile(const wxString& filename)
     wxFile f;
     wxUint8 buf[16384];
     size_t ch,i,j;
-    if (!f.Create(filename,true))
-    {
+    if (!f.Create(filename,true)) {
         ConversionError(_("Unable to create file: ")+filename);
         return;
     }
-    for (long period=0; period < SeqNumPeriods; period++)
-    {
+    for (long period=0; period < SeqNumPeriods; period++) {
         //if (period % 500 == 499) TextCtrlConversionStatus->AppendText(wxString::Format("Writing time period %ld\n",period+1));
         wxYield();
-        for (i=0; i < 4096; i++)
-        {
-            for (j=0; j < 4; j++)
-            {
+        for (i=0; i < 4096; i++) {
+            for (j=0; j < 4; j++) {
                 ch=j * 4096 + i;
                 buf[i*4+j] = ch < SeqNumChannels ? SeqData[ch * SeqNumPeriods + period] : 0;
             }
@@ -1039,27 +958,20 @@ bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vix
     wxFileName fn;
     fn.AssignDir(CurrentDir);
     fn.SetFullName(ProfileName + ".pro");
-    if (!fn.FileExists())
-    {
+    if (!fn.FileExists()) {
         ConversionError(_("Unable to find Vixen profile: ")+ProfileName+_("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
     wxXmlDocument doc( fn.GetFullPath() );
-    if (doc.IsOk())
-    {
+    if (doc.IsOk()) {
         VixChannels.Clear();
         wxXmlNode* root=doc.GetRoot();
-        for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
+        for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() ) {
             tag = e->GetName();
-            if (tag == _("ChannelObjects"))
-            {
-                for( wxXmlNode* p=e->GetChildren(); p!=NULL; p=p->GetNext() )
-                {
-                    if (p->GetName() == _("Channel"))
-                    {
-                        if (p->HasAttribute("output"))
-                        {
+            if (tag == _("ChannelObjects")) {
+                for( wxXmlNode* p=e->GetChildren(); p!=NULL; p=p->GetNext() ) {
+                    if (p->GetName() == _("Channel")) {
+                        if (p->HasAttribute("output")) {
                             tempstr=p->GetAttribute("output", "0");
                             tempstr.ToLong(&OutputChannel);
                             VixChannels.Add(OutputChannel);
@@ -1069,9 +981,7 @@ bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vix
             }
         }
         return true;
-    }
-    else
-    {
+    } else {
         ConversionError(_("Unable to load Vixen profile: ")+ProfileName);
     }
     return false;
@@ -1086,8 +996,7 @@ void xLightsFrame::SetMediaFilename(const wxString& filename)
     if (mediaFilename.IsEmpty()) return;
     wxPathFormat PathFmt = mediaFilename.Contains(_("\\")) ? wxPATH_DOS : wxPATH_NATIVE;
     wxFileName fn1(mediaFilename, PathFmt);
-    if (!fn1.FileExists())
-    {
+    if (!fn1.FileExists()) {
         wxFileName fn2(CurrentDir,fn1.GetFullName());
         mediaFilename=fn2.GetFullPath();
     }
@@ -1101,28 +1010,22 @@ void xLightsFrame::ReadConductorFile(const wxString& FileName)
     int period=0;
     ConversionInit();
     wxFileDialog mediaDialog(this,_("Select associated media file, or cancel if this is an animation"));
-    if (mediaDialog.ShowModal() == wxID_OK)
-    {
+    if (mediaDialog.ShowModal() == wxID_OK) {
         SetMediaFilename(mediaDialog.GetPath());
     }
-    if (!f.Open(FileName.c_str()))
-    {
+    if (!f.Open(FileName.c_str())) {
         PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
     SeqNumPeriods=f.Length()/16384;
     SeqDataLen=SeqNumPeriods * SeqNumChannels;
     SeqData.resize(SeqDataLen);
-    while (f.Read(row,16384) == 16384)
-    {
+    while (f.Read(row,16384) == 16384) {
         wxYield();
-        for (i=0; i < 4096; i++)
-        {
-            for (j=0; j < 4; j++)
-            {
+        for (i=0; i < 4096; i++) {
+            for (j=0; j < 4; j++) {
                 ch=j * 4096 + i;
-                if (ch < SeqNumChannels)
-                {
+                if (ch < SeqNumChannels) {
                     SeqData[ch * SeqNumPeriods + period] = row[i*4+j];
                 }
             }
@@ -1140,19 +1043,15 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
     size_t readcnt;
 
     ConversionInit();
-    if (!f.Open(FileName.c_str()))
-    {
+    if (!f.Open(FileName.c_str())) {
         PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
     f.Read(hdr,512);
     scancnt=sscanf(hdr,"%8s %2d %8d %8d",filetype,&fileversion,&numch,&numper);
-    if (scancnt != 4 || strncmp(filetype,"xLights",7) != 0 || numch <= 0 || numper <= 0)
-    {
+    if (scancnt != 4 || strncmp(filetype,"xLights",7) != 0 || numch <= 0 || numper <= 0) {
         PlayerError(_("Invalid file header:\n")+FileName);
-    }
-    else
-    {
+    } else {
         SeqNumPeriods=numper;
         SeqNumChannels=numch;
         SeqDataLen=SeqNumPeriods * SeqNumChannels;
@@ -1160,8 +1059,7 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
         SetMediaFilename(filename);
         SeqData.resize(SeqDataLen);
         readcnt = f.Read((char *)&SeqData.front(),SeqDataLen);
-        if (readcnt < SeqDataLen)
-        {
+        if (readcnt < SeqDataLen) {
             PlayerError(_("Unable to read all event data from:\n")+FileName);
         }
 #ifndef NDEBUG
@@ -1174,17 +1072,14 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
 void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
 {
     wxFile f;
-
-    char row[16384];
-
-
-    int x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    char row[1024000];
+    int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    unsigned int ch,byte,byte1,byte2;
     wxString filename=wxString::Format(_("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
     ConversionInit();
-    if (!f.Open(FileName.c_str()))
-    {
+    if (!f.Open(FileName.c_str())) {
         PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
@@ -1196,11 +1091,57 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
 
 
     SeqData.resize(SeqDataLen);
-    readcnt = f.Read((char *)&SeqData.front(),SeqDataLen);
-    if (readcnt < SeqDataLen)
-    {
-        PlayerError(_("Unable to read all event data from:\n")+FileName);
+    /*
+    readcnt = f.Read((char *)&row.front(),16384);
+        if (readcnt < SeqDataLen) {
+            PlayerError(_("Unable to read all event data from:\n")+FileName);
+        }
+    */
+
+    readcnt =  f.Read(row,1024000);
+    SeqDataLen=SeqNumPeriods * SeqNumChannels;
+    /* 2x3 horiz matrix
+    RGBRGBRGB
+    RGBRGBRGB
+    --
+    RGBRGBRGB
+    RGBRGBRGB
+    --
+    RGBRGBRGB
+    RGBRGBRGB
+
+bytes_per_period=18
+    becomes
+    RRR
+    GGG
+    BBB
+    RRR
+
+    */
+
+    //  while (f.Read(row,15000)) {
+    wxYield();
+    bytes_per_period = x_width*3*y_height;
+    for(i=0; i<readcnt-2; i++) {
+        SeqData[i] = i%256;
     }
+    for(i=0; i<readcnt-2; i+=3) {
+        period = i/bytes_per_period;
+        p=period * (bytes_per_period); // byte offset for start of each period
+        ch=p+ (y*x_width*3) + x*3; // shows offset into source buffer
+        byte =p+i;
+        byte1=p+i+(period+1)* (x_width);
+        byte2=p+i+(period+2)* (x_width);
+        if ( byte2<readcnt) {
+            SeqData[byte]  = row[i];
+            SeqData[byte1] = row[i+1];
+            SeqData[byte2] = row[i+2];
+        }
+    }
+    //   }
+    f.Close();
+
+
 
 
 #ifndef NDEBUG
@@ -1239,15 +1180,12 @@ void xLightsFrame::ReadVixFile(const char* filename)
     IrrXMLReader* xml = createIrrXMLReader(filename);
 
     // parse the file until end reached
-    while(xml && xml->read())
-    {
-        switch(xml->getNodeType())
-        {
+    while(xml && xml->read()) {
+        switch(xml->getNodeType()) {
         case EXN_TEXT:
             // in this xml file, the only text which occurs is the messageText
             //messageText = xml->getNodeData();
-            if (cnt == 2)
-            {
+            if (cnt == 2) {
                 NodeValue = wxString::FromAscii( xml->getNodeData() );
                 if (context[1] == _("MaximumLevel")) NodeValue.ToLong(&MaxIntensity);
                 if (context[1] == _("EventPeriodInMilliseconds")) NodeValue.ToLong(&VixEventPeriod);
@@ -1261,17 +1199,14 @@ void xLightsFrame::ReadVixFile(const char* filename)
             cnt++;
             //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
             //TextCtrlConversionStatus->AppendText(msg);
-            if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song")))
-            {
+            if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
                 mediaFilename = wxString::FromAscii( xml->getAttributeValueSafe("filename") );
             }
-            if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel"))
-            {
+            if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
                 OutputChannel = xml->getAttributeValueAsInt("output");
                 VixChannels.Add(OutputChannel);
             }
-            if (xml->isEmptyElement())
-            {
+            if (xml->isEmptyElement()) {
                 context.RemoveAt(cnt-1);
                 cnt--;
             }
@@ -1306,11 +1241,9 @@ void xLightsFrame::ReadVixFile(const char* filename)
     // convert to 50ms timing, reorder channels according to output number, scale so that max intensity is 255
     int newper,vixper,intensity;
     size_t ch;
-    for (ch=0; ch < SeqNumChannels; ch++)
-    {
+    for (ch=0; ch < SeqNumChannels; ch++) {
         OutputChannel = VixChannels[ch];
-        for (newper=0; newper < SeqNumPeriods; newper++)
-        {
+        for (newper=0; newper < SeqNumPeriods; newper++) {
             vixper=newper * VixNumPeriods / SeqNumPeriods;
             intensity=VixSeqData[ch*VixNumPeriods+vixper];
             if (MaxIntensity != 255) intensity=intensity * 255 / MaxIntensity;
@@ -1335,31 +1268,25 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
 
 
     // pass one, get the metadata
-    while(xml && xml->read())
-    {
-        switch(xml->getNodeType())
-        {
+    while(xml && xml->read()) {
+        switch(xml->getNodeType()) {
         case EXN_TEXT:
             NodeValue = wxString::FromAscii( xml->getNodeData() );
             if (context[cnt - 1] == _("MilliSecPerTimeUnit")) NodeValue.ToLong(&msPerCell);
             if (context[cnt - 1] == _("NumberOfTimeCells")) NodeValue.ToLong(&timeCells);
-            if (context[cnt - 1] == _("AudioSourcePcmFile"))
-            {
+            if (context[cnt - 1] == _("AudioSourcePcmFile")) {
                 mediaFilename = NodeValue;
-                if (mediaFilename.EndsWith(".PCM"))
-                {
+                if (mediaFilename.EndsWith(".PCM")) {
                     //nothing can deal with PCM files, we'll assume this came from an mp3
                     mediaFilename.Remove(mediaFilename.size() - 4);
                     mediaFilename += ".mp3";
                 }
             }
-            if (context[cnt - 1] == _("ChannelsInUniverse"))
-            {
+            if (context[cnt - 1] == _("ChannelsInUniverse")) {
                 NodeValue.ToLong(&channelsInUniverse);
                 channels += channelsInUniverse;
             }
-            if (context[cnt - 1] == _("UniverseNumber"))
-            {
+            if (context[cnt - 1] == _("UniverseNumber")) {
                 NodeValue.ToLong(&tmp);
                 universe = tmp;
             }
@@ -1369,8 +1296,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             context.Add(NodeName);
             cnt++;
 
-            if (xml->isEmptyElement())
-            {
+            if (xml->isEmptyElement()) {
                 context.RemoveAt(cnt-1);
                 cnt--;
             }
@@ -1378,14 +1304,11 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             break;
         case EXN_ELEMENT_END:
             NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (NodeName == _("Universe"))
-            {
+            if (NodeName == _("Universe")) {
                 map.Add(universe);
                 map.Add(channelsInUniverse);
-                for (tmp = map.size() - 2; tmp > 0; tmp -= 2)
-                {
-                    if (map[tmp] < map[tmp - 2])
-                    {
+                for (tmp = map.size() - 2; tmp > 0; tmp -= 2) {
+                    if (map[tmp] < map[tmp - 2]) {
                         long t1 = map[tmp];
                         long t2 = map[tmp + 1];
                         map[tmp] = map[tmp - 2];
@@ -1423,8 +1346,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     ChannelColors.resize(channels);
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2)
-    {
+    for (tmp = 0; tmp < map.size(); tmp += 2) {
         int i = map[tmp + 1];
         map[tmp + 1] = channels;
         channels += i;
@@ -1433,32 +1355,25 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
 
 
     //pass2 read the sequence data
-    while(xml && xml->read())
-    {
-        switch(xml->getNodeType())
-        {
+    while(xml && xml->read()) {
+        switch(xml->getNodeType()) {
         case EXN_TEXT:
-            if (context[cnt - 1] == _("ChanInfo"))
-            {
+            if (context[cnt - 1] == _("ChanInfo")) {
                 //channel name and type
                 ChannelName = wxString::FromAscii( xml->getNodeData() );
             }
-            if (context[cnt - 1] == _("Block"))
-            {
+            if (context[cnt - 1] == _("Block")) {
                 NodeValue = wxString::FromAscii( xml->getNodeData() );
 
                 int idx = NodeValue.Find("-");
                 Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
             }
-            if (context[cnt - 1] == _("UniverseNumber"))
-            {
+            if (context[cnt - 1] == _("UniverseNumber")) {
                 NodeValue = wxString::FromAscii( xml->getNodeData() );
                 NodeValue.ToLong(&tmp);
                 universe = tmp;
-                for (tmp = 0; tmp < map.size() ; tmp += 2)
-                {
-                    if (universe == map[tmp])
-                    {
+                for (tmp = 0; tmp < map.size() ; tmp += 2) {
+                    if (universe == map[tmp]) {
                         channels = map[tmp + 1];
                     }
                 }
@@ -1469,8 +1384,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             context.Add(NodeName);
             cnt++;
 
-            if (xml->isEmptyElement())
-            {
+            if (xml->isEmptyElement()) {
                 context.RemoveAt(cnt-1);
                 cnt--;
             }
@@ -1478,37 +1392,28 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             break;
         case EXN_ELEMENT_END:
             NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (NodeName == _("ChannelData"))
-            {
+            if (NodeName == _("ChannelData")) {
                 //finished reading this channel, map the data
                 int idx = ChannelName.find(", ");
                 wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
                 wxString origName = ChannelNames[channels];
-                if (type == _("RGB-R"))
-                {
+                if (type == _("RGB-R")) {
                     ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
                     ChannelColors[channels] = 0x000000FF;
-                }
-                else if (type == _("RGB-G"))
-                {
+                } else if (type == _("RGB-G")) {
                     ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
                     ChannelColors[channels] = 0x0000FF00;
-                }
-                else if (type == _("RGB-B"))
-                {
+                } else if (type == _("RGB-B")) {
                     ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
                     ChannelColors[channels] = 0x00FF0000;
-                }
-                else
-                {
+                } else {
                     ChannelNames[channels] = ChannelName.Left(idx);
                     ChannelColors[channels] = 0x00FFFFFF;
                 }
                 wxString o2 = NetInfo.GetChannelName(channels);
                 TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
                                                      ChannelNames[channels],origName,o2));
-                for (long newper = 0; newper < SeqNumPeriods; newper++)
-                {
+                for (long newper = 0; newper < SeqNumPeriods; newper++) {
                     int hlsper = newper * timeCells / SeqNumPeriods;
                     long intensity;
                     Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
@@ -1555,10 +1460,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
     IrrXMLReader* xml = createIrrXMLReader(filename);
 
     //pass 1, read the length, determine number of networks, units/network, channels per unit
-    while(xml && xml->read() && centisec < 0)
-    {
-        switch(xml->getNodeType())
-        {
+    while(xml && xml->read() && centisec < 0) {
+        switch(xml->getNodeType()) {
         case EXN_TEXT:
             break;
         case EXN_ELEMENT:
@@ -1567,51 +1470,38 @@ void xLightsFrame::ReadLorFile(const char* filename)
             cnt++;
 
             nodecnt++;
-            if (nodecnt > 1000)
-            {
+            if (nodecnt > 1000) {
                 nodecnt=0;
                 wxYield();
             }
-            if (NodeName == _("track"))
-            {
+            if (NodeName == _("track")) {
                 centisec = xml->getAttributeValueAsInt("totalCentiseconds");
-            }
-            else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
-            {
+            } else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement()) {
                 wxYield();
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
-                if (unit == 0)
-                {
+                if (unit == 0) {
                     unit = 1;
                 }
                 circuit = xml->getAttributeValueAsInt("circuit");
                 std::vector<std::vector<int>> *unitSizes;
-                if (deviceType.Left(3) == "DMX")
-                {
+                if (deviceType.Left(3) == "DMX") {
                     unitSizes = &dmxUnitSizes;
-                }
-                else
-                {
+                } else {
                     unitSizes = &lorUnitSizes;
                 }
 
-                if (network >= unitSizes->size())
-                {
+                if (network >= unitSizes->size()) {
                     unitSizes->resize(network + 1);
                 }
-                if (unit > (*unitSizes)[network].size())
-                {
+                if (unit > (*unitSizes)[network].size()) {
                     (*unitSizes)[network].resize(unit);
                 }
-                if (circuit == 0)
-                {
+                if (circuit == 0) {
                     (*unitSizes)[network][unit - 1]++;
-                }
-                else if (circuit > (*unitSizes)[network][unit - 1])
-                {
+                } else if (circuit > (*unitSizes)[network][unit - 1]) {
                     (*unitSizes)[network][unit - 1] = circuit;
                 }
             }
@@ -1627,33 +1517,26 @@ void xLightsFrame::ReadLorFile(const char* filename)
     delete xml;
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Track 1 length = %d centiseconds\n"),centisec));
 
-    if (centisec > 0)
-    {
+    if (centisec > 0) {
         SeqNumPeriods = centisec * 10 / XTIMER_INTERVAL;
         if (SeqNumPeriods == 0) SeqNumPeriods=1;
         SeqDataLen = SeqNumPeriods * SeqNumChannels;
         SeqData.resize(SeqDataLen,0);
-    }
-    else
-    {
+    } else {
         ConversionError(_("Unable to determine the length of this LOR sequence (looked for length of track 1)"));
         return;
     }
 
-    for (network = 0; network < lorUnitSizes.size(); network++)
-    {
+    for (network = 0; network < lorUnitSizes.size(); network++) {
         cnt = 0;
-        for (int u = 0; u < lorUnitSizes[network].size(); u++)
-        {
+        for (int u = 0; u < lorUnitSizes[network].size(); u++) {
             cnt += lorUnitSizes[network][u];
         }
         TextCtrlConversionStatus->AppendText(wxString::Format(_("LOR Network %d:  %d channels\n"),network,cnt));
     }
-    for (network = 1; network < dmxUnitSizes.size(); network++)
-    {
+    for (network = 1; network < dmxUnitSizes.size(); network++) {
         cnt = 0;
-        for (int u = 0; u < dmxUnitSizes[network].size(); u++)
-        {
+        for (int u = 0; u < dmxUnitSizes[network].size(); u++) {
             cnt += dmxUnitSizes[network][u];
         }
         TextCtrlConversionStatus->AppendText(wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
@@ -1663,17 +1546,14 @@ void xLightsFrame::ReadLorFile(const char* filename)
     cnt = 0;
     context.clear();
     // parse the file until end reached
-    while(xml && xml->read())
-    {
-        switch(xml->getNodeType())
-        {
+    while(xml && xml->read()) {
+        switch(xml->getNodeType()) {
         case EXN_TEXT:
             break;
         case EXN_ELEMENT:
 
             nodecnt++;
-            if (nodecnt > 1000)
-            {
+            if (nodecnt > 1000) {
                 nodecnt=0;
                 wxYield();
             }
@@ -1683,72 +1563,55 @@ void xLightsFrame::ReadLorFile(const char* filename)
             cnt++;
             //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
             //TextCtrlConversionStatus->AppendText(msg);
-            if (NodeName == _("sequence"))
-            {
+            if (NodeName == _("sequence")) {
                 mediaFilename = wxString::FromAscii( xml->getAttributeValueSafe("musicFilename") );
             }
-            if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement())
-            {
+            if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement()) {
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
 
                 unit = xml->getAttributeValueAsInt("unit");
                 if (unit < 0) unit+=256;
-                if (unit == 0)
-                {
+                if (unit == 0) {
                     unit = 1;
                 }
                 circuit = xml->getAttributeValueAsInt("circuit");
                 ChannelName = wxString::FromAscii( xml->getAttributeValueSafe("name") );
 
-                if (deviceType.Left(3) == "DMX")
-                {
+                if (deviceType.Left(3) == "DMX") {
                     chindex=circuit-1;
                     network--;
                     network += lorUnitSizes.size();
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
-                }
-                else if (deviceType.Left(3) == "LOR")
-                {
+                } else if (deviceType.Left(3) == "LOR") {
                     chindex = 0;
-                    for (int z = 0; z < (unit - 1); z++)
-                    {
+                    for (int z = 0; z < (unit - 1); z++) {
                         chindex += lorUnitSizes[network][z];
                     }
                     chindex += circuit-1;
                     curchannel = NetInfo.CalcAbsChannel(network,chindex);
-                }
-                else
-                {
+                } else {
                     chindex++;
-                    if (chindex < NetInfo.GetTotChannels())
-                    {
+                    if (chindex < NetInfo.GetTotChannels()) {
                         curchannel = chindex;
-                    }
-                    else
-                    {
+                    } else {
                         curchannel = -1;
                     }
                 }
-                if (curchannel >= 0)
-                {
+                if (curchannel >= 0) {
                     //TextCtrlConversionStatus->AppendText(wxString::Format(_("curchannel %d\n"),curchannel));
-                    if (!ChannelNames[curchannel].IsEmpty())
-                    {
+                    if (!ChannelNames[curchannel].IsEmpty()) {
                         TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel]+_(" and ")+ChannelName+_(" map to the same channel\n"));
                     }
                     MappedChannelCnt++;
                     ChannelNames[curchannel] = ChannelName;
                     ChannelColor = xml->getAttributeValueAsInt("color");
                     ChannelColors[curchannel] = ChannelColor;
-                }
-                else
-                {
+                } else {
                     TextCtrlConversionStatus->AppendText(_("WARNING: channel '")+ChannelName+_("' is unmapped\n"));
                 }
             }
-            if (cnt > 1 && context[1] == _("channels") && NodeName == _("effect") && curchannel >= 0)
-            {
+            if (cnt > 1 && context[1] == _("channels") && NodeName == _("effect") && curchannel >= 0) {
                 EffectCnt++;
                 startcsec = xml->getAttributeValueAsInt("startCentisecond");
                 endcsec = xml->getAttributeValueAsInt("endCentisecond");
@@ -1759,84 +1622,61 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 endper = endcsec * 10 / XTIMER_INTERVAL;
                 perdiff=endper - startper;  // # of 50ms ticks
                 LorTimingList.push_back(startper);
-                if (perdiff > 0)
-                {
+                if (perdiff > 0) {
                     intensity=intensity * 255 / MaxIntensity;
                     startIntensity=startIntensity * 255 / MaxIntensity;
                     endIntensity=endIntensity * 255 / MaxIntensity;
                     EffectType = wxString::FromAscii( xml->getAttributeValueSafe("type") );
-                    if (EffectType == "intensity")
-                    {
-                        if (intensity > 0)
-                        {
-                            for (i=0; i < perdiff; i++)
-                            {
+                    if (EffectType == "intensity") {
+                        if (intensity > 0) {
+                            for (i=0; i < perdiff; i++) {
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity;
                             }
-                        }
-                        else if (startIntensity > 0 || endIntensity > 0)
-                        {
+                        } else if (startIntensity > 0 || endIntensity > 0) {
                             // ramp
                             rampdiff=endIntensity - startIntensity;
-                            for (i=0; i < perdiff; i++)
-                            {
+                            for (i=0; i < perdiff; i++) {
                                 intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity;
                             }
                         }
-                    }
-                    else if (EffectType == "twinkle")
-                    {
+                    } else if (EffectType == "twinkle") {
                         if (intensity == 0 && startIntensity == 0 && endIntensity == 0) intensity=MaxIntensity;
                         twinklestate=static_cast<int>(rand01()*2.0) & 0x01;
                         nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
-                        if (intensity > 0)
-                        {
-                            for (i=0; i < perdiff; i++)
-                            {
+                        if (intensity > 0) {
+                            for (i=0; i < perdiff; i++) {
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
                                 nexttwinkle--;
-                                if (nexttwinkle <= 0)
-                                {
+                                if (nexttwinkle <= 0) {
                                     twinklestate=1-twinklestate;
                                     nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
                                 }
                             }
-                        }
-                        else if (startIntensity > 0 || endIntensity > 0)
-                        {
+                        } else if (startIntensity > 0 || endIntensity > 0) {
                             // ramp
                             rampdiff=endIntensity - startIntensity;
-                            for (i=0; i < perdiff; i++)
-                            {
+                            for (i=0; i < perdiff; i++) {
                                 intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
                                 nexttwinkle--;
-                                if (nexttwinkle <= 0)
-                                {
+                                if (nexttwinkle <= 0) {
                                     twinklestate=1-twinklestate;
                                     nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
                                 }
                             }
                         }
-                    }
-                    else if (EffectType == "shimmer")
-                    {
+                    } else if (EffectType == "shimmer") {
                         if (intensity == 0 && startIntensity == 0 && endIntensity == 0) intensity=MaxIntensity;
-                        if (intensity > 0)
-                        {
-                            for (i=0; i < perdiff; i++)
-                            {
+                        if (intensity > 0) {
+                            for (i=0; i < perdiff; i++) {
                                 twinklestate=(startper + i) & 0x01;
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
                             }
-                        }
-                        else if (startIntensity > 0 || endIntensity > 0)
-                        {
+                        } else if (startIntensity > 0 || endIntensity > 0) {
                             // ramp
                             rampdiff=endIntensity - startIntensity;
-                            for (i=0; i < perdiff; i++)
-                            {
+                            for (i=0; i < perdiff; i++) {
                                 twinklestate=(startper + i) & 0x01;
                                 intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
                                 SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
@@ -1845,8 +1685,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     }
                 }
             }
-            if (xml->isEmptyElement())
-            {
+            if (xml->isEmptyElement()) {
                 context.RemoveAt(cnt-1);
                 cnt--;
             }
@@ -1875,8 +1714,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
 void xLightsFrame::ClearLastPeriod()
 {
     long LastPer = SeqNumPeriods-1;
-    for (size_t ch=0; ch < SeqNumChannels; ch++)
-    {
+    for (size_t ch=0; ch < SeqNumChannels; ch++) {
         SeqData[ch*SeqNumPeriods+LastPer] = 0;
     }
 }
@@ -1891,75 +1729,54 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
     wxYield();
     wxFileName oName(Filename);
     wxString ext = oName.GetExt();
-    if (ext == _("vix"))
-    {
-        if (Out3 == "Vix")
-        {
+    if (ext == _("vix")) {
+        if (Out3 == "Vix") {
             ConversionError(_("Cannot convert from Vixen to Vixen!"));
             return;
         }
         ReadVixFile(Filename.char_str());
-    }
-    else if (ext == _(XLIGHTS_SEQUENCE_EXT))
-    {
-        if (Out3 == "xLi")
-        {
+    } else if (ext == _(XLIGHTS_SEQUENCE_EXT)) {
+        if (Out3 == "xLi") {
             ConversionError(_("Cannot convert from xLights to xLights!"));
             return;
         }
         ReadXlightsFile(Filename);
-    }
-    else if (ext == _("seq"))
-    {
-        if (Out3 == "Lyn")
-        {
+    } else if (ext == _("seq")) {
+        if (Out3 == "Lyn") {
             ConversionError(_("Cannot convert from Conductor file to Conductor file!"));
             return;
         }
         ReadConductorFile(Filename);
-    }
-    else if (ext == _("gled"))
-    {
-        if (Out3 == "Gle")
-        {
+    } else if (ext == _("gled")) {
+        if (Out3 == "Gle") {
             ConversionError(_("Cannot convert from Glediator file to Glediator file!"));
             return;
         }
         ReadGlediatorFile(Filename);
-    }
-    else if (ext == _("hlsIdata"))
-    {
+    } else if (ext == _("hlsIdata")) {
         ReadHLSFile(Filename);
-    }
-    else if (ext == _("lms") || ext == _("las"))
-    {
-        if (Out3 == "LOR")
-        {
+    } else if (ext == _("lms") || ext == _("las")) {
+        if (Out3 == "LOR") {
             ConversionError(_("Cannot convert from LOR to LOR!"));
             return;
         }
         ReadLorFile(Filename.char_str());
-    }
-    else
-    {
+    } else {
         ConversionError(_("Unknown sequence file extension"));
         return;
     }
 
     // check for errors
-    if (SeqNumChannels == 0)
-    {
+    if (SeqNumChannels == 0) {
         TextCtrlConversionStatus->AppendText(_("ERROR: no channels defined\n"));
         return;
     }
-    if (SeqDataLen == 0)
-    {
+    if (SeqDataLen == 0) {
         TextCtrlConversionStatus->AppendText(_("ERROR: sequence length is 0\n"));
         return;
     }
 
-    if (CheckBoxOffAtEnd->IsChecked())
-    {
+    if (CheckBoxOffAtEnd->IsChecked()) {
         ClearLastPeriod();
     }
     wxYield();
@@ -1967,75 +1784,54 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
     // write converted file to xLights directory
     oName.SetPath( CurrentDir );
 
-    if (Out3 == "xLi")
-    {
+    if (Out3 == "xLi") {
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing xLights sequence\n"));
         WriteXLightsFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
-    }
-    else if (Out3 == "Fal")
-    {
+    } else if (Out3 == "Fal") {
         oName.SetExt(_("fseq"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing Falcon Pi Player sequence\n"));
         WriteFalconPiFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
-    }
-    else if (Out3 == "Lyn")
-    {
+    } else if (Out3 == "Lyn") {
         oName.SetExt(_("seq"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing Lynx Conductor sequence\n"));
         WriteConductorFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
-    }
-    else if (Out3 == "Vix")
-    {
+    } else if (Out3 == "Vix") {
         oName.SetExt(_("vix"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing Vixen sequence\n"));
-        if (WriteVixenFile(fullpath))
-        {
+        if (WriteVixenFile(fullpath)) {
             TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
-        }
-        else
-        {
+        } else {
             ConversionError(_("Unable to save: ")+fullpath+_("\n"));
         }
-    }
-    else if (Out3 == "Vir")
-    {
+    } else if (Out3 == "Vir") {
         oName.SetExt(_("vir"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing Vixen routine\n"));
         WriteVirFile(fullpath);
-    }
-    else if (Out3 == "HLS")
-    {
+    } else if (Out3 == "HLS") {
         oName.SetExt(_("hlsnc"));
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing HLS routine\n"));
         WriteHLSFile(fullpath);
-    }
-    else if (Out3 == "LOR")
-    {
-        if (mediaFilename.IsEmpty())
-        {
+    } else if (Out3 == "LOR") {
+        if (mediaFilename.IsEmpty()) {
             oName.SetExt(_("las"));
-        }
-        else
-        {
+        } else {
             oName.SetExt(_("lms"));
         }
         fullpath=oName.GetFullPath();
         TextCtrlConversionStatus->AppendText(_("Writing LOR sequence\n"));
         WriteLorFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing LOR file: ")+fullpath+_("\n"));
-    }
-    else if (Out3 == "Lcb")
-    {
+    } else if (Out3 == "Lcb") {
 
         oName.SetExt(_("lcb"));
 
@@ -2043,9 +1839,7 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
         TextCtrlConversionStatus->AppendText(_("Writing LOR clipboard sequence\n"));
         WriteLcbFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing LOR lcb file: ")+fullpath+_("\n"));
-    }
-    else
-    {
+    } else {
         TextCtrlConversionStatus->AppendText(_("Nothing to write - invalid output format\n"));
     }
 }
@@ -2058,18 +1852,12 @@ void xLightsFrame::OnButtonStartConversionClick(wxCommandEvent& event)
     TextCtrlConversionStatus->Clear();
 
     // check inputs
-    if (FileNames.IsEmpty())
-    {
+    if (FileNames.IsEmpty()) {
         wxMessageBox(_("Please select one or more sequence files"), _("Error"));
-    }
-    else if (OutputFormat.IsEmpty())
-    {
+    } else if (OutputFormat.IsEmpty()) {
         wxMessageBox(_("Please select an output format"), _("Error"));
-    }
-    else
-    {
-        for (size_t i=0; i < FileNames.GetCount(); i++)
-        {
+    } else {
+        for (size_t i=0; i < FileNames.GetCount(); i++) {
             DoConversion(FileNames[i], OutputFormat);
         }
         TextCtrlConversionStatus->AppendText(_("Finished converting all files\n"));

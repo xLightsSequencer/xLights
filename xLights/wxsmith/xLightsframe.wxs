@@ -1066,6 +1066,7 @@
 																				<item>Vix,Vixen 2.1 *.vix sequence file</item>
 																				<item>Vir, Vixen 2.1 *.vir routine file</item>
 																				<item>LOR Sequence *.las or *.lms</item>
+																				<item>Glediator Record File *.gled</item>
 																				<item>Lcb, LOR clipboard *.lcb</item>
 																				<item>HLS *.hlsnc</item>
 																			</content>
@@ -2353,7 +2354,14 @@
 		</object>
 		<object class="wxFileDialog" variable="FileDialogConvert" member="yes">
 			<message>Select file</message>
-			<wildcard>xLights Sequences(*.xseq)|*.xseq|LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|Falcon Pi Player Sequences (*.fseq)|*.fseq|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
+			<wildcard>xLights Sequences(*.xseq)|*.xseq|
+            LOR Music Sequences (*.lms)|*.lms|
+			LOR Animation Sequences (*.las)|*.las|
+			Vixen Sequences (*.vix)|*.vix|
+			Falcon Pi Player Sequences (*.fseq)|*.fseq|
+			Glediator Record File (*.gled)|*.gled)|
+			Lynx Conductor Sequences (*.seq)|*.seq|
+			HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 		<object class="wxMessageDialog" name="ID_MESSAGEDIALOG1" variable="MessageDialog1" member="yes">

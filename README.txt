@@ -6,12 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
+3.3.6	May 08, 2014 
 	-Bug fix (djulien) avoid horiz or vert line flashes with plasma balls (Circles effect, Plasma option)
 	-Bug fix (djulien) fix piano color caching (reported by multiple people)
-3.3.6	April xx, 2014 
 	-Enhancement (sean) Added direction drop down for butterfly effect. "Normal" is the effect moving from
 		right to left. this is the way it has always been. "Reverse" changes direction
+	-Enhancement (sean) New file type in CONVERT tab, *.gled. Create these files using the record button of Glediator.
+		Conversion code is still under development.
 3.3.5	April 23, 2014
 	-Enhancement (Sean). New effect called Wave. This effect will plot a Sine , 
 		Triangle and square wave on your display.

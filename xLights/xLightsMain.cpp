@@ -672,6 +672,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ChoiceOutputFormat->Append(_("Vix,Vixen 2.1 *.vix sequence file"));
     ChoiceOutputFormat->Append(_("Vir, Vixen 2.1 *.vir routine file"));
     ChoiceOutputFormat->Append(_("LOR Sequence *.las or *.lms"));
+    ChoiceOutputFormat->Append(_("Glediator Record File *.gled"));
     ChoiceOutputFormat->Append(_("Lcb, LOR clipboard *.lcb"));
     ChoiceOutputFormat->Append(_("HLS *.hlsnc"));
     FlexGridSizer26->Add(ChoiceOutputFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1122,7 +1123,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
-    FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|Vixen Sequences (*.vix)|*.vix|Falcon Pi Player Sequences (*.fseq)|*.fseq|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\r\n            LOR Music Sequences (*.lms)|*.lms|\r\n\t\t\tLOR Animation Sequences (*.las)|*.las|\r\n\t\t\tVixen Sequences (*.vix)|*.vix|\r\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\r\n\t\t\tGlediator Record File (*.gled)|*.gled)|\r\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\r\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);

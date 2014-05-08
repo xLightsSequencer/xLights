@@ -28,6 +28,7 @@
 #include <wx/fontutil.h>
 
 
+
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
 
@@ -54,20 +55,16 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font3(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font4(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    if (!FontString1.IsEmpty())
-    {
+    if (!FontString1.IsEmpty()) {
         Font1.SetNativeFontInfoUserDesc(FontString1);
     }
-    if (!FontString2.IsEmpty())
-    {
+    if (!FontString2.IsEmpty()) {
         Font2.SetNativeFontInfoUserDesc(FontString2);
     }
-    if (!FontString3.IsEmpty())
-    {
+    if (!FontString3.IsEmpty()) {
         Font3.SetNativeFontInfoUserDesc(FontString3);
     }
-    if (!FontString4.IsEmpty())
-    {
+    if (!FontString4.IsEmpty()) {
         Font4.SetNativeFontInfoUserDesc(FontString4);
     }
 
@@ -114,8 +111,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     Font4.SetNativeFontInfo(s);
 #endif
 
-    for (int pass = 0; pass < 2; ++pass)
-    {
+    for (int pass = 0; pass < 2; ++pass) {
 #ifndef WANT_TEXT_LINES_SYNCED
         if (!pass) continue; //don't need 2 passes
 #endif // WANT_TEXT_LINES_SYNCED
@@ -127,24 +123,21 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass);
 
         dc.SetFont(Font2);
-        if(colorcnt>1)
-        {
+        if(colorcnt>1) {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
         RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass);
 
         dc.SetFont(Font3);
-        if(colorcnt>2)
-        {
+        if(colorcnt>2) {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
         RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass);
 
         dc.SetFont(Font4);
-        if(colorcnt>3)
-        {
+        if(colorcnt>3) {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
@@ -154,10 +147,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
     //convert to image to get the pixel data
     wxImage image(bitmap.ConvertToImage());
-    for(wxCoord x=0; x<BufferWi; x++)
-    {
-        for(wxCoord y=0; y<BufferHt; y++)
-        {
+    for(wxCoord x=0; x<BufferWi; x++) {
+        for(wxCoord y=0; y<BufferHt; y++) {
             c.Set(image.GetRed(x, BufferHt-y-1),
                   image.GetGreen(x, BufferHt-y-1),
                   image.GetBlue(x, BufferHt-y-1));
@@ -233,12 +224,10 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     wxChar delim;
     if (Line.IsEmpty()) return;
 
-    switch(Countdown)
-    {
+    switch(Countdown) {
     case COUNTDOWN_SECONDS:
         // countdown seconds
-        if (state==0)
-        {
+        if (state==0) {
             if (!Line.ToLong(&tempLong)) tempLong=0;
             timer_countdown[idx] = curPeriod+tempLong*20+19;  // capture 0 period
         }
@@ -249,81 +238,77 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
 
     case COUNTDOWN_FREEFMT: //free format text with embedded formatting chars -DJ
 #if 0
-wxTimeSpan format chars are described at: http://docs.wxwidgets.org/trunk/classwx_time_span.html
+wxTimeSpan format chars are described at:
+http://docs.wxwidgets.org/trunk/classwx_time_span.html
 The following format specifiers are allowed after %:
-•H - Number of Hours
-•M - Number of Minutes
-•S - Number of Seconds
-•l - Number of Milliseconds
-•D - Number of Days
-•E - Number of Weeks
-•% - The percent character
+        •H - Number of Hours
+        •M - Number of Minutes
+        •S - Number of Seconds
+        •l - Number of Milliseconds
+        •D - Number of Days
+        •E - Number of Weeks
+        •% - The percent character
 
 //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
 TIME FORMAT CHARACTERS:
-%a Abbreviated weekday name eg. Thu
-%A Full weekday name eg. Thursday
-%b Abbreviated month name eg. Aug
-%B Full month name eg. August
-%c Date and time representation eg. Thu Aug 23 14:55:02 2001
-%d Day of the month (01-31) eg. 23
-%H Hour in 24h format (00-23) eg. 14
-%I Hour in 12h format (01-12) eg. 02
-%j Day of the year (001-366) eg. 235
-%m Month as a decimal number (01-12) eg. 08
-%M Minute (00-59) eg. 55
-%p AM or PM designation eg. PM
-%S Second (00-61) eg. 02
-%U Week number with the first Sunday as the first day of week one (00-53) eg. 33
-%w Weekday as a decimal number with Sunday as 0 (0-6) eg. 4
-%W Week number with the first Monday as the first day of week one (00-53) eg. 34
-%x Date representation eg. 08/23/01
-%X Time representation eg. 14:55:02
-%y Year, last two digits (00-99) eg. 01
-%Y Year eg. 2001
-%Z Timezone name or abbreviation CDT
-%% A % sign eg. %
+        %a Abbreviated weekday name eg. Thu
+        %A Full weekday name eg. Thursday
+        %b Abbreviated month name eg. Aug
+        %B Full month name eg. August
+        %c Date and time representation eg. Thu Aug 23 14:55:02 2001
+        %d Day of the month (01-31) eg. 23
+        %H Hour in 24h format (00-23) eg. 14
+        %I Hour in 12h format (01-12) eg. 02
+        %j Day of the year (001-366) eg. 235
+        %m Month as a decimal number (01-12) eg. 08
+        %M Minute (00-59) eg. 55
+        %p AM or PM designation eg. PM
+        %S Second (00-61) eg. 02
+        %U Week number with the first Sunday as the first day of week one (00-53) eg. 33
+        %w Weekday as a decimal number with Sunday as 0 (0-6) eg. 4
+        %W Week number with the first Monday as the first day of week one (00-53) eg. 34
+        %x Date representation eg. 08/23/01
+        %X Time representation eg. 14:55:02
+        %y Year, last two digits (00-99) eg. 01
+        %Y Year eg. 2001
+        %Z Timezone name or abbreviation CDT
+        %% A % sign eg. %
 #endif // 0
 //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
-        if (Line.size() >= 4)
-        {
+        if (Line.size() >= 4) {
             delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
             Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
 //            Line.RemoveLast(); //remove delimiter
             fmt = Line.After(delim);
             Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
-        }
-        else fmt.Empty();
+        } else fmt.Empty();
 //CAUTION: fall thru here
     case COUNTDOWN_D_H_M_S:
     case COUNTDOWN_H_M_S:
     case COUNTDOWN_M_or_S:
     case COUNTDOWN_S:
         // countdown to date
-        if (state%20 == 0) //1x/sec
-        {
-            if ( dt.ParseDateTime(Line, &end) )
-            {
+        if (state%20 == 0) { //1x/sec
+            if ( dt.ParseDateTime(Line, &end) ) {
                 // dt is valid, so calc # of seconds until then
                 ts=dt.Subtract(wxDateTime::Now());
                 wxLongLong ll=ts.GetSeconds();
                 if (ll > LONG_MAX) ll=LONG_MAX;
                 if (ll < 0) ll=0;
                 longsecs=ll.ToLong();
-            }
-            else
-            {
+            } else {
                 // invalid date/time
                 longsecs = 0;
             }
             timer_countdown[idx]=longsecs;
-        }
-        else
-        {
+        } else {
             longsecs=timer_countdown[idx];
             ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
         }
-        if (!longsecs) { msg = _T("invalid date"); break; } //show when invalid -DJ
+        if (!longsecs) {
+            msg = _T("invalid date");    //show when invalid -DJ
+            break;
+        }
         days = longsecs / 60 / 60 / 24;
         hours = (longsecs / 60 / 60) % 24;
         minutes = (longsecs / 60) % 60;
@@ -350,14 +335,12 @@ TIME FORMAT CHARACTERS:
     }
 
     double TextRotation=0.0;
-    switch(Effect)
-    {
+    switch(Effect) {
     case 1:
         // vertical text up
         tempmsg=msg;
         msg.clear();
-        for(i=0; i<tempmsg.length(); i++)
-        {
+        for(i=0; i<tempmsg.length(); i++) {
             msg = msg + Line.GetChar(tempmsg.length()-i-1) + "\n";
         }
         break;
@@ -365,8 +348,7 @@ TIME FORMAT CHARACTERS:
         // vertical dext down
         tempmsg=msg;
         msg.clear();
-        for(i=0; i<tempmsg.length(); i++)
-        {
+        for(i=0; i<tempmsg.length(); i++) {
             msg = msg + tempmsg.GetChar(i) + "\n";
         }
         break;
@@ -383,8 +365,7 @@ TIME FORMAT CHARACTERS:
     int xoffset=0;
     int yoffset=0;
 
-    switch(Effect)
-    {
+    switch(Effect) {
     case 3:
         // rotate up 45
         TextRotation=45.0;
@@ -417,18 +398,15 @@ TIME FORMAT CHARACTERS:
 
 #ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
     static wxSize synced_textsize;
-    if (!WantRender) //for synced text lines, collect info first and then render after info is available
-    {
+    if (!WantRender) { //for synced text lines, collect info first and then render after info is available
         if (!idx) synced_textsize = textsize;
-        else //keep max value
-        {
+        else { //keep max value
             if (textsize.x > synced_textsize.x) synced_textsize.x = textsize.x;
             if (textsize.y > synced_textsize.y) synced_textsize.y = textsize.y;
         }
 //        debug(1, "text[%d]: pass %d, txtsiz %d/%d, synced %d/%d", idx, WantRender, textsize.x, textsize.y, synced_textsize.x, synced_textsize.y);
         return;
-    }
-    else textsize.x = synced_textsize.x; //use composite size
+    } else textsize.x = synced_textsize.x; //use composite size
 //    debug(1, "text[%d]: pass %d, synced txtsiz %d/%d", idx, WantRender, textsize.x, textsize.y);
 #endif // WANT_TEXT_LINES_SYNCED
 
@@ -440,11 +418,9 @@ TIME FORMAT CHARACTERS:
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
 
-    if (TextRotation == 0.0)
-    {
+    if (TextRotation == 0.0) {
         wxRect rect(0,0,BufferWi,BufferHt);
-        switch (dir)
-        {
+        switch (dir) {
         case TEXTDIR_LEFT(0):
 //            debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
             rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
@@ -483,11 +459,8 @@ TIME FORMAT CHARACTERS:
             break; // static
         }
         dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
-    }
-    else
-    {
-        switch (dir)
-        {
+    } else {
+        switch (dir) {
         case 0:
             dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
             break; // left
