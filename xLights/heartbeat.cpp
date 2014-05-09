@@ -78,8 +78,13 @@ static void get_cfg()
     cfg.interval=50;
     wxFileName cfgFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     cfgFile.SetFullName("heartbeat.cfg");
-    wxFile f;
-    if (!f.Open(cfgFile.GetFullPath())) return;
+    if (!wxFile::Exists(cfgFile.GetFullPath())) {
+        return;
+    }
+    wxFile f(cfgFile.GetFullPath());
+    if (!f.IsOpened()) {
+        return;
+    }
     wxString AllLines;
     f.ReadAll(&AllLines);
     f.Close();
