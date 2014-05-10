@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.3.6)</title>
+		<title>xLights/Nutcracker  (Ver 3.3.7)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -2354,14 +2354,7 @@
 		</object>
 		<object class="wxFileDialog" variable="FileDialogConvert" member="yes">
 			<message>Select file</message>
-			<wildcard>xLights Sequences(*.xseq)|*.xseq|
-            LOR Music Sequences (*.lms)|*.lms|
-			LOR Animation Sequences (*.las)|*.las|
-			Vixen Sequences (*.vix)|*.vix|
-			Falcon Pi Player Sequences (*.fseq)|*.fseq|
-			Glediator Record File (*.gled)|*.gled)|
-			Lynx Conductor Sequences (*.seq)|*.seq|
-			HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
+			<wildcard>xLights Sequences(*.xseq)|*.xseq|&#x0D;&#x0A;            LOR Music Sequences (*.lms)|*.lms|&#x0D;&#x0A;&#x09;&#x09;&#x09;LOR Animation Sequences (*.las)|*.las|&#x0D;&#x0A;&#x09;&#x09;&#x09;Vixen Sequences (*.vix)|*.vix|&#x0D;&#x0A;&#x09;&#x09;&#x09;Falcon Pi Player Sequences (*.fseq)|*.fseq|&#x0D;&#x0A;&#x09;&#x09;&#x09;Glediator Record File (*.gled)|*.gled)|&#x0D;&#x0A;&#x09;&#x09;&#x09;Lynx Conductor Sequences (*.seq)|*.seq|&#x0D;&#x0A;&#x09;&#x09;&#x09;HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 		<object class="wxMessageDialog" name="ID_MESSAGEDIALOG1" variable="MessageDialog1" member="yes">
