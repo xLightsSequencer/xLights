@@ -609,7 +609,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
             else if ((src_xy.x != cached_xy.x) || (src_xy.y != cached_xy.y)) //update cached pixel info
             {
                 cached_xy = src_xy; //prev_xy.x = src_xy.x; prev_y = srcy; //not sure how expensive wx pixel functions are, so cache current pixel info just in case; aliasing/averaging and color mapping also makes thiss more expensive
-                if (Shapes.IsTransparent(src_xy.x, src_xy.y)) cached_rgb = -1;
+                if (Shapes.IsTransparent(src_xy.x, src_xy.y)) cached_rgb = 1; //-1; //-1 matches white, so use + instead
                 else
                 {
 //                        wxColor c;
@@ -619,7 +619,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
                 }
                 debug_more(20, ", LK(%d,%d)", cached_xy.x, cached_xy.y);
             }
-            if (cached_rgb == -1) continue; //don't need to draw pixel
+            if (cached_rgb == 1 /*-1*/) continue; //don't need to draw pixel
             int wrapx = sprite->destxy.x + x, scrolly = sprite->destxy.y;
 //            if (style == PIANO_STYLE_ANIMAGE) { wrapx *= xscale; scrolly *= yscale; }
             if (!clip) wrapx %= canvas.x; //wrap on even key boundary
