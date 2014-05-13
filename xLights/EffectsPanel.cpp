@@ -366,6 +366,9 @@ const long EffectsPanel::ID_STATICTEXT59 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Wave_Direction = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON8 = wxNewId();
 const long EffectsPanel::ID_PANEL15 = wxNewId();
+const long EffectsPanel::ID_BUTTON3 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON10 = wxNewId();
+const long EffectsPanel::ID_PANEL17 = wxNewId();
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
@@ -437,6 +440,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
+    wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer52;
@@ -1596,6 +1600,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Wave->SetSizer(FlexGridSizer51);
     FlexGridSizer51->Fit(Panel1_Wave);
     FlexGridSizer51->SetSizeHints(Panel1_Wave);
+    Panel1_Glediator = new wxPanel(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
+    FlexGridSizer53 = new wxFlexGridSizer(0, 3, 0, 0);
+    Button1 = new wxButton(Panel1_Glediator, ID_BUTTON3, _("Glediator *.gled File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer53->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton9 = new wxBitmapButton(Panel1_Glediator, ID_BITMAPBUTTON10, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
+    FlexGridSizer53->Add(BitmapButton9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1_Glediator->SetSizer(FlexGridSizer53);
+    FlexGridSizer53->Fit(Panel1_Glediator);
+    FlexGridSizer53->SetSizeHints(Panel1_Glediator);
     Choicebook1->AddPage(Panel1_None, _("None"), false);
     Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
     Choicebook1->AddPage(Panel1_Butterfly, _("Butterfly"), false);
@@ -1619,6 +1632,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choicebook1->AddPage(Panel1_SingleStrand, _("SingleStrand"), false);
     Choicebook1->AddPage(Panel1_Faces, _("Faces"), false);
     Choicebook1->AddPage(Panel1_Wave, _("Wave"), false);
+    Choicebook1->AddPage(Panel1_Glediator, _("Glediator"), false);
     FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -1873,6 +1887,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Type1Click);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_3dFade1Click);
     Connect(ID_BITMAPBUTTON_CHECKBOX_R_TO_L1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_R_TO_L1Click);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Glediator_FilenameClick);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnChoicebook1PageChanged);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LayerEffectClick);
     Connect(ID_CHECKBOX_Palette1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
@@ -2206,6 +2221,13 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
     wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
 }
+
+void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "", "Glediator files (*.gled)|*.gled", wxFD_OPEN );
+    if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
+}
+
 
 void EffectsPanel::OnButton_Piano_CueFilenameClick(wxCommandEvent& event)
 {

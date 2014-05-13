@@ -1089,7 +1089,9 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName)
 void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
 {
     wxFile f;
-    char row[1024000];
+    long xx;
+
+    wxFileOffset fileLength;
     int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     unsigned int ch,byte,byte1,byte2;
     wxString filename=wxString::Format(_("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
@@ -1100,55 +1102,39 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
         PlayerError(_("Unable to load sequence:\n")+FileName);
         return;
     }
-    SeqNumPeriods=f.Length()/(x_width*3*y_height);
+
+    fileLength=f.Length();
     SeqNumChannels=(x_width*3*y_height); // 3072 = 32*32*3
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
+    //   char row[1024000];
+    char frameBuffer[SeqNumChannels];
+    // Get File size
 
+    SeqNumPeriods=(int)(fileLength/(x_width*3*y_height));
+    SeqDataLen=SeqNumPeriods * SeqNumChannels;
     SetMediaFilename(filename);
+    SeqData.resize(fileLength);
+    SeqDataLen=fileLength;
 
-
-    SeqData.resize(SeqDataLen);
-    /*
-    readcnt = f.Read((char *)&row.front(),16384);
-        if (readcnt < SeqDataLen) {
-            PlayerError(_("Unable to read all event data from:\n")+FileName);
-        }
-    */
-
-    readcnt =  f.Read(row,1024000);
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
-    /* 2x3 horiz matrix
-    RGBRGBRGB
-    RGBRGBRGB
-    --
-    RGBRGBRGB
-    RGBRGBRGB
-    --
-    RGBRGBRGB
-    RGBRGBRGB
-
-    bytes_per_period=18
-    becomes
-    RRR
-    GGG
-    BBB
-    RRR
-
-    */
-
-    //  while (f.Read(row,15000)) {
     wxYield();
-    bytes_per_period = x_width*3*y_height;
+    period = 0;
+    while(readcnt=f.Read(frameBuffer,SeqNumChannels)) { // Read one period of channels
+        for(j=0; j<readcnt; j++) { // Loop thru all channel.s
+            SeqData[(j*SeqNumPeriods)+period] = frameBuffer[j++];
+        }
+        period++;
+    }
+
+    /*
     for(i=0; i<readcnt-2; i++) {
         SeqData[i] = i%256;
     }
-    for(i=0; i<readcnt-2; i+=3) {
+    for(i=0; i<readcnt-2; i+=3) { // loop thru channels, jump by 3. so this loop is pixel loop
         period = i/bytes_per_period;
         p=period * (bytes_per_period); // byte offset for start of each period
         ch=p+ (y*x_width*3) + x*3; // shows offset into source buffer
         byte =p+i;
-        byte1=p+i+(period+1)* (x_width);
-        byte2=p+i+(period+2)* (x_width);
+        byte1=p+i+(1)* (SeqNumPeriods);
+        byte2=p+i+(2)* (SeqNumPeriods);
         if ( byte2<readcnt) {
             SeqData[byte]  = row[i];
             SeqData[byte1] = row[i+1];
@@ -1156,6 +1142,7 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
         }
     }
     //   }
+    */
     f.Close();
 
 

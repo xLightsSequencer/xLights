@@ -450,6 +450,12 @@ void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing)
     Effect[CurrentLayer].RenderGarlands(GarlandType,Spacing);
 }
 
+void PixelBufferClass::RenderGlediator( const wxString& NewPictureName)
+{
+    Effect[CurrentLayer].RenderGlediator(NewPictureName);
+}
+
+
 void PixelBufferClass::RenderLife(int Count, int Seed)
 {
     Effect[CurrentLayer].RenderLife(Count,Seed);

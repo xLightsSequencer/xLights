@@ -983,6 +983,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Spacing"]));
     }
+     else if (effect == "Glediator")
+    {
+        buffer.RenderGlediator(SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"]);
+    }
     else if (effect == "Life")
     {
         buffer.RenderLife(wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Count"]),
@@ -1189,6 +1193,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_GARLANDS:
         buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
                               panel->Slider_Garlands_Spacing->GetValue());
+        break;
+        case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
+        buffer.RenderGlediator(panel->TextCtrl_Pictures_Filename->GetValue());
         break;
     case eff_LIFE:
         buffer.RenderLife(panel->Slider_Life_Count->GetValue(),

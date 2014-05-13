@@ -315,6 +315,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_ColorWashVFade;
 		wxChoice* Choice_Faces_Phoneme;
 		wxStaticText* StaticText100;
+		wxBitmapButton* BitmapButton9;
 		wxSlider* Slider_Circles_Count;
 		wxBitmapButton* BitmapButton_FireworksFade;
 		wxSlider* Slider_Tree_Branches;
@@ -370,6 +371,7 @@ class EffectsPanel: public wxPanel
 		wxChoice* Choice_Text_Effect1;
 		wxBitmapButton* BitmapButton_MeteorsEffect;
 		wxBitmapButton* BitmapButton_SpirographR;
+		wxButton* Button1;
 		wxChoice* Choice_Text_Count3;
 		wxPanel* Panel1_Piano;
 		wxCheckBox* CheckBox_Palette1;
@@ -397,6 +399,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_MeteorsCount;
 		wxCheckBox* CheckBox_Curtain_Repeat;
 		wxButton* Button_Palette1;
+		wxPanel* Panel1_Glediator;
 		wxBitmapButton* BitmapButton_FireWidth;
 		wxChoice* Choice_Chase_Type1;
 		wxStaticText* StaticText16;
@@ -788,6 +791,9 @@ class EffectsPanel: public wxPanel
 		static const long ID_CHOICE_Wave_Direction;
 		static const long ID_BITMAPBUTTON8;
 		static const long ID_PANEL15;
+		static const long ID_BUTTON3;
+		static const long ID_BITMAPBUTTON10;
+		static const long ID_PANEL17;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON87;
@@ -831,6 +837,7 @@ class EffectsPanel: public wxPanel
 
 		//(*Handlers(EffectsPanel)
 		void OnButton_Pictures_FilenameClick(wxCommandEvent& event);
+			void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
 		void OnButton_Text_Font1Click(wxCommandEvent& event);
 		void OnButton_Text_Font2Click(wxCommandEvent& event);
 		void OnCheckBox_PaletteClick(wxCommandEvent& event);

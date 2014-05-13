@@ -8,6 +8,7 @@ void RenderFaces(int Phoneme);
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGarlands(int GarlandType, int Spacing);
+void RenderGlediator(const wxString& NewPictureName);
 void RenderLife(int Count, int Type);
 void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity);
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
