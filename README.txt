@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+<next>
+	-Bug fix, reported (djulien) draw white correctly if it's one of the Piano colors
 3.3.7	May 9, 2014
 	-Bug fix (dkulp) Added some additional checks to fix the heartbeat.cfg error.
 3.3.6	May 08, 2014 
