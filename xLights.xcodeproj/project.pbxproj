@@ -10,6 +10,7 @@
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
+		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
@@ -92,6 +93,7 @@
 		673E425A17F0D23E00F4BC76 /* TabTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabTest.cpp; sourceTree = "<group>"; };
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
+		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AddShowDialog.cpp; sourceTree = "<group>"; };
 		67A619BD17B51C0F008E95BB /* AddShowDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddShowDialog.h; sourceTree = "<group>"; };
@@ -295,6 +297,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
 				674D34C51918238E00A993C7 /* RenderFaces.cpp */,
 				674D34C61918238E00A993C7 /* RenderWave.cpp */,
 				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
@@ -478,6 +481,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
+				675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */,
 				673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */,
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
