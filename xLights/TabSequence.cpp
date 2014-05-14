@@ -908,6 +908,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
+    int i1,i2,i3,i4,i5,i6,i7;
 
     wxString LayerStr=layer==0 ? "E1_" : "E2_";
     wxString SpeedStr=SettingsMap[LayerStr+"SLIDER_Speed"];
@@ -1101,13 +1102,25 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Wave")
     {
-        buffer.RenderWave(wxAtoi(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
+    buffer.RenderWave(wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Type"]), //
                           wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]),
                           SettingsMap[LayerStr+"CheckBox_Mirror_Wave"]=="1",
-                          wxAtoi(SettingsMap[LayerStr+"Slider_Number_Waves"]),
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]),
                           wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]),
                           wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]),
-                          wxAtoi(SettingsMap[LayerStr+"CHOICE_Wave_Direction"]));
+                          wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Direction"]));
+
+
+i1 = wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Type"]);
+i2 = wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]);
+i4 = wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]);
+i5 = wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]);
+i6 = wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]);
+ i7 = wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Direction"]);
+ i3 = 0;
+/*
+ buffer.RenderWave(0,0,true,900,5,50,0);
+ */
     }
     return retval;
 }
@@ -2612,6 +2625,7 @@ void xLightsFrame::RenderGridToSeqData()
             msec=p * XTIMER_INTERVAL;
 //            buffer.Clear();
 //            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
+
             if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
                 buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
             if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())

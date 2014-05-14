@@ -1009,6 +1009,7 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_Wave_ThicknessClick(wxCommandEvent& event);
 		void OnBitmapButton_Wave_HeightClick(wxCommandEvent& event);
 		void OnBitmapButton_Wave_DirectionClick(wxCommandEvent& event);
+		void OnSlider_Wave_HeightCmdScroll(wxScrollEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);

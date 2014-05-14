@@ -3634,6 +3634,7 @@
 								<object class="sizeritem">
 									<object class="wxSlider" name="ID_SLIDER_Wave_Height" variable="Slider_Wave_Height" member="yes">
 										<value>50</value>
+										<handler function="OnSlider_Wave_HeightCmdScroll" entry="EVT_COMMAND_SCROLL" />
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
