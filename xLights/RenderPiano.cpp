@@ -550,7 +550,7 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
 //#undef pop
 //#undef push
 
-//TODO: fic repaint logic
+//TODO: fix repaint logic
     if ((Style == PIANO_STYLE_ANIMAGE) )//&& repaint) //repaint all now
         for (auto it = AllSprites.begin(); it != AllSprites.end(); ++it) //draw all sprites in their initial state
             if (it->second.ani_state) //redraw active sprites
@@ -595,6 +595,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
     float xscale = (float)sprite->wh.x / keywh.x, yscale = (float)sprite->wh.y / keywh.y; //src -> dest scale factor
 //    debug_more(30, ", here3");
 //TODO: use wxImage.GetData for better performance?
+    int xofs = !clip? (BufferWi % (7 * keywh.x)) / 2: 0; //center keys if not clipped
     if (WantHistory(style)) debug(20, "draw sprite '%s': set x/y %d/%d + %d/%d to 0x%x", (const char*)sprite->name.ToStdString().c_str(), sprite->destxy.x, sprite->destxy.y, keywh.x, keywh.y, drawstate? sprite->on.GetRGB(): sprite->off.GetRGB()); //.Flush(true);
     else debug(20, "draw sprite '%s': copy from x/y[%d/%d] %d/%d + %d/%d => x/y %d/%d + %d/%d, x/y scale = %f/%f", (const char*)sprite->name.ToStdString().c_str(), drawstate, sprite->xy.size(), sprite->xy[drawstate].x, sprite->xy[drawstate].y, sprite->wh.x, sprite->wh.y, sprite->destxy.x, sprite->destxy.y, keywh.x, keywh.y, 1.0 / xscale, 1.0 / yscale); //.Flush(true);
     for (int x = 0; x < keywh.x; ++x) //copying to it->w columns in dest
@@ -626,7 +627,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
 //            if ((style == PIANO_STYLE_ICICLES) || (style == PIANO_STYLE_EQBARS)) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
             if (style == PIANO_STYLE_ICICLES) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
             debug_more(20, ", (%d,%d)<-0x%x", wrapx, sprite->destxy.y + y, cached_rgb.GetRGB());
-            SetPixel(wrapx, sprite->destxy.y + y, cached_rgb); //no vertical wrap, only horizontal wrap
+            if (xofs + wrapx < BufferWi - xofs) SetPixel(xofs + wrapx, sprite->destxy.y + y, cached_rgb); //no vertical wrap, only horizontal wrap
         }
 //    debug.Flush(true);
     return true;
