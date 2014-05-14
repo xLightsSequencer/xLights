@@ -39,6 +39,7 @@ class EffectsPanel: public wxPanel
 		//(*Declarations(EffectsPanel)
 		wxStaticText* StaticText6;
 		wxBitmapButton* BitmapButton_RandomMotion;
+		wxBitmapButton* BitmapButton_Wave_FillColors;
 		wxBitmapButton* BitmapButton_TextFont2;
 		wxStaticText* StaticText19;
 		wxBitmapButton* BitmapButton_TwinkleSteps;
@@ -82,10 +83,12 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_CirclesPlasma;
 		wxBitmapButton* BitmapButton_FadeIn;
 		wxPanel* Panel_Text1;
+		wxBitmapButton* BitmapButton_Wave_Thickness;
 		wxBitmapButton* BitmapButton_TextToCenter2;
 		wxStaticText* StaticText45;
 		wxPanel* Panel3;
 		wxBitmapButton* BitmapButton_Palette6;
+		wxBitmapButton* BitmapButton_Glediator_Filename;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText18;
 		wxStaticText* StaticText30;
@@ -137,6 +140,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText24;
 		wxStaticText* StaticText104;
 		wxSlider* Slider_Snowflakes_Count;
+		wxBitmapButton* BitmapButton_Wave_MirrorWave;
 		wxStaticText* StaticText137;
 		wxChoice* Choice_Text_Dir3;
 		wxSlider* Slider_Spirals_Thickness;
@@ -195,7 +199,6 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_SpiralsShrink;
 		wxSlider* Slider_Spirograph_R;
 		wxStaticText* StaticText39;
-		wxBitmapButton* BitmapButton3;
 		wxStaticText* StaticText78;
 		wxBitmapButton* BitmapButton_LayerEffect;
 		wxPanel* Panel1_ColorWash;
@@ -242,7 +245,6 @@ class EffectsPanel: public wxPanel
 		wxCheckBox* CheckBox_Chase_Group_All;
 		wxStaticText* StaticText40;
 		wxBitmapButton* BitmapButton_TwinkleCount;
-		wxBitmapButton* BitmapButton4;
 		wxChoice* Choice_Meteors_Effect;
 		wxStaticText* StaticText21;
 		wxSlider* Slider_Wave_Height;
@@ -285,7 +287,6 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Twinkle_Count;
 		wxBitmapButton* BitmapButton_TextFont4;
 		wxSlider* Slider_Color_Mix1;
-		wxBitmapButton* BitmapButton6;
 		wxCheckBox* CheckBox_Palette5;
 		wxCheckBox* CheckBox_ColorWash_HFade;
 		wxStaticText* StaticText132;
@@ -294,12 +295,14 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText44;
 		wxStaticText* StaticText95;
 		wxChoice* Choice_Butterfly_Direction;
+		wxBitmapButton* BitmapButton_Wave_Height;
 		wxStaticText* StaticText98;
 		wxSlider* Slider_Meteors_Count;
 		wxBitmapButton* BitmapButton_TwinkleStrobe;
 		wxStaticText* StaticText88;
 		wxStaticText* StaticText59;
 		wxChoice* Choice_Text_Effect2;
+		wxBitmapButton* BitmapButton_NumberWaves;
 		wxStaticText* StaticText_Piano_NumKeys;
 		wxBitmapButton* BitmapButton_FitToTime;
 		wxPanel* Panel1_Pictures;
@@ -307,7 +310,6 @@ class EffectsPanel: public wxPanel
 		wxSlider* Slider_Curtain_Swag;
 		wxStaticText* StaticText43;
 		wxCheckBox* CheckBox_Circles_Random_m;
-		wxBitmapButton* BitmapButton2;
 		wxBitmapButton* BitmapButton_TextEffect1;
 		wxSlider* Slider_Pictures_GifSpeed;
 		wxPanel* Panel_Text3;
@@ -315,7 +317,6 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_ColorWashVFade;
 		wxChoice* Choice_Faces_Phoneme;
 		wxStaticText* StaticText100;
-		wxBitmapButton* BitmapButton9;
 		wxSlider* Slider_Circles_Count;
 		wxBitmapButton* BitmapButton_FireworksFade;
 		wxSlider* Slider_Tree_Branches;
@@ -323,6 +324,7 @@ class EffectsPanel: public wxPanel
 		wxBitmapButton* BitmapButton_Spirographd;
 		wxPanel* Panel1_Meteors;
 		wxSlider* Slider_Butterfly_Style;
+		wxBitmapButton* BitmapButton_Wave_Direction;
 		wxStaticText* StaticText26;
 		wxCheckBox* CheckBox_Palette4;
 		wxCheckBox* CheckBox_Piano_Clipping;
@@ -344,12 +346,12 @@ class EffectsPanel: public wxPanel
 		wxPanel* Panel1_Circles;
 		wxButton* Button_Text_Font3;
 		wxBitmapButton* BitmapButton_SpiralsBlend;
+		wxBitmapButton* BitmapButton_WaveType;
 		wxSlider* Slider_Snowstorm_Count;
 		wxChoice* Choice_Fill_Colors;
 		wxPanel* Panel1_None;
 		wxBitmapButton* BitmapButton_Palette1;
 		wxChoice* Choice_Text_Count2;
-		wxBitmapButton* BitmapButton5;
 		wxBitmapButton* BitmapButton_ButterflyColors;
 		wxBitmapButton* BitmapButton_MeteorsType;
 		wxSlider* Slider_Speed;
@@ -380,12 +382,10 @@ class EffectsPanel: public wxPanel
 		wxButton* Button_Palette5;
 		wxStaticText* StaticText51;
 		wxBitmapButton* BitmapButton_Spirographr;
-		wxBitmapButton* BitmapButton7;
 		wxCheckBox* CheckBox_Spirals_Blend;
 		wxStaticText* StaticText33;
 		wxPanel* Panel1_Text;
 		wxCheckBox* CheckBox_ColorWash_VFade;
-		wxBitmapButton* BitmapButton1;
 		wxBitmapButton* BitmapButton_SnowflakesCount;
 		wxTextCtrl* TextCtrl_Pictures_Filename;
 		wxBitmapButton* BitmapButton_TextFont3;
@@ -981,6 +981,34 @@ class EffectsPanel: public wxPanel
 		void OnBitmapButton_TextToCenter2Click(wxCommandEvent& event);
 		void OnBitmapButton_TextToCenter3Click(wxCommandEvent& event);
 		void OnBitmapButton_TextToCenter4Click(wxCommandEvent& event);
+		void OnBitmapButton1Click1(wxCommandEvent& event);
+		void OnBitmapButton2Click(wxCommandEvent& event);
+		void OnBitmapButton3Click(wxCommandEvent& event);
+		void OnBitmapButton4Click(wxCommandEvent& event);
+		void OnBitmapButton5Click(wxCommandEvent& event);
+		void OnBitmap_WaveTypeClick(wxCommandEvent& event);
+		void OnBitmap_Wave_FillColorsClick(wxCommandEvent& event);
+		void OnBitmap_Wave_MirrorWaveClick(wxCommandEvent& event);
+		void OnBitmap_NumberWavesClick(wxCommandEvent& event);
+		void OnBitmap_Wave_ThicknessClick(wxCommandEvent& event);
+		void OnBitmap_Wave_HeightClick(wxCommandEvent& event);
+		void OnBitmap_Wave_DirectionClick(wxCommandEvent& event);
+		void OnBitmap_Glediator_FilenameClick(wxCommandEvent& event);
+		void OnBitmapButton_Glediator_FilenameClick(wxCommandEvent& event);
+		void OnBitmap_WaveTypeClick1(wxCommandEvent& event);
+		void OnBitmap_Wave_FillColorsClick1(wxCommandEvent& event);
+		void OnBitmap_Wave_MirrorWaveClick1(wxCommandEvent& event);
+		void OnBitmap_NumberWavesClick1(wxCommandEvent& event);
+		void OnBitmap_Wave_ThicknessClick1(wxCommandEvent& event);
+		void OnBitmap_Wave_HeightClick1(wxCommandEvent& event);
+		void OnBitmap_Wave_DirectionClick1(wxCommandEvent& event);
+		void OnBitmapButton_WaveTypeClick(wxCommandEvent& event);
+		void OnBitmapButton_Wave_FillColorsClick(wxCommandEvent& event);
+		void OnBitmapButton_Wave_MirrorWaveClick(wxCommandEvent& event);
+		void OnBitmapButton_NumberWavesClick(wxCommandEvent& event);
+		void OnBitmapButton_Wave_ThicknessClick(wxCommandEvent& event);
+		void OnBitmapButton_Wave_HeightClick(wxCommandEvent& event);
+		void OnBitmapButton_Wave_DirectionClick(wxCommandEvent& event);
 		//*)
 
         void UpdateFont(wxTextCtrl* FontCtrl);
