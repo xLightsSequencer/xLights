@@ -84,6 +84,12 @@ void RgbEffects::RenderGlediator( const wxString& NewPictureName2)
     int SeqNumPeriods,SeqDataLen,SeqNumChannels;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
 
+
+    if (!wxFileExists(NewPictureName2))
+    {
+        return;
+    }
+
     if (!f.Open(NewPictureName2.c_str()))
     {
         //   PlayerError(_("Unable to load sequence:\n")+FileName);
