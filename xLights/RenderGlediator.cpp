@@ -68,7 +68,7 @@
 
 
 
-void RgbEffects::RenderGlediator( const wxString& NewPictureName2)
+void RgbEffects::RenderGlediator( const wxString& GledFilename)
 {
     wxFile f;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
@@ -85,12 +85,12 @@ void RgbEffects::RenderGlediator( const wxString& NewPictureName2)
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
 
 
-    if (!wxFileExists(NewPictureName2))
+    if (!wxFileExists(GledFilename)) // if it doesnt exist, just return
     {
         return;
     }
 
-    if (!f.Open(NewPictureName2.c_str()))
+    if (!f.Open(GledFilename.c_str())) // open the *.gled file
     {
         //   PlayerError(_("Unable to load sequence:\n")+FileName);
         return;

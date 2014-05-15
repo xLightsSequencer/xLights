@@ -6,13 +6,14 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
-	-Enh, requested (djulien) center Piano keys if Clip is unchecked
 3.3.8	May 13, 2014
 	-Enhancement (sean) New Effect, Glediator. Save a recorder file from Glediator. Open file and put in your grid.
 	-Bug fix (sean). Glediator conversion now works. Select a *.gled file in the CONVERT tab and change into any of the output
 		formats.
 	-Bug fix, reported (djulien) draw white correctly if it's one of the Piano colors
+	-Bug fix (Sean), Fixed Preview for Wave and Glediator. You could see this effects in Nutcracker tab but not in Preview.
+		all fixed.
+	-Enhancement, requested (djulien) center Piano keys if Clip is unchecked
 3.3.7	May 9, 2014
 	-Bug fix (dkulp) Added some additional checks to fix the heartbeat.cfg error.
 3.3.6	May 08, 2014 

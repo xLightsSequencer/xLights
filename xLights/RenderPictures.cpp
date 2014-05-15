@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      RgbEffects.cpp
+ * Name:      RenderPictures.cpp
  * Purpose:   Implements RGB effects
  * Author:    Matt Brown (dowdybrown@yahoo.com)
  * Created:   2012-12-23

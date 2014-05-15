@@ -368,6 +368,7 @@ const long EffectsPanel::ID_BITMAPBUTTON8 = wxNewId();
 const long EffectsPanel::ID_PANEL15 = wxNewId();
 const long EffectsPanel::ID_BUTTON3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON10 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Glediator_Filename = wxNewId();
 const long EffectsPanel::ID_PANEL17 = wxNewId();
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
@@ -420,6 +421,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer71;
     wxFlexGridSizer* FlexGridSizer45;
     wxFlexGridSizer* FlexGridSizer47;
+    wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizer73;
     wxFlexGridSizer* FlexGridSizer24;
@@ -1547,9 +1549,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText47 = new wxStaticText(Panel1_Wave, ID_STATICTEXT49, _("Wave Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT49"));
     FlexGridSizer51->Add(StaticText47, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Wave_Type = new wxChoice(Panel1_Wave, ID_CHOICE_Wave_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Wave_Type"));
-    Choice_Wave_Type->Append(_("Sine"));
-    Choice_Wave_Type->Append(_("Triangle"));
-    Choice_Wave_Type->Append(_("Square"));
     FlexGridSizer51->Add(Choice_Wave_Type, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_WaveType = new wxBitmapButton(Panel1_Wave, ID_BITMAPBUTTON2, padlock16x16_green_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
     BitmapButton_WaveType->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -1601,12 +1600,16 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer51->Fit(Panel1_Wave);
     FlexGridSizer51->SetSizeHints(Panel1_Wave);
     Panel1_Glediator = new wxPanel(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
-    FlexGridSizer53 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer53 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer54 = new wxFlexGridSizer(0, 2, 0, 0);
     Button1 = new wxButton(Panel1_Glediator, ID_BUTTON3, _("Glediator *.gled File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer53->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Glediator_Filename = new wxBitmapButton(Panel1_Glediator, ID_BITMAPBUTTON10, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
+    FlexGridSizer54->Add(Button1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Glediator_Filename = new wxBitmapButton(Panel1_Glediator, ID_BITMAPBUTTON10, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,17), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
     BitmapButton_Glediator_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer53->Add(BitmapButton_Glediator_Filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer54->Add(BitmapButton_Glediator_Filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer53->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Glediator_Filename = new wxTextCtrl(Panel1_Glediator, ID_TEXTCTRL_Glediator_Filename, wxEmptyString, wxDefaultPosition, wxSize(255,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Glediator_Filename"));
+    FlexGridSizer53->Add(TextCtrl_Glediator_Filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Panel1_Glediator->SetSizer(FlexGridSizer53);
     FlexGridSizer53->Fit(Panel1_Glediator);
     FlexGridSizer53->SetSizeHints(Panel1_Glediator);
@@ -2234,7 +2237,7 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
 void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "", "Glediator files (*.gled)|*.gled", wxFD_OPEN );
-    if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
+    if (!filename.IsEmpty()) TextCtrl_Glediator_Filename->SetValue(filename);
 }
 
 

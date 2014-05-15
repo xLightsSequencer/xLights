@@ -306,6 +306,7 @@ class EffectsPanel: public wxPanel
 		wxStaticText* StaticText_Piano_NumKeys;
 		wxBitmapButton* BitmapButton_FitToTime;
 		wxPanel* Panel1_Pictures;
+		wxTextCtrl* TextCtrl_Glediator_Filename;
 		wxBitmapButton* BitmapButton_Palette4;
 		wxSlider* Slider_Curtain_Swag;
 		wxStaticText* StaticText43;
@@ -793,6 +794,7 @@ class EffectsPanel: public wxPanel
 		static const long ID_PANEL15;
 		static const long ID_BUTTON3;
 		static const long ID_BITMAPBUTTON10;
+		static const long ID_TEXTCTRL_Glediator_Filename;
 		static const long ID_PANEL17;
 		static const long ID_CHOICEBOOK1;
 		static const long ID_BITMAPBUTTON_CHOICEBOOK1;

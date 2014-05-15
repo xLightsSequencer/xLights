@@ -115,8 +115,10 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     Choice_Models->Enable(enable);
     EffectsPanel1->Button_Pictures_Filename->Enable(enable);
     EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
+    EffectsPanel1->TextCtrl_Glediator_Filename->Enable(enable);
     EffectsPanel2->Button_Pictures_Filename->Enable(enable);
     EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
+    EffectsPanel2->TextCtrl_Glediator_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
@@ -908,7 +910,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
-    int i1,i2,i3,i4,i5,i6,i7;
+    int i1,i2,i3=0,i4,i5,i6,i7;
 
     wxString LayerStr=layer==0 ? "E1_" : "E2_";
     wxString SpeedStr=SettingsMap[LayerStr+"SLIDER_Speed"];
@@ -984,9 +986,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Spacing"]));
     }
-     else if (effect == "Glediator")
+    else if (effect == "Glediator")
     {
-        buffer.RenderGlediator(SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"]);
+        buffer.RenderGlediator(SettingsMap[LayerStr+"TEXTCTRL_Glediator_Filename"]);
     }
     else if (effect == "Life")
     {
@@ -1102,26 +1104,20 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Wave")
     {
-    buffer.RenderWave(wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Type"]), //
-                          wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]),
-                          SettingsMap[LayerStr+"CheckBox_Mirror_Wave"]=="1",
+
+ buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
+                          FillColors.Index(SettingsMap[LayerStr+"CHOICE_Fill_Colors"]),
+                          SettingsMap[LayerStr+"CHECKBOX_Mirror_Wave"]=="1",
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]),
-                          wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]),
-                          wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]),
-                          wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Direction"]));
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Thickness_Percentage"]),
+                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Wave_Height"]),
+                          WaveDirection.Index(SettingsMap[LayerStr+"CHOICE_Wave_Direction"]));
 
 
-i1 = wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Type"]);
-i2 = wxAtoi(SettingsMap[LayerStr+"Choice_Fill_Colors"]);
-i4 = wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]);
-i5 = wxAtoi(SettingsMap[LayerStr+"Slider_Thickness_Percentage"]);
-i6 = wxAtoi(SettingsMap[LayerStr+"Slider_Wave_Height"]);
- i7 = wxAtoi(SettingsMap[LayerStr+"Choice_Wave_Direction"]);
- i3 = 0;
-/*
- buffer.RenderWave(0,0,true,900,5,50,0);
- */
+
+
     }
+
     return retval;
 }
 
@@ -1207,8 +1203,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
                               panel->Slider_Garlands_Spacing->GetValue());
         break;
-        case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
-        buffer.RenderGlediator(panel->TextCtrl_Pictures_Filename->GetValue());
+    case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
+        buffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
         break;
     case eff_LIFE:
         buffer.RenderLife(panel->Slider_Life_Count->GetValue(),
@@ -2602,7 +2598,7 @@ void xLightsFrame::RenderGridToSeqData()
         ModelNode=GetModelNode(ColName);
         if (!ModelNode) continue;
         buffer.InitBuffer(ModelNode);
- //       if (!buffer.MyDisplay) continue;
+//       if (!buffer.MyDisplay) continue;
         NodeCnt=buffer.GetNodeCount();
         ChannelLimit=buffer.GetLastChannel() + 1;
 

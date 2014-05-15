@@ -1560,6 +1560,14 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Butterfly_Direction->Set(ButterflyDirection);
     panel->Choice_Butterfly_Direction->SetSelection(0);
 
+ panel->Choice_Wave_Type->Set(WaveType);
+    panel->Choice_Wave_Type->SetSelection(0);
+    panel->Choice_Fill_Colors->Set(FillColors);
+    panel->Choice_Fill_Colors->SetSelection(0);
+    panel->Choice_Wave_Direction->Set(WaveDirection);
+    panel->Choice_Wave_Direction->SetSelection(0);
+
+
     panel->Choice_Meteors_Type->Set(MeteorsEffectTypes);
     panel->Choice_Meteors_Type->SetSelection(0);
     panel->Choice_Meteors_Effect->Set(MeteorsEffect);
@@ -1602,12 +1610,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);
 
-    panel->Choice_Wave_Type->Set(WaveType);
-    panel->Choice_Wave_Type->SetSelection(0);
-    panel->Choice_Fill_Colors->Set(FillColors);
-    panel->Choice_Fill_Colors->SetSelection(0);
-    panel->Choice_Wave_Direction->Set(WaveDirection);
-    panel->Choice_Wave_Direction->SetSelection(0);
+
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
