@@ -4,7 +4,6 @@
 #include <wx/icon.h>
 #include "../include/xlights.xpm"
 
-
 // as of wxWidgets 2.8.11, wxMediaCtrl events are messed up on Vista and Win7
 // so just avoid them altogether
 

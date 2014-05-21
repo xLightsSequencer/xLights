@@ -277,6 +277,7 @@
 		<Unit filename="RenderFire.cpp" />
 		<Unit filename="RenderFireworks.cpp" />
 		<Unit filename="RenderGarlands.cpp" />
+		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />

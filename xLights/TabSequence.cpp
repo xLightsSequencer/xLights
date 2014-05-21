@@ -1121,6 +1121,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     return retval;
 }
 
+
 // layer is 0 or 1
 bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {

@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.3.9	May 13, 2014
+	-Bug fix (sean). Glediator effects were short one row in the Y direction. This has now been fixed.
 3.3.8	May 13, 2014
 	-Enhancement (sean) New Effect, Glediator. Save a recorder file from Glediator. Open file and put in your grid.
 	-Bug fix (sean). Glediator conversion now works. Select a *.gled file in the CONVERT tab and change into any of the output

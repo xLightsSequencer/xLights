@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.3.8)</title>
+		<title>xLights/Nutcracker  (Ver 3.3.9)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />

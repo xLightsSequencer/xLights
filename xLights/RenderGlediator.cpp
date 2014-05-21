@@ -119,7 +119,7 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
         // Loop thru all channels
         color = wxColor(frameBuffer[j],frameBuffer[j+1],frameBuffer[j+2]);
         x=(j%(BufferWi*3))/3;
-        y=BufferHt - (j/(BufferWi*3));
+        y=(BufferHt-1) - (j/(BufferWi*3));
         if(x<BufferWi and y<BufferHt and y>= 0)
         {
             SetPixel(x,y,color);
