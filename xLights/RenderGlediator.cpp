@@ -98,14 +98,8 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
 
     fileLength=f.Length();
     SeqNumChannels=(BufferWi*3*BufferHt); // 3072 = 32*32*3
-    //   char row[1024000];
-    char frameBuffer[SeqNumChannels];
-    // Get File size
-
-    SeqNumPeriods=(int)(fileLength/(BufferWi*3*BufferHt));
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
-//   SetMediaFilename(filename);
-//SeqData.resize(fileLength);
+    char *frameBuffer=new char[SeqNumChannels];
+    SeqNumPeriods=(int)(fileLength/SeqNumChannels);
     SeqDataLen=fileLength;
 
     wxYield();
@@ -120,10 +114,11 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
         color = wxColor(frameBuffer[j],frameBuffer[j+1],frameBuffer[j+2]);
         x=(j%(BufferWi*3))/3;
         y=(BufferHt-1) - (j/(BufferWi*3));
-        if(x<BufferWi and y<BufferHt and y>= 0)
+        if(x<BufferWi && y<BufferHt && y>= 0)
         {
             SetPixel(x,y,color);
         }
 
     }
+    delete[] frameBuffer;
 }

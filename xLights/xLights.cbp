@@ -327,8 +327,10 @@
 		<Unit filename="heartbeat.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
-			<Option target="DebugWindows" />
-			<Option target="ReleaseWindows" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="MSVC_Debug" />
+			<Option target="MSVC_Release" />
 		</Unit>
 		<Unit filename="serial.cpp" />
 		<Unit filename="serial.h" />

@@ -1105,9 +1105,7 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
 
     fileLength=f.Length();
     SeqNumChannels=(x_width*3*y_height); // 3072 = 32*32*3
-    //   char row[1024000];
-    char frameBuffer[SeqNumChannels];
-    // Get File size
+    char *frameBuffer=new char[SeqNumChannels];
 
     SeqNumPeriods=(int)(fileLength/(x_width*3*y_height));
     SeqDataLen=SeqNumPeriods * SeqNumChannels;
@@ -1144,15 +1142,11 @@ void xLightsFrame::ReadGlediatorFile(const wxString& FileName)
     //   }
     */
     f.Close();
-
-
-
+    delete[] frameBuffer;
 
 #ifndef NDEBUG
     TextCtrlLog->AppendText(wxString::Format(_("ReadGlediatorFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
 #endif
-
-    f.Close();
 }
 
 void xLightsFrame::ConversionInit()
