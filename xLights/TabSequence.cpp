@@ -1348,6 +1348,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 
     int effectMixThreshold=Slider_EffectLayerMix->GetValue();
     buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
+//    debug(1, "play rgb effect[%d]: set mix thresh %d, varies? %d", EffectPeriod, effectMixThreshold, CheckBox_LayerMorph->GetValue());
 
     if (MixTypeChanged)
     {
@@ -2661,6 +2662,10 @@ void xLightsFrame::RenderGridToSeqData()
                     UpdateBufferFadesFromMap(2, SettingsMap);
                     UpdateFitToTimeFromMap(1, SettingsMap);
                     UpdateFitToTimeFromMap(2, SettingsMap);
+
+                    int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
+                    buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
+//                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
 
                 UpdateEffectDuration();

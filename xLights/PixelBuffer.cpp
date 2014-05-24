@@ -128,9 +128,12 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     rgbVal = wxImage::HSVtoRGB(hsv1);
     c1.Set(rgbVal.red, rgbVal.green, rgbVal.blue);
 
+    float svthresh = effectMixThreshold;
     if (effectMixVaries) //vary mix threshold gradually during effect interval -DJ
-        effectMixThreshold = Effect[0].GetEffectPeriodPosition();
-
+//        effectMixThreshold = Effect[0].GetEffectPeriodPosition();
+        effectMixThreshold = 1 - Effect[0].GetEffectPeriodPosition(); //seems to be backwards, so reverse it
+//    debug(1, "get mixed color: varies? %d, mix thresh %f", effectMixVaries, effectMixThreshold);
+//    wxColour svc0 = c0, svc1 = c1;
 
     switch (MixType)
     {
@@ -138,8 +141,11 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     case Mix_Effect2:
         emt = effectMixThreshold;
         emtNot = 1-effectMixThreshold;
-        emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
-        emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+        if (!effectMixVaries) //make cross-fade linear; this inverts it? -DJ
+        {
+            emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
+            emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+        }
 
         if (MixType == Mix_Effect2)
         {
@@ -152,6 +158,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
             c1.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
         }
         c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
+//        if (effectMixVaries) debug(1, "get mixed color: varies? %d, mix thresh %f, c0 %d,%d,%d + c1 %d,%d,%d => c %d,%d,%d", effectMixVaries, effectMixThreshold, svc0.Red(), svc0.Green(), svc0.Blue(), svc1.Red(), svc1.Green(), svc1.Blue(), c.Red(), c.Green(), c.Blue());
         break;
     case Mix_Mask1:
         // first masks second
@@ -240,6 +247,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         c = hsv1.value > effectMixThreshold ? c1 : c0; // if effect 2 is non black
         break;
     }
+    if (effectMixVaries) effectMixThreshold = svthresh; //put it back afterwards in case next row didn't change it
 }
 
 void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
