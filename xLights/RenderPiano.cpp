@@ -29,13 +29,12 @@
 #include <ctype.h>
 #include <algorithm> //sort
 
-#define WANT_DEBUG  99
-#define WANT_DEBUG_IMPL  99
+//#define WANT_DEBUG  99
 //void djdebug(const char* fmt, ...);
-#include "djdebug.cpp"
-// #define debug(level, ...)
-// #define debug_more(level, ...)
-// #define debug_function(level)
+//#include "djdebug.cpp"
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
 
 #define wxColor  wxColour //kludge; American alias :)
 
@@ -628,7 +627,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
             if (!clip) wrapx %= canvas.x; //wrap on even key boundary
 //            if ((style == PIANO_STYLE_ICICLES) || (style == PIANO_STYLE_EQBARS)) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
             if (style == PIANO_STYLE_ICICLES) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
-            debug_more(20, ", %d+%d vs. %d-%d? %d", xofs, wrapx, BufferWi, xofs, xofs + wrapx < BufferWi - xofs);
+//            debug_more(20, ", %d+%d vs. %d-%d? %d", xofs, wrapx, BufferWi, xofs, xofs + wrapx < BufferWi - xofs);
 //            if (!clip) wrapx = (wrapx + 2 * xofs) % BufferWi - 2 * xofs; //wrap within reduced area, not expanded area
             debug_more(20, ", (%d,%d)<-0x%x", wrapx, sprite->destxy.y + y, cached_rgb.GetRGB());
             if (xofs + wrapx < BufferWi - xofs) SetPixel(xofs + wrapx, sprite->destxy.y + y, cached_rgb); //no vertical wrap, only horizontal wrap
