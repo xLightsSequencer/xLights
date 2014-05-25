@@ -2508,6 +2508,7 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter1" variable="CheckBox_TextToCenter1" member="yes">
 																	<label>C</label>
+																	<tooltip>Move to center and stop</tooltip>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2689,6 +2690,7 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter2" variable="CheckBox_TextToCenter2" member="yes">
 																	<label>C</label>
+																	<tooltip>Move to center and stop</tooltip>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2869,6 +2871,7 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter3" variable="CheckBox_TextToCenter3" member="yes">
 																	<label>C</label>
+																	<tooltip>Move to center and stop</tooltip>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3047,6 +3050,7 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_TextToCenter4" variable="CheckBox_TextToCenter4" member="yes">
 																	<label>C</label>
+																	<tooltip>Move to center and stop</tooltip>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>

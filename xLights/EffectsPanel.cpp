@@ -1246,6 +1246,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer48->Add(BitmapButton_TextDir1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_TextToCenter1 = new wxCheckBox(Panel_Text1, ID_CHECKBOX_TextToCenter1, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter1"));
     CheckBox_TextToCenter1->SetValue(false);
+    CheckBox_TextToCenter1->SetToolTip(_("Move to center and stop"));
     FlexGridSizer48->Add(CheckBox_TextToCenter1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer69->Add(FlexGridSizer48, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     BitmapButton_TextToCenter1 = new wxBitmapButton(Panel_Text1, ID_BITMAPBUTTON_TextToCenter1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter1"));
@@ -1301,6 +1302,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer49->Add(BitmapButton_TextDir2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_TextToCenter2 = new wxCheckBox(Panel_Text2, ID_CHECKBOX_TextToCenter2, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter2"));
     CheckBox_TextToCenter2->SetValue(false);
+    CheckBox_TextToCenter2->SetToolTip(_("Move to center and stop"));
     FlexGridSizer49->Add(CheckBox_TextToCenter2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer74->Add(FlexGridSizer49, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     BitmapButton_TextToCenter2 = new wxBitmapButton(Panel_Text2, ID_BITMAPBUTTON_Text2Center2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Text2Center2"));
@@ -1356,6 +1358,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer50->Add(BitmapButton_TextDir3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_TextToCenter3 = new wxCheckBox(Panel_Text3, ID_CHECKBOX_TextToCenter3, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter3"));
     CheckBox_TextToCenter3->SetValue(false);
+    CheckBox_TextToCenter3->SetToolTip(_("Move to center and stop"));
     FlexGridSizer50->Add(CheckBox_TextToCenter3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer25->Add(FlexGridSizer50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     BitmapButton_TextToCenter3 = new wxBitmapButton(Panel_Text3, ID_BITMAPBUTTON_TextToCenter3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter3"));
@@ -1409,6 +1412,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer52->Add(BitmapButton_TextDir4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     CheckBox_TextToCenter4 = new wxCheckBox(Panel_Text4, ID_CHECKBOX_TextToCenter4, _("C"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_TextToCenter4"));
     CheckBox_TextToCenter4->SetValue(false);
+    CheckBox_TextToCenter4->SetToolTip(_("Move to center and stop"));
     FlexGridSizer52->Add(CheckBox_TextToCenter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer29->Add(FlexGridSizer52, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     BitmapButton_TextToCenter4 = new wxBitmapButton(Panel_Text4, ID_BITMAPBUTTON_TextToCenter4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TextToCenter4"));
