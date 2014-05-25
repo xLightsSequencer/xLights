@@ -7,6 +7,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
 <next>
+	-Bug fix (djulien) tried to fix Piano key wrap (again); added PianoTestNotes.txt file for easier testing (in case more changes are needed)
 	-Bug fix (djulien) fixed cross-fade (morph); didn't write to xseq file correctly
 3.3.9	May 13, 2014
 	-Bug fix (sean). Glediator effects were short one row in the Y direction. This has now been fixed.

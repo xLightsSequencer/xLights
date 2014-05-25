@@ -29,12 +29,13 @@
 #include <ctype.h>
 #include <algorithm> //sort
 
-//#define WANT_DEBUG  99
+#define WANT_DEBUG  99
+#define WANT_DEBUG_IMPL  99
 //void djdebug(const char* fmt, ...);
-//#include "djdebug.cpp"
- #define debug(level, ...)
- #define debug_more(level, ...)
- #define debug_function(level)
+#include "djdebug.cpp"
+// #define debug(level, ...)
+// #define debug_more(level, ...)
+// #define debug_function(level)
 
 #define wxColor  wxColour //kludge; American alias :)
 
@@ -441,7 +442,8 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
     else if (NumRows < 2) NumRows = NumKeys * BufferHt / BufferWi; //default square keys
     if (NumRows > BufferHt) NumRows = BufferHt; //each row needs at least 1 pixel in order to be visible
     if (Style == PIANO_STYLE_ANIMAGE) NumKeys = NumRows = 1; //use entire canvas
-    wxSize keywh(BufferWi / NumKeys, BufferHt / NumRows), /*BufferWH_full(BufferWi, BufferHt),*/ BufferWH_octave(7 * divup(NumKeys, 7) * keywh.x, NumRows * keywh.y); //wrap on octave boundaries only (so notes don't move); NOTE: only count white keys (black ones overlap), so octave width is actually 7 keys, not 12
+    int adjustw = Clipping? divup(NumKeys, 7): NumKeys/7; //round up vs. down
+    wxSize keywh(BufferWi / NumKeys, BufferHt / NumRows), /*BufferWH_full(BufferWi, BufferHt),*/ BufferWH_octave(7 * adjustw * keywh.x, NumRows * keywh.y); //wrap on octave boundaries only (so notes don't move); NOTE: only count white keys (black ones overlap), so octave width is actually 7 keys, not 12
     wxSize keywh_1row(BufferWi / NumKeys, BufferHt / 5 + rand() % (BufferHt * 4/5 + 1)); //kludge: simulate varying amplitudes for eq bars
     if (Style == PIANO_STYLE_ANIMAGE) BufferWH_octave.x = keywh.x; //use entire canvas
     if (Style == PIANO_STYLE_EQBARS) BufferWH_octave.y = BufferHt; //use entire height
@@ -626,6 +628,8 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
             if (!clip) wrapx %= canvas.x; //wrap on even key boundary
 //            if ((style == PIANO_STYLE_ICICLES) || (style == PIANO_STYLE_EQBARS)) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
             if (style == PIANO_STYLE_ICICLES) scrolly += canvas.y - keywh.y; //draw at top instead of bottom
+            debug_more(20, ", %d+%d vs. %d-%d? %d", xofs, wrapx, BufferWi, xofs, xofs + wrapx < BufferWi - xofs);
+//            if (!clip) wrapx = (wrapx + 2 * xofs) % BufferWi - 2 * xofs; //wrap within reduced area, not expanded area
             debug_more(20, ", (%d,%d)<-0x%x", wrapx, sprite->destxy.y + y, cached_rgb.GetRGB());
             if (xofs + wrapx < BufferWi - xofs) SetPixel(xofs + wrapx, sprite->destxy.y + y, cached_rgb); //no vertical wrap, only horizontal wrap
         }
