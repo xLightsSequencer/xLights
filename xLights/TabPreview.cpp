@@ -164,15 +164,21 @@ void xLightsFrame::OnScrolledWindowPreviewResize(wxSizeEvent& event)
     UpdatePreview();
 }
 
-void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
+//refactored
+void xLightsFrame::PreviewScaleUpdated(int newscale)
 {
-    int newscale=SliderPreviewScale->GetValue();
-    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
     m->SetScale(double(newscale)/100.0);
     UpdatePreview();
+}
+
+void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
+{
+    int newscale=SliderPreviewScale->GetValue();
+    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
+    PreviewScaleUpdated(newscale);
 }
 
 void xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event)

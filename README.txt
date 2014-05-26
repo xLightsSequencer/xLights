@@ -10,6 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-Bug fix (djulien) tried to fix Piano key wrap (again); added PianoTestNotes.txt file for easier testing (in case more changes are needed)
 	-Bug fix (djulien) fixed cross-fade (morph); didn't write to xseq file correctly
 	-Bug fix (djulien) add missing tool tip for Text center-and-stop checkbox
+	-Enh (djulien) make Preview element size editable; not sure why it wasn't; NOTE: must have a Display Element selected first
 3.3.9	May 13, 2014
 	-Bug fix (sean). Glediator effects were short one row in the Y direction. This has now been fixed.
 3.3.8	May 13, 2014

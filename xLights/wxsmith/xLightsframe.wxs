@@ -1312,7 +1312,7 @@
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE" variable="TextCtrlPreviewElementSize" member="yes">
 																			<value>50</value>
 																			<size>30,20</size>
-																			<style>wxTE_READONLY</style>
+																			<handler function="OnTextCtrlPreviewElementSizeText" entry="EVT_TEXT" />
 																		</object>
 																		<flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>

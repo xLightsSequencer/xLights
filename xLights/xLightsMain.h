@@ -322,7 +322,6 @@ private:
     void OnButton_PaletteClick(wxCommandEvent& event);
     void OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event);
     void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
-
     void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
     void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
     void OnMenuItemBackupSelected(wxCommandEvent& event);
@@ -362,6 +361,7 @@ private:
     void OnGrid1KillFocus(wxFocusEvent& event);
     void OnBitmapButton_CheckBox_LayerMorphClick(wxCommandEvent& event);
     void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
+    void OnTextCtrlPreviewElementSizeText(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -987,6 +987,7 @@ private:
     void CutOrCopyToClipboard(bool IsCut);
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
+    void PreviewScaleUpdated(int newscale);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
