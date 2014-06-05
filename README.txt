@@ -6,7 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
+3.4.0
 	-Bug fix (djulien) tried to fix Piano key wrap (again); added PianoTestNotes.txt file for easier testing (in case more changes are needed)
 	-Bug fix (djulien) fixed cross-fade (morph); didn't write to xseq file correctly
 	-Bug fix (djulien) add missing tool tip for Text center-and-stop checkbox
