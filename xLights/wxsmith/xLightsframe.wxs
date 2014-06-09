@@ -2442,7 +2442,7 @@
 																								<cols>1</cols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
-																										<label>This is for Standard Coro faces. Assign Channels &#x0A;to Phonemes and eyes</label>
+																										<label>This is for Standard Coro faces. Assign Channels &#x0A;to Phonemes and eyes.&#x0A;Enter your channel numbers, either space or comma delimited,&#x0A;under each Phoneme and voice.</label>
 																										<font>
 																											<size>10</size>
 																											<style>normal</style>

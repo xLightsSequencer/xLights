@@ -1279,7 +1279,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Panel7 = new wxPanel(Notebook2, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
     FlexGridSizer44 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer45 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText43 = new wxStaticText(Panel7, ID_STATICTEXT46, _("This is for Standard Coro faces. Assign Channels \nto Phonemes and eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
+    StaticText43 = new wxStaticText(Panel7, ID_STATICTEXT46, _("This is for Standard Coro faces. Assign Channels \nto Phonemes and eyes.\nEnter your channel numbers, either space or comma delimited,\nunder each Phoneme and voice."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
     wxFont StaticText43Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText43->SetFont(StaticText43Font);
     FlexGridSizer45->Add(StaticText43, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
