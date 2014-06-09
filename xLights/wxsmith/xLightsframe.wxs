@@ -2309,32 +2309,33 @@
 																	<cols>4</cols>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT28" variable="StaticText26" member="yes">
-																			<label>Label</label>
+																			<label>1)</label>
+																			<font>
+																				<size>14</size>
+																				<style>normal</style>
+																				<weight>bold</weight>
+																				<underlined>0</underlined>
+																				<family>swiss</family>
+																			</font>
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxButton" name="ID_BUTTON5" variable="Button1" member="yes">
+																		<object class="wxButton" name="ID_BUTTON5" variable="Button_pgo_filename" member="yes">
 																			<label>Click to Select Papagayo input File</label>
-																			<handler function="OnButtonChooseFileClick" entry="EVT_BUTTON" />
+																			<bg>#E0E0E0</bg>
+																			<handler function="OnButton_pgo_filenameClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxStaticText" name="ID_STATICTEXT30" variable="StaticText27" member="yes">
-																			<label>File Selected</label>
-																		</object>
-																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl1" member="yes">
+																		<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_pgo_filename" member="yes">
 																			<value>this5.pgo</value>
+																			<size>300,20</size>
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -2347,7 +2348,31 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
-																	<cols>3</cols>
+																	<cols>4</cols>
+																	<object class="sizeritem">
+																		<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
+																			<cols>1</cols>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT71" variable="StaticText68" member="yes">
+																					<label>2)</label>
+																					<font>
+																						<size>14</size>
+																						<style>normal</style>
+																						<weight>bold</weight>
+																						<underlined>0</underlined>
+																						<family>swiss</family>
+																						<face></face>
+																					</font>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
 																	<object class="sizeritem">
 																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
 																			<object class="notebookpage">
@@ -2366,7 +2391,6 @@
 																											<weight>bold</weight>
 																											<underlined>0</underlined>
 																											<family>swiss</family>
-																											<face></face>
 																										</font>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3048,7 +3072,6 @@
 																											<weight>bold</weight>
 																											<underlined>0</underlined>
 																											<family>swiss</family>
-																											<face></face>
 																										</font>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3368,7 +3391,6 @@
 																											<weight>bold</weight>
 																											<underlined>0</underlined>
 																											<family>swiss</family>
-																											<face></face>
 																										</font>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3481,33 +3503,64 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
-															<cols>3</cols>
+															<cols>4</cols>
 															<object class="sizeritem">
-																<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText65" member="yes">
-																	<label>Select xLights Output File</label>
-																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxButton" name="ID_BUTTON21" variable="Button16" member="yes">
-																	<label>File Name</label>
-																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxTextCtrl" name="ID_TEXTCTRL66" variable="TextCtrl63" member="yes">
-																	<value>Text</value>
+																<object class="wxStaticText" name="ID_STATICTEXT69" variable="StaticText66" member="yes">
+																	<label>3)</label>
+																	<font>
+																		<size>14</size>
+																		<style>normal</style>
+																		<weight>bold</weight>
+																		<underlined>0</underlined>
+																		<family>swiss</family>
+																	</font>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxButton" name="ID_BUTTON6" variable="Button2" member="yes">
+																<object class="wxButton" name="ID_BUTTON21" variable="Button_papagayo_output_sequence" member="yes">
+																	<label>Select Sequencer File to Be Produced</label>
+																	<bg>#E0E0E0</bg>
+																	<handler function="OnButton_papagayo_output_sequenceClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>2</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="ID_TEXTCTRL66" variable="TextCtrl_papagayo_output_filename" member="yes">
+																	<value>Text</value>
+																	<size>300,20</size>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton5" member="yes" />
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT70" variable="StaticText67" member="yes">
+																	<label>4)</label>
+																	<font>
+																		<size>14</size>
+																		<style>normal</style>
+																		<weight>bold</weight>
+																		<underlined>0</underlined>
+																		<family>swiss</family>
+																	</font>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON6" variable="ButtonStartPapagayo" member="yes">
 																	<label>Click to Create new Sequence</label>
 																	<font>
 																		<size>12</size>
@@ -3515,8 +3568,8 @@
 																		<weight>bold</weight>
 																		<underlined>0</underlined>
 																		<family>swiss</family>
-																		<face></face>
 																	</font>
+																	<handler function="OnButtonStartPapagayoClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3530,6 +3583,7 @@
 													<object class="sizeritem">
 														<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW3" variable="SplitterWindow3" member="yes">
 															<minsize>10</minsize>
+															<minsize>10,10</minsize>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

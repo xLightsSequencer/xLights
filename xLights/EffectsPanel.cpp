@@ -2238,6 +2238,22 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
     if (!filename.IsEmpty()) TextCtrl_Pictures_Filename->SetValue(filename);
 }
 
+
+/*
+void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
+{
+      wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty()) TextCtrl_pgo_filename->SetValue(filename);
+}
+
+void xLightsFrame::OnButton_papagayo_output_sequenceClick(wxCommandEvent& event)
+{
+     wxString filename = wxFileSelector( "Choose Image", *CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
+}
+
+*/
+
 void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "", "Glediator files (*.gled)|*.gled", wxFD_OPEN );

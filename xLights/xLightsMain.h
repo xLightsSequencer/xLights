@@ -364,6 +364,9 @@ private:
     void OnBitmapButton_LayerMorphClick(wxCommandEvent& event);
     void OnTextCtrlPreviewElementSizeText(wxCommandEvent& event);
     void OnNotebook2PageChanged(wxNotebookEvent& event);
+    void OnButtonStartPapagayoClick(wxCommandEvent& event);
+    void OnButton_pgo_filenameClick(wxCommandEvent& event);
+    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -558,8 +561,8 @@ private:
     static const long ID_STATICTEXT27;
     static const long ID_STATICTEXT28;
     static const long ID_BUTTON5;
-    static const long ID_STATICTEXT30;
     static const long ID_TEXTCTRL1;
+    static const long ID_STATICTEXT71;
     static const long ID_STATICTEXT64;
     static const long ID_STATICTEXT31;
     static const long ID_RADIOBUTTON1;
@@ -684,9 +687,11 @@ private:
     static const long ID_TEXTCTRL65;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK2;
-    static const long ID_STATICTEXT68;
+    static const long ID_STATICTEXT69;
     static const long ID_BUTTON21;
     static const long ID_TEXTCTRL66;
+    static const long ID_BITMAPBUTTON14;
+    static const long ID_STATICTEXT70;
     static const long ID_BUTTON6;
     static const long ID_SPLITTERWINDOW3;
     static const long ID_PANEL4;
@@ -726,6 +731,7 @@ private:
     wxButton* Button_Presets;
     wxBitmapButton* BitmapButton4;
     wxChoice* Choice_Models;
+    wxButton* Button_papagayo_output_sequence;
     wxButton* Button14;
     wxTextCtrl* TextCtrl57;
     wxTextCtrl* TextCtrl39;
@@ -735,6 +741,7 @@ private:
     EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxTextCtrl* TextCtrl27;
+    wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
     wxButton* Button11;
     wxPanel* SeqPanelLeft;
@@ -746,9 +753,9 @@ private:
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
     wxStaticText* StaticText40;
+    wxBitmapButton* BitmapButton5;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
-    wxStaticText* StaticText27;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
     wxBitmapButton* BitmapButtonDeleteRow;
@@ -774,7 +781,7 @@ private:
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
     wxStaticText* StaticText46;
-    wxButton* Button2;
+    wxButton* Button_pgo_filename;
     wxTextCtrl* TextCtrl46;
     wxButton* Button_PlayEffect;
     wxTextCtrl* TextCtrl30;
@@ -839,7 +846,6 @@ private:
     wxStaticText* StaticText33;
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
-    wxButton* Button16;
     wxStaticText* StaticText12;
     wxStaticText* StaticText22;
     wxSlider* SliderPreviewRotate;
@@ -889,7 +895,6 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
-    wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
     wxTextCtrl* TextCtrl54;
     wxMenuItem* MenuItemSavePlaylists;
@@ -924,9 +929,11 @@ private:
     wxPanel* SeqPanelRight;
     wxStaticText* StaticText54;
     wxStaticText* StaticText20;
+    wxButton* ButtonStartPapagayo;
     wxButton* Button6;
     wxButton* ButtonSeqExport;
     wxTextCtrl* TextCtrl10;
+    wxTextCtrl* TextCtrl_pgo_filename;
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxBitmapButton* BitmapButton_Contrast;
@@ -936,12 +943,14 @@ private:
     wxButton* Button5;
     wxSlider* Slider_Contrast;
     wxButton* Button12;
+    wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
     wxPanel* Panel4;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticTextShowEnd;
     wxStaticText* StaticText45;
     wxTextCtrl* TextCtrl21;
+    wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText62;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
@@ -964,6 +973,7 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
+    wxStaticText* StaticText66;
     wxTextCtrl* TextCtrl43;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxTextCtrl* TextCtrl48;
@@ -972,7 +982,6 @@ private:
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
     wxStaticText* StaticText8;
-    wxTextCtrl* TextCtrl63;
     wxBitmapButton* BitmapButton_EffectLayerMix;
     wxMenuItem* MenuItemRefresh;
     wxStaticText* StaticText30;
@@ -983,7 +992,6 @@ private:
     wxSlider* SliderFgColorA;
     wxCheckBox* CheckBoxOffAtEnd;
     wxSlider* SliderRgbCycleSpeed;
-    wxButton* Button1;
     wxButton* ButtonNetworkDelete;
     wxButton* Button13;
     wxStaticText* StaticText63;
@@ -1015,7 +1023,6 @@ private:
     wxTextCtrl* TextCtrl16;
     wxRadioButton* RadioButtonRgbCycle5;
     wxTextCtrl* TextCtrl18;
-    wxTextCtrl* TextCtrl1;
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxButton* Button4;
