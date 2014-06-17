@@ -124,6 +124,8 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
         else
             R_TO_L1=0;
     }
+
+
     xend = start1+BufferHt;
     x0=start1;
     int FIT_TO_TIME=0;
