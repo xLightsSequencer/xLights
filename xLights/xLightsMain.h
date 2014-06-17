@@ -558,11 +558,11 @@ private:
     static const long ID_SPLITTERWINDOW1;
     static const long ID_PANEL_CAL;
     static const long ID_STATICTEXT26;
-    static const long ID_STATICTEXT27;
     static const long ID_STATICTEXT28;
     static const long ID_BUTTON5;
     static const long ID_TEXTCTRL1;
     static const long ID_STATICTEXT71;
+    static const long ID_STATICTEXT27;
     static const long ID_STATICTEXT64;
     static const long ID_STATICTEXT31;
     static const long ID_RADIOBUTTON1;
@@ -1269,6 +1269,7 @@ private:
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
     void PreviewScaleUpdated(int newscale);
+    void LoadPapagayoFile(const wxString& filename);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
