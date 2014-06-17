@@ -140,8 +140,8 @@ static const wxString& readline(bool first = false)
     {
         ++PapagayoFileInfo.linenum;
         std::string::size_type ofs;
-        if ((ofs = PapagayoFileInfo.linebuf.find("#")) != std::string::npos) PapagayoFileInfo.linebuf.erase(ofs); //remove comments
-        while (!PapagayoFileInfo.linebuf.empty() && (PapagayoFileInfo.linebuf.Last() == '\\')) //line continuation
+        if ((ofs = PapagayoFileInfo.linebuf.find("#")) != std::string::npos) PapagayoFileInfo.linebuf.erase(ofs); //allow comments
+        while (!PapagayoFileInfo.linebuf.empty() && (PapagayoFileInfo.linebuf.Last() == '\\')) //allow line continuation
         {
             PapagayoFileInfo.linebuf.RemoveLast(); //remove trailing "\"
             /*std::*/wxString morebuf = PapagayoFileInfo.file.GetNextLine();
@@ -208,7 +208,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
         debug(10, (const char*)desc.c_str());
 
         int numphrases = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-        if (!numphrases) retmsg(wxString::Format(_("Invalid file @line %d (%s phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+        if (!numphrases) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
         for (int phr = 1; phr <= numphrases; ++phr)
         {
             newvoice.phrases.emplace_back();
@@ -227,53 +227,55 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
             debug(10, (const char*)desc.c_str());
 
             int numwords = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-            if (!numwords) retmsg(wxString::Format(_("Invalid file @line %d (%s words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+            if (!numwords) retmsg(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
             for (int w = 1; w <= numwords; ++w)
             {
                 newphrase.words.emplace_back();
                 WordInfo& newword = newphrase.words.back();
-                wxStringTokenizer tkz(readline(), " ");
-                newword.name = tkz.GetNextToken();
+                wxStringTokenizer wtkz(readline(), " ");
+                newword.name = wtkz.GetNextToken();
                 if (newword.name.empty())
                 {
                     warnmsg(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()));
                     newphrase.words.pop_back(); //get rid of unneeded entry
                     break;
                 }
-                tkz.GetNextToken(); //start frame TODO: do we need to save this?
-                wxString endfr = tkz.GetNextToken(); //end frame TODO: do we need to save this?
+                wtkz.GetNextToken(); //start frame TODO: do we need to save this?
+                wxString endfr = wtkz.GetNextToken(); //end frame TODO: do we need to save this?
 //                voices.back().phrases.push_back(newphrase);
-                wxString syllcount = tkz.GetNextToken();
-                wxString junk = tkz.GetNextToken();
+                wxString syllcount = wtkz.GetNextToken();
+                wxString junk = wtkz.GetNextToken();
+//                wxMessageBox(wxString::Format(_("word '%s', end fr %s, #syll %s, junk %s"), newword.name.c_str(), endfr.c_str(), syllcount.c_str(), junk.c_str()));
                 desc = wxString::Format(_("voice# %d, phrase %d, word %d '%s' @line %d"), v, phr, w, newword.name, PapagayoFileInfo.linenum);
                 if (!junk.empty()) warnmsg(wxString::Format(_("Ignoring junk '%s' at end of %s @line %d"), junk.c_str(), desc.c_str(), PapagayoFileInfo.linenum));
                 debug(10, (const char*)desc.c_str());
 
                 int end_frame = number.Matches(endfr)? wxAtoi(endfr): 0;
-                if (!end_frame) warnmsg(wxString::Format(_("Invalid file @line %d (%s end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
+                if (!end_frame) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
 
                 int numsylls = number.Matches(syllcount)? wxAtoi(syllcount): 0;
-                if (!numsylls) retmsg(wxString::Format(_("Invalid file @line %d (%s phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
+                if (!numsylls) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
                 for (int syll = 1; syll <= numsylls; ++syll)
                 {
                     newword.phonemes.emplace_back();
                     PhonemeInfo& newsyll = newword.phonemes.back();
-                    /*wxStringTokenizer*/ tkz = wxStringTokenizer(readline(), " ");
-                    wxString stframe = tkz.GetNextToken();
-                    newsyll.name = tkz.GetNextToken();
-                    if (newsyll.name.empty() || (AllowedPhonemes.find(newsyll.name) == -1))
+                    wxStringTokenizer stkz = wxStringTokenizer(readline(), " ");
+                    wxString stframe = stkz.GetNextToken();
+                    newsyll.name = stkz.GetNextToken();
+//                    wxMessageBox(wxString::Format(_("get syll %s, st fr %s, syll %s, allowed in %s? %d"), PapagayoFileInfo.linebuf, stframe, _(",") + newsyll.name + _(","), AllowedPhonemes, AllowedPhonemes.find(_(",") + newsyll.name + _(","))));
+                    if (newsyll.name.empty() || (AllowedPhonemes.find(_(",") + newsyll.name + _(",")) == -1))
                     {
-                        warnmsg(wxString::Format(_("Missing phoneme# %d of %d for %s"), syll, numsylls, desc.c_str()));
+                        retmsg(wxString::Format(_("Missing phoneme# %d of %d for %s"), syll, numsylls, desc.c_str()));
                         newword.phonemes.pop_back(); //get rid of unneeded entry
                         break;
                     }
-                    /*wxString*/ junk = tkz.GetNextToken();
+                    /*wxString*/ junk = stkz.GetNextToken();
                     desc = wxString::Format(_("voice# %d, phrase %d, word %d, phoneme %d '%s' @line %d"), v, phr, w, syll, newsyll.name, PapagayoFileInfo.linenum);
                     if (!junk.empty()) warnmsg(wxString::Format(_("Ignoring junk '%s' at end of %s @line %d"), junk.c_str(), desc.c_str(), PapagayoFileInfo.linenum));
                     debug(10, (const char*)desc.c_str());
 
-                    newsyll.start_frame = number.Matches(stframe)? wxAtoi(stframe): 0;
-                    if (!newsyll.start_frame) retmsg(wxString::Format(_("Invalid file @line %d (%s start frame for %s)"), PapagayoFileInfo.linenum, stframe.c_str(), desc.c_str()));
+                    newsyll.start_frame = number.Matches(stframe)? wxAtoi(stframe): -1;
+                    if (newsyll.start_frame == -1) retmsg(wxString::Format(_("Invalid file @line %d ('%s' start frame for %s)"), PapagayoFileInfo.linenum, stframe.c_str(), desc.c_str()));
                     newsyll.end_frame = end_frame; //assume end of phrase until another phoneme is found
                     if (syll > 1) (&newsyll)[-1].end_frame = newsyll.start_frame; //don't overlap?
                 }
