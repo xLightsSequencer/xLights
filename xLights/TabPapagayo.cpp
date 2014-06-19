@@ -13,6 +13,13 @@
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
 
+void xLightsFrame::PapagayoError(const wxString& msg)
+{
+    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+}
+
+
+
 //this is more concise but harder to read:
 //    std::vector<std::pair<wxString, //voices at outer level
 //        std::vector<std::pair<wxString, //phrases
@@ -49,15 +56,15 @@ static const wxString AllowedPhonemes = _(",AI,E,FV,L,MBP,O,U,WQ,etc,rest,"); //
 
 void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
 {
-     wxString filename = wxFileSelector( "Choose Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN );
- //  wxString filename = "this5.pgo";
+    wxString filename = wxFileSelector( "Choose Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN );
+//  wxString filename = "this5.pgo";
     if (!filename.IsEmpty()) TextCtrl_pgo_filename->SetValue(filename);
     LoadPapagayoFile(filename);
 }
 
 void xLightsFrame::OnButton_papagayo_output_sequenceClick(wxCommandEvent& event)
 {
-   wxString filename = wxFileSelector( "Choose Output xLights Sequence File", "", "", "", "xLights files (*.xml)|*.xml", wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Output xLights Sequence File", "", "", "", "xLights files (*.xml)|*.xml", wxFD_OPEN );
 
     if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
 }
@@ -69,12 +76,18 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     TextCtrlConversionStatus->Clear();
 
     // check inputs
-    if (FileNames.IsEmpty()) {
+    if (FileNames.IsEmpty())
+    {
         wxMessageBox(_("Please select one or more sequence files"), _("Error"));
-    } else if (OutputFormat.IsEmpty()) {
+    }
+    else if (OutputFormat.IsEmpty())
+    {
         wxMessageBox(_("Please select an output format"), _("Error"));
-    } else {
-        for (size_t i=0; i < FileNames.GetCount(); i++) {
+    }
+    else
+    {
+        for (size_t i=0; i < FileNames.GetCount(); i++)
+        {
             DoConversion(FileNames[i], OutputFormat);
         }
         TextCtrlConversionStatus->AppendText(_("Finished converting all files\n"));
@@ -84,36 +97,85 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 
 //example code to iterate thru the data:
     wxString debug_msg;
+
+    write_pgo_header(voices.size());
+
     for (auto voice_it = voices.begin(); voice_it != voices.end(); ++voice_it)
     {
-        debug_msg += wxString::Format(_("voice[%d/%d] '%s'"), voice_it - voices.begin(), voices.size(), voice_it->name.c_str());
+        debug_msg += wxString::Format(_("voice[%d/%d] '%s'\n"), voice_it - voices.begin(), voices.size(), voice_it->name.c_str());
 //        std::vector<PhraseInfo>& phrases = voice_it->phrases;
         for (auto phrase_it = voice_it->phrases.begin(); phrase_it != voice_it->phrases.end(); ++phrase_it)
         {
-            debug_msg += wxString::Format(_("  phrase[%d/%d] '%s'"), phrase_it - voice_it->phrases.begin(), voice_it->phrases.size(), phrase_it->name.c_str());
+            debug_msg += wxString::Format(_("\tphrase[%d/%d] '%s'\n"), phrase_it - voice_it->phrases.begin(), voice_it->phrases.size(), phrase_it->name.c_str());
 //            std::vector<WordInfo>& words = phrase_it->words;
             for (auto word_it = phrase_it->words.begin(); word_it != phrase_it->words.end(); ++word_it)
             {
-                debug_msg += wxString::Format(_("    word[%d/%d] '%s'"), word_it - phrase_it->words.begin(), phrase_it->words.size(), word_it->name.c_str());
+                debug_msg += wxString::Format(_("\t\tword[%d/%d] '%s'\n"), word_it - phrase_it->words.begin(), phrase_it->words.size(), word_it->name.c_str());
 //              std::vector<PhonemeInfo>& phonemes = word_it->phonemes;
                 for (auto phoneme_it = word_it->phonemes.begin(); phoneme_it != word_it->phonemes.end(); ++phoneme_it)
                 {
-                    debug_msg += wxString::Format(_("      phoneme[%d/%d] '%s': call routine(start_frame %d, end_frame %d, phoneme '%s')"), phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
-//                  call routine(phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
+                    debug_msg += wxString::Format(_("\t\t\tV%d phoneme[%d/%d] '%s': call routine(start_frame %d, end_frame %d, phoneme '%s')\n"), (voice_it - voices.begin()),
+                                                  phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
+//                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
+                /*    AutoFace((voice_it - voices.begin()),phoneme_it - word_it->phonemes.begin(),
+                             word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame,
+                             phoneme_it->end_frame, phoneme_it->name)
+                             */
+                    //if (xout) xout->alloff();
+                 //   Autoface();
                 }
             }
         }
     }
     wxMessageBox(debug_msg, _("Papagayo Debug"));
 }
+// int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
+void xLightsFrame::write_pgo_header(int MaxVoices)
+{
+    wxFile f;
+    int voice;
+    wxString buff,filename;
+    filename="pgotest.xml";
+    if (!f.Create(filename,true))
+    {
+ //       PapagayoError(_("Unable to create file: ")+filename);
+        return;
+    }
 
+    //buff += wxString::Format("%d ",(*dataBuf)[seqidx]);
+
+    //    buff += wxString::Format("\n");
+    //    f.Write(buff);
+
+
+    f.Write(wxString::Format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"));
+    f.Write(wxString::Format("<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\">\n"));
+    f.Write(wxString::Format("<tr>\n"));
+    f.Write(wxString::Format("<td>Start Time</td>\n"));
+    f.Write(wxString::Format("<td>Label</td>\n"));
+    for(voice=1;voice<=MaxVoices;voice++)
+    {
+        f.Write(wxString::Format("<td>VOICE%d</td>\n",voice));
+    }
+
+
+    f.Write(wxString::Format("</tr>\n"));
+
+    f.Write(wxString::Format("<tr>\n"));
+    f.Write(wxString::Format("    <td Protected=\"0\">0.000</td>\n"));
+    f.Write(wxString::Format("    <td Protected=\"0\">Blank</td>\n"));
+    f.Write(wxString::Format("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n"));
+    f.Write(wxString::Format("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n"));
+    f.Write(wxString::Format("</tr>\n"));
+    f.Close();
+}
 
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  99
 //#include "djdebug.cpp"
- #define debug(level, ...)
- #define debug_more(level, ...)
- #define debug_function(level)
+#define debug(level, ...)
+#define debug_more(level, ...)
+#define debug_function(level)
 
 //cut down on verbosity:
 //use for fatal errors only

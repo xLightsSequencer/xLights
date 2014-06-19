@@ -34,7 +34,7 @@
 
 void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
 {
-    int x,y,d;
+    int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
     double h=0.0;
     static const double pi2=6.283185307;
@@ -44,6 +44,8 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     int frame=(BufferHt * state / 200)%maxframe;
     double offset=double(state)/200.0;
     if(ButterflyDirection==1) offset = -offset;
+    xc=BufferWi/2;
+    yc=BufferHt/2;
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
@@ -51,12 +53,30 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
             switch (Style)
             {
             case 1:
-
-                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi))));
+//  http://mathworld.wolfram.com/ButterflyFunction.html
+                n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt+BufferWi))));
                 d = x*x + y*y;
+
+                //  This section is to fix the colors on pixels at {0,1} and {1,0}
+                x0=x+1;
+                y0=y+1;
+                if((x==0 and y==1))
+                {
+                    n = abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
+                    d = x*x + y0*y0;
+                }
+                if((x==1 and y==0))
+                {
+                    n = abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
+                    d = x0*x0 + y*y;
+                }
+                // end of fix
+
+
                 if(d>0.001) h=n/d;
                 else
                     h=0.0;
+
                 break;
             case 2:
                 f=(frame < maxframe/2) ? frame+1 : maxframe - frame;
@@ -72,25 +92,32 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 h=sin(x1) * cos(y1);
                 break;
             case 4:
-                /*
-                The butterfly curve is a transcendental plane curve discovered by Temple H. Fay. The curve is given by the following parametric equations:
+               //  http://mathworld.wolfram.com/ButterflyFunction.html
+                n = ((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt+BufferWi))));
+                d = x*x + y*y;
 
-                x = \sin(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over 12}\right)\right)
-                y = \cos(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over 12}\right)\right)
-                or by the following polar equation:
+                //  This section is to fix the colors on pixels at {0,1} and {1,0}
+                x0=x+1;
+                y0=y+1;
+                if((x==0 and y==1))
+                {
+                    n = ((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
+                    d = x*x + y0*y0;
+                }
+                if((x==1 and y==0))
+                {
+                    n = ((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
+                    d = x0*x0 + y*y;
+                }
+                // end of fix
 
-                r=e^{\cos \theta} - 2 \cos (4 \theta ) + \sin^5\left(\frac{2 \theta - \pi}{24}\right)
 
+                if(d>0.001) h=n/d;
+                else
+                    h=0.0;
 
-                x = \cos(a t) - \cos(b t)^j
-                y = \sin(c t) - \sin(d t)^k
-
-                x=2*sin(3*t)*cos(t)
-                y=2*sin(3*t)*sin(t)
-                */
-                h=2*sin(double(x)*3.0)*cos(double(y)) * sin (offset + ((x+y)*pi2 / (BufferHt+BufferWi)));
-                h =  x*(y^3) - y*(x^3);
                 break;
+
             }
             hsv.saturation=1.0;
             hsv.value=1.0;

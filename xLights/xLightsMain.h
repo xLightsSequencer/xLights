@@ -100,14 +100,16 @@ static wxCriticalSection gs_xoutCriticalSection;
 typedef std::map<wxString,wxString> MapStringString;
 typedef std::vector<wxUint8> SeqDataType;
 
-enum play_modes {
+enum play_modes
+{
     play_off,
     play_single,
     play_list,
     play_sched
 };
 
-enum TestFunctions {
+enum TestFunctions
+{
     OFF,
     CHASE,
     CHASE2,
@@ -118,7 +120,8 @@ enum TestFunctions {
     SHIMMER
 };
 
-enum SeqPlayerStates {
+enum SeqPlayerStates
+{
     NO_SEQ,
     STARTING_MEDIA,
     STARTING_SEQ,
@@ -159,7 +162,8 @@ public:
 
 
     // these are added to 1000*pagenum to get the control id
-    enum PlayListIds {
+    enum PlayListIds
+    {
         CHKBOX_AUDIO,
         CHKBOX_VIDEO,
         CHKBOX_XLIGHTS,
@@ -199,7 +203,8 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
 
-    enum RGB_EFFECTS_e {
+    enum RGB_EFFECTS_e
+    {
         eff_NONE,
         eff_BARS,
         eff_BUTTERFLY,
@@ -227,7 +232,8 @@ public:
         eff_LASTEFFECT //Always the last entry
     };
 
-    enum LAYER_OPTIONS_e {
+    enum LAYER_OPTIONS_e
+    {
         EFFECT1,
         EFFECT2,
         EFF1MASK,
@@ -1139,11 +1145,19 @@ private:
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
     void ConversionError(const wxString& msg);
+
     wxString base64_encode();
     std::string base64_decode(const wxString& encoded_string);
 
     SeqDataType* RenderModelToData(wxXmlNode *modelNode);
     wxXmlNode* SelectModelToExport();
+
+
+//  papagayo
+    void PapagayoError(const wxString& msg);
+    void AutoFace();
+    void write_pgo_header(int MaxVoices);
+
 
     // schedule
     wxDateTime ShowStartDate,ShowEndDate;
