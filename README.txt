@@ -6,6 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.1	
+	-Bug fix (sean) Butterfly effect now creates pixels at {0,1} and {1,0} correctly
+	-Enh (sean) added two new butterfly effects
+	-Enh (sean) Work in progress. New Papagayo tab. This tab will be used to convert Papagayo files (.pgo) into
+		xLight sequences
 3.4.0
 	-Bug fix (djulien) tried to fix Piano key wrap (again); added PianoTestNotes.txt file for easier testing (in case more changes are needed)
 	-Bug fix (djulien) fixed cross-fade (morph); didn't write to xseq file correctly

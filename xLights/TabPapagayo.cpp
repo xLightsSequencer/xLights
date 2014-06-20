@@ -136,13 +136,14 @@ void xLightsFrame::write_pgo_header(int MaxVoices)
 {
     wxFile f;
     int voice;
-    wxString filename=wxString::Format(_("pgotest.xml"));
+    wxString filename=wxString::Format(_("c:/pgotest.xml"));
     if (!f.Create(filename,true))
     {
         retmsg(_("Unable to create file: "+filename));
         return;
     }
-
+else
+    retmsg(_("Filename: "+filename));
 
     //buff += wxString::Format("%d ",(*dataBuf)[seqidx]);
 
