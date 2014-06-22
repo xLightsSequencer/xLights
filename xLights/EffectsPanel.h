@@ -840,7 +840,7 @@ private:
     //(*Handlers(EffectsPanel)
     void OnButton_Pictures_FilenameClick(wxCommandEvent& event);
     void OnButton_pgo_filenameClick(wxCommandEvent& event);
-    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
+//    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     void OnButton_Glediator_FilenameClick(wxCommandEvent& event);
     void OnButton_Text_Font1Click(wxCommandEvent& event);
     void OnButton_Text_Font2Click(wxCommandEvent& event);

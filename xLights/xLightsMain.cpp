@@ -262,6 +262,9 @@ const long xLightsFrame::ID_STATICTEXT26 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT28 = wxNewId();
 const long xLightsFrame::ID_BUTTON5 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL1 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT30 = wxNewId();
+const long xLightsFrame::ID_BUTTON22 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL67 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT71 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT27 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT64 = wxNewId();
@@ -388,9 +391,6 @@ const long xLightsFrame::ID_BUTTON20 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL65 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK2 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT69 = wxNewId();
-const long xLightsFrame::ID_BUTTON21 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL66 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON14 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT70 = wxNewId();
 const long xLightsFrame::ID_BUTTON6 = wxNewId();
@@ -1234,12 +1234,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerPapagayo->AddGrowableCol(0);
     FlexGridSizerPapagayo->AddGrowableRow(0);
     FlexGridSizer43 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText24 = new wxStaticText(PanelPapagayo, ID_STATICTEXT26, _("Convert Papagayo file into an xLights Sequence"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT26"));
-    wxFont StaticText24Font(12,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    StaticText24 = new wxStaticText(PanelPapagayo, ID_STATICTEXT26, _("Convert Papagayo file into an xLights Sequence\n\nDownload v1.3.5.3 from nutcracker123.com/nutcracker/releases/papagayoMOD_1.3.5.3_win32.rar"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT26"));
+    wxFont StaticText24Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,_T("Arial"),wxFONTENCODING_DEFAULT);
     StaticText24->SetFont(StaticText24Font);
     FlexGridSizer43->Add(StaticText24, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer41 = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText26 = new wxStaticText(PanelPapagayo, ID_STATICTEXT28, _("1)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT28"));
     wxFont StaticText26Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText26->SetFont(StaticText26Font);
@@ -1249,9 +1249,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer41->Add(Button_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_pgo_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL1, _("this5.pgo"), wxDefaultPosition, wxSize(300,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer41->Add(TextCtrl_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText27 = new wxStaticText(PanelPapagayo, ID_STATICTEXT30, _("2)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT30"));
+    wxFont StaticText27Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    StaticText27->SetFont(StaticText27Font);
+    FlexGridSizer41->Add(StaticText27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_papagayo_output_sequence = new wxButton(PanelPapagayo, ID_BUTTON22, _("Select Sequencer File to Be Produced"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON22"));
+    Button_papagayo_output_sequence->SetBackgroundColour(wxColour(224,224,224));
+    FlexGridSizer41->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_papagayo_output_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL67, _("text"), wxDefaultPosition, wxSize(300,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL67"));
+    FlexGridSizer41->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40->Add(FlexGridSizer41, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer42 = new wxFlexGridSizer(2, 2, 0, 0);
-    StaticText68 = new wxStaticText(PanelPapagayo, ID_STATICTEXT71, _("2)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
+    StaticText68 = new wxStaticText(PanelPapagayo, ID_STATICTEXT71, _("3)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
     wxFont StaticText68Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText68->SetFont(StaticText68Font);
     FlexGridSizer42->Add(StaticText68, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1561,15 +1570,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer40->Add(FlexGridSizer42, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer43->Add(FlexGridSizer40, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer53 = new wxFlexGridSizer(0, 4, 0, 0);
-    StaticText66 = new wxStaticText(PanelPapagayo, ID_STATICTEXT69, _("3)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT69"));
-    wxFont StaticText66Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticText66->SetFont(StaticText66Font);
-    FlexGridSizer53->Add(StaticText66, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_papagayo_output_sequence = new wxButton(PanelPapagayo, ID_BUTTON21, _("Select Sequencer File to Be Produced"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON21"));
-    Button_papagayo_output_sequence->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer53->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_papagayo_output_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL66, _("Text"), wxDefaultPosition, wxSize(300,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL66"));
-    FlexGridSizer53->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton5 = new wxBitmapButton(PanelPapagayo, ID_BITMAPBUTTON14, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
     FlexGridSizer53->Add(BitmapButton5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText67 = new wxStaticText(PanelPapagayo, ID_STATICTEXT70, _("4)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT70"));
@@ -1763,9 +1763,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CLEARLOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClearLogClick);
     Connect(ID_BUTTON_SAVELOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveLogClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_pgo_filenameClick);
+    Connect(ID_BUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_papagayo_output_sequenceClick1);
+    Connect(ID_TEXTCTRL67,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl1Text);
     Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
     Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
-    Connect(ID_BUTTON21,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_papagayo_output_sequenceClick);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
@@ -2777,3 +2778,8 @@ void xLightsFrame::OnNotebook2PageChanged(wxNotebookEvent& event)
 
 
 
+
+
+void xLightsFrame::OnTextCtrl1Text(wxCommandEvent& event)
+{
+}

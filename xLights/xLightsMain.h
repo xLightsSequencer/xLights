@@ -372,7 +372,9 @@ private:
     void OnNotebook2PageChanged(wxNotebookEvent& event);
     void OnButtonStartPapagayoClick(wxCommandEvent& event);
     void OnButton_pgo_filenameClick(wxCommandEvent& event);
-    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
+    //    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
+    void OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event);
+    void OnTextCtrl1Text(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -567,6 +569,9 @@ private:
     static const long ID_STATICTEXT28;
     static const long ID_BUTTON5;
     static const long ID_TEXTCTRL1;
+    static const long ID_STATICTEXT30;
+    static const long ID_BUTTON22;
+    static const long ID_TEXTCTRL67;
     static const long ID_STATICTEXT71;
     static const long ID_STATICTEXT27;
     static const long ID_STATICTEXT64;
@@ -693,9 +698,6 @@ private:
     static const long ID_TEXTCTRL65;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK2;
-    static const long ID_STATICTEXT69;
-    static const long ID_BUTTON21;
-    static const long ID_TEXTCTRL66;
     static const long ID_BITMAPBUTTON14;
     static const long ID_STATICTEXT70;
     static const long ID_BUTTON6;
@@ -762,6 +764,7 @@ private:
     wxBitmapButton* BitmapButton5;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
+    wxStaticText* StaticText27;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
     wxBitmapButton* BitmapButtonDeleteRow;
@@ -979,7 +982,6 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxStaticText* StaticText66;
     wxTextCtrl* TextCtrl43;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxTextCtrl* TextCtrl48;
@@ -1156,7 +1158,8 @@ private:
 //  papagayo
     void PapagayoError(const wxString& msg);
     void AutoFace();
-    void write_pgo_header(int MaxVoices);
+    int write_pgo_header(int MaxVoices,const wxString& filename);
+    void AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme);
 
 
     // schedule

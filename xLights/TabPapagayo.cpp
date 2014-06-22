@@ -81,13 +81,22 @@ void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
     LoadPapagayoFile(filename);
 }
 
+void xLightsFrame::OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Output Sequence", "", "", "", "Sequence files (*.xml)|*.xml", wxFD_OPEN );
+//  wxString filename = "this5.pgo";
+    if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
+
+}
+
+/*
 void xLightsFrame::OnButton_papagayo_output_sequenceClick(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector( "Choose Output xLights Sequence File", "", "", "", "xLights files (*.xml)|*.xml", wxFD_OPEN );
 
     if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
 }
-
+*/
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
     ButtonStartPapagayo->Enable(false);
@@ -98,9 +107,10 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     ButtonStartPapagayo->Enable(true);
 
 //example code to iterate thru the data:
-    wxString debug_msg;
+    wxString debug_msg,filename;
 
-    write_pgo_header(voices.size());
+    filename=TextCtrl_papagayo_output_filename->GetValue();
+    int pgofile_status=write_pgo_header(voices.size(),filename);
 
     for (auto voice_it = voices.begin(); voice_it != voices.end(); ++voice_it)
     {
@@ -119,12 +129,10 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                     debug_msg += wxString::Format(_("\t\t\tV%d phoneme[%d/%d] '%s': call routine(start_frame %d, end_frame %d, phoneme '%s')\n"), (voice_it - voices.begin()),
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
-                    /*    AutoFace((voice_it - voices.begin()),phoneme_it - word_it->phonemes.begin(),
-                                 word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame,
-                                 phoneme_it->end_frame, phoneme_it->name)
-                                 */
+                    if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame, phoneme_it->name);
+
                     //if (xout) xout->alloff();
-                    //   Autoface();
+
                 }
             }
         }
@@ -132,18 +140,21 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     wxMessageBox(debug_msg, _("Papagayo Debug"));
 }
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
-void xLightsFrame::write_pgo_header(int MaxVoices)
+int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
 {
-    wxFile f;
+    // wxFile f;
+    wxFile f(filename);
     int voice;
-    wxString filename=wxString::Format(_("c:/pgotest.xml"));
-    if (!f.Create(filename,true))
+    // wxString filename=wxString::Format(("C:\\Vixen.2.1.1\\Sequences\\z.xml"));
+
+    // retmsg(_("Filename: "+filename));
+    if (!f.Create(filename,true, wxFile::write))
     {
-        retmsg(_("Unable to create file: "+filename));
-        return;
+        //  retmsg(_("Unable to create file: "+filename));
+        wxMessageBox(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,GetLastError()));
+        return 0;
     }
-else
-    retmsg(_("Filename: "+filename));
+
 
     //buff += wxString::Format("%d ",(*dataBuf)[seqidx]);
 
@@ -151,27 +162,54 @@ else
     //    f.Write(buff);
 
 // f.Write("\t\t\t</channels>\n");
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    f.Write("<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\">\n");
-    f.Write("<tr>\n");
-    f.Write("<td>Start Time</td>\n");
-    f.Write("<td>Label</td>\n");
-    for(voice=1; voice<=MaxVoices; voice++)
+    if(f.IsOpened())
     {
-        f.Write(wxString::Format("<td>VOICE%d</td>\n",voice));
+        f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        f.Write("<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\">\n");
+        f.Write("<tr>\n");
+        f.Write("<td>Start Time</td>\n");
+        f.Write("<td>Label</td>\n");
+        for(voice=1; voice<=MaxVoices; voice++)
+        {
+            f.Write(wxString::Format("<td>VOICE%d</td>\n",voice));
+        }
+
+
+        f.Write("</tr>\n");
+        f.Write("<tr>\n");
+        f.Write("    <td Protected=\"0\">0.000</td>\n");
+        f.Write("    <td Protected=\"0\">Blank</td>\n");
+        f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
+        f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
+        f.Write("</tr>\n");
+        f.Close();
+        return 1; // good exit
     }
-
-
-    f.Write("</tr>\n");
-    f.Write("<tr>\n");
-    f.Write("    <td Protected=\"0\">0.000</td>\n");
-    f.Write("    <td Protected=\"0\">Blank</td>\n");
-    f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
-    f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
-    f.Write("</tr>\n");
-    f.Close();
+    return 0;   // bad exit
 }
 
+
+void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme)
+{
+    wxString label;
+    double seconds;
+    wxFile f;
+
+    // retmsg(_("Filename: "+filename));
+    if (!f.Open(filename,wxFile::write_append))
+    {
+        retmsg(_("Unable to open for append, file: "+filename));
+    }
+    f.SeekEnd(0);
+    label = "Label " + phoneme;
+    seconds = (double) start_frame * 0.050;
+    f.Write("<tr>\n");
+    f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n",seconds));
+    f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n",label));
+    f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n"));
+    f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n"));
+    f.Write("</tr>\n");
+}
 
 
 //TODO: move this into RgbEffects.h; this will force recompile of most .cpp files
