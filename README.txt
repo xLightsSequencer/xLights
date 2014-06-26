@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.2
+        -Bug fix (dkulp) Problems loading large LMS files causing crashes/hangs
+        -Enh (dkulp) Add additional status messages while loading LMS files
 3.4.1	
 	-Bug fix (sean) Butterfly effect now creates pixels at {0,1} and {1,0} correctly
 	-Enh (sean) added two new butterfly effects
