@@ -152,7 +152,7 @@ int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
     if (!f.Create(filename,true, wxFile::write))
     {
         //  retmsg(_("Unable to create file: "+filename));
-        wxMessageBox(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,GetLastError()));
+        wxMessageBox(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,f.GetLastError()));
         return 0;
     }
 
