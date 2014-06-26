@@ -375,6 +375,7 @@ private:
     //    void OnButton_papagayo_output_sequenceClick(wxCommandEvent& event);
     void OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event);
     void OnTextCtrl1Text(wxCommandEvent& event);
+    void OnTextCtrl20Text(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

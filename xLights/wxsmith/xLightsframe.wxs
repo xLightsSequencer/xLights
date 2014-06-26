@@ -2610,7 +2610,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL14" variable="TextCtrl11" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2618,7 +2618,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL17" variable="TextCtrl14" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2626,7 +2626,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL18" variable="TextCtrl15" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2634,7 +2634,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL19" variable="TextCtrl16" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2650,7 +2650,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL20" variable="TextCtrl17" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2658,7 +2658,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL21" variable="TextCtrl18" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2666,7 +2666,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL22" variable="TextCtrl19" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2674,7 +2674,8 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL23" variable="TextCtrl20" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
+																										<handler function="OnTextCtrl20Text" entry="EVT_TEXT" />
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2690,7 +2691,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL24" variable="TextCtrl21" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2698,7 +2699,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL25" variable="TextCtrl22" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2706,7 +2707,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL26" variable="TextCtrl23" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2714,7 +2715,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL27" variable="TextCtrl24" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2730,7 +2731,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL28" variable="TextCtrl25" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2738,7 +2739,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL29" variable="TextCtrl26" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2746,7 +2747,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL30" variable="TextCtrl27" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2754,7 +2755,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL31" variable="TextCtrl28" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2770,7 +2771,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL32" variable="TextCtrl29" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2778,7 +2779,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL33" variable="TextCtrl30" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2786,7 +2787,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL34" variable="TextCtrl31" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2794,7 +2795,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL35" variable="TextCtrl32" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2810,7 +2811,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL36" variable="TextCtrl33" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2818,7 +2819,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL37" variable="TextCtrl34" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2826,7 +2827,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL38" variable="TextCtrl35" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2834,7 +2835,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL39" variable="TextCtrl36" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2850,7 +2851,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL40" variable="TextCtrl37" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2858,7 +2859,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL41" variable="TextCtrl38" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2866,7 +2867,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL42" variable="TextCtrl39" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2874,7 +2875,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL43" variable="TextCtrl40" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2890,7 +2891,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL44" variable="TextCtrl41" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2898,7 +2899,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL45" variable="TextCtrl42" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2906,7 +2907,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL46" variable="TextCtrl43" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2914,7 +2915,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL47" variable="TextCtrl44" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2930,7 +2931,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL48" variable="TextCtrl45" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2938,7 +2939,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL49" variable="TextCtrl46" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2946,7 +2947,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL50" variable="TextCtrl47" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2954,7 +2955,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL51" variable="TextCtrl48" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2970,7 +2971,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL52" variable="TextCtrl49" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2978,7 +2979,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL53" variable="TextCtrl50" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2986,7 +2987,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL54" variable="TextCtrl51" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2994,7 +2995,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL55" variable="TextCtrl52" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3010,7 +3011,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL56" variable="TextCtrl53" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3018,7 +3019,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL57" variable="TextCtrl54" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3026,7 +3027,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL58" variable="TextCtrl55" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3034,7 +3035,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL59" variable="TextCtrl56" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3050,7 +3051,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL60" variable="TextCtrl57" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3058,7 +3059,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL61" variable="TextCtrl58" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3066,7 +3067,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL62" variable="TextCtrl59" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -3074,7 +3075,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL63" variable="TextCtrl60" member="yes">
-																										<value>Text</value>
+																										<value>0</value>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>

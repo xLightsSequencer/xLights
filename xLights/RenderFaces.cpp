@@ -53,7 +53,7 @@ void RgbEffects::RenderFaces(int Phoneme)
     double offset=double(state)/100.0;
     size_t colorcnt=GetColorCount();
 
-
+ // xout->SetIntensity(1000, 1);
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
     wxString html = "<html><body><table border=0>";

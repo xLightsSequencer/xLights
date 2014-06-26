@@ -142,6 +142,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
 int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
 {
+
     // wxFile f;
     wxFile f(filename);
     int voice;
