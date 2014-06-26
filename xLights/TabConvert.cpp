@@ -1483,8 +1483,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
 
     int centisec = -1;
     int nodecnt=0;
+    int channelCount = 0;
     IrrXMLReader* xml = createIrrXMLReader(filename);
-
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     while(xml && xml->read() && centisec < 0) {
         switch(xml->getNodeType()) {
@@ -1504,6 +1504,11 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 centisec = xml->getAttributeValueAsInt("totalCentiseconds");
             } else if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement()) {
                 wxYield();
+                channelCount++;
+                if ((channelCount % 1000) == 0) {
+                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels found so far: %d\n"),channelCount));
+                    StatusBar1->SetLabelText(wxString::Format(_("Channels found so far: %d"),channelCount));
+                }
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
                 unit = xml->getAttributeValueAsInt("unit");
@@ -1532,6 +1537,10 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 } else if (circuit > (*unitSizes)[network][unit - 1]) {
                     (*unitSizes)[network][unit - 1] = circuit;
                 }
+            }
+            if (xml->isEmptyElement()) {
+                context.RemoveAt(cnt-1);
+                cnt--;
             }
             break;
         case EXN_ELEMENT_END:
@@ -1573,10 +1582,12 @@ void xLightsFrame::ReadLorFile(const char* filename)
         }
         TextCtrlConversionStatus->AppendText(wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
     }
+    TextCtrlConversionStatus->AppendText(wxString::Format(_("Total channels = %d\n"),channelCount));
 
     xml = createIrrXMLReader(filename);
     cnt = 0;
     context.clear();
+    channelCount = 0;
     // parse the file until end reached
     while(xml && xml->read()) {
         switch(xml->getNodeType()) {
@@ -1599,6 +1610,12 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 mediaFilename = wxString::FromAscii( xml->getAttributeValueSafe("musicFilename") );
             }
             if (cnt > 1 && context[1] == _("channels") && NodeName == _("channel") && !xml->isEmptyElement()) {
+                channelCount++;
+                if ((channelCount % 1000) == 0) {
+                    TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels converted so far: %d\n"),channelCount));
+                    StatusBar1->SetLabelText(wxString::Format(_("Channels converted so far: %d"),channelCount));
+                }
+
                 deviceType = wxString::FromAscii( xml->getAttributeValueSafe("deviceType") );
                 network = xml->getAttributeValueAsInt("network");
 
