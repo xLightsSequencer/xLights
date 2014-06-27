@@ -137,6 +137,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
             }
         }
     }
+    if(pgofile_status)  write_pgo_footer(voices.size(),filename);
     wxMessageBox(debug_msg, _("Papagayo Debug"));
 }
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
@@ -189,6 +190,23 @@ int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
     return 0;   // bad exit
 }
 
+void xLightsFrame::write_pgo_footer(int MaxVoices,const wxString& filename)
+{
+
+    // wxFile f;
+    wxFile f(filename);
+    int voice;
+    if (!f.Open(filename,wxFile::write_append))
+    {
+        retmsg(_("Unable to open for append, file: "+filename));
+
+    }
+    f.SeekEnd(0);
+
+    f.Write("</xsequence>\n");
+    f.Close();
+
+}
 
 void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme)
 {

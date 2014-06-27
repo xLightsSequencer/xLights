@@ -1160,6 +1160,7 @@ private:
     void PapagayoError(const wxString& msg);
     void AutoFace();
     int write_pgo_header(int MaxVoices,const wxString& filename);
+    void write_pgo_footer(int MaxVoices,const wxString& filename);
     void AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme);
 
 
