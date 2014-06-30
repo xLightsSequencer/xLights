@@ -1172,6 +1172,23 @@ void xLightsFrame::ConversionInit()
     SeqNumPeriods=0;
 }
 
+
+int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * name) {
+    const char *val = stagEvent -> getAttrValue(name);
+    if (!val) {
+        return 0;
+    }
+    return atoi(val);
+}
+const char * getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name) {
+    const char *val = stagEvent -> getAttrValue(name);
+    if (!val) {
+        return "";
+    }
+    return val;
+}
+
+
 void xLightsFrame::ReadVixFile(const char* filename)
 {
     wxString NodeName,NodeValue,msg;
@@ -1185,60 +1202,76 @@ void xLightsFrame::ReadVixFile(const char* filename)
 
     ConversionInit();
     TextCtrlConversionStatus->AppendText(_("Reading Vixen sequence\n"));
-    IrrXMLReader* xml = createIrrXMLReader(filename);
-
-    // parse the file until end reached
-    while(xml && xml->read()) {
-        switch(xml->getNodeType()) {
-        case EXN_TEXT:
-            // in this xml file, the only text which occurs is the messageText
-            //messageText = xml->getNodeData();
-            if (cnt == 2) {
-                NodeValue = wxString::FromAscii( xml->getNodeData() );
-                if (context[1] == _("MaximumLevel")) {
-                    NodeValue.ToLong(&MaxIntensity);
-                }
-                if (context[1] == _("EventPeriodInMilliseconds")) {
-                    NodeValue.ToLong(&VixEventPeriod);
-                }
-                if (context[1] == _("EventValues")) {
-                    VixSeqData=base64_decode(NodeValue);
-                }
-                if (context[1] == _("Profile")) {
-                    LoadVixenProfile(NodeValue,VixChannels);
-                }
+    
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    wxFile file(filename);
+    int maxSizeOfRead = 1024 * 1024;
+    char *bytes = new char[maxSizeOfRead];
+    int read = file.Read(bytes, maxSizeOfRead);
+    parser->append(bytes, read);
+    
+    //pass 1, read the length, determine number of networks, units/network, channels per unit
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done) {
+        if (!event) {
+            read = file.Read(bytes, maxSizeOfRead);
+            if (read == 0) {
+                done = true;
+            } else {
+                parser->append(bytes, read);
             }
-            break;
-        case EXN_ELEMENT:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            context.Add(NodeName);
-            cnt++;
-            //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
-            //TextCtrlConversionStatus->AppendText(msg);
-            if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
-                mediaFilename = wxString::FromAscii( xml->getAttributeValueSafe("filename") );
+        } else {
+            switch(event -> getEventType()) {
+                case SP_XmlPullEvent::eEndDocument:
+                    done = true;
+                    break;
+                case SP_XmlPullEvent::eStartTag: {
+                        SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                        NodeName = wxString::FromAscii( stagEvent->getName() );
+                        context.Add(NodeName);
+                        cnt++;
+                        //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
+                        //TextCtrlConversionStatus->AppendText(msg);
+                        if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
+                            mediaFilename = wxString::FromAscii( getAttributeValueSafe(stagEvent, "filename") );
+                        }
+                        if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
+                            OutputChannel = getAttributeValueAsInt(stagEvent, "output");
+                            VixChannels.Add(OutputChannel);
+                        }
+                    }
+                    break;
+                case SP_XmlPullEvent::eEndTag: {
+                        SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                        if (cnt == 2) {
+                            NodeValue = wxString::FromAscii( stagEvent->getText() );
+                            if (context[1] == _("MaximumLevel")) {
+                                NodeValue.ToLong(&MaxIntensity);
+                            } else if (context[1] == _("EventPeriodInMilliseconds")) {
+                                NodeValue.ToLong(&VixEventPeriod);
+                            } else if (context[1] == _("EventValues")) {
+                                VixSeqData=base64_decode(NodeValue);
+                            } else if (context[1] == _("Profile")) {
+                                LoadVixenProfile(NodeValue,VixChannels);
+                            }
+                        }
+                    }
+                    if (cnt > 0) {
+                        context.RemoveAt(cnt-1);
+                    }
+                    cnt = context.GetCount();
+                    break;
             }
-            if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
-                OutputChannel = xml->getAttributeValueAsInt("output");
-                VixChannels.Add(OutputChannel);
-            }
-            if (xml->isEmptyElement()) {
-                context.RemoveAt(cnt-1);
-                cnt--;
-            }
-            break;
-        case EXN_ELEMENT_END:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (cnt > 0) {
-                context.RemoveAt(cnt-1);
-            }
-            cnt = context.GetCount();
-            break;
-        default:
-            break;
+            delete event;
+        }
+        if (!done) {
+            event = parser->getNext();
         }
     }
-    delete xml;
+    delete [] bytes;
+    delete parser;
+    
     long VixDataLen = VixSeqData.size();
     SeqNumChannels = VixChannels.GetCount();
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Max Intensity=%ld\n"),MaxIntensity));
@@ -1466,21 +1499,6 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         }
     }
     delete xml;
-}
-
-int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * name) {
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val) {
-        return 0;
-    }
-    return atoi(val);
-}
-const char * getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name) {
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val) {
-        return "";
-    }
-    return val;
 }
 
 void xLightsFrame::ReadLorFile(const char* filename)
