@@ -7,7 +7,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
 3.4.3   -Enh (dkulp) Reduce memory usage of LMS import
-        -Enh (dkulp) Change XML parser for LMS/Vixen loading to spxml to avoid loading entire file into memory
+        -Enh (dkulp) Change XML parser to spxml to avoid loading entire file into memory
 3.4.2
         -Bug fix (dkulp) Problems loading large LMS files causing crashes/hangs
         -Enh (dkulp) Add additional status messages while loading LMS files
