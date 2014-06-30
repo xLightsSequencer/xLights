@@ -2497,7 +2497,7 @@ void xLightsFrame::OpenSequence()
             // No xml file, so put LOR timing into grid
             Grid1->AppendRows(LorTimingList.size());
             int r=0;
-            for (std::list<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
+            for (std::set<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
             {
                 int period=*it;
                 float seconds=(float)period*interval/1000.0;

@@ -57,6 +57,7 @@
 #endif
 
 #include <map>
+#include <set>
 #include <vector>
 
 #include "EffectTreeDialog.h"
@@ -1334,7 +1335,7 @@ private:
     bool m_dragging;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
-    std::list<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
+    std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects
