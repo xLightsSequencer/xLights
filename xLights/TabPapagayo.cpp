@@ -129,7 +129,8 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                     debug_msg += wxString::Format(_("\t\t\tV%d phoneme[%d/%d] '%s': call routine(start_frame %d, end_frame %d, phoneme '%s')\n"), (voice_it - voices.begin()),
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
-                    if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame, phoneme_it->name);
+                    if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame,
+                                                 phoneme_it->name, word_it->name.c_str());
 
                     //if (xout) xout->alloff();
 
@@ -208,7 +209,7 @@ void xLightsFrame::write_pgo_footer(int MaxVoices,const wxString& filename)
 
 }
 
-void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme)
+void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme,const wxString& word)
 {
     wxString label;
     double seconds;
@@ -220,7 +221,7 @@ void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_fra
         retmsg(_("Unable to open for append, file: "+filename));
     }
     f.SeekEnd(0);
-    label = "Label " + phoneme;
+    label = "'" + word + "':'" + phoneme + "'";
     seconds = (double) start_frame * 0.050;
     f.Write("<tr>\n");
     f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n",seconds));
