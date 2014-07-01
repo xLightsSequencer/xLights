@@ -10,13 +10,8 @@
 #include "xLightsMain.h"
 
 // xml
-#include "../include/xml-irr-1.2/irrXML.h"
-using namespace irr;
-using namespace io;
-
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
-
 #include "../include/spxml-0.5/spxmlparser.cpp"
 #include "../include/spxml-0.5/spxmlevent.cpp"
 #include "../include/spxml-0.5/spxmlcodec.cpp"
@@ -1172,6 +1167,23 @@ void xLightsFrame::ConversionInit()
     SeqNumPeriods=0;
 }
 
+
+int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * name) {
+    const char *val = stagEvent -> getAttrValue(name);
+    if (!val) {
+        return 0;
+    }
+    return atoi(val);
+}
+const char * getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name) {
+    const char *val = stagEvent -> getAttrValue(name);
+    if (!val) {
+        return "";
+    }
+    return val;
+}
+
+
 void xLightsFrame::ReadVixFile(const char* filename)
 {
     wxString NodeName,NodeValue,msg;
@@ -1185,60 +1197,80 @@ void xLightsFrame::ReadVixFile(const char* filename)
 
     ConversionInit();
     TextCtrlConversionStatus->AppendText(_("Reading Vixen sequence\n"));
-    IrrXMLReader* xml = createIrrXMLReader(filename);
-
-    // parse the file until end reached
-    while(xml && xml->read()) {
-        switch(xml->getNodeType()) {
-        case EXN_TEXT:
-            // in this xml file, the only text which occurs is the messageText
-            //messageText = xml->getNodeData();
-            if (cnt == 2) {
-                NodeValue = wxString::FromAscii( xml->getNodeData() );
-                if (context[1] == _("MaximumLevel")) {
-                    NodeValue.ToLong(&MaxIntensity);
+    
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    wxFile file(filename);
+    int maxSizeOfRead = 1024 * 1024;
+    char *bytes = new char[maxSizeOfRead];
+    int read = file.Read(bytes, maxSizeOfRead);
+    parser->append(bytes, read);
+    
+    //pass 1, read the length, determine number of networks, units/network, channels per unit
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done) {
+        if (!event) {
+            read = file.Read(bytes, maxSizeOfRead);
+            if (read == 0) {
+                done = true;
+            } else {
+                parser->append(bytes, read);
+            }
+        } else {
+            switch(event -> getEventType()) {
+                case SP_XmlPullEvent::eEndDocument:
+                    done = true;
+                    break;
+                case SP_XmlPullEvent::eStartTag: {
+                        SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                        NodeName = wxString::FromAscii( stagEvent->getName() );
+                        context.Add(NodeName);
+                        cnt++;
+                        //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
+                        //TextCtrlConversionStatus->AppendText(msg);
+                        if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
+                            mediaFilename = wxString::FromAscii( getAttributeValueSafe(stagEvent, "filename") );
+                        }
+                        if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
+                            OutputChannel = getAttributeValueAsInt(stagEvent, "output");
+                            VixChannels.Add(OutputChannel);
+                        }
+                    }
+                    break;
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                    if (cnt == 2) {
+                        NodeValue = wxString::FromAscii( stagEvent->getText() );
+                        if (context[1] == _("MaximumLevel")) {
+                            NodeValue.ToLong(&MaxIntensity);
+                        } else if (context[1] == _("EventPeriodInMilliseconds")) {
+                            NodeValue.ToLong(&VixEventPeriod);
+                        } else if (context[1] == _("EventValues")) {
+                            VixSeqData=base64_decode(NodeValue);
+                        } else if (context[1] == _("Profile")) {
+                            LoadVixenProfile(NodeValue,VixChannels);
+                        }
+                    }
+                    break;
                 }
-                if (context[1] == _("EventPeriodInMilliseconds")) {
-                    NodeValue.ToLong(&VixEventPeriod);
-                }
-                if (context[1] == _("EventValues")) {
-                    VixSeqData=base64_decode(NodeValue);
-                }
-                if (context[1] == _("Profile")) {
-                    LoadVixenProfile(NodeValue,VixChannels);
+                case SP_XmlPullEvent::eEndTag: {
+                    if (cnt > 0) {
+                        context.RemoveAt(cnt-1);
+                    }
+                    cnt = context.GetCount();
+                    break;
                 }
             }
-            break;
-        case EXN_ELEMENT:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            context.Add(NodeName);
-            cnt++;
-            //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
-            //TextCtrlConversionStatus->AppendText(msg);
-            if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
-                mediaFilename = wxString::FromAscii( xml->getAttributeValueSafe("filename") );
-            }
-            if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
-                OutputChannel = xml->getAttributeValueAsInt("output");
-                VixChannels.Add(OutputChannel);
-            }
-            if (xml->isEmptyElement()) {
-                context.RemoveAt(cnt-1);
-                cnt--;
-            }
-            break;
-        case EXN_ELEMENT_END:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (cnt > 0) {
-                context.RemoveAt(cnt-1);
-            }
-            cnt = context.GetCount();
-            break;
-        default:
-            break;
+            delete event;
+        }
+        if (!done) {
+            event = parser->getNext();
         }
     }
-    delete xml;
+    delete [] bytes;
+    delete parser;
+    file.Close();
+    
     long VixDataLen = VixSeqData.size();
     SeqNumChannels = VixChannels.GetCount();
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Max Intensity=%ld\n"),MaxIntensity));
@@ -1287,76 +1319,104 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     long channelsInUniverse = 0;
     wxString NodeName, NodeValue, Data, ChannelName;
     wxArrayString context;
-    IrrXMLReader* xml = createIrrXMLReader(filename);
     wxArrayInt map;
 
-
+    
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    wxFile file(filename);
+    int maxSizeOfRead = 1024 * 1024;
+    char *bytes = new char[maxSizeOfRead];
+    int read = file.Read(bytes, maxSizeOfRead);
+    parser->append(bytes, read);
+    
     // pass one, get the metadata
-    while(xml && xml->read()) {
-        switch(xml->getNodeType()) {
-        case EXN_TEXT:
-            NodeValue = wxString::FromAscii( xml->getNodeData() );
-            if (context[cnt - 1] == _("MilliSecPerTimeUnit")) {
-                NodeValue.ToLong(&msPerCell);
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done) {
+        if (!event) {
+            read = file.Read(bytes, maxSizeOfRead);
+            if (read == 0) {
+                done = true;
+            } else {
+                parser->append(bytes, read);
             }
-            if (context[cnt - 1] == _("NumberOfTimeCells")) {
-                NodeValue.ToLong(&timeCells);
-            }
-            if (context[cnt - 1] == _("AudioSourcePcmFile")) {
-                mediaFilename = NodeValue;
-                if (mediaFilename.EndsWith(".PCM")) {
-                    //nothing can deal with PCM files, we'll assume this came from an mp3
-                    mediaFilename.Remove(mediaFilename.size() - 4);
-                    mediaFilename += ".mp3";
+        } else {
+            switch(event -> getEventType()) {
+                case SP_XmlPullEvent::eEndDocument:
+                    done = true;
+                    break;
+                case SP_XmlPullEvent::eStartTag: {
+                    SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                    NodeName = wxString::FromAscii( stagEvent->getName() );
+                    context.Add(NodeName);
+                    cnt++;
+                    break;
                 }
-            }
-            if (context[cnt - 1] == _("ChannelsInUniverse")) {
-                NodeValue.ToLong(&channelsInUniverse);
-                channels += channelsInUniverse;
-            }
-            if (context[cnt - 1] == _("UniverseNumber")) {
-                NodeValue.ToLong(&tmp);
-                universe = tmp;
-            }
-            break;
-        case EXN_ELEMENT:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            context.Add(NodeName);
-            cnt++;
-
-            if (xml->isEmptyElement()) {
-                context.RemoveAt(cnt-1);
-                cnt--;
-            }
-
-            break;
-        case EXN_ELEMENT_END:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (NodeName == _("Universe")) {
-                map.Add(universe);
-                map.Add(channelsInUniverse);
-                for (tmp = map.size() - 2; tmp > 0; tmp -= 2) {
-                    if (map[tmp] < map[tmp - 2]) {
-                        long t1 = map[tmp];
-                        long t2 = map[tmp + 1];
-                        map[tmp] = map[tmp - 2];
-                        map[tmp + 1] = map[tmp - 1];
-                        map[tmp - 2] = t1;
-                        map[tmp - 1] = t2;
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
+                        NodeValue = wxString::FromAscii( stagEvent -> getText());
+                        
+                        if (NodeName == _("MilliSecPerTimeUnit")) {
+                            NodeValue.ToLong(&msPerCell);
+                        }
+                        if (NodeName == _("NumberOfTimeCells")) {
+                            NodeValue.ToLong(&timeCells);
+                        }
+                        if (NodeName == _("AudioSourcePcmFile")) {
+                            mediaFilename = NodeValue;
+                            if (mediaFilename.EndsWith(".PCM")) {
+                                //nothing can deal with PCM files, we'll assume this came from an mp3
+                                mediaFilename.Remove(mediaFilename.size() - 4);
+                                mediaFilename += ".mp3";
+                            }
+                        }
+                        if (NodeName == _("ChannelsInUniverse")) {
+                            NodeValue.ToLong(&channelsInUniverse);
+                            channels += channelsInUniverse;
+                        }
+                        if (NodeName == _("UniverseNumber")) {
+                            NodeValue.ToLong(&tmp);
+                            universe = tmp;
+                        }
                     }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag: {
+                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
+                        if (NodeName == _("Universe")) {
+                            map.Add(universe);
+                            map.Add(channelsInUniverse);
+                            for (tmp = map.size() - 2; tmp > 0; tmp -= 2) {
+                                if (map[tmp] < map[tmp - 2]) {
+                                    long t1 = map[tmp];
+                                    long t2 = map[tmp + 1];
+                                    map[tmp] = map[tmp - 2];
+                                    map[tmp + 1] = map[tmp - 1];
+                                    map[tmp - 2] = t1;
+                                    map[tmp - 1] = t2;
+                                }
+                            }
+                        }
+                        
+                        context.RemoveAt(cnt-1);
+                    }
+                    cnt = context.GetCount();
+                    break;
                 }
             }
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (cnt > 0) {
-                context.RemoveAt(cnt-1);
-            }
-            cnt = context.GetCount();
-            break;
-        default:
-            break;
+            delete event;
+        }
+        if (!done) {
+            event = parser->getNext();
         }
     }
-    delete xml;
+    delete parser;
+
+    file.Seek(0);
 
 
     TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
@@ -1374,8 +1434,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         return;
     }
     SeqData.resize(SeqDataLen);
-
-    xml = createIrrXMLReader(filename);
+    
     ChannelNames.resize(channels);
     ChannelColors.resize(channels);
     channels = 0;
@@ -1387,100 +1446,109 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     }
     channels = 0;
 
+    parser = new SP_XmlPullParser();
+    read = file.Read(bytes, maxSizeOfRead);
+    parser->append(bytes, read);
 
-    //pass2 read the sequence data
-    while(xml && xml->read()) {
-        switch(xml->getNodeType()) {
-        case EXN_TEXT:
-            if (context[cnt - 1] == _("ChanInfo")) {
-                //channel name and type
-                ChannelName = wxString::FromAscii( xml->getNodeData() );
+    
+    event = parser->getNext();
+    done = 0;
+    while (!done) {
+        if (!event) {
+            read = file.Read(bytes, maxSizeOfRead);
+            if (read == 0) {
+                done = true;
+            } else {
+                parser->append(bytes, read);
             }
-            if (context[cnt - 1] == _("Block")) {
-                NodeValue = wxString::FromAscii( xml->getNodeData() );
-
-                int idx = NodeValue.Find("-");
-                Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
-            }
-            if (context[cnt - 1] == _("UniverseNumber")) {
-                NodeValue = wxString::FromAscii( xml->getNodeData() );
-                NodeValue.ToLong(&tmp);
-                universe = tmp;
-                for (tmp = 0; tmp < map.size() ; tmp += 2) {
-                    if (universe == map[tmp]) {
-                        channels = map[tmp + 1];
+        } else {
+            switch(event -> getEventType()) {
+                case SP_XmlPullEvent::eEndDocument:
+                    done = true;
+                    break;
+                case SP_XmlPullEvent::eStartTag: {
+                    SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                    NodeName = wxString::FromAscii( stagEvent->getName() );
+                    context.Add(NodeName);
+                    cnt++;
+                    break;
+                }
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
+                        NodeValue = wxString::FromAscii( stagEvent -> getText());
+                        
+                        if (NodeName == _("ChanInfo")) {
+                            //channel name and type
+                            ChannelName = NodeValue;
+                        }
+                        if (NodeName == _("Block")) {
+                            int idx = NodeValue.Find("-");
+                            Data.Append(NodeValue.SubString(idx + 1, NodeValue.size()));
+                        }
+                        if (NodeName == _("UniverseNumber")) {
+                            NodeValue.ToLong(&tmp);
+                            universe = tmp;
+                            for (tmp = 0; tmp < map.size() ; tmp += 2) {
+                                if (universe == map[tmp]) {
+                                    channels = map[tmp + 1];
+                                }
+                            }
+                        }
                     }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag: {
+                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
+                        if (NodeName == _("ChannelData")) {
+                            //finished reading this channel, map the data
+                            int idx = ChannelName.find(", ");
+                            wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
+                            wxString origName = ChannelNames[channels];
+                            if (type == _("RGB-R")) {
+                                ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
+                                ChannelColors[channels] = 0x000000FF;
+                            } else if (type == _("RGB-G")) {
+                                ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
+                                ChannelColors[channels] = 0x0000FF00;
+                            } else if (type == _("RGB-B")) {
+                                ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
+                                ChannelColors[channels] = 0x00FF0000;
+                            } else {
+                                ChannelNames[channels] = ChannelName.Left(idx);
+                                ChannelColors[channels] = 0x00FFFFFF;
+                            }
+                            wxString o2 = NetInfo.GetChannelName(channels);
+                            TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
+                                                                                  ChannelNames[channels],origName,o2));
+                            for (long newper = 0; newper < SeqNumPeriods; newper++) {
+                                int hlsper = newper * timeCells / SeqNumPeriods;
+                                long intensity;
+                                Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
+                                SeqData[channels * SeqNumPeriods + newper] = intensity;
+                            }
+                            Data.Clear();
+                            channels++;
+                        }
+                        
+                        context.RemoveAt(cnt-1);
+                    }
+                    cnt = context.GetCount();
+                    break;
                 }
             }
-            break;
-        case EXN_ELEMENT:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            context.Add(NodeName);
-            cnt++;
-
-            if (xml->isEmptyElement()) {
-                context.RemoveAt(cnt-1);
-                cnt--;
-            }
-
-            break;
-        case EXN_ELEMENT_END:
-            NodeName = wxString::FromAscii( xml->getNodeName() );
-            if (NodeName == _("ChannelData")) {
-                //finished reading this channel, map the data
-                int idx = ChannelName.find(", ");
-                wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
-                wxString origName = ChannelNames[channels];
-                if (type == _("RGB-R")) {
-                    ChannelNames[channels] = ChannelName.Left(idx) + _("-R");
-                    ChannelColors[channels] = 0x000000FF;
-                } else if (type == _("RGB-G")) {
-                    ChannelNames[channels] = ChannelName.Left(idx) + _("-G");
-                    ChannelColors[channels] = 0x0000FF00;
-                } else if (type == _("RGB-B")) {
-                    ChannelNames[channels] = ChannelName.Left(idx) + _("-B");
-                    ChannelColors[channels] = 0x00FF0000;
-                } else {
-                    ChannelNames[channels] = ChannelName.Left(idx);
-                    ChannelColors[channels] = 0x00FFFFFF;
-                }
-                wxString o2 = NetInfo.GetChannelName(channels);
-                TextCtrlConversionStatus->AppendText(wxString::Format(_("Map %s -> %s (%s)\n"),
-                                                     ChannelNames[channels],origName,o2));
-                for (long newper = 0; newper < SeqNumPeriods; newper++) {
-                    int hlsper = newper * timeCells / SeqNumPeriods;
-                    long intensity;
-                    Data.SubString(hlsper * 3, hlsper * 3 + 1).ToLong(&intensity, 16);
-                    SeqData[channels * SeqNumPeriods + newper] = intensity;
-                }
-                Data.Clear();
-                channels++;
-            }
-            if (cnt > 0) {
-                context.RemoveAt(cnt-1);
-            }
-            cnt = context.GetCount();
-            break;
-        default:
-            break;
+            delete event;
+        }
+        if (!done) {
+            event = parser->getNext();
         }
     }
-    delete xml;
-}
-
-int getAttributeValueAsInt(SP_XmlStartTagEvent * stagEvent, const char * name) {
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val) {
-        return 0;
-    }
-    return atoi(val);
-}
-const char * getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char * name) {
-    const char *val = stagEvent -> getAttrValue(name);
-    if (!val) {
-        return "";
-    }
-    return val;
+    delete [] bytes;
+    delete parser;
+    file.Close();
 }
 
 void xLightsFrame::ReadLorFile(const char* filename)

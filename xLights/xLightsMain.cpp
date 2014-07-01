@@ -21,12 +21,6 @@
 #include "heartbeat.h" //DJ
 
 
-// xml
-#include "../include/xml-irr-1.2/irrXML.h"
-#include "../include/xml-irr-1.2/irrXML.cpp"
-using namespace irr;
-using namespace io;
-
 // scripting language
 #include "xLightsBasic.cpp"
 
