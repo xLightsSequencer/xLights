@@ -1237,26 +1237,29 @@ void xLightsFrame::ReadVixFile(const char* filename)
                         }
                     }
                     break;
-                case SP_XmlPullEvent::eEndTag: {
-                        SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
-                        if (cnt == 2) {
-                            NodeValue = wxString::FromAscii( stagEvent->getText() );
-                            if (context[1] == _("MaximumLevel")) {
-                                NodeValue.ToLong(&MaxIntensity);
-                            } else if (context[1] == _("EventPeriodInMilliseconds")) {
-                                NodeValue.ToLong(&VixEventPeriod);
-                            } else if (context[1] == _("EventValues")) {
-                                VixSeqData=base64_decode(NodeValue);
-                            } else if (context[1] == _("Profile")) {
-                                LoadVixenProfile(NodeValue,VixChannels);
-                            }
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                    if (cnt == 2) {
+                        NodeValue = wxString::FromAscii( stagEvent->getText() );
+                        if (context[1] == _("MaximumLevel")) {
+                            NodeValue.ToLong(&MaxIntensity);
+                        } else if (context[1] == _("EventPeriodInMilliseconds")) {
+                            NodeValue.ToLong(&VixEventPeriod);
+                        } else if (context[1] == _("EventValues")) {
+                            VixSeqData=base64_decode(NodeValue);
+                        } else if (context[1] == _("Profile")) {
+                            LoadVixenProfile(NodeValue,VixChannels);
                         }
                     }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag: {
                     if (cnt > 0) {
                         context.RemoveAt(cnt-1);
                     }
                     cnt = context.GetCount();
                     break;
+                }
             }
             delete event;
         }
@@ -1346,10 +1349,11 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                     SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
                     NodeName = wxString::FromAscii( stagEvent->getName() );
                     context.Add(NodeName);
+                    cnt++;
                     break;
                 }
-                case SP_XmlPullEvent::eEndTag: {
-                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                     if (cnt > 0) {
                         NodeName = context[cnt - 1];
                         NodeValue = wxString::FromAscii( stagEvent -> getText());
@@ -1376,6 +1380,13 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                             NodeValue.ToLong(&tmp);
                             universe = tmp;
                         }
+                    }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag: {
+                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
                         if (NodeName == _("Universe")) {
                             map.Add(universe);
                             map.Add(channelsInUniverse);
@@ -1459,14 +1470,15 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                     SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
                     NodeName = wxString::FromAscii( stagEvent->getName() );
                     context.Add(NodeName);
+                    cnt++;
                     break;
                 }
-                case SP_XmlPullEvent::eEndTag: {
-                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                case SP_XmlPullEvent::eCData: {
+                    SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                     if (cnt > 0) {
                         NodeName = context[cnt - 1];
                         NodeValue = wxString::FromAscii( stagEvent -> getText());
-
+                        
                         if (NodeName == _("ChanInfo")) {
                             //channel name and type
                             ChannelName = NodeValue;
@@ -1484,6 +1496,13 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
                                 }
                             }
                         }
+                    }
+                    break;
+                }
+                case SP_XmlPullEvent::eEndTag: {
+                    SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                    if (cnt > 0) {
+                        NodeName = context[cnt - 1];
                         if (NodeName == _("ChannelData")) {
                             //finished reading this channel, map the data
                             int idx = ChannelName.find(", ");
