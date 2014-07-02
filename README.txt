@@ -6,6 +6,18 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.4	-Bug (dkulp) Fix LOR Import
+	The old XML parser, on the start element event, you could query if the element was empty or not.  
+	For the "channel" element, if it was empty, we skipped it and didn't map it to a channel.
+	The new parser doesn't have that functionality.   I have to record some information at the start tag, 
+	determine if there are any effect child elements, and if not, undo some stuff at the end element.   
+	The detection and undo wasn't working properly.  Thus, any empty channels in the LMS were getting mapped.   
+	Why is this a problem?   Well, LMS has a habit of using extra channels for things.   
+	For example, the CCR's which have 50 pixels would normally just be 150 channels.  
+	However, in the LMS file, they are 157 channels.  I have no idea what the LR, MM, ME, CM, CS, and CI 
+	channels that it puts for each CCR are used for.
+	In any case, those extra 7 channels (and any other empty channels) would cause large shifts.    
+	This release has changes to fix that.
 3.4.3   -Enh (dkulp) Reduce memory usage of LMS import
         -Enh (dkulp) Change XML parser to spxml to avoid loading entire file into memory
 3.4.2
