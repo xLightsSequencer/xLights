@@ -196,31 +196,9 @@ void xLightsFrame::UpdateNetworkList()
             TotChannels+=MaxChannels;
             NetCnt++;
 
-            // LOR mapping
-            if (NetCnt==1)
-            {
-                msg=_("LOR Regular");
-                if (TotChannels <= MaxDmxChannels) msg+=_(" or Univ 1");
-            }
-            else if (NetCnt <= 16)
-            {
-                c = NetCnt - 2 + 'A';
-                msg=wxString::Format(_("LOR Aux %c"),c);
-                if (MaxChannels <= MaxDmxChannels) msg+=wxString::Format(_(" or Univ %d"), NetCnt);
-            }
-            else if (MaxChannels <= MaxDmxChannels)
-            {
-                msg=wxString::Format(_("Univ %d"), NetCnt);
-            }
-            else
-            {
-                msg=_("Not mappable");
-            }
-            GridNetwork->SetItem(newidx,4,msg);
-
             // Vixen mapping
             msg=wxString::Format(_("Channels %d to %ld"), StartChannel, TotChannels);
-            GridNetwork->SetItem(newidx,5,msg);
+            GridNetwork->SetItem(newidx,4,msg);
         }
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
