@@ -1737,7 +1737,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 if (cnt == 2) {
                     if (empty && curchannel != -1) {
                         chindex--;
-                        TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel] + "is empty\n");
+                        //TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel] + "is empty\n");
                         ChannelNames[curchannel].clear();
                         MappedChannelCnt--;
                     }
