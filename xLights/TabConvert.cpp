@@ -1588,6 +1588,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
+    bool empty = true;
     while (!done) {
         if (!event) {
             read = file.Read(bytes, maxSizeOfRead);
@@ -1616,7 +1617,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     if (NodeName == _("track")) {
                         centisec = getAttributeValueAsInt(stagEvent, "totalCentiseconds");
                     } else if (cnt == 3 && context[1] == _("channels") && NodeName == _("channel")) {
-                        wxYield();
+                        empty = true;
                         channelCount++;
                         if ((channelCount % 1000) == 0) {
                             TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels found so far: %d\n"),channelCount));
@@ -1625,20 +1626,27 @@ void xLightsFrame::ReadLorFile(const char* filename)
                         deviceType = wxString::FromAscii( stagEvent->getAttrValue("deviceType") );
                         network = getAttributeValueAsInt(stagEvent, "network");
                         unit = getAttributeValueAsInt(stagEvent, "unit");
+                        circuit = getAttributeValueAsInt(stagEvent, "circuit");
+                    } else if (cnt > 1 && context[1] == _("channels") && NodeName == _("effect")) {
+                        empty = false;
+                    }
+                }
+                break;
+                case SP_XmlPullEvent::eEndTag:
+                    if (cnt == 3 && context[1] == _("channels") && context[2] == _("channel") && !empty) {
                         if (unit < 0) {
                             unit+=256;
                         }
                         if (unit == 0) {
                             unit = 1;
                         }
-                        circuit = getAttributeValueAsInt(stagEvent, "circuit");
                         std::vector<std::vector<int>> *unitSizes;
                         if (deviceType.Left(3) == "DMX") {
                             unitSizes = &dmxUnitSizes;
                         } else {
                             unitSizes = &lorUnitSizes;
                         }
-                    
+                        
                         if (network >= unitSizes->size()) {
                             unitSizes->resize(network + 1);
                         }
@@ -1651,9 +1659,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                             (*unitSizes)[network][unit - 1] = circuit;
                         }
                     }
-                }
-                break;
-                case SP_XmlPullEvent::eEndTag:
+                    
                     if (cnt > 0) {
                         context.RemoveAt(cnt-1);
                     }
@@ -1710,7 +1716,6 @@ void xLightsFrame::ReadLorFile(const char* filename)
     //pass 2, convert the data
     event = parser->getNext();
     done = 0;
-    bool empty = true;
     while (!done) {
         if (!event) {
             read = file.Read(bytes, maxSizeOfRead);
@@ -1730,9 +1735,9 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 }
                 cnt = context.GetCount();
                 if (cnt == 2) {
-                    if (empty && curchannel >= 0) {
+                    if (empty && curchannel != -1) {
                         chindex--;
-                        wxYield();
+                        TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel] + "is empty\n");
                         ChannelNames[curchannel].clear();
                         MappedChannelCnt--;
                     }
@@ -1757,7 +1762,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     mediaFilename = wxString::FromAscii( getAttributeValueSafe(stagEvent, "musicFilename") );
                 }
                 if (cnt == 3 && context[1] == _("channels") && NodeName == _("channel")) {
-                    empty = false;
+                    empty = true;
                     channelCount++;
                     if ((channelCount % 1000) == 0) {
                         TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels converted so far: %d\n"),channelCount));

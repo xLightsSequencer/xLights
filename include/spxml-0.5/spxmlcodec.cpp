@@ -38,7 +38,7 @@ int SP_XmlStringCodec :: decode( const char * encoding, const char * encodeValue
 				outBuffer->append( XML_CHARS[ index ] );
 				pos += len;
 			} else {
-				char * next = "";
+				char * next = 0;
 				int ch = 0;
 				if( '#' == *( pos + 1 ) ) {
 					if( 'x' == *( pos + 2 ) ) {
@@ -49,7 +49,7 @@ int SP_XmlStringCodec :: decode( const char * encoding, const char * encodeValue
 				}
 
 				// TODO: fully support xml entity, currently only support unicode entity
-				if( ';' == *next && 0 != ch ) {
+				if(next && ';' == *next && 0 != ch ) {
 					if( isUtf8 ) {
 						SP_XmlUtf8Codec::uni2utf8( ch, outBuffer );
 					} else {
