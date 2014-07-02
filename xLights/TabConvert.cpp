@@ -1229,7 +1229,7 @@ void xLightsFrame::ReadVixFile(const char* filename)
                         //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
                         //TextCtrlConversionStatus->AppendText(msg);
                         if (cnt == 2 && (NodeName == _("Audio") || NodeName == _("Song"))) {
-                            mediaFilename = wxString::FromAscii( getAttributeValueSafe(stagEvent, "filename") );
+                            SetMediaFilename(wxString::FromAscii( getAttributeValueSafe(stagEvent, "filename") ) );
                         }
                         if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
                             OutputChannel = getAttributeValueAsInt(stagEvent, "output");
@@ -1759,7 +1759,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 //msg=_("Element: ") + NodeName + wxString::Format(_(" (%ld)\n"),cnt);
                 //TextCtrlConversionStatus->AppendText(msg);
                 if (NodeName == _("sequence")) {
-                    mediaFilename = wxString::FromAscii( getAttributeValueSafe(stagEvent, "musicFilename") );
+                    SetMediaFilename(wxString::FromAscii( getAttributeValueSafe(stagEvent, "musicFilename") ) );
                 }
                 if (cnt == 3 && context[1] == _("channels") && NodeName == _("channel")) {
                     empty = true;
