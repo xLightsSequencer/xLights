@@ -468,6 +468,7 @@ private:
     static const long ID_PANEL_TEST;
     static const long ID_STATICTEXT14;
     static const long ID_STATICTEXT19;
+    static const long ID_STATICTEXT68;
     static const long ID_STATICTEXT15;
     static const long ID_BUTTON_CHOOSE_FILE;
     static const long ID_TEXTCTRL_FILENAME;
@@ -906,6 +907,7 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
+    wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
     wxTextCtrl* TextCtrl54;
     wxMenuItem* MenuItemSavePlaylists;

@@ -153,6 +153,7 @@ const long xLightsFrame::ID_NOTEBOOK_TEST = wxNewId();
 const long xLightsFrame::ID_PANEL_TEST = wxNewId();
 const long xLightsFrame::ID_STATICTEXT14 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT19 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT68 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT15 = wxNewId();
 const long xLightsFrame::ID_BUTTON_CHOOSE_FILE = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_FILENAME = wxNewId();
@@ -802,6 +803,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerConvert->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 10);
     StaticText19 = new wxStaticText(PanelConvert, ID_STATICTEXT19, _("Entries on the Setup tab will guide the conversion. Make sure you have your lighting networks defined accurately before you start a conversion."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT19"));
     FlexGridSizerConvert->Add(StaticText19, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 12);
+    StaticText65 = new wxStaticText(PanelConvert, ID_STATICTEXT68, _("For LMS imports, LOR networks should be first followed by DMX starting at universe 1."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
+    FlexGridSizerConvert->Add(StaticText65, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 12);
     FlexGridSizer25 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer25->AddGrowableCol(1);
     FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1804,24 +1807,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
     GridNetwork->InsertColumn(2, itemCol);
 
-    itemCol.SetText(_T("Last Channel"));
+    itemCol.SetText(_T("Num Channels"));
     itemCol.SetAlign(wxLIST_FORMAT_CENTRE);
     GridNetwork->InsertColumn(3, itemCol);
 
-    itemCol.SetText(_T("LOR Mapping"));
+    itemCol.SetText(_T("xLights/Vixen/FPP Mapping"));
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(4, itemCol);
-
-    itemCol.SetText(_T("xLights/Vixen Mapping"));
-    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
-    GridNetwork->InsertColumn(5, itemCol);
 
     GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1,100);
     GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(3,100);
-    GridNetwork->SetColumnWidth(4,150);
-    GridNetwork->SetColumnWidth(5,150);
+    GridNetwork->SetColumnWidth(4,170);
 
     Grid1->SetColFormatFloat(0,7,3);
 

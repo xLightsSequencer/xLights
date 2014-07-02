@@ -1012,6 +1012,14 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText65" member="yes">
+													<label>For LMS imports, LOR networks should be first followed by DMX starting at universe 1.</label>
+												</object>
+												<flag>wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>12</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer25" member="no">
 													<cols>2</cols>
 													<growablecols>1</growablecols>
