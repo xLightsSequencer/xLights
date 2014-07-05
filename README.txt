@@ -6,7 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-3.4.4	-Bug (dkulp) Fix LOR Import
+3.4.4	Jul 2, 2014
+	-Bug (dkulp) Fix LOR Import
 	The old XML parser, on the start element event, you could query if the element was empty or not.  
 	For the "channel" element, if it was empty, we skipped it and didn't map it to a channel.
 	The new parser doesn't have that functionality.   I have to record some information at the start tag, 
@@ -18,22 +19,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	channels that it puts for each CCR are used for.
 	In any case, those extra 7 channels (and any other empty channels) would cause large shifts.    
 	This release has changes to fix that.
-3.4.3   -Enh (dkulp) Reduce memory usage of LMS import
+3.4.3	Jun 30, 2014  
+	-Enh (dkulp) Reduce memory usage of LMS import
         -Enh (dkulp) Change XML parser to spxml to avoid loading entire file into memory
-3.4.2
+3.4.2	Jun 26, 2014
         -Bug fix (dkulp) Problems loading large LMS files causing crashes/hangs
         -Enh (dkulp) Add additional status messages while loading LMS files
-3.4.1	
+3.4.1	Jun 19, 2014
 	-Bug fix (sean) Butterfly effect now creates pixels at {0,1} and {1,0} correctly
 	-Enh (sean) added two new butterfly effects
 	-Enh (sean) Work in progress. New Papagayo tab. This tab will be used to convert Papagayo files (.pgo) into
 		xLight sequences
-3.4.0
+3.4.0   Jun 5, 2014
 	-Bug fix (djulien) tried to fix Piano key wrap (again); added PianoTestNotes.txt file for easier testing (in case more changes are needed)
 	-Bug fix (djulien) fixed cross-fade (morph); didn't write to xseq file correctly
 	-Bug fix (djulien) add missing tool tip for Text center-and-stop checkbox
 	-Enh (djulien) make Preview element size editable; not sure why it wasn't; NOTE: must have a Display Element selected first
-3.3.9	May 13, 2014
+3.3.9	May 22, 2014
 	-Bug fix (sean). Glediator effects were short one row in the Y direction. This has now been fixed.
 3.3.8	May 13, 2014
 	-Enhancement (sean) New Effect, Glediator. Save a recorder file from Glediator. Open file and put in your grid.

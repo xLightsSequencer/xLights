@@ -16,7 +16,7 @@ UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-
+OutputBaseFilename=xLights_Nutcracker_3_4_x.exe
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"

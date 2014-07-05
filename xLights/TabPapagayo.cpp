@@ -290,6 +290,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
 //    if (!soundfile.Open(filename.c_str())) retmsg(_("Can't open file"));
 //    if (ext != ".wav") error?
 
+
     wxRegEx number("^[0-9]+$");
     int samppersec = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
     if (!samppersec) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
