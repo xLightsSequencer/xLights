@@ -60,6 +60,7 @@ void RgbEffects::RenderFaces(int Phoneme)
     int Ht, Wt;
     Ht = BufferHt;
     Wt = BufferWi;
+
     mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
 
 

@@ -108,7 +108,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 
 //example code to iterate thru the data:
     wxString debug_msg,filename;
-
+//mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
     filename=TextCtrl_papagayo_output_filename->GetValue();
     int pgofile_status=write_pgo_header(voices.size(),filename);
 
@@ -222,7 +222,7 @@ void xLightsFrame::AutoFace(int MaxVoices,const wxString& filename,int start_fra
     }
     f.SeekEnd(0);
     label = "'" + word + "':'" + phoneme + "'";
-    seconds = (double) start_frame * 0.050;
+    seconds = (double) start_frame * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
     f.Write("<tr>\n");
     f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n",seconds));
     f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n",label));
