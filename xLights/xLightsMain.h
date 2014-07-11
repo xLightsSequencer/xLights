@@ -1123,7 +1123,7 @@ private:
     wxArrayInt ChannelColors;
 
     // convert
-    bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels);
+    bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const char* filename);
     void ReadLorFile(const char* filename);
     void ReadHLSFile(const wxString& filename);

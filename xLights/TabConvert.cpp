@@ -971,7 +971,7 @@ void xLightsFrame::WriteConductorFile(const wxString& filename)
 }
 
 // return true on success
-bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels)
+bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString& VixChannelNames)
 {
     wxString tag,tempstr;
     long OutputChannel;
@@ -979,7 +979,7 @@ bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vix
     fn.AssignDir(CurrentDir);
     fn.SetFullName(ProfileName + ".pro");
     if (!fn.FileExists()) {
-        ConversionError(_("Unable to find Vixen profile: ")+ProfileName+_("\n\nMake sure a copy is in your xLights directory"));
+        ConversionError(_("Unable to find Vixen profile: ")+fn.GetFullPath()+_("\n\nMake sure a copy is in your xLights directory"));
         return false;
     }
     wxXmlDocument doc( fn.GetFullPath() );
@@ -995,6 +995,11 @@ bool xLightsFrame::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vix
                             tempstr=p->GetAttribute("output", "0");
                             tempstr.ToLong(&OutputChannel);
                             VixChannels.Add(OutputChannel);
+                        }
+                        if (p->HasAttribute("name")) {
+                            VixChannelNames.Add(p->GetAttribute("name"));
+                        } else {
+                            VixChannelNames.Add("");
                         }
                     }
                 }
@@ -1189,6 +1194,7 @@ void xLightsFrame::ReadVixFile(const char* filename)
     wxString NodeName,NodeValue,msg;
     std::string VixSeqData;
     wxArrayInt VixChannels;
+    wxArrayString VixChannelNames;
     long cnt = 0;
     wxArrayString context;
     long VixEventPeriod=-1;
@@ -1232,8 +1238,12 @@ void xLightsFrame::ReadVixFile(const char* filename)
                             SetMediaFilename(wxString::FromAscii( getAttributeValueSafe(stagEvent, "filename") ) );
                         }
                         if (cnt > 1 && context[1] == _("Channels") && NodeName == _("Channel")) {
-                            OutputChannel = getAttributeValueAsInt(stagEvent, "output");
-                            VixChannels.Add(OutputChannel);
+                            const char *val = stagEvent -> getAttrValue("output");
+                            if (!val) {
+                                VixChannels.Add(VixChannels.size());
+                            } else {
+                                VixChannels.Add(atoi(val));
+                            }
                         }
                     }
                     break;
@@ -1248,7 +1258,12 @@ void xLightsFrame::ReadVixFile(const char* filename)
                         } else if (context[1] == _("EventValues")) {
                             VixSeqData=base64_decode(NodeValue);
                         } else if (context[1] == _("Profile")) {
-                            LoadVixenProfile(NodeValue,VixChannels);
+                            LoadVixenProfile(NodeValue,VixChannels,VixChannelNames);
+                        } else if (context[1] == _("Channels") && context[2] == _("Channel")) {
+                            while (VixChannelNames.size() < VixChannels.size()) {
+                                VixChannelNames.Add("");
+                            }
+                            VixChannelNames[VixChannels.size() - 1] = NodeValue;
                         }
                     }
                     break;
@@ -1271,8 +1286,23 @@ void xLightsFrame::ReadVixFile(const char* filename)
     delete parser;
     file.Close();
     
+    int min = 999999;
+    int max = 0;
+    for (int x = 0; x < VixChannels.GetCount(); x++) {
+        int i = VixChannels[x];
+        if (i > max) {
+            max = i;
+        }
+        if (i < min) {
+            min = i;
+        }
+    }
+    
     long VixDataLen = VixSeqData.size();
-    SeqNumChannels = VixChannels.GetCount();
+    SeqNumChannels = (max - min) + 1;
+    if (SeqNumChannels < 0) {
+        SeqNumChannels = 0;
+    }
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Max Intensity=%ld\n"),MaxIntensity));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("# of Channels=%ld\n"),SeqNumChannels));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Vix Event Period=%ld\n"),VixEventPeriod));
@@ -1280,7 +1310,7 @@ void xLightsFrame::ReadVixFile(const char* filename)
     if (SeqNumChannels == 0) {
         return;
     }
-    long VixNumPeriods = VixDataLen / SeqNumChannels;
+    long VixNumPeriods = VixDataLen / VixChannels.size();
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Vix # of time periods=%ld\n"),VixNumPeriods));
     TextCtrlConversionStatus->AppendText(_("Media file=")+mediaFilename+_("\n"));
     SeqNumPeriods = VixNumPeriods * VixEventPeriod / XTIMER_INTERVAL;
@@ -1296,7 +1326,10 @@ void xLightsFrame::ReadVixFile(const char* filename)
     int newper,vixper,intensity;
     size_t ch;
     for (ch=0; ch < SeqNumChannels; ch++) {
-        OutputChannel = VixChannels[ch];
+        OutputChannel = VixChannels[ch] - min;
+        if (ch < VixChannelNames.size()) {
+            ChannelNames[OutputChannel] = VixChannelNames[ch];
+        }
         for (newper=0; newper < SeqNumPeriods; newper++) {
             vixper=newper * VixNumPeriods / SeqNumPeriods;
             intensity=VixSeqData[ch*VixNumPeriods+vixper];
