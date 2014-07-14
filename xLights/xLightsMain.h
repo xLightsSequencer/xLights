@@ -475,7 +475,7 @@ private:
     static const long ID_STATICTEXT16;
     static const long ID_CHOICE_OUTPUT_FORMAT;
     static const long ID_STATICTEXT20;
-    static const long ID_CHECKBOX_SAVE_CHANNEL_NAMES;
+    static const long ID_CHECKBOX_MAP_EMPTY_CHANNELS;
     static const long ID_STATICTEXT17;
     static const long ID_CHECKBOX_OFF_AT_END;
     static const long ID_BUTTON_START_CONVERSION;
@@ -747,7 +747,6 @@ private:
     wxTextCtrl* TextCtrl57;
     wxTextCtrl* TextCtrl39;
     wxButton* ButtonClearLog;
-    wxCheckBox* CheckBoxSaveChannelNames;
     wxTextCtrl* TextCtrl28;
     EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
@@ -877,6 +876,7 @@ private:
     wxSlider* SliderChaseSpeed;
     wxTextCtrl* TextCtrl6;
     wxStaticText* StaticText49;
+    wxCheckBox* CheckBoxMapEmptyChannels;
     wxStaticText* StaticText55;
     wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;

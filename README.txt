@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.5   
+        -Enh (dkulp) If an empty LMS channel is part of and RGB group, don’t consider it empty.
+        -Enh (dkulp) Add a checkbox to TabConvert to go ahead and map the empty channels
 3.4.4	Jul 2, 2014
 	-Bug (dkulp) Fix LOR Import
 	The old XML parser, on the start element event, you could query if the element was empty or not.  

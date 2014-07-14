@@ -1584,6 +1584,58 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     file.Close();
 }
 
+class LORInfo {
+public:
+    wxString name;
+    int savedIndex;
+    wxString deviceType;
+    int unit;
+    int circuit;
+    int network;
+    bool empty;
+    
+    LORInfo(const wxString & nm, const wxString &dt, int n, int u, int c, int s) :
+        name(nm), deviceType(dt), network(n), unit(u), circuit(c), savedIndex(s), empty(true) {
+    }
+    LORInfo(const LORInfo &li) :
+    name(li.name),
+    deviceType(li.deviceType), network(li.network), unit(li.unit),
+    circuit(li.circuit), savedIndex(li.savedIndex), empty(li.empty) {
+        
+    }
+    LORInfo() :
+    name(""), deviceType(""), network(0), unit(0), circuit(0), savedIndex(0), empty(true) {
+        
+    }
+};
+
+WX_DECLARE_HASH_MAP(int, LORInfo,
+                    wxIntegerHash,
+                    wxIntegerEqual,
+                    LORInfoMap );
+
+void mapLORInfo(const LORInfo &info, std::vector<std::vector<int>> *unitSizes) {
+    int unit = info.unit;
+    if (unit < 0) {
+        unit+=256;
+    }
+    if (unit == 0) {
+        unit = 1;
+    }
+    
+    if (info.network >= unitSizes->size()) {
+        unitSizes->resize(info.network + 1);
+    }
+    if (unit > (*unitSizes)[info.network].size()) {
+        (*unitSizes)[info.network].resize(unit);
+    }
+    if (info.circuit == 0) {
+        (*unitSizes)[info.network][unit - 1]++;
+    } else if (info.circuit > (*unitSizes)[info.network][unit - 1]) {
+        (*unitSizes)[info.network][unit - 1] = info.circuit;
+    }
+}
+
 void xLightsFrame::ReadLorFile(const char* filename)
 {
     wxString NodeName,msg,EffectType,ChannelName,deviceType;
@@ -1595,10 +1647,12 @@ void xLightsFrame::ReadLorFile(const char* filename)
     int MappedChannelCnt = 0;
     int MaxIntensity = 100;
     int EffectCnt = 0;
-    size_t network,chindex = -1;
+    int network,chindex = -1;
     long cnt = 0;
     std::vector<std::vector<int>> lorUnitSizes;
     std::vector<std::vector<int>> dmxUnitSizes;
+    LORInfoMap rgbChannels;
+
     int lastNet = 0;
     LorTimingList.clear();
 
@@ -1617,11 +1671,12 @@ void xLightsFrame::ReadLorFile(const char* filename)
     char *bytes = new char[maxSizeOfRead];
     int read = file.Read(bytes, maxSizeOfRead);
     parser->append(bytes, read);
+    bool mapEmpty = CheckBoxMapEmptyChannels->IsChecked();
     
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
-    bool empty = true;
+    int savedIndex = 0;
     while (!done) {
         if (!event) {
             read = file.Read(bytes, maxSizeOfRead);
@@ -1650,49 +1705,49 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     if (NodeName == _("track")) {
                         centisec = getAttributeValueAsInt(stagEvent, "totalCentiseconds");
                     } else if (cnt == 3 && context[1] == _("channels") && NodeName == _("channel")) {
-                        empty = true;
                         channelCount++;
                         if ((channelCount % 1000) == 0) {
                             TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels found so far: %d\n"),channelCount));
                             StatusBar1->SetLabelText(wxString::Format(_("Channels found so far: %d"),channelCount));
                         }
+                        
                         deviceType = wxString::FromAscii( stagEvent->getAttrValue("deviceType") );
                         network = getAttributeValueAsInt(stagEvent, "network");
                         unit = getAttributeValueAsInt(stagEvent, "unit");
                         circuit = getAttributeValueAsInt(stagEvent, "circuit");
+                        savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
+                        wxString channelName = wxString::FromAscii( stagEvent->getAttrValue("name") );
+                        rgbChannels[savedIndex] = LORInfo(channelName, deviceType, network, unit, circuit, savedIndex);
+                        rgbChannels[savedIndex].empty = !mapEmpty;
                     } else if (cnt > 1 && context[1] == _("channels") && NodeName == _("effect")) {
-                        empty = false;
+                        rgbChannels[savedIndex].empty = false;
+                    } else if (cnt > 3 && context[1] == _("channels") && context[2] == _("rgbChannel")
+                               && context[3] == _("channels") && NodeName == _("channel")) {
+                        savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
+                        if (rgbChannels[savedIndex].empty == true) {
+                            std::vector<std::vector<int>> *unitSizes;
+                            if (rgbChannels[savedIndex].deviceType.Left(3) == "DMX") {
+                                unitSizes = &dmxUnitSizes;
+                            } else {
+                                unitSizes = &lorUnitSizes;
+                            }
+                            mapLORInfo(rgbChannels[savedIndex], unitSizes);
+                        }
+                        rgbChannels[savedIndex].empty = false;
                     }
                 }
                 break;
                 case SP_XmlPullEvent::eEndTag:
-                    if (cnt == 3 && context[1] == _("channels") && context[2] == _("channel") && !empty) {
-                        if (unit < 0) {
-                            unit+=256;
-                        }
-                        if (unit == 0) {
-                            unit = 1;
-                        }
+                    if (cnt == 3 && context[1] == _("channels") && context[2] == _("channel") && !rgbChannels[savedIndex].empty) {
                         std::vector<std::vector<int>> *unitSizes;
-                        if (deviceType.Left(3) == "DMX") {
+                        if (rgbChannels[savedIndex].deviceType.Left(3) == "DMX") {
                             unitSizes = &dmxUnitSizes;
                         } else {
                             unitSizes = &lorUnitSizes;
                         }
-                        
-                        if (network >= unitSizes->size()) {
-                            unitSizes->resize(network + 1);
-                        }
-                        if (unit > (*unitSizes)[network].size()) {
-                            (*unitSizes)[network].resize(unit);
-                        }
-                        if (circuit == 0) {
-                            (*unitSizes)[network][unit - 1]++;
-                        } else if (circuit > (*unitSizes)[network][unit - 1]) {
-                            (*unitSizes)[network][unit - 1] = circuit;
-                        }
+                        mapLORInfo(rgbChannels[savedIndex], unitSizes);
                     }
-                    
+                
                     if (cnt > 0) {
                         context.RemoveAt(cnt-1);
                     }
@@ -1735,7 +1790,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
         TextCtrlConversionStatus->AppendText(wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
     }
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Total channels = %d\n"),channelCount));
-
+    
     cnt = 0;
     context.clear();
     channelCount = 0;
@@ -1749,6 +1804,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
     //pass 2, convert the data
     event = parser->getNext();
     done = 0;
+    bool empty;
     while (!done) {
         if (!event) {
             read = file.Read(bytes, maxSizeOfRead);
@@ -1770,7 +1826,7 @@ void xLightsFrame::ReadLorFile(const char* filename)
                 if (cnt == 2) {
                     if (empty && curchannel != -1) {
                         chindex--;
-                        //TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel] + "is empty\n");
+                        TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel] + " is empty\n");
                         ChannelNames[curchannel].clear();
                         MappedChannelCnt--;
                     }
@@ -1795,7 +1851,6 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     SetMediaFilename(wxString::FromAscii( getAttributeValueSafe(stagEvent, "musicFilename") ) );
                 }
                 if (cnt == 3 && context[1] == _("channels") && NodeName == _("channel")) {
-                    empty = true;
                     channelCount++;
                     if ((channelCount % 1000) == 0) {
                         TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels converted so far: %d\n"),channelCount));
@@ -1814,8 +1869,9 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     }
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     ChannelName = wxString::FromAscii( getAttributeValueSafe(stagEvent, "name") );
+                    savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
                     
-                    
+                    empty = rgbChannels[savedIndex].empty;
                     if (deviceType.Left(3) == "DMX") {
                         chindex=circuit-1;
                         network--;
@@ -1829,8 +1885,6 @@ void xLightsFrame::ReadLorFile(const char* filename)
                         chindex += circuit-1;
                         curchannel = NetInfo.CalcAbsChannel(network,chindex);
                     } else {
-                        // nodes that don't have a DMX or LOR type that are empty will not be mapped
-                        empty = true;
                         chindex++;
                         if (chindex < NetInfo.GetTotChannels()) {
                             curchannel = chindex;
@@ -1841,7 +1895,8 @@ void xLightsFrame::ReadLorFile(const char* filename)
                     if (curchannel >= 0) {
                         //TextCtrlConversionStatus->AppendText(wxString::Format(_("curchannel %d\n"),curchannel));
                         if (!ChannelNames[curchannel].IsEmpty()) {
-                            TextCtrlConversionStatus->AppendText(_("WARNING: ")+ChannelNames[curchannel]+_(" and ")+ChannelName+_(" map to the same channel\n"));
+                            TextCtrlConversionStatus->AppendText(wxString::Format(_("WARNING: ")+ChannelNames[curchannel]+_(" and ")
+                                                                 +ChannelName+_(" map to the same channel %d\n"), curchannel));
                         }
                         MappedChannelCnt++;
                         ChannelNames[curchannel] = ChannelName;
