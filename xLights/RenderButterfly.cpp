@@ -61,30 +61,28 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 //  This section is to fix the colors on pixels at {0,1} and {1,0}
                 x0=x+1;
                 y0=y+1;
-                if((x==0 and y==1))
+                if((x==0 && y==1))
                 {
                     n = abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
                     d = x*x + y0*y0;
                 }
-                if((x==1 and y==0))
+                if((x==1 && y==0))
                 {
                     n = abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
                     d = x0*x0 + y*y;
                 }
                 // end of fix
 
-
-                if(d>0.001) h=n/d;
-                else
-                    h=0.0;
-
+                h=d>0.001 ? n/d : 0.0;
                 break;
+
             case 2:
                 f=(frame < maxframe/2) ? frame+1 : maxframe - frame;
                 x1=(double(x)-BufferWi/2.0)/f;
                 y1=(double(y)-BufferHt/2.0)/f;
                 h=sqrt(x1*x1+y1*y1);
                 break;
+
             case 3:
                 f=(frame < maxframe/2) ? frame+1 : maxframe - frame;
                 f=f*0.1+double(BufferHt)/60.0;
@@ -92,6 +90,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 y1 = (y-BufferHt/2.0)/f;
                 h=sin(x1) * cos(y1);
                 break;
+
             case 4:
                 //  http://mathworld.wolfram.com/ButterflyFunction.html
                 n = ((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt+BufferWi))));
@@ -100,12 +99,12 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 //  This section is to fix the colors on pixels at {0,1} and {1,0}
                 x0=x+1;
                 y0=y+1;
-                if((x==0 and y==1))
+                if((x==0 && y==1))
                 {
                     n = ((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt+BufferWi))));
                     d = x*x + y0*y0;
                 }
-                if((x==1 and y==0))
+                if((x==1 && y==0))
                 {
                     n = ((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt+BufferWi))));
                     d = x0*x0 + y*y;
