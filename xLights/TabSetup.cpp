@@ -174,7 +174,6 @@ void xLightsFrame::UpdateNetworkList()
     //int MaxLorChannels=240*16;
     int MaxDmxChannels=512;
     int StartChannel;
-    char c;
 
     wxString MaxChannelsStr,NetName,msg;
     wxXmlNode* e=NetworkXML.GetRoot();

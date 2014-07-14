@@ -910,7 +910,6 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
-    int i1,i2,i3=0,i4,i5,i6,i7;
 
     wxString LayerStr=layer==0 ? "E1_" : "E2_";
     wxString SpeedStr=SettingsMap[LayerStr+"SLIDER_Speed"];

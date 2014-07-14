@@ -111,18 +111,12 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 }
                 // end of fix
 
-
-                if(d>0.001) h=n/d;
-                else
-                    h=0.0;
-
-
-
-
+                h=d>0.001 ? n/d : 0.0;
                 fractpart = modf (h , &intpart);
                 h=fractpart;
                 if(h<0) h=1.0+h;
                 break;
+
             case 5:
                 //  http://mathworld.wolfram.com/ButterflyFunction.html
                 n = abs((x*x - y*y) * sin (offset + ((x+y)*pi2 / float(BufferHt*BufferWi))));
@@ -131,23 +125,19 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
                 //  This section is to fix the colors on pixels at {0,1} and {1,0}
                 x0=x+1;
                 y0=y+1;
-                if((x==0 and y==1))
+                if((x==0 && y==1))
                 {
                     n = abs((x*x - y0*y0) * sin (offset + ((x+y0)*pi2 / float(BufferHt*BufferWi))));
                     d = x*x + y0*y0;
                 }
-                if((x==1 and y==0))
+                if((x==1 && y==0))
                 {
                     n = abs((x0*x0 - y*y) * sin (offset + ((x0+y)*pi2 / float(BufferHt*BufferWi))));
                     d = x0*x0 + y*y;
                 }
                 // end of fix
 
-
-                if(d>0.001) h=n/d;
-                else
-                    h=0.0;
-
+                h=d>0.001 ? n/d : 0.0;
                 break;
 
             }
