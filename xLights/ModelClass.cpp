@@ -353,6 +353,7 @@ void ModelClass::InitCustomMatrix(wxString customModel)
     long idx;
     int width=1;
     NodeBaseClass* newnode;
+    std::vector<int> nodemap;
 
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
@@ -386,13 +387,28 @@ void ModelClass::InitCustomMatrix(wxString customModel)
                 value=cols[col];
                 if (!value.IsEmpty() && value != "0")
                 {
-                    // add a node
-                    newnode=new NodeBaseClass();
-                    newnode->StringNum=0;
                     value.ToLong(&idx);
-                    newnode->ActChan=stringStartChan[0] + (idx-1) * 3;
-                    Nodes.push_back(NodeBaseClassPtr(newnode));
-                    Nodes.back()->AddBufCoord(col,height - row - 1);
+
+                    // increase nodemap size if necessary
+                    if (idx > nodemap.size()) {
+                        nodemap.resize(idx, -1);
+                    }
+                    idx--;  // adjust to 0-based
+
+                    // is node already defined in map?
+                    if (nodemap[idx] < 0) {
+                        // unmapped - so add a node
+                        nodemap[idx]=Nodes.size();
+                        newnode=new NodeBaseClass();
+                        newnode->StringNum=0;
+                        newnode->ActChan=stringStartChan[0] + idx * 3;
+                        Nodes.push_back(NodeBaseClassPtr(newnode));
+                        Nodes.back()->AddBufCoord(col,height - row - 1);
+                    } else {
+                        // mapped - so add a coord to existing node
+                        Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
+                    }
+
                 }
             }
         }
