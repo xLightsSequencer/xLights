@@ -10,6 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
         -Enh (dkulp) If an empty LMS channel is part of an RGB group, don’t consider it empty.
         -Enh (dkulp) Add a checkbox to TabConvert to go ahead and map the empty channels
         -Bug fix (mbrown) Fix Custom RGB Models that have multiple nodes with the same number
+        -Bug fix (djulien) fix segv due to incorrect compiler code in Piano effect
 3.4.4	Jul 2, 2014
 	-Bug (dkulp) Fix LOR Import
 	The old XML parser, on the start element event, you could query if the element was empty or not.  

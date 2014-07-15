@@ -442,6 +442,7 @@ void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement,
     if (NumRows > BufferHt) NumRows = BufferHt; //each row needs at least 1 pixel in order to be visible
     if (Style == PIANO_STYLE_ANIMAGE) NumKeys = NumRows = 1; //use entire canvas
     int adjustw = Clipping? divup(NumKeys, 7): NumKeys/7; //round up vs. down
+    if (adjustw < 1) adjustw = 1; //kludge: compiler bug; gcc is generating a imul instr here! gives 0 for NumKeys == 10
     wxSize keywh(BufferWi / NumKeys, BufferHt / NumRows), /*BufferWH_full(BufferWi, BufferHt),*/ BufferWH_octave(7 * adjustw * keywh.x, NumRows * keywh.y); //wrap on octave boundaries only (so notes don't move); NOTE: only count white keys (black ones overlap), so octave width is actually 7 keys, not 12
     wxSize keywh_1row(BufferWi / NumKeys, BufferHt / 5 + rand() % (BufferHt * 4/5 + 1)); //kludge: simulate varying amplitudes for eq bars
     if (Style == PIANO_STYLE_ANIMAGE) BufferWH_octave.x = keywh.x; //use entire canvas
