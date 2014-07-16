@@ -826,6 +826,21 @@ size_t ModelClass::GetCoordCount(size_t nodenum)
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
 
+int ModelClass::FindChannelAt(int x, int y)
+{
+    size_t NodeCount=GetNodeCount();
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+//??            if ((Nodes[n]->Coords[c].screenX == x) && (Nodes[n]->Coords[c].screenY == y)) return Nodes[n].ActChan;
+            if ((Nodes[n]->Coords[c].bufX == x) && (Nodes[n]->Coords[c].bufY == y)) return Nodes[n]->ActChan;
+        }
+    }
+    return -1; //not found
+}
+
 wxString ModelClass::ChannelLayoutHtml()
 {
     size_t NodeCount=GetNodeCount();

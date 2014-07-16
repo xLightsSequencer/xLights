@@ -269,6 +269,7 @@ public:
     void SetChanIntensityAll(size_t nodenum, uint8_t intensity);
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
+    int FindChannelAt(int x, int y);
 
     long GetNumArches()
     {
