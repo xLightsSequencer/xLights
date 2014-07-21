@@ -37,7 +37,7 @@ int FindChannelAt(int x, int y, const wxString& model)
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if (!model.IsEmpty() && model.CmpNoCase((*it)->name)) continue; //don't check this model
-        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
+//        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
 //        buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
 //        if (buf.size() > 500) buf.resize(500);
 //        debug(1, "first 500 char of layout html = %s", (const char*)buf);
@@ -128,7 +128,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 //                ColorMap[color.GetRGB()
             if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
             int ch = FindChannelAt(x, y, model);
-            debug(1, "pixel (%d, %d) = 0x%6x is channel %d in model %s", x, y, ch, (const char*)(model.IsEmpty()? "(any)": model.c_str()));
+//            debug(1, "pixel (%d, %d) = 0x%6x is channel %d in model %s", x, y, ch, (const char*)(model.IsEmpty()? "(any)": model.c_str()));
         }
     }
 #endif
