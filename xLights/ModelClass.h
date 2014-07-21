@@ -206,7 +206,8 @@ private:
     void SetTreeCoord(long degrees);
     void SetLineCoord();
     void SetArchCoord();
-    void InitCustomMatrix(wxString customModel);
+    int GetCustomMaxChannel(const wxString& customModel);
+    void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
     int NodesPerString();
 
