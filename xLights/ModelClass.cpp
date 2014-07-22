@@ -75,10 +75,6 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     {
         isBotToTop=true;
     }
-    if (ModelNode->HasAttribute("CustomModel"))
-    {
-        customModel = ModelNode->GetAttribute("CustomModel");
-    }
 
     tempstr=ModelNode->GetAttribute("Antialias","0");
     tempstr.ToLong(&Antialias);
@@ -97,13 +93,29 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
-    tempstr=ModelNode->GetAttribute("Advanced","0");
-    bool HasIndividualStartChans=tempstr == "1";
     int ChannelsPerString=parm2*3;
     if (SingleChannel)
         ChannelsPerString=1;
     else if (SingleNode)
         ChannelsPerString=3;
+
+    if (ModelNode->HasAttribute("CustomModel"))
+    {
+        customModel = ModelNode->GetAttribute("CustomModel");
+        int maxval=GetCustomMaxChannel(customModel);
+        // fix NumberOfStrings
+        if (SingleNode)
+        {
+            NumberOfStrings=maxval;
+        }
+        else
+        {
+            ChannelsPerString=maxval*3;
+        }
+    }
+
+    tempstr=ModelNode->GetAttribute("Advanced","0");
+    bool HasIndividualStartChans=tempstr == "1";
     stringStartChan.clear();
     stringStartChan.resize(NumberOfStrings);
     for (i=0; i<NumberOfStrings; i++)
@@ -346,70 +358,71 @@ void ModelClass::InitHMatrix()
     }
 }
 
-void ModelClass::InitCustomMatrix(wxString customModel)
+int ModelClass::GetCustomMaxChannel(const wxString& customModel)
+{
+    wxString value;
+    wxArrayString cols;
+    long val,maxval=0;
+    wxString valstr;
+
+    wxArrayString rows=wxSplit(customModel,';');
+    for(size_t row=0; row < rows.size(); row++)
+    {
+        cols=wxSplit(rows[row],',');
+        for(size_t col=0; col < cols.size(); col++)
+        {
+            valstr=cols[col];
+            if (!valstr.IsEmpty() && valstr != "0")
+            {
+                valstr.ToLong(&val);
+                maxval=std::max(val,maxval);
+            }
+        }
+    }
+    return maxval;
+}
+
+void ModelClass::InitCustomMatrix(const wxString& customModel)
 {
     wxString value;
     wxArrayString cols;
     long idx;
     int width=1;
-    NodeBaseClass* newnode;
     std::vector<int> nodemap;
 
     wxArrayString rows=wxSplit(customModel,';');
     int height=rows.size();
-    if (SingleNode)
+    int cpn = ChannelsPerNode();
+    for(size_t row=0; row < rows.size(); row++)
     {
-        SetNodeCount(1,0);
-        Nodes[0]->ActChan=stringStartChan[0];
-        for(size_t row=0; row < rows.size(); row++)
+        cols=wxSplit(rows[row],',');
+        if (cols.size() > width) width=cols.size();
+        for(size_t col=0; col < cols.size(); col++)
         {
-            cols=wxSplit(rows[row],',');
-            if (cols.size() > width) width=cols.size();
-            for(size_t col=0; col < cols.size(); col++)
+            value=cols[col];
+            if (!value.IsEmpty() && value != "0")
             {
-                value=cols[col];
-                if (!value.IsEmpty() && value != "0")
-                {
-                    Nodes[0]->AddBufCoord(col,height - row - 1);
+                value.ToLong(&idx);
+
+                // increase nodemap size if necessary
+                if (idx > nodemap.size()) {
+                    nodemap.resize(idx, -1);
                 }
-            }
-        }
-    }
-    else
-    {
-        // rgb nodes
-        for(size_t row=0; row < rows.size(); row++)
-        {
-            cols=wxSplit(rows[row],',');
-            if (cols.size() > width) width=cols.size();
-            for(size_t col=0; col < cols.size(); col++)
-            {
-                value=cols[col];
-                if (!value.IsEmpty() && value != "0")
-                {
-                    value.ToLong(&idx);
+                idx--;  // adjust to 0-based
 
-                    // increase nodemap size if necessary
-                    if (idx > nodemap.size()) {
-                        nodemap.resize(idx, -1);
-                    }
-                    idx--;  // adjust to 0-based
-
-                    // is node already defined in map?
-                    if (nodemap[idx] < 0) {
-                        // unmapped - so add a node
-                        nodemap[idx]=Nodes.size();
-                        newnode=new NodeBaseClass();
-                        newnode->StringNum=0;
-                        newnode->ActChan=stringStartChan[0] + idx * 3;
-                        Nodes.push_back(NodeBaseClassPtr(newnode));
-                        Nodes.back()->AddBufCoord(col,height - row - 1);
-                    } else {
-                        // mapped - so add a coord to existing node
-                        Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
-                    }
-
+                // is node already defined in map?
+                if (nodemap[idx] < 0) {
+                    // unmapped - so add a node
+                    nodemap[idx]=Nodes.size();
+                    SetNodeCount(1,0);  // this creates a node of the correct class
+                    Nodes.back()->StringNum= SingleNode ? idx : 0;
+                    Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
+                    Nodes.back()->AddBufCoord(col,height - row - 1);
+                } else {
+                    // mapped - so add a coord to existing node
+                    Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
                 }
+
             }
         }
     }
@@ -777,6 +790,10 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
                 Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString)));
         }
     }
+    else if (NodesPerString == 0)
+    {
+        Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0)));
+    }
     else
     {
         size_t numnodes=NumStrings*NodesPerString;
@@ -819,11 +836,27 @@ size_t ModelClass::GetNodeCount()
 
 int ModelClass::GetChanCount()
 {
-    return Nodes.size() * Nodes[0]->GetChanCount();
+    size_t NodeCnt=GetNodeCount();
+    return NodeCnt==0 ? 0 : NodeCnt * Nodes[0]->GetChanCount();
 }
 size_t ModelClass::GetCoordCount(size_t nodenum)
 {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+}
+
+int ModelClass::FindChannelAt(int x, int y)
+{
+    size_t NodeCount=GetNodeCount();
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+//??            if ((Nodes[n]->Coords[c].screenX == x) && (Nodes[n]->Coords[c].screenY == y)) return Nodes[n].ActChan;
+            if ((Nodes[n]->Coords[c].bufX == x) && (Nodes[n]->Coords[c].bufY == y)) return Nodes[n]->ActChan;
+        }
+    }
+    return -1; //not found
 }
 
 wxString ModelClass::ChannelLayoutHtml()

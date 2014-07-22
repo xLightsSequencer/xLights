@@ -206,7 +206,8 @@ private:
     void SetTreeCoord(long degrees);
     void SetLineCoord();
     void SetArchCoord();
-    void InitCustomMatrix(wxString customModel);
+    int GetCustomMaxChannel(const wxString& customModel);
+    void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
     int NodesPerString();
 
@@ -269,6 +270,7 @@ public:
     void SetChanIntensityAll(size_t nodenum, uint8_t intensity);
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
+    int FindChannelAt(int x, int y);
 
     long GetNumArches()
     {

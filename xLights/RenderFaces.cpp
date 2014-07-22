@@ -30,6 +30,36 @@
 //#include "djdebug.cpp"
 
 
+int FindChannelAt(int x, int y, const wxString& model)
+{
+//get list of models:
+    wxString buf;
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if (!model.IsEmpty() && model.CmpNoCase((*it)->name)) continue; //don't check this model
+//        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
+//        buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
+//        if (buf.size() > 500) buf.resize(500);
+//        debug(1, "first 500 char of layout html = %s", (const char*)buf);
+//        wxString buf = (*it)->ChannelLayoutHtml();
+
+//        for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
+//        {
+//            Nodes[nodenum]->Coords.size()
+//        }
+//        size_t CoordCount=GetCoordCount(n);
+//        for(size_t c=0; c < CoordCount; c++)
+//        {
+//            Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
+//            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+//        }
+        int ch = (*it)->FindChannelAt(x, y);
+        if (ch != -1) return ch;
+    }
+    return -1; //pixel not found
+}
+
+
 void RgbEffects::RenderFaces(int Phoneme)
 {
 
@@ -83,8 +113,25 @@ void RgbEffects::RenderFaces(int Phoneme)
     debug(1, "first 500 char of layout html = %s", (const char*)buf);
 #endif
 
-
-
+#if 1 //example code to map pixels back to channels
+    wxString model; //set to target model name (optional)
+    for (int y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+    {
+        for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+        {
+//            ch = GetChannel(x,y);  // <== I need something like this routine
+//            wxImage::HSVValue hsv = GetPixel(x, y);
+            GetPixel(x, y, color);
+//    hsv0 = wxImage::RGBtoHSV( wxImage::RGBValue( c0.Red(), c0.Green(), c0.Blue()));
+// wxColor color, mapped;
+//                color.Set(Shapes.GetRed(x, y), Shapes.GetGreen(x, y), Shapes.GetBlue(x, y));
+//                ColorMap[color.GetRGB()
+            if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
+            int ch = FindChannelAt(x, y, model);
+//            debug(1, "pixel (%d, %d) = 0x%6x is channel %d in model %s", x, y, ch, (const char*)(model.IsEmpty()? "(any)": model.c_str()));
+        }
+    }
+#endif
 }
 
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)

@@ -322,41 +322,41 @@ void ModelDialog::SetCustomGridData(const wxString& customChannelData)
 }
 
 
-int ModelDialog::GetChannelsPerString()
+int ModelDialog::GetCustomMaxChannel()
+{
+    // find max node number
+    int numCols=GridCustom->GetNumberCols();
+    int numRows=GridCustom->GetNumberRows();
+    long val,maxval=0;
+    wxString valstr;
+    for(int row=0; row < numRows; row++)
+    {
+        for(int col=0; col<numCols; col++)
+        {
+            valstr = GridCustom->GetCellValue(row,col);
+            if (valstr.ToLong(&val)) {
+                maxval=std::max(val,maxval);
+            }
+        }
+    }
+    return maxval;
+}
+
+// for models that are not custom
+int ModelDialog::GetChannelsPerStringStd()
 {
     wxString StringType=Choice_StringType->GetStringSelection();
     wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
-    if (ModelClass::HasSingleChannel(StringType)) return 1;
+    bool SingleChannel = ModelClass::HasSingleChannel(StringType);
+    if (SingleChannel) return 1;
     if (ModelClass::HasSingleNode(StringType)) return 3;
-    if (IsCustom())
+    if (DisplayAs != "Window Frame")
     {
-        // find max node number
-        int numCols=GridCustom->GetNumberCols();
-        int numRows=GridCustom->GetNumberRows();
-        long val,maxval=0;
-        wxString valstr;
-        for(int row=0; row < numRows; row++)
-        {
-            for(int col=0; col<numCols; col++)
-            {
-                valstr = GridCustom->GetCellValue(row,col);
-                if (valstr.ToLong(&val)) {
-                    maxval=std::max(val,maxval);
-                }
-            }
-        }
-        return maxval*3;
+        return SpinCtrl_parm2->GetValue()*3;
     }
     else
     {
-        if (DisplayAs != "Window Frame")
-        {
-            return SpinCtrl_parm2->GetValue()*3;
-        }
-        else
-        {
-            return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
-        }
+        return (SpinCtrl_parm1->GetValue()+2*SpinCtrl_parm2->GetValue()+SpinCtrl_parm3->GetValue())*3;
     }
 }
 
@@ -480,7 +480,26 @@ void ModelDialog::UpdateStartChannels()
     wxString tmpStr;
     int StringCnt = GetNumberOfStrings();
     bool OneString = StringCnt == 1;
-    int ChannelsPerString = GetChannelsPerString();
+    int ChannelsPerString = GetChannelsPerStringStd();
+    if (IsCustom())
+    {
+        int maxval = GetCustomMaxChannel();
+        switch (ChannelsPerString)
+        {
+            case 1:
+                // traditional strings
+                StringCnt = maxval;
+                break;
+            case 3:
+                // dumb rgb
+                StringCnt = maxval;
+                break;
+            default:
+                // rgb pixels
+                ChannelsPerString = maxval*3;
+                break;
+        }
+    }
 
     // Update number of grid rows
     int curRowCnt = gridStartChannels->GetNumberRows();

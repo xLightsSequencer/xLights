@@ -133,7 +133,8 @@ private:
     bool IsCustom();
     int GetNumberOfStrings();
     wxString StartChanAttrName(int idx);
-    int GetChannelsPerString();
+    int GetChannelsPerStringStd();
+    int GetCustomMaxChannel();
     void CutOrCopyToClipboard(bool IsCut);
 
     bool HasCustomData;
