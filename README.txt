@@ -6,7 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-3.4.5   
+3.4.5   Jul 15, 2014
         -Enh (dkulp) If an empty LMS channel is part of an RGB group, don’t consider it empty.
         -Enh (dkulp) Add a checkbox to TabConvert to go ahead and map the empty channels
         -Bug fix (mbrown) Fix Custom RGB Models that have multiple nodes with the same number
