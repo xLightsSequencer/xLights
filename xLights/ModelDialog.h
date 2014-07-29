@@ -34,8 +34,8 @@ public:
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
-    wxSlider* Slider1;
     wxStaticText* StaticText9;
+    wxSlider* SLIDER_MODEL_BRIGHTNESS;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
@@ -101,7 +101,7 @@ protected:
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT7;
-    static const long ID_SLIDER1;
+    static const long ID_SLIDER_MODEL_BRIGHTNESS;
     static const long ID_SPINCTRL5;
     static const long ID_STATICTEXT13;
     static const long ID_CHECKBOX2;
@@ -132,6 +132,7 @@ private:
     void OnBitmapButtonCustomCopyClick(wxCommandEvent& event);
     void OnBitmapButtonCustomCutClick(wxCommandEvent& event);
     void OnSpinCtrl_parm3Change(wxSpinEvent& event);
+    void OnSLIDER_MODEL_BRIGHTNESSCmdScroll(wxScrollEvent& event);
     //*)
 
     void SetReadOnly(bool);

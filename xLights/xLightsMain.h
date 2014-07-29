@@ -583,7 +583,7 @@ private:
     static const long ID_RADIOBUTTON2;
     static const long ID_STATICTEXT32;
     static const long ID_CHECKBOX1;
-    static const long ID_PANEL5;
+    static const long ID_PGO_AUTOFACE;
     static const long ID_STATICTEXT46;
     static const long ID_STATICTEXT47;
     static const long ID_STATICTEXT48;
@@ -650,7 +650,7 @@ private:
     static const long ID_TEXTCTRL61;
     static const long ID_TEXTCTRL62;
     static const long ID_TEXTCTRL63;
-    static const long ID_PANEL8;
+    static const long ID_PGO_COROFACES;
     static const long ID_STATICTEXT66;
     static const long ID_BITMAPBUTTON6;
     static const long ID_BITMAPBUTTON5;
@@ -687,7 +687,7 @@ private:
     static const long ID_STATICTEXT42;
     static const long ID_BUTTON19;
     static const long ID_TEXTCTRL13;
-    static const long ID_PANEL6;
+    static const long ID_PGO_IMAGES;
     static const long ID_BITMAPBUTTON22;
     static const long ID_STATICTEXT65;
     static const long ID_STATICTEXT44;
@@ -699,7 +699,7 @@ private:
     static const long ID_STATICTEXT67;
     static const long ID_BUTTON20;
     static const long ID_TEXTCTRL65;
-    static const long ID_PANEL7;
+    static const long ID_PGO_MOVIE;
     static const long ID_NOTEBOOK2;
     static const long ID_BITMAPBUTTON14;
     static const long ID_STATICTEXT70;
@@ -756,7 +756,6 @@ private:
     wxButton* Button11;
     wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
-    wxPanel* Panel5;
     wxStaticText* StaticText36;
     wxTextCtrl* TextCtrl56;
     wxButton* Button_PlayRgbSeq;
@@ -787,6 +786,7 @@ private:
     wxTextCtrl* TextCtrl37;
     wxTextCtrl* TextCtrl8;
     wxTextCtrl* TextCtrl49;
+    wxPanel* PGO_AUTOFACE;
     wxStaticText* StaticText50;
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
@@ -868,13 +868,13 @@ private:
     wxRadioButton* RadioButtonTwinkle25;
     wxTextCtrl* txtCtlEffectMix;
     wxButton* Button_ChannelMap;
-    wxPanel* Panel7;
     wxTextCtrl* TextCtrl32;
     wxTextCtrl* TextCtrl13;
     wxTextCtrl* TextCtrl53;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
     wxTextCtrl* TextCtrl6;
+    wxPanel* PGO_IMAGES;
     wxStaticText* StaticText49;
     wxCheckBox* CheckBoxMapEmptyChannels;
     wxStaticText* StaticText55;
@@ -953,12 +953,12 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxTextCtrl* TextCtrl14;
     wxBitmapButton* BitmapButton1;
+    wxPanel* PGO_COROFACES;
     wxButton* Button5;
     wxSlider* Slider_Contrast;
     wxButton* Button12;
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
-    wxPanel* Panel4;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticTextShowEnd;
     wxStaticText* StaticText45;
@@ -975,7 +975,6 @@ private:
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
-    wxPanel* Panel6;
     wxTextCtrl* TextCtrl35;
     wxCheckBox* CheckBoxRunSchedule;
     wxStaticText* StaticText59;
@@ -1030,6 +1029,7 @@ private:
     wxBitmapButton* BitmapButtonTabInfo;
     wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
     wxStaticText* StaticText11;
+    wxPanel* PGO_MOVIE;
     wxScrolledWindow* ScrolledWindowPreview;
     wxTextCtrl* TextCtrl42;
     wxTextCtrl* TextCtrl16;

@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.7   Jul 29,2014
+	-Enh (sean) Added Model brightness adjustment into Model screen
+	-Bug (sean) Fixed export for single channel strings for LSP
 3.4.6   Jul 23,2014
 	-Enh (sean) Increased maximum time for a empty sequence from 300 seconds to 3600 seconds
 3.4.5   Jul 15, 2014

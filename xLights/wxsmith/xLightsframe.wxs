@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.4.6)</title>
+		<title>xLights/Nutcracker  (Ver 3.4.7)</title>
 		<pos>-1,-1</pos>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
@@ -2415,7 +2415,7 @@
 																	<object class="sizeritem">
 																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
 																			<object class="notebookpage">
-																				<object class="wxPanel" name="ID_PANEL5" variable="Panel4" member="yes">
+																				<object class="wxPanel" name="ID_PGO_AUTOFACE" variable="PGO_AUTOFACE" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 																						<cols>1</cols>
 																						<object class="sizeritem">
@@ -2497,7 +2497,7 @@
 																				<selected>1</selected>
 																			</object>
 																			<object class="notebookpage">
-																				<object class="wxPanel" name="ID_PANEL8" variable="Panel7" member="yes">
+																				<object class="wxPanel" name="ID_PGO_COROFACES" variable="PGO_COROFACES" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
 																						<cols>1</cols>
 																						<object class="sizeritem">
@@ -3097,7 +3097,7 @@
 																				<label>Coro Faces</label>
 																			</object>
 																			<object class="notebookpage">
-																				<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+																				<object class="wxPanel" name="ID_PGO_IMAGES" variable="PGO_IMAGES" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
 																						<cols>3</cols>
 																						<object class="sizeritem">
@@ -3410,7 +3410,7 @@
 																				<label>Images</label>
 																			</object>
 																			<object class="notebookpage">
-																				<object class="wxPanel" name="ID_PANEL7" variable="Panel6" member="yes">
+																				<object class="wxPanel" name="ID_PGO_MOVIE" variable="PGO_MOVIE" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 																						<cols>1</cols>
 																						<object class="sizeritem">

@@ -37,7 +37,7 @@ const long ModelDialog::ID_CHOICE3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
-const long ModelDialog::ID_SLIDER1 = wxNewId();
+const long ModelDialog::ID_SLIDER_MODEL_BRIGHTNESS = wxNewId();
 const long ModelDialog::ID_SPINCTRL5 = wxNewId();
 const long ModelDialog::ID_STATICTEXT13 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
@@ -164,8 +164,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText2 = new wxStaticText(this, ID_STATICTEXT7, _("Model Brightness\nAdjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-    Slider1 = new wxSlider(this, ID_SLIDER1, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
-    FlexGridSizer6->Add(Slider1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SLIDER_MODEL_BRIGHTNESS = new wxSlider(this, ID_SLIDER_MODEL_BRIGHTNESS, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MODEL_BRIGHTNESS"));
+    FlexGridSizer6->Add(SLIDER_MODEL_BRIGHTNESS, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl1 = new wxSpinCtrl(this, ID_SPINCTRL5, _T("0"), wxDefaultPosition, wxSize(52,21), 0, -100, 100, 0, _T("ID_SPINCTRL5"));
     SpinCtrl1->SetValue(_T("0"));
     FlexGridSizer6->Add(SpinCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -237,6 +237,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
+    Connect(ID_SLIDER_MODEL_BRIGHTNESS,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll);
+    Connect(ID_SLIDER_MODEL_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
@@ -863,4 +865,9 @@ void ModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 void ModelDialog::OnSpinCtrl_parm3Change(wxSpinEvent& event)
 {
     UpdateStartChannels();
+}
+
+void ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll(wxScrollEvent& event)
+{
+    SpinCtrl1->SetValue(wxString::Format("%d",SLIDER_MODEL_BRIGHTNESS->GetValue()));
 }

@@ -280,8 +280,10 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 							<cols>2</cols>
 							<object class="sizeritem">
-								<object class="wxSlider" name="ID_SLIDER1" variable="Slider1" member="yes">
+								<object class="wxSlider" name="ID_SLIDER_MODEL_BRIGHTNESS" variable="SLIDER_MODEL_BRIGHTNESS" member="yes">
 									<min>-100</min>
+									<handler function="OnSLIDER_MODEL_BRIGHTNESSCmdScroll" entry="EVT_COMMAND_SCROLL" />
+									<handler function="OnSLIDER_MODEL_BRIGHTNESSCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
