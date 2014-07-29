@@ -1104,7 +1104,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Wave")
     {
 
- buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
+        buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
                           FillColors.Index(SettingsMap[LayerStr+"CHOICE_Fill_Colors"]),
                           SettingsMap[LayerStr+"CHECKBOX_Mirror_Wave"]=="1",
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]),
@@ -3217,7 +3217,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         wxMessageBox("No grid rows to save!", "Error");
         return;
     }
-    int DlgResult;
+    int DlgResult,cpn;
     bool ok;
     wxString filename;
     wxXmlNode* modelNode;
@@ -3250,6 +3250,9 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 
     buffer.InitBuffer(modelNode,true);
     numChan = buffer.GetChanCount();
+    int numNodes = buffer.GetNodeCount();
+    if(numNodes>0)  cpn = numChan/numNodes;
+    else cpn=0;
     dataBuf = RenderModelToData(modelNode);
 
     wxString format=dialog.ChoiceFormat->GetStringSelection();
@@ -3272,7 +3275,6 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         fullpath=oName.GetFullPath();
         WriteLcbFile(fullpath, numChan, SeqNumPeriods, dataBuf);
     }
-
     else if (Out3 == "Vir")
     {
         oName.SetExt(_("vir"));
@@ -3283,7 +3285,8 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     {
         oName.SetExt(_("xml"));
         fullpath=oName.GetFullPath();
-        WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        //    int cpn = ChannelsPerNode();
+        WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf, cpn);
         return;
     }
     else if (Out3 == "HLS")

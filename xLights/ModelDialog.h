@@ -12,6 +12,7 @@
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
+#include <wx/slider.h>
 #include <wx/grid.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
@@ -33,12 +34,15 @@ public:
 
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
+    wxSlider* Slider1;
     wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
+    wxSpinCtrl* SpinCtrl1;
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
+    wxStaticText* StaticText2;
     wxScrolledWindow* ScrolledWindow1;
     wxStaticText* StaticText6;
     wxSpinCtrl* SpinCtrl_parm3;
@@ -96,6 +100,9 @@ protected:
     static const long ID_CHOICE3;
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
+    static const long ID_STATICTEXT7;
+    static const long ID_SLIDER1;
+    static const long ID_SPINCTRL5;
     static const long ID_STATICTEXT13;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;

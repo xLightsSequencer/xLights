@@ -30,29 +30,33 @@
 //#include "djdebug.cpp"
 
 
-int FindChannelAt(int x, int y, const wxString& model)
+int FindChannelAtXY(int x, int y, const wxString& model)
 {
 //get list of models:
     wxString buf;
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if (!model.IsEmpty() && model.CmpNoCase((*it)->name)) continue; //don't check this model
-//        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
-//        buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
-//        if (buf.size() > 500) buf.resize(500);
-//        debug(1, "first 500 char of layout html = %s", (const char*)buf);
-//        wxString buf = (*it)->ChannelLayoutHtml();
 
-//        for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
-//        {
-//            Nodes[nodenum]->Coords.size()
-//        }
-//        size_t CoordCount=GetCoordCount(n);
-//        for(size_t c=0; c < CoordCount; c++)
-//        {
-//            Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-//            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
-//        }
+/*
+//        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
+      buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
+       if (buf.size() > 500) buf.resize(500);
+       debug(1, "first 500 char of layout html = %s", (const char*)buf);
+       wxString buf = (*it)->ChannelLayoutHtml();
+
+        for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
+       {
+           Nodes[nodenum]->Coords.size()
+       }
+       size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+       {
+           Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
+           Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+       }
+
+*/
         int ch = (*it)->FindChannelAt(x, y);
         if (ch != -1) return ch;
     }
@@ -103,7 +107,7 @@ void RgbEffects::RenderFaces(int Phoneme)
     wxString buf;
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
         buf += ", " + (*it)->name; //ModelClassPtr*
-    debug(1, "faces: models = %s", (const char*)buf + 2);
+    debug(1, "faces: models = %s", (CmpNoCaseconst char*)buf + 2);
 
 //get info about one of the models:
     buf = xLightsFrame::PreviewModels[0]->name;
@@ -127,7 +131,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 //                color.Set(Shapes.GetRed(x, y), Shapes.GetGreen(x, y), Shapes.GetBlue(x, y));
 //                ColorMap[color.GetRGB()
             if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
-            int ch = FindChannelAt(x, y, model);
+            int ch = FindChannelAtXY(x, y, model);
 //            debug(1, "pixel (%d, %d) = 0x%6x is channel %d in model %s", x, y, ch, (const char*)(model.IsEmpty()? "(any)": model.c_str()));
         }
     }
@@ -248,13 +252,15 @@ void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
 {
     wxColour color;
     wxImage::HSVValue hsv;
-    int ColorIdx,x,y;
+    int ColorIdx,x=0,y=0;
     size_t colorcnt=GetColorCount();
 
 
     ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
     hsv.hue = (float)Phoneme/10.0;
+    int ch;
+//    ch=FindChannelAtXY( x,  y,'A');
     hsv.value=1.0;
 
 

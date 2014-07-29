@@ -1142,8 +1142,8 @@ private:
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
                                 SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
-    void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
-    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LSP UserPatterns.xml
+   void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
+    void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn);  //      LSP UserPatterns.xml
     void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
     void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb

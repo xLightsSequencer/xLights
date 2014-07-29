@@ -271,6 +271,7 @@ public:
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
     int FindChannelAt(int x, int y);
+    int FindChannelAtXY(int x, int y, const wxString& model);
 
     long GetNumArches()
     {

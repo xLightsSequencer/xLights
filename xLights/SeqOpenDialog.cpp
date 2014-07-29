@@ -20,6 +20,8 @@ const long SeqOpenDialog::ID_RADIOBOX_Timing_Choice = wxNewId();
 const long SeqOpenDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqOpenDialog::ID_STATICTEXT3 = wxNewId();
 const long SeqOpenDialog::ID_SPINCTRL1 = wxNewId();
+const long SeqOpenDialog::ID_STATICTEXT5 = wxNewId();
+const long SeqOpenDialog::ID_TEXTCTRL1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SeqOpenDialog,wxDialog)
@@ -75,9 +77,13 @@ SeqOpenDialog::SeqOpenDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Duration (sec)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrlDuration = new wxSpinCtrl(this, ID_SPINCTRL1, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 300, 10, _T("ID_SPINCTRL1"));
+    SpinCtrlDuration = new wxSpinCtrl(this, ID_SPINCTRL1, _T("10"), wxDefaultPosition, wxDefaultSize, 0, 1, 3600, 10, _T("ID_SPINCTRL1"));
     SpinCtrlDuration->SetValue(_T("10"));
     FlexGridSizer2->Add(SpinCtrlDuration, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Duration (sec)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL1, _("10.0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    FlexGridSizer2->Add(TextCtrl1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));

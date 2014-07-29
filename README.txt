@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.6   Jul 23,2014
+	-Enh (sean) Increased maximum time for a empty sequence from 300 seconds to 3600 seconds
 3.4.5   Jul 15, 2014
         -Enh (dkulp) If an empty LMS channel is part of an RGB group, don’t consider it empty.
         -Enh (dkulp) Add a checkbox to TabConvert to go ahead and map the empty channels

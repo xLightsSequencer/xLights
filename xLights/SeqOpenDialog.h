@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/radiobox.h>
+#include <wx/textctrl.h>
 #include <wx/spinctrl.h>
 #include <wx/radiobut.h>
 #include <wx/choice.h>
@@ -26,7 +27,9 @@ public:
     wxRadioButton* RadioButtonXlights;
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
+    wxStaticText* StaticText5;
     wxSpinCtrl* SpinCtrlDuration;
+    wxTextCtrl* TextCtrl1;
     wxRadioButton* RadioButtonLor;
     wxChoice* ChoiceLorFiles;
     wxStaticText* StaticText4;
@@ -50,6 +53,8 @@ protected:
     static const long ID_RADIOBUTTON3;
     static const long ID_STATICTEXT3;
     static const long ID_SPINCTRL1;
+    static const long ID_STATICTEXT5;
+    static const long ID_TEXTCTRL1;
     //*)
 
 private:

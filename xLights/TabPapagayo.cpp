@@ -68,7 +68,16 @@ struct VoiceInfo
     std::vector<PhraseInfo> phrases;
 };
 
+struct SongInfo
+{
+    wxString name;
+    int samppersec;
+    int numsamp ;
+    int numvoices;
+   };
+
 static std::vector<VoiceInfo> voices; //TODO: move this to xLightsMain.h?
+static std::vector<SongInfo> songs; //TODO: move this to xLightsMain.h?
 
 //list of allowed phonemes
 static const wxString AllowedPhonemes = _(",AI,E,FV,L,MBP,O,U,WQ,etc,rest,"); //TODO: change to hash<string> if performance is bad
@@ -130,7 +139,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
                     if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame,
-                                                 phoneme_it->name, word_it->name.c_str());
+                                                    phoneme_it->name, word_it->name.c_str());
 
                     //if (xout) xout->alloff();
 
@@ -152,7 +161,7 @@ int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
     // retmsg(_("Filename: "+filename));
     if (!f.Create(filename,true))
     {
-        //  retmsg(_("Unable to create file: "+filename));
+        //  retmsg(_("Unable to crevoicesate file: "+filename));
         wxMessageBox(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,f.GetLastError()));
         return 0;
     }
@@ -299,6 +308,18 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
     wxString desc;
     int numvoices = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
     if (!numvoices) retmsg(wxString::Format(_("Invalid file @line %d ('%s' voices)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
+
+
+  /* struct SongInfo
+{
+    wxString name;
+    int samppersec;
+    int numsamp ;
+    int numvoices;
+   };
+   */
+  // songs.samppersec=samppersec;
+
     for (int v = 1; v <= numvoices; ++v)
     {
         wxString voicename = readline();

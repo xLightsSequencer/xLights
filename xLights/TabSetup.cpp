@@ -211,7 +211,7 @@ void xLightsFrame::UpdateChannelNames()
     wxArrayString ChNames;
     ModelClass model;
     wxString FormatSpec;
-    int ChannelNum,ChanPerNode,NodeNum;
+    int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
     NetInfo.GetAllChannelNames(ChNames);
     // update names with RGB models where MyDisplay is checked
@@ -226,11 +226,13 @@ void xLightsFrame::UpdateChannelNames()
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model.NodeStartChannel(n);
+
                 NodeNum=n+1;
                 if (ChanPerNode==1)
                 {
                     if (ChannelNum < ChNames.Count())
                     {
+                        AbsoluteNodeNum=ChannelNum+1;
                         ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
                     }
                 }
@@ -240,6 +242,7 @@ void xLightsFrame::UpdateChannelNames()
                     {
                         if (ChannelNum < ChNames.Count())
                         {
+                            AbsoluteNodeNum=(ChannelNum/3)+1;
                             ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
                         }
                         ChannelNum++;
