@@ -2333,7 +2333,6 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_pgo_filename" member="yes">
-																			<value>this5.pgo</value>
 																			<size>300,20</size>
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2367,16 +2366,14 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL67" variable="TextCtrl_papagayo_output_filename" member="yes">
-																			<value>text</value>
 																			<size>300,20</size>
-																			<handler function="OnTextCtrl1Text" entry="EVT_TEXT" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -2413,29 +2410,22 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+																		<object class="wxNotebook" name="ID_NOTEBOOK_PGO_PARMS" variable="NotebookPgoParms" member="yes">
 																			<object class="notebookpage">
 																				<object class="wxPanel" name="ID_PGO_AUTOFACE" variable="PGO_AUTOFACE" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 																						<cols>1</cols>
+																						<growablecols>0</growablecols>
 																						<object class="sizeritem">
-																							<object class="wxFlexGridSizer" variable="FlexGridSizer47" member="no">
-																								<cols>1</cols>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText61" member="yes">
-																										<label>This Effect will automatically create faces that autoscale on your matrix or megatree</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
+																							<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText61" member="yes">
+																								<label>This Effect will automatically create faces that autoscale on your matrix or megatree</label>
+																								<font>
+																									<size>10</size>
+																									<style>normal</style>
+																									<weight>bold</weight>
+																									<underlined>0</underlined>
+																									<family>swiss</family>
+																								</font>
 																							</object>
 																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
@@ -2448,7 +2438,7 @@
 																									<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText28" member="yes">
 																										<label>Face Shape</label>
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -2473,7 +2463,7 @@
 																									<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
 																										<label>Outline of face</label>
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -2482,7 +2472,7 @@
 																										<label>Yes</label>
 																										<checked>1</checked>
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -2500,595 +2490,51 @@
 																				<object class="wxPanel" name="ID_PGO_COROFACES" variable="PGO_COROFACES" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
 																						<cols>1</cols>
+																						<rows>2</rows>
+																						<growablecols>0</growablecols>
 																						<object class="sizeritem">
-																							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
-																								<cols>1</cols>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
-																										<label>This is for Standard Coro faces. Assign Channels &#x0A;to Phonemes and eyes.&#x0A;Enter your channel numbers, either space or comma delimited,&#x0A;under each Phoneme and voice.</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
+																							<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
+																								<label>This is for Standard Coro faces. Assign Channels to Phonemes and eyes.&#x0A;Enter your channel numbers, comma delimited, under each Phoneme and voice.</label>
+																								<font>
+																									<size>10</size>
+																									<style>normal</style>
+																									<weight>bold</weight>
+																									<underlined>0</underlined>
+																									<family>swiss</family>
+																								</font>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
 																						<object class="sizeritem">
-																							<object class="wxFlexGridSizer" variable="FlexGridSizer46" member="no">
-																								<cols>5</cols>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT47" variable="StaticText44" member="yes">
-																										<label>Description</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																											<face>Lucida Sans</face>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT48" variable="StaticText45" member="yes">
-																										<label>Voice1</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																											<face>Lucida Sans</face>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT49" variable="StaticText46" member="yes">
-																										<label>Voice2</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																											<face>Lucida Sans</face>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT50" variable="StaticText47" member="yes">
-																										<label>Voice3</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																											<face>Lucida Sans</face>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT51" variable="StaticText48" member="yes">
-																										<label>Voice4</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																											<face>Lucida Sans</face>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT52" variable="StaticText49" member="yes">
-																										<label>Phoneme AI</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL14" variable="TextCtrl11" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL17" variable="TextCtrl14" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL18" variable="TextCtrl15" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL19" variable="TextCtrl16" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText50" member="yes">
-																										<label>Phoneme E</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL20" variable="TextCtrl17" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL21" variable="TextCtrl18" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL22" variable="TextCtrl19" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL23" variable="TextCtrl20" member="yes">
-																										<value>0</value>
-																										<handler function="OnTextCtrl20Text" entry="EVT_TEXT" />
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText51" member="yes">
-																										<label>Phoneme etc</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL24" variable="TextCtrl21" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL25" variable="TextCtrl22" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL26" variable="TextCtrl23" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL27" variable="TextCtrl24" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT55" variable="StaticText52" member="yes">
-																										<label>Phoneme FV</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL28" variable="TextCtrl25" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL29" variable="TextCtrl26" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL30" variable="TextCtrl27" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL31" variable="TextCtrl28" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT56" variable="StaticText53" member="yes">
-																										<label>Phoneme L</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL32" variable="TextCtrl29" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL33" variable="TextCtrl30" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL34" variable="TextCtrl31" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL35" variable="TextCtrl32" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT57" variable="StaticText54" member="yes">
-																										<label>Phoneme MBP</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL36" variable="TextCtrl33" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL37" variable="TextCtrl34" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL38" variable="TextCtrl35" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL39" variable="TextCtrl36" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT58" variable="StaticText55" member="yes">
-																										<label>Phoneme O</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL40" variable="TextCtrl37" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL41" variable="TextCtrl38" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL42" variable="TextCtrl39" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL43" variable="TextCtrl40" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT59" variable="StaticText56" member="yes">
-																										<label>Phoneme rest</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL44" variable="TextCtrl41" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL45" variable="TextCtrl42" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL46" variable="TextCtrl43" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL47" variable="TextCtrl44" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT60" variable="StaticText57" member="yes">
-																										<label>Phoneme U</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL48" variable="TextCtrl45" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL49" variable="TextCtrl46" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL50" variable="TextCtrl47" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL51" variable="TextCtrl48" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT61" variable="StaticText58" member="yes">
-																										<label>Phoneme WQ</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL52" variable="TextCtrl49" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL53" variable="TextCtrl50" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL54" variable="TextCtrl51" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL55" variable="TextCtrl52" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT62" variable="StaticText59" member="yes">
-																										<label>Eyes - Open</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL56" variable="TextCtrl53" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL57" variable="TextCtrl54" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL58" variable="TextCtrl55" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL59" variable="TextCtrl56" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT63" variable="StaticText60" member="yes">
-																										<label>Eyes - Closed</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL60" variable="TextCtrl57" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL61" variable="TextCtrl58" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL62" variable="TextCtrl59" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL63" variable="TextCtrl60" member="yes">
-																										<value>0</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
+																							<object class="wxGrid" name="ID_GRID_COROFACES" variable="GridCoroFaces" member="yes">
+																								<cols>4</cols>
+																								<rows>12</rows>
+																								<labelrowheight>20</labelrowheight>
+																								<labelcolwidth>125</labelcolwidth>
+																								<collabels>
+																									<item>Voice 1</item>
+																									<item>Voice 2</item>
+																									<item>Voice 3</item>
+																									<item>Voice 4</item>
+																								</collabels>
+																								<rowlabels>
+																									<item>Phoneme AI</item>
+																									<item>Phoneme E</item>
+																									<item>Phoneme etc</item>
+																									<item>Phoneme FV</item>
+																									<item>Phoneme L</item>
+																									<item>Phoneme MBP</item>
+																									<item>Phoneme O</item>
+																									<item>Phoneme rest</item>
+																									<item>Phoneme U</item>
+																									<item>Phoneme WQ</item>
+																									<item>Eyes - Open</item>
+																									<item>Eyes - Closed</item>
+																								</rowlabels>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
@@ -3099,50 +2545,191 @@
 																			<object class="notebookpage">
 																				<object class="wxPanel" name="ID_PGO_IMAGES" variable="PGO_IMAGES" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-																						<cols>3</cols>
+																						<cols>1</cols>
+																						<growablecols>0</growablecols>
 																						<object class="sizeritem">
-																							<object class="wxFlexGridSizer" variable="FlexGridSizer50" member="no">
-																								<cols>1</cols>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT66" variable="StaticText63" member="yes">
-																										<label>This Effect will take filenames that have the various mouth and eye images. &#x0A;These will be flipped onto your model using the Picture effect.</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
+																							<object class="wxStaticText" name="ID_STATICTEXT66" variable="StaticText63" member="yes">
+																								<label>This effect will take filenames that have the various mouth and eye images. &#x0A;These will be flipped onto your model using the Picture effect.</label>
+																								<font>
+																									<size>10</size>
+																									<style>normal</style>
+																									<weight>bold</weight>
+																									<underlined>0</underlined>
+																									<family>swiss</family>
+																								</font>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																							<border>5</border>
-																							<option>1</option>
-																						</object>
-																						<object class="sizeritem">
-																							<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="BitmapButton2" member="yes" />
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																							<border>5</border>
-																							<option>1</option>
-																						</object>
-																						<object class="sizeritem">
-																							<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="BitmapButton1" member="yes" />
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxFlexGridSizer" variable="FlexGridSizer49" member="no">
-																								<cols>3</cols>
+																								<cols>1</cols>
+																								<growablecols>0</growablecols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText31" member="yes">
-																										<label>Select the filename that has the image of the Mouth</label>
+																										<label>Select the filenames that have the mouth images</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
+																										<cols>4</cols>
+																										<growablecols>1,3</growablecols>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_AI_image" variable="Button_AI_image" member="yes">
+																												<label>Select AI image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_AI_image" variable="TextCtrl_AI_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_E_image" variable="Button_E_image" member="yes">
+																												<label>Select E image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_E_image" variable="TextCtrl_E_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_etc_image" variable="Button_etc_image" member="yes">
+																												<label>Select etc image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_etc_image" variable="TextCtrl_etc_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_FV_image" variable="Button_FV_image" member="yes">
+																												<label>Select FV image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_FV_image" variable="TextCtrl_FV_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_L_image" variable="Button_L_image" member="yes">
+																												<label>Select L image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_L_image" variable="TextCtrl_L_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_MBP_image" variable="Button_MBP_image" member="yes">
+																												<label>Select MBP image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_MBP_image" variable="TextCtrl_MBP_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_O_image" variable="Button_O_image" member="yes">
+																												<label>Select O image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_O_image" variable="TextCtrl_O_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_rest_image" variable="Button_rest_image" member="yes">
+																												<label>Select rest image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_rest_image" variable="TextCtrl_rest_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON18" variable="Button_U_image" member="yes">
+																												<label>Select U image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_U_image" variable="TextCtrl_U_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxButton" name="ID_BUTTON_WQ_image" variable="Button_WQ_image" member="yes">
+																												<label>Select WQ image</label>
+																												<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>2</border>
+																											<option>1</option>
+																										</object>
+																										<object class="sizeritem">
+																											<object class="wxTextCtrl" name="ID_TEXTCTRL_WQ_image" variable="TextCtrl_WQ_image" member="yes" />
+																											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
+																									</object>
+																									<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -3158,250 +2745,8 @@
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT43" variable="StaticText40" member="yes">
-																										<label>AI</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON7" variable="Button3" member="yes">
-																										<label>File Name</label>
-																										<handler function="OnButtonChooseFileClick" entry="EVT_BUTTON" />
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl2" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
-																										<label>E</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON10" variable="Button6" member="yes">
-																										<label>File Name</label>
-																										<handler function="OnButtonChooseFileClick" entry="EVT_BUTTON" />
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL11" variable="TextCtrl8" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT35" variable="StaticText33" member="yes">
-																										<label>etc</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON11" variable="Button7" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl3" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT36" variable="StaticText34" member="yes">
-																										<label>FV</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON16" variable="Button11" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL16" variable="TextCtrl13" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT37" variable="StaticText35" member="yes">
-																										<label>L</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON12" variable="Button8" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL4" variable="TextCtrl4" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText36" member="yes">
-																										<label>MBP</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON14" variable="Button9" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL8" variable="TextCtrl5" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText37" member="yes">
-																										<label>O</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON15" variable="Button10" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL9" variable="TextCtrl6" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT40" variable="StaticText38" member="yes">
-																										<label>rest</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON17" variable="Button12" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL10" variable="TextCtrl7" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT41" variable="StaticText39" member="yes">
-																										<label>U</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON18" variable="Button13" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL12" variable="TextCtrl9" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT42" variable="WQ" member="yes">
-																										<label>WQ</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON19" variable="Button14" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>2</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL13" variable="TextCtrl10" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
@@ -3413,112 +2758,74 @@
 																				<object class="wxPanel" name="ID_PGO_MOVIE" variable="PGO_MOVIE" member="yes">
 																					<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 																						<cols>1</cols>
+																						<rows>2</rows>
+																						<growablecols>0</growablecols>
 																						<object class="sizeritem">
-																							<object class="wxBitmapButton" name="ID_BITMAPBUTTON22" variable="BitmapButton13" member="yes" />
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																							<border>5</border>
-																							<option>1</option>
-																						</object>
-																						<object class="sizeritem">
-																							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
-																								<cols>1</cols>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText62" member="yes">
-																										<label>This effect will create a movie of your animated face</label>
-																										<font>
-																											<size>10</size>
-																											<style>normal</style>
-																											<weight>bold</weight>
-																											<underlined>0</underlined>
-																											<family>swiss</family>
-																										</font>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
+																							<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText62" member="yes">
+																								<label>This effect will create a movie of your animated face</label>
+																								<font>
+																									<size>10</size>
+																									<style>normal</style>
+																									<weight>bold</weight>
+																									<underlined>0</underlined>
+																									<family>swiss</family>
+																								</font>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxFlexGridSizer" variable="FlexGridSizer52" member="no">
-																								<cols>3</cols>
+																								<cols>2</cols>
+																								<growablecols>1</growablecols>
 																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT44" variable="StaticText41" member="yes">
-																										<label>File image for background</label>
+																									<object class="wxButton" name="ID_BUTTON_background_image" variable="Button_background_image" member="yes">
+																										<label>Select background image</label>
+																										<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON8" variable="Button4" member="yes">
-																										<label>File Name</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<object class="wxTextCtrl" name="ID_TEXTCTRL_background_image" variable="TextCtrl_background_image" member="yes" />
+																									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL15" variable="TextCtrl12" member="yes">
-																										<value>Text</value>
+																									<object class="wxButton" name="ID_BUTTON_eyesopen_image" variable="Button_eyesopen_image" member="yes">
+																										<label>Select eyes open image</label>
+																										<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT45" variable="StaticText42" member="yes">
-																										<label>File image for eyes Open</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<object class="wxTextCtrl" name="ID_TEXTCTRL_eyesopen_image" variable="TextCtrl_eyesopen_image" member="yes" />
+																									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON9" variable="Button5" member="yes">
-																										<label>File Name</label>
+																									<object class="wxButton" name="ID_BUTTON_eyesclosed_image" variable="Button_eyesclosed_image" member="yes">
+																										<label>Select eyes closed image</label>
+																										<handler function="OnButtonPgoImageClick" entry="EVT_BUTTON" />
 																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL64" variable="TextCtrl61" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxStaticText" name="ID_STATICTEXT67" variable="StaticText64" member="yes">
-																										<label>File Image for Eyes Closed</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxButton" name="ID_BUTTON20" variable="Button15" member="yes">
-																										<label>Label</label>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxTextCtrl" name="ID_TEXTCTRL65" variable="TextCtrl62" member="yes">
-																										<value>Text</value>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<object class="wxTextCtrl" name="ID_TEXTCTRL_eyesclosed_image" variable="TextCtrl_eyesclosed_image" member="yes" />
+																									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
@@ -3532,7 +2839,7 @@
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -3544,12 +2851,6 @@
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
 															<cols>4</cols>
-															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton5" member="yes" />
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT70" variable="StaticText67" member="yes">
 																	<label>4)</label>
@@ -3582,7 +2883,7 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -3688,12 +2989,17 @@
 		</object>
 		<object class="wxFileDialog" variable="FileDialogConvert" member="yes">
 			<message>Select file</message>
-			<wildcard>xLights Sequences(*.xseq)|*.xseq|&#x0D;&#x0A;            LOR Music Sequences (*.lms)|*.lms|&#x0D;&#x0A;&#x09;&#x09;&#x09;LOR Animation Sequences (*.las)|*.las|&#x0D;&#x0A;&#x09;&#x09;&#x09;Vixen Sequences (*.vix)|*.vix|&#x0D;&#x0A;&#x09;&#x09;&#x09;Falcon Pi Player Sequences (*.fseq)|*.fseq|&#x0D;&#x0A;&#x09;&#x09;&#x09;Glediator Record File (*.gled)|*.gled)|&#x0D;&#x0A;&#x09;&#x09;&#x09;Lynx Conductor Sequences (*.seq)|*.seq|&#x0D;&#x0A;&#x09;&#x09;&#x09;HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
+			<wildcard>xLights Sequences(*.xseq)|*.xseq|&#x0A;&#x0A;            LOR Music Sequences (*.lms)|*.lms|&#x0A;&#x0A;&#x09;&#x09;&#x09;LOR Animation Sequences (*.las)|*.las|&#x0A;&#x0A;&#x09;&#x09;&#x09;Vixen Sequences (*.vix)|*.vix|&#x0A;&#x0A;&#x09;&#x09;&#x09;Falcon Pi Player Sequences (*.fseq)|*.fseq|&#x0A;&#x0A;&#x09;&#x09;&#x09;Glediator Record File (*.gled)|*.gled)|&#x0A;&#x0A;&#x09;&#x09;&#x09;Lynx Conductor Sequences (*.seq)|*.seq|&#x0A;&#x0A;&#x09;&#x09;&#x09;HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE</style>
 		</object>
 		<object class="wxMessageDialog" name="ID_MESSAGEDIALOG1" variable="MessageDialog1" member="yes">
 			<caption>Message</caption>
 			<message>Hello</message>
+		</object>
+		<object class="wxFileDialog" variable="FileDialogPgoImage" member="yes">
+			<message>Select phoneme image file</message>
+			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
+			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
 	</object>
 </wxsmith>

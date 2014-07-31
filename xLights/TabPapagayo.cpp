@@ -139,7 +139,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
                     if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame,
-                                                    phoneme_it->name, word_it->name.c_str());
+                                                 phoneme_it->name, word_it->name.c_str());
 
                     //if (xout) xout->alloff();
 
@@ -161,7 +161,7 @@ int xLightsFrame::write_pgo_header(int MaxVoices,const wxString& filename)
     // retmsg(_("Filename: "+filename));
     if (!f.Create(filename,true))
     {
-        //  retmsg(_("Unable to crevoicesate file: "+filename));
+        //  retmsg(_("Unable to create file: "+filename));
         wxMessageBox(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,f.GetLastError()));
         return 0;
     }
@@ -414,3 +414,16 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
     if (!warnings.empty()) wxMessageBox(warnings, _("Papagayo Warning"));
     debug(3, "file loaded");
 }
+
+void xLightsFrame::OnButtonPgoImageClick(wxCommandEvent& event)
+{
+    wxString ButtonWindowName=((wxWindow*)event.GetEventObject())->GetName();
+    wxString TextCtrlName=ButtonWindowName;
+    TextCtrlName.Replace("BUTTON","TEXTCTRL");
+    wxTextCtrl* TargetTextBox=(wxTextCtrl*)wxWindow::FindWindowByName(TextCtrlName,NotebookPgoParms);
+    if (TargetTextBox!=NULL && FileDialogPgoImage->ShowModal() == wxID_OK)
+    {
+        TargetTextBox->SetValue(FileDialogPgoImage->GetPath());
+    }
+}
+
