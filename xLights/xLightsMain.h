@@ -1085,7 +1085,7 @@ private:
     void NumericSort();
     double GetGridStartTime(int row);
     long GetGridStartTimeMSec(int row);
-    void UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype);
+    void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
     void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl();

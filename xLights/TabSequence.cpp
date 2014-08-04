@@ -331,19 +331,55 @@ wxString xLightsFrame::CreateEffectStringRandom()
     wxString s;
     s.clear();
 
+    /*
+    enum RGB_EFFECTS_e
+        {
+            eff_NONE,
+            eff_BARS,
+            eff_BUTTERFLY,
+            eff_CIRCLES,
+            eff_COLORWASH,
+            eff_CURTAIN,
+            eff_FIRE,
+            eff_FIREWORKS,
+            eff_GARLANDS,
+            eff_LIFE,
+            eff_METEORS,
+            eff_PIANO,
+            eff_PICTURES,
+            eff_SNOWFLAKES,
+            eff_SNOWSTORM,
+            eff_SPIRALS,
+            eff_SPIROGRAPH,
+            eff_TEXT,
+            eff_TREE,
+            eff_TWINKLE,
+            eff_SINGLESTRAND,
+            eff_FACES,
+            eff_WAVE,
+            eff_GLEDIATOR,
+            eff_LASTEFFECT //Always the last entry
+        };
+    */
 //encapsulation is poor here
 //    djdebug("CreateEffectStringRandom: %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d", (const char*)EffectsPanel1->Choicebook1->GetName().c_str(), isRandom(EffectsPanel1->Choicebook1), (const char*)EffectsPanel2->Choicebook1->GetName().c_str(), isRandom(EffectsPanel2->Choicebook1), (const char*)Slider_EffectLayerMix->GetName().c_str(), isRandom(Slider_EffectLayerMix), (const char*)Slider_SparkleFrequency->GetName().c_str(), isRandom(Slider_SparkleFrequency), (const char*)Slider_Brightness->GetName().c_str(), isRandom(Slider_Brightness), (const char*)Slider_Contrast->GetName().c_str(), isRandom(Slider_Contrast));
     eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
     eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
     {
-        eff1 = (eff_NONE == eff1|| eff_TEXT == eff1 || eff_PICTURES == eff1)? eff1+1:eff1;
+        eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
+                || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff_BUTTERFLY:eff1;
+        //          eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
+        //        || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
         if(eff_PIANO == eff1 || eff_CIRCLES == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
-        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2)? eff2+1:eff2;
-        if(eff_PIANO == eff2 || eff_CIRCLES == eff1) eff2 = eff_BARS; //
+        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
+                || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff_BUTTERFLY:eff2;
+        //       eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
+        //     || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
+        if(eff_PIANO == eff2 || eff_CIRCLES == eff2) eff2 = eff_BARS; //
     }
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
@@ -1384,11 +1420,18 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     }
 }
 
-void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, const wxString& seqtype)
+
+
+void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype)
 {
-    int m=seconds/60;
+
     int s=seconds%60;
-    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
+    msec = (EffectPeriod*50)%1000; // change frame into ms and then find the fractional part
+    int minutes=seconds / 60;
+
+    //  TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d",minutes,seconds,msec));
+    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03d   %d.%03d ",minutes,s,msec,seconds,msec));
+//  old way     StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
 }
 
 void xLightsFrame::TimerRgbSeq(long msec)
@@ -1450,7 +1493,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
             }
             PlayRgbEffect(EffectPeriod);
-            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,"animation");
+            UpdateRgbPlaybackStatus(EffectPeriod/20,msec,EffectPeriod,"animation");
+//            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,msec,"animation");
         }
         break;
     case STARTING_SEQ:
@@ -1505,7 +1549,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             }
             PlayRgbEffect(EffectPeriod);
             //TextCtrlLog->AppendText(wxString::Format("msec=%ld, period=%d\n",msec,EffectPeriod));
-            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,"music");
+            UpdateRgbPlaybackStatus(EffectPeriod/20,msec,EffectPeriod,"music");
+            //   if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,msec,"music");
         }
         break;
     }

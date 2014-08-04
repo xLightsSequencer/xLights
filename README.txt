@@ -6,8 +6,12 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.8   Aug 3,2014
+	-Enh (sean) Changed Playback counter on NUTCRACKER tab. It now updated 20 times per second instead of once per second.
+	also changed the format to include fractional seconds. Finally added two displays, one has minutes, the second is
+	just total seconds.
 3.4.7   Jul 29,2014
-	-Enh (sean) Added Model brightness adjustment into Model screen
+	-Enh (sean) Added Model brightness adjustment into Model screen. Not functional yet, this is a pre-release 
 	-Bug (sean) Fixed export for single channel strings for LSP
 3.4.6   Jul 23,2014
 	-Enh (sean) Increased maximum time for a empty sequence from 300 seconds to 3600 seconds
