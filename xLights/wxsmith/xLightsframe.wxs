@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.4.8)</title>
+		<title>xLights/Nutcracker  (Ver 3.4.9)</title>
 		<pos>-1,-1</pos>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
@@ -3073,7 +3073,7 @@
 											</object>
 										</object>
 									</object>
-									<label>Papagayo</label>
+									<label>Papagayo (IN DEVELOPMENT)</label>
 								</object>
 							</object>
 							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
