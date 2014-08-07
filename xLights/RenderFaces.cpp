@@ -400,3 +400,52 @@ void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
     SetPixel(2,BufferHt-2,hsv); // Bottom Right
     SetPixel(1,BufferHt-3,hsv); //
 }
+
+/*
+void ModelClass::InitCustomMatrix(const wxString& customModel)
+{
+    wxString value;
+    wxArrayString cols;
+    long idx;
+    int width=1;
+    std::vector<int> nodemap;
+
+    wxArrayString rows=wxSplit(customModel,';');
+    int height=rows.size();
+    int cpn = ChannelsPerNode();
+    for(size_t row=0; row < rows.size(); row++)
+    {
+        cols=wxSplit(rows[row],',');
+        if (cols.size() > width) width=cols.size();
+        for(size_t col=0; col < cols.size(); col++)
+        {
+            value=cols[col];
+            if (!value.IsEmpty() && value != "0")
+            {
+                value.ToLong(&idx);
+
+                // increase nodemap size if necessary
+                if (idx > nodemap.size()) {
+                    nodemap.resize(idx, -1);
+                }
+                idx--;  // adjust to 0-based
+
+                // is node already defined in map?
+                if (nodemap[idx] < 0) {
+                    // unmapped - so add a node
+                    nodemap[idx]=Nodes.size();
+                    SetNodeCount(1,0);  // this creates a node of the correct class
+                    Nodes.back()->StringNum= SingleNode ? idx : 0;
+                    Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
+                    Nodes.back()->AddBufCoord(col,height - row - 1);
+                } else {
+                    // mapped - so add a coord to existing node
+                    Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
+                }
+
+            }
+        }
+    }
+    SetBufferSize(height,width);
+}
+*/

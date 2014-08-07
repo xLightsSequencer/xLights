@@ -368,18 +368,23 @@ wxString xLightsFrame::CreateEffectStringRandom()
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
     {
         eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff_BUTTERFLY:eff1;
+                || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
         //          eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
         //        || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
-        if(eff_PIANO == eff1 || eff_CIRCLES == eff1) eff1 = eff_BARS; // 7-30-13 (scm) , protect us if e go out of range
+        eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
+                || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff_NONE:eff1;
+                if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
-                || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff_BUTTERFLY:eff2;
+                ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
+        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
+                ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
+                 if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
         //       eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
         //     || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
-        if(eff_PIANO == eff2 || eff_CIRCLES == eff2) eff2 = eff_BARS; //
+
     }
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();

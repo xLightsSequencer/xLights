@@ -33,7 +33,7 @@ Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
 
 
 [Icons]
-Name: "{group}\xLights"; Filename: "{app}\xLights.exe"
+Name: "{group}\xLights"; Filename: "{app}\xLights.exe" ;  IconFileName: "{app}\xLights.ico"
 
 [Registry]
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
