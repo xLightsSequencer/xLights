@@ -28,6 +28,11 @@
 #include <wx/fontutil.h>
 
 
+//formatting notes:
+//countdown == seconds: put a non-0 value in text line 1 to count down
+//countdown == any of the "to date" options: put "Sat, 18 Dec 1999 00:48:30 +0100" in the text line
+//countdown = !to date!%fmt: put delimiter + target date + same delimiter + format string with %x markers in it (described down below)
+
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
@@ -289,8 +294,25 @@ TIME FORMAT CHARACTERS:
     case COUNTDOWN_S:
         // countdown to date
         if (state%20 == 0) { //1x/sec
-            if ( dt.ParseDateTime(Line, &end) ) {
-                // dt is valid, so calc # of seconds until then
+#if 0 //wxWidgets is broken; use this section to test it -DJ
+            wxString test = _("Sat, 18 Dec 1999 00:48:30 +0100");  //valid RFC822 format
+            if (!dt.ParseRfc822Date(test, &end)) {
+                msg = _T("broken-1");
+                break;
+            } else if (*end) { //end != test.end()) {
+                msg = wxString::Format(_("broken-2@%d"), end - test.begin());
+                break;
+            } else if (!dt.ParseDateTime(test, &end)) {
+                msg = _T("broken-3");
+                break;
+            } else if (*end) { //end != test.end()) {
+                msg = wxString::Format(_("broken-4@%d"), end - test.begin());
+                break;
+            }
+#endif
+//            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
+            if ( dt.ParseRfc822Date(Line, &end) ) {
+                // dt is (at least partially) valid, so calc # of seconds until then
                 ts=dt.Subtract(wxDateTime::Now());
                 wxLongLong ll=ts.GetSeconds();
                 if (ll > LONG_MAX) ll=LONG_MAX;

@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+	-Bug (djulien) wxDateTime is broken again; force RFC822 format to try to get it to work; for example: Sat, 18 Dec 1999 00:48:30 +0100
 3.4.8   Aug 3,2014
 	-Enh (sean) Changed Playback counter on NUTCRACKER tab. It now updated 20 times per second instead of once per second.
 	also changed the format to include fractional seconds. Finally added two displays, one has minutes, the second is
