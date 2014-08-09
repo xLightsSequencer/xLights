@@ -112,7 +112,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     case 3: // "Bounce"
         Dual_Chases=1;
         break;
- case 4: // "Pacman"
+    case 4: // "Pacman"
 
         break;
     }

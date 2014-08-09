@@ -2333,9 +2333,9 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_pgo_filename" member="yes">
-																			<size>300,20</size>
+																			<size>236,23</size>
 																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
@@ -2360,27 +2360,18 @@
 																			<bg>#E0E0E0</bg>
 																			<handler function="OnButton_papagayo_output_sequenceClick1" entry="EVT_BUTTON" />
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL67" variable="TextCtrl_papagayo_output_filename" member="yes">
-																			<size>300,20</size>
+																			<size>237,20</size>
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
-																</object>
-																<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
-																	<cols>2</cols>
-																	<rows>2</rows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT71" variable="StaticText68" member="yes">
 																			<label>3)</label>
@@ -2399,11 +2390,28 @@
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText25" member="yes">
 																			<label>Choose 1 of 4 different Sequence Outputs:</label>
+																			<font>
+																				<size>10</size>
+																				<style>normal</style>
+																				<weight>bold</weight>
+																				<underlined>0</underlined>
+																				<family>swiss</family>
+																				<face>Arial</face>
+																			</font>
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
+																</object>
+																<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
+																	<cols>2</cols>
+																	<rows>2</rows>
 																	<object class="sizeritem">
 																		<object class="wxNotebook" name="ID_NOTEBOOK_PGO_PARMS" variable="NotebookPgoParms" member="yes">
 																			<object class="notebookpage">
