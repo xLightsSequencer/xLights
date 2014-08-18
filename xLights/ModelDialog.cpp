@@ -37,7 +37,7 @@ const long ModelDialog::ID_CHOICE3 = wxNewId();
 const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
-const long ModelDialog::ID_SLIDER_MODEL_BRIGHTNESS = wxNewId();
+const long ModelDialog::ID_Slider_Model_Brightness = wxNewId();
 const long ModelDialog::ID_SPINCTRL5 = wxNewId();
 const long ModelDialog::ID_STATICTEXT13 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
@@ -164,8 +164,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     StaticText2 = new wxStaticText(this, ID_STATICTEXT7, _("Model Brightness\nAdjustment"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-    SLIDER_MODEL_BRIGHTNESS = new wxSlider(this, ID_SLIDER_MODEL_BRIGHTNESS, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MODEL_BRIGHTNESS"));
-    FlexGridSizer6->Add(SLIDER_MODEL_BRIGHTNESS, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Model_Brightness = new wxSlider(this, ID_Slider_Model_Brightness, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_Slider_Model_Brightness"));
+    FlexGridSizer6->Add(Slider_Model_Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SpinCtrl1 = new wxSpinCtrl(this, ID_SPINCTRL5, _T("0"), wxDefaultPosition, wxSize(52,21), 0, -100, 100, 0, _T("ID_SPINCTRL5"));
     SpinCtrl1->SetValue(_T("0"));
     FlexGridSizer6->Add(SpinCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -237,8 +237,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm2Change);
     Connect(ID_SPINCTRL3,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_parm3Change);
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
-    Connect(ID_SLIDER_MODEL_BRIGHTNESS,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll);
-    Connect(ID_SLIDER_MODEL_BRIGHTNESS,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll);
+    Connect(ID_Slider_Model_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
+    Connect(ID_Slider_Model_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
@@ -349,7 +349,8 @@ int ModelDialog::GetCustomMaxChannel()
         for(int col=0; col<numCols; col++)
         {
             valstr = GridCustom->GetCellValue(row,col);
-            if (valstr.ToLong(&val)) {
+            if (valstr.ToLong(&val))
+            {
                 maxval=std::max(val,maxval);
             }
         }
@@ -501,18 +502,18 @@ void ModelDialog::UpdateStartChannels()
         int maxval = GetCustomMaxChannel();
         switch (ChannelsPerString)
         {
-            case 1:
-                // traditional strings
-                StringCnt = maxval;
-                break;
-            case 3:
-                // dumb rgb
-                StringCnt = maxval;
-                break;
-            default:
-                // rgb pixels
-                ChannelsPerString = maxval*3;
-                break;
+        case 1:
+            // traditional strings
+            StringCnt = maxval;
+            break;
+        case 3:
+            // dumb rgb
+            StringCnt = maxval;
+            break;
+        default:
+            // rgb pixels
+            ChannelsPerString = maxval*3;
+            break;
         }
     }
 
@@ -538,7 +539,8 @@ void ModelDialog::UpdateStartChannels()
         for (int stringnum=0; stringnum<StringCnt; stringnum++)
         {
             tmpStr = gridStartChannels->GetCellValue(stringnum,0);
-            if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
+            if (tmpStr.ToLong(&StringStartChanLong) && StringStartChanLong > 0)
+            {
                 StringEndChan=StringStartChanLong + ChannelsPerString - 1;
                 gridStartChannels->SetCellValue(stringnum,1, wxString::Format("%i",StringEndChan));
             }
@@ -574,18 +576,24 @@ void ModelDialog::SetReadOnly(bool readonly)
 }
 void ModelDialog::OnSpinCtrl_parm1Change(wxSpinEvent& event)
 {
-    if (IsCustom()) {
+    if (IsCustom())
+    {
         ResizeCustomGrid();
-    } else {
+    }
+    else
+    {
         UpdateStartChannels();
     }
 }
 
 void ModelDialog::OnSpinCtrl_parm2Change(wxSpinEvent& event)
 {
-    if (IsCustom()) {
+    if (IsCustom())
+    {
         ResizeCustomGrid();
-    } else {
+    }
+    else
+    {
         UpdateStartChannels();
     }
 }
@@ -652,6 +660,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("parm1");
     e->DeleteAttribute("parm2");
     e->DeleteAttribute("parm3");
+     e->DeleteAttribute("ModelBrightness");
     e->DeleteAttribute("StartChannel");
     e->DeleteAttribute("Order");
     e->DeleteAttribute("Dir");
@@ -673,6 +682,8 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
         e->AddAttribute("Dir","R");
 
     e->AddAttribute("Antialias", wxString::Format("%d",Choice_Antialias->GetSelection()));
+
+    e->AddAttribute("ModelBrightness", wxString::Format("%d",Slider_Model_Brightness->GetValue()));
     if (Choice_DisplayAs->GetStringSelection() == "Custom")
     {
         e->AddAttribute("CustomModel",GetCustomGridData());
@@ -696,6 +707,14 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     tempStr=e->GetAttribute("Antialias","0");
     tempStr.ToLong(&n);
     Choice_Antialias->SetSelection(n);
+
+
+    if(e->HasAttribute("ModelBrightness"))
+    {
+        tempStr=e->GetAttribute("ModelBrightness","0");
+        tempStr.ToLong(&n);
+        Slider_Model_Brightness->SetValue(n);
+    }
     direction=e->GetAttribute("Dir");
     if(e->HasAttribute("StartSide"))
     {
@@ -764,20 +783,29 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     int i,k,fieldnum;
     long val;
 
-    if (wxTheClipboard->Open()) {
-        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+    if (wxTheClipboard->Open())
+    {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT))
+        {
             wxTextDataObject data;
 
-            if (wxTheClipboard->GetData(data)) {
+            if (wxTheClipboard->GetData(data))
+            {
                 copy_data = data.GetText();
-            } else {
+            }
+            else
+            {
                 wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
             }
-        } else {
+        }
+        else
+        {
             wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
         }
         wxTheClipboard->Close();
-    } else {
+    }
+    else
+    {
         wxMessageBox(_("Error opening clipboard."), _("Error"));
         return;
     }
@@ -789,13 +817,15 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     bool errflag=false;
     wxString errdetails; //-DJ
 
-    do {
+    do
+    {
         cur_line = copy_data.BeforeFirst('\n');
         copy_data = copy_data.AfterFirst('\n');
         fields = wxSplit(cur_line, (cur_line.Find(',') != wxNOT_FOUND)? ',': '\t'); //allow comma or tab delim -DJ
         for(fieldnum=0; fieldnum<fields.Count(); fieldnum++)
         {
-            if (i < numrows && k+fieldnum < numcols) {
+            if (i < numrows && k+fieldnum < numcols)
+            {
                 if (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))
                 {
                     GridCustom->SetCellValue(i, k+fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
@@ -808,7 +838,8 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
             }
         }
         i++;
-    } while (copy_data.IsEmpty() == false);
+    }
+    while (copy_data.IsEmpty() == false);
     UpdateStartChannels();
     if (errflag)
     {
@@ -819,20 +850,27 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
 // pass true for cutting, false for copying
 void ModelDialog::CutOrCopyToClipboard(bool IsCut)
 {
-int i,k;
+    int i,k;
     wxString copy_data;
     bool something_in_this_line;
 
-    for (i=0; i< GridCustom->GetRows(); i++) {      // step through all lines
+    for (i=0; i< GridCustom->GetRows(); i++)        // step through all lines
+    {
         something_in_this_line = false;             // nothing found yet
-        for (k=0; k<GridCustom->GetCols(); k++) {   // step through all colums
-            if (GridCustom->IsInSelection(i,k)) {   // this field is selected!!!
-                if (!something_in_this_line) {      // first field in this line => may need a linefeed
-                    if (!copy_data.IsEmpty()) {     // ... if it is not the very first field
+        for (k=0; k<GridCustom->GetCols(); k++)     // step through all colums
+        {
+            if (GridCustom->IsInSelection(i,k))     // this field is selected!!!
+            {
+                if (!something_in_this_line)        // first field in this line => may need a linefeed
+                {
+                    if (!copy_data.IsEmpty())       // ... if it is not the very first field
+                    {
                         copy_data += "\n";     // next LINE
                     }
                     something_in_this_line = true;
-                } else {                                // if not the first field in this line we need a field seperator (TAB)
+                }
+                else                                    // if not the first field in this line we need a field seperator (TAB)
+                {
                     copy_data += "\t";  // next COLUMN
                 }
                 copy_data += GridCustom->GetCellValue(i,k);    // finally we need the field value
@@ -841,12 +879,16 @@ int i,k;
         }
     }
 
-    if (wxTheClipboard->Open()) {
-        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+    if (wxTheClipboard->Open())
+    {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
+        {
             wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
         }
         wxTheClipboard->Close();
-    } else {
+    }
+    else
+    {
         wxMessageBox(_("Error opening clipboard."), _("Error"));
     }
 }
@@ -867,7 +909,10 @@ void ModelDialog::OnSpinCtrl_parm3Change(wxSpinEvent& event)
     UpdateStartChannels();
 }
 
-void ModelDialog::OnSLIDER_MODEL_BRIGHTNESSCmdScroll(wxScrollEvent& event)
+void ModelDialog::OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event)
 {
-    SpinCtrl1->SetValue(wxString::Format("%d",SLIDER_MODEL_BRIGHTNESS->GetValue()));
+    SpinCtrl1->SetValue(wxString::Format("%d",Slider_Model_Brightness->GetValue()));
 }
+
+
+

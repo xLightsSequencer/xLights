@@ -212,6 +212,7 @@ const long xLightsFrame::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON11 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON13 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON12 = wxNewId();
+const long xLightsFrame::ID_TEXTCTRL9 = wxNewId();
 const long xLightsFrame::ID_PANEL31 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PLAY_RGB_SEQ = wxNewId();
@@ -454,7 +455,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.9)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.11)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     Move(wxPoint(-1,-1));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
@@ -975,6 +976,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton_random->SetDefault();
     BitmapButton_random->Hide();
     FlexGridSizer33->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl5 = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL9, _("Text"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL9"));
+    FlexGridSizer33->Add(TextCtrl5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer6->Add(StaticBoxSizer3, 0, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SeqPanelLeft->SetSizer(BoxSizer6);
@@ -1556,6 +1559,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON_SLIDER_EffectLayerMix,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_EffectLayerMixClick);
     Connect(ID_SLIDER_SparkleFrequency,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_SparkleFrequencyCmdScroll);
     Connect(ID_SLIDER_SparkleFrequency,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_SparkleFrequencyCmdScroll);
+    Connect(ID_TEXTCTRL5,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OntxtCtrlSparkleFreqText);
     Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_SparkleFrequencyClick);
     Connect(ID_SLIDER_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BrightnessCmdScroll);
     Connect(ID_SLIDER_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSlider_BrightnessCmdScroll);
@@ -1739,6 +1743,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WaveDirection.Add("Left to Right");
 
 
+
     MeteorsEffectTypes.Add("Rainbow");
     MeteorsEffectTypes.Add("Range");
     MeteorsEffectTypes.Add("Palette");
@@ -1826,6 +1831,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsPanel1->Choice_Piano_Style->SetSelection(2); //keyboard
     EffectsPanel2->Choice_Piano_Style->SetSelection(2); //keyboard
 
+    //  single strand
+//    ButterflyEffectColors.Add("Rainbow");
+//    ButterflyEffectColors.Add("Palette");
+    SingleStrandColors.Add("Rainbow");
+    SingleStrandColors.Add("Palette");
     SingleStrandTypes.Add("Left-Right");  // 0
     SingleStrandTypes.Add("Right-Left");  // 1
     SingleStrandTypes.Add("Auto reverse");  // 2
@@ -1924,7 +1934,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Butterfly_Direction->Set(ButterflyDirection);
     panel->Choice_Butterfly_Direction->SetSelection(0);
 
- panel->Choice_Wave_Type->Set(WaveType);
+    panel->Choice_Wave_Type->Set(WaveType);
     panel->Choice_Wave_Type->SetSelection(0);
     panel->Choice_Fill_Colors->Set(FillColors);
     panel->Choice_Fill_Colors->SetSelection(0);
@@ -1968,6 +1978,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Text_Count4->SetSelection(0);
 
     panel->CurrentDir = &CurrentDir;
+    panel->Choice_SingleStrand_Colors->Set(SingleStrandColors);
+    panel->Choice_SingleStrand_Colors->SetSelection(1); // Set Rainbow as default
     panel->Choice_Chase_Type1->Set(SingleStrandTypes);
     panel->Choice_Chase_Type1->SetSelection(0); // Set Left-Right as default
 
@@ -2075,7 +2087,7 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Nutcracker Tab");
         msg=_("The Nutcracker tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights (.xseq) sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
         break;
-          case PAPAGAYOTAB:
+    case PAPAGAYOTAB:
         caption=_("Papagayo Tab");
         msg=_("The Papagayo tab can be used to create animated faces from a Papagayo file. There are four different types faces that you can create. \n1) Automatic, scaled faces for matrix and megatrees. \n2) You provide 10 images of the Phonemes, they will be selected for you. \n3) You provide moth , eyes and a backgroudn image. A mp4 movie will be created. \n4) You assign channels for each of the 10 Phonemes. This method matches standard coro singing faces ");
         break;
@@ -2611,3 +2623,7 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
     PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
 }
 
+
+void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
+{
+}

@@ -23,16 +23,18 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
+void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
-    int x,x1,x0,y,i,ColorIdx;
+    int x,x1,x0,y,i,ColorIdx,chases,width,slow_state;
     int x2=0;
     int x_2=0;
     int x2_mod=0;
     int color_index,x1_mod;
     int MaxNodes,xt,Dual_Chases,All_Arches=0;
     int start1,start2,start1_mid,xend,start1_group;
+    float dx;
+
     bool R_TO_L1;
     //srand (time(NULL)); // for strobe effect, make lights be random
     srand(1); // else always have the same random numbers for each frame (state)
@@ -79,15 +81,7 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
     hsv.saturation=1.0;
     hsv.hue=0.0;
 
-    /*
-        Chase_Type1:
 
-      SingleStrandTypes.Add("Normal. L-R");
-      SingleStrandTypes.Add("Normal. R-L");
-      SingleStrandTypes.Add("Auto reverse");
-      SingleStrandTypes.Add("Bounce");
-
-        */
     int AutoReverse=0;
     start1 = state % BufferWi;
     start1 = (int)(state/2) % MaxNodes; // divide by 4 slows down chase
@@ -117,114 +111,163 @@ void RgbEffects::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_
         break;
     }
 
-    if(AutoReverse==1)
+
+    int FIT_TO_TIME=(fitToTime);
+    int numberFrames=0;
+    if(fitToTime) // is "Fit to Time" checked?
     {
-        if(start1_group%2==1)
-            R_TO_L1=1;
-        else
-            R_TO_L1=0;
+        numberFrames=nextEffTimePeriod-nextEffTimePeriod;
+        //   GetEffectPeriods( nextEffTimePeriod, nextEffTimePeriod, curEffEndPer);
+//    double rtval = GetEffectTimeIntervalPosition();
+//  rtval 0 to 1.0. This indicates how far we are through this row on the grid.
+//      0.0 we are just starting the effect on this row
+//      1.0 we have come t the end of time for this effect
     }
-
-
-    xend = start1+BufferHt;
-    x0=start1;
-    int FIT_TO_TIME=0;
-    if(FIT_TO_TIME==0)
-        for(y=0; y<BufferHt; y++)
-        {
-            for(x1=0; x1<MaxChase; x1++)
-            {
-                xt=x0-x1;
-                if(R_TO_L1) xt=MaxNodes-x0-x1;
-                if(Dual_Chases==1) x2=MaxNodes-x0-x1;
-                if(xt<0) xt+=MaxNodes; // was xt=0;
-                if(x2<0) x2+=MaxNodes; // was xt=0;
-                //  y=int (xt/BufferWi);
-                x=xt%BufferWi;
-                x_2=x2%BufferWi;
-                ColorIdx=chase_buffer[x1];
-                if(R_TO_L1)   ColorIdx=chase_buffer[MaxChase-x1];
-                if(ColorIdx>=0)
-                {
-                    palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                    if(Chase_Fade3d1==1)
-                    {
-                        if(R_TO_L1)
-                            hsv.value=1.0-brightness[x1];
-                        else
-                            hsv.value=brightness[x1];
-                    }
-                    x1_mod=x1%Chase_Spacing1;
-                    if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 1))
-                    {
-                        hsv.value=0.0;
-                        hsv.saturation=1.0;
-                        hsv.hue=0.0;
-                    }
-                    SetPixel(x,y,hsv); // Turn pixel on
-
-                    if(Dual_Chases==1)
-                    {
-
-
-                        x2_mod=x_2%Chase_Spacing1;
-                        if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x2_mod != 1))
-                        {
-                            hsv.value=0.0;
-                            hsv.saturation=1.0;
-                            hsv.hue=0.0;
-                        }
-                        SetPixel(x_2,y,hsv); // Turn pixel on
-                    }
-                }
-            }
-        }
-
-    if(FIT_TO_TIME==1)
+    hsv.value=1.0;
+    hsv.saturation=1.0;
+    hsv.hue=0.0; // RED
+    if(Chase_Group_All)
     {
-        if(Chase_Fade3d1)
+        width=MaxNodes;
+    }
+    else
+    {
+        width=BufferWi;
+    }
+    if(Number_Chases<1) Number_Chases=1;
+    if(ColorScheme<0) ColorScheme=0;
+    dx = width/Number_Chases;
+    if(dx<1) dx=1.0;
+
+    for(chases=1; chases<=Number_Chases; chases++)
+    {
+        if(fitToTime)
+            slow_state = width * rtval;
+        else
+            slow_state = (state/4)%width;
+
+        if(R_TO_L1)
+            x1=int(0.5 + (chases-1)*dx)+slow_state; // slow state down
+        else
+            x1=int(0.5 + width-((chases-1)*dx)-slow_state); // slow state down
+        if(x1<0) x1+=width;
+        if(x1<0) x1=0;
+        x=x1%BufferWi;
+        if(Chase_Group_All)
         {
-            for(x1=0; x1<MaxChase; x1++)
-            {
-                xt=x0-x1;
-                if(R_TO_L1) xt=MaxNodes-x0-x1;
-                if(xt<0) xt=0;
-                y=int (xt/BufferWi);
-                x=xt%BufferWi;
-                ColorIdx=chase_buffer[x1];
-                if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                x1_mod=x1%Chase_Spacing1;
-                if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 1))
-                {
-                    hsv.value=0.0;
-                    hsv.saturation=1.0;
-                    hsv.hue=0.0;
-                }
-                SetPixel(x,y,hsv); // Turn pixel on
-            }
+            y = (x1%MaxNodes)/BufferWi;
+            draw_chase(x,y,hsv,ColorScheme,Number_Chases,width,R_TO_L1,Color_Mix1,Chase_Fade3d1); // Turn pixel on
         }
         else
         {
+            // NOT A GROUP
             for(y=0; y<BufferHt; y++)
             {
-                for(x1=0; x1<MaxChase; x1++)
+                draw_chase(x,y,hsv,ColorScheme,Number_Chases,width,R_TO_L1,Color_Mix1,Chase_Fade3d1); // Turn pixel on
+            }
+
+        }
+    }
+}
+
+void RgbEffects::draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,
+                            int width,bool R_TO_L1,int Chase_Width,bool Chase_Fade3d1)
+{
+    float  orig_v,new_v;
+    int new_x,i,max_chase_width,pixels_per_chase;
+    wxColour color;
+    size_t colorcnt=GetColorCount();
+    int ColorIdx;
+
+    orig_v=hsv.value;
+    SetPixel(x,y,hsv); // Turn pixel on
+
+    max_chase_width = width * Chase_Width/100.0;
+    pixels_per_chase = width/Number_Chases;
+
+    int pulsar=0;
+    int n;
+    float val;
+    int mid = 0.5 + (max_chase_width/2.0);
+    int pixels_per_color=max_chase_width/colorcnt;
+    if(pixels_per_color<1) pixels_per_color=1;
+    if(max_chase_width>=1)
+    {
+        for (i=0; i<=max_chase_width; i++)
+        {
+            if(pulsar==1)
+            {
+                n=state%10;
+                switch (n)
                 {
-                    xt=x0-x1;
-                    if(R_TO_L1) xt=MaxNodes-x0-x1;
-                    if(xt<0) xt=0;
-                    x=xt%BufferWi;
-                    ColorIdx=chase_buffer[x1];
-                    if(ColorIdx>=0) palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                    x1_mod=x1%Chase_Spacing1;
-                    if(x>=BufferWi || x<0 || (Chase_Spacing1>1 && x1_mod != 0 && x1_mod != 1))
+                case 0:
+                case 4:
+                    pulse(x,y,hsv,0.30);
+                    break;
+                case 1:
+                case 3:
+                    pulse(x,y,hsv,0.50);
+                    pulse(x-1,y,hsv,0.30);
+                    pulse(x+1,y,hsv,0.30);
+
+                    break;
+                case 2:
+                    pulse(x,y,hsv,1.0);
+                    pulse(x-1,y,hsv,0.50);
+                    pulse(x+1,y,hsv,0.50);
+                    pulse(x-2,y,hsv,0.30);
+                    pulse(x+2,y,hsv,0.30);
+                    break;
+                }
+            }
+            else // not pulsar
+            {
+                if(ColorScheme==0)
+                    if(max_chase_width) hsv.hue = 1.0 - (i*1.0/max_chase_width); // rainbow hue
+                if(R_TO_L1)
+                    new_x = x-i;
+                else
+                    new_x = x+i;
+                if(new_x<0)
+                {
+                    y++;
+                    new_x+=width;
+                }
+                else if(new_x>width)
+                {
+                    y++;
+                    new_x-=width;
+                }
+                //new_x=new_x%BufferWi;
+                if(i<=pixels_per_chase) // as long as the chase fits, keep drawing it
+                {
+                    if(ColorScheme==0)
+                        SetPixel(new_x,y,hsv); // Turn pixel on
+                    else
                     {
-                        hsv.value=0.0;
-                        hsv.saturation=1.0;
-                        hsv.hue=0.0;
+                        if(colorcnt==1)
+                            ColorIdx=0;
+                        else
+                        {
+                            ColorIdx=i/pixels_per_color;
+                        }
+                        if(ColorIdx>=colorcnt) ColorIdx=colorcnt-1;
+                        palette.GetHSV(ColorIdx, hsv);
+                        if(Chase_Fade3d1) hsv.value=orig_v - (i*1.0/max_chase_width); // fades data down over chase width
+                        if(hsv.value<0.0) hsv.value=0.0;
+                        SetPixel(new_x,y,hsv); // Turn pixel on
                     }
-                    SetPixel(x,y,hsv); // Turn pixel on
                 }
             }
         }
     }
+}
+void RgbEffects::pulse(int x,int y,wxImage::HSVValue hsv,float adjust_brightness)
+{
+    if(x>0)
+    {
+        hsv.value *= adjust_brightness;
+        SetPixel(x,y,hsv);
+    }
+
 }

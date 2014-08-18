@@ -303,6 +303,7 @@ void xLightsFrame::SetEffectControls(wxString settings)
     OnSlider_EffectLayerMixCmdScroll(evt);
 
     OnSlider_SparkleFrequencyCmdScroll(evt);
+//    OnSlider_Model_BrightnessCmdScroll(evt);
 //   OnSlider_SparkleSliderCmdScroll(evt);
 
     EffectsPanel1->UpdateSpeedText();
@@ -373,7 +374,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
         //        || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
         eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
                 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff_NONE:eff1;
-                if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
+        if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
@@ -381,7 +382,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
                 ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
                 ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
-                 if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
+        if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
         //       eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
         //     || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
 
@@ -1063,11 +1064,14 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "SingleStrand")
     {
-        buffer.RenderSingleStrand(wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
-                                  wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
-                                  SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
-                                  SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
-                                  SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
+        buffer.RenderSingleStrand(
+            SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
+            wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
+            wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
+            wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
+            SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
+            SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
+            SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
     }
     else if (effect == "Snowflakes")
     {
@@ -1274,7 +1278,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_SINGLESTRAND:
-        buffer.RenderSingleStrand(panel->Slider_Color_Mix1->GetValue(),
+        buffer.RenderSingleStrand(panel->Choice_SingleStrand_Colors->GetSelection(),
+                                  panel->Slider_Number_Chases->GetValue(),
+                                  panel->Slider_Color_Mix1->GetValue(),
                                   panel->Slider_Chase_Spacing1->GetValue(),
                                   panel->Choice_Chase_Type1->GetSelection(),
                                   panel->CheckBox_Chase_3dFade1->GetValue(),
@@ -2704,6 +2710,7 @@ void xLightsFrame::RenderGridToSeqData()
 
                     int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
                     buffer.SetBrightness(brightness);
+//                    int b = ModelBrightness;
 
                     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                     buffer.SetContrast(contrast);

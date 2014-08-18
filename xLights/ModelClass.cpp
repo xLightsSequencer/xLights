@@ -64,6 +64,11 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     tempstr.ToLong(&parm3);
     tempstr=ModelNode->GetAttribute("StartChannel","1");
     tempstr.ToLong(&StartChannel);
+    if (ModelNode->HasAttribute("ModelBrightness"))
+    {
+        tempstr=ModelNode->GetAttribute("ModelBrightness");
+        tempstr.ToLong(&ModelBrightness);
+    }
     tempstr=ModelNode->GetAttribute("Dir");
     IsLtoR=tempstr != "R";
     if (ModelNode->HasAttribute("StartSide"))
@@ -79,6 +84,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     tempstr=ModelNode->GetAttribute("Antialias","0");
     tempstr.ToLong(&Antialias);
     AliasFactor=1 << Antialias;
+
+
     MyDisplay=IsMyDisplay(ModelNode);
 
     tempstr=ModelNode->GetAttribute("offsetXpct","0");
@@ -183,6 +190,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         InitWreath();
         CopyBufCoord2ScreenCoord();
     }
+
+
 
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
@@ -405,20 +414,24 @@ void ModelClass::InitCustomMatrix(const wxString& customModel)
                 value.ToLong(&idx);
 
                 // increase nodemap size if necessary
-                if (idx > nodemap.size()) {
+                if (idx > nodemap.size())
+                {
                     nodemap.resize(idx, -1);
                 }
                 idx--;  // adjust to 0-based
 
                 // is node already defined in map?
-                if (nodemap[idx] < 0) {
+                if (nodemap[idx] < 0)
+                {
                     // unmapped - so add a node
                     nodemap[idx]=Nodes.size();
                     SetNodeCount(1,0);  // this creates a node of the correct class
                     Nodes.back()->StringNum= SingleNode ? idx : 0;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     Nodes.back()->AddBufCoord(col,height - row - 1);
-                } else {
+                }
+                else
+                {
                     // mapped - so add a coord to existing node
                     Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
                 }

@@ -3307,17 +3307,70 @@
 							<pos>39,6</pos>
 							<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 								<pos>0,0</pos>
-								<size>264,208</size>
+								<size>288,280</size>
 								<object class="notebookpage">
 									<object class="wxPanel" name="ID_PANEL3" variable="Panel1" member="yes">
 										<object class="wxFlexGridSizer" variable="FlexGridSizer24" member="no">
 											<cols>3</cols>
-											<rows>5</rows>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT63" variable="StaticText61" member="yes">
+													<label>Colors</label>
+												</object>
+												<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+											</object>
+											<object class="sizeritem">
+												<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes">
+													<size>95,21</size>
+												</object>
+												<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SingleStrand_Colors" variable="BitmapButton_SingleStrand_Colors" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<size>22,21</size>
+													<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT62" variable="StaticText60" member="yes">
+													<label>Number Chases</label>
+												</object>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSlider" name="ID_SLIDER_Number_Chases" variable="Slider_Number_Chases" member="yes">
+													<value>1</value>
+													<min>1</min>
+													<max>20</max>
+													<selmin>1</selmin>
+													<selmax>20</selmax>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Number_Chases" variable="BitmapButton_Number_Chases" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<size>22,21</size>
+													<handler function="OnBitmapButton_Number_ChasesClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
 													<label>Chase Size</label>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -3346,7 +3399,7 @@
 												<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText10" member="yes">
 													<label>Chase Spacing</label>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -3356,7 +3409,7 @@
 													<min>1</min>
 													<max>20</max>
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -3376,12 +3429,14 @@
 												<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText11" member="yes">
 													<label>Chase Types</label>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes" />
+												<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes">
+													<size>95,21</size>
+												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
@@ -3402,7 +3457,7 @@
 												<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText12" member="yes">
 													<label>3d Fade</label>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -3430,7 +3485,7 @@
 												<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText13" member="yes">
 													<label>Group All Arches</label>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -3441,12 +3496,12 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_R_TO_L1" variable="BitmapButton_R_TO_L1" member="yes">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Chase_Group_All" variable="BitmapButton_Chase_Group_All" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
 													<size>22,21</size>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-													<handler function="OnBitmapButton_R_TO_L1Click" entry="EVT_BUTTON" />
+													<handler function="OnBitmapButton_Chase_Group_AllClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>

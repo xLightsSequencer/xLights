@@ -378,6 +378,7 @@ private:
     void OnTextCtrl1Text(wxCommandEvent& event);
     void OnTextCtrl20Text(wxCommandEvent& event);
     void OnButtonPgoImageClick(wxCommandEvent& event);
+    void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -528,6 +529,7 @@ private:
     static const long ID_BITMAPBUTTON11;
     static const long ID_BITMAPBUTTON13;
     static const long ID_BITMAPBUTTON12;
+    static const long ID_TEXTCTRL9;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
@@ -920,6 +922,7 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
+    wxTextCtrl* TextCtrl5;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
@@ -1196,6 +1199,7 @@ private:
     wxArrayString PianoEffectStyles;
     wxArrayString PianoKeyPlacement;
     wxArrayString SingleStrandTypes;
+    wxArrayString SingleStrandColors;
     wxArrayString TextEffects;
     wxArrayString TextCountDown;
     wxArrayString WaveType;

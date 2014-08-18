@@ -35,7 +35,6 @@ public:
     //(*Declarations(ModelDialog)
     wxStaticText* StaticText10;
     wxStaticText* StaticText9;
-    wxSlider* SLIDER_MODEL_BRIGHTNESS;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
@@ -60,6 +59,7 @@ public:
     wxBitmapButton* BitmapButtonCustomCopy;
     wxScrolledWindow* ScrolledWindow2;
     wxCheckBox* cbIndividualStartNumbers;
+    wxSlider* Slider_Model_Brightness;
     wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
     wxGrid* gridStartChannels;
@@ -101,7 +101,7 @@ protected:
     static const long ID_STATICTEXT10;
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT7;
-    static const long ID_SLIDER_MODEL_BRIGHTNESS;
+    static const long ID_Slider_Model_Brightness;
     static const long ID_SPINCTRL5;
     static const long ID_STATICTEXT13;
     static const long ID_CHECKBOX2;
@@ -132,7 +132,9 @@ private:
     void OnBitmapButtonCustomCopyClick(wxCommandEvent& event);
     void OnBitmapButtonCustomCutClick(wxCommandEvent& event);
     void OnSpinCtrl_parm3Change(wxSpinEvent& event);
-    void OnSLIDER_MODEL_BRIGHTNESSCmdScroll(wxScrollEvent& event);
+    void OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event);
+    void OnSlider_Model_BrightnessScrollTop(wxScrollEvent& event);
+    void OnSlider_Model_BrightnessCmdScroll1(wxScrollEvent& event);
     //*)
 
     void SetReadOnly(bool);

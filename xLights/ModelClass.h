@@ -220,6 +220,7 @@ private:
     bool isBotToTop;
     long Antialias;      // amount of anti-alias (0,1,2)
     int AliasFactor;     // factor to expand buffer (2 ^ Antialias)
+
     int TreeDegrees,FrameWidth;
     bool modelv2;
     int StrobeRate;      // 0=no strobing
@@ -245,6 +246,7 @@ public:
     int BufferHt,BufferWi;  // size of the buffer
     int RenderHt,RenderWi;  // size of the rendered output
     bool MyDisplay;
+    long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
 
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     size_t GetNodeCount();
@@ -262,6 +264,7 @@ public:
     void DisplayEffectOnWindow(wxWindow* window);
     bool CanRotate();
     void Rotate(int degrees);
+
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum);

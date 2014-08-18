@@ -323,6 +323,12 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Twinkle_Steps = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe = wxNewId();
 const long EffectsPanel::ID_PANEL33 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT63 = wxNewId();
+const long EffectsPanel::ID_CHOICE_SingleStrand_Colors = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_SingleStrand_Colors = wxNewId();
+const long EffectsPanel::ID_STATICTEXT62 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Number_Chases = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Number_Chases = wxNewId();
 const long EffectsPanel::ID_STATICTEXT8 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Color_Mix1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Color_Mix1 = wxNewId();
@@ -337,7 +343,7 @@ const long EffectsPanel::ID_CHECKBOX_Chase_3dFade1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT12 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Chase_Group_All = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_R_TO_L1 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Chase_Group_All = wxNewId();
 const long EffectsPanel::ID_PANEL3 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
 const long EffectsPanel::ID_PANEL2 = wxNewId();
@@ -1495,32 +1501,45 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer4->Fit(Panel1_Twinkle);
     FlexGridSizer4->SetSizeHints(Panel1_Twinkle);
     Panel1_SingleStrand = new wxPanel(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    Notebook1 = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK1, wxPoint(0,0), wxSize(264,208), 0, _T("ID_NOTEBOOK1"));
+    Notebook1 = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK1, wxPoint(0,0), wxSize(288,280), 0, _T("ID_NOTEBOOK1"));
     Panel1 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-    FlexGridSizer24 = new wxFlexGridSizer(5, 3, 0, 0);
+    FlexGridSizer24 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText61 = new wxStaticText(Panel1, ID_STATICTEXT63, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT63"));
+    FlexGridSizer24->Add(StaticText61, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
+    Choice_SingleStrand_Colors = new wxChoice(Panel1, ID_CHOICE_SingleStrand_Colors, wxDefaultPosition, wxSize(95,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_SingleStrand_Colors"));
+    FlexGridSizer24->Add(Choice_SingleStrand_Colors, 1, wxALIGN_LEFT|wxALIGN_TOP, 5);
+    BitmapButton_SingleStrand_Colors = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_SingleStrand_Colors, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SingleStrand_Colors"));
+    FlexGridSizer24->Add(BitmapButton_SingleStrand_Colors, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText60 = new wxStaticText(Panel1, ID_STATICTEXT62, _("Number Chases"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT62"));
+    FlexGridSizer24->Add(StaticText60, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Number_Chases = new wxSlider(Panel1, ID_SLIDER_Number_Chases, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Chases"));
+    Slider_Number_Chases->SetSelection(1, 20);
+    FlexGridSizer24->Add(Slider_Number_Chases, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Number_Chases = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_Number_Chases, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Number_Chases"));
+    FlexGridSizer24->Add(BitmapButton_Number_Chases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText9 = new wxStaticText(Panel1, ID_STATICTEXT8, _("Chase Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    FlexGridSizer24->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer24->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Color_Mix1 = new wxSlider(Panel1, ID_SLIDER_Color_Mix1, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Color_Mix1"));
     FlexGridSizer24->Add(Slider_Color_Mix1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Color_Mix1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_SLIDER_Color_Mix1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Color_Mix1"));
     BitmapButton_Color_Mix1->SetDefault();
     FlexGridSizer24->Add(BitmapButton_Color_Mix1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText10 = new wxStaticText(Panel1, ID_STATICTEXT9, _("Chase Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-    FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer24->Add(StaticText10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Chase_Spacing1 = new wxSlider(Panel1, ID_SLIDER_Chase_Spacing1, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Chase_Spacing1"));
-    FlexGridSizer24->Add(Slider_Chase_Spacing1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer24->Add(Slider_Chase_Spacing1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Chase_Spacing1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_SLIDER_Chase_Spacing1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Chase_Spacing1"));
     BitmapButton_Chase_Spacing1->SetDefault();
     FlexGridSizer24->Add(BitmapButton_Chase_Spacing1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText11 = new wxStaticText(Panel1, ID_STATICTEXT10, _("Chase Types"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
-    FlexGridSizer24->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_Chase_Type1 = new wxChoice(Panel1, ID_CHOICE_Chase_Type1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Chase_Type1"));
+    FlexGridSizer24->Add(StaticText11, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Chase_Type1 = new wxChoice(Panel1, ID_CHOICE_Chase_Type1, wxDefaultPosition, wxSize(95,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Chase_Type1"));
     FlexGridSizer24->Add(Choice_Chase_Type1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Chase_Type1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_CHOICE_Chase_Type1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Chase_Type1"));
     BitmapButton_Chase_Type1->SetDefault();
     FlexGridSizer24->Add(BitmapButton_Chase_Type1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText12 = new wxStaticText(Panel1, ID_STATICTEXT11, _("3d Fade"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
-    FlexGridSizer24->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer24->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Chase_3dFade1 = new wxCheckBox(Panel1, ID_CHECKBOX_Chase_3dFade1, _("Yes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chase_3dFade1"));
     CheckBox_Chase_3dFade1->SetValue(false);
     FlexGridSizer24->Add(CheckBox_Chase_3dFade1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1528,13 +1547,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Chase_3dFade1->SetDefault();
     FlexGridSizer24->Add(BitmapButton_Chase_3dFade1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText13 = new wxStaticText(Panel1, ID_STATICTEXT12, _("Group All Arches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
-    FlexGridSizer24->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer24->Add(StaticText13, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Chase_Group_All = new wxCheckBox(Panel1, ID_CHECKBOX_Chase_Group_All, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Chase_Group_All"));
     CheckBox_Chase_Group_All->SetValue(false);
     FlexGridSizer24->Add(CheckBox_Chase_Group_All, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_R_TO_L1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_CHECKBOX_R_TO_L1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_R_TO_L1"));
-    BitmapButton_R_TO_L1->SetDefault();
-    FlexGridSizer24->Add(BitmapButton_R_TO_L1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Chase_Group_All = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_Chase_Group_All, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Chase_Group_All"));
+    BitmapButton_Chase_Group_All->SetDefault();
+    FlexGridSizer24->Add(BitmapButton_Chase_Group_All, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1->SetSizer(FlexGridSizer24);
     FlexGridSizer24->Fit(Panel1);
     FlexGridSizer24->SetSizeHints(Panel1);
@@ -1890,11 +1909,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleCountClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Twinkle_Steps,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleStepsClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TwinkleStrobeClick);
+    Connect(ID_BITMAPBUTTON_SingleStrand_Colors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SingleStrand_ColorsClick);
+    Connect(ID_BITMAPBUTTON_Number_Chases,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Number_ChasesClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Color_Mix1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Color_Mix1Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Chase_Spacing1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Spacing1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Type1Click);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_3dFade1Click);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_R_TO_L1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_R_TO_L1Click);
+    Connect(ID_BITMAPBUTTON_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Group_AllClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_WaveTypeClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_FillColorsClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_MirrorWaveClick);
@@ -2531,11 +2552,13 @@ showlock(TwinkleCount)
 showlock(TwinkleSteps)
 showlock(TwinkleStrobe)
 //lock buttons for Single Strand:
+showlock(SingleStrand_Colors)
+showlock(Number_Chases)
 showlock(Color_Mix1)
 showlock(Chase_Spacing1)
 showlock(Chase_Type1)
 showlock(Chase_3dFade1)
-showlock(R_TO_L1)
+showlock(Chase_Group_All)
 
 showlock(WaveType)
 showlock(Wave_FillColors)

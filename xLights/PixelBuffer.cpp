@@ -484,9 +484,11 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,in
     Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
 }
 
-void PixelBufferClass::RenderSingleStrand(int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
+void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
+                                          int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {
-    Effect[CurrentLayer].RenderSingleStrand(Color_Mix1,Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
+    Effect[CurrentLayer].RenderSingleStrand( ColorScheme,Number_Chases, Color_Mix1,
+                                            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)

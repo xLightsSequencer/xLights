@@ -6,6 +6,14 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.11	Aug 15, 2014
+	-ENH (sean) Single Strand Effect now can use "Fit to Time". 
+		If this is checked, one cycle of an arch will be done. 
+		It will exactly fit the time on the current row of the grid.
+	-Bug (sean) Two places in the code would cause a crash. Both have been fixed.
+3.4.10	Aug 14, 2014
+	-ENH (sean) complete rewrite of Single Strand effect. New sliders: Number of Chases, 
+		color (Rainbow,palette)
 3.4.9	Aug 7, 2014
 	-Bug (djulien) wxDateTime is broken again; force RFC822 format to try to get it to work; 
 	for example: "Thu, 25 Dec 2014 00:00:00 MST" or "Thu, 25 Dec 2014 00:00:00 -0700"
