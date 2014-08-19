@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.4.11)</title>
+		<title>xLights/Nutcracker  (Ver 3.4.12)</title>
 		<pos>-1,-1</pos>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
@@ -1751,14 +1751,6 @@
 																					<hidden>1</hidden>
 																					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
-																				</object>
-																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																			<object class="sizeritem">
-																				<object class="wxTextCtrl" name="ID_TEXTCTRL9" variable="TextCtrl5" member="yes">
-																					<value>Text</value>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>

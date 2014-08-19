@@ -529,7 +529,6 @@ private:
     static const long ID_BITMAPBUTTON11;
     static const long ID_BITMAPBUTTON13;
     static const long ID_BITMAPBUTTON12;
-    static const long ID_TEXTCTRL9;
     static const long ID_PANEL31;
     static const long ID_STATICTEXT4;
     static const long ID_BUTTON_PLAY_RGB_SEQ;
@@ -922,7 +921,6 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
-    wxTextCtrl* TextCtrl5;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;

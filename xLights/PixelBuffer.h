@@ -57,6 +57,7 @@ private:
 
     int sparkle_count;
     int brightness;
+     int ModelBrightness;
     int contrast;
     int CurrentLayer;  // 0 or 1
     float effectMixThreshold;
@@ -80,6 +81,7 @@ public:
     void SetFadeTimes(int layer, float inTime, float outTime);
     void SetSparkle(int freq);
     void SetBrightness(int value);
+    void SetModelBrightness(int value);
     void SetContrast(int value);
     void SetMixThreshold(int value, bool varies);
     void CalcOutput(int EffectPeriod);

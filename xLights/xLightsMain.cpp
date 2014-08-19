@@ -212,7 +212,6 @@ const long xLightsFrame::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON11 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON13 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON12 = wxNewId();
-const long xLightsFrame::ID_TEXTCTRL9 = wxNewId();
 const long xLightsFrame::ID_PANEL31 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_PLAY_RGB_SEQ = wxNewId();
@@ -455,7 +454,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.11)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.12)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     Move(wxPoint(-1,-1));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
@@ -976,8 +975,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton_random->SetDefault();
     BitmapButton_random->Hide();
     FlexGridSizer33->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl5 = new wxTextCtrl(SeqPanelLeft, ID_TEXTCTRL9, _("Text"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL9"));
-    FlexGridSizer33->Add(TextCtrl5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer6->Add(StaticBoxSizer3, 0, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SeqPanelLeft->SetSizer(BoxSizer6);

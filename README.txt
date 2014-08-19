@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.11	Aug 19, 2014
+	-ENH (sean) 4th Open option of Nuctacrker, "New Animation Sequence", now allows fractional times. Before
+		only values like "10,11,15" were allowed. Now "10.123,11.32123,15.2"
 3.4.11	Aug 15, 2014
 	-ENH (sean) Single Strand Effect now can use "Fit to Time". 
 		If this is checked, one cycle of an arch will be done. 

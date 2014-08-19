@@ -2610,14 +2610,23 @@ void xLightsFrame::OpenSequence()
     else if (dialog.RadioButtonNewAnim->GetValue())
     {
         UnsavedChanges = true;
-        duration=dialog.SpinCtrlDuration->GetValue();  // seconds
-        DisplayXlightsFilename(nullString);
-        if (duration <= 0)
+       // duration=dialog.SpinCtrlDuration->GetValue();  // seconds
+        duration=0;
+        wxString s_duration = dialog.SpinCtrlDuration_Float->GetValue(); // <SCM>
+        double f_duration;
+        if(!s_duration.ToDouble(&f_duration))
         {
-            wxMessageBox("Invalid value for duration","ERROR");
+            /* error! */
+        }
+
+        DisplayXlightsFilename(nullString);
+        if (f_duration <= 0.0)
+        {
+            wxMessageBox("Invalid value for duration. Value must be > 0.001","ERROR");
             return;
         }
-        duration*=1000;  // convert to milliseconds
+   //     duration*=1000;  // convert to milliseconds
+        duration=f_duration*1000;  // convert to milliseconds <SCM>
     }
 
     SeqData.clear();
