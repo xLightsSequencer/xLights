@@ -20,7 +20,7 @@ all: makefile subdirs
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS): FORCE
-	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" releaselinux
+	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" linux_release
 
 
 #############################################################################
@@ -28,7 +28,7 @@ $(SUBDIRS): FORCE
 debug: $(addsuffix _debug,$(SUBDIRS))
 
 $(addsuffix _debug,$(SUBDIRS)):
-	@${MAKE} -C $(subst _debug,,$@) -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" debuglinux
+	@${MAKE} -C $(subst _debug,,$@) -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" linux_debug
 
 #############################################################################
 
