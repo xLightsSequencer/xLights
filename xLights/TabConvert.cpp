@@ -1657,6 +1657,28 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     file.Seek(0);
 
 
+
+    channels = 0;
+
+    for (tmp = 0; tmp < map.size(); tmp += 2)
+    {
+        int i = map[tmp + 1];
+        int orig = NetInfo.GetNumChannels(tmp / 2);
+        if (i < orig) {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+            i = orig;
+        } else if (i > orig) {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]));
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+        } else {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig));
+        }
+        
+        
+        map[tmp + 1] = channels;
+        channels += i;
+    }
+
     TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("msPerCell = %d ms\n"), msPerCell));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels = %d\n"), channels));
@@ -1674,19 +1696,17 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         return;
     }
     SeqData.resize(SeqDataLen);
-
+    for (int x = 0; x < SeqDataLen; x++) {
+        SeqData[x] = 0;
+    }
+    
     ChannelNames.resize(channels);
     ChannelColors.resize(channels);
+
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2)
-    {
-        int i = map[tmp + 1];
-        map[tmp + 1] = channels;
-        channels += i;
-    }
-    channels = 0;
-
+    wxYield();
+    
     parser = new SP_XmlPullParser();
     read = file.Read(bytes, maxSizeOfRead);
     parser->append(bytes, read);
@@ -1694,6 +1714,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
 
     event = parser->getNext();
     done = 0;
+    int nodecnt = 0;
     while (!done)
     {
         if (!event)
@@ -1758,12 +1779,19 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             }
             case SP_XmlPullEvent::eEndTag:
             {
+                if (nodecnt > 1000)
+                {
+                    nodecnt=0;
+                    wxYield();
+                }
+                nodecnt++;
                 SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
                     if (NodeName == _("ChannelData"))
                     {
+                        
                         //finished reading this channel, map the data
                         int idx = ChannelName.find(", ");
                         wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
