@@ -593,10 +593,10 @@ private:
     static const long ID_STATICTEXT35;
     static const long ID_STATICTEXT36;
     static const long ID_STATICTEXT37;
-    static const long ID_CHOICE1;
-    static const long ID_CHOICE2;
-    static const long ID_CHOICE3;
-    static const long ID_CHOICE4;
+    static const long ID_CHOICE_PgoModelVoice1;
+    static const long ID_CHOICE_PgoModelVoice2;
+    static const long ID_CHOICE_PgoModelVoice3;
+    static const long ID_CHOICE_PgoModelVoice4;
     static const long ID_PANEL5;
     static const long ID_GRID_COROFACES;
     static const long ID_PGO_COROFACES;
@@ -672,6 +672,7 @@ private:
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
     //(*Declarations(xLightsFrame)
+    wxChoice* Choice_PgoModelVoice2;
     wxRadioButton* RadioButtonRgbChase;
     wxSlider* Slider_EffectLayerMix;
     wxSlider* SliderFgColorC;
@@ -694,7 +695,6 @@ private:
     wxPanel* Panel2;
     wxTextCtrl* TextCtrl_L_image;
     wxButton* ButtonTestSelectAll;
-    wxChoice* Choice2;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxStaticText* StaticText27;
@@ -716,6 +716,7 @@ private:
     wxButton* Button_pgo_filename;
     wxButton* Button2;
     wxButton* Button_PlayEffect;
+    wxChoice* Choice_PgoModelVoice3;
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
@@ -749,7 +750,6 @@ private:
     wxBitmapButton* BitmapButtonInsertRow;
     wxStaticText* StaticText19;
     wxButton* ButtonDeleteShow;
-    wxChoice* Choice4;
     wxStaticText* StaticTextSequenceFileName;
     wxBitmapButton* BitmapButton_SparkleFrequency;
     wxRadioButton* RadioButtonRgbShimmer;
@@ -800,7 +800,6 @@ private:
     wxMenu* MenuFile;
     wxTextCtrl* TextCtrl_rest_image;
     wxTextCtrl* TextCtrl_O_image;
-    wxChoice* Choice3;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxButton* ButtonChangeDir;
@@ -845,9 +844,11 @@ private:
     wxBitmapButton* BitmapButton_Contrast;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxButton* Button_eyesclosed_image;
+    wxChoice* Choice_PgoModelVoice4;
     wxPanel* PGO_COROFACES;
     wxSlider* Slider_Contrast;
     wxStaticText* StaticText67;
+    wxChoice* Choice_PgoModelVoice1;
     wxButton* ButtonTestSave;
     wxButton* Button_U_image;
     wxButton* Button_E_image;
@@ -874,7 +875,6 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxChoice* Choice1;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;

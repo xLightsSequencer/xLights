@@ -276,10 +276,10 @@ const long xLightsFrame::ID_STATICTEXT34 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT35 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT36 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT37 = wxNewId();
-const long xLightsFrame::ID_CHOICE1 = wxNewId();
-const long xLightsFrame::ID_CHOICE2 = wxNewId();
-const long xLightsFrame::ID_CHOICE3 = wxNewId();
-const long xLightsFrame::ID_CHOICE4 = wxNewId();
+const long xLightsFrame::ID_CHOICE_PgoModelVoice1 = wxNewId();
+const long xLightsFrame::ID_CHOICE_PgoModelVoice2 = wxNewId();
+const long xLightsFrame::ID_CHOICE_PgoModelVoice3 = wxNewId();
+const long xLightsFrame::ID_CHOICE_PgoModelVoice4 = wxNewId();
 const long xLightsFrame::ID_PANEL5 = wxNewId();
 const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
 const long xLightsFrame::ID_PGO_COROFACES = wxNewId();
@@ -1250,14 +1250,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer47->Add(StaticText34, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText35 = new wxStaticText(Panel4, ID_STATICTEXT37, _("Model Voice 4"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT37"));
     FlexGridSizer47->Add(StaticText35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice1 = new wxChoice(Panel4, ID_CHOICE1, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    FlexGridSizer47->Add(Choice1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice2 = new wxChoice(Panel4, ID_CHOICE2, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-    FlexGridSizer47->Add(Choice2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice3 = new wxChoice(Panel4, ID_CHOICE3, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-    FlexGridSizer47->Add(Choice3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice4 = new wxChoice(Panel4, ID_CHOICE4, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
-    FlexGridSizer47->Add(Choice4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PgoModelVoice1 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice1, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice1"));
+    FlexGridSizer47->Add(Choice_PgoModelVoice1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PgoModelVoice2 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice2, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice2"));
+    FlexGridSizer47->Add(Choice_PgoModelVoice2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PgoModelVoice3 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice3, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice3"));
+    FlexGridSizer47->Add(Choice_PgoModelVoice3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PgoModelVoice4 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice4, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice4"));
+    FlexGridSizer47->Add(Choice_PgoModelVoice4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel4->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel4);
     FlexGridSizer47->SetSizeHints(Panel4);
@@ -2120,7 +2120,21 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     {
         UpdatePreview();
     }
-
+    if (pagenum == PAPAGAYOTAB) //populate choice lists with model names
+    {
+        Choice_PgoModelVoice1->Clear();
+        Choice_PgoModelVoice2->Clear();
+        Choice_PgoModelVoice3->Clear();
+        Choice_PgoModelVoice4->Clear();
+        for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+        {
+            if ((*it)->name.IsEmpty()) continue;
+            Choice_PgoModelVoice1->Append((*it)->name);
+            Choice_PgoModelVoice2->Append((*it)->name);
+            Choice_PgoModelVoice3->Append((*it)->name);
+            Choice_PgoModelVoice4->Append((*it)->name);
+        }
+    }
     if (event.GetOldSelection() == TESTTAB)
     {
         AllLightsOff();

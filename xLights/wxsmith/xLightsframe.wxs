@@ -2579,7 +2579,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice1" variable="Choice_PgoModelVoice1" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2587,7 +2587,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE2" variable="Choice2" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice2" variable="Choice_PgoModelVoice2" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2595,7 +2595,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE3" variable="Choice3" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice3" variable="Choice_PgoModelVoice3" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2603,7 +2603,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE4" variable="Choice4" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice4" variable="Choice_PgoModelVoice4" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
