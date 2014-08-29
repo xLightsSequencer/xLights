@@ -25,6 +25,7 @@
 #define retmsg(msg)  \
 { \
     wxMessageBox(msg, _("Papagayo Error")); \
+    debug(1, "RETERR: %s", (const char*)msg.c_str()); \
     return; \
 }
 
@@ -34,6 +35,7 @@
 
 void xLightsFrame::PapagayoError(const wxString& msg)
 {
+    debug(1, "ERROR: %s", (const char*)msg.c_str());
     wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
 }
 
@@ -265,7 +267,7 @@ static const wxString& readline(bool first = false)
         }
         while (!PapagayoFileInfo.linebuf.empty() && isspace(PapagayoFileInfo.linebuf[0])) PapagayoFileInfo.linebuf = PapagayoFileInfo.linebuf.substr(1); //.RemoveFirst(); //trim leading spaces
         while (!PapagayoFileInfo.linebuf.empty() && isspace(PapagayoFileInfo.linebuf.Last())) PapagayoFileInfo.linebuf.RemoveLast(); //trim trailing spaces
-        if (PapagayoFileInfo.linebuf.empty()) continue; //skip blank lines
+//NO        if (PapagayoFileInfo.linebuf.empty()) continue; //skip blank lines; NOTE: line could be blank for empty voice
         debug(20, "got line[%d] '%s'", PapagayoFileInfo.linenum, (const char*)PapagayoFileInfo.linebuf.c_str());
         return PapagayoFileInfo.linebuf;
     }
@@ -299,15 +301,15 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
 
 
     wxRegEx number("^[0-9]+$");
-    int samppersec = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-    if (!samppersec) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
+    int samppersec = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
+    if (samppersec < 1) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
 
-    int numsamp = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-    if (!numsamp) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
+    int numsamp = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
+    if (numsamp < 1) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
 
     wxString desc;
-    int numvoices = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-    if (!numvoices) retmsg(wxString::Format(_("Invalid file @line %d ('%s' voices)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
+    int numvoices = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
+    if (numvoices < 1) retmsg(wxString::Format(_("Invalid file @line %d ('%s' voices)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
 
 
   /* struct SongInfo
@@ -331,8 +333,9 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
         readline(); //all phrases for voice, "|" delimiter; TODO: do we need to save this?
         desc = wxString::Format(_("voice# %d '%s' @line %d"), v, voicename, PapagayoFileInfo.linenum);
         debug(10, (const char*)desc.c_str());
-        int numphrases = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-        if (!numphrases) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+        int numphrases = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
+        if (numphrases < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+        if (!numphrases) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
 
         VoiceInfo newvoice;
         newvoice.name = voicename;
@@ -350,8 +353,9 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
             debug(10, (const char*)desc.c_str());
             PhraseInfo newphrase;
             newphrase.name = phrasename;
-            int numwords = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
-            if (!numwords) retmsg(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+            int numwords = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
+            if (numwords < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+            if (!numwords) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
             for (int w = 1; w <= numwords; ++w)
             {
                 wxStringTokenizer wtkz(readline(), " ");
@@ -373,11 +377,12 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
                 if (!junk.empty()) warnmsg(wxString::Format(_("Ignoring junk '%s' at end of %s @line %d"), junk.c_str(), desc.c_str(), PapagayoFileInfo.linenum));
                 debug(10, (const char*)desc.c_str());
 
-                int end_frame = number.Matches(endfr)? wxAtoi(endfr): 0;
-                if (!end_frame) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
+                int end_frame = number.Matches(endfr)? wxAtoi(endfr): -1;
+                if (end_frame < 1) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
 
-                int numsylls = number.Matches(syllcount)? wxAtoi(syllcount): 0;
-                if (!numsylls) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
+                int numsylls = number.Matches(syllcount)? wxAtoi(syllcount): -1;
+                if (numsylls < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
+                if (!numsylls) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
                 for (int syll = 1; syll <= numsylls; ++syll)
                 {
                     wxStringTokenizer stkz = wxStringTokenizer(readline(), " ");
@@ -410,9 +415,10 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
         }
         voices.push_back(newvoice);
     }
+    if (!readline().empty()) warnmsg(wxString::Format(_("Ignoring junk at eof ('%s' found on line %d)"), PapagayoFileInfo.linebuf.c_str(), PapagayoFileInfo.linenum));
 
     if (!warnings.empty()) wxMessageBox(warnings, _("Papagayo Warning"));
-    debug(3, "file loaded");
+    debug(3, "file loaded %s", (const char*)warnings.c_str());
 }
 
 void xLightsFrame::OnButtonPgoImageClick(wxCommandEvent& event)

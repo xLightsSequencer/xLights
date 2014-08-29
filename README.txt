@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+	-bug (djulien) Allow pgo parser to tolerate blank voices
 3.4.12
         -ENH (dkulp) HLS import - now uses wxYield to display progress during load
         -ENH (dkulp) HLS import - if an HLS universe has less channels than configured in xLights, use the xLights value.
