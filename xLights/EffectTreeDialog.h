@@ -72,11 +72,12 @@ class EffectTreeDialog : public wxDialog
         wxXmlNode* CreateEffectGroupNode(wxString& name);
         void FixupEffectsPresets(wxXmlNode *UserGroupNode);
         void ApplyEffect(bool dblClick=false);
-        bool PromptForName(wxString *name, wxString prompt, wxString errorMsg);
         void SaveEffectsFile();
 
 		DECLARE_EVENT_TABLE()
 
+    public:
+        static bool PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg); //static to allow re-use elsewhere -DJ
 };
 
 class MyTreeItemData : public wxTreeItemData
