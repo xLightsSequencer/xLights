@@ -1182,6 +1182,7 @@ private:
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
+    wxChoice* Voice(int inx); //treat drop-down lists as array
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ

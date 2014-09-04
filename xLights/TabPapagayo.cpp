@@ -13,12 +13,12 @@
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
 
-//#define WANT_DEBUG_IMPL
-//#define WANT_DEBUG  99
-//#include "djdebug.cpp"
-#define debug(level, ...)
-#define debug_more(level, ...)
-#define debug_function(level)
+#define WANT_DEBUG_IMPL
+#define WANT_DEBUG  99
+#include "djdebug.cpp"
+//#define debug(level, ...)
+//#define debug_more(level, ...)
+//#define debug_function(level)
 
 //#define numents(ary)  (sizeof(ary)/sizeof(ary[0]))
 
@@ -53,12 +53,12 @@ void xLightsFrame::PapagayoError(const wxString& msg)
 //};
 
 //coro face values for one column (voice):
-struct CoroVoice
-{
-//    Initialized<bool, true> IsEmpty;
-    wxString Outline, EyesOpen, EyesClosed, Phon_AI, Phon_E, Phon_etc, Phon_FV, Phon_L, Phon_MBP, Phon_O, Phon_rest, Phon_U;
-    bool IsEmpty(void) const { return Outline.empty() && EyesOpen.empty() && EyesClosed.empty() && Phon_AI.empty() && Phon_E.empty() && Phon_etc.empty() && Phon_FV.empty() && Phon_L.empty() && Phon_MBP.empty() && Phon_O.empty() && Phon_rest.empty() && Phon_U.empty(); }
-};
+//struct CoroVoice
+//{
+////    Initialized<bool, true> IsEmpty;
+//    wxString Outline, EyesOpen, EyesClosed, Phon_AI, Phon_E, Phon_etc, Phon_FV, Phon_L, Phon_MBP, Phon_O, Phon_rest, Phon_U;
+//    bool IsEmpty(void) const { return Outline.empty() && EyesOpen.empty() && EyesClosed.empty() && Phon_AI.empty() && Phon_E.empty() && Phon_etc.empty() && Phon_FV.empty() && Phon_L.empty() && Phon_MBP.empty() && Phon_O.empty() && Phon_rest.empty() && Phon_U.empty(); }
+//};
 
 //typedef CoroVoice[4] CoroGroup; //std::vector<CoroVoice>
 //coro face settings for 4 voices on multiple groups:
@@ -453,8 +453,25 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
     debug(3, "file loaded %s", (const char*)warnings.c_str());
 }
 
+//don't create dup attrs:
+class myXmlNode: public wxXmlNode
+{
+public:
+    myXmlNode(wxXmlNodeType type, const wxString& value): wxXmlNode(type, value) {};
+    myXmlNode(const wxXmlNode& node): wxXmlNode(node) {};
+public:
+    void AddChild(myXmlNode*& child) { wxXmlNode::AddChild(child); };
+    bool RemoveChild (myXmlNode* child) { return wxXmlNode::RemoveChild(child); }
+    void AddAttribute(const wxString& name, const wxString& value)
+    {
+        wxString junk;
+        if (GetAttribute(name, &junk)) DeleteAttribute(name); //kludge: avoid dups
+        if (!value.empty()) wxXmlNode::AddAttribute(name, value);
+    }
+};
+
 //sigh; a function like this should have been built into wxWidgets
-wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& name, bool create = false)
+myXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false)
 {
 #if 0
     static struct
@@ -480,13 +497,13 @@ wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& name
     for (wxXmlNode* node = parent->GetChildren(); node != NULL; node = node->GetNext())
     {
         if (!tag.empty() && (node->GetName() != tag)) continue;
-        if (!name.empty() && (node->GetAttribute(wxT("name")) != name)) continue;
-        return node;
+        if (!value.empty() && (node->GetAttribute(attr) != value)) continue;
+        return new myXmlNode(*node);
     }
     if (!create) return 0;
-    wxXmlNode* retnode = new wxXmlNode(wxXML_ELEMENT_NODE, tag); //NOTE: assumes !tag.empty()
+    myXmlNode* retnode = new myXmlNode(wxXML_ELEMENT_NODE, tag); //NOTE: assumes !tag.empty()
     parent->AddChild(retnode);
-    if (!name.empty()) retnode->AddAttribute(wxT("name"), name);
+    if (!value.empty()) retnode->AddAttribute(attr, value);
     return retnode;
 }
 
@@ -545,7 +562,7 @@ bool xLightsFrame::LoadPgoSettings(void)
         }
     }
     if (status != Okay) pgoXml.SetRoot(new wxXmlNode(wxXML_ELEMENT_NODE, "papagayo"));
-    debug(10, "LoadPgoSetting: load file %s, status %d", pgoFile.GetFullPath(), status);
+    debug(10, "LoadPgoSetting: load file %s, status %d", (const char*)pgoFile.GetFullPath().c_str(), status);
 //    for (wxXmlNode* node = root->GetChildren(); node != NULL; node = node->GetNext())
 //        nodes[node->GetName()] = node;
 //    const char* branches[] = {"autoface", "images", "corofaces"};
@@ -554,12 +571,14 @@ bool xLightsFrame::LoadPgoSettings(void)
 
 //load autoface settings:
 //there's no group name on this tab, so set all the UI controls here
-    wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxEmptyString, true);
+    myXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
 //    XmlNode* first_face = parent->GetChildren(); //TODO: look at multiple children?
-    wxXmlNode* any_node = FindNode(AutoFace, wxT("auto"), wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab    any_node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
+    myXmlNode* any_node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab    any_node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
     if (any_node)
     {
-        RadioButton_PgoFaceRound->SetValue(any_node->GetAttribute(wxT("face_shape"), wxT("Y")) == wxT("Y"));
+        wxString shape = any_node->GetAttribute(wxT("face_shape"), wxT("Y")); //TODO: Y/N doesn't seem like the best choice here
+        RadioButton_PgoFaceRound->SetValue(shape == wxT("Y"));
+        RadioButton_PgoFaceRect->SetValue(shape != wxT("Y"));
         CheckBox_PgoFaceOutline->SetValue(any_node->GetAttribute(wxT("outline"), wxT("Y")) == wxT("Y"));
     }
 
@@ -567,11 +586,11 @@ bool xLightsFrame::LoadPgoSettings(void)
 //individual UI controls are loaded when the user chooses a group name later
 //only the list of available groups is populated here
     Choice_PgoGroupName->Clear();
-    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxEmptyString, true);
+    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
     {
         wxString grpname = group->GetAttribute(wxT("name"));
-        debug(15, "found %s group '%s'", group->GetName(), group->GetAttribute(wxT("name"), wxT("??")));
+        debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(wxT("name"), wxT("??")).c_str());
         if (group->GetName() != "coro") continue;
         if (grpname.IsEmpty()) continue;
 //        CoroGroup newgrp;
@@ -608,21 +627,21 @@ bool xLightsFrame::LoadPgoSettings(void)
     }
 
 //load image settings:
-    wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxEmptyString, true);
+    myXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* image = Images->GetChildren(); image != NULL; image = image->GetNext())
     {
         wxString grpname = image->GetAttribute(wxT("name"));
-        debug(5, "found %s image '%s'", image->GetName(), image->GetAttribute(wxT("name"), wxT("??")));
+        debug(5, "found %s image '%s'", (const char*)image->GetName().c_str(), (const char*)image->GetAttribute(wxT("name"), wxT("??")).c_str());
         if (image->GetName() != "coro") continue;
 //TODO: set group name choices
     }
 
 //load mp4 settings:
-    wxXmlNode* Mp4 = FindNode(pgoXml.GetRoot(), wxT("mp4"), wxEmptyString, true);
+    myXmlNode* Mp4 = FindNode(pgoXml.GetRoot(), wxT("mp4"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* image = Mp4->GetChildren(); image != NULL; image = image->GetNext())
     {
         wxString grpname = image->GetAttribute(wxT("name"));
-        debug(5, "found %s image '%s'", image->GetName(), image->GetAttribute(wxT("name"), wxT("??")));
+        debug(5, "found %s image '%s'", (const char*)image->GetName().c_str(), (const char*)image->GetAttribute(wxT("name"), wxT("??")).c_str());
         if (image->GetName() != "coro") continue;
 //TODO: set group name choices
     }
@@ -640,11 +659,17 @@ bool xLightsFrame::GetGroupName(wxString& grpname)
         return false;
     }
     if (grpname == CreationHint)
+    {
         if (!EffectTreeDialog::PromptForName(this, &grpname, wxT("Enter new group name"), wxT("Group name must not be empty")))
         {
             Choice_PgoGroupName->SetSelection(-1); //force event handler to fire again next time
             return false;
         }
+        Choice_PgoGroupName->Delete(Choice_PgoGroupName->GetCount() - 1); //remove "add new"
+        Choice_PgoGroupName->Append(grpname);
+        Choice_PgoGroupName->Append(CreationHint);
+        Choice_PgoGroupName->SetSelection(Choice_PgoGroupName->GetCount() - 2); //select new group
+    }
     return true;
 }
 
@@ -654,12 +679,12 @@ bool xLightsFrame::SavePgoSettings(void)
 //    wxXmlDocument pgoXml;
     pgoFile.AssignDir(CurrentDir);
     pgoFile.SetFullName(wxT(XLIGHTS_PGOFACES_FILE));
-    debug(10, "SavePgoSettings: write xmldoc to '%s'", pgoFile.GetFullPath());
+    debug(10, "SavePgoSettings: write xmldoc to '%s'", (const char*)pgoFile.GetFullPath().c_str());
 
 //save autoface settings:
 //no group name on this tab, so save all the UI controls here
-    wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxEmptyString, true);
-    wxXmlNode* node = FindNode(AutoFace, wxT("auto"), wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
+    myXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
+    myXmlNode* node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
     if (node->GetAttribute(wxT("name")).empty()) node->AddAttribute(wxT("name"), wxT("NAME?")); //give it a name (not sure what name to use)
     node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
     node->AddAttribute(wxT("outline"), CheckBox_PgoFaceOutline->GetValue()? wxT("Y"): wxT("N"));
@@ -677,19 +702,19 @@ bool xLightsFrame::SavePgoSettings(void)
         XmlNode* voice = FindNode(node, "voice", wxString::Format(wxT("FACE%d"), i + 1), true);
         voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
 //CAUTION: code below assumes a specific layout in the grid
-        voice->AddAttribute(wxT("Outline"), coro_voice.Outline = GridCoroFaces->GetCellValue(i, 0));
-        voice->AddAttribute(wxT("Eyes_open"), coro_voice.EyesOpen = GridCoroFaces->GetCellValue(i, 1));
-        voice->AddAttribute(wxT("Eyes_closed"), coro_voice.EyesClosed = GridCoroFaces->GetCellValue(i, 2));
-        voice->AddAttribute(wxT("AI"), coro_voice.Phon_AI = GridCoroFaces->GetCellValue(i, 3));
-        voice->AddAttribute(wxT("E"), coro_voice.Phon_E = GridCoroFaces->GetCellValue(i, 4));
-        voice->AddAttribute(wxT("etc"), coro_voice.Phon_etc = GridCoroFaces->GetCellValue(i, 5));
-        voice->AddAttribute(wxT("FV"), coro_voice.Phon_FV = GridCoroFaces->GetCellValue(i, 6));
-        voice->AddAttribute(wxT("L"), coro_voice.Phon_L = GridCoroFaces->GetCellValue(i, 7));
-        voice->AddAttribute(wxT("MBP"), coro_voice.Phon_MBP = GridCoroFaces->GetCellValue(i, 8));
-        voice->AddAttribute(wxT("O"), coro_voice.Phon_O = GridCoroFaces->GetCellValue(i, 9));
-        voice->AddAttribute(wxT("rest"), coro_voice.Phon_rest = GridCoroFaces->GetCellValue(i, 10));
-        voice->AddAttribute(wxT("U"), coro_voice.Phon_U = GridCoroFaces->GetCellValue(i, 11));
-        voice->AddAttribute(wxT("WQ"), coro_voice.Phon_WQ = GridCoroFaces->GetCellValue(i, 12));
+        voice->AddAttribute(wxT("Outline"), coro_voice.Outline = GridCoroFaces->GetCellValue(0, i));
+        voice->AddAttribute(wxT("Eyes_open"), coro_voice.EyesOpen = GridCoroFaces->GetCellValue(1, i));
+        voice->AddAttribute(wxT("Eyes_closed"), coro_voice.EyesClosed = GridCoroFaces->GetCellValue(2, i));
+        voice->AddAttribute(wxT("AI"), coro_voice.Phon_AI = GridCoroFaces->GetCellValue(3, i));
+        voice->AddAttribute(wxT("E"), coro_voice.Phon_E = GridCoroFaces->GetCellValue(4, i));
+        voice->AddAttribute(wxT("etc"), coro_voice.Phon_etc = GridCoroFaces->GetCellValue(5, i));
+        voice->AddAttribute(wxT("FV"), coro_voice.Phon_FV = GridCoroFaces->GetCellValue(6, i));
+        voice->AddAttribute(wxT("L"), coro_voice.Phon_L = GridCoroFaces->GetCellValue(7, i));
+        voice->AddAttribute(wxT("MBP"), coro_voice.Phon_MBP = GridCoroFaces->GetCellValue(8, i));
+        voice->AddAttribute(wxT("O"), coro_voice.Phon_O = GridCoroFaces->GetCellValue(9, i));
+        voice->AddAttribute(wxT("rest"), coro_voice.Phon_rest = GridCoroFaces->GetCellValue(10, i));
+        voice->AddAttribute(wxT("U"), coro_voice.Phon_U = GridCoroFaces->GetCellValue(11, i));
+        voice->AddAttribute(wxT("WQ"), coro_voice.Phon_WQ = GridCoroFaces->GetCellValue(12, i));
         if (!coro_voice.IsEmpty()) isempty = false;
         debug(15, "SavePgoSettings: group '%s', voice# %d empty? %d", grpname, i + 1, coro_voice.IsEmpty());
     }
@@ -730,10 +755,23 @@ void xLightsFrame::OnButtonPgoImageClick(wxCommandEvent& event)
     }
 }
 
+//allow array-like access to Voice drop-down lists:
+//NOTE: must have same number of entries as columns in grid
+wxChoice* xLightsFrame::Voice(int inx)
+{
+    switch (inx)
+    {
+        case 0: return Choice_PgoModelVoice1;
+        case 1: return Choice_PgoModelVoice2;
+        case 2: return Choice_PgoModelVoice3;
+        case 3: return Choice_PgoModelVoice4;
+        default: return 0;
+    }
+}
+
 //populate choice lists with model names, etc.
 void xLightsFrame::InitPapagayoTab(void)
 {
-    wxChoice* voices[] = {Choice_PgoModelVoice1, Choice_PgoModelVoice2, Choice_PgoModelVoice3, Choice_PgoModelVoice4}; //NOTE: must have same number of entries as columns in grid
 
 //??    if (Choice_PgoGroupName->GetCount() < 1)
     {
@@ -747,44 +785,57 @@ void xLightsFrame::InitPapagayoTab(void)
 //??    if (Choice_PgoModelVoice1->GetCount()) return;
     for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
     {
-        voices[i]->Clear();
-        voices[i]->Append(SelectionHint); //wxT("(choose)"));
-        voices[i]->SetSelection(0);
+        Voice(i)->Clear();
+        Voice(i)->Append(SelectionHint); //wxT("(choose)"));
+        Voice(i)->SetSelection(0);
     }
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if ((*it)->name.IsEmpty()) continue;
         for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
-            voices[i]->Append((*it)->name);
+            Voice(i)->Append((*it)->name);
     }
 }
 
-//NOTE: this only saves one group name at a time to the xmldoc
+//NOTE: this only saves one group name at a time to the xmldoc, then saves entire xmldoc to file
 void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 {
     wxString grpname;
     if (!GetGroupName(grpname)) return;
-    debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc", grpname);
-    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxEmptyString, true);
-    wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), grpname, true);
+    debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc", (const char*)grpname.c_str());
+    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    myXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
+    int num_voice = 0;
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
     {
-        wxXmlNode* voice = FindNode(node, "voice", wxString::Format(wxT("FACE%d"), i + 1), true);
-        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
-        voice->AddAttribute(wxT("Outline"), GridCoroFaces->GetCellValue(i, 0));
-        voice->AddAttribute(wxT("Eyes_open"), GridCoroFaces->GetCellValue(i, 1));
-        voice->AddAttribute(wxT("Eyes_closed"), GridCoroFaces->GetCellValue(i, 2));
-        voice->AddAttribute(wxT("AI"), GridCoroFaces->GetCellValue(i, 3));
-        voice->AddAttribute(wxT("E"), GridCoroFaces->GetCellValue(i, 4));
-        voice->AddAttribute(wxT("etc"), GridCoroFaces->GetCellValue(i, 5));
-        voice->AddAttribute(wxT("FV"), GridCoroFaces->GetCellValue(i, 6));
-        voice->AddAttribute(wxT("L"), GridCoroFaces->GetCellValue(i, 7));
-        voice->AddAttribute(wxT("MBP"), GridCoroFaces->GetCellValue(i, 8));
-        voice->AddAttribute(wxT("O"), GridCoroFaces->GetCellValue(i, 9));
-        voice->AddAttribute(wxT("rest"), GridCoroFaces->GetCellValue(i, 10));
-        voice->AddAttribute(wxT("U"), GridCoroFaces->GetCellValue(i, 11));
-        voice->AddAttribute(wxT("WQ"), GridCoroFaces->GetCellValue(i, 12));
+        wxString voice_model;
+        if (Voice(i)->GetSelection() >= 0) voice_model = Voice(i)->GetString(Voice(i)->GetSelection());
+        if (voice_model == SelectionHint) continue;
+        myXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+//        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
+        voice->AddAttribute(wxT("name"), voice_model);
+        voice->AddAttribute(wxT("Outline"), GridCoroFaces->GetCellValue(0, i));
+        voice->AddAttribute(wxT("Eyes_open"), GridCoroFaces->GetCellValue(1, i));
+        voice->AddAttribute(wxT("Eyes_closed"), GridCoroFaces->GetCellValue(2, i));
+        voice->AddAttribute(wxT("AI"), GridCoroFaces->GetCellValue(3, i));
+        voice->AddAttribute(wxT("E"), GridCoroFaces->GetCellValue(4, i));
+        voice->AddAttribute(wxT("etc"), GridCoroFaces->GetCellValue(5, i));
+        voice->AddAttribute(wxT("FV"), GridCoroFaces->GetCellValue(6, i));
+        voice->AddAttribute(wxT("L"), GridCoroFaces->GetCellValue(7, i));
+        voice->AddAttribute(wxT("MBP"), GridCoroFaces->GetCellValue(8, i));
+        voice->AddAttribute(wxT("O"), GridCoroFaces->GetCellValue(9, i));
+        voice->AddAttribute(wxT("rest"), GridCoroFaces->GetCellValue(10, i));
+        voice->AddAttribute(wxT("U"), GridCoroFaces->GetCellValue(11, i));
+        voice->AddAttribute(wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
+        ++num_voice;
     }
+    if (!num_voice)
+    {
+        wxMessageBox(wxT("Please select one or more voice models."), wxT("Missing data"));
+        return;
+    }
+    if (!SavePgoSettings()) return; //TODO: this should be called from somewhere else as well
+    wxMessageBox(wxString::Format(wxT("Papagayo settings (%d %s) saved."), num_voice, (num_voice == 1)? wxT("voice"): wxT("voices")), wxT("Success"));
 }
 
 //just use choice list event instead of explicit Open button:
@@ -796,26 +847,32 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 {
     wxString grpname;
     if (!GetGroupName(grpname)) return;
-    debug(10, "PgoGroupNameSelect: load group '%s' from xmldoc", grpname);
-    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxEmptyString, true);
-    wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), grpname, true);
+    debug(10, "PgoGroupNameSelect: load group '%s' from xmldoc", (const char*)grpname.c_str());
+    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    myXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
+//    for (wxXmlNode* voice = node->GetChildren(); voice != NULL; voice = voice->GetNext())
     {
-        wxXmlNode* voice = FindNode(node, "voice", wxString::Format(wxT("FACE%d"), i + 1), true);
+        myXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+//        int voice_num = wxAtoi(voice->GetAttribute(wxT("voiceNumber"), wxT("0")));
+//        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
+        int inx = Voice(i)->FindString(voice->GetAttribute(wxT("name"), wxEmptyString));
+        if ((inx < 0) && !voice->GetAttribute(wxT("name"), wxEmptyString).empty()) wxMessageBox(wxString::Format(wxT("Model '%s' not found for voice# %d."), voice->GetAttribute(wxT("name")), i), wxT("Bad config setting"));
+        Voice(i)->SetSelection(inx);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
-        GridCoroFaces->SetCellValue(i, 0, voice->GetAttribute(wxT("Outline")));
-        GridCoroFaces->SetCellValue(i, 1, voice->GetAttribute(wxT("Eyes_open")));
-        GridCoroFaces->SetCellValue(i, 2, voice->GetAttribute(wxT("Eyes_closed")));
-        GridCoroFaces->SetCellValue(i, 3, voice->GetAttribute(wxT("AI")));
-        GridCoroFaces->SetCellValue(i, 4, voice->GetAttribute(wxT("E")));
-        GridCoroFaces->SetCellValue(i, 5, voice->GetAttribute(wxT("etc")));
-        GridCoroFaces->SetCellValue(i, 6, voice->GetAttribute(wxT("FV")));
-        GridCoroFaces->SetCellValue(i, 7, voice->GetAttribute(wxT("L")));
-        GridCoroFaces->SetCellValue(i, 8, voice->GetAttribute(wxT("MBP")));
-        GridCoroFaces->SetCellValue(i, 9, voice->GetAttribute(wxT("O")));
-        GridCoroFaces->SetCellValue(i, 10, voice->GetAttribute(wxT("rest")));
-        GridCoroFaces->SetCellValue(i, 11, voice->GetAttribute(wxT("U")));
-        GridCoroFaces->SetCellValue(i, 12, voice->GetAttribute(wxT("WQ")));
+        GridCoroFaces->SetCellValue(0, i, voice->GetAttribute(wxT("Outline")));
+        GridCoroFaces->SetCellValue(1, i, voice->GetAttribute(wxT("Eyes_open")));
+        GridCoroFaces->SetCellValue(2, i, voice->GetAttribute(wxT("Eyes_closed")));
+        GridCoroFaces->SetCellValue(3, i, voice->GetAttribute(wxT("AI")));
+        GridCoroFaces->SetCellValue(4, i, voice->GetAttribute(wxT("E")));
+        GridCoroFaces->SetCellValue(5, i, voice->GetAttribute(wxT("etc")));
+        GridCoroFaces->SetCellValue(6, i, voice->GetAttribute(wxT("FV")));
+        GridCoroFaces->SetCellValue(7, i, voice->GetAttribute(wxT("L")));
+        GridCoroFaces->SetCellValue(8, i, voice->GetAttribute(wxT("MBP")));
+        GridCoroFaces->SetCellValue(9, i, voice->GetAttribute(wxT("O")));
+        GridCoroFaces->SetCellValue(10, i, voice->GetAttribute(wxT("rest")));
+        GridCoroFaces->SetCellValue(11, i, voice->GetAttribute(wxT("U")));
+        GridCoroFaces->SetCellValue(12, i, voice->GetAttribute(wxT("WQ")));
     }
 }
 
@@ -824,9 +881,9 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
 {
     wxString grpname;
     if (!GetGroupName(grpname)) return;
-    debug(10, "CoroGroupDeleteClick: delete group '%s' from xmldoc", grpname);
-    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxEmptyString, true);
-    wxXmlNode* node = FindNode(CoroFaces, "coro", grpname, false);
+    debug(10, "CoroGroupDeleteClick: delete group '%s' from xmldoc", (const char*)grpname.c_str());
+    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    myXmlNode* node = FindNode(CoroFaces, "coro", wxT("name"), grpname, false);
     if (node) CoroFaces->RemoveChild(node); //delete group
     Choice_PgoGroupName->SetSelection(0); //"choose"
     GridCoroFaces->ClearGrid();
