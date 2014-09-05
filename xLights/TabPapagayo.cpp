@@ -13,12 +13,12 @@
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
 
-#define WANT_DEBUG_IMPL
-#define WANT_DEBUG  99
-#include "djdebug.cpp"
-//#define debug(level, ...)
-//#define debug_more(level, ...)
-//#define debug_function(level)
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  99
+//#include "djdebug.cpp"
+#define debug(level, ...)
+#define debug_more(level, ...)
+#define debug_function(level)
 
 //#define numents(ary)  (sizeof(ary)/sizeof(ary[0]))
 
@@ -454,6 +454,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
 }
 
 //don't create dup attrs:
+#if 0 //broken
 class myXmlNode: public wxXmlNode
 {
 public:
@@ -469,9 +470,17 @@ public:
         if (!value.empty()) wxXmlNode::AddAttribute(name, value);
     }
 };
+#else
+void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString& value)
+{
+    wxString junk;
+    if (node->GetAttribute(name, &junk)) node->DeleteAttribute(name); //kludge: avoid dups
+    if (!value.empty()) node->AddAttribute(name, value);
+}
+#endif
 
 //sigh; a function like this should have been built into wxWidgets
-myXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false)
+wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false)
 {
 #if 0
     static struct
@@ -498,12 +507,12 @@ myXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr
     {
         if (!tag.empty() && (node->GetName() != tag)) continue;
         if (!value.empty() && (node->GetAttribute(attr) != value)) continue;
-        return new myXmlNode(*node);
+        return node;
     }
-    if (!create) return 0;
-    myXmlNode* retnode = new myXmlNode(wxXML_ELEMENT_NODE, tag); //NOTE: assumes !tag.empty()
+    if (!create) return 0; //CAUTION: this will give null ptr exc if caller does not check
+    wxXmlNode* retnode = new wxXmlNode(wxXML_ELEMENT_NODE, tag); //NOTE: assumes !tag.empty()
     parent->AddChild(retnode);
-    if (!value.empty()) retnode->AddAttribute(attr, value);
+    if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
 
@@ -571,9 +580,10 @@ bool xLightsFrame::LoadPgoSettings(void)
 
 //load autoface settings:
 //there's no group name on this tab, so set all the UI controls here
-    myXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
 //    XmlNode* first_face = parent->GetChildren(); //TODO: look at multiple children?
-    myXmlNode* any_node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab    any_node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
+    wxXmlNode* any_node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab
+//    any_node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
     if (any_node)
     {
         wxString shape = any_node->GetAttribute(wxT("face_shape"), wxT("Y")); //TODO: Y/N doesn't seem like the best choice here
@@ -586,6 +596,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 //individual UI controls are loaded when the user chooses a group name later
 //only the list of available groups is populated here
     Choice_PgoGroupName->Clear();
+    Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
     wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
     {
@@ -627,7 +638,7 @@ bool xLightsFrame::LoadPgoSettings(void)
     }
 
 //load image settings:
-    myXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* image = Images->GetChildren(); image != NULL; image = image->GetNext())
     {
         wxString grpname = image->GetAttribute(wxT("name"));
@@ -637,7 +648,7 @@ bool xLightsFrame::LoadPgoSettings(void)
     }
 
 //load mp4 settings:
-    myXmlNode* Mp4 = FindNode(pgoXml.GetRoot(), wxT("mp4"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* Mp4 = FindNode(pgoXml.GetRoot(), wxT("mp4"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* image = Mp4->GetChildren(); image != NULL; image = image->GetNext())
     {
         wxString grpname = image->GetAttribute(wxT("name"));
@@ -683,11 +694,11 @@ bool xLightsFrame::SavePgoSettings(void)
 
 //save autoface settings:
 //no group name on this tab, so save all the UI controls here
-    myXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
-    myXmlNode* node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
-    if (node->GetAttribute(wxT("name")).empty()) node->AddAttribute(wxT("name"), wxT("NAME?")); //give it a name (not sure what name to use)
-    node->AddAttribute(wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
-    node->AddAttribute(wxT("outline"), CheckBox_PgoFaceOutline->GetValue()? wxT("Y"): wxT("N"));
+    wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* node = FindNode(AutoFace, wxT("auto"), wxT("name"), wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
+    if (node->GetAttribute(wxT("name")).empty()) AddNonDupAttr(node, wxT("name"), wxT("NAME?")); //give it a name (not sure what name to use)
+    AddNonDupAttr(node, wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? wxT("Y"): wxT("N"));
+    AddNonDupAttr(node, wxT("outline"), CheckBox_PgoFaceOutline->GetValue()? wxT("Y"): wxT("N"));
 
 //save corofaces settings:
 //individual UI controls are saved for each group
@@ -774,10 +785,10 @@ void xLightsFrame::InitPapagayoTab(void)
 {
 
 //??    if (Choice_PgoGroupName->GetCount() < 1)
-    {
-        Choice_PgoGroupName->Clear();
-        Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
-    }
+//    {
+//        Choice_PgoGroupName->Clear();
+//        Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
+//    }
     LoadPgoSettings();
     Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
     Choice_PgoGroupName->SetSelection(0); //this will be "(choose)" if any groups exist, or "(add new)" otherwise
@@ -803,39 +814,53 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc", (const char*)grpname.c_str());
-    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
-    myXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
-    int num_voice = 0;
+    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
+    int num_voice = -1;
+    wxString warnings;
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
     {
+        bool non_empty = false;
+        for (int r = 0; r <= 12; ++r)
+        {
+            if (GridCoroFaces->GetCellValue(r, i).empty()) continue;
+            non_empty = true;
+            break;
+        }
         wxString voice_model;
         if (Voice(i)->GetSelection() >= 0) voice_model = Voice(i)->GetString(Voice(i)->GetSelection());
-        if (voice_model == SelectionHint) continue;
-        myXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+        if (voice_model == SelectionHint) //warn if user forgot to set model
+        {
+            if (non_empty) warnings += wxString::Format(wxT("Voice# %d not saved (no model selected).\n"), i + 1);
+            continue;
+        }
+        wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
-        voice->AddAttribute(wxT("name"), voice_model);
-        voice->AddAttribute(wxT("Outline"), GridCoroFaces->GetCellValue(0, i));
-        voice->AddAttribute(wxT("Eyes_open"), GridCoroFaces->GetCellValue(1, i));
-        voice->AddAttribute(wxT("Eyes_closed"), GridCoroFaces->GetCellValue(2, i));
-        voice->AddAttribute(wxT("AI"), GridCoroFaces->GetCellValue(3, i));
-        voice->AddAttribute(wxT("E"), GridCoroFaces->GetCellValue(4, i));
-        voice->AddAttribute(wxT("etc"), GridCoroFaces->GetCellValue(5, i));
-        voice->AddAttribute(wxT("FV"), GridCoroFaces->GetCellValue(6, i));
-        voice->AddAttribute(wxT("L"), GridCoroFaces->GetCellValue(7, i));
-        voice->AddAttribute(wxT("MBP"), GridCoroFaces->GetCellValue(8, i));
-        voice->AddAttribute(wxT("O"), GridCoroFaces->GetCellValue(9, i));
-        voice->AddAttribute(wxT("rest"), GridCoroFaces->GetCellValue(10, i));
-        voice->AddAttribute(wxT("U"), GridCoroFaces->GetCellValue(11, i));
-        voice->AddAttribute(wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
-        ++num_voice;
+        AddNonDupAttr(voice, wxT("name"), voice_model);
+        AddNonDupAttr(voice, wxT("Outline"), GridCoroFaces->GetCellValue(0, i));
+        AddNonDupAttr(voice, wxT("Eyes_open"), GridCoroFaces->GetCellValue(1, i));
+        AddNonDupAttr(voice, wxT("Eyes_closed"), GridCoroFaces->GetCellValue(2, i));
+        AddNonDupAttr(voice, wxT("AI"), GridCoroFaces->GetCellValue(3, i));
+        AddNonDupAttr(voice, wxT("E"), GridCoroFaces->GetCellValue(4, i));
+        AddNonDupAttr(voice, wxT("etc"), GridCoroFaces->GetCellValue(5, i));
+        AddNonDupAttr(voice, wxT("FV"), GridCoroFaces->GetCellValue(6, i));
+        AddNonDupAttr(voice, wxT("L"), GridCoroFaces->GetCellValue(7, i));
+        AddNonDupAttr(voice, wxT("MBP"), GridCoroFaces->GetCellValue(8, i));
+        AddNonDupAttr(voice, wxT("O"), GridCoroFaces->GetCellValue(9, i));
+        AddNonDupAttr(voice, wxT("rest"), GridCoroFaces->GetCellValue(10, i));
+        AddNonDupAttr(voice, wxT("U"), GridCoroFaces->GetCellValue(11, i));
+        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
+
+        if (num_voice < 0) ++num_voice; //remember that a voice was selected
+        if (non_empty) ++num_voice;
     }
-    if (!num_voice)
+    if (num_voice < 0)
     {
         wxMessageBox(wxT("Please select one or more voice models."), wxT("Missing data"));
         return;
     }
     if (!SavePgoSettings()) return; //TODO: this should be called from somewhere else as well
-    wxMessageBox(wxString::Format(wxT("Papagayo settings (%d %s) saved."), num_voice, (num_voice == 1)? wxT("voice"): wxT("voices")), wxT("Success"));
+    wxMessageBox(warnings + wxString::Format(wxT("Papagayo settings (%d %s) saved for group '%s'."), num_voice, (num_voice == 1)? wxT("voice"): wxT("voices"), grpname), wxT("Success"));
 }
 
 //just use choice list event instead of explicit Open button:
@@ -848,16 +873,17 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "PgoGroupNameSelect: load group '%s' from xmldoc", (const char*)grpname.c_str());
-    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
-    myXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
+    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
 //    for (wxXmlNode* voice = node->GetChildren(); voice != NULL; voice = voice->GetNext())
     {
-        myXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+        wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
 //        int voice_num = wxAtoi(voice->GetAttribute(wxT("voiceNumber"), wxT("0")));
 //        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
         int inx = Voice(i)->FindString(voice->GetAttribute(wxT("name"), wxEmptyString));
         if ((inx < 0) && !voice->GetAttribute(wxT("name"), wxEmptyString).empty()) wxMessageBox(wxString::Format(wxT("Model '%s' not found for voice# %d."), voice->GetAttribute(wxT("name")), i), wxT("Bad config setting"));
+        if (inx < 0) inx = 0; //default to "(choose)"
         Voice(i)->SetSelection(inx);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
         GridCoroFaces->SetCellValue(0, i, voice->GetAttribute(wxT("Outline")));
@@ -882,8 +908,8 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "CoroGroupDeleteClick: delete group '%s' from xmldoc", (const char*)grpname.c_str());
-    myXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
-    myXmlNode* node = FindNode(CoroFaces, "coro", wxT("name"), grpname, false);
+    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    wxXmlNode* node = FindNode(CoroFaces, "coro", wxT("name"), grpname, false);
     if (node) CoroFaces->RemoveChild(node); //delete group
     Choice_PgoGroupName->SetSelection(0); //"choose"
     GridCoroFaces->ClearGrid();
