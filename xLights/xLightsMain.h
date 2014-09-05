@@ -1014,6 +1014,7 @@ private:
     void ReadLorFile(const char* filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
+    void ReadFalconFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);

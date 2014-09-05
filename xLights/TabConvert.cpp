@@ -385,6 +385,65 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long nu
 }
 
 
+void xLightsFrame::ReadFalconFile(const wxString& FileName)
+{
+    wxUint16 fixedHeaderLength = 28;
+    wxFile f;
+    char hdr[512],filetype[10];
+    int numper;
+    size_t readcnt;
+    int seqStepTime = 0;
+	int falconPeriods = 0;
+    int periodsRead = 0;
+    int i = 0;
+	int xlPeriod = 0;
+    char *tmpBuf = NULL;
+
+    ConversionInit();
+    if (!f.Open(FileName.c_str()))
+    {
+        PlayerError(_("Unable to load sequence:\n")+FileName);
+        return;
+    }
+    f.Read(hdr,fixedHeaderLength);
+
+    SeqNumChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
+    seqStepTime = hdr[18] + (hdr[19] << 8);
+    falconPeriods = (f.Length() - fixedHeaderLength) / SeqNumChannels;
+	SeqNumPeriods = falconPeriods * seqStepTime / XTIMER_INTERVAL;
+    SeqDataLen = SeqNumPeriods * SeqNumChannels;
+    wxString filename;
+    SetMediaFilename(filename);
+    SeqData.resize(SeqDataLen);
+
+    tmpBuf = new char[SeqNumChannels];
+    while (periodsRead < falconPeriods)
+    {
+		xlPeriod = periodsRead * seqStepTime / XTIMER_INTERVAL;
+
+        readcnt = f.Read(tmpBuf, SeqNumChannels);
+        if (readcnt < SeqNumChannels)
+        {
+            PlayerError(_("Unable to read all event data from:\n")+FileName);
+        }
+
+        wxYield();
+        for (i = 0; i < SeqNumChannels; i++)
+        {
+            SeqData[(i * SeqNumPeriods) + xlPeriod] = tmpBuf[i];
+        }
+
+        periodsRead++;
+    }
+    delete tmpBuf;
+
+#ifndef NDEBUG
+    TextCtrlLog->AppendText(wxString::Format(_("ReadFalconFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+#endif
+
+    f.Close();
+}
+
 void xLightsFrame::WriteFalconPiFile(const wxString& filename)
 {
     wxUint8 vMinor = 0;
@@ -2414,6 +2473,15 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
         }
         ReadXlightsFile(Filename);
     }
+    else if (ext == _("fseq"))
+    {
+        if (Out3 == "Fal")
+        {
+            ConversionError(_("Cannot convert from Falcon Player file to Falcon Player file!"));
+            return;
+        }
+        ReadFalconFile(Filename);
+    }
     else if (ext == _("seq"))
     {
         if (Out3 == "Lyn")
@@ -2484,7 +2552,7 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
     {
         oName.SetExt(_("fseq"));
         fullpath=oName.GetFullPath();
-        TextCtrlConversionStatus->AppendText(_("Writing Falcon Pi Player sequence\n"));
+        TextCtrlConversionStatus->AppendText(_("Writing Falcon Player sequence\n"));
         WriteFalconPiFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
     }
