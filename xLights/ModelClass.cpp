@@ -909,7 +909,11 @@ wxString ModelClass::ChannelLayoutHtml()
     html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",NodeCount);
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
-    if (BufferHt == 1)
+
+
+  int Ibufx,Ibufy;
+
+     if (BufferHt == 1)
     {
         // single line or arch
         html+="<tr>";
@@ -927,6 +931,9 @@ wxString ModelClass::ChannelLayoutHtml()
         // horizontal or vertical matrix or frame
         for(i=0; i<NodeCount; i++)
         {
+
+            Ibufx = Nodes[i]->Coords[0].bufX;
+            Ibufy = Nodes[i]->Coords[0].bufY;
             idx=Nodes[i]->Coords[0].bufY * BufferWi + Nodes[i]->Coords[0].bufX;
             if (idx < chmap.size()) chmap[idx]=GetNodeNumber(i);
         }

@@ -1437,6 +1437,7 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPer
 {
 
     int s=seconds%60;
+//    sparkle_count=0;
     msec = (EffectPeriod*50)%1000; // change frame into ms and then find the fractional part
     int minutes=seconds / 60;
 

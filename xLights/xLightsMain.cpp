@@ -1978,7 +1978,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_SingleStrand_Colors->Set(SingleStrandColors);
     panel->Choice_SingleStrand_Colors->SetSelection(1); // Set Rainbow as default
     panel->Choice_Chase_Type1->Set(SingleStrandTypes);
-    panel->Choice_Chase_Type1->SetSelection(0); // Set Left-Right as default
+    panel->Choice_Chase_Type1->SetSelection(1); // Set R-L as default
 
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);

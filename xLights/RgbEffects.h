@@ -504,6 +504,7 @@ protected:
     void drawline3 (int Phoneme, int x1,int x2,int y6,int y7);
 
     int BufferHt,BufferWi;  // size of the buffer
+    int ChaseDirection; // 0 = R-L, 1=L-R
     int DiagLen;  // length of the diagonal
     int NumPixels;
     bool InhibitClear; //allow canvas to be persistent for piano fx -DJ

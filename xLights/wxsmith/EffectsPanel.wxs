@@ -3329,7 +3329,8 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SingleStrand_Colors" variable="BitmapButton_SingleStrand_Colors" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3359,7 +3360,8 @@
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Number_Chases" variable="BitmapButton_Number_Chases" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<handler function="OnBitmapButton_Number_ChasesClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3387,7 +3389,8 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Color_Mix1" variable="BitmapButton_Color_Mix1" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnBitmapButton_Color_Mix1Click" entry="EVT_BUTTON" />
 												</object>
@@ -3417,7 +3420,8 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Chase_Spacing1" variable="BitmapButton_Chase_Spacing1" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnBitmapButton_Chase_Spacing1Click" entry="EVT_BUTTON" />
 												</object>
@@ -3445,7 +3449,8 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Chase_Type1" variable="BitmapButton_Chase_Type1" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnBitmapButton_Chase_Type1Click" entry="EVT_BUTTON" />
 												</object>
@@ -3473,7 +3478,8 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1" variable="BitmapButton_Chase_3dFade1" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnBitmapButton_Chase_3dFade1Click" entry="EVT_BUTTON" />
 												</object>
@@ -3499,7 +3505,8 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Chase_Group_All" variable="BitmapButton_Chase_Group_All" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>22,21</size>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnBitmapButton_Chase_Group_AllClick" entry="EVT_BUTTON" />
 												</object>
@@ -4056,7 +4063,7 @@
 										<object class="wxSlider" name="ID_SLIDER_Speed" variable="Slider_Speed" member="yes">
 											<value>10</value>
 											<min>1</min>
-											<max>20</max>
+											<max>30</max>
 											<size>30,100</size>
 											<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 											<handler function="OnSlider_SpeedCmdScroll" entry="EVT_COMMAND_SCROLL" />

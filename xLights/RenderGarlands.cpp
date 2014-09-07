@@ -34,7 +34,7 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
     if(limit<1) limit=1;
     int GarlandsState=(limit - (state % limit))/4;
     // ring=0 is the top ring
-    int up=2;
+    int up=1;
     for (ring=0; ring<BufferHt; ring++)
     {
         ratio=double(ring)/double(BufferHt);
