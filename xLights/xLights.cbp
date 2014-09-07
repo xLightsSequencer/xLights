@@ -221,14 +221,14 @@
 					<Add option="-O2" />
 					<Add option="-std=c++0x" />
 					<Add option="-Wall" />
-					<Add option="`wx-config --version=2.9 --cflags`" />
+					<Add option="`wx-config --version=3.0 --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config --version=2.9 --libs std,media`" />
+					<Add option="`wx-config --version=3.0 --libs std,media`" />
 				</Linker>
 			</Target>
 		</Build>

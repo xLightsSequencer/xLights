@@ -385,6 +385,65 @@ void xLightsFrame::WriteHLSFile(const wxString& filename, long numChans, long nu
 }
 
 
+void xLightsFrame::ReadFalconFile(const wxString& FileName)
+{
+    wxUint16 fixedHeaderLength = 28;
+    wxFile f;
+    char hdr[512],filetype[10];
+    int numper;
+    size_t readcnt;
+    int seqStepTime = 0;
+	int falconPeriods = 0;
+    int periodsRead = 0;
+    int i = 0;
+	int xlPeriod = 0;
+    char *tmpBuf = NULL;
+
+    ConversionInit();
+    if (!f.Open(FileName.c_str()))
+    {
+        PlayerError(_("Unable to load sequence:\n")+FileName);
+        return;
+    }
+    f.Read(hdr,fixedHeaderLength);
+
+    SeqNumChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
+    seqStepTime = hdr[18] + (hdr[19] << 8);
+    falconPeriods = (f.Length() - fixedHeaderLength) / SeqNumChannels;
+	SeqNumPeriods = falconPeriods * seqStepTime / XTIMER_INTERVAL;
+    SeqDataLen = SeqNumPeriods * SeqNumChannels;
+    wxString filename;
+    SetMediaFilename(filename);
+    SeqData.resize(SeqDataLen);
+
+    tmpBuf = new char[SeqNumChannels];
+    while (periodsRead < falconPeriods)
+    {
+		xlPeriod = periodsRead * seqStepTime / XTIMER_INTERVAL;
+
+        readcnt = f.Read(tmpBuf, SeqNumChannels);
+        if (readcnt < SeqNumChannels)
+        {
+            PlayerError(_("Unable to read all event data from:\n")+FileName);
+        }
+
+        wxYield();
+        for (i = 0; i < SeqNumChannels; i++)
+        {
+            SeqData[(i * SeqNumPeriods) + xlPeriod] = tmpBuf[i];
+        }
+
+        periodsRead++;
+    }
+    delete tmpBuf;
+
+#ifndef NDEBUG
+    TextCtrlLog->AppendText(wxString::Format(_("ReadFalconFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+#endif
+
+    f.Close();
+}
+
 void xLightsFrame::WriteFalconPiFile(const wxString& filename)
 {
     wxUint8 vMinor = 0;
@@ -1657,6 +1716,28 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
     file.Seek(0);
 
 
+
+    channels = 0;
+
+    for (tmp = 0; tmp < map.size(); tmp += 2)
+    {
+        int i = map[tmp + 1];
+        int orig = NetInfo.GetNumChannels(tmp / 2);
+        if (i < orig) {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+            i = orig;
+        } else if (i > orig) {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]));
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+        } else {
+            TextCtrlConversionStatus->AppendText(wxString::Format(_("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig));
+        }
+        
+        
+        map[tmp + 1] = channels;
+        channels += i;
+    }
+
     TextCtrlConversionStatus->AppendText(wxString::Format(_("TimeCells = %d\n"), timeCells));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("msPerCell = %d ms\n"), msPerCell));
     TextCtrlConversionStatus->AppendText(wxString::Format(_("Channels = %d\n"), channels));
@@ -1674,19 +1755,17 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
         return;
     }
     SeqData.resize(SeqDataLen);
-
+    for (int x = 0; x < SeqDataLen; x++) {
+        SeqData[x] = 0;
+    }
+    
     ChannelNames.resize(channels);
     ChannelColors.resize(channels);
+
     channels = 0;
 
-    for (tmp = 0; tmp < map.size(); tmp += 2)
-    {
-        int i = map[tmp + 1];
-        map[tmp + 1] = channels;
-        channels += i;
-    }
-    channels = 0;
-
+    wxYield();
+    
     parser = new SP_XmlPullParser();
     read = file.Read(bytes, maxSizeOfRead);
     parser->append(bytes, read);
@@ -1694,6 +1773,7 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
 
     event = parser->getNext();
     done = 0;
+    int nodecnt = 0;
     while (!done)
     {
         if (!event)
@@ -1758,12 +1838,19 @@ void xLightsFrame::ReadHLSFile(const wxString& filename)
             }
             case SP_XmlPullEvent::eEndTag:
             {
+                if (nodecnt > 1000)
+                {
+                    nodecnt=0;
+                    wxYield();
+                }
+                nodecnt++;
                 SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
                     if (NodeName == _("ChannelData"))
                     {
+                        
                         //finished reading this channel, map the data
                         int idx = ChannelName.find(", ");
                         wxString type = ChannelName.SubString(idx + 2, ChannelName.size());
@@ -2386,6 +2473,15 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
         }
         ReadXlightsFile(Filename);
     }
+    else if (ext == _("fseq"))
+    {
+        if (Out3 == "Fal")
+        {
+            ConversionError(_("Cannot convert from Falcon Player file to Falcon Player file!"));
+            return;
+        }
+        ReadFalconFile(Filename);
+    }
     else if (ext == _("seq"))
     {
         if (Out3 == "Lyn")
@@ -2456,7 +2552,7 @@ void xLightsFrame::DoConversion(const wxString& Filename, const wxString& Output
     {
         oName.SetExt(_("fseq"));
         fullpath=oName.GetFullPath();
-        TextCtrlConversionStatus->AppendText(_("Writing Falcon Pi Player sequence\n"));
+        TextCtrlConversionStatus->AppendText(_("Writing Falcon Player sequence\n"));
         WriteFalconPiFile(fullpath);
         TextCtrlConversionStatus->AppendText(_("Finished writing new file: ")+fullpath+_("\n"));
     }

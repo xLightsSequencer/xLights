@@ -303,9 +303,9 @@ wxXmlNode* EffectTreeDialog::CreateEffectGroupNode(wxString& name)
     return NewXml;
 }
 
-bool EffectTreeDialog::PromptForName(wxString *name, wxString prompt, wxString errorMsg)
+bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString *name, wxString prompt, wxString errorMsg)
 {
-    wxTextEntryDialog dialog(this,prompt,_("Name"));
+    wxTextEntryDialog dialog(/*this*/ parent,prompt,_("Name"));
     int DlgResult;
     bool ok;
     do
@@ -341,7 +341,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxString prompt = "Enter effect preset name";
     wxString errMsg = "Effect preset name may not be empty";
     wxString name;
-    if (!PromptForName(&name, prompt, errMsg)) return;
+    if (!PromptForName(this, &name, prompt, errMsg)) return;
 
     itemData = (MyTreeItemData *) TreeCtrl1->GetItemData(itemID);
     if( itemData->IsGroup())
@@ -420,7 +420,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     wxString prompt = "Enter new effect preset name";
     wxString errMsg = "Effect preset name may not be empty";
     wxString newName;
-    if (!PromptForName(&newName, prompt, errMsg)) return;
+    if (!PromptForName(this, &newName, prompt, errMsg)) return;
 
     MyTreeItemData *itemData= (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
     wxXmlNode* e=(wxXmlNode*)itemData->GetElement();
@@ -469,7 +469,7 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     wxString prompt = "Enter effect group name";
     wxString errMsg = "Effect group name may not be empty";
     wxString name;
-    if (!PromptForName(&name, prompt, errMsg)) return;
+    if (!PromptForName(this, &name, prompt, errMsg)) return;
 
     // update Choice_Presets
     MyTreeItemData *itemData=(MyTreeItemData *)TreeCtrl1->GetItemData(itemID);

@@ -2447,7 +2447,7 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButton1" member="yes">
+																									<object class="wxRadioButton" name="ID_RADIOBUTTON_PgoFaceRound" variable="RadioButton_PgoFaceRound" member="yes">
 																										<label>Round</label>
 																										<selected>1</selected>
 																									</object>
@@ -2456,7 +2456,7 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButton2" member="yes">
+																									<object class="wxRadioButton" name="ID_RADIOBUTTON_PgoFaceRect" variable="RadioButton_PgoFaceRect" member="yes">
 																										<label>Rectangular</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2472,7 +2472,7 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox1" member="yes">
+																									<object class="wxCheckBox" name="ID_CHECKBOX_PgoFaceOutline" variable="CheckBox_PgoFaceOutline" member="yes">
 																										<label>Yes</label>
 																										<checked>1</checked>
 																									</object>
@@ -2500,7 +2500,7 @@
 																								<cols>1</cols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
-																										<label>This is for Standard Coro faces. Assign Channels to Phonemes&#x0A; and eyes. Enter your Custom Models, and the node numbers , &#x0A;comma delimited, under each Phoneme and voice.</label>
+																										<label>This tab assigns channels to face parts or Phonemes for standard &#x0A;Coro faces.  For each voice, choose a Custom Model and then enter&#x0A;the comma-delimtered node numbers in the grid below.</label>
 																										<font>
 																											<size>10</size>
 																											<style>normal</style>
@@ -2510,30 +2510,6 @@
 																										</font>
 																									</object>
 																									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
-																								</object>
-																								<object class="sizeritem">
-																									<object class="wxFlexGridSizer" variable="FlexGridSizer50" member="no">
-																										<cols>2</cols>
-																										<object class="sizeritem">
-																											<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText36" member="yes">
-																												<label>Name for this Singing Group</label>
-																											</object>
-																											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																										<object class="sizeritem">
-																											<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl1" member="yes">
-																												<size>153,21</size>
-																											</object>
-																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																											<border>5</border>
-																											<option>1</option>
-																										</object>
-																									</object>
-																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -2579,7 +2555,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice1" variable="Choice_PgoModelVoice1" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2587,7 +2563,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE2" variable="Choice2" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice2" variable="Choice_PgoModelVoice2" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2595,7 +2571,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE3" variable="Choice3" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice3" variable="Choice_PgoModelVoice3" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2603,7 +2579,7 @@
 																										<option>1</option>
 																									</object>
 																									<object class="sizeritem">
-																										<object class="wxChoice" name="ID_CHOICE4" variable="Choice4" member="yes">
+																										<object class="wxChoice" name="ID_CHOICE_PgoModelVoice4" variable="Choice_PgoModelVoice4" member="yes">
 																											<size>86,21</size>
 																										</object>
 																										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2648,6 +2624,61 @@
 																										</rowlabels>
 																									</object>
 																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																							</object>
+																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<border>5</border>
+																							<option>1</option>
+																						</object>
+																						<object class="sizeritem">
+																							<object class="wxFlexGridSizer" variable="FlexGridSizer50" member="no">
+																								<cols>8</cols>
+																								<object class="sizeritem">
+																									<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText36" member="yes">
+																										<label>Name for this Singing Group</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxChoice" name="ID_CHOICE_PgoGroupName" variable="Choice_PgoGroupName" member="yes">
+																										<handler function="OnChoice_PgoGroupNameSelect" entry="EVT_CHOICE" />
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SaveCoroGroup" variable="BitmapButton_SaveCoroGroup" member="yes">
+																										<bitmap code="save_xpm" />
+																										<default>1</default>
+																										<size>53,23</size>
+																										<tooltip>Save Sequence. The save will be done for every model you have. The save will start with the leftmost model and finish with the rightmost</tooltip>
+																										<handler function="OnBitmapButton_SaveCoroGroupClick" entry="EVT_BUTTON" />
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxButton" name="ID_BUTTON_CoroGroupDelete" variable="Button_CoroGroupDelete" member="yes">
+																										<label>Delete</label>
+																										<hidden>1</hidden>
+																										<handler function="OnButton_CoroGroupDeleteClick" entry="EVT_BUTTON" />
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxButton" name="ID_BUTTON_CoroGroupClear" variable="Button_CoroGroupClear" member="yes">
+																										<label>Clear Grid</label>
+																										<handler function="OnButton_CoroGroupClearClick" entry="EVT_BUTTON" />
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>

@@ -15,7 +15,7 @@ These instructions have been tested on the following distributions:
 
   - Linux Mint 12
   - Ubuntu 12.10
-  - Fedora 18
+  - Fedora 20
 
 Instructions for other Linux distributions will vary. 
 
@@ -28,17 +28,13 @@ Instructions for other Linux distributions will vary.
      libgstreamer0.10-dev
      libgstreamer-plugins-base0.10-dev
 
-  b) Build wxWidgets 3.0.0
-
-     NOTE: STARTING 7 SEPT 2013 YOU WILL NEED TO (RE)COMPILE
-           WXWIDGETS WITH CXXFLAGS="-std=gnu++0x"
-           FAILING TO DO THIS WILL CAUSE XLIGHTS TO CRASH
+  b) Build wxWidgets 3.0.1
 
      $ cd ~
-     $ wget http://downloads.sourceforge.net/project/wxwindows/3.0.0/wxWidgets-3.0.0.tar.bz2
-     $ tar xjf wxWidgets-3.0.0.tar.bz2
-     $ cd wxWidgets-3.0.0
-     $ CXXFLAGS="-std=gnu++0x" ./configure --with-mediactrl --enable-graphics_ctx
+     $ wget http://downloads.sourceforge.net/project/wxwindows/3.0.1/wxWidgets-3.0.1.tar.bz2
+     $ tar xjf wxWidgets-3.0.1.tar.bz2
+     $ cd wxWidgets-3.0.1
+     $ CXXFLAGS="-std=gnu++0x" ./configure --enable-mediactrl --enable-graphics_ctx
      $ make
      $ sudo make install
      $ sudo ldconfig

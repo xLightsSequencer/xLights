@@ -379,6 +379,11 @@ private:
     void OnTextCtrl20Text(wxCommandEvent& event);
     void OnButtonPgoImageClick(wxCommandEvent& event);
     void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
+    void OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event);
+    void OnBitmapButton_OpenCoroGroupClick(wxCommandEvent& event);
+    void OnButton_CoroGroupDeleteClick(wxCommandEvent& event);
+    void OnChoice_PgoGroupNameSelect(wxCommandEvent& event);
+    void OnButton_CoroGroupClearClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -581,24 +586,27 @@ private:
     static const long ID_STATICTEXT27;
     static const long ID_STATICTEXT64;
     static const long ID_STATICTEXT31;
-    static const long ID_RADIOBUTTON1;
-    static const long ID_RADIOBUTTON2;
+    static const long ID_RADIOBUTTON_PgoFaceRound;
+    static const long ID_RADIOBUTTON_PgoFaceRect;
     static const long ID_STATICTEXT32;
-    static const long ID_CHECKBOX1;
+    static const long ID_CHECKBOX_PgoFaceOutline;
     static const long ID_PGO_AUTOFACE;
     static const long ID_STATICTEXT46;
-    static const long ID_STATICTEXT38;
-    static const long ID_TEXTCTRL2;
     static const long ID_STATICTEXT34;
     static const long ID_STATICTEXT35;
     static const long ID_STATICTEXT36;
     static const long ID_STATICTEXT37;
-    static const long ID_CHOICE1;
-    static const long ID_CHOICE2;
-    static const long ID_CHOICE3;
-    static const long ID_CHOICE4;
+    static const long ID_CHOICE_PgoModelVoice1;
+    static const long ID_CHOICE_PgoModelVoice2;
+    static const long ID_CHOICE_PgoModelVoice3;
+    static const long ID_CHOICE_PgoModelVoice4;
     static const long ID_PANEL5;
     static const long ID_GRID_COROFACES;
+    static const long ID_STATICTEXT38;
+    static const long ID_CHOICE_PgoGroupName;
+    static const long ID_BITMAPBUTTON_SaveCoroGroup;
+    static const long ID_BUTTON_CoroGroupDelete;
+    static const long ID_BUTTON_CoroGroupClear;
     static const long ID_PGO_COROFACES;
     static const long ID_STATICTEXT66;
     static const long ID_STATICTEXT33;
@@ -672,6 +680,7 @@ private:
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
     //(*Declarations(xLightsFrame)
+    wxChoice* Choice_PgoModelVoice2;
     wxRadioButton* RadioButtonRgbChase;
     wxSlider* Slider_EffectLayerMix;
     wxSlider* SliderFgColorC;
@@ -685,8 +694,10 @@ private:
     wxButton* ButtonClearLog;
     EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
+    wxCheckBox* CheckBox_PgoFaceOutline;
     wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
+    wxButton* Button_CoroGroupDelete;
     wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
     wxStaticText* StaticText36;
@@ -694,7 +705,6 @@ private:
     wxPanel* Panel2;
     wxTextCtrl* TextCtrl_L_image;
     wxButton* ButtonTestSelectAll;
-    wxChoice* Choice2;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxStaticText* StaticText27;
@@ -715,7 +725,9 @@ private:
     wxTextCtrl* TextCtrl_U_image;
     wxButton* Button_pgo_filename;
     wxButton* Button2;
+    wxRadioButton* RadioButton_PgoFaceRect;
     wxButton* Button_PlayEffect;
+    wxChoice* Choice_PgoModelVoice3;
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
@@ -749,7 +761,7 @@ private:
     wxBitmapButton* BitmapButtonInsertRow;
     wxStaticText* StaticText19;
     wxButton* ButtonDeleteShow;
-    wxChoice* Choice4;
+    wxButton* Button_CoroGroupClear;
     wxStaticText* StaticTextSequenceFileName;
     wxBitmapButton* BitmapButton_SparkleFrequency;
     wxRadioButton* RadioButtonRgbShimmer;
@@ -757,7 +769,6 @@ private:
     wxListBox* ListBoxElementList;
     wxStaticText* StaticText10;
     wxTextCtrl* txtCtlBrightness;
-    wxRadioButton* RadioButton2;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxButton* Button_eyesopen_image;
     wxTextCtrl* TextCtrl_WQ_image;
@@ -800,7 +811,6 @@ private:
     wxMenu* MenuFile;
     wxTextCtrl* TextCtrl_rest_image;
     wxTextCtrl* TextCtrl_O_image;
-    wxChoice* Choice3;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxButton* ButtonChangeDir;
@@ -827,7 +837,6 @@ private:
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
-    wxCheckBox* CheckBox1;
     wxStaticText* StaticTextPreviewRotation;
     wxTextCtrl* TextCtrl_eyesopen_image;
     wxSplitterWindow* SplitterWindow1;
@@ -843,11 +852,15 @@ private:
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxBitmapButton* BitmapButton_Contrast;
+    wxChoice* Choice_PgoGroupName;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxButton* Button_eyesclosed_image;
+    wxChoice* Choice_PgoModelVoice4;
     wxPanel* PGO_COROFACES;
     wxSlider* Slider_Contrast;
+    wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
+    wxChoice* Choice_PgoModelVoice1;
     wxButton* ButtonTestSave;
     wxButton* Button_U_image;
     wxButton* Button_E_image;
@@ -862,7 +875,7 @@ private:
     wxRadioButton* RadioButtonAlt;
     wxChoice* Choice_LayerMethod;
     wxTextCtrl* TextCtrl2;
-    wxRadioButton* RadioButton1;
+    wxRadioButton* RadioButton_PgoFaceRound;
     wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
@@ -874,7 +887,6 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxChoice* Choice1;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
@@ -917,7 +929,6 @@ private:
     wxButton* Button_MBP_image;
     wxButton* Button_O_image;
     wxRadioButton* RadioButtonRgbCycle5;
-    wxTextCtrl* TextCtrl1;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
@@ -1003,6 +1014,7 @@ private:
     void ReadLorFile(const char* filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
+    void ReadFalconFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);
@@ -1167,7 +1179,13 @@ private:
     bool IsValidEffectString(wxString& s);
     void PreviewScaleUpdated(int newscale);
     void LoadPapagayoFile(const wxString& filename);
+    void InitPapagayoTab(void);
+    bool LoadPgoSettings(void);
+    bool SavePgoSettings(void);
+    bool GetGroupName(wxString& grpname);
+    wxChoice* Voice(int inx); //treat drop-down lists as array
 
+    wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
     wxXmlNode* EffectsNode;

@@ -6,6 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+	-bug (djulien) Allow pgo parser to tolerate blank voices
+3.4.12
+        -ENH (dkulp) HLS import - now uses wxYield to display progress during load
+        -ENH (dkulp) HLS import - if an HLS universe has less channels than configured in xLights, use the xLights value.
+                     If the HLS universe has more, display a warning.
 3.4.11	Aug 19, 2014
 	-ENH (sean) 4th Open option of Nuctacrker, "New Animation Sequence", now allows fractional times. Before
 		only values like "10,11,15" were allowed. Now "10.123,11.32123,15.2"
