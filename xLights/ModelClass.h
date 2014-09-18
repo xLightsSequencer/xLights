@@ -274,6 +274,7 @@ public:
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
     int FindChannelAt(int x, int y);
+    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
     int FindChannelAtXY(int x, int y, const wxString& model);
 
     long GetNumArches()

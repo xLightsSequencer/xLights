@@ -1245,7 +1245,7 @@ private:
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
 public:
-    static std::vector<ModelClassPtr> PreviewModels; //make public and static for easier access -DJ
+    static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
 };
 
 #endif // XLIGHTSMAIN_H

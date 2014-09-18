@@ -872,6 +872,30 @@ int ModelClass::FindChannelAt(int x, int y)
     return -1; //not found
 }
 
+//return (x,y) matrix of channel#s for pgo RenderFaces:
+wxSize ModelClass::GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink)
+{
+    size_t h = 0;
+    if (shrink) chxy.clear();
+    size_t NodeCount = GetNodeCount();
+    for (size_t n = 0; n < NodeCount; n++)
+    {
+        size_t CoordCount = GetCoordCount(n);
+        for (size_t c = 0; c < CoordCount; c++)
+        {
+//??            if ((Nodes[n]->Coords[c].screenX == x) && (Nodes[n]->Coords[c].screenY == y)) return Nodes[n].ActChan;
+            if (Nodes[n]->Coords[c].bufX >= chxy.size()) chxy.resize(Nodes[n]->Coords[c].bufX + 1); //enlarge to fit; TODO: pad with -1s?
+            std::vector<int>& row = chxy[Nodes[n]->Coords[c].bufX];
+            if (Nodes[n]->Coords[c].bufY >= row.size()) row.resize(Nodes[n]->Coords[c].bufY + 1); //enlarge to fit; TODO: pad with -1s?
+            if (Nodes[n]->Coords[c].bufY >= h) h = Nodes[n]->Coords[c].bufY + 1;
+            row[Nodes[n]->Coords[c].bufY] = Nodes[n]->ActChan;
+        }
+    }
+    for (auto it = chxy.begin(); it != chxy.end(); ++it) //force rectangular matrix
+        (*it).resize(h); //TODO: pad with -1s?
+    return wxSize(chxy.size(), h); //tell caller how big the model is
+}
+
 wxString ModelClass::ChannelLayoutHtml()
 {
     size_t NodeCount=GetNodeCount();

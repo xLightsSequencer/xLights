@@ -368,7 +368,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
         debug(10, (const char*)desc.c_str());
         int numphrases = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
         if (numphrases < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
-        if (!numphrases) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+//        if (!numphrases) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
 
         VoiceInfo newvoice;
         newvoice.name = voicename;
@@ -388,7 +388,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
             newphrase.name = phrasename;
             int numwords = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): -1;
             if (numwords < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
-            if (!numwords) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
+//            if (!numwords) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' words for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
             for (int w = 1; w <= numwords; ++w)
             {
                 wxStringTokenizer wtkz(readline(), " ");
@@ -415,7 +415,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
 
                 int numsylls = number.Matches(syllcount)? wxAtoi(syllcount): -1;
                 if (numsylls < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
-                if (!numsylls) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
+//                if (!numsylls) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
                 for (int syll = 1; syll <= numsylls; ++syll)
                 {
                     wxStringTokenizer stkz = wxStringTokenizer(readline(), " ");
@@ -639,7 +639,12 @@ bool xLightsFrame::LoadPgoSettings(void)
         }
 #endif // 0
     }
-    if (Choice_PgoGroupName->GetCount() > 1) Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+    if (Choice_PgoGroupName->GetCount() > 1)
+    {
+        Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+        wxCommandEvent non_evt;
+        OnChoice_PgoGroupNameSelect(non_evt); //kludge: force UI to update
+    }
 //    wxMessageBox(wxString::Format(_("found %d grps: %s"), Choice_PgoGroupName->GetCount(), buf));
 //load image settings:
     wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
@@ -674,6 +679,13 @@ bool xLightsFrame::LoadPgoSettings(void)
         Voice(i)->SetSelection(0);
     }
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if ((*it)->name.IsEmpty()) continue;
+        for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
+            Voice(i)->Append((*it)->name);
+    }
+//also list non-preview models:
+    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
         if ((*it)->name.IsEmpty()) continue;
         for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
