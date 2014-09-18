@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+	-bug (djulien) Avoid wx assert error during save/load pgo settings (bad grid row#), default to first group after loading settings (however, this can lead to mismatches)
 	-bug (djulien) Allow pgo parser to tolerate blank voices
 3.4.12
         -ENH (dkulp) HLS import - now uses wxYield to display progress during load

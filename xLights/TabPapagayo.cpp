@@ -118,6 +118,7 @@ void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
 //  wxString filename = "this5.pgo";
     if (!filename.IsEmpty()) TextCtrl_pgo_filename->SetValue(filename);
     LoadPapagayoFile(filename);
+    LoadPgoSettings(); //reload in case models changed
 }
 
 void xLightsFrame::OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event)
@@ -598,6 +599,7 @@ bool xLightsFrame::LoadPgoSettings(void)
     Choice_PgoGroupName->Clear();
     Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
     wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+//    wxString buf;
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
     {
         wxString grpname = group->GetAttribute(wxT("name"));
@@ -605,6 +607,7 @@ bool xLightsFrame::LoadPgoSettings(void)
         if (group->GetName() != "coro") continue;
         if (grpname.IsEmpty()) continue;
 //        CoroGroup newgrp;
+//        buf += _(", "); buf += grpname;
         Choice_PgoGroupName->Append(grpname); //build user's choice list for group names
 //        std::pair<iterator, bool> newgrp = coro_groups.emplace(grpname);
 //        for (int i = 0; i < numents(CoroGroup); ++i)
@@ -636,7 +639,8 @@ bool xLightsFrame::LoadPgoSettings(void)
         }
 #endif // 0
     }
-
+    if (Choice_PgoGroupName->GetCount() > 1) Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+//    wxMessageBox(wxString::Format(_("found %d grps: %s"), Choice_PgoGroupName->GetCount(), buf));
 //load image settings:
     wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
     for (wxXmlNode* image = Images->GetChildren(); image != NULL; image = image->GetNext())
@@ -656,6 +660,28 @@ bool xLightsFrame::LoadPgoSettings(void)
         if (image->GetName() != "coro") continue;
 //TODO: set group name choices
     }
+
+#if 1 //do this whenever file changes (avoid caching too long?)
+//    Choice_PgoGroupName->Clear();
+//    Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
+//    Choice_PgoGroupName->SetSelection(0); //this will be "(choose)" if any groups exist, or "(add new)" otherwise
+
+//??    if (Choice_PgoModelVoice1->GetCount()) return;
+    for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
+    {
+        Voice(i)->Clear();
+        Voice(i)->Append(SelectionHint); //wxT("(choose)"));
+        Voice(i)->SetSelection(0);
+    }
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if ((*it)->name.IsEmpty()) continue;
+        for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
+            Voice(i)->Append((*it)->name);
+    }
+//    if (Choice_PgoGroupName->GetCount() > 1) Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+//    wxMessageBox(wxString::Format(_("load settings: got %d models, set choice to %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
+#endif // 0
 
     return true;
 }
@@ -790,6 +816,7 @@ void xLightsFrame::InitPapagayoTab(void)
 //        Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
 //    }
     LoadPgoSettings();
+#if 0 //do this whenever file changes (avoid caching too long?)
     Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
     Choice_PgoGroupName->SetSelection(0); //this will be "(choose)" if any groups exist, or "(add new)" otherwise
 
@@ -806,6 +833,7 @@ void xLightsFrame::InitPapagayoTab(void)
         for (int i = 0; i < GridCoroFaces->GetCols() /*numents(voices)*/; ++i)
             Voice(i)->Append((*it)->name);
     }
+#endif // 0
 }
 
 //NOTE: this only saves one group name at a time to the xmldoc, then saves entire xmldoc to file
@@ -821,7 +849,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
     {
         bool non_empty = false;
-        for (int r = 0; r <= 12; ++r)
+        for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
         {
             if (GridCoroFaces->GetCellValue(r, i).empty()) continue;
             non_empty = true;
@@ -849,7 +877,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(voice, wxT("O"), GridCoroFaces->GetCellValue(9, i));
         AddNonDupAttr(voice, wxT("rest"), GridCoroFaces->GetCellValue(10, i));
         AddNonDupAttr(voice, wxT("U"), GridCoroFaces->GetCellValue(11, i));
-        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
+//missing?        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
 
         if (num_voice < 0) ++num_voice; //remember that a voice was selected
         if (non_empty) ++num_voice;
@@ -886,6 +914,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         if (inx < 0) inx = 0; //default to "(choose)"
         Voice(i)->SetSelection(inx);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
+
         GridCoroFaces->SetCellValue(0, i, voice->GetAttribute(wxT("Outline")));
         GridCoroFaces->SetCellValue(1, i, voice->GetAttribute(wxT("Eyes_open")));
         GridCoroFaces->SetCellValue(2, i, voice->GetAttribute(wxT("Eyes_closed")));
@@ -898,7 +927,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         GridCoroFaces->SetCellValue(9, i, voice->GetAttribute(wxT("O")));
         GridCoroFaces->SetCellValue(10, i, voice->GetAttribute(wxT("rest")));
         GridCoroFaces->SetCellValue(11, i, voice->GetAttribute(wxT("U")));
-        GridCoroFaces->SetCellValue(12, i, voice->GetAttribute(wxT("WQ")));
+//missing?        GridCoroFaces->SetCellValue(12, i, voice->GetAttribute(wxT("WQ")));
     }
 }
 
