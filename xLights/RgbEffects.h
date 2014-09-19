@@ -497,6 +497,7 @@ protected:
     void DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void DrawCurtainVertical(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray);
     void mouth(int Phoneme,int BufferHt, int BufferWt);
+    void coroface(int Phoneme);
     void drawline1(int Phoneme,int x1,int x2,int y1, int y2);
     void drawoutline(int Phoneme,int BufferHt,int BufferWi);
 
@@ -546,7 +547,7 @@ protected:
     MetaBall metaballs[10];
 
     size_t GetNodeCount();
-
+    //int face[52][52];
 
 public:
     double GetEffectPeriodPosition(); //made public -DJ

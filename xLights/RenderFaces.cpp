@@ -38,25 +38,25 @@ int FindChannelAtXY(int x, int y, const wxString& model)
     {
         if (!model.IsEmpty() && model.CmpNoCase((*it)->name)) continue; //don't check this model
 
-/*
-//        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
-      buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
-       if (buf.size() > 500) buf.resize(500);
-       debug(1, "first 500 char of layout html = %s", (const char*)buf);
-       wxString buf = (*it)->ChannelLayoutHtml();
+        /*
+        //        debug(1, "checking model '%s' ...", (const char*)(*it)->name.c_str());
+              buf = xLightsFrame::PreviewModels[0]->ChannelLayoutHtml();
+               if (buf.size() > 500) buf.resize(500);
+               debug(1, "first 500 char of layout html = %s", (const char*)buf);
+               wxString buf = (*it)->ChannelLayoutHtml();
 
-        for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
-       {
-           Nodes[nodenum]->Coords.size()
-       }
-       size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++)
-       {
-           Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-           Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
-       }
+                for (size_t n = (*it)->GetNodeCount(); n > 0; --n)
+               {
+                   Nodes[nodenum]->Coords.size()
+               }
+               size_t CoordCount=GetCoordCount(n);
+                for(size_t c=0; c < CoordCount; c++)
+               {
+                   Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
+                   Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+               }
 
-*/
+        */
         int ch = (*it)->FindChannelAt(x, y);
         if (ch != -1) return ch;
     }
@@ -87,15 +87,28 @@ void RgbEffects::RenderFaces(int Phoneme)
     double offset=double(state)/100.0;
     size_t colorcnt=GetColorCount();
 
- // xout->SetIntensity(1000, 1);
+// xout->SetIntensity(1000, 1);
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
     wxString html = "<html><body><table border=0>";
     int Ht, Wt;
     Ht = BufferHt;
     Wt = BufferWi;
+    int mode; // 1=auto, 2=coroface, 3=picture,4=movie;
 
-    mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
+    mode=2;
+    switch (mode)
+    {
+
+
+    case 1:
+        mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
+        break;
+
+    case 2:
+        coroface( Phoneme); // draw a mouth syllable
+        break;
+    }
 
 
 //size_t NodeCount=GetNodeCount();
@@ -116,26 +129,195 @@ void RgbEffects::RenderFaces(int Phoneme)
     if (buf.size() > 500) buf.resize(500);
     debug(1, "first 500 char of layout html = %s", (const char*)buf);
 #endif
+}
 
-#if 1 //example code to map pixels back to channels
+void RgbEffects::coroface(int Phoneme)
+{
+    /*
+       FacesPhoneme.Add("AI");     0 : 2,3
+       FacesPhoneme.Add("E");      1 : 6
+       FacesPhoneme.Add("FV");     2 : 6
+       FacesPhoneme.Add("L");      3 : 6
+       FacesPhoneme.Add("MBP");    4 : 6
+       FacesPhoneme.Add("O");      5 :4
+       FacesPhoneme.Add("U");      6 :4
+       FacesPhoneme.Add("WQ");     7 : 5
+       FacesPhoneme.Add("etc");    8 : 5
+       FacesPhoneme.Add("rest");   9 : 6
+    */
+
+
+#if 0
+int face[5][5] = {
+{7,8,4,8,1}, /*  initializers for row indexed by 0 */
+{-1,4,2,1,-1}, /*  initializers for row indexed by 1 */
+{4,2,1,3,-1}, /*  initializers for row indexed by 2 */
+{-1,1,3,5,-1}, /*  initializers for row indexed by 3 */
+{1,-1,5,-1,6}
+}; /*  initializers for row indexed by 4 */
+#endif
+
+   int face[51][51] = {
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 50 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 49 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 48 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,3,3,-1,-1,-1,3,3,3,3,-1,-1,3,3,3,3,-1,-1,-1,3,3,3,-1,-1,-1,3,3,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 47 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 46 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 45 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 44 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 43 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,3,3,3,3,-1,-1,3,3,3,3,4,4,3,3,3,3,3,-1,3,3,3,3,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 42 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,-1,-1,-1,5,5,5,5,4,4,5,5,4,5,5,5,5,-1,-1,-1,-1,-1,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 41 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,-1,-1,-1,5,-1,-1,4,-1,-1,-1,-1,-1,4,-1,-1,-1,5,5,-1,-1,-1,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 40 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,6,6,5,-1,-1,4,-1,6,6,-1,6,6,6,4,-1,6,6,-1,5,5,6,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 39 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,6,6,-1,5,6,6,6,4,6,-1,-1,6,-1,-1,6,4,6,-1,-1,6,6,6,5,6,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 38 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,6,-1,-1,5,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,5,6,-1,3,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 37 */
+{-1,-1,-1,-1,-1,-1,-1,-1,1,-1,6,6,-1,-1,-1,5,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,5,6,6,6,6,-1,1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 36 */
+{-1,-1,-1,-1,-1,-1,-1,1,1,-1,6,3,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 35 */
+{-1,-1,-1,-1,-1,-1,-1,1,-1,-1,6,3,-1,-1,5,5,5,-1,5,-1,4,5,5,-1,-1,5,-1,5,4,-1,5,5,5,-1,-1,5,5,5,-1,3,-1,6,-1,1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 34 */
+{-1,-1,-1,-1,-1,-1,1,-1,-1,-1,6,3,-1,5,5,-1,-1,5,-1,5,5,4,4,5,5,5,5,4,5,5,-1,-1,-1,5,5,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 33 */
+{-1,-1,-1,-1,-1,1,-1,-1,-1,6,3,-1,5,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 32 */
+{-1,-1,-1,-1,1,1,-1,-1,6,3,3,-1,5,2,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,2,-1,5,5,-1,3,-1,6,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 31 */
+{-1,-1,-1,1,1,-1,-1,6,3,3,-1,5,-1,2,-1,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,-1,2,-1,-1,5,5,3,-1,-1,6,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 30 */
+{-1,-1,1,-1,-1,-1,6,3,3,-1,5,5,-1,2,-1,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,-1,2,-1,-1,-1,5,-1,3,-1,6,-1,-1,1,-1,-1,-1}, /*  initializers for row indexed by 29 */
+{-1,-1,1,-1,-1,-1,6,3,5,5,5,-1,-1,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,5,-1,3,-1,6,-1,-1,1,-1,-1}, /*  initializers for row indexed by 28 */
+{-1,1,-1,-1,-1,6,3,5,5,5,-1,-1,-1,2,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,5,5,3,-1,6,-1,-1,-1,1,1}, /*  initializers for row indexed by 27 */
+{1,-1,-1,-1,-1,6,3,5,-1,-1,-1,-1,2,2,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,2,2,-1,-1,-1,5,5,3,-1,6,-1,-1,-1,1}, /*  initializers for row indexed by 26 */
+{1,-1,-1,-1,6,3,5,-1,-1,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,2,2,2,-1,5,-1,3,-1,6,-1,-1,1}, /*  initializers for row indexed by 25 */
+{1,-1,-1,6,3,3,-1,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,2,2,-1,3,6,-1,-1,1}, /*  initializers for row indexed by 24 */
+{1,-1,-1,6,3,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,6,-1,1}, /*  initializers for row indexed by 23 */
+{-1,1,-1,-1,-1,-1,-1,-1,-1,8,8,8,8,8,8,8,8,8,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,-1,-1,-1,8,8,8,8,8,8,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1}, /*  initializers for row indexed by 22 */
+{-1,1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,8,8,8,8,8,-1,-1,-1,-1,-1,-1,1}, /*  initializers for row indexed by 21 */
+{1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,1,-1}, /*  initializers for row indexed by 20 */
+{1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1,-1}, /*  initializers for row indexed by 19 */
+{1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 18 */
+{1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,1}, /*  initializers for row indexed by 17 */
+{1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1}, /*  initializers for row indexed by 16 */
+{1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1}, /*  initializers for row indexed by 15 */
+{1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 14 */
+{-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 13 */
+{-1,1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 12 */
+{-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,1,-1,-1}, /*  initializers for row indexed by 11 */
+{-1,-1,1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1}, /*  initializers for row indexed by 10 */
+{-1,-1,-1,1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,1,-1,-1,-1}, /*  initializers for row indexed by 9 */
+{-1,-1,-1,-1,-1,1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 8 */
+{-1,-1,-1,-1,-1,-1,1,1,-1,-1,8,8,8,8,8,8,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,8,8,8,8,8,8,8,-1,-1,-1,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 7 */
+{-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 6 */
+{-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 5 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 4 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 3 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 2 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 1 */
+{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
+}; /*  initializers for row indexed by 0 */
+
+
+
+
+
+    wxImage::HSVValue hsv;
+    size_t colorcnt=GetColorCount();
+    int ColorIdx=0;
+    palette.GetHSV(ColorIdx, hsv);
+    hsv.hue=0.0;
+    hsv.value=1.0;
+    hsv.saturation=1.0;
+    int v;
     wxString model; //set to target model name (optional)
-    for (int y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+
+    for (int y=0; y<BufferHt; y++)
     {
         for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
-//            ch = GetChannel(x,y);  // <== I need something like this routine
-//            wxImage::HSVValue hsv = GetPixel(x, y);
-            GetPixel(x, y, color);
-//    hsv0 = wxImage::RGBtoHSV( wxImage::RGBValue( c0.Red(), c0.Green(), c0.Blue()));
-// wxColor color, mapped;
-//                color.Set(Shapes.GetRed(x, y), Shapes.GetGreen(x, y), Shapes.GetBlue(x, y));
-//                ColorMap[color.GetRGB()
-            if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
-            int ch = FindChannelAtXY(x, y, model);
-//            debug(1, "pixel (%d, %d) = 0x%6x is channel %d in model %s", x, y, ch, (const char*)(model.IsEmpty()? "(any)": model.c_str()));
+            v=face[x][y];
+            switch (Phoneme)
+            {
+
+            case 0: // FacesPhoneme.Add("AI");     0 : 2,3
+                if(v==2 || v==3)  SetPixel(x,y,hsv);
+                break;
+
+
+            case 1: //FacesPhoneme.Add("E");      1 : 6
+                if(v==6)  SetPixel(x,y,hsv);
+                break;
+
+            case 2: //FacesPhoneme.Add("FV");     2 : 6
+                if(v==6)  SetPixel(x,y,hsv);
+                break;
+
+            case 3: //FacesPhoneme.Add("L");      3 : 6
+                if(v==6)  SetPixel(x,y,hsv);
+                break;
+
+            case 4: //FacesPhoneme.Add("MBP");    4 : 6
+                if(v==6)  SetPixel(x,y,hsv);
+                break;
+
+            case 5: //FacesPhoneme.Add("O");      5 :4
+                if(v==4)  SetPixel(x,y,hsv);
+                break;
+
+            case 6: //FacesPhoneme.Add("U");      6 :4
+                if(v==4)  SetPixel(x,y,hsv);
+                break;
+
+            case 7: //FacesPhoneme.Add("WQ");     7 : 5
+                if(v==5)  SetPixel(x,y,hsv);
+                break;
+
+            case 8: //FacesPhoneme.Add("etc");    8 : 5
+                if(v==5)  SetPixel(x,y,hsv);
+                break;
+
+            case 9: //FacesPhoneme.Add("rest");   9 : 6
+                if(v==6)  SetPixel(x,y,hsv);
+                break;
+            }
         }
     }
-#endif
+
+   #if 0
+
+  for (int y=0; y<BufferHt; y++)
+    {
+        for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+        {
+               v=face[x][y];
+            if(v == 1)
+                SetPixel(x,y,hsv);
+        }
+    }
+    #endif
+
+/*
+for (int y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
+{
+    for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
+    {
+        if(Phoneme==5 || Phoneme==6) // O, U
+        {
+            if(x==19 && y==15)  SetPixel(x,y,hsv);
+        }
+        if(Phoneme==0) // AI
+        {
+            if(x==6 && y==28)
+                SetPixel(x,y,hsv);  // mouth 2
+            if(x==11 && y==18)
+                SetPixel(x,y,hsv);  // mouth 3
+        }
+        if(Phoneme==1 || Phoneme==2 || Phoneme==3 || Phoneme==4 || Phoneme==9) // E,FV,L,MBP,rest
+        {
+            if(x==19 && y==13)  SetPixel(x,y,hsv); // Mouth 6
+        }
+        if(Phoneme==7 || Phoneme==8) // etc, WQ
+        {
+            if(x==19 && y==10)  SetPixel(x,y,hsv);
+        }
+        //        if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
+    }
+}
+*/
 }
 
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)

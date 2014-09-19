@@ -60,16 +60,20 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     wxFont Font2(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font3(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
     wxFont Font4(pixelSize,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
-    if (!FontString1.IsEmpty()) {
+    if (!FontString1.IsEmpty())
+    {
         Font1.SetNativeFontInfoUserDesc(FontString1);
     }
-    if (!FontString2.IsEmpty()) {
+    if (!FontString2.IsEmpty())
+    {
         Font2.SetNativeFontInfoUserDesc(FontString2);
     }
-    if (!FontString3.IsEmpty()) {
+    if (!FontString3.IsEmpty())
+    {
         Font3.SetNativeFontInfoUserDesc(FontString3);
     }
-    if (!FontString4.IsEmpty()) {
+    if (!FontString4.IsEmpty())
+    {
         Font4.SetNativeFontInfoUserDesc(FontString4);
     }
 
@@ -116,7 +120,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     Font4.SetNativeFontInfo(s);
 #endif
 
-    for (int pass = 0; pass < 2; ++pass) {
+    for (int pass = 0; pass < 2; ++pass)
+    {
 #ifndef WANT_TEXT_LINES_SYNCED
         if (!pass) continue; //don't need 2 passes
 #endif // WANT_TEXT_LINES_SYNCED
@@ -128,21 +133,24 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass);
 
         dc.SetFont(Font2);
-        if(colorcnt>1) {
+        if(colorcnt>1)
+        {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
         RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass);
 
         dc.SetFont(Font3);
-        if(colorcnt>2) {
+        if(colorcnt>2)
+        {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
         RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass);
 
         dc.SetFont(Font4);
-        if(colorcnt>3) {
+        if(colorcnt>3)
+        {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
             dc.SetTextForeground(c);
         }
@@ -152,8 +160,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 
     //convert to image to get the pixel data
     wxImage image(bitmap.ConvertToImage());
-    for(wxCoord x=0; x<BufferWi; x++) {
-        for(wxCoord y=0; y<BufferHt; y++) {
+    for(wxCoord x=0; x<BufferWi; x++)
+    {
+        for(wxCoord y=0; y<BufferHt; y++)
+        {
             c.Set(image.GetRed(x, BufferHt-y-1),
                   image.GetGreen(x, BufferHt-y-1),
                   image.GetBlue(x, BufferHt-y-1));
@@ -229,10 +239,12 @@ void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxS
     wxChar delim;
     if (Line.IsEmpty()) return;
 
-    switch(Countdown) {
+    switch(Countdown)
+    {
     case COUNTDOWN_SECONDS:
         // countdown seconds
-        if (state==0) {
+        if (state==0)
+        {
             if (!Line.ToLong(&tempLong)) tempLong=0;
             timer_countdown[idx] = curPeriod+tempLong*20+19;  // capture 0 period
         }
@@ -280,54 +292,70 @@ TIME FORMAT CHARACTERS:
         %% A % sign eg. %
 #endif // 0
 //time_local = time.Format(wxT("%T"), wxDateTime::A_EST).c_str();
-        if (Line.size() >= 4) {
+        if (Line.size() >= 4)
+        {
             delim = Line[0]; //use first char as date delimiter; date and format string follows that, separated by delimiter
             Line.Remove(0, 1); //.erase(Line.begin(), Line.begin() + 1); //remove leading delim
 //            Line.RemoveLast(); //remove delimiter
             fmt = Line.After(delim);
             Line.Truncate(Line.find(delim)); //remove fmt string, leaving only count down date
-        } else fmt.Empty();
+        }
+        else fmt.Empty();
 //CAUTION: fall thru here
     case COUNTDOWN_D_H_M_S:
     case COUNTDOWN_H_M_S:
     case COUNTDOWN_M_or_S:
     case COUNTDOWN_S:
         // countdown to date
-        if (state%20 == 0) { //1x/sec
+        if (state%20 == 0)   //1x/sec
+        {
 #if 0 //wxWidgets is broken; use this section to test it -DJ
             wxString test = _("Sat, 18 Dec 1999 00:48:30 +0100");  //valid RFC822 format
-            if (!dt.ParseRfc822Date(test, &end)) {
+            if (!dt.ParseRfc822Date(test, &end))
+            {
                 msg = _T("broken-1");
                 break;
-            } else if (*end) { //end != test.end()) {
+            }
+            else if (*end)     //end != test.end()) {
+            {
                 msg = wxString::Format(_("broken-2@%d"), end - test.begin());
                 break;
-            } else if (!dt.ParseDateTime(test, &end)) {
+            }
+            else if (!dt.ParseDateTime(test, &end))
+            {
                 msg = _T("broken-3");
                 break;
-            } else if (*end) { //end != test.end()) {
+            }
+            else if (*end)     //end != test.end()) {
+            {
                 msg = wxString::Format(_("broken-4@%d"), end - test.begin());
                 break;
             }
 #endif
 //            if ( dt.ParseDateTime(Line, &end) ) { //broken, force RFC822 for now -DJ
-            if ( dt.ParseRfc822Date(Line, &end) ) {
+            if ( dt.ParseRfc822Date(Line, &end) )
+            {
                 // dt is (at least partially) valid, so calc # of seconds until then
                 ts=dt.Subtract(wxDateTime::Now());
                 wxLongLong ll=ts.GetSeconds();
                 if (ll > LONG_MAX) ll=LONG_MAX;
                 if (ll < 0) ll=0;
                 longsecs=ll.ToLong();
-            } else {
+            }
+            else
+            {
                 // invalid date/time
                 longsecs = 0;
             }
             timer_countdown[idx]=longsecs;
-        } else {
+        }
+        else
+        {
             longsecs=timer_countdown[idx];
             ts = wxTimeSpan(0, 0, longsecs, 0); //reconstruct wxTimeSpan so we can call .Format method -DJ
         }
-        if (!longsecs) {
+        if (!longsecs)
+        {
             msg = _T("invalid date");    //show when invalid -DJ
             break;
         }
@@ -357,12 +385,14 @@ TIME FORMAT CHARACTERS:
     }
 
     double TextRotation=0.0;
-    switch(Effect) {
+    switch(Effect)
+    {
     case 1:
         // vertical text up
         tempmsg=msg;
         msg.clear();
-        for(i=0; i<tempmsg.length(); i++) {
+        for(i=0; i<tempmsg.length(); i++)
+        {
             msg = msg + Line.GetChar(tempmsg.length()-i-1) + "\n";
         }
         break;
@@ -370,7 +400,8 @@ TIME FORMAT CHARACTERS:
         // vertical dext down
         tempmsg=msg;
         msg.clear();
-        for(i=0; i<tempmsg.length(); i++) {
+        for(i=0; i<tempmsg.length(); i++)
+        {
             msg = msg + tempmsg.GetChar(i) + "\n";
         }
         break;
@@ -387,7 +418,8 @@ TIME FORMAT CHARACTERS:
     int xoffset=0;
     int yoffset=0;
 
-    switch(Effect) {
+    switch(Effect)
+    {
     case 3:
         // rotate up 45
         TextRotation=45.0;
@@ -420,15 +452,18 @@ TIME FORMAT CHARACTERS:
 
 #ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
     static wxSize synced_textsize;
-    if (!WantRender) { //for synced text lines, collect info first and then render after info is available
+    if (!WantRender)   //for synced text lines, collect info first and then render after info is available
+    {
         if (!idx) synced_textsize = textsize;
-        else { //keep max value
+        else   //keep max value
+        {
             if (textsize.x > synced_textsize.x) synced_textsize.x = textsize.x;
             if (textsize.y > synced_textsize.y) synced_textsize.y = textsize.y;
         }
 //        debug(1, "text[%d]: pass %d, txtsiz %d/%d, synced %d/%d", idx, WantRender, textsize.x, textsize.y, synced_textsize.x, synced_textsize.y);
         return;
-    } else textsize.x = synced_textsize.x; //use composite size
+    }
+    else textsize.x = synced_textsize.x;   //use composite size
 //    debug(1, "text[%d]: pass %d, synced txtsiz %d/%d", idx, WantRender, textsize.x, textsize.y);
 #endif // WANT_TEXT_LINES_SYNCED
 
@@ -439,13 +474,21 @@ TIME FORMAT CHARACTERS:
     int OffsetTop= totheight/2 - (Position * totheight / 100);
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
+    int state8;
 
-    if (TextRotation == 0.0) {
+    if (TextRotation == 0.0)
+    {
         wxRect rect(0,0,BufferWi,BufferHt);
-        switch (dir) {
+        switch (dir)
+        {
         case TEXTDIR_LEFT(0):
-//            debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
-            rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
+//           debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
+            // rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
+            state8 = state /8;
+            if(state8<0) state8+=32768;
+            if(state>2000000)
+                state=state+0;
+            rect.Offset(center? std::max((int)(xlimit/16 - state8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
             break; // left, optionally stop at center
         case TEXTDIR_RIGHT(1):
             rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, OffsetTop);
@@ -481,8 +524,11 @@ TIME FORMAT CHARACTERS:
             break; // static
         }
         dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
-    } else {
-        switch (dir) {
+    }
+    else
+    {
+        switch (dir)
+        {
         case 0:
             dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
             break; // left

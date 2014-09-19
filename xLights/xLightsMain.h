@@ -384,6 +384,7 @@ private:
     void OnButton_CoroGroupDeleteClick(wxCommandEvent& event);
     void OnChoice_PgoGroupNameSelect(wxCommandEvent& event);
     void OnButton_CoroGroupClearClick(wxCommandEvent& event);
+    void OnGridCoroFacesCellLeftClick(wxGridEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

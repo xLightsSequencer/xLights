@@ -172,7 +172,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
                     if(pgofile_status) AutoFace((voice_it - voices.begin()),filename, phoneme_it->start_frame,phoneme_it->end_frame,
-                                                 phoneme_it->name, word_it->name.c_str());
+                                                    phoneme_it->name, word_it->name.c_str());
                     ++numwr;
 
                     //if (xout) xout->alloff();
@@ -345,15 +345,15 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
     if (numvoices < 1) retmsg(wxString::Format(_("Invalid file @line %d ('%s' voices)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str()));
 
 
-  /* struct SongInfo
-{
-    wxString name;
-    int samppersec;
-    int numsamp ;
-    int numvoices;
-   };
-   */
-  // songs.samppersec=samppersec;
+    /* struct SongInfo
+    {
+      wxString name;
+      int samppersec;
+      int numsamp ;
+      int numvoices;
+     };
+     */
+    // songs.samppersec=samppersec;
 
     for (int v = 1; v <= numvoices; ++v)
     {
@@ -462,8 +462,14 @@ public:
     myXmlNode(wxXmlNodeType type, const wxString& value): wxXmlNode(type, value) {};
     myXmlNode(const wxXmlNode& node): wxXmlNode(node) {};
 public:
-    void AddChild(myXmlNode*& child) { wxXmlNode::AddChild(child); };
-    bool RemoveChild (myXmlNode* child) { return wxXmlNode::RemoveChild(child); }
+    void AddChild(myXmlNode*& child)
+    {
+        wxXmlNode::AddChild(child);
+    };
+    bool RemoveChild (myXmlNode* child)
+    {
+        return wxXmlNode::RemoveChild(child);
+    }
     void AddAttribute(const wxString& name, const wxString& value)
     {
         wxString junk;
@@ -520,30 +526,30 @@ wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr
 
 #if 0 //example file:
 <papagayo>
-    <autoface>
-        <auto name="MTREE" face_shape="Y" outline="Y" />
-    </autoface>
-    <corofaces>
-        <coro name="HALLOWEEN">
-            <voice  voiceNumber="1" name="FACE1" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
-            <voice  voiceNumber="2" name="FACE2" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
-            <voice  voiceNumber="3" name="FACE3" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
-            <voice  voiceNumber="4" name="FACE4" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
-        </coro>
-    </corofaces>
-    <images>
-        <coro name="PUMPKINS">
-            <voice  voiceNumber="1" name="PUMPKIN1" AI="C:\Users\sean\Pictures\black.jpg" E="C:\Users\sean\Pictures\black.jpg"
-            etc="C:\Users\sean\Pictures\black.jpg" FV="C:\Users\sean\Pictures\black.jpg" L="C:\Users\sean\Pictures\black.jpg"
-            MBP="C:\Users\sean\Pictures\black.jpg" O="C:\Users\sean\Pictures\black.jpg" rest="C:\Users\sean\Pictures\black.jpg"
-            U="C:\Users\sean\Pictures\black.jpg" WQ="C:\Users\sean\Pictures\black.jpg" Outline="C:\Users\sean\Pictures\black.jpg"
-            Eyes_open="C:\Users\sean\Pictures\black.jpg" Eyes_Closed="C:\Users\sean\Pictures\black.jpg" />
-        </coro>
-    </images>
-</papagayo>
+<autoface>
+<auto name="MTREE" face_shape="Y" outline="Y" />
+                              </autoface>
+                              <corofaces>
+                              <coro name="HALLOWEEN">
+                                      <voice  voiceNumber="1" name="FACE1" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
+                                              <voice  voiceNumber="2" name="FACE2" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
+                                                      <voice  voiceNumber="3" name="FACE3" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
+                                                              <voice  voiceNumber="4" name="FACE4" AI="100" E="100" etc="100" FV="100" L="100" MBP="100" O="100" rest="100" U="100" WQ="100" Outline="100" Eyes_open="0" Eyes_Closed="0" />
+                                                                      </coro>
+                                                                      </corofaces>
+                                                                      <images>
+                                                                      <coro name="PUMPKINS">
+                                                                              <voice  voiceNumber="1" name="PUMPKIN1" AI="C:\Users\sean\Pictures\black.jpg" E="C:\Users\sean\Pictures\black.jpg"
+                                                                                      etc="C:\Users\sean\Pictures\black.jpg" FV="C:\Users\sean\Pictures\black.jpg" L="C:\Users\sean\Pictures\black.jpg"
+                                                                                              MBP="C:\Users\sean\Pictures\black.jpg" O="C:\Users\sean\Pictures\black.jpg" rest="C:\Users\sean\Pictures\black.jpg"
+                                                                                                      U="C:\Users\sean\Pictures\black.jpg" WQ="C:\Users\sean\Pictures\black.jpg" Outline="C:\Users\sean\Pictures\black.jpg"
+                                                                                                              Eyes_open="C:\Users\sean\Pictures\black.jpg" Eyes_Closed="C:\Users\sean\Pictures\black.jpg" />
+                                                                                                                      </coro>
+                                                                                                                      </images>
+                                                                                                                      </papagayo>
 #endif // 0
 
-bool xLightsFrame::LoadPgoSettings(void)
+                                                                                                                      bool xLightsFrame::LoadPgoSettings(void)
 {
     enum {NoFile, LoadErr, BadRoot, Okay} status = Okay;
 //    std::unordered_map<const char*, wxXmlNode*> nodes;
@@ -624,26 +630,26 @@ bool xLightsFrame::LoadPgoSettings(void)
 //            if (!(*newgrp.first)[inx - 1].IsEmpty()) continue; //duplicate entry?
 //TODO: what to do with name attr?
             (*newgrp.first)[inx - 1].Outline = voice->GetAttribute(wxT("Outline")
-            (*newgrp.first)[inx - 1].EyesOpen = voice->GetAttribute(wxT("Eyes_open")
-            (*newgrp.first)[inx - 1].EyesClosed = voice->GetAttribute(wxT("Eyes_closed")
-            (*newgrp.first)[inx - 1].Phon_AI = voice->GetAttribute(wxT("AI")
-            (*newgrp.first)[inx - 1].Phon_E = voice->GetAttribute(wxT("E")
-            (*newgrp.first)[inx - 1].Phon_etc = voice->GetAttribute(wxT("etc")
-            (*newgrp.first)[inx - 1].Phon_FV = voice->GetAttribute(wxT("FV")
-            (*newgrp.first)[inx - 1].Phon_L = voice->GetAttribute(wxT("L")
-            (*newgrp.first)[inx - 1].Phon_MBP = voice->GetAttribute(wxT("MBP")
-            (*newgrp.first)[inx - 1].Phon_O = voice->GetAttribute(wxT("O")
-            (*newgrp.first)[inx - 1].Phon_rest = voice->GetAttribute(wxT("rest")
-            (*newgrp.first)[inx - 1].Phon_U = voice->GetAttribute(wxT("U")
-            (*newgrp.first)[inx - 1].Phon_WQ = voice->GetAttribute(wxT("WQ")
+                                               (*newgrp.first)[inx - 1].EyesOpen = voice->GetAttribute(wxT("Eyes_open")
+                                                       (*newgrp.first)[inx - 1].EyesClosed = voice->GetAttribute(wxT("Eyes_closed")
+                                                               (*newgrp.first)[inx - 1].Phon_AI = voice->GetAttribute(wxT("AI")
+                                                                       (*newgrp.first)[inx - 1].Phon_E = voice->GetAttribute(wxT("E")
+                                                                               (*newgrp.first)[inx - 1].Phon_etc = voice->GetAttribute(wxT("etc")
+                                                                                       (*newgrp.first)[inx - 1].Phon_FV = voice->GetAttribute(wxT("FV")
+                                                                                               (*newgrp.first)[inx - 1].Phon_L = voice->GetAttribute(wxT("L")
+                                                                                                       (*newgrp.first)[inx - 1].Phon_MBP = voice->GetAttribute(wxT("MBP")
+                                                                                                               (*newgrp.first)[inx - 1].Phon_O = voice->GetAttribute(wxT("O")
+                                                                                                                       (*newgrp.first)[inx - 1].Phon_rest = voice->GetAttribute(wxT("rest")
+                                                                                                                               (*newgrp.first)[inx - 1].Phon_U = voice->GetAttribute(wxT("U")
+                                                                                                                                       (*newgrp.first)[inx - 1].Phon_WQ = voice->GetAttribute(wxT("WQ")
         }
 #endif // 0
     }
-    if (Choice_PgoGroupName->GetCount() > 1) Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+                                                                                                                               if (Choice_PgoGroupName->GetCount() > 1) Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
 //    wxMessageBox(wxString::Format(_("found %d grps: %s"), Choice_PgoGroupName->GetCount(), buf));
 //load image settings:
-    wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
-    for (wxXmlNode* image = Images->GetChildren(); image != NULL; image = image->GetNext())
+                                                                                                                       wxXmlNode* Images = FindNode(pgoXml.GetRoot(), wxT("images"), wxT("name"), wxEmptyString, true);
+                                                                                                                       for (wxXmlNode* image = Images->GetChildren(); image != NULL; image = image->GetNext())
     {
         wxString grpname = image->GetAttribute(wxT("name"));
         debug(5, "found %s image '%s'", (const char*)image->GetName().c_str(), (const char*)image->GetAttribute(wxT("name"), wxT("??")).c_str());
@@ -798,11 +804,16 @@ wxChoice* xLightsFrame::Voice(int inx)
 {
     switch (inx)
     {
-        case 0: return Choice_PgoModelVoice1;
-        case 1: return Choice_PgoModelVoice2;
-        case 2: return Choice_PgoModelVoice3;
-        case 3: return Choice_PgoModelVoice4;
-        default: return 0;
+    case 0:
+        return Choice_PgoModelVoice1;
+    case 1:
+        return Choice_PgoModelVoice2;
+    case 2:
+        return Choice_PgoModelVoice3;
+    case 3:
+        return Choice_PgoModelVoice4;
+    default:
+        return 0;
     }
 }
 
@@ -877,7 +888,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(voice, wxT("O"), GridCoroFaces->GetCellValue(9, i));
         AddNonDupAttr(voice, wxT("rest"), GridCoroFaces->GetCellValue(10, i));
         AddNonDupAttr(voice, wxT("U"), GridCoroFaces->GetCellValue(11, i));
-//missing?        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
+        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(12, i));
 
         if (num_voice < 0) ++num_voice; //remember that a voice was selected
         if (non_empty) ++num_voice;
@@ -927,7 +938,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         GridCoroFaces->SetCellValue(9, i, voice->GetAttribute(wxT("O")));
         GridCoroFaces->SetCellValue(10, i, voice->GetAttribute(wxT("rest")));
         GridCoroFaces->SetCellValue(11, i, voice->GetAttribute(wxT("U")));
-//missing?        GridCoroFaces->SetCellValue(12, i, voice->GetAttribute(wxT("WQ")));
+        GridCoroFaces->SetCellValue(12, i, voice->GetAttribute(wxT("WQ")));
     }
 }
 
