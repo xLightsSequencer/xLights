@@ -108,7 +108,7 @@ void RgbEffects::RenderFaces(int Phoneme)
     {
         if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
         wxSize wh = (*it)->GetChannelCoords(face_channels, true);
-        debug(1, "model '%s' is %d x %d, channel[0,0] = %d, ...", (const char*)(*it)->name.c_str(), wh.x, wh.y, face_channels[0][0]);
+        //debug(1, "model '%s' is %d x %d, channel[0,0] = %d, ...", (const char*)(*it)->name.c_str(), wh.x, wh.y, face_channels[0][0]);
         break;
     }
 #endif // 1
