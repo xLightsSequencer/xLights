@@ -760,6 +760,7 @@ void xLightsFrame::UpdateModelsList()
     Choice_Models->Clear();
     ListBoxElementList->Clear();
     PreviewModels.clear();
+    OtherModels.clear();
     for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "model")
@@ -774,6 +775,12 @@ void xLightsFrame::UpdateModelsList()
                     model->SetFromXml(e);
                     ListBoxElementList->Append(name,model);
                     PreviewModels.push_back(ModelClassPtr(model));
+                }
+                else //keep a list of non-preview models as well -DJ
+                {
+                    model=new ModelClass;
+                    model->SetFromXml(e);
+                    OtherModels.push_back(ModelClassPtr(model));
                 }
             }
         }
