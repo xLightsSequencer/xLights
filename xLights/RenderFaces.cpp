@@ -88,10 +88,11 @@ void RgbEffects::RenderFaces(int Phoneme)
     size_t colorcnt=GetColorCount();
 
 
-    std::vector<int> chmap;
-    chmap.resize(BufferHt * BufferWi,0);
-
-    GetChannelCoords(chmap, true);
+//    std::vector<int> chmap;
+    std::vector<std::vector<int>> chmap; //array of arrays
+//    chmap.resize(BufferHt * BufferWi,0);
+    ModelClass mc;
+    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
 
 
     wxString html = "<html><body><table border=0>";
@@ -118,7 +119,17 @@ void RgbEffects::RenderFaces(int Phoneme)
 //size_t NodeCount=GetNodeCount();
 
 //    above is from ModelClass::ChannelLayoutHtml()
-
+#if 1 //sample code for Sean
+    std::vector<std::vector<int>> face_channels;
+    wxString model_name = "(change this)";
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
+        wxSize wh = (*it)->GetChannelCoords(face_channels, true);
+//        debug(1, "model '%s' is %d x %d, channel[0,0] = %d, ...", (const char*)(*it)->name.c_str(), wh.x, wh.y, face_channels[0][0]);
+        break;
+    }
+#endif // 1
 #if 0 //DEBUG
 //get list of models:
     wxString buf;
