@@ -91,7 +91,8 @@ void RgbEffects::RenderFaces(int Phoneme)
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi,0);
 
-    GetChannelCoords(chmap, true);
+ //   GetChannelCoords(chmap, true);
+
 
 
     wxString html = "<html><body><table border=0>";
