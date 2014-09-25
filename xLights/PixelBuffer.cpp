@@ -444,9 +444,9 @@ void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat
     Effect[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
 }
 
-void PixelBufferClass::RenderFaces(int Phoneme)
+void PixelBufferClass::RenderFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
-    Effect[CurrentLayer].RenderFaces(Phoneme);
+    Effect[CurrentLayer].RenderFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y);
 }
 
 void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)
@@ -491,10 +491,10 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,in
 }
 
 void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
-                                          int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
+        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {
     Effect[CurrentLayer].RenderSingleStrand( ColorScheme,Number_Chases, Color_Mix1,
-                                            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
+            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)

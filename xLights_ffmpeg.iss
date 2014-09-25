@@ -21,6 +21,10 @@ OutputBaseFilename=xLights_Nutcracker_3_4_x.exe
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
 Source: "bin/ffmpeg.exe"; DestDir: "{app}"
+Source: "bin/gawk.exe"; DestDir: "{app}"
+Source: "bin/coroface.awk"; DestDir: "{app}"
+Source: "bin/corofaces.bat"; DestDir: "{app}"
+Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
 Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
@@ -29,6 +33,7 @@ Source: "piano/*.*"; DestDir: "{app}/piano"
 Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
+Source: "README.corofaces";  DestDir: "{app}"; Flags: isreadme
 
 
 

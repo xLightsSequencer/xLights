@@ -140,6 +140,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         }
     }
 
+
     // initialize model based on the DisplayAs value
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();

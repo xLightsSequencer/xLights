@@ -23,6 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 #include "xLightsMain.h" //xLightsFrame
+#include <wx/tokenzr.h>
 
 
 #define WANT_DEBUG_IMPL
@@ -64,7 +65,7 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 }
 
 
-void RgbEffects::RenderFaces(int Phoneme)
+void RgbEffects::RenderFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
 
 
@@ -112,7 +113,7 @@ void RgbEffects::RenderFaces(int Phoneme)
         break;
 
     case 2:
-        coroface( Phoneme); // draw a mouth syllable
+        coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
         break;
     }
 
@@ -147,7 +148,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 #endif
 }
 
-void RgbEffects::coroface(int Phoneme)
+void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
     /*
        FacesPhoneme.Add("AI");     0 : 2,3
@@ -174,64 +175,6 @@ void RgbEffects::coroface(int Phoneme)
     }; /*  initializers for row indexed by 4 */
 #endif
 
-    int face[51][51] =
-    {
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 50 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 49 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 48 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,3,3,-1,-1,-1,3,3,3,3,-1,-1,3,3,3,3,-1,-1,-1,3,3,3,-1,-1,-1,3,3,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 47 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 46 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 45 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 44 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,-1,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,3,-1,-1,-1,3,-1,3,-1,-1,-1,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 43 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,3,3,3,3,3,-1,-1,3,3,3,3,4,4,3,3,3,3,3,-1,3,3,3,3,3,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 42 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,-1,-1,-1,5,5,5,5,4,4,5,5,4,5,5,5,5,-1,-1,-1,-1,-1,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 41 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,-1,-1,-1,5,-1,-1,4,-1,-1,-1,-1,-1,4,-1,-1,-1,5,5,-1,-1,-1,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 40 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,-1,-1,6,6,5,-1,-1,4,-1,6,6,-1,6,6,6,4,-1,6,6,-1,5,5,6,-1,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 39 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,-1,6,6,-1,5,6,6,6,4,6,-1,-1,6,-1,-1,6,4,6,-1,-1,6,6,6,5,6,-1,3,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 38 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,3,6,-1,-1,5,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,5,6,-1,3,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 37 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,1,-1,6,6,-1,-1,-1,5,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,5,6,6,6,6,-1,1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 36 */
-        {-1,-1,-1,-1,-1,-1,-1,1,1,-1,6,3,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,-1,-1,-1,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 35 */
-        {-1,-1,-1,-1,-1,-1,-1,1,-1,-1,6,3,-1,-1,5,5,5,-1,5,-1,4,5,5,-1,-1,5,-1,5,4,-1,5,5,5,-1,-1,5,5,5,-1,3,-1,6,-1,1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 34 */
-        {-1,-1,-1,-1,-1,-1,1,-1,-1,-1,6,3,-1,5,5,-1,-1,5,-1,5,5,4,4,5,5,5,5,4,5,5,-1,-1,-1,5,5,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 33 */
-        {-1,-1,-1,-1,-1,1,-1,-1,-1,6,3,-1,5,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,5,-1,3,-1,-1,6,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 32 */
-        {-1,-1,-1,-1,1,1,-1,-1,6,3,3,-1,5,2,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,2,-1,5,5,-1,3,-1,6,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 31 */
-        {-1,-1,-1,1,1,-1,-1,6,3,3,-1,5,-1,2,-1,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,2,-1,-1,-1,2,-1,-1,5,5,3,-1,-1,6,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 30 */
-        {-1,-1,1,-1,-1,-1,6,3,3,-1,5,5,-1,2,-1,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,2,2,2,2,-1,-1,-1,2,-1,-1,-1,5,-1,3,-1,6,-1,-1,1,-1,-1,-1}, /*  initializers for row indexed by 29 */
-        {-1,-1,1,-1,-1,-1,6,3,5,5,5,-1,-1,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,5,-1,3,-1,6,-1,-1,1,-1,-1}, /*  initializers for row indexed by 28 */
-        {-1,1,-1,-1,-1,6,3,5,5,5,-1,-1,-1,2,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,2,-1,-1,-1,-1,5,5,3,-1,6,-1,-1,-1,1,1}, /*  initializers for row indexed by 27 */
-        {1,-1,-1,-1,-1,6,3,5,-1,-1,-1,-1,2,2,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,2,2,-1,-1,-1,5,5,3,-1,6,-1,-1,-1,1}, /*  initializers for row indexed by 26 */
-        {1,-1,-1,-1,6,3,5,-1,-1,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,2,2,2,-1,5,-1,3,-1,6,-1,-1,1}, /*  initializers for row indexed by 25 */
-        {1,-1,-1,6,3,3,-1,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,2,2,2,-1,3,6,-1,-1,1}, /*  initializers for row indexed by 24 */
-        {1,-1,-1,6,3,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,6,-1,1}, /*  initializers for row indexed by 23 */
-        {-1,1,-1,-1,-1,-1,-1,-1,-1,8,8,8,8,8,8,8,8,8,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,1,-1,-1,-1,8,8,8,8,8,8,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1}, /*  initializers for row indexed by 22 */
-        {-1,1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,1,-1,-1,-1,-1,1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,8,8,8,8,8,-1,-1,-1,-1,-1,-1,1}, /*  initializers for row indexed by 21 */
-        {1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,1,-1}, /*  initializers for row indexed by 20 */
-        {1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1,-1}, /*  initializers for row indexed by 19 */
-        {1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 18 */
-        {1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,1}, /*  initializers for row indexed by 17 */
-        {1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,1,-1,-1,-1,1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1}, /*  initializers for row indexed by 16 */
-        {1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1}, /*  initializers for row indexed by 15 */
-        {1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 14 */
-        {-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 13 */
-        {-1,1,1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1}, /*  initializers for row indexed by 12 */
-        {-1,-1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,1,-1,-1}, /*  initializers for row indexed by 11 */
-        {-1,-1,1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,1,-1,-1}, /*  initializers for row indexed by 10 */
-        {-1,-1,-1,1,1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,1,-1,-1,-1}, /*  initializers for row indexed by 9 */
-        {-1,-1,-1,-1,-1,1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,-1,-1,-1,-1,-1,-1,-1,-1,8,8,-1,-1,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 8 */
-        {-1,-1,-1,-1,-1,-1,1,1,-1,-1,8,8,8,8,8,8,8,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,8,8,8,8,8,8,8,8,8,-1,-1,-1,-1,1,-1,-1,-1,-1}, /*  initializers for row indexed by 7 */
-        {-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 6 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 5 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 4 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 3 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 2 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}, /*  initializers for row indexed by 1 */
-        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
-    }; /*  initializers for row indexed by 0 */
-
-
-
-
 
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
@@ -240,105 +183,108 @@ void RgbEffects::coroface(int Phoneme)
     hsv.hue=0.0;
     hsv.value=1.0;
     hsv.saturation=1.0;
-    int v;
-    wxString model; //set to target model name (optional)
-
-
-
-    for (int y=0; y<BufferHt; y++)
+    int i,j,indx,x[10],y[10],v;
+    int x_Outline,y_Outline,x_Eyes,y_Eyes;
+    wxString model,s_Phoneme; //set to target model name (optional)
+    switch (Phoneme)
     {
-        for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
-        {
-            v=face[x][y];
-            switch (Phoneme)
-            {
 
-            case 0: // FacesPhoneme.Add("AI");     0 : 2,3
-                if(v==2 || v==3)  SetPixel(x,y,hsv);
-                break;
+    case 0 :
+        s_Phoneme="AI";
+        break;
 
+    case 1 :
+        s_Phoneme="E";
+        break;
 
-            case 1: //FacesPhoneme.Add("E");      1 : 6
-                if(v==6)  SetPixel(x,y,hsv);
-                break;
+    case 2 :
+        s_Phoneme="FV";
+        break;
 
-            case 2: //FacesPhoneme.Add("FV");     2 : 6
-                if(v==6)  SetPixel(x,y,hsv);
-                break;
+    case 3 :
+        s_Phoneme="L";
+        break;
 
-            case 3: //FacesPhoneme.Add("L");      3 : 6
-                if(v==6)  SetPixel(x,y,hsv);
-                break;
+    case 4 :
+        s_Phoneme="MBP";
+        break;
 
-            case 4: //FacesPhoneme.Add("MBP");    4 : 6
-                if(v==6)  SetPixel(x,y,hsv);
-                break;
+    case 5 :
+        s_Phoneme="O";
+        break;
 
-            case 5: //FacesPhoneme.Add("O");      5 :4
-                if(v==4)  SetPixel(x,y,hsv);
-                break;
+    case 6 :
+        s_Phoneme="U";
+        break;
 
-            case 6: //FacesPhoneme.Add("U");      6 :4
-                if(v==4)  SetPixel(x,y,hsv);
-                break;
+    case 7 :
+        s_Phoneme="WQ";
+        break;
 
-            case 7: //FacesPhoneme.Add("WQ");     7 : 5
-                if(v==5)  SetPixel(x,y,hsv);
-                break;
+    case 8 :
+        s_Phoneme="etc";
+        break;
 
-            case 8: //FacesPhoneme.Add("etc");    8 : 5
-                if(v==5)  SetPixel(x,y,hsv);
-                break;
-
-            case 9: //FacesPhoneme.Add("rest");   9 : 6
-                if(v==6)  SetPixel(x,y,hsv);
-                break;
-            }
-        }
+    case 9 :
+        s_Phoneme="rest";
+        break;
     }
 
-#if 0
-
-    for (int y=0; y<BufferHt; y++)
-    {
-        for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
-        {
-            v=face[x][y];
-            if(v == 1)
-                SetPixel(x,y,hsv);
-        }
-    }
-#endif
-
-    /*
-    for (int y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
-    {
-        for (int x=0; x<BufferWi; x++) // BufferWi=20 in the above example
-        {
-            if(Phoneme==5 || Phoneme==6) // O, U
-            {
-                if(x==19 && y==15)  SetPixel(x,y,hsv);
-            }
-            if(Phoneme==0) // AI
-            {
-                if(x==6 && y==28)
-                    SetPixel(x,y,hsv);  // mouth 2
-                if(x==11 && y==18)
-                    SetPixel(x,y,hsv);  // mouth 3
-            }
-            if(Phoneme==1 || Phoneme==2 || Phoneme==3 || Phoneme==4 || Phoneme==9) // E,FV,L,MBP,rest
-            {
-                if(x==19 && y==13)  SetPixel(x,y,hsv); // Mouth 6
-            }
-            if(Phoneme==7 || Phoneme==8) // etc, WQ
-            {
-                if(x==19 && y==10)  SetPixel(x,y,hsv);
-            }
-            //        if (!color.GetRGB()) continue; //color == BLACK) continue; //pixel is off
-        }
-    }
+    //  Now lests parse the coordinates for the Mouth, face outline and the eyes
+    /*  we can have more than one pair of numbers
+    E1_TEXTCTRL_X_Y=5:28:4:28,
+    E1_TEXTCTRL_Outline_X_Y=15:51,
+    E1_TEXTCTRL_Eyes_X_Y=10:44
     */
+    wxStringTokenizer tkz(x_y, ":");
+    i=0;
+//    x=y=-1;
+    while ( tkz.HasMoreTokens() )
+    {
+        i++;
+        wxString token = tkz.GetNextToken();
+        // process token here
+
+        indx=(i-1)/2; // counter to count up by 2's
+        if(i==1) x[indx]=wxAtoi(token);
+        if(i==2) y[indx]=wxAtoi(token);
+    }
+
+    wxStringTokenizer tkz_Outline(Outline_x_y, ":");
+    i=0;
+    x_Outline=y_Outline=-1;
+    while ( tkz_Outline.HasMoreTokens() )
+    {
+        i++;
+        wxString token = tkz_Outline.GetNextToken();
+        // process token here
+        if(i==1) x_Outline=wxAtoi(token);
+        if(i==2) y_Outline=wxAtoi(token);
+    }
+
+
+    wxStringTokenizer tkz_Eyes(Eyes_x_y, ":");
+    i=0;
+    x_Eyes=y_Eyes=-1;
+    while ( tkz_Eyes.HasMoreTokens() )
+    {
+        i++;
+        wxString token = tkz_Eyes.GetNextToken();
+        // process token here
+        if(i==1) x_Eyes=wxAtoi(token);
+        if(i==2) y_Eyes=wxAtoi(token);
+    }
+
+    for(j=0; j<=indx; j++)
+    {
+        if(x[j]>=0 && x[j]<BufferWi && y[j]>=0 && y[j]<=BufferHt)  SetPixel(x[j],y[j],hsv);
+    }
+    if(x_Outline>=0 && x_Outline<BufferWi && y_Outline>=0 && y_Outline<=BufferHt)  SetPixel(x_Outline,y_Outline,hsv);
+    if(x_Eyes>=0 && x_Eyes<BufferWi && y_Eyes>=0 && y_Eyes<=BufferHt)  SetPixel(x_Eyes,y_Eyes,hsv);
+
 }
+
+
 
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
 {

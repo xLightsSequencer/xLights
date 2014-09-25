@@ -1014,7 +1014,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Faces")
     {
-        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]));
+        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
+                           SettingsMap[LayerStr+"TEXTCTRL_X_Y"],
+                           SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
+                           SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
     }
     else if (effect == "Fire")
     {
@@ -1237,7 +1240,10 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FACES:
-        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
+        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection(),
+                           panel->TextCtrl_X_Y->GetValue(),
+                           panel->TextCtrl_Outline_X_Y->GetValue(),
+                           panel->TextCtrl_Eyes_X_Y->GetValue());
         break;
 
     case eff_FIRE:
@@ -2618,7 +2624,7 @@ void xLightsFrame::OpenSequence()
     else if (dialog.RadioButtonNewAnim->GetValue())
     {
         UnsavedChanges = true;
-       // duration=dialog.SpinCtrlDuration->GetValue();  // seconds
+        // duration=dialog.SpinCtrlDuration->GetValue();  // seconds
         duration=0;
         wxString s_duration = dialog.SpinCtrlDuration_Float->GetValue(); // <SCM>
         double f_duration;
@@ -2633,7 +2639,7 @@ void xLightsFrame::OpenSequence()
             wxMessageBox("Invalid value for duration. Value must be > 0.001","ERROR");
             return;
         }
-   //     duration*=1000;  // convert to milliseconds
+        //     duration*=1000;  // convert to milliseconds
         duration=f_duration*1000;  // convert to milliseconds <SCM>
     }
 

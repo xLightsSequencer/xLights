@@ -349,6 +349,12 @@ const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
 const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Faces_Phoneme = wxNewId();
+const long EffectsPanel::ID_STATICTEXT64 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_X_Y = wxNewId();
+const long EffectsPanel::ID_STATICTEXT65 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Outline_X_Y = wxNewId();
+const long EffectsPanel::ID_STATICTEXT66 = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_Eyes_X_Y = wxNewId();
 const long EffectsPanel::ID_PANEL6 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT49 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Wave_Type = wxNewId();
@@ -1571,6 +1577,21 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer47->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Faces_Phoneme = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
     FlexGridSizer47->Add(Choice_Faces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText62 = new wxStaticText(Panel1_Faces, ID_STATICTEXT64, _("Mouth X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
+    FlexGridSizer47->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_X_Y"));
+    FlexGridSizer47->Add(TextCtrl_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText63 = new wxStaticText(Panel1_Faces, ID_STATICTEXT65, _("Face Outline X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
+    FlexGridSizer47->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Outline_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_Outline_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Outline_X_Y"));
+    FlexGridSizer47->Add(TextCtrl_Outline_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText64 = new wxStaticText(Panel1_Faces, ID_STATICTEXT66, _("Eyes X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
+    FlexGridSizer47->Add(StaticText64, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Eyes_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_Eyes_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eyes_X_Y"));
+    FlexGridSizer47->Add(TextCtrl_Eyes_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
@@ -1923,6 +1944,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Type1Click);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_3dFade1Click);
     Connect(ID_BITMAPBUTTON_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Group_AllClick);
+    Connect(ID_TEXTCTRL_Eyes_X_Y,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl2Text);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_WaveTypeClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_FillColorsClick);
     Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_MirrorWaveClick);
@@ -2586,3 +2608,7 @@ void EffectsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 {
 }
 
+
+void EffectsPanel::OnTextCtrl2Text(wxCommandEvent& event)
+{
+}

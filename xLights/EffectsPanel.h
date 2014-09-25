@@ -40,6 +40,7 @@ public:
     wxStaticText* StaticText6;
     wxBitmapButton* BitmapButton_RandomMotion;
     wxBitmapButton* BitmapButton_Wave_FillColors;
+    wxTextCtrl* TextCtrl_Eyes_X_Y;
     wxBitmapButton* BitmapButton_TextFont2;
     wxStaticText* StaticText19;
     wxBitmapButton* BitmapButton_TwinkleSteps;
@@ -161,6 +162,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
     wxSlider* Slider_Snowflakes_Type;
+    wxStaticText* StaticText64;
     wxBitmapButton* BitmapButton_Speed;
     wxBitmapButton* BitmapButton_Chase_Spacing1;
     wxSlider* Slider_Fireworks_Count;
@@ -182,6 +184,7 @@ public:
     wxStaticText* StaticText89;
     wxChoice* Choice_Meteors_Type;
     wxStaticText* StaticText23;
+    wxStaticText* StaticText63;
     wxCheckBox* CheckBox_Circles_Plasma;
     wxStaticText* StaticText130;
     wxStaticText* StaticText55;
@@ -265,6 +268,7 @@ public:
     wxStaticText* StaticText93;
     wxBitmapButton* BitmapButton_Color_Mix1;
     wxStaticText* StaticText61;
+    wxStaticText* StaticText62;
     wxButton* Button_Text_Font4;
     wxCheckBox* CheckBox_Spirals_Grow;
     wxBitmapButton* BitmapButton_PaletteRep;
@@ -291,6 +295,7 @@ public:
     wxTextCtrl* TextCtrl_Fadein;
     wxTextCtrl* TextCtrl_Piano_MapFilename;
     wxSlider* Slider_Twinkle_Count;
+    wxTextCtrl* TextCtrl_Outline_X_Y;
     wxBitmapButton* BitmapButton_TextFont4;
     wxSlider* Slider_Color_Mix1;
     wxCheckBox* CheckBox_Palette5;
@@ -384,6 +389,7 @@ public:
     wxChoice* Choice_Text_Count3;
     wxPanel* Panel1_Piano;
     wxCheckBox* CheckBox_Palette1;
+    wxTextCtrl* TextCtrl_X_Y;
     wxStaticText* StaticText136;
     wxSlider* Slider_Spirals_Rotation;
     wxButton* Button_Palette5;
@@ -781,6 +787,12 @@ protected:
     static const long ID_PANEL2;
     static const long ID_STATICTEXT15;
     static const long ID_CHOICE_Faces_Phoneme;
+    static const long ID_STATICTEXT64;
+    static const long ID_TEXTCTRL_X_Y;
+    static const long ID_STATICTEXT65;
+    static const long ID_TEXTCTRL_Outline_X_Y;
+    static const long ID_STATICTEXT66;
+    static const long ID_TEXTCTRL_Eyes_X_Y;
     static const long ID_PANEL6;
     static const long ID_STATICTEXT49;
     static const long ID_CHOICE_Wave_Type;
@@ -1029,6 +1041,7 @@ private:
     void OnBitmapButton_Number_ChasesClick(wxCommandEvent& event);
     void OnBitmapButton_Chase_Group_AllClick(wxCommandEvent& event);
     void OnBitmapButton_SingleStrand_ColorsClick(wxCommandEvent& event);
+    void OnTextCtrl2Text(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);
