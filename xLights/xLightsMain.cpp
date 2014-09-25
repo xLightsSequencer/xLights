@@ -270,21 +270,13 @@ const long xLightsFrame::ID_STATICTEXT32 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_PgoFaceOutline = wxNewId();
 const long xLightsFrame::ID_PGO_AUTOFACE = wxNewId();
 const long xLightsFrame::ID_STATICTEXT46 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT34 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT35 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT36 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT37 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoModelVoice1 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoModelVoice2 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoModelVoice3 = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoModelVoice4 = wxNewId();
-const long xLightsFrame::ID_PANEL5 = wxNewId();
-const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
 const long xLightsFrame::ID_STATICTEXT38 = wxNewId();
 const long xLightsFrame::ID_CHOICE_PgoGroupName = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_SaveCoroGroup = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupDelete = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupClear = wxNewId();
+const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
+const long xLightsFrame::ID_CHOICE_PgoModelVoiceEdit = wxNewId();
 const long xLightsFrame::ID_PGO_COROFACES = wxNewId();
 const long xLightsFrame::ID_STATICTEXT66 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT33 = wxNewId();
@@ -373,7 +365,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenu* MenuHelp;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer45;
-    wxFlexGridSizer* FlexGridSizer47;
     wxFlexGridSizer* FlexGridSizerTest;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
@@ -1237,60 +1228,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText43->SetFont(StaticText43Font);
     FlexGridSizer46->Add(StaticText43, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer44->Add(FlexGridSizer46, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel4 = new wxPanel(PGO_COROFACES, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-    FlexGridSizer47 = new wxFlexGridSizer(0, 4, 0, 0);
-    StaticText32 = new wxStaticText(Panel4, ID_STATICTEXT34, _("Model Voice1"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT34"));
-    FlexGridSizer47->Add(StaticText32, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText33 = new wxStaticText(Panel4, ID_STATICTEXT35, _("Model Voice 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT35"));
-    FlexGridSizer47->Add(StaticText33, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText34 = new wxStaticText(Panel4, ID_STATICTEXT36, _("Model Voice 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT36"));
-    FlexGridSizer47->Add(StaticText34, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText35 = new wxStaticText(Panel4, ID_STATICTEXT37, _("Model Voice 4"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT37"));
-    FlexGridSizer47->Add(StaticText35, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoModelVoice1 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice1, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice1"));
-    FlexGridSizer47->Add(Choice_PgoModelVoice1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoModelVoice2 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice2, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice2"));
-    FlexGridSizer47->Add(Choice_PgoModelVoice2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoModelVoice3 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice3, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice3"));
-    FlexGridSizer47->Add(Choice_PgoModelVoice3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoModelVoice4 = new wxChoice(Panel4, ID_CHOICE_PgoModelVoice4, wxDefaultPosition, wxSize(86,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoice4"));
-    FlexGridSizer47->Add(Choice_PgoModelVoice4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Panel4->SetSizer(FlexGridSizer47);
-    FlexGridSizer47->Fit(Panel4);
-    FlexGridSizer47->SetSizeHints(Panel4);
-    FlexGridSizer44->Add(Panel4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer51 = new wxFlexGridSizer(0, 1, 0, 0);
-    GridCoroFaces = new wxGrid(PGO_COROFACES, ID_GRID_COROFACES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROFACES"));
-    GridCoroFaces->CreateGrid(13,4);
-    GridCoroFaces->EnableEditing(true);
-    GridCoroFaces->EnableGridLines(true);
-    GridCoroFaces->SetColLabelSize(20);
-    GridCoroFaces->SetRowLabelSize(125);
-    GridCoroFaces->SetColLabelValue(0, _("Voice 1"));
-    GridCoroFaces->SetColLabelValue(1, _("Voice 2"));
-    GridCoroFaces->SetColLabelValue(2, _("Voice 3"));
-    GridCoroFaces->SetColLabelValue(3, _("Voice 4"));
-    GridCoroFaces->SetRowLabelValue(0, _("Outline of Face"));
-    GridCoroFaces->SetRowLabelValue(1, _("Eyes - Open"));
-    GridCoroFaces->SetRowLabelValue(2, _("Eyes - Closed"));
-    GridCoroFaces->SetRowLabelValue(3, _("Phoneme AI"));
-    GridCoroFaces->SetRowLabelValue(4, _("Phoneme E"));
-    GridCoroFaces->SetRowLabelValue(5, _("Phoneme etc"));
-    GridCoroFaces->SetRowLabelValue(6, _("Phoneme FV"));
-    GridCoroFaces->SetRowLabelValue(7, _("Phoneme L"));
-    GridCoroFaces->SetRowLabelValue(8, _("Phoneme MBP"));
-    GridCoroFaces->SetRowLabelValue(9, _("Phoneme O"));
-    GridCoroFaces->SetRowLabelValue(10, _("Phoneme rest"));
-    GridCoroFaces->SetRowLabelValue(11, _("Phoneme U"));
-    GridCoroFaces->SetRowLabelValue(12, _("Phoneme WQ"));
-    GridCoroFaces->SetDefaultCellFont( GridCoroFaces->GetFont() );
-    GridCoroFaces->SetDefaultCellTextColour( GridCoroFaces->GetForegroundColour() );
-    FlexGridSizer51->Add(GridCoroFaces, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer44->Add(FlexGridSizer51, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer50 = new wxFlexGridSizer(0, 8, 0, 0);
-    StaticText36 = new wxStaticText(PGO_COROFACES, ID_STATICTEXT38, _("Name for this Singing Group"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT38"));
+    StaticText36 = new wxStaticText(PGO_COROFACES, ID_STATICTEXT38, _("Group Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT38"));
     FlexGridSizer50->Add(StaticText36, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PgoGroupName = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoGroupName, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PgoGroupName"));
+    Choice_PgoGroupName = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoGroupName, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoGroupName"));
+    Choice_PgoGroupName->SetToolTip(_("Choose an existing singing group or create a new one."));
     FlexGridSizer50->Add(Choice_PgoGroupName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_SaveCoroGroup = new wxBitmapButton(PGO_COROFACES, ID_BITMAPBUTTON_SaveCoroGroup, save_xpm, wxDefaultPosition, wxSize(53,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SaveCoroGroup"));
     BitmapButton_SaveCoroGroup->SetDefault();
@@ -1302,6 +1244,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_CoroGroupClear = new wxButton(PGO_COROFACES, ID_BUTTON_CoroGroupClear, _("Clear Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CoroGroupClear"));
     FlexGridSizer50->Add(Button_CoroGroupClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer44->Add(FlexGridSizer50, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer51 = new wxFlexGridSizer(0, 1, 0, 0);
+    GridCoroFaces = new wxGrid(PGO_COROFACES, ID_GRID_COROFACES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROFACES"));
+    GridCoroFaces->CreateGrid(14,4);
+    GridCoroFaces->EnableEditing(true);
+    GridCoroFaces->EnableGridLines(true);
+    GridCoroFaces->SetColLabelSize(20);
+    GridCoroFaces->SetRowLabelSize(125);
+    GridCoroFaces->SetColLabelValue(0, _("Voice 1"));
+    GridCoroFaces->SetColLabelValue(1, _("Voice 2"));
+    GridCoroFaces->SetColLabelValue(2, _("Voice 3"));
+    GridCoroFaces->SetColLabelValue(3, _("Voice 4"));
+    GridCoroFaces->SetRowLabelValue(0, _("Model Name"));
+    GridCoroFaces->SetRowLabelValue(1, _("Face Outline"));
+    GridCoroFaces->SetRowLabelValue(2, _("Eyes - Open"));
+    GridCoroFaces->SetRowLabelValue(3, _("Eyes - Closed"));
+    GridCoroFaces->SetRowLabelValue(4, _("Phoneme AI"));
+    GridCoroFaces->SetRowLabelValue(5, _("Phoneme E"));
+    GridCoroFaces->SetRowLabelValue(6, _("Phoneme etc"));
+    GridCoroFaces->SetRowLabelValue(7, _("Phoneme FV"));
+    GridCoroFaces->SetRowLabelValue(8, _("Phoneme L"));
+    GridCoroFaces->SetRowLabelValue(9, _("Phoneme MBP"));
+    GridCoroFaces->SetRowLabelValue(10, _("Phoneme O"));
+    GridCoroFaces->SetRowLabelValue(11, _("Phoneme rest"));
+    GridCoroFaces->SetRowLabelValue(12, _("Phoneme U"));
+    GridCoroFaces->SetRowLabelValue(13, _("Phoneme WQ"));
+    GridCoroFaces->SetDefaultCellFont( GridCoroFaces->GetFont() );
+    GridCoroFaces->SetDefaultCellTextColour( GridCoroFaces->GetForegroundColour() );
+    FlexGridSizer51->Add(GridCoroFaces, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));
+    Choice_PgoModelVoiceEdit->Hide();
+    FlexGridSizer51->Add(Choice_PgoModelVoiceEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer44->Add(FlexGridSizer51, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PGO_COROFACES->SetSizer(FlexGridSizer44);
     FlexGridSizer44->Fit(PGO_COROFACES);
     FlexGridSizer44->SetSizeHints(PGO_COROFACES);
@@ -1609,11 +1583,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_SAVELOG,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveLogClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_pgo_filenameClick);
     Connect(ID_BUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_papagayo_output_sequenceClick1);
-    Connect(ID_GRID_COROFACES,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesCellLeftClick);
     Connect(ID_CHOICE_PgoGroupName,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_PgoGroupNameSelect);
     Connect(ID_BITMAPBUTTON_SaveCoroGroup,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_SaveCoroGroupClick);
     Connect(ID_BUTTON_CoroGroupDelete,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupDeleteClick);
     Connect(ID_BUTTON_CoroGroupClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupClearClick);
+    Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesCellSelect);
     Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
     Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
@@ -2643,10 +2617,5 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
 
 
 void xLightsFrame::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
-{
-}
-
-
-void xLightsFrame::OnGridCoroFacesCellLeftClick(wxGridEvent& event)
 {
 }

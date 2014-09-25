@@ -888,7 +888,8 @@ wxSize ModelClass::GetChannelCoords(std::vector<std::vector<int>>& chxy, bool sh
             std::vector<int>& row = chxy[Nodes[n]->Coords[c].bufX];
             if (Nodes[n]->Coords[c].bufY >= row.size()) row.resize(Nodes[n]->Coords[c].bufY + 1); //enlarge to fit; TODO: pad with -1s?
             if (Nodes[n]->Coords[c].bufY >= h) h = Nodes[n]->Coords[c].bufY + 1;
-            row[Nodes[n]->Coords[c].bufY] = Nodes[n]->ActChan;
+//            row[Nodes[n]->Coords[c].bufY] = Nodes[n]->ActChan;
+            //GetNodeNumber(i)
         }
     }
     for (auto it = chxy.begin(); it != chxy.end(); ++it) //force rectangular matrix
