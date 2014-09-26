@@ -12,13 +12,15 @@
 #include <wx/tokenzr.h>
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
+#include <algorithm> //sort
+#include <limits> //max int, etc.
 
-//#define WANT_DEBUG_IMPL
-//#define WANT_DEBUG  99
-//#include "djdebug.cpp"
-#define debug(level, ...)
-#define debug_more(level, ...)
-#define debug_function(level)
+#define WANT_DEBUG_IMPL
+#define WANT_DEBUG  99
+#include "djdebug.cpp"
+//#define debug(level, ...)
+//#define debug_more(level, ...)
+//#define debug_function(level)
 
 //cut down on mem allocs when debug is off:
 #ifdef WANT_DEBUG
@@ -168,6 +170,17 @@ void xLightsFrame::OnButton_papagayo_output_sequenceClick(wxCommandEvent& event)
     if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
 }
 */
+
+class InfoChain
+{
+public:
+    VoiceInfo* v;
+    PhraseInfo* p;
+    WordInfo* w;
+    PhonemeInfo* q;
+};
+std::vector<std::pair<int, InfoChain>> phoemes_by_start_frame;
+
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
     ButtonStartPapagayo->Enable(false);
@@ -181,6 +194,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     wxString debug_msg, filename;
 //mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
     filename = TextCtrl_papagayo_output_filename->GetValue();
+//only open/close file once for better performance:
     wxFile f(filename);
     if (!f.Create(filename,true) || !f.IsOpened())
     {
@@ -191,7 +205,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     int pgofile_status = write_pgo_header(f, voices.size()); //, filename);
 
     int numwr = 0;
-#if 1 //huh??  this looks wrong!  needs to be sorted by interval and write all applicable voices, not sorted by voice/phrase/word/phoneme which leads to duplicate intervals
+    phoemes_by_start_frame.clear();
     for (auto voice_it = voices.begin(); voice_it != voices.end(); ++voice_it)
     {
         IFDEBUG(debug_msg += wxString::Format(_("voice[%d/%d] '%s'\n"), voice_it - voices.begin(), voices.size(), voice_it->name.c_str()));
@@ -210,8 +224,9 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
                     IFDEBUG(debug_msg += wxString::Format(_("\t\t\tV%d phoneme[%d/%d] '%s': call routine(start_frame %d, end_frame %d, phoneme '%s')\n"), (voice_it - voices.begin()),
                                                   phoneme_it - word_it->phonemes.begin(), word_it->phonemes.size(), phoneme_it->name.c_str(), phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name));
 //                  call routine(voice_it,phoneme_it->start_frame, phoneme_it->end_frame, phoneme_it->name);
-                    if (pgofile_status) AutoFace(f, /*(voice_it - voices.begin())*/ voices.size(), phoneme_it->start_frame,phoneme_it->end_frame,
-                                                    phoneme_it->name, word_it->name.c_str());
+//                    if (pgofile_status) AutoFace(f, voice_it - voices.begin(), phoneme_it->start_frame,phoneme_it->end_frame,
+//                                                    phoneme_it->name, word_it->name.c_str());
+                    if (pgofile_status) AutoFace(f, phoneme_it->start_frame, &*voice_it, &*phrase_it, &*word_it, &*phoneme_it);
                     ++numwr;
 
                     //if (xout) xout->alloff();
@@ -220,29 +235,12 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
             }
         }
     }
-#endif // 0
-#if 0 //sort by interval
-class PgoEvent
-{
-public:
-    wxString word, phoeme
-}    struct;
-    label = "'" + word + "':'" + phoneme + "'";
-    seconds = (double) start_frame * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
-    f.Write("<tr>\n");
-    f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n",seconds));
-    f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n",label));
-    for (int voice=1; voice<=MaxVoices; voice++) //use actual #voices
-        f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", phoneme));
-
-
-    unordered_map<int,
-#endif // 1
     StatusBar1->SetStatusText(wxString::Format("Wrote pgo xml: %d entries", numwr));
     if (pgofile_status) write_pgo_footer(f, voices.size()); //,filename);
     IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
     f.Close();
 }
+
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
 int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
 {
@@ -295,10 +293,49 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
 //    return 0;   // bad exit
 }
 
+static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, InfoChain>& rhs) { return lhs.first < rhs.first; } //increasing order; used by sort()
+
 void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 {
 //TODO: rewrite to use XmlDoc
-
+#if 1 //sort and write merged pgo events
+    debug(10, "sort %d entries", phoemes_by_start_frame.size());
+    sort(phoemes_by_start_frame.begin(), phoemes_by_start_frame.end(), Sorter); //preserve array indexes and just sort tags
+    std::pair<int, InfoChain> eof;
+    eof.first = std::numeric_limits<int>::max(); //MAXINT; //dummy entry to force last entry to be written
+    phoemes_by_start_frame.push_back(eof);
+    int prev_frame = -1;
+//TODO: do we need to keep end_frame?
+    wxString frame_desc;
+    wxString frame_phonemes[voices.size()];
+    for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
+    {
+        if (it->first == prev_frame) //merge with current frame
+        {
+            frame_desc += wxString::Format(wxT(", '%s':%s':'%s'"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
+            debug(10, "footer: merge fr %d %s", it->first, (const char*)frame_desc.c_str());
+            frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
+            continue;
+        }
+        if (prev_frame != -1) //flush prev frame
+        {
+            double seconds = (double) it->first * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
+            f.Write("<tr>\n");
+            f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
+            f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc.substr(2)));
+            for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
+                if (!frame_phonemes[voice].empty())
+                    f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice]));
+            f.Write("</tr>\n");
+            debug(10, "footer: flush fr %d %s", prev_frame, (const char*)frame_desc.c_str());
+        }
+        prev_frame = it->first; //start new frame
+        frame_desc.clear();
+        for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
+            frame_phonemes[voice].clear();
+        debug(10, "footer: start new fr %d", prev_frame);
+    }
+#endif // 1
     // wxFile f;
 //    wxFile f(filename);
 //    if (!f.Open(filename,wxFile::write_append))
@@ -313,6 +350,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 
 }
 
+#if 0 //huh??  this looks wrong!  needs to be sorted by interval and write all applicable voices, not sorted by voice/phrase/word/phoneme which leads to duplicate intervals
 void xLightsFrame::AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_frame,const wxString& phoneme,const wxString& word)
 {
 //TODO: rewrite to use XmlDoc
@@ -335,6 +373,19 @@ void xLightsFrame::AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_fra
         f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", phoneme));
     f.Write("</tr>\n");
 }
+#else //sort by interval
+void xLightsFrame::AutoFace(wxFile& f, int start_frame, void* voice_ptr, void* phrase_ptr, void* word_ptr, void* phoneme_ptr)
+{
+    std::pair<int, InfoChain> newent;
+    newent.first = start_frame; //voices[voice_inx].phrases[phrase_inx].words[word_inx].phonemes[phoneme_inx].start_frame; //sort key
+    newent.second.v = (VoiceInfo*)voice_ptr;
+    newent.second.p = (PhraseInfo*)phrase_ptr;
+    newent.second.w = (WordInfo*)word_ptr;
+    newent.second.q = (PhonemeInfo*)phoneme_ptr;
+    phoemes_by_start_frame.push_back(newent); //build a list for sorting before writing to file
+    debug(10, "AutoFace: fr %d, v %d %s, phr %d %s, w %d %s, phon %d %s", start_frame, ((VoiceInfo*)voice_ptr) - &voices[0], (const char*)((VoiceInfo*)voice_ptr)->name.c_str(), ((PhraseInfo*)phrase_ptr) - &((VoiceInfo*)voice_ptr)->phrases[0], (const char*)((PhraseInfo*)phrase_ptr)->name.c_str(), ((WordInfo*)word_ptr) - &((PhraseInfo*)phrase_ptr)->words[0], (const char*)((WordInfo*)word_ptr)->name.c_str(), ((PhonemeInfo*)phoneme_ptr) - &((WordInfo*)word_ptr)->phonemes[0], (const char*)((PhonemeInfo*)phoneme_ptr)->name.c_str());
+}
+#endif // 1
 
 
 //TODO: move this into RgbEffects.h; this will force recompile of most .cpp files
