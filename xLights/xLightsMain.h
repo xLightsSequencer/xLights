@@ -384,8 +384,8 @@ private:
     void OnButton_CoroGroupDeleteClick(wxCommandEvent& event);
     void OnChoice_PgoGroupNameSelect(wxCommandEvent& event);
     void OnButton_CoroGroupClearClick(wxCommandEvent& event);
-    void OnGridCoroFacesCellLeftClick(wxGridEvent& event);
     void OnGridCoroFacesCellSelect(wxGridEvent& event);
+    void OnNotebookPgoParmsPageChanged(wxNotebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1035,9 +1035,9 @@ private:
 //  papagayo
     void PapagayoError(const wxString& msg);
     //void AutoFace();
-    int write_pgo_header(int MaxVoices,const wxString& filename);
-    void write_pgo_footer(int MaxVoices,const wxString& filename);
-    void AutoFace(int MaxVoices,const wxString& filename,int start_frame,int end_frame,const wxString& phoneme, const wxString& word);
+    int write_pgo_header(wxFile& f, int MaxVoices);
+    void write_pgo_footer(wxFile& f, int MaxVoices);
+    void AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_frame,const wxString& phoneme, const wxString& word);
 
 
     // schedule
@@ -1165,11 +1165,11 @@ private:
     bool IsValidEffectString(wxString& s);
     void PreviewScaleUpdated(int newscale);
     void LoadPapagayoFile(const wxString& filename);
-    void InitPapagayoTab(void);
+    void InitPapagayoTab(bool tab_changed);
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
-//    wxChoice* Voice(int inx); //treat drop-down lists as array
+    void PgoGridCellSelect(int row, int col);
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ

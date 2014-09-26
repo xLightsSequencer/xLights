@@ -1582,12 +1582,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer47->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_X_Y"));
     FlexGridSizer47->Add(TextCtrl_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer47->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText63 = new wxStaticText(Panel1_Faces, ID_STATICTEXT65, _("Face Outline X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
     FlexGridSizer47->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Outline_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_Outline_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Outline_X_Y"));
     FlexGridSizer47->Add(TextCtrl_Outline_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer47->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText64 = new wxStaticText(Panel1_Faces, ID_STATICTEXT66, _("Eyes X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
     FlexGridSizer47->Add(StaticText64, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Eyes_X_Y = new wxTextCtrl(Panel1_Faces, ID_TEXTCTRL_Eyes_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Eyes_X_Y"));

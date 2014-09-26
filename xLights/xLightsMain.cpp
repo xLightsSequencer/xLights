@@ -365,6 +365,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenu* MenuHelp;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer45;
+    wxFlexGridSizer* FlexGridSizer47;
+    wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizerTest;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
@@ -1165,34 +1167,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticText24->SetFont(StaticText24Font);
     FlexGridSizer43->Add(StaticText24, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer41 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText26 = new wxStaticText(PanelPapagayo, ID_STATICTEXT28, _("1)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT28"));
     wxFont StaticText26Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText26->SetFont(StaticText26Font);
     FlexGridSizer41->Add(StaticText26, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Button_pgo_filename = new wxButton(PanelPapagayo, ID_BUTTON5, _("Click to Select Papagayo input File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    FlexGridSizer47 = new wxFlexGridSizer(0, 3, 0, 0);
+    Button_pgo_filename = new wxButton(PanelPapagayo, ID_BUTTON5, _("Select Papagayo Input File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
     Button_pgo_filename->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer41->Add(Button_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(Button_pgo_filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_pgo_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(236,23), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer41->Add(TextCtrl_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(TextCtrl_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer41->Add(FlexGridSizer47, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText27 = new wxStaticText(PanelPapagayo, ID_STATICTEXT30, _("2)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT30"));
     wxFont StaticText27Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText27->SetFont(StaticText27Font);
     FlexGridSizer41->Add(StaticText27, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_papagayo_output_sequence = new wxButton(PanelPapagayo, ID_BUTTON22, _("Select Sequencer File to Be Produced"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON22"));
+    FlexGridSizer54 = new wxFlexGridSizer(0, 3, 0, 0);
+    Button_papagayo_output_sequence = new wxButton(PanelPapagayo, ID_BUTTON22, _("Select Sequencer Output File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON22"));
     Button_papagayo_output_sequence->SetBackgroundColour(wxColour(224,224,224));
-    FlexGridSizer41->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer54->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_papagayo_output_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL67, wxEmptyString, wxDefaultPosition, wxSize(237,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL67"));
-    FlexGridSizer41->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer54->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer41->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText68 = new wxStaticText(PanelPapagayo, ID_STATICTEXT71, _("3)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
     wxFont StaticText68Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText68->SetFont(StaticText68Font);
     FlexGridSizer41->Add(StaticText68, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText25 = new wxStaticText(PanelPapagayo, ID_STATICTEXT27, _("Choose 1 of 4 different Sequence Outputs:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
+    StaticText25 = new wxStaticText(PanelPapagayo, ID_STATICTEXT27, _("Choose 1 of 4 different Sequence Outputs and fill in associated info:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
     wxFont StaticText25Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,_T("Arial"),wxFONTENCODING_DEFAULT);
     StaticText25->SetFont(StaticText25Font);
     FlexGridSizer41->Add(StaticText25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer40->Add(FlexGridSizer41, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer40->Add(FlexGridSizer41, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer42 = new wxFlexGridSizer(2, 2, 0, 0);
     NotebookPgoParms = new wxNotebook(PanelPapagayo, ID_NOTEBOOK_PGO_PARMS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_PGO_PARMS"));
     PGO_AUTOFACE = new wxPanel(NotebookPgoParms, ID_PGO_AUTOFACE, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PGO_AUTOFACE"));
@@ -1223,7 +1229,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer44 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer44->AddGrowableCol(0);
     FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText43 = new wxStaticText(PGO_COROFACES, ID_STATICTEXT46, _("This tab assigns channels to face parts or Phonemes for standard \nCoro faces.  For each voice, choose a Custom Model and then enter\nthe comma-delimtered node numbers in the grid below."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
+    StaticText43 = new wxStaticText(PGO_COROFACES, ID_STATICTEXT46, _("This tab assigns channels to face parts or Phonemes for standard \nCoro faces.  For each voice, choose a Custom Model and then enter\ncomma-delimtered node numbers in the grid below."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT46"));
     wxFont StaticText43Font(10,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
     StaticText43->SetFont(StaticText43Font);
     FlexGridSizer46->Add(StaticText43, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1250,7 +1256,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     GridCoroFaces->EnableEditing(true);
     GridCoroFaces->EnableGridLines(true);
     GridCoroFaces->SetColLabelSize(20);
-    GridCoroFaces->SetRowLabelSize(125);
+    GridCoroFaces->SetRowLabelSize(100);
+    GridCoroFaces->SetDefaultColSize(110, true);
     GridCoroFaces->SetColLabelValue(0, _("Voice 1"));
     GridCoroFaces->SetColLabelValue(1, _("Voice 2"));
     GridCoroFaces->SetColLabelValue(2, _("Voice 3"));
@@ -1604,6 +1611,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_background_image,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
     Connect(ID_BUTTON_eyesopen_image,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
     Connect(ID_BUTTON_eyesclosed_image,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPgoImageClick);
+    Connect(ID_NOTEBOOK_PGO_PARMS,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebookPgoParmsPageChanged);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
@@ -2114,7 +2122,7 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     }
     if (pagenum == PAPAGAYOTAB)
     {
-        InitPapagayoTab(); //populate choice lists with model names, etc.
+        InitPapagayoTab(event.GetOldSelection() != PAPAGAYOTAB); //populate choice lists with model names, etc.
     }
     if (event.GetOldSelection() == TESTTAB)
     {
