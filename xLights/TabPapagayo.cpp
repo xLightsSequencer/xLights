@@ -24,7 +24,7 @@
  #define debug_function(level)
 #endif
 
-//cut down on mem allocs when debug is off:
+//cut down on mem allocs outside debug() when WANT_DEBUG is off:
 #ifdef WANT_DEBUG
 #define IFDEBUG(stmt)  stmt
 #else
@@ -45,6 +45,8 @@
 
 #define warnmsg(msg)  warnings += msg + "\n"
 
+
+const wxString InactiveIndicator = "?";
 
 
 void xLightsFrame::PapagayoError(const wxString& msg)
@@ -283,7 +285,11 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
             if (voice > GridCoroFaces->GetCols())
                 f.Write(wxString::Format("    <td>VOICE%d</td>\n",voice)); //write dummy value
             else
-                f.Write(wxString::Format("    <td>%s</td>\n", GridCoroFaces->GetCellValue(Model_Row, voice - 1))); //use actual voice model name
+            {
+                wxString voice_name = GridCoroFaces->GetCellValue(Model_Row, voice - 1);
+                if (voice_name.StartsWith(InactiveIndicator)) voice_name = voice_name.substr(InactiveIndicator.size());
+                f.Write(wxString::Format("    <td>%s</td>\n", voice_name)); //use actual voice model name
+            }
         }
         f.Write("</tr>\n");
 
@@ -300,16 +306,27 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
 //    return 0;   // bad exit
 }
 
-static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, InfoChain>& rhs) { return lhs.first < rhs.first; } //increasing order; used by sort()
+//sort by increasing frame# order; used by sort()
+static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, InfoChain>& rhs)
+{
+    if (lhs.first != rhs.first) return (lhs.first < rhs.first);
+//secondary sort to help trap dups; NOTE: strings are not unique, so deref ptrs and use string compares; case-sensitive is okay since we just need a unique sort order
+    if (lhs.second.v->name != rhs.second.v->name) { debug(80, "sorter: v cmp %d", (lhs.second.v->name < rhs.second.v->name)); return (lhs.second.v->name < rhs.second.v->name); }
+    if (lhs.second.p->name != rhs.second.p->name) { debug(80, "sorter: p cmp %d", (lhs.second.p->name < rhs.second.p->name)); return (lhs.second.p->name < rhs.second.p->name); }
+    if (lhs.second.w->name != rhs.second.w->name) { debug(80, "sorter: w cmp %d", (lhs.second.w->name < rhs.second.w->name)); return (lhs.second.w->name < rhs.second.w->name); }
+    if (lhs.second.q->name != rhs.second.q->name) { debug(80, "sorter: q cmp %d", (lhs.second.q->name < rhs.second.q->name)); return (lhs.second.q->name < rhs.second.q->name); }
+    debug(80, "sorter: all =");
+    return true; //dup entry; no need to change position
+}
 
 void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 {
 //TODO: rewrite to use XmlDoc?  perf not too bad as is
 #if 1 //sort and write merged pgo events
 //NOTE: dummy entry at end ensures that list is not empty
-    debug(10, "sort %d entries", phoemes_by_start_frame.size());
+    debug(10, "sort %d frames", phoemes_by_start_frame.size());
     sort(phoemes_by_start_frame.begin(), phoemes_by_start_frame.end(), Sorter); //preserve array indexes and just sort tags
-    debug(10, "... sorted %d entries, first frame %d, last frame %d", phoemes_by_start_frame.size(), phoemes_by_start_frame[0].first, phoemes_by_start_frame[std::max<int>(phoemes_by_start_frame.size() - 2, 0)].first);
+    debug(10, "... sorted %d frames, first frame %d, last frame %d", phoemes_by_start_frame.size(), phoemes_by_start_frame[0].first, phoemes_by_start_frame[std::max<int>(phoemes_by_start_frame.size() - 2, 0)].first);
     std::pair<int, InfoChain> eof;
     eof.first = std::numeric_limits<int>::max(); //MAXINT; //dummy entry to force last entry to be written
     eof.second.v = &voices[0];
@@ -317,24 +334,30 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     eof.second.w = &voices[0].phrases[0].words[0];
     eof.second.q = &voices[0].phrases[0].words[0].phonemes[0];
     phoemes_by_start_frame.push_back(eof);
-    int prev_frame = -1;
+    int prev_frame = -1, err_frame = -1;
 //TODO: do we need to keep end_frame?
     size_t numfr = 0;
-    wxString frame_desc;
+    wxString frame_desc, shorter_desc;
     wxString errors;
     wxString frame_phonemes[voices.size()];
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
-        debug(1, "here1 %d vs. %d", it->first, prev_frame);
+        debug(10, "compare frame %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s' vs. prev frame %d = %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s'", it->first, it->second.v, (const char*)it->second.v->name.c_str(), it->second.p, (const char*)it->second.p->name.c_str(), it->second.w, (const char*)it->second.w->name.c_str(), it->second.q, (const char*)it->second.q->name.c_str(), prev_frame, (it != phoemes_by_start_frame.begin())? (it - 1)->first: -2, (it != phoemes_by_start_frame.begin())? (it - 1)->second.v: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.v->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.p: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.p->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.w: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.w->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.q: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.q->name.c_str(): "(none)");
+        if (it != phoemes_by_start_frame.begin())
+            if (Sorter(*(it - 1), *it) && Sorter(*it, *(it - 1))) continue; //skip duplicates; reuse Sorter lggic: lhs >= rhs && rhs >= lhs ==> lhs == rhs
         if (it->first != prev_frame)
         {
             if (prev_frame != -1) //flush prev frame
             {
+                frame_desc = frame_desc.substr(2); //remove leading ", "
+                if (!shorter_desc.empty()) frame_desc = shorter_desc; //reduce verbosity in grid
+                else if (frame_desc.Find(',') == wxNOT_FOUND) //only one voice; remove voice name to cut down on verbosity
+                    frame_desc = frame_desc.AfterFirst(':');
                 debug(10, "footer: flush fr %d '%s'", prev_frame, (const char*)frame_desc.c_str());
                 double seconds = (double) prev_frame * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
                 f.Write(wxString::Format("<tr frame=\"%d\">\n", prev_frame)); //include a little debug info here (frame#)
                 f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
-                f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc.substr(2)));
+                f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc));
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                     if (!frame_phonemes[voice].empty())
                         f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice]));
@@ -346,17 +369,24 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
             debug(10, "footer: start new fr %d", it->first);
             prev_frame = it->first; //start new frame
             frame_desc.clear();
+            shorter_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
             for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                 frame_phonemes[voice].clear();
         }
 //merge with current frame
-        debug(1, "here2: 0x%x vs v[0] 0x%x == %d", it->second.v, &voices[0], it->second.v - &voices[0]);
-        debug(1, "  0x%x vs phr[0] 0x%x == %d", it->second.p, &it->second.v->phrases[0], it->second.p - &it->second.v->phrases[0]);
-        debug(1, "  0x%x vs w[0] 0x%x == %d", it->second.w, &it->second.p->words[0], it->second.w - &it->second.p->words[0]);
-        debug(1, "  0x%x vs phon[0] 0x%x == %d", it->second.q, &it->second.w->phonemes[0], it->second.q - &it->second.w->phonemes[0]);
-        frame_desc += wxString::Format(wxT(", '%s':%s':'%s'"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
+//        debug(10, "here2: 0x%x vs v[0] 0x%x == %d", it->second.v, &voices[0], it->second.v - &voices[0]);
+//        debug(10, "  0x%x vs phr[0] 0x%x == %d", it->second.p, &it->second.v->phrases[0], it->second.p - &it->second.v->phrases[0]);
+//        debug(10, "  0x%x vs w[0] 0x%x == %d", it->second.w, &it->second.p->words[0], it->second.w - &it->second.p->words[0]);
+//        debug(10, "  0x%x vs phon[0] 0x%x == %d", it->second.q, &it->second.w->phonemes[0], it->second.q - &it->second.w->phonemes[0]);
+        frame_desc += wxString::Format(wxT(", '%s':'%s':%s"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
+        wxString new_short_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
+        if (new_short_desc != shorter_desc) shorter_desc.clear(); //can't use shorter desc (word or phoneme varies)
         debug(10, "footer: merge fr %d '%s'", it->first, (const char*)frame_desc.c_str());
-        if (!frame_phonemes[it->second.v - &voices[0]].empty()) errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+        if (!frame_phonemes[it->second.v - &voices[0]].empty() && (err_frame != it->first))
+        {
+            errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+            err_frame = it->first; //only report each frame 1x
+        }
         frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
     }
 #endif // 1
@@ -697,8 +727,6 @@ wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr
     </images>
 </papagayo>
 #endif // 0
-
-const wxString InactiveIndicator = "?";
 
 bool xLightsFrame::LoadPgoSettings(void)
 {
