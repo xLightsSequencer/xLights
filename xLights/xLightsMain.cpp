@@ -338,6 +338,7 @@ const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
+const long xLightsFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xLightsFrame::ID_PLAYER_DIALOG = wxNewId();
@@ -1468,6 +1469,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n            LOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    Timer2.SetOwner(this, ID_TIMER2);
+    Timer2.Start(10, true);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -1626,6 +1629,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
+    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer2Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
@@ -2106,7 +2110,7 @@ void xLightsFrame::AllLightsOff()
 void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
-    int pagenum=Notebook1->GetSelection();
+    int pagenum=event.GetSelection(); //Notebook1->GetSelection();
     if (pagenum == TESTTAB && !xout)
     {
         StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));

@@ -15,12 +15,14 @@
 #include <algorithm> //sort
 #include <limits> //max int, etc.
 
-#define WANT_DEBUG_IMPL
-#define WANT_DEBUG  99
-#include "djdebug.cpp"
-//#define debug(level, ...)
-//#define debug_more(level, ...)
-//#define debug_function(level)
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
+#endif
 
 //cut down on mem allocs when debug is off:
 #ifdef WANT_DEBUG
@@ -237,14 +239,19 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     }
     StatusBar1->SetStatusText(wxString::Format("Wrote pgo xml: %d entries", numwr));
     if (pgofile_status) write_pgo_footer(f, voices.size()); //,filename);
-    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
     f.Close();
+    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
+}
+
+static void blank(wxFile& f)
+{
+    f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
 }
 
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
 int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
 {
-//TODO: rewrite to use XmlDoc
+//TODO: rewrite to use XmlDoc?  perf not too bad as is
     // wxFile f;
 //    wxFile f(filename);
     // wxString filename=wxString::Format(("C:\\Vixen.2.1.1\\Sequences\\z.xml"));
@@ -285,7 +292,7 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
         f.Write("    <td Protected=\"0\">0.000</td>\n");
         f.Write("    <td Protected=\"0\">Blank</td>\n");
         for (int voice=1; voice<=MaxVoices; voice++) //use actual #voices
-            f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
+            blank(f);
         f.Write("</tr>\n");
 //        f.Close();
         return 1; // good exit
@@ -297,43 +304,60 @@ static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, In
 
 void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 {
-//TODO: rewrite to use XmlDoc
+//TODO: rewrite to use XmlDoc?  perf not too bad as is
 #if 1 //sort and write merged pgo events
+//NOTE: dummy entry at end ensures that list is not empty
     debug(10, "sort %d entries", phoemes_by_start_frame.size());
     sort(phoemes_by_start_frame.begin(), phoemes_by_start_frame.end(), Sorter); //preserve array indexes and just sort tags
+    debug(10, "... sorted %d entries, first frame %d, last frame %d", phoemes_by_start_frame.size(), phoemes_by_start_frame[0].first, phoemes_by_start_frame[std::max<int>(phoemes_by_start_frame.size() - 2, 0)].first);
     std::pair<int, InfoChain> eof;
     eof.first = std::numeric_limits<int>::max(); //MAXINT; //dummy entry to force last entry to be written
+    eof.second.v = &voices[0];
+    eof.second.p = &voices[0].phrases[0];
+    eof.second.w = &voices[0].phrases[0].words[0];
+    eof.second.q = &voices[0].phrases[0].words[0].phonemes[0];
     phoemes_by_start_frame.push_back(eof);
     int prev_frame = -1;
 //TODO: do we need to keep end_frame?
+    size_t numfr = 0;
     wxString frame_desc;
+    wxString errors;
     wxString frame_phonemes[voices.size()];
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
-        if (it->first == prev_frame) //merge with current frame
+        debug(1, "here1 %d vs. %d", it->first, prev_frame);
+        if (it->first != prev_frame)
         {
-            frame_desc += wxString::Format(wxT(", '%s':%s':'%s'"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
-            debug(10, "footer: merge fr %d %s", it->first, (const char*)frame_desc.c_str());
-            frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
-            continue;
-        }
-        if (prev_frame != -1) //flush prev frame
-        {
-            double seconds = (double) it->first * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
-            f.Write("<tr>\n");
-            f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
-            f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc.substr(2)));
+            if (prev_frame != -1) //flush prev frame
+            {
+                debug(10, "footer: flush fr %d '%s'", prev_frame, (const char*)frame_desc.c_str());
+                double seconds = (double) prev_frame * 0.050;  // assume 20fps fpr the papagayo file. not a good assumption
+                f.Write(wxString::Format("<tr frame=\"%d\">\n", prev_frame)); //include a little debug info here (frame#)
+                f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
+                f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc.substr(2)));
+                for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
+                    if (!frame_phonemes[voice].empty())
+                        f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice]));
+                    else
+                        blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                f.Write("</tr>\n");
+                ++numfr;
+            }
+            debug(10, "footer: start new fr %d", it->first);
+            prev_frame = it->first; //start new frame
+            frame_desc.clear();
             for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-                if (!frame_phonemes[voice].empty())
-                    f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice]));
-            f.Write("</tr>\n");
-            debug(10, "footer: flush fr %d %s", prev_frame, (const char*)frame_desc.c_str());
+                frame_phonemes[voice].clear();
         }
-        prev_frame = it->first; //start new frame
-        frame_desc.clear();
-        for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-            frame_phonemes[voice].clear();
-        debug(10, "footer: start new fr %d", prev_frame);
+//merge with current frame
+        debug(1, "here2: 0x%x vs v[0] 0x%x == %d", it->second.v, &voices[0], it->second.v - &voices[0]);
+        debug(1, "  0x%x vs phr[0] 0x%x == %d", it->second.p, &it->second.v->phrases[0], it->second.p - &it->second.v->phrases[0]);
+        debug(1, "  0x%x vs w[0] 0x%x == %d", it->second.w, &it->second.p->words[0], it->second.w - &it->second.p->words[0]);
+        debug(1, "  0x%x vs phon[0] 0x%x == %d", it->second.q, &it->second.w->phonemes[0], it->second.q - &it->second.w->phonemes[0]);
+        frame_desc += wxString::Format(wxT(", '%s':%s':'%s'"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
+        debug(10, "footer: merge fr %d '%s'", it->first, (const char*)frame_desc.c_str());
+        if (!frame_phonemes[it->second.v - &voices[0]].empty()) errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+        frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
     }
 #endif // 1
     // wxFile f;
@@ -344,7 +368,8 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 
 //    }
 //    f.SeekEnd(0);
-
+    errors += wxString::Format(wxT("Frames written: %d"), numfr);
+    wxMessageBox(errors, wxT("File written"));
     f.Write("</xsequence>\n");
 //    f.Close();
 
@@ -353,7 +378,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
 #if 0 //huh??  this looks wrong!  needs to be sorted by interval and write all applicable voices, not sorted by voice/phrase/word/phoneme which leads to duplicate intervals
 void xLightsFrame::AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_frame,const wxString& phoneme,const wxString& word)
 {
-//TODO: rewrite to use XmlDoc
+//TODO: rewrite to use XmlDoc?  perf not too bad as is
     wxString label;
     double seconds;
 //    wxFile f;
@@ -383,7 +408,7 @@ void xLightsFrame::AutoFace(wxFile& f, int start_frame, void* voice_ptr, void* p
     newent.second.w = (WordInfo*)word_ptr;
     newent.second.q = (PhonemeInfo*)phoneme_ptr;
     phoemes_by_start_frame.push_back(newent); //build a list for sorting before writing to file
-    debug(10, "AutoFace: fr %d, v %d %s, phr %d %s, w %d %s, phon %d %s", start_frame, ((VoiceInfo*)voice_ptr) - &voices[0], (const char*)((VoiceInfo*)voice_ptr)->name.c_str(), ((PhraseInfo*)phrase_ptr) - &((VoiceInfo*)voice_ptr)->phrases[0], (const char*)((PhraseInfo*)phrase_ptr)->name.c_str(), ((WordInfo*)word_ptr) - &((PhraseInfo*)phrase_ptr)->words[0], (const char*)((WordInfo*)word_ptr)->name.c_str(), ((PhonemeInfo*)phoneme_ptr) - &((WordInfo*)word_ptr)->phonemes[0], (const char*)((PhonemeInfo*)phoneme_ptr)->name.c_str());
+    debug(10, "AutoFace: fr %d, v# %d '%s', phr# %d '%s', w# %d '%s', phon# %d '%s'", start_frame, ((VoiceInfo*)voice_ptr) - &voices[0], (const char*)((VoiceInfo*)voice_ptr)->name.c_str(), ((PhraseInfo*)phrase_ptr) - &((VoiceInfo*)voice_ptr)->phrases[0], (const char*)((PhraseInfo*)phrase_ptr)->name.c_str(), ((WordInfo*)word_ptr) - &((PhraseInfo*)phrase_ptr)->words[0], (const char*)((WordInfo*)word_ptr)->name.c_str(), ((PhonemeInfo*)phoneme_ptr) - &((WordInfo*)word_ptr)->phonemes[0], (const char*)((PhonemeInfo*)phoneme_ptr)->name.c_str());
 }
 #endif // 1
 
@@ -426,8 +451,8 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
     wxString warnings;
 //    if (!CachedCueFilename.CmpNoCase(filename)) { debug_more(2, ", no change"); return; } //no change
     voices.clear(); //clean out prev file
-    if (!wxFileExists(filename)) retmsg(_("File does not exist"));
-    if (!PapagayoFileInfo.file.Open(filename)) retmsg(_("Can't open file"));
+    if (!wxFileExists(filename)) retmsg(wxString::Format(_("File '%s' does not exist."), filename));
+    if (!PapagayoFileInfo.file.Open(filename)) retmsg(wxString::Format(_("Can't open file '%s'."), filename));
     debug(3, "read file '%s'", (const char*)filename.c_str());
 
 //        wxStringTokenizer tkz(linebuf, "\t");
@@ -571,6 +596,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename)
         voices.push_back(newvoice);
     }
     if (!readline().empty()) warnmsg(wxString::Format(_("Ignoring junk at eof ('%s' found on line %d)"), PapagayoFileInfo.linebuf.c_str(), PapagayoFileInfo.linenum));
+    PapagayoFileInfo.file.Close();
 
     if (!warnings.empty()) wxMessageBox(warnings, _("Papagayo Warning"));
     StatusBar1->SetStatusText(wxString::Format(wxT("Pgo voices loaded: %d, phrases: %d, words: %d, syllables: %d"), total_voices, total_phrases, total_words, total_syllables));
@@ -792,6 +818,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 #endif // 0
     for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
         GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
+    debug(10, "set selection hint on model row");
 
     if (Choice_PgoGroupName->GetCount() > 1)
     {
@@ -917,8 +944,31 @@ void xLightsFrame::OnButtonPgoImageClick(wxCommandEvent& event)
 void xLightsFrame::OnNotebookPgoParmsPageChanged(wxNotebookEvent& event)
 {
 //    wxMessageBox(wxString::Format("pgo tab now = %d vs. %d", NotebookPgoParms->GetSelection(), COROTAB));
-    if (NotebookPgoParms->GetSelection() == COROTAB)
-        PgoGridCellSelect(0, 0); //show drop-down to make ui more obvious
+    debug(10, "grid cell sel notebook %d, %d", GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn());
+//    int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
+//    if (row < 0) row = 0;
+//    if (col < 0) col = 0;
+    if (event.GetSelection() == COROTAB) Timer2.StartOnce(10); //show drop-down after UI stabilizes
+    else //de-select row/col for clean re-entry
+    {
+        PgoGridCellSelect(-1, -1, __LINE__); //hide drop-down
+        GridCoroFaces->SelectRow(-1);
+        GridCoroFaces->SelectCol(-1);
+    }
+//        PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
+}
+
+
+//kludge: delay a little before showing drop-down list on grid
+//otherwise drop-down list doesn't display reliably
+void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
+{
+    if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
+    int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
+    if (row < 0) row = 0;
+    if (col < 0) col = 0;
+    PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
+//    Timer2.Stop();
 }
 
 //populate choice lists with model names, etc.
@@ -957,7 +1007,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 {
     wxString grpname;
     if (!GetGroupName(grpname)) return;
-    PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn()); //force cell update if edit in progress
+    PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn(), __LINE__); //force cell update if edit in progress
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc", (const char*)grpname.c_str());
     wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
     wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
@@ -1016,6 +1066,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 //this loads one group name at a time from the xmldoc
 void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 {
+    debug(10, "PgoGroupNameSelect selection %d, count %d", Choice_PgoGroupName->GetSelection(), Choice_PgoModelVoiceEdit->GetCount());
     if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     wxString grpname;
     if (!GetGroupName(grpname)) return;
@@ -1038,12 +1089,14 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
             inx = Choice_PgoModelVoiceEdit->FindString(InactiveIndicator + voice_name);
             errors += wxString::Format(wxT("Model '%s' %s for voice# %d.\n"), voice_name, (inx == wxNOT_FOUND)? wxT("not found"): wxT("inactive"), i + 1); //, Choice_PgoModelVoiceEdit->GetCount());
         }
+        debug(10, "grp name sel[%d] '%s' => inx %d", i, (const char*)voice_name.c_str(), inx);
         if (inx < 0) inx = 0; //default to "(choose)" hint
 //        Voice(i)->SetSelection(inx);
 //        Choice_PgoModelVoiceEdit->SetSelection(inx);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
 
         GridCoroFaces->SetCellValue(Model_Row, i, Choice_PgoModelVoiceEdit->GetString(inx));
+        debug(10, "model name[%d] now = '%s' from inx %d", i, (const char*)GridCoroFaces->GetCellValue(Model_Row, i).c_str(), inx);
         GridCoroFaces->SetCellValue(Outline_Row, i, voice->GetAttribute(wxT("Outline")));
         GridCoroFaces->SetCellValue(Eyes_open_Row, i, voice->GetAttribute(wxT("Eyes_open")));
         GridCoroFaces->SetCellValue(Eyes_closed_Row, i, voice->GetAttribute(wxT("Eyes_closed")));
@@ -1099,11 +1152,11 @@ public:
 
 void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 {
-    PgoGridCellSelect(event.GetRow(), event.GetCol());
+    PgoGridCellSelect(event.GetRow(), event.GetCol(), __LINE__);
 }
 
 
-void xLightsFrame::PgoGridCellSelect(int row, int col)
+void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 {
 //    wxMessageBox(wxT("editor shown"));
 //    StatusBar1->SetStatusText(wxString::Format(wxT("cell sel %d, %d"), event.GetCol(), event.GetRow())); //GridCoroFaces->GetGridCursorCol(), GridCoroFaces->GetGridCursorRow()));
@@ -1111,6 +1164,7 @@ void xLightsFrame::PgoGridCellSelect(int row, int col)
 //    StatusBar1->SetStatusText(wxString::Format(wxT("grid x %d, y %d, scroll %d %d, cell: c %d, r %d, x %d, l %d, r %d, y %d, b %d, w %d %d, h %d, rlw %d"), GridCoroFaces->GetPosition().x, GridCoroFaces->GetPosition().y, GridCoroFaces->GetScrollPosX(), GridCoroFaces->GetScrollPosY(), col, row, ((myGrid*)GridCoroFaces)->GetColPos(col), ((myGrid*)GridCoroFaces)->GetColLeft(col), ((myGrid*)GridCoroFaces)->GetColRight(col), ((myGrid*)GridCoroFaces)->GetRowTop(row), ((myGrid*)GridCoroFaces)->GetRowBottom(row), ((myGrid*)GridCoroFaces)->GetColWidth(col), ((myGrid*)GridCoroFaces)->GetColSize(col), ((myGrid*)GridCoroFaces)->GetRowHeight(row), GridCoroFaces->GetRowLabelSize()));
     if (Choice_PgoModelVoiceEdit->Hide()) //was editing
     {
+        debug(1, "cell sel(%d, %d) was vis %d from %d", row, col, prevcellx, where);
         if (prevcellx != -1) //update previous cell
             GridCoroFaces->SetCellValue(Model_Row, prevcellx, Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection()));
         prevcellx = -1;
@@ -1131,7 +1185,8 @@ void xLightsFrame::PgoGridCellSelect(int row, int col)
 //        GridCoroFaces->Hide();
 //        GridCoroFaces->Show();
         Choice_PgoModelVoiceEdit->Update();
-//        Choice_PgoModelVoiceEdit->Refresh();
+        Choice_PgoModelVoiceEdit->Refresh();
+        debug(1, "cell sel (%d, %d) make vis '%s' from r %d, c %d at %d", row, col, (const char*)GridCoroFaces->GetCellValue(row, col).c_str(), row, col, where);
         Choice_PgoModelVoiceEdit->SetSelection(Choice_PgoModelVoiceEdit->FindString(GridCoroFaces->GetCellValue(row, col))); //load value from new cell
         prevcellx = col;
     }

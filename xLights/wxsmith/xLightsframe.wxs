@@ -3170,5 +3170,10 @@
 			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
+		<object class="wxTimer" name="ID_TIMER2" variable="Timer2" member="yes">
+			<interval>10</interval>
+			<oneshot>1</oneshot>
+			<handler function="OnTimer2Trigger" entry="EVT_TIMER" />
+		</object>
 	</object>
 </wxsmith>

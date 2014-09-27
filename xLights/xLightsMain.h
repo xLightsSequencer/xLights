@@ -386,6 +386,7 @@ private:
     void OnButton_CoroGroupClearClick(wxCommandEvent& event);
     void OnGridCoroFacesCellSelect(wxGridEvent& event);
     void OnNotebookPgoParmsPageChanged(wxNotebookEvent& event);
+    void OnTimer2Trigger(wxTimerEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -662,6 +663,7 @@ private:
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
+    static const long ID_TIMER2;
     //*)
 
     static const long ID_PLAYER_DIALOG;
@@ -714,6 +716,7 @@ private:
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
+    wxTimer Timer2;
     wxTextCtrl* TextCtrl_U_image;
     wxButton* Button_pgo_filename;
     wxButton* Button2;
@@ -1170,7 +1173,7 @@ private:
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
-    void PgoGridCellSelect(int row, int col);
+    void PgoGridCellSelect(int row, int col, int where);
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
