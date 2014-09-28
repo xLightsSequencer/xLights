@@ -32,6 +32,7 @@
 #include <wx/window.h>
 #include <wx/dcclient.h>
 #include <stdint.h>
+#include <wx/choice.h>
 
 typedef std::vector<long> StartChannelVector_t;
 
@@ -273,9 +274,10 @@ public:
     void SetChanIntensityAll(size_t nodenum, uint8_t intensity);
     wxString ChannelLayoutHtml();
     wxChar GetChannelColorLetter(wxByte chidx);
-    int FindChannelAt(int x, int y);
-    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
-    int FindChannelAtXY(int x, int y, const wxString& model);
+//    int FindChannelAt(int x, int y);
+//    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
+    size_t GetChannelCoords(wxChoice* choices);
+//    int FindChannelAtXY(int x, int y, const wxString& model);
 
     long GetNumArches()
     {

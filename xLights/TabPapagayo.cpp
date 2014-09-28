@@ -48,6 +48,11 @@
 
 const wxString InactiveIndicator = "?";
 
+static wxString NoInactive(wxString name)
+{
+    return name.StartsWith(InactiveIndicator)? name.substr(InactiveIndicator.size()): name;
+}
+
 
 void xLightsFrame::PapagayoError(const wxString& msg)
 {
@@ -287,8 +292,7 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
             else
             {
                 wxString voice_name = GridCoroFaces->GetCellValue(Model_Row, voice - 1);
-                if (voice_name.StartsWith(InactiveIndicator)) voice_name = voice_name.substr(InactiveIndicator.size());
-                f.Write(wxString::Format("    <td>%s</td>\n", voice_name)); //use actual voice model name
+                f.Write(wxString::Format("    <td>%s</td>\n", NoInactive(voice_name))); //use actual voice model name
             }
         }
         f.Write("</tr>\n");
@@ -993,7 +997,7 @@ void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
 {
     if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
-    if (row < 0) row = 0;
+    if (row < 0) row = 0; //default to first cell if none selected
     if (col < 0) col = 0;
     PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
 //    Timer2.Stop();
@@ -1038,6 +1042,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
     PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn(), __LINE__); //force cell update if edit in progress
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc", (const char*)grpname.c_str());
     wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString, true);
+    AddNonDupAttr(CoroFaces, wxT("last_mod"), wxDateTime::Now().Format("%F %T")); //useful for audit trail or debug
     wxXmlNode* node = FindNode(CoroFaces, wxT("coro"), wxT("name"), grpname, true);
     int num_voice = -1;
     wxString warnings;
@@ -1109,8 +1114,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 //        int voice_num = wxAtoi(voice->GetAttribute(wxT("voiceNumber"), wxT("0")));
 //        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
 //        int inx = Voice(i)->FindString(voice->GetAttribute(wxT("name"), wxEmptyString));
-        wxString voice_name = voice->GetAttribute(wxT("name"), wxEmptyString);
-        if (voice_name.StartsWith(InactiveIndicator)) voice_name = voice_name.substr(InactiveIndicator.size());
+        wxString voice_name = NoInactive(voice->GetAttribute(wxT("name"), wxEmptyString));
         int inx = Choice_PgoModelVoiceEdit->FindString(voice_name);
         if ((inx < 0) && !voice_name.empty())
         {
@@ -1163,7 +1167,7 @@ void xLightsFrame::OnButton_CoroGroupClearClick(wxCommandEvent& event)
 
 //#include <wx/wxprec.h>
 //#include <wx/utils.h>
-static int prevcellx = -1;
+static wxSize prevcell(-1, Model_Row);
 
 //kludge: expose additional methods
 //CAUTION: data members must remain the same for safe cast
@@ -1184,40 +1188,63 @@ void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 }
 
 
+//find unique node#s and associated (X,Y) for a model:
+void xLightsFrame::GetMouthNodes(const wxString& model_name)
+{
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes)) Choice_RelativeNodes->Append(NoneHint);
+        return;
+    }
+    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+    {
+        if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes)) Choice_RelativeNodes->Append(NoneHint);
+        return;
+    }
+}
+
+//kludgey drop-down edit for grid cells:
+//TODO: maybe can use custom grid cell editor in wxWidgets 3.1
 void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 {
 //    wxMessageBox(wxT("editor shown"));
 //    StatusBar1->SetStatusText(wxString::Format(wxT("cell sel %d, %d"), event.GetCol(), event.GetRow())); //GridCoroFaces->GetGridCursorCol(), GridCoroFaces->GetGridCursorRow()));
 //    wxBell();
 //    StatusBar1->SetStatusText(wxString::Format(wxT("grid x %d, y %d, scroll %d %d, cell: c %d, r %d, x %d, l %d, r %d, y %d, b %d, w %d %d, h %d, rlw %d"), GridCoroFaces->GetPosition().x, GridCoroFaces->GetPosition().y, GridCoroFaces->GetScrollPosX(), GridCoroFaces->GetScrollPosY(), col, row, ((myGrid*)GridCoroFaces)->GetColPos(col), ((myGrid*)GridCoroFaces)->GetColLeft(col), ((myGrid*)GridCoroFaces)->GetColRight(col), ((myGrid*)GridCoroFaces)->GetRowTop(row), ((myGrid*)GridCoroFaces)->GetRowBottom(row), ((myGrid*)GridCoroFaces)->GetColWidth(col), ((myGrid*)GridCoroFaces)->GetColSize(col), ((myGrid*)GridCoroFaces)->GetRowHeight(row), GridCoroFaces->GetRowLabelSize()));
-    if (Choice_PgoModelVoiceEdit->Hide()) //was editing
+    bool node_edit = Choice_RelativeNodes->Hide(); //was editing node#s
+    bool model_edit = Choice_PgoModelVoiceEdit->Hide(); //was editing a model name
+    if (node_edit || model_edit)
     {
-        debug(1, "cell sel(%d, %d) was vis %d from %d", row, col, prevcellx, where);
-        if (prevcellx != -1) //update previous cell
-            GridCoroFaces->SetCellValue(Model_Row, prevcellx, Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection()));
-        prevcellx = -1;
+        debug(10, "cell sel(%d, %d) was vis %d from (%d, %d)", row, col, prevcelly, prevcellx, where);
+        if (prevcell.x != -1) //update previous cell
+            GridCoroFaces->SetCellValue(prevcell.y, prevcell.x, node_edit? Choice_RelativeNodes->GetString(Choice_RelativeNodes->GetSelection()): Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection()));
+        prevcell.x = -1;
     }
-    if (!row) //start editing
-    {
-        int destx = ((myGrid*)GridCoroFaces)->GetColLeft(col), destw = ((myGrid*)GridCoroFaces)->GetColWidth(col);
-        int desty = ((myGrid*)GridCoroFaces)->GetRowTop(row), desth = ((myGrid*)GridCoroFaces)->GetRowHeight(row);
-        destx += GridCoroFaces->GetPosition().x + GridCoroFaces->GetRowLabelSize();
-        desty += GridCoroFaces->GetPosition().y + GridCoroFaces->GetRowHeight(0); //kludge: assume col labels are same height as row
-        destx += GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
-        desty += GridCoroFaces->GetScrollPosY();
-        Choice_PgoModelVoiceEdit->Show();
-        Choice_PgoModelVoiceEdit->Move(destx, desty);
-        Choice_PgoModelVoiceEdit->SetSize(destw, desth);
-        Choice_PgoModelVoiceEdit->Raise(); //put it on top of grid
-//        Choice_PgoModelVoiceEdit->GetSizer().Layout(); //FlexGridSizer51
-//        GridCoroFaces->Hide();
-//        GridCoroFaces->Show();
-        Choice_PgoModelVoiceEdit->Update();
-        Choice_PgoModelVoiceEdit->Refresh();
-        debug(1, "cell sel (%d, %d) make vis '%s' from r %d, c %d at %d", row, col, (const char*)GridCoroFaces->GetCellValue(row, col).c_str(), row, col, where);
-        Choice_PgoModelVoiceEdit->SetSelection(Choice_PgoModelVoiceEdit->FindString(GridCoroFaces->GetCellValue(row, col))); //load value from new cell
-        prevcellx = col;
-    }
+    if (col != prevcell.x)  //analyze face element node#s in new model
+        GetMouthNodes(NoInactive(GridCoroFaces->GetCellValue(Model_Row, col)));
+    int destx = ((myGrid*)GridCoroFaces)->GetColLeft(col), destw = ((myGrid*)GridCoroFaces)->GetColWidth(col);
+    int desty = ((myGrid*)GridCoroFaces)->GetRowTop(row), desth = ((myGrid*)GridCoroFaces)->GetRowHeight(row);
+    destx += GridCoroFaces->GetPosition().x + GridCoroFaces->GetRowLabelSize();
+    desty += GridCoroFaces->GetPosition().y + GridCoroFaces->GetRowHeight(0); //kludge: assume col labels are same height as row
+    destx += GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
+    desty += GridCoroFaces->GetScrollPosY();
+    wxChoice* choices = (row == Model_Row)? Choice_PgoModelVoiceEdit: Choice_RelativeNodes; //start model name vs. node#s
+//TODO: some of the below calls might be redundant; had a hard time getting it to display consistently at first, so just leave them all in for now
+    choices->Show();
+    choices->Move(destx, desty);
+    choices->SetSize(destw, desth);
+    choices->Raise(); //put it on top of grid
+//    choices->GetSizer().Layout(); //FlexGridSizer51
+//    GridCoroFaces->Hide();
+//    GridCoroFaces->Show();
+    choices->Update();
+    choices->Refresh();
+    debug(1, "cell sel (%d, %d) made vis '%s' @%d", row, col, (const char*)GridCoroFaces->GetCellValue(row, col).c_str(), where);
+    choices->SetSelection(choices->FindString(GridCoroFaces->GetCellValue(row, col))); //load value from new cell
+    prevcell.x = col; //remember where to put back new value
+    prevcell.y = row;
 //    Choice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));
 //FlexGridSizer51
 }

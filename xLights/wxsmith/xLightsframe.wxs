@@ -2518,7 +2518,7 @@
 																								<cols>1</cols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
-																										<label>This tab assigns channels to face parts or Phonemes for standard &#x0A;Coro faces.  For each voice, choose a Custom Model and then enter&#x0A;comma-delimtered node numbers in the grid below.</label>
+																										<label>This tab assigns channels to face parts or Phonemes for standard &#x0A;Coro faces.  For each voice, choose a Custom Model and then enter&#x0A;comma-separated relative node numbers in the grid below.</label>
 																										<font>
 																											<size>10</size>
 																											<style>normal</style>
@@ -2541,7 +2541,7 @@
 																								<cols>8</cols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText36" member="yes">
-																										<label>Group Name:</label>
+																										<label>Preset Name:</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
@@ -2549,7 +2549,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxChoice" name="ID_CHOICE_PgoGroupName" variable="Choice_PgoGroupName" member="yes">
-																										<tooltip>Choose an existing singing group or create a new one.</tooltip>
+																										<tooltip>Presets allow multiple groups of settings to be saved.  Choose an existing Preset or create a new one.</tooltip>
 																										<style>wxCB_SORT</style>
 																										<handler function="OnChoice_PgoGroupNameSelect" entry="EVT_CHOICE" />
 																									</object>
@@ -2641,9 +2641,75 @@
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
+																								<object class="sizeritem">
+																									<object class="wxChoice" name="ID_CHOICE_RelativeNodes" variable="Choice_RelativeNodes" member="yes">
+																										<hidden>1</hidden>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
 																							</object>
 																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																							<border>5</border>
+																							<border>2</border>
+																							<option>1</option>
+																						</object>
+																						<object class="sizeritem">
+																							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
+																								<cols>3</cols>
+																								<object class="sizeritem">
+																									<object class="wxCheckBox" name="ID_CHECKBOX_AutoFadePgoElement" variable="CheckBox_AutoFadePgoElement" member="yes">
+																										<label>Auto-fade each element after:</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxTextCtrl" name="ID_TEXTCTRL_AutoFadePgoElement" variable="TextCtrl_AutoFadePgoElement" member="yes">
+																										<value>.2</value>
+																										<size>55,21</size>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
+																										<label>sec. (TBD)</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxCheckBox" name="ID_CHECKBOX_AutoFadePgoAll" variable="CheckBox_AutoFadePgoAll" member="yes">
+																										<label>Auto-fade all elements after:</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxTextCtrl" name="ID_TEXTCTRL_AutoFadePgoAll" variable="TextCtrl_AutoFadePgoAll" member="yes">
+																										<value>1.5</value>
+																										<size>52,21</size>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxStaticText" name="ID_STATICTEXT35" variable="StaticText33" member="yes">
+																										<label>sec. (TBD)</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
+																									<option>1</option>
+																								</object>
+																							</object>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																							<border>2</border>
 																							<option>1</option>
 																						</object>
 																					</object>

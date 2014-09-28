@@ -444,9 +444,9 @@ void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat
     Effect[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
 }
 
-void PixelBufferClass::RenderFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
+void PixelBufferClass::RenderFaces(int mode, int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
-    Effect[CurrentLayer].RenderFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y);
+    Effect[CurrentLayer].RenderFaces(mode, Phoneme,x_y,Outline_x_y,Eyes_x_y);
 }
 
 void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)

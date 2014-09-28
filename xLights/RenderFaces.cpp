@@ -30,7 +30,7 @@
 #define WANT_DEBUG  99
 //#include "djdebug.cpp"
 
-
+#if 0 //obsolete
 int FindChannelAtXY(int x, int y, const wxString& model)
 {
 //get list of models:
@@ -63,9 +63,14 @@ int FindChannelAtXY(int x, int y, const wxString& model)
     }
     return -1; //pixel not found
 }
+#endif // 0
 
 
-void RgbEffects::RenderFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
+//NOTE: params are re-purposed as follows for Coro face mode:
+// x_y = list of active elements for this frame
+// Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
+// Eyes_x_y = list of random elements (intended for eye blinks, etc)
+void RgbEffects::RenderFaces(int mode, int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
 
 
@@ -92,8 +97,8 @@ void RgbEffects::RenderFaces(int Phoneme, const wxString& x_y, const wxString& O
 //    std::vector<int> chmap;
     std::vector<std::vector<int>> chmap; //array of arrays
 //    chmap.resize(BufferHt * BufferWi,0);
-    ModelClass mc;
-    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
+//    ModelClass mc;
+//    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
 
 
 
@@ -101,9 +106,9 @@ void RgbEffects::RenderFaces(int Phoneme, const wxString& x_y, const wxString& O
     int Ht, Wt;
     Ht = BufferHt;
     Wt = BufferWi;
-    int mode; // 1=auto, 2=coroface, 3=picture,4=movie;
+//    int mode; // 1=auto, 2=coroface, 3=picture,4=movie;
 
-    mode=2;
+//    mode=2;
     switch (mode)
     {
 
@@ -115,13 +120,15 @@ void RgbEffects::RenderFaces(int Phoneme, const wxString& x_y, const wxString& O
     case 2:
         coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
         break;
+    default:
+        wxMessageBox(wxT("unsupported mode!"));
     }
 
 
 //size_t NodeCount=GetNodeCount();
 
 //    above is from ModelClass::ChannelLayoutHtml()
-#if 1 //sample code for Sean
+#if 0 //sample code for Sean
     std::vector<std::vector<int>> face_channels;
     wxString model_name = "(change this)";
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)

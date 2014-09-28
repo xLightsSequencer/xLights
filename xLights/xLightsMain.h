@@ -602,6 +602,13 @@ private:
     static const long ID_BUTTON_CoroGroupClear;
     static const long ID_GRID_COROFACES;
     static const long ID_CHOICE_PgoModelVoiceEdit;
+    static const long ID_CHOICE_RelativeNodes;
+    static const long ID_CHECKBOX_AutoFadePgoElement;
+    static const long ID_TEXTCTRL_AutoFadePgoElement;
+    static const long ID_STATICTEXT34;
+    static const long ID_CHECKBOX_AutoFadePgoAll;
+    static const long ID_TEXTCTRL_AutoFadePgoAll;
+    static const long ID_STATICTEXT35;
     static const long ID_PGO_COROFACES;
     static const long ID_STATICTEXT66;
     static const long ID_STATICTEXT33;
@@ -682,6 +689,7 @@ private:
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
+    wxCheckBox* CheckBox_AutoFadePgoAll;
     wxBitmapButton* BitmapButton4;
     wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
@@ -694,6 +702,7 @@ private:
     wxSlider* SliderBgIntensity;
     wxButton* Button_CoroGroupDelete;
     wxPanel* SeqPanelLeft;
+    wxStaticText* StaticText32;
     wxStaticText* StaticText36;
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
@@ -773,6 +782,7 @@ private:
     wxButton* Button_CreateRandom;
     wxCheckListBox* CheckListBoxTestChannels;
     wxTextCtrl* TextCtrl_E_image;
+    wxStaticText* StaticText33;
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
@@ -791,6 +801,7 @@ private:
     wxPanel* PGO_IMAGES;
     wxCheckBox* CheckBoxMapEmptyChannels;
     wxNotebook* NotebookPgoParms;
+    wxCheckBox* CheckBox_AutoFadePgoElement;
     wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
@@ -853,6 +864,7 @@ private:
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
     wxButton* Button_U_image;
+    wxChoice* Choice_RelativeNodes;
     wxButton* Button_E_image;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticTextShowEnd;
@@ -903,6 +915,7 @@ private:
     wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
+    wxTextCtrl* TextCtrl_AutoFadePgoAll;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* SliderBgColorB;
     wxPanel* PanelTestRgb;
@@ -931,6 +944,7 @@ private:
     wxRadioButton* RadioButtonRgbChaseOff;
     wxButton* ButtonNetworkChange;
     wxTextCtrl* TextCtrlPreviewTime;
+    wxTextCtrl* TextCtrl_AutoFadePgoElement;
     wxRadioButton* RadioButtonRgbCycle3;
     wxButton* Button_WQ_image;
     EffectsPanel* EffectsPanel2;
@@ -1174,6 +1188,7 @@ private:
     bool SavePgoSettings(void);
     bool GetGroupName(wxString& grpname);
     void PgoGridCellSelect(int row, int col, int where);
+    void GetMouthNodes(const wxString& model_name);
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
