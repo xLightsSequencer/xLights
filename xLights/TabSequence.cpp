@@ -1014,8 +1014,11 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Faces")
     {
-        buffer.RenderFaces(wxAtoi(SettingsMap[LayerStr+"CHOICE_FaceMode"]),
-                           FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
+        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]));
+    }
+    else if (effect == "CoroFaces")
+    {
+        buffer.RenderCoroFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
                            SettingsMap[LayerStr+"TEXTCTRL_X_Y"],
                            SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
                            SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
@@ -1241,8 +1244,10 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FACES:
-        buffer.RenderFaces(panel->Choicebook_FaceMode->GetSelection(),
-                           panel->Choice_Faces_Phoneme->GetSelection(),
+        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
+        break;
+ case eff_COROFACES:
+        buffer.RenderCoroFaces(panel->Choice_Faces_Phoneme->GetSelection(),
                            panel->TextCtrl_X_Y->GetValue(),
                            panel->TextCtrl_Outline_X_Y->GetValue(),
                            panel->TextCtrl_Eyes_X_Y->GetValue());

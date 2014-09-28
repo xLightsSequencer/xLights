@@ -70,7 +70,7 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 // x_y = list of active elements for this frame
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
-void RgbEffects::RenderFaces(int mode, int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
+void RgbEffects::RenderFaces(int Phoneme)
 {
 
 
@@ -108,21 +108,8 @@ void RgbEffects::RenderFaces(int mode, int Phoneme, const wxString& x_y, const w
     Wt = BufferWi;
 //    int mode; // 1=auto, 2=coroface, 3=picture,4=movie;
 
-//    mode=2;
-    switch (mode)
-    {
-
-
-    case 1:
         mouth( Phoneme, Ht,  Wt); // draw a mouth syllable
-        break;
 
-    case 2:
-        coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
-        break;
-    default:
-        wxMessageBox(wxT("unsupported mode!"));
-    }
 
 
 //size_t NodeCount=GetNodeCount();
@@ -154,143 +141,6 @@ void RgbEffects::RenderFaces(int mode, int Phoneme, const wxString& x_y, const w
     debug(1, "first 500 char of layout html = %s", (const char*)buf);
 #endif
 }
-
-void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
-{
-    /*
-       FacesPhoneme.Add("AI");     0 : 2,3
-       FacesPhoneme.Add("E");      1 : 6
-       FacesPhoneme.Add("FV");     2 : 6
-       FacesPhoneme.Add("L");      3 : 6
-       FacesPhoneme.Add("MBP");    4 : 6
-       FacesPhoneme.Add("O");      5 :4
-       FacesPhoneme.Add("U");      6 :4
-       FacesPhoneme.Add("WQ");     7 : 5
-       FacesPhoneme.Add("etc");    8 : 5
-       FacesPhoneme.Add("rest");   9 : 6
-    */
-
-
-#if 0
-    int face[5][5] =
-    {
-        {7,8,4,8,1}, /*  initializers for row indexed by 0 */
-        {-1,4,2,1,-1}, /*  initializers for row indexed by 1 */
-        {4,2,1,3,-1}, /*  initializers for row indexed by 2 */
-        {-1,1,3,5,-1}, /*  initializers for row indexed by 3 */
-        {1,-1,5,-1,6}
-    }; /*  initializers for row indexed by 4 */
-#endif
-
-
-    wxImage::HSVValue hsv;
-    size_t colorcnt=GetColorCount();
-    int ColorIdx=0;
-    palette.GetHSV(ColorIdx, hsv);
-    hsv.hue=0.0;
-    hsv.value=1.0;
-    hsv.saturation=1.0;
-    int i,j,indx,x[10],y[10],v;
-    int x_Outline,y_Outline,x_Eyes,y_Eyes;
-    wxString model,s_Phoneme; //set to target model name (optional)
-    switch (Phoneme)
-    {
-
-    case 0 :
-        s_Phoneme="AI";
-        break;
-
-    case 1 :
-        s_Phoneme="E";
-        break;
-
-    case 2 :
-        s_Phoneme="FV";
-        break;
-
-    case 3 :
-        s_Phoneme="L";
-        break;
-
-    case 4 :
-        s_Phoneme="MBP";
-        break;
-
-    case 5 :
-        s_Phoneme="O";
-        break;
-
-    case 6 :
-        s_Phoneme="U";
-        break;
-
-    case 7 :
-        s_Phoneme="WQ";
-        break;
-
-    case 8 :
-        s_Phoneme="etc";
-        break;
-
-    case 9 :
-        s_Phoneme="rest";
-        break;
-    }
-
-    //  Now lests parse the coordinates for the Mouth, face outline and the eyes
-    /*  we can have more than one pair of numbers
-    E1_TEXTCTRL_X_Y=5:28:4:28,
-    E1_TEXTCTRL_Outline_X_Y=15:51,
-    E1_TEXTCTRL_Eyes_X_Y=10:44
-    */
-    wxStringTokenizer tkz(x_y, ":");
-    i=0;
-//    x=y=-1;
-    while ( tkz.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz.GetNextToken();
-        // process token here
-
-        indx=(i-1)/2; // counter to count up by 2's
-        if(i==1) x[indx]=wxAtoi(token);
-        if(i==2) y[indx]=wxAtoi(token);
-    }
-
-    wxStringTokenizer tkz_Outline(Outline_x_y, ":");
-    i=0;
-    x_Outline=y_Outline=-1;
-    while ( tkz_Outline.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz_Outline.GetNextToken();
-        // process token here
-        if(i==1) x_Outline=wxAtoi(token);
-        if(i==2) y_Outline=wxAtoi(token);
-    }
-
-
-    wxStringTokenizer tkz_Eyes(Eyes_x_y, ":");
-    i=0;
-    x_Eyes=y_Eyes=-1;
-    while ( tkz_Eyes.HasMoreTokens() )
-    {
-        i++;
-        wxString token = tkz_Eyes.GetNextToken();
-        // process token here
-        if(i==1) x_Eyes=wxAtoi(token);
-        if(i==2) y_Eyes=wxAtoi(token);
-    }
-
-    for(j=0; j<=indx; j++)
-    {
-        if(x[j]>=0 && x[j]<BufferWi && y[j]>=0 && y[j]<=BufferHt)  SetPixel(x[j],y[j],hsv);
-    }
-    if(x_Outline>=0 && x_Outline<BufferWi && y_Outline>=0 && y_Outline<=BufferHt)  SetPixel(x_Outline,y_Outline,hsv);
-    if(x_Eyes>=0 && x_Eyes<BufferWi && y_Eyes>=0 && y_Eyes<=BufferHt)  SetPixel(x_Eyes,y_Eyes,hsv);
-
-}
-
 
 
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)

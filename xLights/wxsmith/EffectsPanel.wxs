@@ -816,222 +816,18 @@
 						<object class="wxPanel" name="ID_PANEL6" variable="Panel1_Faces" member="yes">
 							<pos>141,8</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer47" member="no">
-								<cols>3</cols>
+								<cols>2</cols>
 								<object class="sizeritem">
-									<object class="wxChoicebook" name="ID_CHOICEBOOK_FaceMode" variable="Choicebook_FaceMode" member="yes">
-										<object class="choicebookpage">
-											<object class="wxPanel" name="ID_PANEL19" variable="Panel_Auto" member="yes">
-												<pos>11,10</pos>
-												<object class="wxFlexGridSizer" variable="FlexGridSizer57" member="no">
-													<cols>3</cols>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT67" variable="StaticText65" member="yes">
-															<label>Face Shape</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxRadioButton" name="ID_RADIOBUTTON1" variable="RadioButton1" member="yes">
-															<label>Round</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxRadioButton" name="ID_RADIOBUTTON2" variable="RadioButton2" member="yes">
-															<label>Rectangular</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT72" variable="StaticText70" member="yes">
-															<label>Outline of Face</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox1" member="yes">
-															<label>Yes</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-												</object>
-											</object>
-											<label>Auto - TBD</label>
-										</object>
-										<object class="choicebookpage">
-											<object class="wxPanel" name="ID_PANEL21" variable="Panel_Coro" member="yes">
-												<pos>43,12</pos>
-												<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
-													<cols>3</cols>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
-															<label>Phoneme:</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_CoroFacePhoneme" variable="Choice_CoroFacePhoneme" member="yes" />
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT71" variable="StaticText69" member="yes">
-															<label>Elements &#x0A;to &#x0A;Activate:</label>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CoroFaceElements" variable="CheckListBox_CoroFaceElements" member="yes" />
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-												</object>
-											</object>
-											<label>Coro</label>
-										</object>
-										<object class="choicebookpage">
-											<object class="wxPanel" name="ID_PANEL23" variable="Panel_Image_TBD" member="yes">
-												<pos>50,4</pos>
-												<object class="wxStaticText" name="ID_STATICTEXT69" variable="StaticText67" member="yes">
-													<label>TBD</label>
-													<pos>24,16</pos>
-												</object>
-											</object>
-											<label>Image - TBD</label>
-										</object>
-										<object class="choicebookpage">
-											<object class="wxPanel" name="ID_PANEL25" variable="Panel_Movie_TBD" member="yes">
-												<pos>41,13</pos>
-												<object class="wxStaticText" name="ID_STATICTEXT70" variable="StaticText68" member="yes">
-													<label>TBD</label>
-													<pos>24,24</pos>
-												</object>
-											</object>
-											<label>Movie - TBD</label>
-										</object>
-										<object class="choicebookpage">
-											<object class="wxPanel" name="ID_PANEL27" variable="Panel_PreviousUI" member="yes">
-												<pos>83,7</pos>
-												<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
-													<cols>3</cols>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText14" member="yes">
-															<label>Phoneme:</label>
-														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													</object>
-													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" variable="Choice_Faces_Phoneme" member="yes">
-															<selection>1</selection>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText62" member="yes">
-															<label>Mouth X:Y</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_X_Y" variable="TextCtrl_X_Y" member="yes">
-															<value>0:0</value>
-															<style>wxTE_PROCESS_ENTER</style>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
-															<label>Face Outline X:Y</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Outline_X_Y" variable="TextCtrl_Outline_X_Y" member="yes">
-															<value>0:0</value>
-															<style>wxTE_PROCESS_ENTER</style>
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT66" variable="StaticText64" member="yes">
-															<label>Eyes X:Y</label>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="sizeritem">
-														<object class="wxTextCtrl" name="ID_TEXTCTRL_Eyes_X_Y" variable="TextCtrl_Eyes_X_Y" member="yes">
-															<value>0:0</value>
-															<style>wxTE_PROCESS_ENTER</style>
-															<handler function="OnTextCtrl2Text" entry="EVT_TEXT" />
-														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-													<object class="spacer">
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
-														<option>1</option>
-													</object>
-												</object>
-											</object>
-											<label>Previous UI - to be dropped?</label>
-										</object>
+									<object class="wxStaticText" name="ID_STATICTEXT15" variable="StaticText14" member="yes">
+										<label>Phoneme</label>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_Faces_Phoneme" variable="Choice_Faces_Phoneme" member="yes" />
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -3986,6 +3782,78 @@
 							</object>
 						</object>
 						<label>Wave</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL28" variable="Panel1_CoroFaces" member="yes">
+							<pos>202,8</pos>
+							<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT73" variable="StaticText71" member="yes">
+										<label>Phoneme</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Phoneme" variable="Choice_CoroFaces_Phoneme" member="yes" />
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT74" variable="StaticText72" member="yes">
+										<label>Mouth X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_X_Y" variable="TextCtrl_X_Y" member="yes">
+										<value>0:0</value>
+										<handler function="OnTextCtrl1Text" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT75" variable="StaticText73" member="yes">
+										<label>Face Outline X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Outline_X_Y" variable="TextCtrl_Outline_X_Y" member="yes">
+										<value>0:0</value>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT76" variable="StaticText74" member="yes">
+										<label>Eyes X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Eyes_X_Y" variable="TextCtrl_Eyes_X_Y" member="yes">
+										<value>0:0</value>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>CoroFaces</label>
 					</object>
 				</object>
 				<flag>wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>

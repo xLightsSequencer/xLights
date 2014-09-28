@@ -1761,6 +1761,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FacesPhoneme.Add("etc");
     FacesPhoneme.Add("rest");
 
+       CoroFacesPhoneme.Add("AI");
+    CoroFacesPhoneme.Add("E");
+    CoroFacesPhoneme.Add("FV");
+    CoroFacesPhoneme.Add("L");
+    CoroFacesPhoneme.Add("MBP");
+    CoroFacesPhoneme.Add("O");
+    CoroFacesPhoneme.Add("U");
+    CoroFacesPhoneme.Add("WQ");
+    CoroFacesPhoneme.Add("etc");
+    CoroFacesPhoneme.Add("rest");
+
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
     WaveType.Add("Square");
@@ -2013,6 +2024,10 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);
+
+     panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
+    panel->Choice_CoroFaces_Phoneme->SetSelection(0);
+
 
 
 }

@@ -230,6 +230,7 @@ public:
         eff_FACES,
         eff_WAVE,
         eff_GLEDIATOR,
+        eff_COROFACES,
         eff_LASTEFFECT //Always the last entry
     };
 
@@ -1213,6 +1214,8 @@ private:
     wxArrayString ButterflyEffectColors;
     wxArrayString ButterflyDirection;
     wxArrayString FacesPhoneme;
+    wxArrayString CoroFacesPhoneme;
+
     wxArrayString MeteorsEffectTypes;
     wxArrayString MeteorsEffect;
     wxArrayString TextEffectDirections;
