@@ -2343,6 +2343,17 @@
 																				<border>5</border>
 																				<option>1</option>
 																			</object>
+																			<object class="sizeritem">
+																				<object class="wxButton" name="ID_BUTTON_PgoStitch" variable="Button_PgoStitch" member="yes">
+																					<label>+</label>
+																					<size>29,23</size>
+																					<tooltip>Stitch Papagayo file</tooltip>
+																					<handler function="OnButton_PgoStitchClick" entry="EVT_BUTTON" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
@@ -2675,7 +2686,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
-																										<label>sec. (TBD)</label>
+																										<label>sec.</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>
@@ -2700,7 +2711,7 @@
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT35" variable="StaticText33" member="yes">
-																										<label>sec. (TBD)</label>
+																										<label>sec.</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>

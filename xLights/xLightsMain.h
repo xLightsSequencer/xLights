@@ -420,6 +420,7 @@ private:
     void OnGridCoroFacesCellSelect(wxGridEvent& event);
     void OnNotebookPgoParmsPageChanged(wxNotebookEvent& event);
     void OnTimer2Trigger(wxTimerEvent& event);
+    void OnButton_PgoStitchClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -615,6 +616,7 @@ private:
     static const long ID_STATICTEXT28;
     static const long ID_BUTTON5;
     static const long ID_TEXTCTRL1;
+    static const long ID_BUTTON_PgoStitch;
     static const long ID_STATICTEXT30;
     static const long ID_BUTTON22;
     static const long ID_TEXTCTRL67;
@@ -898,6 +900,7 @@ private:
     wxButton* ButtonTestSave;
     wxButton* Button_U_image;
     wxChoice* Choice_RelativeNodes;
+    wxButton* Button_PgoStitch;
     wxButton* Button_E_image;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticTextShowEnd;
@@ -1215,7 +1218,7 @@ private:
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);
     void PreviewScaleUpdated(int newscale);
-    void LoadPapagayoFile(const wxString& filename);
+    void LoadPapagayoFile(const wxString& filename, int frame_offset = 0);
     void InitPapagayoTab(bool tab_changed);
     bool LoadPgoSettings(void);
     bool SavePgoSettings(void);

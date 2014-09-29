@@ -299,7 +299,7 @@ wxUint32 RgbEffects::GetTempPixelRGB(int x, int y)
     return 0;
 }
 
-void RgbEffects::SetState(int period, int NewSpeed, bool ResetState)
+void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name)
 {
     if (ResetState)
     {
@@ -311,6 +311,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState)
     }
     speed=NewSpeed;
     lastperiod=curPeriod=period;
+    cur_model = model_name;
 }
 void RgbEffects::ClearTempBuf()
 {
