@@ -106,7 +106,7 @@ public:
     void InitBuffer(int newBufferHt, int newBufferWi);
     void Clear(const wxColour& bgColor);
     void SetPalette(wxColourVector& newcolors);
-    void SetState(int period, int NewSpeed, bool ResetState);
+    void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
     void GetPixel(int x, int y, wxColour &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
@@ -126,6 +126,7 @@ protected:
     int curEffStartPer;    /**< Start 50ms period of current effect. */
     int curEffEndPer;      /**<  */
     int nextEffTimePeriod; /**<  */
+    wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
 
     class RgbFireworks
     {
@@ -545,6 +546,7 @@ protected:
 
     double GetEffectTimeIntervalPosition();
     MetaBall metaballs[10];
+    wxString ModeName; //model currently in effect
 
     size_t GetNodeCount();
     //int face[52][52];

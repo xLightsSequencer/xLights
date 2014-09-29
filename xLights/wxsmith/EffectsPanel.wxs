@@ -675,6 +675,105 @@
 						<label>Color Wash</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL28" variable="Panel1_CoroFaces" member="yes">
+							<pos>202,8</pos>
+							<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT73" variable="StaticText71" member="yes">
+										<label>Phoneme</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Phoneme" variable="Choice_CoroFaces_Phoneme" member="yes" />
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT74" variable="StaticText72" member="yes">
+										<label>Mouth X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_X_Y" variable="TextCtrl_X_Y" member="yes">
+										<value>0:0</value>
+										<handler function="OnTextCtrl1Text" entry="EVT_TEXT" />
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT75" variable="StaticText73" member="yes">
+										<label>Face Outline X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Outline_X_Y" variable="TextCtrl_Outline_X_Y" member="yes">
+										<value>0:0</value>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT76" variable="StaticText74" member="yes">
+										<label>Eyes X:Y</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="ID_TEXTCTRL_Eyes_X_Y" variable="TextCtrl_Eyes_X_Y" member="yes">
+										<value>0:0</value>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT64" variable="StaticText62" member="yes">
+										<label>OR use below:</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
+										<label>Select&#x0A;Face&#x0A;Elements:</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CoroFaceElements" variable="CheckListBox_CoroFaceElements" member="yes" />
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>CoroFaces</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL1" variable="Panel1_Curtain" member="yes">
 							<pos>150,14</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
@@ -3782,78 +3881,6 @@
 							</object>
 						</object>
 						<label>Wave</label>
-					</object>
-					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL28" variable="Panel1_CoroFaces" member="yes">
-							<pos>202,8</pos>
-							<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
-								<cols>2</cols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT73" variable="StaticText71" member="yes">
-										<label>Phoneme</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Phoneme" variable="Choice_CoroFaces_Phoneme" member="yes" />
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT74" variable="StaticText72" member="yes">
-										<label>Mouth X:Y</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_X_Y" variable="TextCtrl_X_Y" member="yes">
-										<value>0:0</value>
-										<handler function="OnTextCtrl1Text" entry="EVT_TEXT" />
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT75" variable="StaticText73" member="yes">
-										<label>Face Outline X:Y</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Outline_X_Y" variable="TextCtrl_Outline_X_Y" member="yes">
-										<value>0:0</value>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT76" variable="StaticText74" member="yes">
-										<label>Eyes X:Y</label>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Eyes_X_Y" variable="TextCtrl_Eyes_X_Y" member="yes">
-										<value>0:0</value>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>CoroFaces</label>
 					</object>
 				</object>
 				<flag>wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>

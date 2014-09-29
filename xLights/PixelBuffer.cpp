@@ -291,7 +291,7 @@ void PixelBufferClass::SetMixThreshold(int value, bool varies)
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool ResetState)
 {
     CurrentLayer=newlayer & 1;  // only 0 or 1 is allowed
-    Effect[CurrentLayer].SetState(period,speed,ResetState);
+    Effect[CurrentLayer].SetState(period,speed,ResetState, name);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
 {

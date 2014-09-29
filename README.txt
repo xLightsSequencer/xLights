@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+<next>
+	-enh (djulien) On Papagayo Coro faces tab, moved model name into grid, show drop-down list of choices in grid cells, allow Pagagayo file stitch ("+" button), add UI controls for face element auto-fade, save/restore last tab, show list of checkboxes in Coro Faces effect panel
 3.4.15  Sep 28, 2014
 	- ENH (Sean) merge_xml.awk will combine multiple xlights xml sequences into one.
 	- ENH (Sean) corofaces.awk awk now will stitch together multiple files for the same voice.

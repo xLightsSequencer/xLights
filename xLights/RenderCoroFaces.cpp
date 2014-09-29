@@ -26,9 +26,15 @@
 #include <wx/tokenzr.h>
 
 
-#define WANT_DEBUG_IMPL
-#define WANT_DEBUG  99
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
 //#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
+#endif
+
 
 #if 0 //obsolete
 int FindChannelAtXY(int x, int y, const wxString& model)
@@ -72,7 +78,12 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
-
+//NOTE:
+//PixelBufferClass contains 2 RgbEffects members, which this method is a member of
+//xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
+//therefore we can access the model info by going to parent object's buffer member
+    wxString model_name = "???";
+    debug(10, "RenderCoroFaces: model '%s', phon %d, x_y '%s', outl '%s', eyes '%s'", (const char*)model_name.c_str(), Phoneme, (const char*)x_y.c_str(), (const char*)Outline_x_y.c_str(), (const char*)Eyes_x_y.c_str());
 
     /*
         FacesPhoneme.Add("AI");     0
@@ -93,9 +104,8 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
     double offset=double(state)/100.0;
     size_t colorcnt=GetColorCount();
 
-
 //    std::vector<int> chmap;
-    std::vector<std::vector<int>> chmap; //array of arrays
+//    std::vector<std::vector<int>> chmap; //array of arrays
 //    chmap.resize(BufferHt * BufferWi,0);
 //    ModelClass mc;
 //    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
@@ -155,7 +165,6 @@ void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outl
        FacesPhoneme.Add("etc");    8 : 5
        FacesPhoneme.Add("rest");   9 : 6
     */
-
 
 #if 0
     int face[5][5] =
