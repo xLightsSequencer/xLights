@@ -6,6 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.4.15  Sep 28, 2014
+	- ENH (Sean) merge_xml.awk will combine multiple xlights xml sequences into one.
+	- ENH (Sean) corofaces.awk awk now will stitch together multiple files for the same voice.
+3.4.14  Sep 26, 2014
+	- ENH (Sean) scripts added that can take Papagayo voices and make xlights sequences from them
+	- ENH (Sean) Scripts are found in your installation directory. corofaces.awk, coroface.bat
+	- ENH (Sean) Installation of xlights now installs gawk.
 3.4.13	Sep 19, 2014
 	-ENH (sean) The scale slider in the PREVIEW tab now goes to 300. before range was 1-100, now 1-300
 	-bug (djulien) Avoid wx assert error during save/load pgo settings (bad grid row#), default to first group after loading settings (however, this can lead to mismatches), don't show "suspicious" message for missing voice data, list all models (even if not in Preview)

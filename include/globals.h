@@ -1,7 +1,7 @@
 #ifndef XLIGHTS_GLOBALS_H_INCLUDED_
 #define XLIGHTS_GLOBALS_H_INCLUDED_
 
-#define XLIGHTS_VERSION "3.4.14"
+#define XLIGHTS_VERSION "3.4.15"
 #define XLIGHTS_CONFIG_ID "xLights"
 #define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
 #define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
