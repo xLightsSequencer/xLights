@@ -272,6 +272,7 @@
 		<Unit filename="RenderButterfly.cpp" />
 		<Unit filename="RenderCircles.cpp" />
 		<Unit filename="RenderColorWash.cpp" />
+		<Unit filename="RenderCoroFaces.cpp" />
 		<Unit filename="RenderCurtain.cpp" />
 		<Unit filename="RenderFaces.cpp" />
 		<Unit filename="RenderFire.cpp" />

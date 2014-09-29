@@ -33,7 +33,7 @@ Source: "piano/*.*"; DestDir: "{app}/piano"
 Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
-Source: "README.corofaces";  DestDir: "{app}"; Flags: isreadme
+Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
 
 
