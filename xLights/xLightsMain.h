@@ -211,8 +211,9 @@ public:
         eff_BUTTERFLY,
         eff_CIRCLES,
         eff_COLORWASH,
+        eff_COROFACES,
         eff_CURTAIN,
-          eff_FACES,
+        eff_FACES,
         eff_FIRE,
         eff_FIREWORKS,
         eff_GARLANDS,
@@ -230,7 +231,6 @@ public:
         eff_TWINKLE,
         eff_SINGLESTRAND,
         eff_WAVE,
-                eff_COROFACES,
         eff_LASTEFFECT //Always the last entry
     };
 

@@ -1019,9 +1019,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "CoroFaces")
     {
         buffer.RenderCoroFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
-                           SettingsMap[LayerStr+"TEXTCTRL_X_Y"],
-                           SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
-                           SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
+                               SettingsMap[LayerStr+"TEXTCTRL_X_Y"],
+                               SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
+                               SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
     }
     else if (effect == "Fire")
     {
@@ -1246,11 +1246,11 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
- case eff_COROFACES:
+    case eff_COROFACES:
         buffer.RenderCoroFaces(panel->Choice_Faces_Phoneme->GetSelection(),
-                           panel->TextCtrl_X_Y->GetValue(),
-                           panel->TextCtrl_Outline_X_Y->GetValue(),
-                           panel->TextCtrl_Eyes_X_Y->GetValue());
+                               panel->TextCtrl_X_Y->GetValue(),
+                               panel->TextCtrl_Outline_X_Y->GetValue(),
+                               panel->TextCtrl_Eyes_X_Y->GetValue());
         break;
 
     case eff_FIRE:
