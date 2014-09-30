@@ -24,6 +24,7 @@
 #include "RgbEffects.h"
 #include "xLightsMain.h" //xLightsFrame
 #include <wx/tokenzr.h>
+//#include <wx/checklst.h>
 
 
 //#define WANT_DEBUG_IMPL
@@ -72,18 +73,52 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 #endif // 0
 
 
+#if 0
+static wxString prev_model;
+static void get_elements(wxCheckListBox* listbox, const wxString& model)
+{
+    listbox->Clear();
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if ((*it)->name != model) continue;
+        if ((*it)->GetChannelCoords(listbox))
+        {
+            prev_model = model;
+            return;
+        }
+    }
+//also list non-preview models:
+    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+    {
+        if ((*it)->name != model) continue;
+        if ((*it)->GetChannelCoords(listbox))
+        {
+            prev_model = model;
+            return;
+        }
+    }
+}
+#endif // 0
+
+static bool IsParsed(const wxString& settings)
+{
+    return settings.Find('@') != wxNOT_FOUND;
+}
+
 //NOTE: params are re-purposed as follows for Coro face mode:
 // x_y = list of active elements for this frame
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
-void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
+void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
 {
+//    const wxString& parsed_xy = IsParsed(x_y)? x_y: wxEmptyString;
 //NOTE:
 //PixelBufferClass contains 2 RgbEffects members, which this method is a member of
 //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
 //therefore we can access the model info by going to parent object's buffer member
-    wxString model_name = "???";
-    debug(10, "RenderCoroFaces: model '%s', phon %d, x_y '%s', outl '%s', eyes '%s'", (const char*)model_name.c_str(), Phoneme, (const char*)x_y.c_str(), (const char*)Outline_x_y.c_str(), (const char*)Eyes_x_y.c_str());
+//    wxString model_name = "???";
+    debug(10, "RenderCoroFaces: model '%s', phon %d, x_y '%s', outl '%s', eyes '%s', all '%s', parsed? %d", (const char*)cur_model.c_str(), Phoneme, (const char*)x_y.c_str(), (const char*)Outline_x_y.c_str(), (const char*)Eyes_x_y.c_str(), (const char*)x_y.c_str(), IsParsed(x_y));
+//    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 
     /*
         FacesPhoneme.Add("AI");     0
@@ -110,6 +145,31 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
 //    ModelClass mc;
 //    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
 
+
+    if (IsParsed(x_y)) //already have (X,Y) info
+    {
+//TODO: how is color palette supposed to work with Coro faces?
+        wxImage::HSVValue hsv;
+//        size_t colorcnt=GetColorCount();
+//        int ColorIdx=0;
+//        palette.GetHSV(ColorIdx, hsv);
+        hsv.hue=0.0;
+        hsv.value=1.0;
+        hsv.saturation=1.0;
+
+        wxStringTokenizer wtkz(x_y, "+");
+        while (wtkz.HasMoreTokens())
+        {
+            wxString nextstr = wtkz.GetNextToken();
+            wxPoint first_xy;
+            bool ok = ModelClass::ParseFaceElement(nextstr, &first_xy);
+            first_xy.y = BufferHt - first_xy.y; //y is reversed?
+            debug(10, "coro faces: turn on '%s'? %d, xy (%d, %x)", (const char*)nextstr.c_str(), ok, first_xy.x, first_xy.y);
+            if (!ok) continue;
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+        return;
+    }
 
 
     wxString html = "<html><body><table border=0>";

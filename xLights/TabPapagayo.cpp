@@ -383,6 +383,30 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     wxString frame_phonemes[voices.size()];
     int all_fade_frame = std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
+    struct
+    {
+        std::unordered_map<std::string, std::string> phon[4]; //(X,Y) values to use for face parts for each voice
+        std::string outl[4], eyes[4];
+    } parsed, oldxy;
+    for (size_t v = 0; v < GridCoroFaces->GetCols(); ++v)
+    {
+        wxPoint xy;
+        wxString str;
+//TODO: make this code more compact
+        if (ModelClass::ParseFaceElement(str = GridCoroFaces->GetCellValue(Outline_Row, v), &xy)) oldxy.outl[v] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.outl[v] = "+" + str;
+        if (ModelClass::ParseFaceElement(str = GridCoroFaces->GetCellValue(Eyes_open_Row, v), &xy)) oldxy.eyes[v] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.eyes[v] = "+" + str;
+        if (ModelClass::ParseFaceElement(str = GridCoroFaces->GetCellValue(Eyes_closed_Row, v), &xy)) oldxy.eyes[v] += wxString::Format(wxT(":%d:%d"), xy.x, xy.y); if (!str.empty() && (parsed.eyes[v].find(str) == std::string::npos)) parsed.eyes[v] += "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(AI_Row, v), &xy)) oldxy.phon[v]["AI"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["AI"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(E_Row, v), &xy)) oldxy.phon[v]["E"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["E"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(etc_Row, v), &xy)) oldxy.phon[v]["etc"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["etc"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(FV_Row, v), &xy)) oldxy.phon[v]["FV"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["FV"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(L_Row, v), &xy)) oldxy.phon[v]["L"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["L"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(MBP_Row, v), &xy)) oldxy.phon[v]["MBP"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["MBP"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(O_Row, v), &xy)) oldxy.phon[v]["O"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["O"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(rest_Row, v), &xy)) oldxy.phon[v]["rest"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["rest"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(U_Row, v), &xy)) oldxy.phon[v]["U"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["U"] = "+" + str;
+        if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(WQ_Row, v), &xy)) oldxy.phon[v]["WQ"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["WQ"] = "+" + str;
+    }
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
         std::string phkey = (const char*)it->second.q->name.c_str();
@@ -405,7 +429,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc));
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                     if (!frame_phonemes[voice].empty())
-                        f.Write(wxString::Format("   <td Protected=\"0\">Faces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_Faces_Phoneme=%s,E1_CHOICE_E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice]));
+#if 0 //separated X:Y for phoneme, outlines, eyes
+                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], wxEmptyString)); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
+#else //parsed (X,Y)
+                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], (parsed.outl[voice] + parsed.eyes[voice] + parsed.phon[voice][std::string(frame_phonemes[voice].mb_str())]).substr(1))); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
+#endif // 0
                     else
                         blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
@@ -414,7 +442,6 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
             if (all_fade_frame < it->first)
             {
                 debug(10, "auto-fade all elements: next frame %d, deadline was %d (%7.3f sec)", it->first, all_fade_frame, all_fade_frame * 0.050);
-                f.Write(wxT("auto-fade all"));
                 f.Write(wxString::Format("<tr frame=\"%d\">\n", all_fade_frame)); //include a little debug info here (frame#)
                 f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", all_fade_frame * 0.050));
                 f.Write("   <td Protected=\"0\">auto-fade all</td>\n");
@@ -423,12 +450,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write("</tr>\n");
                 ++numfr;
             }
-//TODO: sort this is perf becomes a problem; perf not too bad with simple loop so just leave it for now
+//TODO: sort this if perf becomes a problem; perf not too bad with simple loop so just leave it for now
             for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
                 if (phit->second < it->first)
                 {
                     debug(10, "auto-fade '%s' element: next frame %d, deadline was %d", it->first, all_fade_frame, phit->second);
-                    f.Write(wxString::Format("auto-fade '%s'", phit->first.c_str()));
                     f.Write(wxString::Format("<tr frame=\"%d\">\n", phit->second)); //include a little debug info here (frame#)
                     f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", phit->second * 0.050));
                     f.Write(wxString::Format("   <td Protected=\"0\">'%s' auto-fade single</td>\n", phit->first));
@@ -1292,22 +1318,22 @@ void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 //find unique node#s and associated (X,Y) for a model:
 void xLightsFrame::GetMouthNodes(const wxString& model_name)
 {
-    StatusBar1->SetStatusText(wxT("get mouth nodes ..."));
+//    StatusBar1->SetStatusText(wxT("get mouth nodes ..."));
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
-        if (!(*it)->GetChannelCoords(Choice_RelativeNodes)) Choice_RelativeNodes->Append(NoneHint);
-    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0)) Choice_RelativeNodes->Append(NoneHint);
+//    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
         return;
     }
     for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
         if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
-        if (!(*it)->GetChannelCoords(Choice_RelativeNodes)) Choice_RelativeNodes->Append(NoneHint);
-    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0)) Choice_RelativeNodes->Append(NoneHint);
+//    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
         return;
     }
-    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+//    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
 }
 
 //kludgey drop-down edit for grid cells:

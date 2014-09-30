@@ -1,4 +1,5 @@
 #include <wx/utils.h> //check keyboard state -DJ
+#include <wx/tokenzr.h>
 
 void xLightsFrame::CreateDefaultEffectsXml()
 {
@@ -154,7 +155,41 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
     }
 }
 
-void xLightsFrame::SetEffectControls(wxString settings)
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
+#endif
+
+static wxString prev_model = "junk";
+static void load_face_elements(const wxString& model_name, wxCheckListBox* ctrl)
+{
+#if 0 //hard-coded test
+    ctrl->Append(wxT("1: 3# @A1-D12"));
+    ctrl->Append(wxT("2: 6# @B1-F12"));
+    ctrl->Append(wxT("3: 9# @C1-Z12"));
+    ctrl->Append(wxT("4: 2# @E1-Y12"));
+    ctrl->Append(wxT("5: 5# @G1-F2"));
+#else //use real data from parsed model
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+    {
+        if ((*it)->name == model_name)
+            if ((*it)->GetChannelCoords(0, ctrl)) return;
+    }
+//also check non-preview models:
+    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+    {
+        if ((*it)->name == model_name)
+            if ((*it)->GetChannelCoords(0, ctrl)) return;
+    }
+#endif
+}
+
+
+void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_name)
 {
     long TempLong;
     wxColour color;
@@ -281,6 +316,43 @@ void xLightsFrame::SetEffectControls(wxString settings)
                 {
                     wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
                     if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
+                }
+                else if (name.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
+                {
+                    wxCheckListBox* ctrl = (wxCheckListBox*)CtrlWin;
+//                    ctrl->Clear();
+//                    if (!model_name.empty())
+                    if (model_name != prev_model) //load face elements from current model
+                        load_face_elements(model_name, ctrl);
+                    debug(10, "set %s from value '%s', model = '%s'", (const char*)name, (const char*)value.c_str(), (const char*)buffer.name.c_str());
+                    wxStringTokenizer wtkz(value, "+");
+                    while (wtkz.HasMoreTokens())
+                    {
+                        wxString nextkey = wtkz.GetNextToken();
+                        if (nextkey.empty()) break; //continue;
+//                        long keyval; //= wxAtoi(nextinx);
+//                        if (nextkey.ToLong(&keyval)) continue;
+                        debug(10, "on[%s]", (const char*)nextkey.c_str());
+                        if (model_name.empty()) //presets effects tree?
+                            if (model_name != prev_model)
+                            {
+                                ctrl->Append(nextkey); //just use value as-is; other values will be filled in when it's copied into grid
+                                ctrl->Check(ctrl->GetCount()); //kludge: turn them all on to preserve them
+                                continue;
+                            }
+                        nextkey = nextkey.BeforeFirst(':'); //strip off the part that can change between models
+//                        ctrl->Check(key); //wrong!
+                        for (int i = 0; i < ctrl->GetCount(); ++i)
+                        {
+                            debug(10, "vs. val str[%d/%d] = '%s', key '%s'", i, ctrl->GetCount(), (const char*)ctrl->GetString(i).c_str(), (const char*)ctrl->GetString(i).BeforeFirst(':').c_str());
+                            if (ctrl->GetString(i).BeforeFirst(':') == nextkey)
+                            {
+                                ctrl->Check(i); //match by key (doesn't change), not by index
+                                break;
+                            }
+                        }
+                    }
+                    prev_model = model_name; //remember which model is cached
                 }
                 else
                 {
@@ -1018,10 +1090,12 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "CoroFaces")
     {
+//kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
+        wxString parsed_xy = SettingsMap[LayerStr+"CheckListBox_CoroFaceElements"];
         buffer.RenderCoroFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
-                               SettingsMap[LayerStr+"TEXTCTRL_X_Y"],
-                               SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
-                               SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
+                           parsed_xy.empty()? SettingsMap[LayerStr+"TEXTCTRL_X_Y"]: parsed_xy,
+                           SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
+                           SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
     }
     else if (effect == "Fire")
     {
@@ -1183,6 +1257,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
 // layer is 0 or 1
 bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {
+    wxString parsed;
     bool retval = true;
     bool fitToTime;
     if (panel->EffectChanged)
@@ -1246,11 +1321,19 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
-    case eff_COROFACES:
+ case eff_COROFACES:
+//        wxString parsed;
+//kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
+        for (size_t i = 0; i < panel->CheckListBox_CoroFaceElements->GetCount(); ++i)
+        {
+            if (!panel->CheckListBox_CoroFaceElements->IsChecked(i)) continue;
+            if (!parsed.empty()) parsed += wxT("+");
+            parsed += panel->CheckListBox_CoroFaceElements->GetString(i);
+        }
         buffer.RenderCoroFaces(panel->Choice_Faces_Phoneme->GetSelection(),
-                               panel->TextCtrl_X_Y->GetValue(),
-                               panel->TextCtrl_Outline_X_Y->GetValue(),
-                               panel->TextCtrl_Eyes_X_Y->GetValue());
+                           parsed.empty()? panel->TextCtrl_X_Y->GetValue(): parsed,
+                           panel->TextCtrl_Outline_X_Y->GetValue(),
+                           panel->TextCtrl_Eyes_X_Y->GetValue());
         break;
 
     case eff_FIRE:
@@ -1514,7 +1597,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())
                 {
-                    SetEffectControls(EffectStr);
+                    SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                     xLightsFrame::PlaybackMarker = wxString::Format("%d,%d", SeqPlayColumn, NextGridRowToPlay); //keep track of where we are within grid -DJ
                 }
                 buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
@@ -1571,7 +1654,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())
                 {
-                    SetEffectControls(EffectStr);
+                    SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                 }
                 buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
@@ -3140,7 +3223,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
         if (!EffectString.IsEmpty())
         {
             //Choice_Presets->SetSelection(0);  // set to <grid>
-            SetEffectControls(EffectString);
+            SetEffectControls(EffectString, Grid1->GetColLabelValue(col));
         }
     }
     Grid1->ForceRefresh();

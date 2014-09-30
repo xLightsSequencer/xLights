@@ -448,9 +448,9 @@ void PixelBufferClass::RenderFaces(int Phoneme)
 {
     Effect[CurrentLayer].RenderFaces(Phoneme);
 }
-void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
+void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
 {
-    Effect[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y);
+    Effect[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y/*, parsed_xy*/);
 }
 
 

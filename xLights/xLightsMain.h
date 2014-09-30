@@ -200,7 +200,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(wxString settings);
+    void SetEffectControls(wxString settings, const wxString& model_name);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
 
@@ -638,6 +638,7 @@ private:
     static const long ID_GRID_COROFACES;
     static const long ID_CHOICE_PgoModelVoiceEdit;
     static const long ID_CHOICE_RelativeNodes;
+    static const long ID_CHECKLISTBOX_CoroFaceElements;
     static const long ID_CHECKBOX_AutoFadePgoElement;
     static const long ID_TEXTCTRL_AutoFadePgoElement;
     static const long ID_STATICTEXT34;
@@ -811,6 +812,7 @@ private:
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxButton* Button_eyesopen_image;
     wxTextCtrl* TextCtrl_WQ_image;
+    wxCheckListBox* CheckListBox_CoroFaceElements;
     wxChoice* ChoiceOutputFormat;
     wxDirDialog* DirDialog1;
     wxStaticText* StaticTextSetup1;

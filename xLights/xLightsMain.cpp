@@ -279,6 +279,7 @@ const long xLightsFrame::ID_BUTTON_CoroGroupClear = wxNewId();
 const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
 const long xLightsFrame::ID_CHOICE_PgoModelVoiceEdit = wxNewId();
 const long xLightsFrame::ID_CHOICE_RelativeNodes = wxNewId();
+const long xLightsFrame::ID_CHECKLISTBOX_CoroFaceElements = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_AutoFadePgoElement = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_AutoFadePgoElement = wxNewId();
 const long xLightsFrame::ID_STATICTEXT34 = wxNewId();
@@ -1297,6 +1298,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_RelativeNodes = new wxChoice(PGO_COROFACES, ID_CHOICE_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_RelativeNodes"));
     Choice_RelativeNodes->Hide();
     FlexGridSizer51->Add(Choice_RelativeNodes, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckListBox_CoroFaceElements = new wxCheckListBox(PGO_COROFACES, ID_CHECKLISTBOX_CoroFaceElements, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_CoroFaceElements"));
+    CheckListBox_CoroFaceElements->Hide();
+    FlexGridSizer51->Add(CheckListBox_CoroFaceElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer44->Add(FlexGridSizer51, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer55 = new wxFlexGridSizer(0, 3, 0, 0);
     CheckBox_AutoFadePgoElement = new wxCheckBox(PGO_COROFACES, ID_CHECKBOX_AutoFadePgoElement, _("Auto-fade each element after:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AutoFadePgoElement"));

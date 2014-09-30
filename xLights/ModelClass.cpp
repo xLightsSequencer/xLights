@@ -913,35 +913,81 @@ static wxString AA(int x)
     retval += 'A' + x;
     return retval;
 }
-size_t ModelClass::GetChannelCoords(wxChoice* choices)
+//add parsed info to choice list or check list box:
+size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2)
 {
-    choices->Clear();
-    choices->Append(wxT("0: (none)"));
+    if (choices1) choices1->Clear();
+    if (choices2) choices2->Clear();
+    if (choices1) choices1->Append(wxT("0: (none)"));
+    if (choices2) choices2->Append(wxT("0: (none)"));
     size_t NodeCount = GetNodeCount();
     for (size_t n = 0; n < NodeCount; n++)
     {
+        wxString newstr;
 //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty()) continue;
         if (GetCoordCount(n) > 1) //show count and first + last coordinates
             if (DisplayAs == "Custom")
-                choices->Append(wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(n), GetCoordCount(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY, AA(Nodes[n]->Coords.back().bufX + 1), BufferHt - Nodes[n]->Coords.back().bufY)); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+                newstr = wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(n), GetCoordCount(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY, AA(Nodes[n]->Coords.back().bufX + 1), BufferHt - Nodes[n]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
             else
-                choices->Append(wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(n), GetCoordCount(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY, Nodes[n]->Coords.back().bufX + 1, BufferHt - Nodes[n]->Coords.back().bufY)); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+                newstr = wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(n), GetCoordCount(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY, Nodes[n]->Coords.back().bufX + 1, BufferHt - Nodes[n]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else //just show singleton
             if (DisplayAs == "Custom")
-                choices->Append(wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY));
+                newstr = wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY);
             else
-                choices->Append(wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY));
+                newstr = wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY);
+        if (choices1) choices1->Append(newstr);
+        if (choices2) choices2->Append(newstr);
 #if 0
-    Choice_RelativeNodes->Append(wxString::Format(wxT("4 @ '%s'(5,6)"), model_name));
-
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
                 Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
                 Nodes[idx]->StringNum=stringnum;
 #endif // 0
     }
-    return choices->GetCount();
+    return (choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
+}
+//extract first (X,Y) from string formatted above:
+bool ModelClass::ParseFaceElement(const wxString& str, wxPoint* first_xy)
+{
+    first_xy->x = first_xy->y = 0;
+    if (str.Find('@') == wxNOT_FOUND) return false;
+#if 0 //hard-coded test
+    first_xy->x = 1; first_xy->y = 2; //TODO
+#else
+    wxString xystr = str.AfterFirst('@');
+    if (xystr.empty()) return false;
+    if (xystr[0] == '(')
+    {
+        long val;
+        xystr.Remove(0, 1);
+        if (!xystr.BeforeFirst(',').ToLong(&val)) return false;
+        first_xy->x = val;
+        if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&val)) return false;
+        first_xy->y = val;
+    }
+    else
+    {
+        int parts = 0;
+        while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z'))
+        {
+            first_xy->x *= 26;
+            first_xy->x += xystr[0] - 'A';
+            xystr.Remove(0, 1);
+            parts |= 1;
+        }
+        while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9'))
+        {
+            first_xy->y *= 10;
+            first_xy->y += xystr[0] - '0';
+            xystr.Remove(0, 1);
+            parts |= 2;
+        }
+        if (parts != 3) return false;
+        if (!xystr.empty() && (xystr[0] != '-')) return false;
+    }
+#endif // 0
+    return true;
 }
 #endif // 0
 

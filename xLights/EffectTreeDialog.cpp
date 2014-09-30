@@ -271,7 +271,8 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
         if ( item != NULL )
         {
             ele = item->GetElement();
-            ((xLightsFrame *)xLightParent)->SetEffectControls(ele->GetAttribute("settings"));
+            wxString empty_str; //= wxEmptyString; //kludge: avoid compile error below
+            ((xLightsFrame *)xLightParent)->SetEffectControls(ele->GetAttribute("settings"), empty_str);
         }
     }
 }

@@ -719,9 +719,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("OR use below:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
     FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer58->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText63 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT65, _("Select\nFace\nElements:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
+    StaticText63 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT65, _("Select 1 or\nmore Face\nElements:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
     FlexGridSizer58->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckListBox_CoroFaceElements = new wxCheckListBox(Panel1_CoroFaces, ID_CHECKLISTBOX_CoroFaceElements, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_CoroFaceElements"));
+    CheckListBox_CoroFaceElements = new wxCheckListBox(Panel1_CoroFaces, ID_CHECKLISTBOX_CoroFaceElements, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxLB_SORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_CoroFaceElements"));
+    CheckListBox_CoroFaceElements->Append(_("Face elements go here"));
     FlexGridSizer58->Add(CheckListBox_CoroFaceElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_CoroFaces->SetSizer(FlexGridSizer58);
     FlexGridSizer58->Fit(Panel1_CoroFaces);
@@ -2143,6 +2144,15 @@ wxString EffectsPanel::GetAttrPrefix()
     return ",E" + WinName.Right(1) + "_";
 }
 
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
+#endif
+
 // this is recursive
 wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
 {
@@ -2185,6 +2195,29 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
             {
                 s+=GetEffectStringFromWindow(ctrl->GetPage(i));
             }
+        }
+        else if (ChildName.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
+        {
+            wxCheckListBox* ctrl=(wxCheckListBox*)ChildWin;
+//            wxArrayInt valary;
+//            size_t numchk = ctrl->GetCheckedItems(valary);
+//            debug(10, "chk lbox '%s' has %d ents, %d %d checked", (const char*)ChildName.c_str(), ctrl->GetCount(), numchk, valary.size());
+            wxString valstr;
+//            for (size_t i = 0; i < valary.size(); ++i)
+//            {
+////                valstr += wxString::Format(wxT(", %d=%s"), i, valary[i]); //give index + value (contains useful info; avoids extra lookup)
+//                debug(10, "chk val[%d/%d]", i, valary.size());
+////                valstr += wxString::Format(wxT(", %d"), i);
+//            }
+//            if (valstr.size() > 2) valstr = valstr.substr(2);
+            for (size_t i = 0; i < ctrl->GetCount(); ++i)
+            {
+                debug(10, "item[%d/%d] = '%s', checked? %d", i, ctrl->GetCount(), (const char*)ctrl->GetString(i).c_str(), ctrl->IsChecked(i));
+                if (ctrl->IsChecked(i)) valstr += wxString::Format(wxT("+%s"), ctrl->GetString(i)); //save entire desc (useful for debug), but only leading index will actually be used when read back; this allows the details to change
+            }
+            if (valstr.size() > 1) valstr = valstr.substr(1); //drop first "+"
+            debug(10, "attr name '%s', valstr '%s'", (const char*)AttrName.c_str(), (const char*)valstr.c_str());
+            s += AttrName + valstr;
         }
     }
     return s;

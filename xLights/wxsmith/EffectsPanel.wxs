@@ -757,14 +757,19 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
-										<label>Select&#x0A;Face&#x0A;Elements:</label>
+										<label>Select 1 or&#x0A;more Face&#x0A;Elements:</label>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CoroFaceElements" variable="CheckListBox_CoroFaceElements" member="yes" />
+									<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CoroFaceElements" variable="CheckListBox_CoroFaceElements" member="yes">
+										<content>
+											<item>Face elements go here</item>
+										</content>
+										<style>wxLB_MULTIPLE|wxLB_SORT</style>
+									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
