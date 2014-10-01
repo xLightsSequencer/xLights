@@ -284,6 +284,7 @@ public:
 //    int FindChannelAtXY(int x, int y, const wxString& model);
     static ModelClass* FindModel(const wxString& name);
     static size_t EnumModels(wxChoice* choices, const wxString& InactivePrefix);
+    wxString GetNodeXY(int node);
 
     long GetNumArches()
     {

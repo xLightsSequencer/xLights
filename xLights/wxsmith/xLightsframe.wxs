@@ -2664,6 +2664,7 @@
 																								<object class="sizeritem">
 																									<object class="wxChoice" name="ID_CHOICE_RelativeNodes" variable="Choice_RelativeNodes" member="yes">
 																										<hidden>1</hidden>
+																										<style>wxCB_SORT</style>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>

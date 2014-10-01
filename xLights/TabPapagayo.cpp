@@ -955,6 +955,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 //only the list of available groups is populated here
     Choice_PgoGroupName->Clear();
     Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
+    Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
     wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), Name, wxEmptyString, true);
 //    wxString buf;
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
@@ -1022,9 +1023,9 @@ bool xLightsFrame::LoadPgoSettings(void)
         GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
     debug(10, "set selection hint on model row");
 
-    if (Choice_PgoGroupName->GetCount() > 1)
+    if (Choice_PgoGroupName->GetCount() > 2)
     {
-        Choice_PgoGroupName->SetSelection(1); //choose first one found instead of "choose"
+        Choice_PgoGroupName->SetSelection(2); //choose first one found instead of "choose"
         wxCommandEvent non_evt;
         OnChoice_PgoGroupNameSelect(non_evt); //kludge: force UI to update
     }
@@ -1212,6 +1213,15 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
 #endif // 0
 }
 
+//add (X,Y) info back into settings file for easier reference
+static wxString addxy(ModelClass* model, wxString nodestr)
+{
+    long node;
+    debug(10, "addxy: model? %d, node %s", model, (const char*)nodestr.c_str());
+    if (!model || !nodestr.ToLong(&node)) return nodestr;
+    debug(10, " => xy info '%s'", (const char*)model->GetNodeXY(node).c_str());
+    return model->GetNodeXY(node);
+}
 
 //NOTE: this only saves one group name at a time to the xmldoc, then saves entire xmldoc to file
 void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
@@ -1235,7 +1245,8 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
             non_empty = true;
             break;
         }
-        wxString voice_model = GridCoroFaces->GetCellValue(Model_Row, i);
+        wxString voice_model = NoInactive(GridCoroFaces->GetCellValue(Model_Row, i));
+        ModelClass* model_info = ModelClass::FindModel(voice_model);
 //        if (Voice(i)->GetSelection() >= 0) voice_model = Voice(i)->GetString(Voice(i)->GetSelection());
 //        if (Choice_PgoModelVoiceEdit->GetSelection() >= 0) voice_model = Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection());
         if ((voice_model == SelectionHint) || (voice_model == NoneHint)) //warn if user forgot to set model
@@ -1246,23 +1257,23 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
         AddNonDupAttr(voice, Name, voice_model);
-        AddNonDupAttr(voice, wxT("Outline"), GridCoroFaces->GetCellValue(Outline_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_open"), GridCoroFaces->GetCellValue(Eyes_open_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_closed"), GridCoroFaces->GetCellValue(Eyes_closed_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_up"), GridCoroFaces->GetCellValue(Eyes_up_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_down"), GridCoroFaces->GetCellValue(Eyes_down_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_left"), GridCoroFaces->GetCellValue(Eyes_left_Row, i));
-        AddNonDupAttr(voice, wxT("Eyes_right"), GridCoroFaces->GetCellValue(Eyes_right_Row, i));
-        AddNonDupAttr(voice, wxT("AI"), GridCoroFaces->GetCellValue(AI_Row, i));
-        AddNonDupAttr(voice, wxT("E"), GridCoroFaces->GetCellValue(E_Row, i));
-        AddNonDupAttr(voice, wxT("etc"), GridCoroFaces->GetCellValue(etc_Row, i));
-        AddNonDupAttr(voice, wxT("FV"), GridCoroFaces->GetCellValue(FV_Row, i));
-        AddNonDupAttr(voice, wxT("L"), GridCoroFaces->GetCellValue(L_Row, i));
-        AddNonDupAttr(voice, wxT("MBP"), GridCoroFaces->GetCellValue(MBP_Row, i));
-        AddNonDupAttr(voice, wxT("O"), GridCoroFaces->GetCellValue(O_Row, i));
-        AddNonDupAttr(voice, wxT("rest"), GridCoroFaces->GetCellValue(rest_Row, i));
-        AddNonDupAttr(voice, wxT("U"), GridCoroFaces->GetCellValue(U_Row, i));
-        AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(WQ_Row, i));
+        AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, GridCoroFaces->GetCellValue(Outline_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_open"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_open_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_closed"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_closed_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_up"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_up_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_down"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_down_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_left"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_left_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_right"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_right_Row, i)));
+        AddNonDupAttr(voice, wxT("AI"), addxy(model_info, GridCoroFaces->GetCellValue(AI_Row, i)));
+        AddNonDupAttr(voice, wxT("E"), addxy(model_info, GridCoroFaces->GetCellValue(E_Row, i)));
+        AddNonDupAttr(voice, wxT("etc"), addxy(model_info, GridCoroFaces->GetCellValue(etc_Row, i)));
+        AddNonDupAttr(voice, wxT("FV"), addxy(model_info, GridCoroFaces->GetCellValue(FV_Row, i)));
+        AddNonDupAttr(voice, wxT("L"), addxy(model_info, GridCoroFaces->GetCellValue(L_Row, i)));
+        AddNonDupAttr(voice, wxT("MBP"), addxy(model_info, GridCoroFaces->GetCellValue(MBP_Row, i)));
+        AddNonDupAttr(voice, wxT("O"), addxy(model_info, GridCoroFaces->GetCellValue(O_Row, i)));
+        AddNonDupAttr(voice, wxT("rest"), addxy(model_info, GridCoroFaces->GetCellValue(rest_Row, i)));
+        AddNonDupAttr(voice, wxT("U"), addxy(model_info, GridCoroFaces->GetCellValue(U_Row, i)));
+        AddNonDupAttr(voice, wxT("WQ"), addxy(model_info, GridCoroFaces->GetCellValue(WQ_Row, i)));
         if (num_voice < 0) ++num_voice; //remember that a voice was selected
         if (non_empty) ++num_voice;
     }
@@ -1279,6 +1290,22 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 //void xLightsFrame::OnBitmapButton_OpenCoroGroupClick(wxCommandEvent& event)
 //{
 //}
+
+static wxString ExtractNodes(wxString parsed_info)
+{
+    wxString nodestr;
+    wxStringTokenizer wtkz(parsed_info, "+");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString nextnode = wtkz.GetNextToken().BeforeFirst(':');
+        if (nextnode.empty()) continue;
+        if (!nodestr.empty()) nodestr += wxT("+");
+        nodestr += nextnode;
+    }
+    debug(10, "extracted nodes '%s' from '%s'", (const char*)nodestr.c_str(), (const char*)parsed_info.c_str());
+    return nodestr;
+}
+
 //this loads one group name at a time from the xmldoc
 void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 {
@@ -1312,23 +1339,23 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 
         GridCoroFaces->SetCellValue(Model_Row, i, Choice_PgoModelVoiceEdit->GetString(inx));
         debug(10, "model name[%d] now = '%s' from inx %d", i, (const char*)GridCoroFaces->GetCellValue(Model_Row, i).c_str(), inx);
-        GridCoroFaces->SetCellValue(Outline_Row, i, voice->GetAttribute(wxT("Outline")));
-        GridCoroFaces->SetCellValue(Eyes_open_Row, i, voice->GetAttribute(wxT("Eyes_open")));
-        GridCoroFaces->SetCellValue(Eyes_closed_Row, i, voice->GetAttribute(wxT("Eyes_closed")));
-        GridCoroFaces->SetCellValue(Eyes_up_Row, i, voice->GetAttribute(wxT("Eyes_up")));
-        GridCoroFaces->SetCellValue(Eyes_down_Row, i, voice->GetAttribute(wxT("Eyes_down")));
-        GridCoroFaces->SetCellValue(Eyes_left_Row, i, voice->GetAttribute(wxT("Eyes_left")));
-        GridCoroFaces->SetCellValue(Eyes_right_Row, i, voice->GetAttribute(wxT("Eyes_right")));
-        GridCoroFaces->SetCellValue(AI_Row, i, voice->GetAttribute(wxT("AI")));
-        GridCoroFaces->SetCellValue(E_Row, i, voice->GetAttribute(wxT("E")));
-        GridCoroFaces->SetCellValue(etc_Row, i, voice->GetAttribute(wxT("etc")));
-        GridCoroFaces->SetCellValue(FV_Row, i, voice->GetAttribute(wxT("FV")));
-        GridCoroFaces->SetCellValue(L_Row, i, voice->GetAttribute(wxT("L")));
-        GridCoroFaces->SetCellValue(MBP_Row, i, voice->GetAttribute(wxT("MBP")));
-        GridCoroFaces->SetCellValue(O_Row, i, voice->GetAttribute(wxT("O")));
-        GridCoroFaces->SetCellValue(rest_Row, i, voice->GetAttribute(wxT("rest")));
-        GridCoroFaces->SetCellValue(U_Row, i, voice->GetAttribute(wxT("U")));
-        GridCoroFaces->SetCellValue(WQ_Row, i, voice->GetAttribute(wxT("WQ")));
+        GridCoroFaces->SetCellValue(Outline_Row, i, ExtractNodes(voice->GetAttribute(wxT("Outline"))));
+        GridCoroFaces->SetCellValue(Eyes_open_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_open"))));
+        GridCoroFaces->SetCellValue(Eyes_closed_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_closed"))));
+        GridCoroFaces->SetCellValue(Eyes_up_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_up"))));
+        GridCoroFaces->SetCellValue(Eyes_down_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_down"))));
+        GridCoroFaces->SetCellValue(Eyes_left_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_left"))));
+        GridCoroFaces->SetCellValue(Eyes_right_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_right"))));
+        GridCoroFaces->SetCellValue(AI_Row, i, ExtractNodes(voice->GetAttribute(wxT("AI"))));
+        GridCoroFaces->SetCellValue(E_Row, i, ExtractNodes(voice->GetAttribute(wxT("E"))));
+        GridCoroFaces->SetCellValue(etc_Row, i, ExtractNodes(voice->GetAttribute(wxT("etc"))));
+        GridCoroFaces->SetCellValue(FV_Row, i, ExtractNodes(voice->GetAttribute(wxT("FV"))));
+        GridCoroFaces->SetCellValue(L_Row, i, ExtractNodes(voice->GetAttribute(wxT("L"))));
+        GridCoroFaces->SetCellValue(MBP_Row, i, ExtractNodes(voice->GetAttribute(wxT("MBP"))));
+        GridCoroFaces->SetCellValue(O_Row, i, ExtractNodes(voice->GetAttribute(wxT("O"))));
+        GridCoroFaces->SetCellValue(rest_Row, i, ExtractNodes(voice->GetAttribute(wxT("rest"))));
+        GridCoroFaces->SetCellValue(U_Row, i, ExtractNodes(voice->GetAttribute(wxT("U"))));
+        GridCoroFaces->SetCellValue(WQ_Row, i, ExtractNodes(voice->GetAttribute(wxT("WQ"))));
         debug(10, "set grid cells from voice attrs");
     }
     if (!errors.empty()) wxMessageBox(errors, wxT("Bad config settings")); //only show one message
@@ -1406,21 +1433,6 @@ void xLightsFrame::GetMouthNodes(const wxString& model_name)
     debug(10, "!found model '%s', got %d ents, active", (const char*)model_name.c_str(), nodelist->GetCount());
 }
 
-static wxString ExtractNodes(wxString parsed_info)
-{
-    wxString nodestr;
-    wxStringTokenizer wtkz(parsed_info, "+");
-    while (wtkz.HasMoreTokens())
-    {
-        wxString nextnode = wtkz.GetNextToken().BeforeFirst(':');
-        if (nextnode.empty()) continue;
-        if (!nodestr.empty()) nodestr += wxT("+");
-        nodestr += nextnode;
-    }
-    debug(10, "extracted '%s'", (const char*)nodestr.c_str());
-    return nodestr;
-}
-
 static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
 {
     wxStringTokenizer wtkz(nodestr, "+");
@@ -1431,10 +1443,10 @@ static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
         for (size_t i = 0; i < choices->GetCount(); ++i)
             if (choices->GetString(i).BeforeFirst(':') == nextnode)
             {
+                debug(10, "select entry '%s' using value '%s'", (const char*)choices->GetString(i).c_str(), (const char*)nextnode.c_str());
                 choices->SetSelection(i);
                 break;
             }
-        debug(10, "selected value '%s'", (const char*)nextnode.c_str());
 //TODO: need multi-select here; for now it just keeps the last one
     }
 }
@@ -1463,8 +1475,30 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
     int desty = ((myGrid*)GridCoroFaces)->GetRowTop(row), desth = ((myGrid*)GridCoroFaces)->GetRowHeight(row);
     destx += GridCoroFaces->GetPosition().x + GridCoroFaces->GetRowLabelSize();
     desty += GridCoroFaces->GetPosition().y + GridCoroFaces->GetRowHeight(0); //kludge: assume col labels are same height as row
-    destx += GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
-    desty += GridCoroFaces->GetScrollPosY();
+#if 0 //wxWidgets BROKEN
+    int srcollx = GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
+    int scrolly = GridCoroFaces->GetScrollPosY();
+#else //kludgey way to find approx scroll position
+    int scrollx = 0, scrolly = 0;
+//GetScrollLineY() seems to be more accurate than GetRowHeight()
+//check col 2 in case col 0 !vis
+    for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+        if (!GridCoroFaces->IsVisible(r, 0+2)) // && !GridCoroFaces->IsVisible(r - 1, 0))
+        {
+            scrolly += GridCoroFaces->GetScrollLineY(); //((myGrid*)GridCoroFaces)->GetRowHeight(r);
+            if (!(r % 5)) scrolly += 3; //FUD factor
+        }
+        else break;
+//X not reliable
+//    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+//        if (!GridCoroFaces->IsVisible(scrolly, c))
+//            scrollx += GridCoroFaces->GetScrollLineX(); //((myGrid*)GridCoroFaces)->GetColWidth(c);
+//        else break;
+#endif // 0
+    destx -= scrollx; //GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
+    desty -= scrolly; //GridCoroFaces->GetScrollPosY();
+    debug(10, "coro grid scrolled at (x %d, y %d), detected at (%d, %d), scr inc %d, %d", GridCoroFaces->GetScrollPosX(), GridCoroFaces->GetScrollPosY(), scrollx, scrolly, GridCoroFaces->GetScrollLineX(), GridCoroFaces->GetScrollLineY());
+    debug(10, "cell (0,0) vis? %d, (4,0) vis? %d, (12, 0) vis? %d", GridCoroFaces->IsVisible(0, 0), GridCoroFaces->IsVisible(4, 0), GridCoroFaces->IsVisible(12, 0));
 //    if (row != Model_Row) desth *= 5; //give ListBox some room
 #if 1 //broken?
     wxControl* choices = (row == Model_Row)? (wxControl*)Choice_PgoModelVoiceEdit: (wxControl*)nodelist; //start model name vs. node#s

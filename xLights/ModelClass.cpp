@@ -903,7 +903,7 @@ wxSize ModelClass::GetChannelCoords(std::vector<std::vector<int>>& chxy, bool sh
     return wxSize(chxy.size(), h); //tell caller how big the model is
 }
 #else
-ModelClass* FindModel(const wxString& name)
+ModelClass* ModelClass::FindModel(const wxString& name)
 {
 //TODO: use static member array rather than xLightsFrame?
 //first check active models:
@@ -956,7 +956,8 @@ static wxString AA(int x)
     retval += 'A' + x;
     return retval;
 }
-//add parsed info to choice list or check list box:
+//add just the node#s to a choice list:
+//NO add parsed info to choice list or check list box:
 size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3)
 {
     if (choices1) choices1->Clear();
@@ -971,6 +972,7 @@ size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2
         wxString newstr;
 //        debug(10, "model::node[%d/%d]: #coords %d, ach# %d, str %d", n, NodeCount, Nodes[n]->Coords.size(), Nodes[n]->StringNum, Nodes[n]->ActChan);
         if (Nodes[n]->Coords.empty()) continue;
+#if 0
         if (GetCoordCount(n) > 1) //show count and first + last coordinates
             if (IsCustom())
                 newstr = wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(n), GetCoordCount(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY, AA(Nodes[n]->Coords.back().bufX + 1), BufferHt - Nodes[n]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
@@ -981,6 +983,9 @@ size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2
                 newstr = wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(n), AA(Nodes[n]->Coords.front().bufX + 1), BufferHt - Nodes[n]->Coords.front().bufY);
             else
                 newstr = wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY);
+#else
+        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
+#endif // 0
         if (choices1) choices1->Append(newstr);
         if (choices2) choices2->Append(newstr);
         if (choices3)
@@ -998,6 +1003,23 @@ size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2
     }
     return (choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
+//get parsed node info:
+wxString ModelClass::GetNodeXY(int node)
+{
+    if ((node < 0) || (node >= GetNodeCount())) return wxEmptyString;
+    if (Nodes[node]->Coords.empty()) return wxEmptyString;
+    if (GetCoordCount(node) > 1) //show count and first + last coordinates
+        if (IsCustom())
+            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(node), GetCoordCount(node), AA(Nodes[node]->Coords.front().bufX + 1), BufferHt - Nodes[node]->Coords.front().bufY, AA(Nodes[node]->Coords.back().bufX + 1), BufferHt - Nodes[node]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+        else
+            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(node), GetCoordCount(node), Nodes[node]->Coords.front().bufX + 1, BufferHt - Nodes[node]->Coords.front().bufY, Nodes[node]->Coords.back().bufX + 1, BufferHt - Nodes[node]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+    else //just show singleton
+        if (IsCustom())
+            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(node), AA(Nodes[node]->Coords.front().bufX + 1), BufferHt - Nodes[node]->Coords.front().bufY);
+        else
+            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(node), Nodes[node]->Coords.front().bufX + 1, BufferHt - Nodes[node]->Coords.front().bufY);
+}
+
 //extract first (X,Y) from string formatted above:
 bool ModelClass::ParseFaceElement(const wxString& str, wxPoint* first_xy)
 {

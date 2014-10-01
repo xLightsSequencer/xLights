@@ -1306,7 +1306,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));
     Choice_PgoModelVoiceEdit->Hide();
     FlexGridSizer51->Add(Choice_PgoModelVoiceEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_RelativeNodes = new wxChoice(PGO_COROFACES, ID_CHOICE_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_RelativeNodes"));
+    Choice_RelativeNodes = new wxChoice(PGO_COROFACES, ID_CHOICE_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_RelativeNodes"));
     Choice_RelativeNodes->Hide();
     FlexGridSizer51->Add(Choice_RelativeNodes, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     xCheckListBox_RelativeNodes = new wxCheckListBox(PGO_COROFACES, ID_CHECKLISTBOX_CheckListBox_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_CheckListBox_RelativeNodes"));
