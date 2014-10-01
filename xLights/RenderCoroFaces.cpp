@@ -100,16 +100,86 @@ static void get_elements(wxCheckListBox* listbox, const wxString& model)
 }
 #endif // 0
 
-static bool IsParsed(const wxString& settings)
+//static bool IsParsed(const wxString& settings)
+//{
+//    return settings.Find('@') != wxNOT_FOUND;
+//}
+
+//static const char* parts[] = {"Outline", "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ", "Open", "Closed", "Left", "Right", "Up", "Down"};
+
+//cached model info:
+static std::unordered_map<std::string, std::unordered_map<std::string, wxPoint>> model_xy;
+static bool parse_model(const wxString& want_model)
 {
-    return settings.Find('@') != wxNOT_FOUND;
+    if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
+//    std::unordered_map<std::string, wxPoint>& xy_info = model_xy[model];
+
+#if 0
+    wxFileName pgoFile;
+    pgoFile.AssignDir(CurrentDir);
+    pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
+    if (!pgoFile.FileExists()) return false;
+    if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
+    wxXmlNode* root = pgoXml.GetRoot();
+    if (!root || (root->GetName() != "papagayo")) return false;
+    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), Name, wxEmptyString);
+    if (!CoroFaces) return false;
+//    wxString buf;
+    for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
+    {
+        wxString grpname = group->GetAttribute(Name);
+        debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(Name, wxT("??")).c_str());
+//        if (group->GetName() != "coro") continue;
+//        if (grpname.IsEmpty()) continue;
+//        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+        for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
+        {
+            wxString voice_name = NoInactive(voice->GetAttribute(Name));
+            if (voice_name != want_group) continue;
+        GridCoroFaces->SetCellValue(Outline_Row, i, voice->GetAttribute(wxT("Outline")));
+        GridCoroFaces->SetCellValue(Eyes_open_Row, i, voice->GetAttribute(wxT("Eyes_open")));
+        GridCoroFaces->SetCellValue(Eyes_closed_Row, i, voice->GetAttribute(wxT("Eyes_closed")));
+        GridCoroFaces->SetCellValue(AI_Row, i, voice->GetAttribute(wxT("AI")));
+        GridCoroFaces->SetCellValue(E_Row, i, voice->GetAttribute(wxT("E")));
+        GridCoroFaces->SetCellValue(etc_Row, i, voice->GetAttribute(wxT("etc")));
+        GridCoroFaces->SetCellValue(FV_Row, i, voice->GetAttribute(wxT("FV")));
+        GridCoroFaces->SetCellValue(L_Row, i, voice->GetAttribute(wxT("L")));
+        GridCoroFaces->SetCellValue(MBP_Row, i, voice->GetAttribute(wxT("MBP")));
+        GridCoroFaces->SetCellValue(O_Row, i, voice->GetAttribute(wxT("O")));
+        GridCoroFaces->SetCellValue(rest_Row, i, voice->GetAttribute(wxT("rest")));
+        GridCoroFaces->SetCellValue(U_Row, i, voice->GetAttribute(wxT("U")));
+        GridCoroFaces->SetCellValue(WQ_Row, i, voice->GetAttribute(wxT("WQ")));
+
+        }
+
+
+
+    }
+}
+        if (!Phoneme.empty())
+        {
+            wxPoint first_xy = model_xy[cur_model][Phoneme];
+            debug(10, "turn on (x %d, y %d) for phoneme '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)Phoneme.c_str(), (const char*)cur_model.c_str());
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+        if (!eyes.empty())
+        {
+            wxPoint first_xy = model_xy[cur_model][eyes];
+            debug(10, "turn on (x %d, y %d) for eyes '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)eyes.c_str(), (const char*)cur_model.c_str());
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+        if (face_outline)
+        {
+            wxPoint first_xy = model_xy[cur_model]["Outline"];
+#endif // 0
 }
 
 //NOTE: params are re-purposed as follows for Coro face mode:
 // x_y = list of active elements for this frame
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
-void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
+//void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
+void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline)
 {
 //    const wxString& parsed_xy = IsParsed(x_y)? x_y: wxEmptyString;
 //NOTE:
@@ -117,7 +187,8 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
 //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
 //therefore we can access the model info by going to parent object's buffer member
 //    wxString model_name = "???";
-    debug(10, "RenderCoroFaces: model '%s', phon %d, x_y '%s', outl '%s', eyes '%s', all '%s', parsed? %d", (const char*)cur_model.c_str(), Phoneme, (const char*)x_y.c_str(), (const char*)Outline_x_y.c_str(), (const char*)Eyes_x_y.c_str(), (const char*)x_y.c_str(), IsParsed(x_y));
+    if (!state) model_xy.clear(); //flush cache at start
+    debug(10, "RenderCoroFaces: state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
 //    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 
     /*
@@ -146,10 +217,10 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
 //    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
 
 
-    if (IsParsed(x_y)) //already have (X,Y) info
-    {
+//    if (IsParsed(x_y)) //already have (X,Y) info
+//    {
 //TODO: how is color palette supposed to work with Coro faces?
-        wxImage::HSVValue hsv;
+//        wxImage::HSVValue hsv;
 //        size_t colorcnt=GetColorCount();
 //        int ColorIdx=0;
 //        palette.GetHSV(ColorIdx, hsv);
@@ -157,6 +228,31 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
         hsv.value=1.0;
         hsv.saturation=1.0;
 
+        if (!parse_model(cur_model))
+        {
+            debug(10, "model '%s' not found", (const char*)cur_model.c_str());
+            return;
+        }
+        if (!Phoneme.empty())
+        {
+            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()][(const char*)Phoneme.c_str()];
+            debug(10, "turn on (x %d, y %d) for phoneme '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)Phoneme.c_str(), (const char*)cur_model.c_str());
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+        if (!eyes.empty())
+        {
+            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()][(const char*)eyes.c_str()];
+            debug(10, "turn on (x %d, y %d) for eyes '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)eyes.c_str(), (const char*)cur_model.c_str());
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+        if (face_outline)
+        {
+            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()]["Outline"];
+            debug(10, "turn on (x %d, y %d) for face outline in model '%s'", first_xy.x, first_xy.y, (const char*)cur_model.c_str());
+            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+        }
+
+#if 0 //obsolete
         wxStringTokenizer wtkz(x_y, "+");
         while (wtkz.HasMoreTokens())
         {
@@ -170,14 +266,14 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
         }
         return;
     }
+#endif // 0
 
+//    wxString html = "<html><body><table border=0>";
+//    int Ht, Wt;
+//    Ht = BufferHt;
+//    Wt = BufferWi;
 
-    wxString html = "<html><body><table border=0>";
-    int Ht, Wt;
-    Ht = BufferHt;
-    Wt = BufferWi;
-
-        coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
+//        coroface( Phoneme, x_y, Outline_x_y, Eyes_x_y); // draw a mouth syllable
 
 
 
@@ -211,6 +307,7 @@ void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxStrin
 #endif
 }
 
+#if 0 //obsolete
 void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y)
 {
     /*
@@ -345,4 +442,4 @@ void RgbEffects::coroface(int Phoneme, const wxString& x_y, const wxString& Outl
     if(x_Eyes>=0 && x_Eyes<BufferWi && y_Eyes>=0 && y_Eyes<=BufferHt)  SetPixel(x_Eyes,y_Eyes,hsv);
 
 }
-
+#endif //0

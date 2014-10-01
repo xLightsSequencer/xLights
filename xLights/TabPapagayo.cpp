@@ -52,6 +52,8 @@ static const wxString AutoFadeElement = wxT("auto_fade_element");
 static const wxString AutoFadeAll = wxT("auto_fade_all");
 static const wxString DelayElement = wxT("delay_element");
 static const wxString DelayAll = wxT("delay_all");
+static const wxString EyesBlink = wxT("eyes_blink");
+static const wxString EyesLR = wxT("eyes_lr");
 static const wxString Yes = wxT("Y");
 static const wxString No = wxT("N");
 static const wxString Name = wxT("name");
@@ -148,19 +150,24 @@ static const wxString SelectionHint = "(choose)", CreationHint = "(add new)", No
 //grid row#s:
 //TODO: load these dynamically?
 #define Model_Row  0
-#define Outline_Row  0+1
-#define Eyes_open_Row  1+1
-#define Eyes_closed_Row  2+1
-#define AI_Row  3+1
-#define E_Row  4+1
-#define etc_Row  5+1
-#define FV_Row  6+1
-#define L_Row  7+1
-#define MBP_Row  8+1
-#define O_Row  9+1
-#define rest_Row  10+1
-#define U_Row  11+1
-#define WQ_Row  12+1
+#define Outline_Row  1
+#define AI_Row  2
+#define E_Row  3
+#define etc_Row  4
+#define FV_Row  5
+#define L_Row  6
+#define MBP_Row  7
+#define O_Row  8
+#define rest_Row  9
+#define U_Row  10
+#define WQ_Row  11
+#define Eyes_open_Row  12
+#define Eyes_closed_Row  13
+#define Eyes_left_Row  14
+#define Eyes_right_Row  15
+#define Eyes_up_Row  16
+#define Eyes_down_Row  17
+
 
 
 void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
@@ -214,7 +221,7 @@ public:
 };
 std::vector<std::pair<int, InfoChain>> phoemes_by_start_frame;
 
-static int single_delay, all_delay; //auto-fade frame counts
+static int single_delay, all_delay, eyes_delay; //auto-fade or eye movement frame counts
 
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
@@ -225,6 +232,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 
     all_delay = 0;
     single_delay = 0;
+    eyes_delay = 0;
     if (CheckBox_AutoFadePgoElement->GetValue())
     {
         double val;
@@ -239,7 +247,15 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
             retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_AutoFadePgoAll->GetValue()));
         all_delay = val * 20; //#sec => #frames
     }
-    debug(20, "auto-fade: single %d, all %d", single_delay, all_delay);
+    if (CheckBox_AutoFadePgoAll->GetValue())
+    {
+        double val;
+        if (!TextCtrl_AutoFadePgoAll->GetValue().ToDouble(&val))
+            retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_AutoFadePgoAll->GetValue()));
+        all_delay = val * 20; //#sec => #frames
+    }
+    if (CheckBox_CoroEyesRandomBlink->GetValue() || CheckBox_CoroEyesRandomLR->GetValue()) eyes_delay = 100; //rand() % 30; //TODO: adjust value?
+    debug(20, "auto-fade: single %d, all %d, eyes move? %d", single_delay, all_delay, eyes_delay);
 
 //example code to iterate thru the data:
     wxString debug_msg, filename;
@@ -284,7 +300,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(wxString::Format("Wrote pgo xml: %d entries", numwr));
     if (pgofile_status) write_pgo_footer(f, voices.size()); //,filename);
     f.Close();
-    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
+//    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
 }
 
 static void blank(wxFile& f)
@@ -380,9 +396,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     size_t numfr = 0;
     wxString frame_desc, shorter_desc;
     wxString errors;
-    wxString frame_phonemes[voices.size()];
-    int all_fade_frame = std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
+    wxString frame_phonemes[voices.size()], frame_eyes[voices.size()];
+    int all_fade_frame = std::numeric_limits<int>::max(), eyes_move_frame = std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
+    if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
+#if 0 //obsolete
     struct
     {
         std::unordered_map<std::string, std::string> phon[4]; //(X,Y) values to use for face parts for each voice
@@ -407,6 +425,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(U_Row, v), &xy)) oldxy.phon[v]["U"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["U"] = "+" + str;
         if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(WQ_Row, v), &xy)) oldxy.phon[v]["WQ"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["WQ"] = "+" + str;
     }
+#endif // 0
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
         std::string phkey = (const char*)it->second.q->name.c_str();
@@ -429,11 +448,12 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc));
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                     if (!frame_phonemes[voice].empty())
-#if 0 //separated X:Y for phoneme, outlines, eyes
-                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], wxEmptyString)); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
-#else //parsed (X,Y)
-                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], (parsed.outl[voice] + parsed.eyes[voice] + parsed.phon[voice][std::string(frame_phonemes[voice].mb_str())]).substr(1))); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
-#endif // 0
+//separated X:Y for phoneme, outlines, eyes
+//                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], wxEmptyString)); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
+//parsed (X,Y)
+//                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], (parsed.outl[voice] + parsed.eyes[voice] + parsed.phon[voice][std::string(frame_phonemes[voice].mb_str())]).substr(1))); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
+//phoneme name or eye position
+                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_CHOICE_CoroFaces_Eyes=%s,E1_CHECKBOX_CoroFaces_Outline=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], frame_eyes[voice], "Y"));
                     else
                         blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
@@ -487,6 +507,33 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
         if (all_delay) all_fade_frame = it->first + all_delay; //set next deadline
         if (single_delay) single_fade_frame[phkey] = it->first + single_delay; //set per-phoneme deadline
+//TODO: need to improve random (random start time but somewhat fixed duration)
+//            eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
+//            frame_eyes[it->second.v - &voices[0]] = CheckBox_CoroEyesRandomBlink->GetValue()? ((rand() % 6)? "Open": "Closed"): CheckBox_CoroEyesRandomLR->GetValue()? "Left": "Open"; //eyes
+        if (it->first < eyes_move_frame) continue;
+        if (CheckBox_CoroEyesRandomBlink->GetValue())
+        {
+            if (frame_eyes[it->second.v - &voices[0]] != "Closed")
+            {
+                frame_eyes[it->second.v - &voices[0]] == "Closed";
+                eyes_move_frame = it->first + 10; //1/2 sec blink
+            }
+            else
+            {
+                frame_eyes[it->second.v - &voices[0]] == "Open";
+                eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
+            }
+        }
+        else if (CheckBox_CoroEyesRandomLR->GetValue())
+        {
+            if (frame_eyes[it->second.v - &voices[0]] == "Open")
+                frame_eyes[it->second.v - &voices[0]] == "Left";
+            else if (frame_eyes[it->second.v - &voices[0]] == "Left")
+                frame_eyes[it->second.v - &voices[0]] == "Right";
+            else
+                frame_eyes[it->second.v - &voices[0]] == "Open";
+            eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
+        }
     }
 #endif // 1
     // wxFile f;
@@ -889,6 +936,8 @@ bool xLightsFrame::LoadPgoSettings(void)
     CheckBox_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeAll) == Yes);
     TextCtrl_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(DelayElement));
     TextCtrl_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(DelayAll));
+    CheckBox_CoroEyesRandomBlink->SetValue(pgoXml.GetRoot()->GetAttribute(EyesBlink) == Yes);
+    CheckBox_CoroEyesRandomLR->SetValue(pgoXml.GetRoot()->GetAttribute(EyesLR) == Yes);
     wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), Name, wxEmptyString, true);
 //    XmlNode* first_face = parent->GetChildren(); //TODO: look at multiple children?
     wxXmlNode* any_node = FindNode(AutoFace, wxT("auto"), Name, wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab
@@ -951,12 +1000,14 @@ bool xLightsFrame::LoadPgoSettings(void)
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if ((*it)->name.IsEmpty()) continue;
+        if (!(*it)->IsCustom()) continue; //only want custom models for now
         Choice_PgoModelVoiceEdit->Append((*it)->name);
     }
 //also list non-preview models:
     for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
         if ((*it)->name.IsEmpty()) continue;
+        if (!(*it)->IsCustom()) continue;
         Choice_PgoModelVoiceEdit->Append(InactiveIndicator + (*it)->name); //show non-active models in parens
     }
 //tell user there are none to choose from:
@@ -981,8 +1032,8 @@ bool xLightsFrame::LoadPgoSettings(void)
         Choice_PgoGroupName->SetSelection(0); //"choose one" hint
 
 //    wxMessageBox(wxString::Format(_("load settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()), wxT("Debug info"));
-    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
-
+    StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
+    debug(10, "loaded pgo settings: %d active models, %d inactive models, choice %d of %d", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
     return true;
 }
 
@@ -1028,6 +1079,8 @@ bool xLightsFrame::SavePgoSettings(void)
     AddNonDupAttr(pgoXml.GetRoot(), AutoFadeAll, CheckBox_AutoFadePgoAll->GetValue()? Yes: No);
     AddNonDupAttr(pgoXml.GetRoot(), DelayElement, TextCtrl_AutoFadePgoElement->GetValue());
     AddNonDupAttr(pgoXml.GetRoot(), DelayAll, TextCtrl_AutoFadePgoAll->GetValue());
+    AddNonDupAttr(pgoXml.GetRoot(), EyesBlink, CheckBox_CoroEyesRandomBlink->GetValue()? Yes: No);
+    AddNonDupAttr(pgoXml.GetRoot(), EyesLR, CheckBox_CoroEyesRandomLR->GetValue()? Yes: No);
     wxXmlNode* node = FindNode(AutoFace, wxT("auto"), Name, wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
     if (node->GetAttribute(Name).empty()) AddNonDupAttr(node, Name, wxT("NAME?")); //give it a name (not sure what name to use)
     AddNonDupAttr(node, wxT("face_shape"), RadioButton_PgoFaceRound->GetValue()? Yes: No);
@@ -1196,6 +1249,10 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(voice, wxT("Outline"), GridCoroFaces->GetCellValue(Outline_Row, i));
         AddNonDupAttr(voice, wxT("Eyes_open"), GridCoroFaces->GetCellValue(Eyes_open_Row, i));
         AddNonDupAttr(voice, wxT("Eyes_closed"), GridCoroFaces->GetCellValue(Eyes_closed_Row, i));
+        AddNonDupAttr(voice, wxT("Eyes_up"), GridCoroFaces->GetCellValue(Eyes_up_Row, i));
+        AddNonDupAttr(voice, wxT("Eyes_down"), GridCoroFaces->GetCellValue(Eyes_down_Row, i));
+        AddNonDupAttr(voice, wxT("Eyes_left"), GridCoroFaces->GetCellValue(Eyes_left_Row, i));
+        AddNonDupAttr(voice, wxT("Eyes_right"), GridCoroFaces->GetCellValue(Eyes_right_Row, i));
         AddNonDupAttr(voice, wxT("AI"), GridCoroFaces->GetCellValue(AI_Row, i));
         AddNonDupAttr(voice, wxT("E"), GridCoroFaces->GetCellValue(E_Row, i));
         AddNonDupAttr(voice, wxT("etc"), GridCoroFaces->GetCellValue(etc_Row, i));
@@ -1206,7 +1263,6 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(voice, wxT("rest"), GridCoroFaces->GetCellValue(rest_Row, i));
         AddNonDupAttr(voice, wxT("U"), GridCoroFaces->GetCellValue(U_Row, i));
         AddNonDupAttr(voice, wxT("WQ"), GridCoroFaces->GetCellValue(WQ_Row, i));
-
         if (num_voice < 0) ++num_voice; //remember that a voice was selected
         if (non_empty) ++num_voice;
     }
@@ -1259,6 +1315,10 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         GridCoroFaces->SetCellValue(Outline_Row, i, voice->GetAttribute(wxT("Outline")));
         GridCoroFaces->SetCellValue(Eyes_open_Row, i, voice->GetAttribute(wxT("Eyes_open")));
         GridCoroFaces->SetCellValue(Eyes_closed_Row, i, voice->GetAttribute(wxT("Eyes_closed")));
+        GridCoroFaces->SetCellValue(Eyes_up_Row, i, voice->GetAttribute(wxT("Eyes_up")));
+        GridCoroFaces->SetCellValue(Eyes_down_Row, i, voice->GetAttribute(wxT("Eyes_down")));
+        GridCoroFaces->SetCellValue(Eyes_left_Row, i, voice->GetAttribute(wxT("Eyes_left")));
+        GridCoroFaces->SetCellValue(Eyes_right_Row, i, voice->GetAttribute(wxT("Eyes_right")));
         GridCoroFaces->SetCellValue(AI_Row, i, voice->GetAttribute(wxT("AI")));
         GridCoroFaces->SetCellValue(E_Row, i, voice->GetAttribute(wxT("E")));
         GridCoroFaces->SetCellValue(etc_Row, i, voice->GetAttribute(wxT("etc")));
@@ -1269,6 +1329,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         GridCoroFaces->SetCellValue(rest_Row, i, voice->GetAttribute(wxT("rest")));
         GridCoroFaces->SetCellValue(U_Row, i, voice->GetAttribute(wxT("U")));
         GridCoroFaces->SetCellValue(WQ_Row, i, voice->GetAttribute(wxT("WQ")));
+        debug(10, "set grid cells from voice attrs");
     }
     if (!errors.empty()) wxMessageBox(errors, wxT("Bad config settings")); //only show one message
 }
@@ -1314,26 +1375,68 @@ void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
     PgoGridCellSelect(event.GetRow(), event.GetCol(), __LINE__);
 }
 
+#define nodelist  Choice_RelativeNodes
+//#define nodelist  ChoiceListBox_RelativeNodes
+//#define nodelist  ListBox_RelativeNodes
 
 //find unique node#s and associated (X,Y) for a model:
 void xLightsFrame::GetMouthNodes(const wxString& model_name)
 {
+    debug(10, "get mouth nodes '%s'", (const char*)model_name.c_str());
 //    StatusBar1->SetStatusText(wxT("get mouth nodes ..."));
     for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
     {
         if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
-        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0)) Choice_RelativeNodes->Append(NoneHint);
+        debug(10, "parse model '%s'", (const char*)(*it)->name.c_str());
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0, 0)) nodelist->Append(NoneHint);
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+        debug(10, "got %d ents, active", nodelist->GetCount());
         return;
     }
     for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
         if (model_name.CmpNoCase((*it)->name)) continue; //don't check this model
-        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0)) Choice_RelativeNodes->Append(NoneHint);
+        debug(10, "parse model '%s'", (const char*)(*it)->name.c_str());
+        if (!(*it)->GetChannelCoords(Choice_RelativeNodes, 0, 0)) nodelist->Append(NoneHint);
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+        debug(10, "got %d ents, inactive", nodelist->GetCount());
         return;
     }
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+    debug(10, "!found model '%s', got %d ents, active", (const char*)model_name.c_str(), nodelist->GetCount());
+}
+
+static wxString ExtractNodes(wxString parsed_info)
+{
+    wxString nodestr;
+    wxStringTokenizer wtkz(parsed_info, "+");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString nextnode = wtkz.GetNextToken().BeforeFirst(':');
+        if (nextnode.empty()) continue;
+        if (!nodestr.empty()) nodestr += wxT("+");
+        nodestr += nextnode;
+    }
+    debug(10, "extracted '%s'", (const char*)nodestr.c_str());
+    return nodestr;
+}
+
+static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
+{
+    wxStringTokenizer wtkz(nodestr, "+");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString nextnode = wtkz.GetNextToken();
+//        choices->SetSelection(choices->FindString(nextnode)); //load value from new cell
+        for (size_t i = 0; i < choices->GetCount(); ++i)
+            if (choices->GetString(i).BeforeFirst(':') == nextnode)
+            {
+                choices->SetSelection(i);
+                break;
+            }
+        debug(10, "selected value '%s'", (const char*)nextnode.c_str());
+//TODO: need multi-select here; for now it just keeps the last one
+    }
 }
 
 //kludgey drop-down edit for grid cells:
@@ -1345,13 +1448,13 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 //    StatusBar1->SetStatusText(wxString::Format(wxT("cell sel %d, %d"), event.GetCol(), event.GetRow())); //GridCoroFaces->GetGridCursorCol(), GridCoroFaces->GetGridCursorRow()));
 //    wxBell();
 //    StatusBar1->SetStatusText(wxString::Format(wxT("grid x %d, y %d, scroll %d %d, cell: c %d, r %d, x %d, l %d, r %d, y %d, b %d, w %d %d, h %d, rlw %d"), GridCoroFaces->GetPosition().x, GridCoroFaces->GetPosition().y, GridCoroFaces->GetScrollPosX(), GridCoroFaces->GetScrollPosY(), col, row, ((myGrid*)GridCoroFaces)->GetColPos(col), ((myGrid*)GridCoroFaces)->GetColLeft(col), ((myGrid*)GridCoroFaces)->GetColRight(col), ((myGrid*)GridCoroFaces)->GetRowTop(row), ((myGrid*)GridCoroFaces)->GetRowBottom(row), ((myGrid*)GridCoroFaces)->GetColWidth(col), ((myGrid*)GridCoroFaces)->GetColSize(col), ((myGrid*)GridCoroFaces)->GetRowHeight(row), GridCoroFaces->GetRowLabelSize()));
-    bool node_edit = Choice_RelativeNodes->Hide(); //was editing node#s
+    bool node_edit = nodelist->Hide(); //was editing node#s
     bool model_edit = Choice_PgoModelVoiceEdit->Hide(); //was editing a model name
     if (node_edit || model_edit)
     {
-        debug(10, "cell sel(%d, %d) was vis %d from (%d, %d)", row, col, prevcell.y, prevcell.x, where);
+        debug(10, "cell sel(%d, %d) was vis from (%d, %d) @%d", row, col, prevcell.y, prevcell.x, where);
         if (prevcell.x != -1) //update previous cell
-            GridCoroFaces->SetCellValue(prevcell.y, prevcell.x, node_edit? Choice_RelativeNodes->GetString(Choice_RelativeNodes->GetSelection()): Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection()));
+            GridCoroFaces->SetCellValue(prevcell.y, prevcell.x, node_edit? ExtractNodes(nodelist->GetString(nodelist->GetSelection())): Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection()));
         prevcell.x = -1;
     }
     if (col != prevcell.x)  //analyze face element node#s in new model
@@ -1362,7 +1465,9 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
     desty += GridCoroFaces->GetPosition().y + GridCoroFaces->GetRowHeight(0); //kludge: assume col labels are same height as row
     destx += GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
     desty += GridCoroFaces->GetScrollPosY();
-    wxChoice* choices = (row == Model_Row)? Choice_PgoModelVoiceEdit: Choice_RelativeNodes; //start model name vs. node#s
+//    if (row != Model_Row) desth *= 5; //give ListBox some room
+#if 1 //broken?
+    wxControl* choices = (row == Model_Row)? (wxControl*)Choice_PgoModelVoiceEdit: (wxControl*)nodelist; //start model name vs. node#s
 //TODO: some of the below calls might be redundant; had a hard time getting it to display consistently at first, so just leave them all in for now
     choices->Show();
     choices->Move(destx, desty);
@@ -1373,8 +1478,32 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 //    GridCoroFaces->Show();
     choices->Update();
     choices->Refresh();
+#else
+    if (row == Model_Row) //start model name vs. node#s
+    {
+        Choice_PgoModelVoiceEdit->Show();
+        Choice_PgoModelVoiceEdit->Move(destx, desty);
+        Choice_PgoModelVoiceEdit->SetSize(destw, desth);
+        Choice_PgoModelVoiceEdit->Raise(); //put it on top of grid
+        Choice_PgoModelVoiceEdit->Update();
+        Choice_PgoModelVoiceEdit->Refresh();
+    }
+    else
+    {
+        ListBox_RelativeNodes->Show();
+        ListBox_RelativeNodes->Move(destx, desty);
+        ListBox_RelativeNodes->SetSize(destw, desth);
+        ListBox_RelativeNodes->Raise(); //put it on top of grid
+        ListBox_RelativeNodes->Update();
+        ListBox_RelativeNodes->Refresh();
+    }
+//TODO: some of the below calls might be redundant; had a hard time getting it to display consistently at first, so just leave them all in for now
+#endif
     debug(1, "cell sel (%d, %d) made vis '%s' @%d", row, col, (const char*)GridCoroFaces->GetCellValue(row, col).c_str(), where);
-    choices->SetSelection(choices->FindString(GridCoroFaces->GetCellValue(row, col))); //load value from new cell
+    if (row == Model_Row)
+        Choice_PgoModelVoiceEdit->SetSelection(Choice_PgoModelVoiceEdit->FindString(GridCoroFaces->GetCellValue(row, col))); //load value from new cell
+    else //multi-select and match on node#
+        MultiSelectNodes(nodelist, GridCoroFaces->GetCellValue(row, col));
     prevcell.x = col; //remember where to put back new value
     prevcell.y = row;
 //    Choice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));

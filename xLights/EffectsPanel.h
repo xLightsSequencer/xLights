@@ -6,7 +6,6 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checklst.h>
 #include <wx/checkbox.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
@@ -41,7 +40,6 @@ public:
     wxStaticText* StaticText6;
     wxBitmapButton* BitmapButton_RandomMotion;
     wxBitmapButton* BitmapButton_Wave_FillColors;
-    wxTextCtrl* TextCtrl_Eyes_X_Y;
     wxBitmapButton* BitmapButton_TextFont2;
     wxStaticText* StaticText19;
     wxBitmapButton* BitmapButton_TwinkleSteps;
@@ -163,6 +161,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
     wxStaticText* StaticText49;
     wxSlider* Slider_Snowflakes_Type;
+    wxStaticText* StaticText64;
     wxBitmapButton* BitmapButton_Speed;
     wxBitmapButton* BitmapButton_Chase_Spacing1;
     wxSlider* Slider_Fireworks_Count;
@@ -184,7 +183,6 @@ public:
     wxStaticText* StaticText89;
     wxChoice* Choice_Meteors_Type;
     wxStaticText* StaticText23;
-    wxStaticText* StaticText63;
     wxCheckBox* CheckBox_Circles_Plasma;
     wxStaticText* StaticText130;
     wxStaticText* StaticText55;
@@ -240,7 +238,6 @@ public:
     wxCheckBox* CheckBox_Fire_GrowFire;
     wxBitmapButton* BitmapButton_TextEffect3;
     wxTextCtrl* TextCtrl_Text_Line2;
-    wxStaticText* StaticText72;
     wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
     wxBitmapButton* BitmapButton_TextDir2;
@@ -297,7 +294,6 @@ public:
     wxTextCtrl* TextCtrl_Piano_MapFilename;
     wxSlider* Slider_Twinkle_Count;
     wxBitmapButton* BitmapButton_TextFont4;
-    wxTextCtrl* TextCtrl_Outline_X_Y;
     wxSlider* Slider_Color_Mix1;
     wxCheckBox* CheckBox_Palette5;
     wxCheckBox* CheckBox_ColorWash_HFade;
@@ -314,7 +310,6 @@ public:
     wxStaticText* StaticText88;
     wxStaticText* StaticText59;
     wxChoice* Choice_Text_Effect2;
-    wxCheckListBox* CheckListBox_CoroFaceElements;
     wxBitmapButton* BitmapButton_NumberWaves;
     wxStaticText* StaticText_Piano_NumKeys;
     wxPanel* Panel1_CoroFaces;
@@ -344,6 +339,7 @@ public:
     wxStaticText* StaticText26;
     wxCheckBox* CheckBox_Palette4;
     wxCheckBox* CheckBox_Piano_Clipping;
+    wxChoice* Choice_CoroFaces_Eyes;
     wxBitmapButton* BitmapButton_SpiralsThickness;
     wxBitmapButton* BitmapButton_TextDir3;
     wxCheckBox* CheckBox_Spirograph_Animate;
@@ -358,6 +354,7 @@ public:
     wxSlider* Slider_Fire_Height;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButton_SnowstormLength;
+    wxCheckBox* CheckBox_CoroFaces_Outline;
     wxBitmapButton* BitmapButton_PicturesDirection;
     wxPanel* Panel1_Circles;
     wxButton* Button_Text_Font3;
@@ -368,7 +365,6 @@ public:
     wxPanel* Panel1_None;
     wxBitmapButton* BitmapButton_Palette1;
     wxChoice* Choice_Text_Count2;
-    wxStaticText* StaticText73;
     wxBitmapButton* BitmapButton_ButterflyColors;
     wxBitmapButton* BitmapButton_MeteorsType;
     wxSlider* Slider_Speed;
@@ -395,7 +391,6 @@ public:
     wxButton* Button1;
     wxPanel* Panel1_Piano;
     wxCheckBox* CheckBox_Palette1;
-    wxTextCtrl* TextCtrl_X_Y;
     wxStaticText* StaticText136;
     wxSlider* Slider_Spirals_Rotation;
     wxButton* Button_Palette5;
@@ -437,7 +432,6 @@ public:
     wxBitmapButton* BitmapButton_TextDir4;
     wxBitmapButton* BitmapButton_SpiralsRotation;
     wxStaticText* StaticText83;
-    wxStaticText* StaticText74;
     wxBitmapButton* BitmapButton_TextCount3;
     wxStaticText* StaticText41;
     wxStaticText* StaticText29;
@@ -516,15 +510,10 @@ protected:
     static const long ID_PANEL5;
     static const long ID_STATICTEXT73;
     static const long ID_CHOICE_CoroFaces_Phoneme;
-    static const long ID_STATICTEXT74;
-    static const long ID_TEXTCTRL_X_Y;
-    static const long ID_STATICTEXT75;
-    static const long ID_TEXTCTRL_Outline_X_Y;
-    static const long ID_STATICTEXT76;
-    static const long ID_TEXTCTRL_Eyes_X_Y;
     static const long ID_STATICTEXT64;
-    static const long ID_STATICTEXT65;
-    static const long ID_CHECKLISTBOX_CoroFaceElements;
+    static const long ID_CHOICE_CoroFaces_Eyes;
+    static const long ID_STATICTEXT66;
+    static const long ID_CHECKBOX_CoroFaces_Outline;
     static const long ID_PANEL28;
     static const long ID_STATICTEXT6;
     static const long ID_CHOICE_Curtain_Edge;

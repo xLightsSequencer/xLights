@@ -421,6 +421,7 @@ private:
     void OnNotebookPgoParmsPageChanged(wxNotebookEvent& event);
     void OnTimer2Trigger(wxTimerEvent& event);
     void OnButton_PgoStitchClick(wxCommandEvent& event);
+    void OnCheckBox_AutoFadePgoAllClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -638,13 +639,16 @@ private:
     static const long ID_GRID_COROFACES;
     static const long ID_CHOICE_PgoModelVoiceEdit;
     static const long ID_CHOICE_RelativeNodes;
-    static const long ID_CHECKLISTBOX_CoroFaceElements;
+    static const long ID_CHECKLISTBOX_CheckListBox_RelativeNodes;
+    static const long ID_LISTBOX_RelativeNodes;
     static const long ID_CHECKBOX_AutoFadePgoElement;
     static const long ID_TEXTCTRL_AutoFadePgoElement;
     static const long ID_STATICTEXT34;
+    static const long ID_CHECKBOX_CoroEyesRandomBlink;
     static const long ID_CHECKBOX_AutoFadePgoAll;
     static const long ID_TEXTCTRL_AutoFadePgoAll;
     static const long ID_STATICTEXT35;
+    static const long ID_CHECKBOX_CoroEyesRandomLR;
     static const long ID_PGO_COROFACES;
     static const long ID_STATICTEXT66;
     static const long ID_STATICTEXT33;
@@ -812,7 +816,6 @@ private:
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxButton* Button_eyesopen_image;
     wxTextCtrl* TextCtrl_WQ_image;
-    wxCheckListBox* CheckListBox_CoroFaceElements;
     wxChoice* ChoiceOutputFormat;
     wxDirDialog* DirDialog1;
     wxStaticText* StaticTextSetup1;
@@ -860,6 +863,7 @@ private:
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
     wxStaticText* StaticText43;
+    wxCheckListBox* xCheckListBox_RelativeNodes;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
     wxStaticText* StaticText65;
@@ -889,6 +893,7 @@ private:
     wxTextCtrl* TextCtrl_eyesclosed_image;
     wxButton* ButtonSeqExport;
     wxTextCtrl* TextCtrl_pgo_filename;
+    wxCheckBox* CheckBox_CoroEyesRandomBlink;
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxBitmapButton* BitmapButton_Contrast;
@@ -947,6 +952,7 @@ private:
     wxTextCtrl* TextCtrl4;
     wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
+    wxListBox* xListBox_RelativeNodes;
     wxRadioButton* RadioButtonOff;
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxRadioButton* RadioButtonRgbChase5;
@@ -981,6 +987,7 @@ private:
     wxButton* ButtonNetworkDeleteAll;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxButton* ButtonNetworkChange;
+    wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
     wxTextCtrl* TextCtrl_AutoFadePgoElement;
     wxRadioButton* RadioButtonRgbCycle3;

@@ -71,7 +71,6 @@
 							</object>
 							<flag>wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
-							<option>1</option>
 						</object>
 						<object class="sizeritem">
 							<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
@@ -2434,7 +2433,6 @@
 																</object>
 																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
-																<option>1</option>
 															</object>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
@@ -2528,7 +2526,7 @@
 																								<cols>1</cols>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT46" variable="StaticText43" member="yes">
-																										<label>This tab assigns channels to face parts or Phonemes for standard &#x0A;Coro faces.  For each voice, choose a Custom Model and then enter&#x0A;comma-separated relative node numbers in the grid below.</label>
+																										<label>This tab assigns channels to standard Coro face parts or phonemes.  &#x0A;For each voice, in the grid below choose a Custom Model (first line) &#x0A;and then one or more relative node numbers to repesent face parts.</label>
 																										<font>
 																											<size>10</size>
 																											<style>normal</style>
@@ -2542,7 +2540,7 @@
 																									<option>1</option>
 																								</object>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
@@ -2599,7 +2597,7 @@
 																									<option>1</option>
 																								</object>
 																							</object>
-																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>5</border>
 																							<option>1</option>
 																						</object>
@@ -2607,37 +2605,49 @@
 																							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
 																								<cols>1</cols>
 																								<object class="sizeritem">
-																									<object class="wxGrid" name="ID_GRID_COROFACES" variable="GridCoroFaces" member="yes">
-																										<cols>4</cols>
-																										<rows>14</rows>
-																										<labelrowheight>20</labelrowheight>
-																										<labelcolwidth>100</labelcolwidth>
-																										<defaultcolsize>110</defaultcolsize>
-																										<collabels>
-																											<item>Voice 1</item>
-																											<item>Voice 2</item>
-																											<item>Voice 3</item>
-																											<item>Voice 4</item>
-																										</collabels>
-																										<rowlabels>
-																											<item>Model Name</item>
-																											<item>Face Outline</item>
-																											<item>Eyes - Open</item>
-																											<item>Eyes - Closed</item>
-																											<item>Phoneme AI</item>
-																											<item>Phoneme E</item>
-																											<item>Phoneme etc</item>
-																											<item>Phoneme FV</item>
-																											<item>Phoneme L</item>
-																											<item>Phoneme MBP</item>
-																											<item>Phoneme O</item>
-																											<item>Phoneme rest</item>
-																											<item>Phoneme U</item>
-																											<item>Phoneme WQ</item>
-																										</rowlabels>
-																										<handler function="OnGridCoroFacesCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+																									<object class="wxBoxSizer" variable="BoxSizer8" member="no">
+																										<object class="sizeritem">
+																											<object class="wxGrid" name="ID_GRID_COROFACES" variable="GridCoroFaces" member="yes">
+																												<cols>4</cols>
+																												<rows>18</rows>
+																												<labelrowheight>20</labelrowheight>
+																												<labelcolwidth>100</labelcolwidth>
+																												<defaultcolsize>110</defaultcolsize>
+																												<collabels>
+																													<item>Voice 1</item>
+																													<item>Voice 2</item>
+																													<item>Voice 3</item>
+																													<item>Voice 4</item>
+																												</collabels>
+																												<rowlabels>
+																													<item>Model Name</item>
+																													<item>Face Outline</item>
+																													<item>Mouth - AI</item>
+																													<item>Mouth - E</item>
+																													<item>Mouth - etc</item>
+																													<item>Mouth - FV</item>
+																													<item>Mouth - L</item>
+																													<item>Mouth - MBP</item>
+																													<item>Mouth - O</item>
+																													<item>Mouth - rest</item>
+																													<item>Mouth - U</item>
+																													<item>Mouth - WQ</item>
+																													<item>Eyes - Open</item>
+																													<item>Eyes - Closed</item>
+																													<item>Eyes - Left</item>
+																													<item>Eyes - Right</item>
+																													<item>Eyes - Up</item>
+																													<item>Eyes - Down</item>
+																												</rowlabels>
+																												<minsize>-1,200</minsize>
+																												<handler function="OnGridCoroFacesCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
+																											</object>
+																											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																											<border>5</border>
+																											<option>1</option>
+																										</object>
 																									</object>
-																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
 																								</object>
@@ -2660,12 +2670,21 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CoroFaceElements" variable="CheckListBox_CoroFaceElements" member="yes">
+																									<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CheckListBox_RelativeNodes" variable="xCheckListBox_RelativeNodes" member="yes">
 																										<hidden>1</hidden>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>5</border>
 																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxListBox" name="ID_LISTBOX_RelativeNodes" variable="xListBox_RelativeNodes" member="yes">
+																										<default>-1</default>
+																										<size>132,81</size>
+																										<hidden>1</hidden>
+																									</object>
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
 																								</object>
 																							</object>
 																							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2674,14 +2693,13 @@
 																						</object>
 																						<object class="sizeritem">
 																							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
-																								<cols>3</cols>
+																								<cols>6</cols>
 																								<object class="sizeritem">
 																									<object class="wxCheckBox" name="ID_CHECKBOX_AutoFadePgoElement" variable="CheckBox_AutoFadePgoElement" member="yes">
 																										<label>Auto-fade each element after:</label>
 																									</object>
 																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>
-																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL_AutoFadePgoElement" variable="TextCtrl_AutoFadePgoElement" member="yes">
@@ -2689,8 +2707,7 @@
 																										<size>55,21</size>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
+																									<border>2</border>
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
@@ -2698,7 +2715,23 @@
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>
+																								</object>
+																								<object class="spacer">
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
 																									<option>1</option>
+																								</object>
+																								<object class="spacer">
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxCheckBox" name="ID_CHECKBOX_CoroEyesRandomBlink" variable="CheckBox_CoroEyesRandomBlink" member="yes">
+																										<label>Eyes random blink</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxCheckBox" name="ID_CHECKBOX_AutoFadePgoAll" variable="CheckBox_AutoFadePgoAll" member="yes">
@@ -2706,7 +2739,6 @@
 																									</object>
 																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>
-																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxTextCtrl" name="ID_TEXTCTRL_AutoFadePgoAll" variable="TextCtrl_AutoFadePgoAll" member="yes">
@@ -2714,8 +2746,7 @@
 																										<size>52,21</size>
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																									<border>5</border>
-																									<option>1</option>
+																									<border>2</border>
 																								</object>
 																								<object class="sizeritem">
 																									<object class="wxStaticText" name="ID_STATICTEXT35" variable="StaticText33" member="yes">
@@ -2723,12 +2754,27 @@
 																									</object>
 																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																									<border>2</border>
+																								</object>
+																								<object class="spacer">
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
 																									<option>1</option>
 																								</object>
+																								<object class="spacer">
+																									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>5</border>
+																									<option>1</option>
+																								</object>
+																								<object class="sizeritem">
+																									<object class="wxCheckBox" name="ID_CHECKBOX_CoroEyesRandomLR" variable="CheckBox_CoroEyesRandomLR" member="yes">
+																										<label>Eyes random left/right</label>
+																									</object>
+																									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																									<border>2</border>
+																								</object>
 																							</object>
-																							<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																							<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																							<border>2</border>
-																							<option>1</option>
 																						</object>
 																					</object>
 																				</object>
@@ -3138,7 +3184,6 @@
 														</object>
 														<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
-														<option>1</option>
 													</object>
 													<object class="sizeritem">
 														<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW3" variable="SplitterWindow3" member="yes">

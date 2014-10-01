@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <wx/choice.h>
 #include <wx/checklst.h>
+#include <wx/listbox.h>
 
 typedef std::vector<long> StartChannelVector_t;
 
@@ -277,9 +278,12 @@ public:
     wxChar GetChannelColorLetter(wxByte chidx);
 //    int FindChannelAt(int x, int y);
 //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
-    size_t GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2);
+    bool IsCustom(void);
+    size_t GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const wxString& str, wxPoint* first_xy);
 //    int FindChannelAtXY(int x, int y, const wxString& model);
+    static ModelClass* FindModel(const wxString& name);
+    static size_t EnumModels(wxChoice* choices, const wxString& InactivePrefix);
 
     long GetNumArches()
     {

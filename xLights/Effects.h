@@ -5,7 +5,8 @@ void RenderCircles(int number,int radius, bool bounce, bool collide, bool random
 void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
 void RenderCurtain(int edge, int effect, int swag, bool repeat);
 void RenderFaces(int Phoneme);
-void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
+//void RenderCoroFaces( int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/);
+void RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline);
 void RenderFire(int HeightPct,int HueShift,bool GrowFire);
 void RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade);
 void RenderGarlands(int GarlandType, int Spacing);

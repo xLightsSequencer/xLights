@@ -164,6 +164,7 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
  #define debug_function(level)
 #endif
 
+#if 0 //obsolete
 static wxString prev_model = "junk";
 static void load_face_elements(const wxString& model_name, wxCheckListBox* ctrl)
 {
@@ -187,7 +188,7 @@ static void load_face_elements(const wxString& model_name, wxCheckListBox* ctrl)
     }
 #endif
 }
-
+#endif // 0
 
 void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_name)
 {
@@ -317,6 +318,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                     wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
                     if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
                 }
+#if 0 //obsolete
                 else if (name.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
                 {
                     wxCheckListBox* ctrl = (wxCheckListBox*)CtrlWin;
@@ -354,6 +356,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                     }
                     prev_model = model_name; //remember which model is cached
                 }
+#endif // 0
                 else
                 {
                     wxMessageBox("Unknown type: "+name, "Internal Error");
@@ -1090,12 +1093,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "CoroFaces")
     {
-//kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
-        wxString parsed_xy = SettingsMap[LayerStr+"CheckListBox_CoroFaceElements"];
-        buffer.RenderCoroFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]),
-                           parsed_xy.empty()? SettingsMap[LayerStr+"TEXTCTRL_X_Y"]: parsed_xy,
-                           SettingsMap[LayerStr+"TEXTCTRL_Outline_X_Y"],
-                           SettingsMap[LayerStr+"TEXTCTRL_Eyes_X_Y"]);
+        buffer.RenderCoroFaces(SettingsMap[LayerStr+"CHOICE_CoroFaces_Phoneme"],
+                               SettingsMap[LayerStr+"CHOICE_CoroFaces_Eyes"],
+                               SettingsMap[LayerStr+"CHECKBOX_CoroFaces_Outline"] == "Y");
     }
     else if (effect == "Fire")
     {
@@ -1257,7 +1257,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
 // layer is 0 or 1
 bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
 {
-    wxString parsed;
+//    wxString parsed;
     bool retval = true;
     bool fitToTime;
     if (panel->EffectChanged)
@@ -1322,6 +1322,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
  case eff_COROFACES:
+#if 0
 //        wxString parsed;
 //kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
         for (size_t i = 0; i < panel->CheckListBox_CoroFaceElements->GetCount(); ++i)
@@ -1330,10 +1331,10 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
             if (!parsed.empty()) parsed += wxT("+");
             parsed += panel->CheckListBox_CoroFaceElements->GetString(i);
         }
-        buffer.RenderCoroFaces(panel->Choice_Faces_Phoneme->GetSelection(),
-                           parsed.empty()? panel->TextCtrl_X_Y->GetValue(): parsed,
-                           panel->TextCtrl_Outline_X_Y->GetValue(),
-                           panel->TextCtrl_Eyes_X_Y->GetValue());
+#endif // 0
+        buffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
+                               panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
+                               panel->CheckBox_CoroFaces_Outline->GetValue());
         break;
 
     case eff_FIRE:

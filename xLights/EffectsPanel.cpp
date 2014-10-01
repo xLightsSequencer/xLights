@@ -71,15 +71,10 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade = wxNewId();
 const long EffectsPanel::ID_PANEL5 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT73 = wxNewId();
 const long EffectsPanel::ID_CHOICE_CoroFaces_Phoneme = wxNewId();
-const long EffectsPanel::ID_STATICTEXT74 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_X_Y = wxNewId();
-const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Outline_X_Y = wxNewId();
-const long EffectsPanel::ID_STATICTEXT76 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Eyes_X_Y = wxNewId();
 const long EffectsPanel::ID_STATICTEXT64 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT65 = wxNewId();
-const long EffectsPanel::ID_CHECKLISTBOX_CoroFaceElements = wxNewId();
+const long EffectsPanel::ID_CHOICE_CoroFaces_Eyes = wxNewId();
+const long EffectsPanel::ID_STATICTEXT66 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_CoroFaces_Outline = wxNewId();
 const long EffectsPanel::ID_PANEL28 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT6 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Curtain_Edge = wxNewId();
@@ -700,30 +695,19 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer37->SetSizeHints(Panel1_ColorWash);
     Panel1_CoroFaces = new wxPanel(Choicebook1, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL28"));
     FlexGridSizer58 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText71 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT73, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT73"));
+    StaticText71 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT73, _("Mouth"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT73"));
     FlexGridSizer58->Add(StaticText71, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_CoroFaces_Phoneme = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Phoneme"));
-    FlexGridSizer58->Add(Choice_CoroFaces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText72 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT74, _("Mouth X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT74"));
-    FlexGridSizer58->Add(StaticText72, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_X_Y = new wxTextCtrl(Panel1_CoroFaces, ID_TEXTCTRL_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_X_Y"));
-    FlexGridSizer58->Add(TextCtrl_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText73 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT75, _("Face Outline X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT75"));
-    FlexGridSizer58->Add(StaticText73, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Outline_X_Y = new wxTextCtrl(Panel1_CoroFaces, ID_TEXTCTRL_Outline_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Outline_X_Y"));
-    FlexGridSizer58->Add(TextCtrl_Outline_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText74 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT76, _("Eyes X:Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT76"));
-    FlexGridSizer58->Add(StaticText74, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Eyes_X_Y = new wxTextCtrl(Panel1_CoroFaces, ID_TEXTCTRL_Eyes_X_Y, _("0:0"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Eyes_X_Y"));
-    FlexGridSizer58->Add(TextCtrl_Eyes_X_Y, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("OR use below:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
+    FlexGridSizer58->Add(Choice_CoroFaces_Phoneme, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
     FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer58->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText63 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT65, _("Select 1 or\nmore Face\nElements:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
-    FlexGridSizer58->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckListBox_CoroFaceElements = new wxCheckListBox(Panel1_CoroFaces, ID_CHECKLISTBOX_CoroFaceElements, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxLB_SORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_CoroFaceElements"));
-    CheckListBox_CoroFaceElements->Append(_("Face elements go here"));
-    FlexGridSizer58->Add(CheckListBox_CoroFaceElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_CoroFaces_Eyes = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Eyes"));
+    FlexGridSizer58->Add(Choice_CoroFaces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText64 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT66, _("Face"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));
+    FlexGridSizer58->Add(StaticText64, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_CoroFaces_Outline = new wxCheckBox(Panel1_CoroFaces, ID_CHECKBOX_CoroFaces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroFaces_Outline"));
+    CheckBox_CoroFaces_Outline->SetValue(false);
+    FlexGridSizer58->Add(CheckBox_CoroFaces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_CoroFaces->SetSizer(FlexGridSizer58);
     FlexGridSizer58->Fit(Panel1_CoroFaces);
     FlexGridSizer58->SetSizeHints(Panel1_CoroFaces);
@@ -1869,7 +1853,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashCountClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashHFadeClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashVFadeClick);
-    Connect(ID_TEXTCTRL_X_Y,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl1Text);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEdgeClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEffectClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Curtain_Swag,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainSwagClick);
@@ -2196,6 +2179,7 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
                 s+=GetEffectStringFromWindow(ctrl->GetPage(i));
             }
         }
+#if 0 //obsolete
         else if (ChildName.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
         {
             wxCheckListBox* ctrl=(wxCheckListBox*)ChildWin;
@@ -2219,6 +2203,7 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
             debug(10, "attr name '%s', valstr '%s'", (const char*)AttrName.c_str(), (const char*)valstr.c_str());
             s += AttrName + valstr;
         }
+#endif // 0
     }
     return s;
 }
