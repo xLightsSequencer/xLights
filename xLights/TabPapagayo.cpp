@@ -822,44 +822,6 @@ void AddNonDupAttr(wxXmlNode* node, const wxString& name, const wxString& value)
 }
 #endif
 
-//sigh; a function like this should have been built into wxWidgets
-wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false)
-{
-#if 0
-    static struct
-    {
-        std::unordered_map<const char*, wxXmlNode*> nodes;
-        std::string parent, child;
-    } cached_names;
-
-    if (parent->GetName() != cached_names.parent) //reload cache
-    {
-        cached_names.nodes.clear();
-        for (wxXmlNode* node = parent->GetChildren(); node != NULL; node = node->GetNext())
-            cached_names.nodes[node->GetName()] = node;
-        cached_names.parent = parent;
-    }
-    if (cached_names.nodes.find(tag) == cached_names.nodes.end()) //not found
-    {
-        if (!create) return 0;
-        parent->AddChild(cached_names.nodes[tag] = new wxXmlNode(wxXML_ELEMENT_NODE, tag));
-    }
-    return cached_names.nodes[tag];
-#endif // 0
-    for (wxXmlNode* node = parent->GetChildren(); node != NULL; node = node->GetNext())
-    {
-        if (!tag.empty() && (node->GetName() != tag)) continue;
-        if (!value.empty() && (node->GetAttribute(attr) != value)) continue;
-        return node;
-    }
-    if (!create) return 0; //CAUTION: this will give null ptr exc if caller does not check
-    wxXmlNode* retnode = new wxXmlNode(wxXML_ELEMENT_NODE, tag); //NOTE: assumes !tag.empty()
-    parent->AddChild(retnode);
-    if (!value.empty()) AddNonDupAttr(retnode, attr, value);
-    return retnode;
-}
-
-
 #if 0 //example file:
 <papagayo>
     <autoface>

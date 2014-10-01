@@ -25,6 +25,7 @@
 #include "xLightsMain.h" //xLightsFrame
 #include <wx/tokenzr.h>
 //#include <wx/checklst.h>
+#include <wx/xml/xml.h>
 
 
 //#define WANT_DEBUG_IMPL
@@ -105,73 +106,65 @@ static void get_elements(wxCheckListBox* listbox, const wxString& model)
 //    return settings.Find('@') != wxNOT_FOUND;
 //}
 
+//TODO: move this to a shared location:
+static wxString NoInactive(wxString name)
+{
+    const wxString InactiveIndicator = "?";
+    return name.StartsWith(InactiveIndicator)? name.substr(InactiveIndicator.size()): name;
+}
+
 //static const char* parts[] = {"Outline", "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ", "Open", "Closed", "Left", "Right", "Up", "Down"};
 
 //cached model info:
-static std::unordered_map<std::string, std::unordered_map<std::string, wxPoint>> model_xy;
+static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string>> model_xy;
+//static std::unordered_map<std::string, wxXmlNode*> model_xy; //since (X,Y) info is already in settings file, just re-use it
+
 static bool parse_model(const wxString& want_model)
 {
     if (model_xy.find((const char*)want_model.c_str()) != model_xy.end()) return true; //already have info
 //    std::unordered_map<std::string, wxPoint>& xy_info = model_xy[model];
 
-#if 0
+#if 1
     wxFileName pgoFile;
-    pgoFile.AssignDir(CurrentDir);
+    wxXmlDocument pgoXml;
+    pgoFile.AssignDir(xLightsFrame::CurrentDir);
     pgoFile.SetFullName(_(XLIGHTS_PGOFACES_FILE));
     if (!pgoFile.FileExists()) return false;
     if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
     wxXmlNode* root = pgoXml.GetRoot();
     if (!root || (root->GetName() != "papagayo")) return false;
-    wxXmlNode* CoroFaces = FindNode(pgoXml.GetRoot(), wxT("corofaces"), Name, wxEmptyString);
+    wxXmlNode* CoroFaces = xLightsFrame::FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString);
     if (!CoroFaces) return false;
 //    wxString buf;
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
     {
-        wxString grpname = group->GetAttribute(Name);
-        debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(Name, wxT("??")).c_str());
+        wxString grpname = group->GetAttribute(wxT("name"));
+        debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(wxT("name"), wxT("??")).c_str());
 //        if (group->GetName() != "coro") continue;
 //        if (grpname.IsEmpty()) continue;
 //        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
         for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
         {
-            wxString voice_name = NoInactive(voice->GetAttribute(Name));
-            if (voice_name != want_group) continue;
-        GridCoroFaces->SetCellValue(Outline_Row, i, voice->GetAttribute(wxT("Outline")));
-        GridCoroFaces->SetCellValue(Eyes_open_Row, i, voice->GetAttribute(wxT("Eyes_open")));
-        GridCoroFaces->SetCellValue(Eyes_closed_Row, i, voice->GetAttribute(wxT("Eyes_closed")));
-        GridCoroFaces->SetCellValue(AI_Row, i, voice->GetAttribute(wxT("AI")));
-        GridCoroFaces->SetCellValue(E_Row, i, voice->GetAttribute(wxT("E")));
-        GridCoroFaces->SetCellValue(etc_Row, i, voice->GetAttribute(wxT("etc")));
-        GridCoroFaces->SetCellValue(FV_Row, i, voice->GetAttribute(wxT("FV")));
-        GridCoroFaces->SetCellValue(L_Row, i, voice->GetAttribute(wxT("L")));
-        GridCoroFaces->SetCellValue(MBP_Row, i, voice->GetAttribute(wxT("MBP")));
-        GridCoroFaces->SetCellValue(O_Row, i, voice->GetAttribute(wxT("O")));
-        GridCoroFaces->SetCellValue(rest_Row, i, voice->GetAttribute(wxT("rest")));
-        GridCoroFaces->SetCellValue(U_Row, i, voice->GetAttribute(wxT("U")));
-        GridCoroFaces->SetCellValue(WQ_Row, i, voice->GetAttribute(wxT("WQ")));
-
+            wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
+            debug(10, "found voice name '%s' vs. '%s'", (const char*)voice_name.c_str(), (const char*)want_model.c_str());
+            if (voice_name != want_model) continue;
+//            model_xy[(const char*)want_model.c_str()] = voice;
+//XmlNode getting trashed later, so save it here
+            std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
+            map.clear();
+            debug(10, "using xml info '%s'", (const char*)voice->GetContent().c_str());
+            for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
+            {
+                wxString value = attrp->GetValue();
+                if (!value.empty()) map[(const char*)attrp->GetName().c_str()] = (const char*)value.c_str();
+                debug(10, "has attr '%s' = '%s'", (const char*)attrp->GetName().c_str(), (const char*)attrp->GetValue().c_str());
+            }
+            return true;
         }
-
-
-
     }
-}
-        if (!Phoneme.empty())
-        {
-            wxPoint first_xy = model_xy[cur_model][Phoneme];
-            debug(10, "turn on (x %d, y %d) for phoneme '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)Phoneme.c_str(), (const char*)cur_model.c_str());
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
-        }
-        if (!eyes.empty())
-        {
-            wxPoint first_xy = model_xy[cur_model][eyes];
-            debug(10, "turn on (x %d, y %d) for eyes '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)eyes.c_str(), (const char*)cur_model.c_str());
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
-        }
-        if (face_outline)
-        {
-            wxPoint first_xy = model_xy[cur_model]["Outline"];
-#endif // 0
+#endif
+    debug(10, "model '%s' not found", (const char*)want_model.c_str());
+    return false; //not found
 }
 
 //NOTE: params are re-purposed as follows for Coro face mode:
@@ -228,28 +221,38 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         hsv.value=1.0;
         hsv.saturation=1.0;
 
-        if (!parse_model(cur_model))
+        wxPoint first_xy;
+        ModelClass* model_info = ModelClass::FindModel(cur_model);
+        if (!model_info || !parse_model(cur_model))
         {
             debug(10, "model '%s' not found", (const char*)cur_model.c_str());
             return;
         }
+//        wxXmlNode* xy_info = model_xy[(const char*)cur_model.c_str()];
+        std::unordered_map<std::string, std::string>& map = model_xy[(const char*)cur_model.c_str()];
         if (!Phoneme.empty())
         {
-            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()][(const char*)Phoneme.c_str()];
-            debug(10, "turn on (x %d, y %d) for phoneme '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)Phoneme.c_str(), (const char*)cur_model.c_str());
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+            wxString info = map[(const char*)Phoneme.c_str()];
+//            if (xy_info) info = xy_info->GetAttribute(Phoneme);
+            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
+            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', phoneme '%s', parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
         }
         if (!eyes.empty())
         {
-            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()][(const char*)eyes.c_str()];
-            debug(10, "turn on (x %d, y %d) for eyes '%s' in model '%s'", first_xy.x, first_xy.y, (const char*)eyes.c_str(), (const char*)cur_model.c_str());
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+            wxString info = map[(const char*)eyes.c_str()];
+//            if (xy_info) info = xy_info->GetAttribute(eyes);
+            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
+            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', eyes '%s', parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)eyes.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
         }
         if (face_outline)
         {
-            wxPoint first_xy = model_xy[(const char*)cur_model.c_str()]["Outline"];
-            debug(10, "turn on (x %d, y %d) for face outline in model '%s'", first_xy.x, first_xy.y, (const char*)cur_model.c_str());
-            SetPixel(first_xy.x, first_xy.y, hsv); //only need to turn on first pixel for each face part
+            wxString info = map["Outline"];
+//            if (xy_info) info = xy_info->GetAttribute("Outline");
+            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
+            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', outline, parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
         }
 
 #if 0 //obsolete

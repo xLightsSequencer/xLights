@@ -688,7 +688,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Phoneme" variable="Choice_CoroFaces_Phoneme" member="yes" />
+									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Phoneme" variable="Choice_CoroFaces_Phoneme" member="yes">
+										<style>wxCB_SORT</style>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
@@ -702,7 +704,18 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Eyes" variable="Choice_CoroFaces_Eyes" member="yes" />
+									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Eyes" variable="Choice_CoroFaces_Eyes" member="yes">
+										<content>
+											<item>Eyes_open</item>
+											<item>Eyes_closed</item>
+											<item>Eyes_left</item>
+											<item>Eyes_right</item>
+											<item>Eyes_up</item>
+											<item>Eyes_down</item>
+											<item>(off)</item>
+										</content>
+										<style>wxCB_SORT</style>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
