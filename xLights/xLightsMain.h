@@ -222,6 +222,7 @@ public:
         eff_METEORS,
         eff_PIANO,
         eff_PICTURES,
+        eff_SINGLESTRAND,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,
         eff_SPIRALS,
@@ -229,7 +230,6 @@ public:
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
-        eff_SINGLESTRAND,
         eff_WAVE,
         eff_LASTEFFECT //Always the last entry
     };
