@@ -49,6 +49,7 @@ public:
     wxStaticText* StaticText1;
     wxStaticText* StaticText3;
     wxChoice* Choice_StringType;
+    wxButton* Button_CustomModelZoomIn;
     wxGrid* GridCustom;
     wxBitmapButton* BitmapButtonCustomPaste;
     wxRadioButton* RadioButton_TopLeft;
@@ -66,6 +67,7 @@ public:
     wxBitmapButton* BitmapButtonCustomCut;
     wxChoice* Choice_DisplayAs;
     wxStaticText* StaticText4;
+    wxButton* Button_CustomModelZoomOut;
     wxRadioButton* RadioButton_BotRight;
     wxSpinCtrl* SpinCtrl_StartChannel;
     wxRadioButton* RadioButton_TopRight;
@@ -112,6 +114,8 @@ protected:
     static const long ID_BITMAPBUTTON_CUSTOM_COPY;
     static const long ID_BITMAPBUTTON_CUSTOM_PASTE;
     static const long ID_BUTTON_CUSTOM_MODEL_HELP;
+    static const long ID_BUTTON_CustomModelZoomIn;
+    static const long ID_BUTTON_CustomModelZoomOut;
     static const long ID_GRID_Custom;
     static const long ID_SCROLLEDWINDOW2;
     //*)
@@ -135,6 +139,8 @@ private:
     void OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event);
     void OnSlider_Model_BrightnessScrollTop(wxScrollEvent& event);
     void OnSlider_Model_BrightnessCmdScroll1(wxScrollEvent& event);
+    void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
+    void OnButton_CustomModelZoomInClick(wxCommandEvent& event);
     //*)
 
     void SetReadOnly(bool);

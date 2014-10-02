@@ -48,6 +48,8 @@ const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_CUT = wxNewId();
 const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_COPY = wxNewId();
 const long ModelDialog::ID_BITMAPBUTTON_CUSTOM_PASTE = wxNewId();
 const long ModelDialog::ID_BUTTON_CUSTOM_MODEL_HELP = wxNewId();
+const long ModelDialog::ID_BUTTON_CustomModelZoomIn = wxNewId();
+const long ModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
 const long ModelDialog::ID_GRID_Custom = wxNewId();
 const long ModelDialog::ID_SCROLLEDWINDOW2 = wxNewId();
 //*)
@@ -194,7 +196,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer4->AddGrowableRow(1);
-    FlexGridSizer5 = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 7, 0, 0);
     StaticTextCustomModel = new wxStaticText(this, ID_STATICTEXT14, _("Custom Model"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
     FlexGridSizer5->Add(StaticTextCustomModel, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButtonCustomCut = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_CUT"));
@@ -207,6 +209,14 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer5->Add(BitmapButtonCustomPaste, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonCustomModelHelp = new wxButton(this, ID_BUTTON_CUSTOM_MODEL_HELP, _("Help"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CUSTOM_MODEL_HELP"));
     FlexGridSizer5->Add(ButtonCustomModelHelp, 1, wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_CustomModelZoomIn = new wxButton(this, ID_BUTTON_CustomModelZoomIn, _("+"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CustomModelZoomIn"));
+    Button_CustomModelZoomIn->SetMinSize(wxSize(24,-1));
+    Button_CustomModelZoomIn->SetToolTip(_("Zoom In"));
+    FlexGridSizer5->Add(Button_CustomModelZoomIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_CustomModelZoomOut = new wxButton(this, ID_BUTTON_CustomModelZoomOut, _("-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CustomModelZoomOut"));
+    Button_CustomModelZoomOut->SetMinSize(wxSize(24,-1));
+    Button_CustomModelZoomOut->SetToolTip(_("Zoom Out"));
+    FlexGridSizer5->Add(Button_CustomModelZoomOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ScrolledWindow2 = new wxScrolledWindow(this, ID_SCROLLEDWINDOW2, wxDefaultPosition, wxSize(430,323), wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW2"));
     ScrolledWindow2->SetMinSize(wxSize(504,-1));
@@ -245,6 +255,8 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON_CUSTOM_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCopyClick);
     Connect(ID_BITMAPBUTTON_CUSTOM_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomPasteClick);
     Connect(ID_BUTTON_CUSTOM_MODEL_HELP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButtonCustomModelHelpClick);
+    Connect(ID_BUTTON_CustomModelZoomIn,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomInClick);
+    Connect(ID_BUTTON_CustomModelZoomOut,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnButton_CustomModelZoomOutClick);
     Connect(ID_GRID_Custom,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OnGridCustomCellChange);
     //*)
 
@@ -916,3 +928,20 @@ void ModelDialog::OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event)
 
 
 
+
+void ModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
+{
+    for (int c = 0; c < GridCustom->GetCols(); ++c)
+        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 4/5);
+    for (int r = 0; r < GridCustom->GetRows(); ++r)
+        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 4/5);
+}
+
+//allow larger grids to be seen more easily: -DJ
+void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
+{
+    for (int c = 0; c < GridCustom->GetCols(); ++c)
+        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 5/4);
+    for (int r = 0; r < GridCustom->GetRows(); ++r)
+        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 5/4);
+}
