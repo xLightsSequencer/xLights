@@ -279,11 +279,11 @@ public:
 //    int FindChannelAt(int x, int y);
 //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
     bool IsCustom(void);
-    size_t GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
+    size_t GetChannelCoords(wxArrayString& choices); //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3);
     static bool ParseFaceElement(const wxString& str, wxPoint* first_xy);
 //    int FindChannelAtXY(int x, int y, const wxString& model);
     static ModelClass* FindModel(const wxString& name);
-    static size_t EnumModels(wxChoice* choices, const wxString& InactivePrefix);
+    static size_t EnumModels(wxArrayString* choices, const wxString& InactivePrefix);
     wxString GetNodeXY(int node);
 
     long GetNumArches()

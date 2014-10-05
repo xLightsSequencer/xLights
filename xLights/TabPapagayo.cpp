@@ -12,6 +12,7 @@
 #include <wx/tokenzr.h>
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
+#include <wx/listbox.h>
 #include <algorithm> //sort
 #include <limits> //max int, etc.
 
@@ -894,12 +895,7 @@ bool xLightsFrame::LoadPgoSettings(void)
             NotebookPgoParms->SetSelection(i);
             break;
         }
-    CheckBox_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeElement) == Yes);
-    CheckBox_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeAll) == Yes);
-    TextCtrl_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(DelayElement));
-    TextCtrl_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(DelayAll));
-    CheckBox_CoroEyesRandomBlink->SetValue(pgoXml.GetRoot()->GetAttribute(EyesBlink) == Yes);
-    CheckBox_CoroEyesRandomLR->SetValue(pgoXml.GetRoot()->GetAttribute(EyesLR) == Yes);
+
     wxXmlNode* AutoFace = FindNode(pgoXml.GetRoot(), wxT("autoface"), Name, wxEmptyString, true);
 //    XmlNode* first_face = parent->GetChildren(); //TODO: look at multiple children?
     wxXmlNode* any_node = FindNode(AutoFace, wxT("auto"), Name, wxEmptyString, false); //TODO: not sure which child node to use; there are no group names on this tab
@@ -915,6 +911,13 @@ bool xLightsFrame::LoadPgoSettings(void)
 //load corofaces settings:
 //individual UI controls are loaded when the user chooses a group name later
 //only the list of available groups is populated here
+    CheckBox_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeElement) == Yes);
+    CheckBox_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeAll) == Yes);
+    TextCtrl_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(DelayElement));
+    TextCtrl_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(DelayAll));
+    CheckBox_CoroEyesRandomBlink->SetValue(pgoXml.GetRoot()->GetAttribute(EyesBlink) == Yes);
+    CheckBox_CoroEyesRandomLR->SetValue(pgoXml.GetRoot()->GetAttribute(EyesLR) == Yes);
+
     Choice_PgoGroupName->Clear();
     Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
     Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
@@ -934,6 +937,14 @@ bool xLightsFrame::LoadPgoSettings(void)
 //            newgrp.first[i].empty = true;
 //        coro_groups.emplace(grpname, newgrp);
     }
+    if (Choice_PgoGroupName->GetCount() > 2)
+    {
+        Choice_PgoGroupName->SetSelection(2); //choose first one found instead of "choose"
+        wxCommandEvent non_evt;
+        OnChoice_PgoGroupNameSelect(non_evt); //kludge: force UI to update
+    }
+    else
+        Choice_PgoGroupName->SetSelection(1); //"add new" hint
 
 //    wxMessageBox(wxString::Format(_("found %d grps: %s"), Choice_PgoGroupName->GetCount(), buf));
 //load image settings:
@@ -956,7 +967,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 //TODO: set group name choices
     }
 
-#if 1 //do this whenever file changes (avoid caching too long?)
+#if 0 //do this whenever file changes (avoid caching too long?)
     Choice_PgoModelVoiceEdit->Clear();
     Choice_PgoModelVoiceEdit->Append(SelectionHint); //wxT("(choose)"));
     Choice_PgoModelVoiceEdit->SetSelection(0);
@@ -981,22 +992,13 @@ bool xLightsFrame::LoadPgoSettings(void)
         Choice_PgoModelVoiceEdit->SetSelection(0);
     }
 #endif // 0
-    for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
-        GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
-    debug(10, "set selection hint on model row");
-
-    if (Choice_PgoGroupName->GetCount() > 2)
-    {
-        Choice_PgoGroupName->SetSelection(2); //choose first one found instead of "choose"
-        wxCommandEvent non_evt;
-        OnChoice_PgoGroupNameSelect(non_evt); //kludge: force UI to update
-    }
-    else
-        Choice_PgoGroupName->SetSelection(0); //"choose one" hint
+//    for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
+//        GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
+//    debug(10, "set selection hint on model row");
 
 //    wxMessageBox(wxString::Format(_("load settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.end() - xLightsFrame::PreviewModels.begin(), xLightsFrame::OtherModels.end() - xLightsFrame::OtherModels.begin(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()), wxT("Debug info"));
     StatusBar1->SetStatusText(wxString::Format(_("Loaded pgo settings: %d active models, %d inactive models, choice %d of %d"), xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount()));
-    debug(10, "loaded pgo settings: %d active models, %d inactive models, choice %d of %d", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
+    debug(10, "loaded pgo settings: %d active models, %d inactive models, grp choice %d of %d", xLightsFrame::PreviewModels.size(), xLightsFrame::OtherModels.size(), Choice_PgoGroupName->GetSelection(), Choice_PgoGroupName->GetCount());
     return true;
 }
 
@@ -1115,13 +1117,598 @@ void xLightsFrame::OnButtonPgoImageClick(wxCommandEvent& event)
     }
 }
 
+
+#ifndef GRID_EDIT_KLUDGE
+//custom grid cell editor based on wxWidgets' wxGridCellChoiceEditor ($wx/src/src/generic/grideditors.cpp)
+//main enhancements are:
+//-  use a list box instead of combo box (no separate drop-down click needed)
+//-  support multi-select
+//-  add call-back to populate list when edit starts
+//see also http://docs.wxwidgets.org/trunk/overview_events.html#overview_events_bind
+#if 0
+wxDEFINE_EVENT( wxEVT_GRID_HIDE_EDITOR, wxCommandEvent );
+
+class myGridCellEditorEvtHandler : public wxEvtHandler
+{
+public:
+    myGridCellEditorEvtHandler(wxGrid* grid, wxGridCellEditor* editor)
+        : m_grid(grid),
+          m_editor(editor),
+          m_inSetFocus(false)
+    {
+    }
+
+    void OnKillFocus(wxFocusEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+    void OnChar(wxKeyEvent& event);
+
+    void SetInSetFocus(bool inSetFocus) { m_inSetFocus = inSetFocus; }
+
+private:
+    wxGrid             *m_grid;
+    wxGridCellEditor   *m_editor;
+
+    // Work around the fact that a focus kill event can be sent to
+    // a combobox within a set focus event.
+    bool                m_inSetFocus;
+
+    DECLARE_EVENT_TABLE()
+    DECLARE_DYNAMIC_CLASS(myGridCellEditorEvtHandler);
+    wxDECLARE_NO_COPY_CLASS(myGridCellEditorEvtHandler);
+};
+IMPLEMENT_CLASS(myGridCellEditorEvtHandler, wxEvtHandler)
+
+void myGridCellEditorEvtHandler::OnKillFocus(wxFocusEvent& event)
+{
+    // We must let the native control have this event so in any case don't mark
+    // it as handled, otherwise various weird problems can happen (see #11681).
+    debug(10, "gr cell ed: kill focus evt, set? %d", m_inSetFocus);
+    event.Skip();
+
+    // Don't disable the cell if we're just starting to edit it
+    if (m_inSetFocus)
+        return;
+
+    // Tell the grid to dismiss the control but don't do it immediately as it
+    // could result in the editor being destroyed right now and a crash in the
+    // code searching for the next event handler, so post an event asking the
+    // grid to do it slightly later instead.
+
+    // FIXME-VC6: Once we drop support for VC6, we should use a simpler
+    //            m_grid->CallAfter(&wxGrid::DisableCellEditControl) and get
+    //            rid of wxEVT_GRID_HIDE_EDITOR entirely.
+    m_grid->GetEventHandler()->
+        AddPendingEvent(wxCommandEvent(wxEVT_GRID_HIDE_EDITOR));
+}
+
+void myGridCellEditorEvtHandler::OnKeyDown(wxKeyEvent& event)
+{
+    debug(10, "gr cell ed: on key down evt %d", event.GetKeyCode());
+    switch ( event.GetKeyCode() )
+    {
+        case WXK_ESCAPE:
+            m_editor->Reset();
+            m_grid->DisableCellEditControl();
+            break;
+
+        case WXK_TAB:
+            m_grid->GetEventHandler()->ProcessEvent( event );
+            break;
+
+        case WXK_RETURN:
+        case WXK_NUMPAD_ENTER:
+            if (!m_grid->GetEventHandler()->ProcessEvent(event))
+                m_editor->HandleReturn(event);
+            break;
+
+        default:
+            event.Skip();
+            break;
+    }
+}
+
+void myGridCellEditorEvtHandler::OnChar(wxKeyEvent& event)
+{
+    int row = m_grid->GetGridCursorRow();
+    int col = m_grid->GetGridCursorCol();
+    wxRect rect = m_grid->CellToRect( row, col );
+    int cw, ch;
+    m_grid->GetGridWindow()->GetClientSize( &cw, &ch );
+
+    // if cell width is smaller than grid client area, cell is wholly visible
+    bool wholeCellVisible = (rect.GetWidth() < cw);
+    debug(10, "gr cell ed: on char evt r %d, c %d, w %d, h %d, key code %d", row, col, cw, ch, event.GetKeyCode());
+
+    switch ( event.GetKeyCode() )
+    {
+        case WXK_ESCAPE:
+        case WXK_TAB:
+        case WXK_RETURN:
+        case WXK_NUMPAD_ENTER:
+            break;
+
+        case WXK_HOME:
+        {
+            if ( wholeCellVisible )
+            {
+                // no special processing needed...
+                event.Skip();
+                break;
+            }
+
+            // do special processing for partly visible cell...
+
+            // get the widths of all cells previous to this one
+            int colXPos = 0;
+            for ( int i = 0; i < col; i++ )
+            {
+                colXPos += m_grid->GetColSize(i);
+            }
+
+            int xUnit = 1, yUnit = 1;
+            m_grid->GetScrollPixelsPerUnit(&xUnit, &yUnit);
+            if (col != 0)
+            {
+                m_grid->Scroll(colXPos / xUnit - 1, m_grid->GetScrollPos(wxVERTICAL));
+            }
+            else
+            {
+                m_grid->Scroll(colXPos / xUnit, m_grid->GetScrollPos(wxVERTICAL));
+            }
+            event.Skip();
+            break;
+        }
+
+        case WXK_END:
+        {
+            if ( wholeCellVisible )
+            {
+                // no special processing needed...
+                event.Skip();
+                break;
+            }
+
+            // do special processing for partly visible cell...
+
+            int textWidth = 0;
+            wxString value = m_grid->GetCellValue(row, col);
+            if ( wxEmptyString != value )
+            {
+                // get width of cell CONTENTS (text)
+                int y;
+                wxFont font = m_grid->GetCellFont(row, col);
+                m_grid->GetTextExtent(value, &textWidth, &y, NULL, NULL, &font);
+
+                // try to RIGHT align the text by scrolling
+                int client_right = m_grid->GetGridWindow()->GetClientSize().GetWidth();
+
+                // (m_grid->GetScrollLineX()*2) is a factor for not scrolling to far,
+                // otherwise the last part of the cell content might be hidden below the scroll bar
+                // FIXME: maybe there is a more suitable correction?
+                textWidth -= (client_right - (m_grid->GetScrollLineX() * 2));
+                if ( textWidth < 0 )
+                {
+                    textWidth = 0;
+                }
+            }
+
+            // get the widths of all cells previous to this one
+            int colXPos = 0;
+            for ( int i = 0; i < col; i++ )
+            {
+                colXPos += m_grid->GetColSize(i);
+            }
+
+            // and add the (modified) text width of the cell contents
+            // as we'd like to see the last part of the cell contents
+            colXPos += textWidth;
+
+            int xUnit = 1, yUnit = 1;
+            m_grid->GetScrollPixelsPerUnit(&xUnit, &yUnit);
+            m_grid->Scroll(colXPos / xUnit - 1, m_grid->GetScrollPos(wxVERTICAL));
+            event.Skip();
+            break;
+        }
+
+        default:
+            event.Skip();
+            break;
+    }
+}
+#endif // 0
+
+class myGridCellChoiceEditor: public wxGridCellEditor
+{
+public:
+//    wxGrid* grid_parent;
+    // if !allowOthers, user can't type a string not in choices array
+    myGridCellChoiceEditor(size_t count = 0,
+                           const wxString choices[] = NULL,
+//                           bool allowOthers = false);
+                           bool multi = false);
+    myGridCellChoiceEditor(const wxArrayString& choices,
+//                           bool allowOthers = false);
+                           bool multi = false);
+
+    virtual void Create(wxWindow* parent,
+                        wxWindowID id,
+                        wxEvtHandler* evtHandler);
+
+    virtual void SetSize(const wxRect& rect);
+
+    virtual void PaintBackground(wxDC& dc,
+                                 const wxRect& rectCell,
+                                 const wxGridCellAttr& attr);
+
+    virtual void BeginEdit(int row, int col, wxGrid* grid);
+    virtual bool EndEdit(int row, int col, const wxGrid* grid,
+                         const wxString& oldval, wxString *newval);
+    virtual void ApplyEdit(int row, int col, wxGrid* grid);
+
+    virtual void Reset();
+
+    // parameters string format is "item1[,item2[...,itemN]]"
+    virtual void SetParameters(const wxString& params);
+
+    virtual wxGridCellEditor *Clone() const;
+
+ //   // added GetValue so we can get the value which is in the control
+    virtual wxString GetValue() const;
+
+
+    virtual void StartingClick(void); //-DJ
+    virtual void GetChoices(wxArrayString& choices, int row, int col); //added -DJ
+    virtual void SelectionChanged(wxCommandEvent& event); //added -DJ
+    virtual void EditDone(wxCommandEvent& event); //added -DJ
+
+protected:
+//    wxComboBox *Combo() const { return (wxComboBox *)m_control; }
+    wxListBox *Combo() const { return (wxListBox *)m_control; }
+    wxStaticText* m_text;
+    wxGrid* m_grid;
+//    wxRect m_rect;
+//    int m_row, m_col;
+
+    wxString        m_value;
+    wxArrayString   m_choices;
+//    bool            m_allowOthers;
+    bool m_multi;
+
+    wxDECLARE_NO_COPY_CLASS(myGridCellChoiceEditor);
+};
+
+void myGridCellChoiceEditor::StartingClick(void)
+{
+    bool was_dropped = Combo()->IsShown();
+    debug(10, "starting click, list vis? %d", was_dropped);
+}
+
+myGridCellChoiceEditor::myGridCellChoiceEditor(const wxArrayString& choices,
+//                                               bool allowOthers)
+                                               bool multi)
+    : m_choices(choices),
+//      m_allowOthers(allowOthers) { }
+      m_multi(multi), m_grid(0) { }
+
+myGridCellChoiceEditor::myGridCellChoiceEditor(size_t count,
+                                               const wxString choices[],
+//                                               bool allowOthers)
+//                      : m_allowOthers(allowOthers)
+                                               bool multi)
+                      : m_multi(multi), m_grid(0)
+{
+    if ( count )
+    {
+        m_choices.Alloc(count);
+        for ( size_t n = 0; n < count; n++ )
+        {
+            m_choices.Add(choices[n]);
+        }
+    }
+}
+
+wxGridCellEditor *myGridCellChoiceEditor::Clone() const
+{
+    myGridCellChoiceEditor *editor = new myGridCellChoiceEditor;
+//    editor->m_allowOthers = m_allowOthers;
+    editor->m_multi = m_multi;
+    editor->m_choices = m_choices;
+
+    return editor;
+}
+
+void myGridCellChoiceEditor::Create(wxWindow* parent,
+                                    wxWindowID id,
+                                    wxEvtHandler* evtHandler)
+{
+    int style = //wxTE_PROCESS_ENTER |
+                //wxTE_PROCESS_TAB |
+                wxLB_SORT | wxLB_ALWAYS_SB |
+                wxBORDER_DEFAULT; //wxBORDER_NONE;
+
+//    if ( !m_allowOthers )
+//        style |= wxCB_READONLY;
+    if (m_multi) style |= wxLB_EXTENDED; //wxLB_MULTIPLE;
+    else style |= wxLB_SINGLE; //NOTE: need to explicitly set this; not defaulting
+//    m_control = new wxComboBox(parent, id, wxEmptyString,
+    m_control = new wxListBox(parent, id,
+                               wxDefaultPosition, wxDefaultSize,
+                               m_choices,
+                               style);
+    m_text = new wxStaticText(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_NO_AUTORESIZE);
+    m_text->SetForegroundColour(*wxBLUE); //make it easier to see which cell will be changing
+//    m_text.SetForegroundColour(*wx(255,0,0)) # set text color
+//    m_text.SetBackgroundColour((0,0,255)) # set text back color
+
+    wxGridCellEditor::Create(parent, id, evtHandler);
+    debug(10, "cell editor cre: multi? %d", m_multi);
+//    Combo()->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&myGridCellChoiceEditor::SelectionChanged);
+//    Combo()->Connect(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&myGridCellChoiceEditor::DoubleClick);
+}
+
+void myGridCellChoiceEditor::SelectionChanged(wxCommandEvent& event)
+{
+    debug(10, "EVT: selection changed to '%s'", (const char*)GetValue().c_str());
+//no worky; shouldn't do it yet anyway (change not committed)
+//    ApplyEdit(m_row, m_col, m_grid); //show pending results;
+//    wxClientDC dc(Combo()->GetParent());
+//    PrepareDC(dc);
+//    wxGridCellAttr* attr = m_grid->GetCellAttr(m_row, m_col);
+//    PaintBackground(dc, m_rect, attr);
+//    attr->DecRef();
+    m_text->SetLabel(GetValue()); //show intermediate results
+    event.Skip();
+}
+
+void myGridCellChoiceEditor::EditDone(wxCommandEvent& event)
+{
+    debug(10, "EVT: double click, val = '%s'", (const char*)GetValue().c_str());
+//    m_editor->Reset();
+    wxASSERT_MSG(m_grid, wxT("Grid was not set < start click"));
+    if (m_grid) m_grid->DisableCellEditControl();
+}
+
+void myGridCellChoiceEditor::SetSize(const wxRect& rect)
+{
+    wxASSERT_MSG(m_control,
+                 wxT("The myGridCellChoiceEditor must be created first!"));
+
+    // Check that the height is not too small to fit the combobox.
+    wxRect rectTallEnough = rect;
+    const wxSize bestSize = m_control->GetBestSize();
+    const wxCoord diffY = bestSize.GetHeight() - rectTallEnough.GetHeight();
+    debug(10, "cell editor: best size %d x %d vs. rte (x %d, y %d, w %d, h %d)", bestSize.x, bestSize.y, rect.x, rect.y, rect.width, rect.height);
+//    if ( diffY > 0 )
+//    {
+        // Do make it tall enough.
+//        rectTallEnough.height += diffY;
+
+        // Also centre the effective rectangle vertically with respect to the
+        // original one.
+//        rectTallEnough.y -= diffY/2;
+//    }
+    //else: The rectangle provided is already tall enough.
+#if 0 //best rect is junk
+    rectTallEnough.y += rect.y; //put it below grid cell
+    rectTallEnough.height = std::min<int>(m_choices.size(), 5) * rect.height; //show max 5 lines
+    rectTallEnough.x += grid_parent->GetPosition().x;
+    rectTallEnough.y += grid_parent->GetPosition().y;
+//    rectTallEnough.x = 0; rectTallEnough.y = 0; rectTallEnough.width = 110; rectTallEnough.height = 100;
+#if 0 //wxWidgets BROKEN
+    int srcollx = GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
+    int scrolly = GridCoroFaces->GetScrollPosY();
+    destx -= scrollx; //GridCoroFaces->GetScrollPosX(); //TODO: scroll position BROKEN
+    desty -= scrolly; //GridCoroFaces->GetScrollPosY();
+#endif // 0
+#else
+    rectTallEnough.y += rectTallEnough.height; //put list below cell so it looks like a combo box and user can see current selection(s)
+    rectTallEnough.height *= 5; //rect was set to cell size so x, y, and width were correct; just adjust height to show listbox
+    rectTallEnough.height += 4; //FUD; maybe borders?
+    rectTallEnough.width += 2; //kludge: not quite wide enough, due to border?
+#endif // 0
+    debug(10, "cell editor: set size/pos (x %d, y %d, w %d, h %d)", rectTallEnough.x, rectTallEnough.y, rectTallEnough.width, rectTallEnough.height);
+    m_text->SetSize(rect);
+    wxGridCellEditor::SetSize(rectTallEnough);
+}
+
+void myGridCellChoiceEditor::PaintBackground(wxDC& dc,
+                                             const wxRect& rectCell,
+                                             const wxGridCellAttr& attr)
+{
+    // as we fill the entire client area, don't do anything here to minimize
+    // flicker
+
+    // TODO: It doesn't actually fill the client area since the height of a
+    // combo always defaults to the standard.  Until someone has time to
+    // figure out the right rectangle to paint, just do it the normal way.
+    wxGridCellEditor::PaintBackground(dc, rectCell, attr);
+    // erase the background because we might not fill the cell
+//    dc.SetPen(*wxTRANSPARENT_PEN);
+//    dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
+//    dc.DrawRectangle(rectCell);
+
+//    dc.SetPen(*wxGREEN_PEN);
+//    dc.SetBrush(*wxYELLOW_BRUSH);
+//    dc.DrawRectangle(rectCell);
+
+//    dc.SetBrush(*wxBLUE_BRUSH);
+//    dc.SetPen(*wxRED_PEN);
+#if 0
+    dc.SetTextForeground(*wxBLUE); //make it easier to see which cell will be changing
+    dc.DrawText(GetValue(), rectCell.x, rectCell.y);
+    debug(10, "paint bkg rect (%d, %d, %d, %d) with text '%s'", rectCell.x, rectCell.y, rectCell.width, rectCell.height, (const char*)GetValue().c_str());
+#endif // 0
+}
+
+void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
+{
+    wxASSERT_MSG(m_control,
+                 wxT("The wxGridCellEditor must be created first!"));
+
+    debug(10, "grid cell begin edit: value[r %d, c %d] starts as '%s' cached as '%s'", row, col, (const char*)grid->GetCellValue(row, col).c_str(), (const char*)m_value.c_str()); //, row, col, (const char*)grid->GetCellValue(row, col).c_str());
+    wxGridCellEditorEvtHandler* evtHandler = NULL;
+    if (m_control)
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+
+    // Don't immediately end if we get a kill focus event within BeginEdit
+    if (evtHandler)
+    {
+        evtHandler->SetInSetFocus(true);
+//        Combo()->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&myGridCellChoiceEditor::SelectionChanged);
+//        Combo()->Connect(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&myGridCellChoiceEditor::DoubleClick);
+        debug(10, "bind custom evt handlers");
+        evtHandler->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &myGridCellChoiceEditor::SelectionChanged, this);
+        evtHandler->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &myGridCellChoiceEditor::EditDone, this);
+        m_grid = grid; //allow custom events to access grid
+//        m_row = row;
+//        m_col = col;
+    }
+    wxGridCellEditorEvtHandler* evtHandler2 = NULL;
+    if (m_text) evtHandler2 = wxDynamicCast(m_text->GetEventHandler(), wxGridCellEditorEvtHandler);
+//TODO    if (evtHandler2) evtHandler2->Bind(wxEVT_LEFT_DOWN, &myGridCellChoiceEditor::EditDone, this);
+
+    GetChoices(m_choices, row, col); //refresh list in case it changed
+    Combo()->Set(m_choices);
+    debug(10, "inserted %d choices into listbox, total now = %d", m_choices.Count(), Combo()->GetCount());
+
+    m_value = grid->GetTable()->GetValue(row, col);
+
+    Reset(); // this updates combo box to correspond to m_value
+    m_text->SetLabel(GetValue()); //show intermediate results
+    m_text->Show();
+
+//    Combo()->Show();
+//    Combo()->Raise(); //put it on top of grid
+    Combo()->SetFocus();
+
+#ifdef __WXOSX_COCOA__
+    // This is a work around for the combobox being simply dismissed when a
+    // choice is made in it under OS X. The bug is almost certainly due to a
+    // problem in focus events generation logic but it's not obvious to fix and
+    // for now this at least allows to use wxGrid.
+    Combo()->Popup();
+#endif
+
+    if (evtHandler)
+    {
+        // When dropping down the menu, a kill focus event
+        // happens after this point, so we can't reset the flag yet.
+#if !defined(__WXGTK20__)
+        evtHandler->SetInSetFocus(false);
+#endif
+   }
+}
+
+#define notWXUNUSED(thing)  thing
+bool myGridCellChoiceEditor::EndEdit(int notWXUNUSED(row),
+                                     int notWXUNUSED(col),
+                                     const wxGrid* notWXUNUSED(grid),
+                                     const wxString& notWXUNUSED(oldval),
+                                     wxString *newval)
+{
+//    Combo()->Hide();
+    m_text->Hide();
+    const wxString value = /*Combo()->*/GetValue();
+    debug(10, "grid cell end edit: value val '%s' vs. m_val '%s' vs. grid[%d,%d] '%s', oldval '%s'", (const char*)value.c_str(), (const char*)m_value.c_str(), row, col, (const char*)grid->GetCellValue(row, col).c_str(), (const char*)oldval.c_str());
+    if ( value == m_value )
+        return false;
+
+    m_value = value;
+
+    if ( newval )
+        *newval = value;
+
+    return true;
+}
+
+void myGridCellChoiceEditor::ApplyEdit(int row, int col, wxGrid* grid)
+{
+    grid->GetTable()->SetValue(row, col, m_value);
+    debug(0, "apply[r %d, c %d] = '%s', grid[%d,%d]='%s'", row, col, (const char*)m_value.c_str(), row, col, (const char*)grid->GetCellValue(row, col).c_str());
+}
+
+void myGridCellChoiceEditor::Reset()
+{
+//    if (m_allowOthers)
+//    {
+//        Combo()->SetValue(m_value);
+//        Combo()->SetInsertionPointEnd();
+//    }
+//    else // the combobox is read-only
+//    {
+        // find the right position, or default to the first if not found
+ //       int pos = Combo()->FindString(m_value);
+//        if (pos == wxNOT_FOUND)
+//            pos = 0;
+    debug(10, "reset: value(s) '%s'", (const char*)m_value.c_str());
+    wxStringTokenizer wtkz(m_value, "+");
+    while (wtkz.HasMoreTokens()) //single iteration for model name, maybe multiple for node#s
+    {
+        wxString valstr = NoInactive(wtkz.GetNextToken().BeforeFirst(':'));
+        if (valstr.empty()) continue;
+        for (int i = 0; i < Combo()->GetCount(); ++i) //CAUTION: use listbox strings rather than m_choices due to sort order
+        {
+            debug(10, "cmp list[%d] '%s' vs. val '%s'", i, (const char*)Combo()->GetString(i).c_str(), (const char*)valstr.c_str());
+            if (NoInactive(Combo()->GetString(i).BeforeFirst(':')) != valstr) continue;
+            Combo()->SetSelection(i);
+            debug(10, "reset: select entry[%d/%d] '%s' in listbox == '%s'?, m_val '%s'", i, Combo()->GetCount(), (const char*)Combo()->GetString(i).c_str(), (const char*)m_choices[i].c_str(), (const char*)m_value.c_str());
+            valstr.Clear();
+            break;
+        }
+        if (!valstr.empty()) debug(10, "reset: value '%s' doesn't match any of %d entries, maybe select first one? '%s'", (const char*)m_value.c_str(), Combo()->GetCount(), (const char*)Combo()->GetString(0).c_str());
+    }
+//    Combo()->SetSelection(0); //default to first one
+//    }
+}
+
+void myGridCellChoiceEditor::SetParameters(const wxString& params)
+{
+    if ( !params )
+    {
+        // what can we do?
+        return;
+    }
+
+    m_choices.Empty();
+
+    wxStringTokenizer tk(params, wxT(','));
+    while ( tk.HasMoreTokens() )
+    {
+        m_choices.Add(tk.GetNextToken());
+    }
+}
+
+// return the value in the text control
+wxString myGridCellChoiceEditor::GetValue() const
+{
+//  return Combo()->GetValue();
+//for single selection, just return the value
+//for multi-select, return a list of abbreviated values
+    wxString retval;
+    if (!m_multi && (Combo()->GetSelection() != wxNOT_FOUND)) retval = Combo()->GetString(Combo()->GetSelection()); //: retval; //wxEmptyString;
+    else
+        for (int i = 0; i < Combo()->GetCount(); ++i)
+        {
+            if (!Combo()->IsSelected(i)) continue;
+            if (!retval.empty()) retval += wxT("+");
+            retval += Combo()->GetString(i).BeforeFirst(':'); //wxString::Format(wxT("%d"), Combo()->GetString(i).BeforeFirst(':'));
+        }
+//    if (!retval.empty()) retval = retval.substr(1);
+    debug(10, "grid cell edit: get val '%s'", (const char*)retval.c_str());
+    return retval;
+}
+#endif //ndef GRID_EDIT_KLUDGE
+
+
 void xLightsFrame::OnNotebookPgoParmsPageChanged(wxNotebookEvent& event)
 {
+#if 0 //obsolete
 //    wxMessageBox(wxString::Format("pgo tab now = %d vs. %d", NotebookPgoParms->GetSelection(), COROTAB));
     debug(10, "grid cell sel notebook %d, %d", GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn());
 //    int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
 //    if (row < 0) row = 0;
 //    if (col < 0) col = 0;
+#ifdef GRID_EDIT_KLUDGE
     if (event.GetSelection() == COROTAB) Timer2.StartOnce(10); //show drop-down after UI stabilizes
     else //de-select row/col for clean re-entry
     {
@@ -1130,19 +1717,83 @@ void xLightsFrame::OnNotebookPgoParmsPageChanged(wxNotebookEvent& event)
         GridCoroFaces->SelectCol(-1);
     }
 //        PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
+#else
+//update choice lists here in case other user actions changed the list of available models
+//NOTE: behavior is different for top row vs. other cells so use 2 different editors
+    wxArrayString choices;
+    choices.Add(SelectionHint); //wxT("(choose)"));
+//    get choices
+//tell user there are none to choose from:
+    if (choices.size() < 1)
+    {
+        choices.clear();
+        choices.Add(NoneHint); //wxT("(no choices)"));
+        Choice_PgoModelVoiceEdit->SetSelection(0);
+    }
+    wxGridCellEditor* cell_editor = GridCoroFaces->GetCellEditor(0, 0);
+    cell_editor->SetChoices(choices);
+
+    choices.Clear();
+// get choices here
+    cell_editor = GridCoroFaces->GetCellEditor(1, 0);
+    cell_editor->SetChoices(choices);
+    debug(10, "update choices for custom grid cell editor", GridCoroFaces->GetRows(), GridCoroFaces->GetCols());
+#endif //def GRID_EDIT_KLUDGE
+#endif //0
 }
 
+
+//get list of choices for cell editor:
+//NOTE: this must be fast or else cached
+void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col)
+{
+    choices.Clear();
+    choices.Add(wxEmptyString); //allow blank so user can delete the entry
+    wxString prefix, want_model = m_grid->GetCellValue(Model_Row, col);
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+    {
+        if (it == xLightsFrame::PreviewModels.end()) //also list non-preview models
+        {
+            it = xLightsFrame::OtherModels.begin() - 1;
+            prefix = InactiveIndicator; //mark non-active models
+            continue;
+        }
+        if ((*it)->name.IsEmpty()) continue;
+        if (!(*it)->IsCustom()) continue; //only want custom models for now
+        if (!row) //get list of models
+            choices.Add(prefix + (*it)->name);
+        else if (prefix + (*it)->name == want_model) //enumerate node#s for this model
+        {
+//get list of face parts (nodes) for this model:
+//    choices.Add(wxT("1: first"));
+//    choices.Add(wxT("2: 2nd"));
+//    choices.Add(wxT("3: TODO!"));
+            debug(10, "parse model '%s'", (const char*)(*it)->name.c_str());
+            if (!(*it)->GetChannelCoords(choices)) choices.Add(NoneHint);
+//    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+            debug(10, "got %d ents", choices.GetCount());
+            return;
+        }
+    }
+    if (choices.size() < 1) choices.Add(NoneHint); //tell user there are none to choose from
+//        else choices.Insert(SelectionHint, 0); //not needed
+//    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+}
 
 //kludge: delay a little before showing drop-down list on grid
 //otherwise drop-down list doesn't display reliably
 void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
 {
+#if 0 //obsolete
+#ifdef GRID_EDIT_KLUDGE
     if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
     if (row < 0) row = 0; //default to first cell if none selected
     if (col < 0) col = 0;
     PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
 //    Timer2.Stop();
+#endif //def GRID_EDIT_KLUDGE
+#endif // 0
 }
 
 //populate choice lists with model names, etc.
@@ -1154,6 +1805,7 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
 //        Choice_PgoGroupName->Clear();
 //        Choice_PgoGroupName->Append(SelectionHint); //wxT("(choose one)"));
 //    }
+    debug(10, "init pgo tab, changed? %d", tab_changed);
     LoadPgoSettings();
 #if 0 //do this whenever file changes (avoid caching too long?)
     Choice_PgoGroupName->Append(CreationHint); //wxT("(add new)"));
@@ -1173,12 +1825,27 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
             Voice(i)->Append((*it)->name);
     }
 #endif // 0
+#ifndef GRID_EDIT_KLUDGE
+//set up custom cell editor for all cells:
+//NOTE: behavior is different for top row vs. other cells so use 2 different editors (not strictly necessary, but safer)
+//list of choices must be updated upon entry to tab in case other user actions changed list of available models/ or channels
+    myGridCellChoiceEditor* model_chooser = new myGridCellChoiceEditor(0, NULL, false); //0, choices, false));
+    myGridCellChoiceEditor* node_chooser = new myGridCellChoiceEditor(0, NULL, true);
+//    model_chooser->grid_parent = GridCoroFaces;
+//    node_chooser->grid_parent = GridCoroFaces;
+    for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+//            GridCoroFaces->SetCellEditor(r, c, new myGridCellChoiceEditor(0, NULL, r)); //r? node_chooser: model_chooser);
+            GridCoroFaces->SetCellEditor(r, c, (r == Model_Row)? model_chooser: node_chooser);
+    debug(10, "set up %d rows, %d cols with custom grid cell editor", GridCoroFaces->GetRows(), GridCoroFaces->GetCols());
+#endif //ndef GRID_EDIT_KLUDGE
 }
 
 //add (X,Y) info back into settings file for easier reference
 static wxString addxy(ModelClass* model, wxString nodestr)
 {
     long node;
+    if (nodestr.empty()) return nodestr;
     debug(10, "addxy: model? %d, node %s", model, (const char*)nodestr.c_str());
     if (!model || !nodestr.ToLong(&node)) return nodestr;
     debug(10, " => xy info '%s'", (const char*)model->GetNodeXY(node).c_str());
@@ -1190,7 +1857,9 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 {
     wxString grpname;
     if (!GetGroupName(grpname)) return;
+#ifdef GRID_EDIT_KLUDGE
     PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn(), __LINE__); //force cell update if edit in progress
+#endif //def GRID_EDIT_KLUDGE
     wxDateTime now = wxDateTime::Now(); //NOTE: now.Format("%F %T") seems to be broken
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc, timestamp '%s %s'", (const char*)grpname.c_str(), (const char*)now.FormatDate().c_str(), (const char*)now.FormatTime().c_str()); //Format(wxT("%F %T")).c_str());
     AddNonDupAttr(pgoXml.GetRoot(), wxT("last_mod"), now.FormatDate() + wxT(" ") + now.FormatTime()); //wxT("%F %T"))); //useful for audit trail or debug
@@ -1218,7 +1887,8 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         }
         wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
-        AddNonDupAttr(voice, Name, voice_model);
+        AddNonDupAttr(voice, Name, voice_model); //NOTE: could be blank
+        if (voice_model.empty()) continue;
         AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, GridCoroFaces->GetCellValue(Outline_Row, i)));
         AddNonDupAttr(voice, wxT("Eyes_open"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_open_Row, i)));
         AddNonDupAttr(voice, wxT("Eyes_closed"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_closed_Row, i)));
@@ -1264,15 +1934,16 @@ static wxString ExtractNodes(wxString parsed_info)
         if (!nodestr.empty()) nodestr += wxT("+");
         nodestr += nextnode;
     }
-    debug(10, "extracted nodes '%s' from '%s'", (const char*)nodestr.c_str(), (const char*)parsed_info.c_str());
+    if (!parsed_info.empty())
+        debug(10, "extracted nodes '%s' from '%s'", (const char*)nodestr.c_str(), (const char*)parsed_info.c_str());
     return nodestr;
 }
 
 //this loads one group name at a time from the xmldoc
 void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 {
-    debug(10, "PgoGroupNameSelect selection %d, count %d", Choice_PgoGroupName->GetSelection(), Choice_PgoModelVoiceEdit->GetCount());
-    if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
+    debug(10, "PgoGroupNameSelect selection %d", Choice_PgoGroupName->GetSelection()); //, Choice_PgoModelVoiceEdit->GetCount());
+//    if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "PgoGroupNameSelect: load group '%s' from xmldoc", (const char*)grpname.c_str());
@@ -1287,20 +1958,47 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 //        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
 //        int inx = Voice(i)->FindString(voice->GetAttribute(Name));
         wxString voice_name = NoInactive(voice->GetAttribute(Name));
+#if 0
         int inx = Choice_PgoModelVoiceEdit->FindString(voice_name);
         if ((inx < 0) && !voice_name.empty())
         {
             inx = Choice_PgoModelVoiceEdit->FindString(InactiveIndicator + voice_name);
-            errors += wxString::Format(wxT("Saved model name '%s' %s for voice# %d.\n"), voice_name, (inx == wxNOT_FOUND)? wxT("not found"): wxT("not marked 'my display'"), i + 1); //, Choice_PgoModelVoiceEdit->GetCount());
+            errors += wxString::Format(wxT("Saved model name '%s' for voice# %d %s.\n"), voice_name, i + 1, (inx == wxNOT_FOUND)? wxT("not found"): wxT("not marked 'my display'")); //, Choice_PgoModelVoiceEdit->GetCount());
         }
         debug(10, "grp name sel[%d] '%s' => inx %d", i, (const char*)voice_name.c_str(), inx);
         if (inx < 0) inx = 0; //default to "(choose)" hint
 //        Voice(i)->SetSelection(inx);
 //        Choice_PgoModelVoiceEdit->SetSelection(inx);
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
-
         GridCoroFaces->SetCellValue(Model_Row, i, Choice_PgoModelVoiceEdit->GetString(inx));
-        debug(10, "model name[%d] now = '%s' from inx %d", i, (const char*)GridCoroFaces->GetCellValue(Model_Row, i).c_str(), inx);
+#else
+        wxString prefix, msg;
+        if (!voice_name.empty()) msg = "not found";
+        for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
+        {
+            if (it == xLightsFrame::PreviewModels.end()) //also check non-preview models
+            {
+                it = xLightsFrame::OtherModels.begin() - 1;
+                prefix = InactiveIndicator; //mark non-active models
+                continue;
+            }
+            if ((*it)->name.IsEmpty()) continue;
+            if (!(*it)->IsCustom()) continue; //only want custom models for now
+//            choices.Add((*it)->name);
+            if ((*it)->name == voice_name)
+            {
+                GridCoroFaces->SetCellValue(Model_Row, i, prefix + voice_name);
+                if (prefix.empty()) msg.Clear(); //success
+                else msg = "not marked 'my display'"; //partial success
+//                prefix = "done";
+//                voice_name.Clear();
+                break;
+            }
+        }
+        if (!msg.empty()) errors += wxString::Format(wxT("Voice# %d model '%s' was %s.\n"), i + 1, voice_name, msg); //, Choice_PgoModelVoiceEdit->GetCount());
+//        if (prefix != wxT("done")) continue;
+#endif
+        debug(10, "model name[%d] now = '%s'", i, (const char*)GridCoroFaces->GetCellValue(Model_Row, i).c_str());
         GridCoroFaces->SetCellValue(Outline_Row, i, ExtractNodes(voice->GetAttribute(wxT("Outline"))));
         GridCoroFaces->SetCellValue(Eyes_open_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_open"))));
         GridCoroFaces->SetCellValue(Eyes_closed_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_closed"))));
@@ -1361,7 +2059,17 @@ public:
 
 void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 {
+#ifdef GRID_EDIT_KLUDGE
+#if 1 //kludgey way
     PgoGridCellSelect(event.GetRow(), event.GetCol(), __LINE__);
+#else //the built-in way
+    wxArrayString choices;
+    choices.Add("first");
+    choices.Add("2");
+    choices.Add("3");
+    GridCoroFaces->SetCellEditor(event.GetRow(), event.GetCol(), new wxGridCellChoiceEditor(choices, false));
+#endif // 0
+#endif //def GRID_EDIT_KLUDGE
 }
 
 #define nodelist  Choice_RelativeNodes
@@ -1369,6 +2077,7 @@ void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 //#define nodelist  ListBox_RelativeNodes
 
 //find unique node#s and associated (X,Y) for a model:
+#if 0 //obsolete
 void xLightsFrame::GetMouthNodes(const wxString& model_name)
 {
     debug(10, "get mouth nodes '%s'", (const char*)model_name.c_str());
@@ -1394,6 +2103,7 @@ void xLightsFrame::GetMouthNodes(const wxString& model_name)
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
     debug(10, "!found model '%s', got %d ents, active", (const char*)model_name.c_str(), nodelist->GetCount());
 }
+#endif // 0
 
 static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
 {
@@ -1416,6 +2126,7 @@ static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
 //kludgey drop-down edit for grid cells:
 //TODO: maybe can use custom grid cell editor in wxWidgets 3.1
 //TODO: multi-select elements in Pgo grid cells
+#ifdef GRID_EDIT_KLUDGE
 void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 {
 //    wxMessageBox(wxT("editor shown"));
@@ -1505,3 +2216,4 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 //    Choice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));
 //FlexGridSizer51
 }
+#endif //def GRID_EDIT_KLUDGE

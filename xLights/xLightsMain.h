@@ -765,7 +765,6 @@ private:
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
-    wxTimer Timer2;
     wxTextCtrl* TextCtrl_U_image;
     wxButton* Button_pgo_filename;
     wxButton* Button2;
@@ -776,7 +775,6 @@ private:
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
     wxButton* ButtonStopPreview;
-    wxChoice* Choice_PgoModelVoiceEdit;
     wxButton* ButtonModelExport;
     wxTextCtrl* TextCtrl_MBP_image;
     wxButton* Button_FV_image;
@@ -876,6 +874,7 @@ private:
     wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
+    wxChoice* xChoice_PgoModelVoiceEdit;
     wxListCtrl* GridNetwork;
     wxBitmapButton* BitmapButton_random;
     wxSlider* SliderRgbChaseSpeed;
@@ -906,7 +905,6 @@ private:
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
     wxButton* Button_U_image;
-    wxChoice* Choice_RelativeNodes;
     wxButton* Button_PgoStitch;
     wxButton* Button_E_image;
     wxBitmapButton* BitmapButton3;
@@ -931,6 +929,7 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
+    wxChoice* xChoice_RelativeNodes;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
@@ -987,6 +986,7 @@ private:
     wxButton* ButtonNetworkDeleteAll;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxButton* ButtonNetworkChange;
+    wxTimer xTimer2;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
     wxTextCtrl* TextCtrl_AutoFadePgoElement;

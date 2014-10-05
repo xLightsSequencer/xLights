@@ -931,17 +931,45 @@ void ModelDialog::OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event)
 
 void ModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
 {
-    for (int c = 0; c < GridCustom->GetCols(); ++c)
-        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 4/5);
-    for (int r = 0; r < GridCustom->GetRows(); ++r)
-        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 4/5);
+    GridCustom->BeginBatch();
+    wxFont font = GridCustom->GetLabelFont();
+    font.MakeSmaller();
+    GridCustom->SetLabelFont(font);
+    font = GridCustom->GetDefaultCellFont();
+    font.MakeSmaller();
+    GridCustom->SetDefaultCellFont(font);
+//    for (int r = 0; r < GridCustom->GetRows(); ++r)
+//        for (int c = 0; c < GridCustom->GetCols(); ++c)
+//            GridCustom->GetCellFont(r, c).MakeSmaller();
+//    for (int c = 0; c < GridCustom->GetCols(); ++c)
+//        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 4/5);
+//    for (int r = 0; r < GridCustom->GetRows(); ++r)
+//        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 4/5);
+    GridCustom->SetRowMinimalAcceptableHeight(3); //don't need to read text, just see the shape
+    GridCustom->SetColMinimalAcceptableWidth(3); //don't need to read text, just see the shape
+    GridCustom->AutoSizeColumns(true);
+    GridCustom->AutoSizeRows(true);
+    GridCustom->EndBatch();
 }
 
 //allow larger grids to be seen more easily: -DJ
 void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
 {
-    for (int c = 0; c < GridCustom->GetCols(); ++c)
-        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 5/4);
-    for (int r = 0; r < GridCustom->GetRows(); ++r)
-        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 5/4);
+    GridCustom->BeginBatch();
+    wxFont font = GridCustom->GetLabelFont();
+    font.MakeLarger();
+    GridCustom->SetLabelFont(font);
+    font = GridCustom->GetDefaultCellFont();
+    font.MakeLarger();
+    GridCustom->SetDefaultCellFont(font);
+//    for (int r = 0; r < GridCustom->GetRows(); ++r)
+//        for (int c = 0; c < GridCustom->GetCols(); ++c)
+//            GridCustom->GetCellFont(r, c).MakeLarger();
+//    for (int c = 0; c < GridCustom->GetCols(); ++c)
+//        GridCustom->SetColSize(c, GridCustom->GetColSize(c) * 5/4);
+//    for (int r = 0; r < GridCustom->GetRows(); ++r)
+//        GridCustom->SetRowSize(r, GridCustom->GetRowSize(r) * 5/4);
+    GridCustom->AutoSizeColumns(true);
+    GridCustom->AutoSizeRows(true);
+    GridCustom->EndBatch();
 }

@@ -2639,6 +2639,12 @@
 																													<item>Eyes - Up</item>
 																													<item>Eyes - Down</item>
 																												</rowlabels>
+																												<celltext>
+																													<item>(choose)</item>
+																													<item>(choose)</item>
+																													<item>(choose)</item>
+																													<item>(choose)</item>
+																												</celltext>
 																												<minsize>-1,200</minsize>
 																												<handler function="OnGridCoroFacesCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																											</object>
@@ -2652,7 +2658,7 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxChoice" name="ID_CHOICE_PgoModelVoiceEdit" variable="Choice_PgoModelVoiceEdit" member="yes">
+																									<object class="wxChoice" name="ID_CHOICE_PgoModelVoiceEdit" variable="xChoice_PgoModelVoiceEdit" member="yes">
 																										<size>86,21</size>
 																										<hidden>1</hidden>
 																										<style>wxCB_SORT</style>
@@ -2662,7 +2668,7 @@
 																									<option>1</option>
 																								</object>
 																								<object class="sizeritem">
-																									<object class="wxChoice" name="ID_CHOICE_RelativeNodes" variable="Choice_RelativeNodes" member="yes">
+																									<object class="wxChoice" name="ID_CHOICE_RelativeNodes" variable="xChoice_RelativeNodes" member="yes">
 																										<hidden>1</hidden>
 																										<style>wxCB_SORT</style>
 																									</object>
@@ -3300,7 +3306,7 @@
 			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
-		<object class="wxTimer" name="ID_TIMER2" variable="Timer2" member="yes">
+		<object class="wxTimer" name="ID_TIMER2" variable="xTimer2" member="yes">
 			<interval>10</interval>
 			<oneshot>1</oneshot>
 			<handler function="OnTimer2Trigger" entry="EVT_TIMER" />

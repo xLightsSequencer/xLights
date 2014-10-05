@@ -921,24 +921,27 @@ ModelClass* ModelClass::FindModel(const wxString& name)
     return 0; //not found
 }
 
-size_t ModelClass::EnumModels(wxChoice* choices, const wxString& InactivePrefix)
+#if 1 //obsolete
+size_t ModelClass::EnumModels(wxArrayString* choices, const wxString& InactivePrefix)
 {
 //TODO: use static member array rather than xLightsFrame?
+    wxString prefix;
     size_t svcount = choices->GetCount(); //don't clear it; caller might have extra values in list
-//first check active models:
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+//first check active models, then non-preview models:
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
+        if (it == xLightsFrame::PreviewModels.end()) //also list non-preview models
+        {
+            it = xLightsFrame::OtherModels.begin() - 1;
+            prefix = InactivePrefix; //mark non-active models
+            continue;
+        }
         if ((*it)->name.IsEmpty()) continue;
-        choices->Append((*it)->name);
-    }
-//also list non-preview models:
-    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
-    {
-        if ((*it)->name.IsEmpty()) continue;
-        choices->Append(InactivePrefix + (*it)->name); //show indicator for non-active models
+        choices->Add(prefix + (*it)->name); //show indicator for non-active models
     }
     return choices->GetCount() - svcount; //#entries added
 }
+#endif // 0
 
 bool ModelClass::IsCustom(void)
 {
@@ -958,14 +961,14 @@ static wxString AA(int x)
 }
 //add just the node#s to a choice list:
 //NO add parsed info to choice list or check list box:
-size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3)
+size_t ModelClass::GetChannelCoords(wxArrayString& choices) //wxChoice* choices1, wxCheckListBox* choices2, wxListBox* choices3)
 {
-    if (choices1) choices1->Clear();
-    if (choices2) choices2->Clear();
-    if (choices3) choices3->Clear();
-    if (choices1) choices1->Append(wxT("0: (none)"));
-    if (choices2) choices2->Append(wxT("0: (none)"));
-    if (choices3) choices3->Append(wxT("0: (none)"));
+//    if (choices1) choices1->Clear();
+//    if (choices2) choices2->Clear();
+//    if (choices3) choices3->Clear();
+//    if (choices1) choices1->Append(wxT("0: (none)"));
+//    if (choices2) choices2->Append(wxT("0: (none)"));
+//    if (choices3) choices3->Append(wxT("0: (none)"));
     size_t NodeCount = GetNodeCount();
     for (size_t n = 0; n < NodeCount; n++)
     {
@@ -984,16 +987,17 @@ size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2
             else
                 newstr = wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(n), Nodes[n]->Coords.front().bufX + 1, BufferHt - Nodes[n]->Coords.front().bufY);
 #else
-        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
+//        newstr = wxString::Format(wxT("%d"), GetNodeNumber(n));
+//        choices.Add(newstr);
+        choices.Add(GetNodeXY(n));
 #endif // 0
-        if (choices1) choices1->Append(newstr);
-        if (choices2) choices2->Append(newstr);
-        if (choices3)
-        {
-            wxArrayString strary;
-            strary.Add(newstr);
-            choices3->InsertItems(strary, choices3->GetCount() + 0);
-        }
+//        if (choices1) choices1->Append(newstr);
+//        if (choices2) choices2->Append(newstr);
+//        if (choices3)
+//        {
+//            wxArrayString strary;
+//            choices3->InsertItems(strary, choices3->GetCount() + 0);
+//        }
 #if 0
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
@@ -1001,7 +1005,7 @@ size_t ModelClass::GetChannelCoords(wxChoice* choices1, wxCheckListBox* choices2
                 Nodes[idx]->StringNum=stringnum;
 #endif // 0
     }
-    return (choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
+    return choices.GetCount(); //choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
 //get parsed node info:
 wxString ModelClass::GetNodeXY(int node)
