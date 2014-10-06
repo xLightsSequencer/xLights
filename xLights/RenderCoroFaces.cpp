@@ -240,7 +240,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         }
         if (!eyes.empty())
         {
-            wxString info = map[(const char*)eyes.c_str()];
+            wxString info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyes.Lower()).c_str()];
 //            if (xy_info) info = xy_info->GetAttribute(eyes);
             bool ok = ModelClass::ParseFaceElement(info, &first_xy);
             if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part

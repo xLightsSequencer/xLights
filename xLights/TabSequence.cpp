@@ -158,11 +158,11 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  -99 //unbuffered in case app crashes
 //#include "djdebug.cpp"
-#ifndef debug_function //dummy defs if debug cpp not included above
- #define debug(level, ...)
- #define debug_more(level, ...)
- #define debug_function(level)
-#endif
+//#ifndef debug_function //dummy defs if debug cpp not included above
+// #define debug(level, ...)
+// #define debug_more(level, ...)
+// #define debug_function(level)
+//#endif
 
 #if 0 //obsolete
 static wxString prev_model = "junk";
@@ -2416,7 +2416,7 @@ void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
 
 void xLightsFrame::ImportxLightsXMLTimings()
 {
-    wxFileDialog OpenDialog(this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
+    wxFileDialog OpenDialog(this, _("Choose xLights sequence"), CurrentDir, wxEmptyString,
                             _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 

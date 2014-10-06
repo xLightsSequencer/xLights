@@ -702,12 +702,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText62 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT64, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT64"));
     FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_CoroFaces_Eyes = new wxChoice(Panel1_CoroFaces, ID_CHOICE_CoroFaces_Eyes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_CoroFaces_Eyes"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_open"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_closed"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_left"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_right"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_up"));
-    Choice_CoroFaces_Eyes->Append(_("Eyes_down"));
+    Choice_CoroFaces_Eyes->Append(_("Open"));
+    Choice_CoroFaces_Eyes->Append(_("Closed"));
+    Choice_CoroFaces_Eyes->Append(_("Left"));
+    Choice_CoroFaces_Eyes->Append(_("Right"));
+    Choice_CoroFaces_Eyes->Append(_("Up"));
+    Choice_CoroFaces_Eyes->Append(_("Down"));
     Choice_CoroFaces_Eyes->Append(_("(off)"));
     FlexGridSizer58->Add(Choice_CoroFaces_Eyes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText64 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT66, _("Face"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT66"));

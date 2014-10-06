@@ -277,10 +277,6 @@ const long xLightsFrame::ID_BITMAPBUTTON_SaveCoroGroup = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupDelete = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupClear = wxNewId();
 const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
-const long xLightsFrame::ID_CHOICE_PgoModelVoiceEdit = wxNewId();
-const long xLightsFrame::ID_CHOICE_RelativeNodes = wxNewId();
-const long xLightsFrame::ID_CHECKLISTBOX_CheckListBox_RelativeNodes = wxNewId();
-const long xLightsFrame::ID_LISTBOX_RelativeNodes = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_AutoFadePgoElement = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_AutoFadePgoElement = wxNewId();
 const long xLightsFrame::ID_STATICTEXT34 = wxNewId();
@@ -350,7 +346,6 @@ const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
-const long xLightsFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xLightsFrame::ID_PLAYER_DIALOG = wxNewId();
@@ -1299,26 +1294,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     GridCoroFaces->SetRowLabelValue(15, _("Eyes - Right"));
     GridCoroFaces->SetRowLabelValue(16, _("Eyes - Up"));
     GridCoroFaces->SetRowLabelValue(17, _("Eyes - Down"));
-    GridCoroFaces->SetCellValue(0, 0, _("(choose)"));
-    GridCoroFaces->SetCellValue(0, 1, _("(choose)"));
-    GridCoroFaces->SetCellValue(0, 2, _("(choose)"));
-    GridCoroFaces->SetCellValue(0, 3, _("(choose)"));
     GridCoroFaces->SetDefaultCellFont( GridCoroFaces->GetFont() );
     GridCoroFaces->SetDefaultCellTextColour( GridCoroFaces->GetForegroundColour() );
     BoxSizer8->Add(GridCoroFaces, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer51->Add(BoxSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    xChoice_PgoModelVoiceEdit = new wxChoice(PGO_COROFACES, ID_CHOICE_PgoModelVoiceEdit, wxDefaultPosition, wxSize(86,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_PgoModelVoiceEdit"));
-    xChoice_PgoModelVoiceEdit->Hide();
-    FlexGridSizer51->Add(xChoice_PgoModelVoiceEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    xChoice_RelativeNodes = new wxChoice(PGO_COROFACES, ID_CHOICE_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_RelativeNodes"));
-    xChoice_RelativeNodes->Hide();
-    FlexGridSizer51->Add(xChoice_RelativeNodes, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    xCheckListBox_RelativeNodes = new wxCheckListBox(PGO_COROFACES, ID_CHECKLISTBOX_CheckListBox_RelativeNodes, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX_CheckListBox_RelativeNodes"));
-    xCheckListBox_RelativeNodes->Hide();
-    FlexGridSizer51->Add(xCheckListBox_RelativeNodes, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    xListBox_RelativeNodes = new wxListBox(PGO_COROFACES, ID_LISTBOX_RelativeNodes, wxDefaultPosition, wxSize(132,81), 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_RelativeNodes"));
-    xListBox_RelativeNodes->Hide();
-    FlexGridSizer51->Add(xListBox_RelativeNodes, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer44->Add(FlexGridSizer51, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer55 = new wxFlexGridSizer(0, 6, 0, 0);
     CheckBox_AutoFadePgoElement = new wxCheckBox(PGO_COROFACES, ID_CHECKBOX_AutoFadePgoElement, _("Auto-fade each element after:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_AutoFadePgoElement"));
@@ -1531,8 +1510,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n            LOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-    xTimer2.SetOwner(this, ID_TIMER2);
-    xTimer2.Start(10, true);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -1692,7 +1669,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
-    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer2Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 

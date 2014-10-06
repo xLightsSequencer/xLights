@@ -637,10 +637,6 @@ private:
     static const long ID_BUTTON_CoroGroupDelete;
     static const long ID_BUTTON_CoroGroupClear;
     static const long ID_GRID_COROFACES;
-    static const long ID_CHOICE_PgoModelVoiceEdit;
-    static const long ID_CHOICE_RelativeNodes;
-    static const long ID_CHECKLISTBOX_CheckListBox_RelativeNodes;
-    static const long ID_LISTBOX_RelativeNodes;
     static const long ID_CHECKBOX_AutoFadePgoElement;
     static const long ID_TEXTCTRL_AutoFadePgoElement;
     static const long ID_STATICTEXT34;
@@ -710,7 +706,6 @@ private:
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
-    static const long ID_TIMER2;
     //*)
 
     static const long ID_PLAYER_DIALOG;
@@ -861,7 +856,6 @@ private:
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
     wxStaticText* StaticText43;
-    wxCheckListBox* xCheckListBox_RelativeNodes;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
     wxStaticText* StaticText65;
@@ -874,7 +868,6 @@ private:
     wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
-    wxChoice* xChoice_PgoModelVoiceEdit;
     wxListCtrl* GridNetwork;
     wxBitmapButton* BitmapButton_random;
     wxSlider* SliderRgbChaseSpeed;
@@ -929,7 +922,6 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxChoice* xChoice_RelativeNodes;
     wxBitmapButton* BitmapButtonOpenSeq;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
@@ -951,7 +943,6 @@ private:
     wxTextCtrl* TextCtrl4;
     wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
-    wxListBox* xListBox_RelativeNodes;
     wxRadioButton* RadioButtonOff;
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxRadioButton* RadioButtonRgbChase5;
@@ -986,7 +977,6 @@ private:
     wxButton* ButtonNetworkDeleteAll;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxButton* ButtonNetworkChange;
-    wxTimer xTimer2;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
     wxTextCtrl* TextCtrl_AutoFadePgoElement;

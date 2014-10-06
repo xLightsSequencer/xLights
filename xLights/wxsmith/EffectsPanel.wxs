@@ -706,12 +706,12 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_CoroFaces_Eyes" variable="Choice_CoroFaces_Eyes" member="yes">
 										<content>
-											<item>Eyes_open</item>
-											<item>Eyes_closed</item>
-											<item>Eyes_left</item>
-											<item>Eyes_right</item>
-											<item>Eyes_up</item>
-											<item>Eyes_down</item>
+											<item>Open</item>
+											<item>Closed</item>
+											<item>Left</item>
+											<item>Right</item>
+											<item>Up</item>
+											<item>Down</item>
 											<item>(off)</item>
 										</content>
 										<style>wxCB_SORT</style>

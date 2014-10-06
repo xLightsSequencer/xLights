@@ -1008,20 +1008,32 @@ size_t ModelClass::GetChannelCoords(wxArrayString& choices) //wxChoice* choices1
     return choices.GetCount(); //choices1? choices1->GetCount(): 0) + (choices2? choices2->GetCount(): 0);
 }
 //get parsed node info:
-wxString ModelClass::GetNodeXY(int node)
+wxString ModelClass::GetNodeXY(const wxString& nodenumstr)
 {
-    if ((node < 0) || (node >= GetNodeCount())) return wxEmptyString;
-    if (Nodes[node]->Coords.empty()) return wxEmptyString;
-    if (GetCoordCount(node) > 1) //show count and first + last coordinates
+    long nodenum;
+    size_t NodeCount = GetNodeCount();
+    if (nodenumstr.ToLong(&nodenum))
+        for (size_t inx = 0; inx < NodeCount; inx++)
+        {
+            if (Nodes[inx]->Coords.empty()) continue;
+            if (GetNodeNumber(inx) == nodenum) return GetNodeXY(inx);
+        }
+    return nodenumstr; //not found?
+}
+wxString ModelClass::GetNodeXY(int nodeinx)
+{
+    if ((nodeinx < 0) || (nodeinx >= GetNodeCount())) return wxEmptyString;
+    if (Nodes[nodeinx]->Coords.empty()) return wxEmptyString;
+    if (GetCoordCount(nodeinx) > 1) //show count and first + last coordinates
         if (IsCustom())
-            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(node), GetCoordCount(node), AA(Nodes[node]->Coords.front().bufX + 1), BufferHt - Nodes[node]->Coords.front().bufY, AA(Nodes[node]->Coords.back().bufX + 1), BufferHt - Nodes[node]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return wxString::Format(wxT("%d: %d# @%s%d-%s%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else
-            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(node), GetCoordCount(node), Nodes[node]->Coords.front().bufX + 1, BufferHt - Nodes[node]->Coords.front().bufY, Nodes[node]->Coords.back().bufX + 1, BufferHt - Nodes[node]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return wxString::Format(wxT("%d: %d# @(%d,%d)-(%d,%d"), GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); //NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
     else //just show singleton
         if (IsCustom())
-            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(node), AA(Nodes[node]->Coords.front().bufX + 1), BufferHt - Nodes[node]->Coords.front().bufY);
+            return wxString::Format(wxT("%d: @%s%d"), GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
         else
-            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(node), Nodes[node]->Coords.front().bufX + 1, BufferHt - Nodes[node]->Coords.front().bufY);
+            return wxString::Format(wxT("%d: @(%d,%d)"), GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
 }
 
 //extract first (X,Y) from string formatted above:

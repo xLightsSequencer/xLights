@@ -304,9 +304,9 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 //    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
 }
 
-static void blank(wxFile& f)
+static void blank(wxFile& f, bool fade = false)
 {
-    f.Write("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n");
+    f.Write(wxString::Format("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=%d,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", fade? 1: 0));
 }
 
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
@@ -346,6 +346,7 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
             else
             {
                 wxString voice_name = GridCoroFaces->GetCellValue(Model_Row, voice - 1);
+                if (voice_name == SelectionHint) continue; //don't write this one
                 f.Write(wxString::Format("    <td>%s</td>\n", NoInactive(voice_name))); //use actual voice model name
             }
         }
@@ -356,7 +357,8 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
         f.Write("    <td Protected=\"0\">0.000</td>\n");
         f.Write("    <td Protected=\"0\">Blank</td>\n");
         for (int voice=1; voice<=MaxVoices; voice++) //use actual #voices
-            blank(f);
+            if (GridCoroFaces->GetCellValue(Model_Row, voice - 1) == SelectionHint) continue; //don't write this one
+            else blank(f);
         f.Write("</tr>\n");
 //        f.Close();
         return 1; // good exit
@@ -398,7 +400,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     wxString frame_desc, shorter_desc;
     wxString errors;
     wxString frame_phonemes[voices.size()], frame_eyes[voices.size()];
-    int all_fade_frame = std::numeric_limits<int>::max(), eyes_move_frame = std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
+    int all_fade_frame = std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
     if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
 #if 0 //obsolete
@@ -427,6 +429,12 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(WQ_Row, v), &xy)) oldxy.phon[v]["WQ"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["WQ"] = "+" + str;
     }
 #endif // 0
+    bool want_voice[4], discarded[4];
+    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    {
+        want_voice[c] = (GridCoroFaces->GetCellValue(Model_Row, c) != SelectionHint); //don't write this one
+        discarded[c] = false;
+    }
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
         std::string phkey = (const char*)it->second.q->name.c_str();
@@ -447,15 +455,33 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write(wxString::Format("<tr frame=\"%d\">\n", prev_frame)); //include a little debug info here (frame#)
                 f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
                 f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc));
+//TODO: fade should be smarter
+                bool want_fade[4];
+                for (int v = 0; v < voices.size(); ++v)
+                    want_fade[v] = (all_fade_frame < it->first);
+//                for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
+//                    if (phit->second < it->first)
+//                        want_fade[phit->voice] = true;
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                     if (!frame_phonemes[voice].empty())
+                    {
+                        if (!want_voice[voice])
+                        {
+                            if (!discarded[voice]) errors += wxString::Format(wxT("Discarded '%s' starting in frame %d (%7.3f sec) - no Pgo settings\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+                            discarded[voice] = true;
+                        }
 //separated X:Y for phoneme, outlines, eyes
 //                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], wxEmptyString)); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
 //parsed (X,Y)
 //                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_TEXTCTRL_X_Y=%s,E1_TEXTCTRL_Outline_X_Y=%s,E1_TEXTCTRL_Eyes_X_Y=%s,E1_CHECKLISTBOX_CoroFaceElements=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], oldxy.phon[voice][std::string(frame_phonemes[voice].mb_str())], oldxy.outl[voice], oldxy.eyes[voice], (parsed.outl[voice] + parsed.eyes[voice] + parsed.phon[voice][std::string(frame_phonemes[voice].mb_str())]).substr(1))); //"1: 91# @I1-W30+2: 53# @G5-W14+3: 20# @O9-Q17+4: 35# @D15-V25"));
 //phoneme name or eye position
-                        f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_CHOICE_CoroFaces_Eyes=%s,E1_CHECKBOX_CoroFaces_Outline=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", frame_phonemes[voice], frame_eyes[voice], "Y"));
-                    else
+                        else
+                        {
+                            f.Write(wxString::Format("   <td Protected=\"0\">CoroFaces,None,Effect 1,ID_CHECKBOX_LayerMorph=%d,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_CHOICE_CoroFaces_Phoneme=%s,E1_CHOICE_CoroFaces_Eyes=%s,E1_CHECKBOX_CoroFaces_Outline=%s,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", want_fade[voice]? 1: 0, frame_phonemes[voice], frame_eyes[voice], "1")); //NOTE: SetEffectControls() looks for "1", not "Y"
+                            debug(10, "flush voice[%d]: phon '%s', eyes '%s', face '%s'", voice, (const char*)frame_phonemes[voice].c_str(), (const char*)frame_eyes[voice].c_str(), "Y");
+                        }
+                    }
+                    else if (want_voice[voice])
                         blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
                 ++numfr;
@@ -467,23 +493,24 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", all_fade_frame * 0.050));
                 f.Write("   <td Protected=\"0\">auto-fade all</td>\n");
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-                    blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                    if (want_voice[voice]) blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
                 ++numfr;
             }
+            else //don't do individual fade if entire face faded
 //TODO: sort this if perf becomes a problem; perf not too bad with simple loop so just leave it for now
-            for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
-                if (phit->second < it->first)
-                {
-                    debug(10, "auto-fade '%s' element: next frame %d, deadline was %d", it->first, all_fade_frame, phit->second);
-                    f.Write(wxString::Format("<tr frame=\"%d\">\n", phit->second)); //include a little debug info here (frame#)
-                    f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", phit->second * 0.050));
-                    f.Write(wxString::Format("   <td Protected=\"0\">'%s' auto-fade single</td>\n", phit->first));
-                    for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-                        blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
-                    f.Write("</tr>\n");
-                    ++numfr;
-                }
+                for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
+                    if (phit->second < it->first)
+                    {
+                        debug(10, "auto-fade '%s' element: next frame %d, deadline was %d", it->first, all_fade_frame, phit->second);
+                        f.Write(wxString::Format("<tr frame=\"%d\">\n", phit->second)); //include a little debug info here (frame#)
+                        f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", phit->second * 0.050));
+                        f.Write(wxString::Format("   <td Protected=\"0\">'%s' auto-fade single</td>\n", phit->first));
+                        for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
+                            if (want_voice[voice]) blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                        f.Write("</tr>\n");
+                        ++numfr;
+                    }
             debug(10, "footer: start new fr %d", it->first);
             prev_frame = it->first; //start new frame
             frame_desc.clear();
@@ -500,7 +527,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         wxString new_short_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
         if (new_short_desc != shorter_desc) shorter_desc.clear(); //can't use shorter desc (word or phoneme varies)
         debug(10, "footer: merge fr %d '%s'", it->first, (const char*)frame_desc.c_str());
-        if (!frame_phonemes[it->second.v - &voices[0]].empty() && (err_frame != it->first))
+        if (!frame_phonemes[it->second.v - &voices[0]].empty() && (err_frame != it->first) && want_voice[it->second.v - &voices[0]])
         {
             errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
             err_frame = it->first; //only report each frame 1x
@@ -535,6 +562,9 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 frame_eyes[it->second.v - &voices[0]] == "Open";
             eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
         }
+        else
+            frame_eyes[it->second.v - &voices[0]] = "Open";
+        debug(10, "frame eyes: blink? %d, lr? %d, result = '%s' for voice %d", CheckBox_CoroEyesRandomBlink->GetValue(), CheckBox_CoroEyesRandomLR->GetValue(), (const char*)frame_eyes[it->second.v - &voices[0]].c_str(), it->second.v - &voices[0]);
     }
 #endif // 1
     // wxFile f;
@@ -1360,6 +1390,7 @@ public:
     virtual void GetChoices(wxArrayString& choices, int row, int col); //added -DJ
     virtual void SelectionChanged(wxCommandEvent& event); //added -DJ
     virtual void EditDone(wxCommandEvent& event); //added -DJ
+//    virtual void EditDone2(wxMouseEvent& event); //added -DJ
 
 protected:
 //    wxComboBox *Combo() const { return (wxComboBox *)m_control; }
@@ -1437,6 +1468,8 @@ void myGridCellChoiceEditor::Create(wxWindow* parent,
                                style);
     m_text = new wxStaticText(parent, wxID_ANY /*wxNewId()*/, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_NO_AUTORESIZE);
     m_text->SetForegroundColour(*wxBLUE); //make it easier to see which cell will be changing
+    wxColor ltblue(200, 200, 255);
+    m_text->SetBackgroundColour(ltblue);
 //    m_text.SetForegroundColour(*wx(255,0,0)) # set text color
 //    m_text.SetBackgroundColour((0,0,255)) # set text back color
 
@@ -1456,8 +1489,10 @@ void myGridCellChoiceEditor::SelectionChanged(wxCommandEvent& event)
 //    wxGridCellAttr* attr = m_grid->GetCellAttr(m_row, m_col);
 //    PaintBackground(dc, m_rect, attr);
 //    attr->DecRef();
-    m_text->SetLabel(GetValue()); //show intermediate results
-    event.Skip();
+    wxASSERT_MSG(m_grid, wxT("Grid was not set < start click"));
+    if (!m_multi && m_grid) m_grid->DisableCellEditControl(); //dismiss after select if not multi-select
+    else m_text->SetLabel(GetValue()); //show intermediate results
+//    event.Skip();
 }
 
 void myGridCellChoiceEditor::EditDone(wxCommandEvent& event)
@@ -1467,6 +1502,14 @@ void myGridCellChoiceEditor::EditDone(wxCommandEvent& event)
     wxASSERT_MSG(m_grid, wxT("Grid was not set < start click"));
     if (m_grid) m_grid->DisableCellEditControl();
 }
+
+//void myGridCellChoiceEditor::EditDone2(wxMouseEvent& event)
+//{
+//    debug(10, "EVT: left click in cell, val = '%s'", (const char*)GetValue().c_str());
+////    m_editor->Reset();
+//    wxASSERT_MSG(m_grid, wxT("Grid was not set < start click"));
+//    if (m_grid) m_grid->DisableCellEditControl();
+//}
 
 void myGridCellChoiceEditor::SetSize(const wxRect& rect)
 {
@@ -1507,7 +1550,14 @@ void myGridCellChoiceEditor::SetSize(const wxRect& rect)
     rectTallEnough.width += 2; //kludge: not quite wide enough, due to border?
 #endif // 0
     debug(10, "cell editor: set size/pos (x %d, y %d, w %d, h %d)", rectTallEnough.x, rectTallEnough.y, rectTallEnough.width, rectTallEnough.height);
-    m_text->SetSize(rect);
+    wxRect txtrect = rect;
+//TODO: spacing needs a little tweaking yet
+    ++txtrect.x;
+    ++txtrect.y; //FUD
+    --txtrect.height;
+    --txtrect.width;
+//    txtrect.height -= 2;
+    m_text->SetSize(txtrect);
     wxGridCellEditor::SetSize(rectTallEnough);
 }
 
@@ -1545,7 +1595,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     wxASSERT_MSG(m_control,
                  wxT("The wxGridCellEditor must be created first!"));
 
-    debug(10, "grid cell begin edit: value[r %d, c %d] starts as '%s' cached as '%s'", row, col, (const char*)grid->GetCellValue(row, col).c_str(), (const char*)m_value.c_str()); //, row, col, (const char*)grid->GetCellValue(row, col).c_str());
+    debug(10, "grid cell begin edit: value[r %d, c %d] starts as '%s' cached as '%s', ctl? %d, text? %d", row, col, (const char*)grid->GetCellValue(row, col).c_str(), (const char*)m_value.c_str(), m_control, m_text); //, row, col, (const char*)grid->GetCellValue(row, col).c_str());
     wxGridCellEditorEvtHandler* evtHandler = NULL;
     if (m_control)
         evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
@@ -1556,16 +1606,21 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
         evtHandler->SetInSetFocus(true);
 //        Combo()->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&myGridCellChoiceEditor::SelectionChanged);
 //        Combo()->Connect(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&myGridCellChoiceEditor::DoubleClick);
-        debug(10, "bind custom evt handlers");
+        debug(10, "bind custom evt handlers to listbox");
         evtHandler->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &myGridCellChoiceEditor::SelectionChanged, this);
         evtHandler->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &myGridCellChoiceEditor::EditDone, this);
         m_grid = grid; //allow custom events to access grid
 //        m_row = row;
 //        m_col = col;
     }
-    wxGridCellEditorEvtHandler* evtHandler2 = NULL;
-    if (m_text) evtHandler2 = wxDynamicCast(m_text->GetEventHandler(), wxGridCellEditorEvtHandler);
-//TODO    if (evtHandler2) evtHandler2->Bind(wxEVT_LEFT_DOWN, &myGridCellChoiceEditor::EditDone, this);
+//no worky; use grid event handler instead
+//    wxGridCellEditorEvtHandler* evtHandler2 = NULL;
+//    if (m_text) evtHandler2 = wxDynamicCast(m_text->GetEventHandler(), wxGridCellEditorEvtHandler);
+//    if (evtHandler2)
+//    {
+//        debug(10, "bind custom evt handlers to static text");
+//        evtHandler2->Bind(wxEVT_LEFT_DOWN, &myGridCellChoiceEditor::EditDone2, this);
+//    }
 
     GetChoices(m_choices, row, col); //refresh list in case it changed
     Combo()->Set(m_choices);
@@ -1782,9 +1837,9 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
 
 //kludge: delay a little before showing drop-down list on grid
 //otherwise drop-down list doesn't display reliably
+#if 0 //obsolete
 void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
 {
-#if 0 //obsolete
 #ifdef GRID_EDIT_KLUDGE
     if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     int row = GridCoroFaces->GetCursorRow(), col = GridCoroFaces->GetCursorColumn();
@@ -1793,8 +1848,8 @@ void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
     PgoGridCellSelect(row, col, __LINE__); //(0, 0); //show drop-down to make ui more obvious
 //    Timer2.Stop();
 #endif //def GRID_EDIT_KLUDGE
-#endif // 0
 }
+#endif // 0
 
 //populate choice lists with model names, etc.
 void xLightsFrame::InitPapagayoTab(bool tab_changed)
@@ -1825,6 +1880,9 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
             Voice(i)->Append((*it)->name);
     }
 #endif // 0
+//    GridCoroFaces->ClearGrid();
+//    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+//        GridCoroFaces->SetCellValue(Model_Row, c, SelectionHint);
 #ifndef GRID_EDIT_KLUDGE
 //set up custom cell editor for all cells:
 //NOTE: behavior is different for top row vs. other cells so use 2 different editors (not strictly necessary, but safer)
@@ -1841,15 +1899,25 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
 #endif //ndef GRID_EDIT_KLUDGE
 }
 
-//add (X,Y) info back into settings file for easier reference
-static wxString addxy(ModelClass* model, wxString nodestr)
+//add (X,Y) info back into settings file for easier reference / debug
+static wxString addxy(ModelClass* model, const char* desc, wxString nodestr)
 {
-    long node;
     if (nodestr.empty()) return nodestr;
-    debug(10, "addxy: model? %d, node %s", model, (const char*)nodestr.c_str());
-    if (!model || !nodestr.ToLong(&node)) return nodestr;
-    debug(10, " => xy info '%s'", (const char*)model->GetNodeXY(node).c_str());
-    return model->GetNodeXY(node);
+    debug(10, "addxy '%s': model? %d, node %s", desc, model, (const char*)nodestr.c_str());
+    if (!model) return nodestr; //|| !nodestr.ToLong(&node)) return nodestr;
+    wxString retval;
+    wxStringTokenizer wtkz(nodestr, "+");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString nextnode = wtkz.GetNextToken().BeforeFirst(':');
+        if (nextnode.empty()) continue;
+        if (!retval.empty()) retval += wxT("+");
+//        long node;
+//        if (!nextnode.ToLong(&node)) { retval += nextnode; continue; }
+        retval += model->GetNodeXY(nextnode);
+    }
+    debug(10, " => xy info '%s'", (const char*)retval.c_str());
+    return retval;
 }
 
 //NOTE: this only saves one group name at a time to the xmldoc, then saves entire xmldoc to file
@@ -1889,23 +1957,23 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
         AddNonDupAttr(voice, Name, voice_model); //NOTE: could be blank
         if (voice_model.empty()) continue;
-        AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, GridCoroFaces->GetCellValue(Outline_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_open"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_open_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_closed"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_closed_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_up"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_up_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_down"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_down_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_left"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_left_Row, i)));
-        AddNonDupAttr(voice, wxT("Eyes_right"), addxy(model_info, GridCoroFaces->GetCellValue(Eyes_right_Row, i)));
-        AddNonDupAttr(voice, wxT("AI"), addxy(model_info, GridCoroFaces->GetCellValue(AI_Row, i)));
-        AddNonDupAttr(voice, wxT("E"), addxy(model_info, GridCoroFaces->GetCellValue(E_Row, i)));
-        AddNonDupAttr(voice, wxT("etc"), addxy(model_info, GridCoroFaces->GetCellValue(etc_Row, i)));
-        AddNonDupAttr(voice, wxT("FV"), addxy(model_info, GridCoroFaces->GetCellValue(FV_Row, i)));
-        AddNonDupAttr(voice, wxT("L"), addxy(model_info, GridCoroFaces->GetCellValue(L_Row, i)));
-        AddNonDupAttr(voice, wxT("MBP"), addxy(model_info, GridCoroFaces->GetCellValue(MBP_Row, i)));
-        AddNonDupAttr(voice, wxT("O"), addxy(model_info, GridCoroFaces->GetCellValue(O_Row, i)));
-        AddNonDupAttr(voice, wxT("rest"), addxy(model_info, GridCoroFaces->GetCellValue(rest_Row, i)));
-        AddNonDupAttr(voice, wxT("U"), addxy(model_info, GridCoroFaces->GetCellValue(U_Row, i)));
-        AddNonDupAttr(voice, wxT("WQ"), addxy(model_info, GridCoroFaces->GetCellValue(WQ_Row, i)));
+        AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, "outline", GridCoroFaces->GetCellValue(Outline_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_open"), addxy(model_info, "eyes_open", GridCoroFaces->GetCellValue(Eyes_open_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_closed"), addxy(model_info, "eyes_closed", GridCoroFaces->GetCellValue(Eyes_closed_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_up"), addxy(model_info, "eyes_up", GridCoroFaces->GetCellValue(Eyes_up_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_down"), addxy(model_info, "eyes_down", GridCoroFaces->GetCellValue(Eyes_down_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_left"), addxy(model_info, "eyes_left", GridCoroFaces->GetCellValue(Eyes_left_Row, i)));
+        AddNonDupAttr(voice, wxT("Eyes_right"), addxy(model_info, "eyes_right", GridCoroFaces->GetCellValue(Eyes_right_Row, i)));
+        AddNonDupAttr(voice, wxT("AI"), addxy(model_info, "AI", GridCoroFaces->GetCellValue(AI_Row, i)));
+        AddNonDupAttr(voice, wxT("E"), addxy(model_info, "E", GridCoroFaces->GetCellValue(E_Row, i)));
+        AddNonDupAttr(voice, wxT("etc"), addxy(model_info, "etc", GridCoroFaces->GetCellValue(etc_Row, i)));
+        AddNonDupAttr(voice, wxT("FV"), addxy(model_info, "FV", GridCoroFaces->GetCellValue(FV_Row, i)));
+        AddNonDupAttr(voice, wxT("L"), addxy(model_info, "L", GridCoroFaces->GetCellValue(L_Row, i)));
+        AddNonDupAttr(voice, wxT("MBP"), addxy(model_info, "MBP", GridCoroFaces->GetCellValue(MBP_Row, i)));
+        AddNonDupAttr(voice, wxT("O"), addxy(model_info, "O", GridCoroFaces->GetCellValue(O_Row, i)));
+        AddNonDupAttr(voice, wxT("rest"), addxy(model_info, "rest", GridCoroFaces->GetCellValue(rest_Row, i)));
+        AddNonDupAttr(voice, wxT("U"), addxy(model_info, "U", GridCoroFaces->GetCellValue(U_Row, i)));
+        AddNonDupAttr(voice, wxT("WQ"), addxy(model_info, "WQ", GridCoroFaces->GetCellValue(WQ_Row, i)));
         if (num_voice < 0) ++num_voice; //remember that a voice was selected
         if (non_empty) ++num_voice;
     }
@@ -1999,6 +2067,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 //        if (prefix != wxT("done")) continue;
 #endif
         debug(10, "model name[%d] now = '%s'", i, (const char*)GridCoroFaces->GetCellValue(Model_Row, i).c_str());
+        if (voice_name.empty()) GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint); //don't leave it blank
         GridCoroFaces->SetCellValue(Outline_Row, i, ExtractNodes(voice->GetAttribute(wxT("Outline"))));
         GridCoroFaces->SetCellValue(Eyes_open_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_open"))));
         GridCoroFaces->SetCellValue(Eyes_closed_Row, i, ExtractNodes(voice->GetAttribute(wxT("Eyes_closed"))));
@@ -2018,7 +2087,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         GridCoroFaces->SetCellValue(WQ_Row, i, ExtractNodes(voice->GetAttribute(wxT("WQ"))));
         debug(10, "set grid cells from voice attrs");
     }
-    if (!errors.empty()) wxMessageBox(errors, wxT("Bad config settings")); //only show one message
+    if (!errors.empty()) wxMessageBox(errors, wxT("Bad Papagayo config settings")); //only show one message
 }
 
 //TODO: use Save for Delete as well?
@@ -2038,14 +2107,17 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
 void xLightsFrame::OnButton_CoroGroupClearClick(wxCommandEvent& event)
 {
     GridCoroFaces->ClearGrid();
+    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+        GridCoroFaces->SetCellValue(Model_Row, c, SelectionHint);
 }
 
 //#include <wx/wxprec.h>
 //#include <wx/utils.h>
-static wxSize prevcell(-1, Model_Row);
+//static wxSize prevcell(-1, Model_Row);
 
 //kludge: expose additional methods
 //CAUTION: data members must remain the same for safe cast
+#if 0
 class myGrid: public wxGrid
 {
 public:
@@ -2056,6 +2128,7 @@ public:
     int GetRowBottom(int row) const { return wxGrid::GetRowBottom(row); }
     int GetRowHeight(int row) const { return wxGrid::GetRowHeight(row); }
 };
+#endif // 0
 
 void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 {
@@ -2070,9 +2143,11 @@ void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
     GridCoroFaces->SetCellEditor(event.GetRow(), event.GetCol(), new wxGridCellChoiceEditor(choices, false));
 #endif // 0
 #endif //def GRID_EDIT_KLUDGE
+    if (GridCoroFaces->IsCellEditControlShown()) GridCoroFaces->DisableCellEditControl(); //cancel editing; TODO: do this from within grid cell editor
+    debug(10, "cell(r %d, c %d) select", event.GetRow(), event.GetCol());
 }
 
-#define nodelist  Choice_RelativeNodes
+//#define nodelist  Choice_RelativeNodes
 //#define nodelist  ChoiceListBox_RelativeNodes
 //#define nodelist  ListBox_RelativeNodes
 
@@ -2105,6 +2180,7 @@ void xLightsFrame::GetMouthNodes(const wxString& model_name)
 }
 #endif // 0
 
+#ifdef GRID_EDIT_KLUDGE
 static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
 {
     wxStringTokenizer wtkz(nodestr, "+");
@@ -2126,7 +2202,6 @@ static void MultiSelectNodes(wxChoice* choices, wxString nodestr)
 //kludgey drop-down edit for grid cells:
 //TODO: maybe can use custom grid cell editor in wxWidgets 3.1
 //TODO: multi-select elements in Pgo grid cells
-#ifdef GRID_EDIT_KLUDGE
 void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 {
 //    wxMessageBox(wxT("editor shown"));
