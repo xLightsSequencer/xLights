@@ -399,7 +399,8 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     size_t numfr = 0;
     wxString frame_desc, shorter_desc;
     wxString errors;
-    wxString frame_phonemes[voices.size()], frame_eyes[voices.size()];
+    std::vector<wxString> frame_phonemes(voices.size());
+    std::vector<wxString> frame_eyes(voices.size());
     int all_fade_frame = std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
     if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
@@ -1641,7 +1642,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     // choice is made in it under OS X. The bug is almost certainly due to a
     // problem in focus events generation logic but it's not obvious to fix and
     // for now this at least allows to use wxGrid.
-    Combo()->Popup();
+//    Combo()->Popup();
 #endif
 
     if (evtHandler)
