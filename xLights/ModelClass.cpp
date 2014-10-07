@@ -906,15 +906,14 @@ wxSize ModelClass::GetChannelCoords(std::vector<std::vector<int>>& chxy, bool sh
 ModelClass* ModelClass::FindModel(const wxString& name)
 {
 //TODO: use static member array rather than xLightsFrame?
-//first check active models:
-    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::PreviewModels.end(); ++it)
+//first check active models, then non-preview models:
+    for (auto it = xLightsFrame::PreviewModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
     {
-        if ((*it)->name.IsEmpty()) continue;
-        if ((*it)->name == name) return &**it;
-    }
-//also check non-preview models:
-    for (auto it = xLightsFrame::OtherModels.begin(); it != xLightsFrame::OtherModels.end(); ++it)
-    {
+        if (it == xLightsFrame::PreviewModels.end()) //also list non-preview models
+        {
+            it = xLightsFrame::OtherModels.begin() - 1;
+            continue;
+        }
         if ((*it)->name.IsEmpty()) continue;
         if ((*it)->name == name) return &**it;
     }
@@ -1037,46 +1036,53 @@ wxString ModelClass::GetNodeXY(int nodeinx)
 }
 
 //extract first (X,Y) from string formatted above:
-bool ModelClass::ParseFaceElement(const wxString& str, wxPoint* first_xy)
+bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint>& first_xy)
 {
-    first_xy->x = first_xy->y = 0;
-    if (str.Find('@') == wxNOT_FOUND) return false;
+//    first_xy->x = first_xy->y = 0;
+//    first_xy.clear();
+    wxStringTokenizer wtkz(multi_str, "+");
+    while (wtkz.HasMoreTokens())
+    {
+        wxString str = wtkz.GetNextToken();
+        if (str.empty()) continue;
+        if (str.Find('@') == wxNOT_FOUND) continue; //return false;
 #if 0 //hard-coded test results
-    first_xy->x = 1; first_xy->y = 2; //TODO
+        first_xy.push_back(1, 2); //TODO
 #else
-    wxString xystr = str.AfterFirst('@');
-    if (xystr.empty()) return false;
-    if (xystr[0] == '(')
-    {
-        long val;
-        xystr.Remove(0, 1);
-        if (!xystr.BeforeFirst(',').ToLong(&val)) return false;
-        first_xy->x = val;
-        if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&val)) return false;
-        first_xy->y = val;
-    }
-    else
-    {
-        int parts = 0;
-        while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z'))
+        wxString xystr = str.AfterFirst('@');
+        if (xystr.empty()) continue; //return false;
+        long xval = 0, yval = 0;
+        if (xystr[0] == '(')
         {
-            first_xy->x *= 26;
-            first_xy->x += xystr[0] - 'A';
             xystr.Remove(0, 1);
-            parts |= 1;
+            if (!xystr.BeforeFirst(',').ToLong(&xval)) continue; //return false;
+            if (!xystr.AfterFirst(',').BeforeFirst(')').ToLong(&yval)) continue; //return false;
         }
-        while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9'))
+        else
         {
-            first_xy->y *= 10;
-            first_xy->y += xystr[0] - '0';
-            xystr.Remove(0, 1);
-            parts |= 2;
+            int parts = 0;
+            while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z'))
+            {
+                xval *= 26;
+                xval += xystr[0] - 'A';
+                xystr.Remove(0, 1);
+                parts |= 1;
+            }
+            while (!xystr.empty() && (xystr[0] >= '0') && (xystr[0] <= '9'))
+            {
+                yval *= 10;
+                yval += xystr[0] - '0';
+                xystr.Remove(0, 1);
+                parts |= 2;
+            }
+            if (parts != 3) continue; //return false;
+            if (!xystr.empty() && (xystr[0] != '-')) continue; //return false;
         }
-        if (parts != 3) return false;
-        if (!xystr.empty() && (xystr[0] != '-')) return false;
+        wxPoint newxy(xval, yval);
+        first_xy.push_back(newxy);
     }
 #endif // 0
-    return true;
+    return !first_xy.empty(); //true;
 }
 #endif // 0
 

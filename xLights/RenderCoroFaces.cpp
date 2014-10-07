@@ -221,7 +221,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         hsv.value=1.0;
         hsv.saturation=1.0;
 
-        wxPoint first_xy;
+        std::vector<wxPoint> first_xy;
         ModelClass* model_info = ModelClass::FindModel(cur_model);
         if (!model_info || !parse_model(cur_model))
         {
@@ -234,25 +234,30 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         {
             wxString info = map[(const char*)Phoneme.c_str()];
 //            if (xy_info) info = xy_info->GetAttribute(Phoneme);
-            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
-            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', phoneme '%s', parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
+            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', phoneme '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)info.c_str(), ok);
         }
         if (!eyes.empty())
         {
             wxString info = map[(const char*)wxString::Format(wxT("Eyes_%s"), eyes.Lower()).c_str()];
 //            if (xy_info) info = xy_info->GetAttribute(eyes);
-            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
-            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', eyes '%s', parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)eyes.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
+            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', eyes '%s', parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)eyes.c_str(), (const char*)info.c_str(), ok);
         }
         if (face_outline)
         {
             wxString info = map["Outline"];
 //            if (xy_info) info = xy_info->GetAttribute("Outline");
-            bool ok = ModelClass::ParseFaceElement(info, &first_xy);
-            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "model '%s', outline, parsed info '%s', turn on (x %d, y %d)? %d", (const char*)cur_model.c_str(), (const char*)info.c_str(), first_xy.x, first_xy.y, ok);
+            bool ok = ModelClass::ParseFaceElement(info, first_xy);
+//            if (ok) SetPixel(first_xy.x, BufferHt - first_xy.y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "model '%s', outline, parsed info '%s', turn on? %d", (const char*)cur_model.c_str(), (const char*)info.c_str(), ok);
+        }
+        for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
+        {
+            SetPixel((*it).x, BufferHt - (*it).y, hsv); //only need to turn on first pixel for each face part
+            debug(10, "turn on (x %d, y %d)", (*it).x, (*it).y);
         }
 
 #if 0 //obsolete
