@@ -9,7 +9,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights-Nutcracker
-AppVersion=3.4.15
+AppVersion=3.4.17
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 UninstallDisplayIcon={app}\xLights.exe
@@ -24,6 +24,7 @@ Source: "bin/ffmpeg.exe"; DestDir: "{app}"
 Source: "bin/gawk.exe"; DestDir: "{app}"
 Source: "bin/coroface.awk"; DestDir: "{app}"
 Source: "bin/corofaces.bat"; DestDir: "{app}"
+Source: "bin/picturefaces.awk"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
 Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: recursesubdirs

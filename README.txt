@@ -6,7 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
+3.4.17 PRE-RELEASE. There are still bugs we are working in the corofaces code. One we know of , outline does not show in PREVIEW
+	-enh (djulien) This release sees the Papagayo Tab for Corofaces working.
+					Tou use this, choose a pgo file as inpu, choose a file for output
+					Choose your custom models from a pull down list. Be sure they have "Part of my Display" checked.
+					Assign channels to Phonemes. You can assign multiple channels by doing ctl-click.
+					Create an xml file of the pgo.
+3.4.16
 	-enh (djulien) Add zoom in/out buttons on Custom Model grid display (makes it easier to see larger grids)
 	-enh (djulien) On Papagayo Coro faces tab, moved model name into grid, show drop-down list of choices in grid cells, allow Pagagayo file stitch ("+" button), add UI controls for face element auto-fade, save/restore last tab, show list of checkboxes in Coro Faces effect panel
 3.4.15  Sep 28, 2014
