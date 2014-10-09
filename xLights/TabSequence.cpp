@@ -1095,7 +1095,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderCoroFaces(SettingsMap[LayerStr+"CHOICE_CoroFaces_Phoneme"],
                                SettingsMap[LayerStr+"CHOICE_CoroFaces_Eyes"],
-                               SettingsMap[LayerStr+"CHECKBOX_CoroFaces_Outline"] == "Y");
+                               SettingsMap[LayerStr+"CHECKBOX_CoroFaces_Outline"] == "1");
     }
     else if (effect == "Fire")
     {

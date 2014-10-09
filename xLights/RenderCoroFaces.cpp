@@ -232,9 +232,10 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         std::unordered_map<std::string, std::string>& map = model_xy[(const char*)cur_model.c_str()];
         if (Phoneme == wxT("(test)"))
         {
-            /*static*/ wxString info;
+            /*static*/ wxString info = eyes;
+//            eyes.clear();
 //            if (!state && !EffectTreeDialog::PromptForName(NULL, &info, wxT("Enter @(x, y) to turn on"), wxT("Need (X, Y) for test"))) return;
-            info = wxT("@F2");
+//            info = wxT("@F2"); //TextCtrl_CoroTest->GetValue();
             bool ok = ModelClass::ParseFaceElement(info, first_xy);
             debug(10, "model '%s', state %d, test '%s', turn on? %d", (const char*)cur_model.c_str(), state, (const char*)info.c_str(), ok);
         }

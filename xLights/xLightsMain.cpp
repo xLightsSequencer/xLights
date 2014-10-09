@@ -1784,7 +1784,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CoroFacesPhoneme.Add("etc");
     CoroFacesPhoneme.Add("rest");
     CoroFacesPhoneme.Add("(off)"); //allow turn off mouth (ie, eyes only)
-    CoroFacesPhoneme.Add("(test)"); //debug/test
+    if (xLightsApp::WantDebug) CoroFacesPhoneme.Add("(test)"); //debug/test
 
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
