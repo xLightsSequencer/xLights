@@ -575,13 +575,16 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         }
         else if (CheckBox_CoroEyesRandomLR->GetValue())
         {
+            eyes_move_frame[voice] = it->first + rand() % (eyes_delay / 4); //set next deadline (shorter)
             if (frame_eyes[voice] == "Open")
                 frame_eyes[voice] = "Left";
             else if (frame_eyes[voice] == "Left")
                 frame_eyes[voice] = "Right";
             else
+            {
                 frame_eyes[voice] = "Open";
-            eyes_move_frame[voice] = it->first + rand() % eyes_delay; //set next deadline
+                eyes_move_frame[voice] = it->first + rand() % eyes_delay; //set next deadline (longer)
+            }
         }
         else
             frame_eyes[voice] = "Open"; //leave eyes open
