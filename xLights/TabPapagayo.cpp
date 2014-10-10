@@ -304,9 +304,16 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 //    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
 }
 
+//blank out previous effect:
 static void blank(wxFile& f, bool fade = false)
 {
     f.Write(wxString::Format("    <td Protected=\"0\">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=%d,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=0,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=0,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=1,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>\n", fade? 1: 0));
+}
+
+//leave previous effect running:
+static void nochange(wxFile& f)
+{
+    f.Write("<td Protected=\"0\"></td>\n");
 }
 
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
@@ -401,9 +408,9 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     wxString errors;
     std::vector<wxString> frame_phonemes(voices.size());
     std::vector<wxString> frame_eyes(voices.size());
-    int all_fade_frame = std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
+    int all_fade_frame[4], eyes_move_frame[4]; //= std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
-    if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
+//    if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
 #if 0 //obsolete
     struct
     {
@@ -435,16 +442,21 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     {
         want_voice[c] = (GridCoroFaces->GetCellValue(Model_Row, c) != SelectionHint); //don't write this one
         discarded[c] = false;
+        all_fade_frame[c] = std::numeric_limits<int>::max();
+        eyes_move_frame[c] = eyes_delay? rand() % eyes_delay: 0;
     }
     for (auto it = phoemes_by_start_frame.begin(); it != phoemes_by_start_frame.end(); ++it) //write out sorted entries
     {
         std::string phkey = (const char*)it->second.q->name.c_str();
         phkey += (const char*)it->second.v->name.c_str(); //tag phoneme with voice name so it can have different delay deadline
-        debug(10, "compare frame %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s' vs. prev frame %d = %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s', auto-fade all %d, element %d", it->first, it->second.v, (const char*)it->second.v->name.c_str(), it->second.p, (const char*)it->second.p->name.c_str(), it->second.w, (const char*)it->second.w->name.c_str(), it->second.q, (const char*)it->second.q->name.c_str(), prev_frame, (it != phoemes_by_start_frame.begin())? (it - 1)->first: -2, (it != phoemes_by_start_frame.begin())? (it - 1)->second.v: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.v->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.p: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.p->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.w: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.w->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.q: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.q->name.c_str(): "(none)", all_fade_frame, (single_fade_frame.find(phkey) != single_fade_frame.end())? single_fade_frame[phkey]: 0);
+        debug(10, "compare frame %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s' vs. prev frame %d = %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s', auto-fade all %d, element %d", it->first, it->second.v, (const char*)it->second.v->name.c_str(), it->second.p, (const char*)it->second.p->name.c_str(), it->second.w, (const char*)it->second.w->name.c_str(), it->second.q, (const char*)it->second.q->name.c_str(), prev_frame, (it != phoemes_by_start_frame.begin())? (it - 1)->first: -2, (it != phoemes_by_start_frame.begin())? (it - 1)->second.v: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.v->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.p: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.p->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.w: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.w->name.c_str(): "(none)", (it != phoemes_by_start_frame.begin())? (it - 1)->second.q: 0, (it != phoemes_by_start_frame.begin())? (const char*)(it - 1)->second.q->name.c_str(): "(none)", all_fade_frame[it->second.v - & voices[0]], (single_fade_frame.find(phkey) != single_fade_frame.end())? single_fade_frame[phkey]: 0);
         if (it != phoemes_by_start_frame.begin())
             if (Sorter(*(it - 1), *it) && Sorter(*it, *(it - 1))) continue; //skip duplicates; reuse Sorter lggic: lhs >= rhs && rhs >= lhs ==> lhs == rhs
         if (it->first != prev_frame)
         {
+            bool want_fade[4]; //multiple faces might be fading at same time so use an array
+            for (int v = 0; v < voices.size(); ++v)
+                want_fade[v] = (all_fade_frame[v] < it->first);
             if (prev_frame != -1) //flush prev frame
             {
                 frame_desc = frame_desc.substr(2); //remove leading ", "
@@ -457,9 +469,6 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                 f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", seconds));
                 f.Write(wxString::Format("   <td Protected=\"0\">%s</td>\n", frame_desc));
 //TODO: fade should be smarter
-                bool want_fade[4];
-                for (int v = 0; v < voices.size(); ++v)
-                    want_fade[v] = (all_fade_frame < it->first);
 //                for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
 //                    if (phit->second < it->first)
 //                        want_fade[phit->voice] = true;
@@ -483,35 +492,45 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
                         }
                     }
                     else if (want_voice[voice])
-                        blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                        nochange(f); //blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
                 ++numfr;
             }
-            if (all_fade_frame < it->first)
+            while (want_fade[0] || want_fade[1] || want_fade[2] || want_fade[3]) //might have multiple fades (at different times)
             {
-                debug(10, "auto-fade all elements: next frame %d, deadline was %d (%7.3f sec)", it->first, all_fade_frame, all_fade_frame * 0.050);
-                f.Write(wxString::Format("<tr frame=\"%d\">\n", all_fade_frame)); //include a little debug info here (frame#)
-                f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", all_fade_frame * 0.050));
+//TODO: sort array to avoid bulky compare
+                int next_fade = std::min(std::min(want_fade[0]? all_fade_frame[0]: std::numeric_limits<int>::max(), want_fade[1]? all_fade_frame[1]: std::numeric_limits<int>::max()), std::min(want_fade[2]? all_fade_frame[2]: std::numeric_limits<int>::max(), want_fade[3]? all_fade_frame[3]: std::numeric_limits<int>::max()));
+                debug(10, "auto-fade all elements: next frame %d, deadline was %d (%7.3f sec)", it->first, next_frame, next_frame * 0.050);
+                f.Write(wxString::Format("<tr frame=\"%d\">\n", next_fade)); //include a little debug info here (frame#)
+                f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", next_fade * 0.050));
                 f.Write("   <td Protected=\"0\">auto-fade all</td>\n");
                 for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-                    if (want_voice[voice]) blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                    if (want_fade[voice] && (all_fade_frame[voice] <= next_fade))
+                    {
+                        blank(f); //fade current voice
+                        want_fade[voice] = false;
+                        all_fade_frame[voice] = std::numeric_limits<int>::max(); //don't do it again next time
+                    }
+                    else nochange(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                 f.Write("</tr>\n");
                 ++numfr;
             }
+#if 0 //broken
             else //don't do individual fade if entire face faded
 //TODO: sort this if perf becomes a problem; perf not too bad with simple loop so just leave it for now
                 for (auto phit = single_fade_frame.begin(); phit != single_fade_frame.end(); ++phit)
                     if (phit->second < it->first)
                     {
-                        debug(10, "auto-fade '%s' element: next frame %d, deadline was %d", it->first, all_fade_frame, phit->second);
+                        debug(10, "auto-fade '%s' element: next frame %d, deadline was %d", phit->first, it->first, phit->second);
                         f.Write(wxString::Format("<tr frame=\"%d\">\n", phit->second)); //include a little debug info here (frame#)
                         f.Write(wxString::Format("   <td Protected=\"0\">%7.3f</td>\n", phit->second * 0.050));
                         f.Write(wxString::Format("   <td Protected=\"0\">'%s' auto-fade single</td>\n", phit->first));
                         for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
-                            if (want_voice[voice]) blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
+                            if (want_voice[voice]) nochange(f); //blank(f); //need placeholder in grid (xLights incorrectly handles missing column data)
                         f.Write("</tr>\n");
                         ++numfr;
                     }
+#endif // 0
             debug(10, "footer: start new fr %d", it->first);
             prev_frame = it->first; //start new frame
             frame_desc.clear();
@@ -528,44 +547,45 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         wxString new_short_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
         if (new_short_desc != shorter_desc) shorter_desc.clear(); //can't use shorter desc (word or phoneme varies)
         debug(10, "footer: merge fr %d '%s'", it->first, (const char*)frame_desc.c_str());
-        if (!frame_phonemes[it->second.v - &voices[0]].empty() && (err_frame != it->first) && want_voice[it->second.v - &voices[0]])
+        int voice = it->second.v - &voices[0];
+        if (!frame_phonemes[voice].empty() && (err_frame != it->first) && want_voice[voice])
         {
             errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
             err_frame = it->first; //only report each frame 1x
         }
-        frame_phonemes[it->second.v - &voices[0]] = it->second.q->name; //phoneme
-        if (all_delay) all_fade_frame = it->first + all_delay; //set next deadline
+        frame_phonemes[voice] = it->second.q->name; //phoneme
+        if (all_delay) all_fade_frame[voice] = it->first + all_delay; //set next deadline
         if (single_delay) single_fade_frame[phkey] = it->first + single_delay; //set per-phoneme deadline
 //TODO: need to improve random (random start time but somewhat fixed duration)
 //            eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
 //            frame_eyes[it->second.v - &voices[0]] = CheckBox_CoroEyesRandomBlink->GetValue()? ((rand() % 6)? "Open": "Closed"): CheckBox_CoroEyesRandomLR->GetValue()? "Left": "Open"; //eyes
-        if (it->first < eyes_move_frame) continue;
+        if (it->first < eyes_move_frame[voice]) continue; //not time to move eyes yet
         if (CheckBox_CoroEyesRandomBlink->GetValue())
         {
-            if (frame_eyes[it->second.v - &voices[0]] != "Closed")
+            if (frame_eyes[voice] != "Closed")
             {
-                frame_eyes[it->second.v - &voices[0]] == "Closed";
-                eyes_move_frame = it->first + 10; //1/2 sec blink
+                frame_eyes[voice] = "Closed";
+                eyes_move_frame[voice] = it->first + 10; //1/2 sec blink
             }
             else
             {
-                frame_eyes[it->second.v - &voices[0]] == "Open";
-                eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
+                frame_eyes[voice] = "Open";
+                eyes_move_frame[voice] = it->first + rand() % eyes_delay; //set next deadline
             }
         }
         else if (CheckBox_CoroEyesRandomLR->GetValue())
         {
-            if (frame_eyes[it->second.v - &voices[0]] == "Open")
-                frame_eyes[it->second.v - &voices[0]] == "Left";
-            else if (frame_eyes[it->second.v - &voices[0]] == "Left")
-                frame_eyes[it->second.v - &voices[0]] == "Right";
+            if (frame_eyes[voice] == "Open")
+                frame_eyes[voice] = "Left";
+            else if (frame_eyes[voice] == "Left")
+                frame_eyes[voice] = "Right";
             else
-                frame_eyes[it->second.v - &voices[0]] == "Open";
-            eyes_move_frame = it->first + rand() % eyes_delay; //set next deadline
+                frame_eyes[voice] = "Open";
+            eyes_move_frame[voice] = it->first + rand() % eyes_delay; //set next deadline
         }
         else
-            frame_eyes[it->second.v - &voices[0]] = "Open";
-        debug(10, "frame eyes: blink? %d, lr? %d, result = '%s' for voice %d", CheckBox_CoroEyesRandomBlink->GetValue(), CheckBox_CoroEyesRandomLR->GetValue(), (const char*)frame_eyes[it->second.v - &voices[0]].c_str(), it->second.v - &voices[0]);
+            frame_eyes[voice] = "Open"; //leave eyes open
+        debug(10, "frame eyes: blink? %d, lr? %d, result = '%s' for voice %d", CheckBox_CoroEyesRandomBlink->GetValue(), CheckBox_CoroEyesRandomLR->GetValue(), (const char*)frame_eyes[voice].c_str(), voice);
     }
 #endif // 1
     // wxFile f;
