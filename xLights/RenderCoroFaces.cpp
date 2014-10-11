@@ -136,6 +136,8 @@ static bool parse_model(const wxString& want_model)
     wxXmlNode* CoroFaces = xLightsFrame::FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString);
     if (!CoroFaces) return false;
 //    wxString buf;
+//group name is not available, so use first occurrence of model in *any* group:
+//NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
     for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
     {
         wxString grpname = group->GetAttribute(wxT("name"));
@@ -152,7 +154,7 @@ static bool parse_model(const wxString& want_model)
 //XmlNode getting trashed later, so save it here
             std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
             map.clear();
-            debug(10, "using xml info '%s'", (const char*)voice->GetContent().c_str());
+            debug(10, "model '%s': using xml info '%s'", (const char*)want_model.c_str(), (const char*)voice->GetContent().c_str());
             for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
             {
                 wxString value = attrp->GetValue();
@@ -180,8 +182,8 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from ModelClass and gives the name of the model currently being used
 //therefore we can access the model info by going to parent object's buffer member
 //    wxString model_name = "???";
-    if (!state) model_xy.clear(); //flush cache at start
-    debug(10, "RenderCoroFaces: state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
+    if (!cur_period) model_xy.clear(); //flush cache once at start of each effect
+    debug(10, "RenderCoroFaces: frame %d (%7.3f sec), state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", cur_period, cur_period * 0.05, state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
 //    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 
     /*
@@ -196,12 +198,12 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         FacesPhoneme.Add("etc");    8
         FacesPhoneme.Add("rest");   9
     */
-    wxColour color;
+//    wxColour color;
     wxImage::HSVValue hsv;
-    int maxframe=BufferHt*2;
-    int frame=(BufferHt * state / 200)%maxframe;
-    double offset=double(state)/100.0;
-    size_t colorcnt=GetColorCount();
+//    int maxframe=BufferHt*2;
+//    int frame=(BufferHt * state / 200)%maxframe;
+//    double offset=double(state)/100.0;
+//    size_t colorcnt=GetColorCount();
 
 //    std::vector<int> chmap;
 //    std::vector<std::vector<int>> chmap; //array of arrays
@@ -266,7 +268,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
         {
             SetPixel((*it).x, BufferHt - (*it).y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "turn on (x %d, y %d)", (*it).x, (*it).y);
+            debug(10, "turn on (x %d, y %d), set to color [h %3.2f, s %3.2f, v %3.2f]", (*it).x, (*it).y, hsv.hue, hsv.saturation, hsv.value);
         }
 
 #if 0 //obsolete

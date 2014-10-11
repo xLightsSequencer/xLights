@@ -127,6 +127,7 @@ protected:
     int curEffEndPer;      /**<  */
     int nextEffTimePeriod; /**<  */
     wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
+    int cur_period; //current frame# within sequence
 
     class RgbFireworks
     {
