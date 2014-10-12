@@ -186,18 +186,17 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
     debug(10, "RenderCoroFaces: frame %d (%7.3f sec), state %d, model '%s', mouth/phoneme '%s', eyes '%s', face outline? %d", cur_period, cur_period * 0.05, state, (const char*)cur_model.c_str(), (const char*)Phoneme.c_str(), (const char*)eyes.c_str(), face_outline);
 //    if (prev_model != cur_model) get_elements(CheckListBox_CoroFaceElements, curmodel); //update choice list
 
-    /*
-        FacesPhoneme.Add("AI");     0
-        FacesPhoneme.Add("E");      1
-        FacesPhoneme.Add("FV");     2
-        FacesPhoneme.Add("L");      3
-        FacesPhoneme.Add("MBP");    4
-        FacesPhoneme.Add("O");      5
-        FacesPhoneme.Add("U");      6
-        FacesPhoneme.Add("WQ");     7
-        FacesPhoneme.Add("etc");    8
-        FacesPhoneme.Add("rest");   9
-    */
+//NOTE: Pgo tab adds "a-" prefix for auto-faces
+//CAUTION: ints must match what RenderFaces() is expecting
+    static std::unordered_map<std::string, int> auto_phonemes {{"a-AI", 0}, {"a-E", 1}, {"a-FV", 2}, {"a-L", 3}, {"a-MBP", 4}, {"a-O", 5}, {"a-U", 6}, {"a-WQ", 7}, {"a-etc", 8}, {"a-rest", 9}};
+//    static const char* auto_eyes[] = {"Open", "Closed", "Left", "Right", "Up", "Down"};
+
+    if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
+    {
+        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()]); //TODO: add params for eyes, outline
+        return;
+    }
+
 //    wxColour color;
     wxImage::HSVValue hsv;
 //    int maxframe=BufferHt*2;

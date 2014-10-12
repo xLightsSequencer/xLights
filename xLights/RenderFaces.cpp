@@ -66,10 +66,6 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 #endif // 0
 
 
-//NOTE: params are re-purposed as follows for Coro face mode:
-// x_y = list of active elements for this frame
-// Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
-// Eyes_x_y = list of random elements (intended for eye blinks, etc)
 void RgbEffects::RenderFaces(int Phoneme)
 {
 
@@ -95,14 +91,14 @@ void RgbEffects::RenderFaces(int Phoneme)
 
 
 //    std::vector<int> chmap;
-    std::vector<std::vector<int>> chmap; //array of arrays
+//    std::vector<std::vector<int>> chmap; //array of arrays
 //    chmap.resize(BufferHt * BufferWi,0);
 //    ModelClass mc;
 //    mc.GetChannelCoords(chmap, true); //method is on ModelClass object
 
 
 
-    wxString html = "<html><body><table border=0>";
+//    wxString html = "<html><body><table border=0>";
     int Ht, Wt;
     Ht = BufferHt;
     Wt = BufferWi;
@@ -143,6 +139,7 @@ void RgbEffects::RenderFaces(int Phoneme)
 }
 
 
+//TODO: add params for eyes, outline
 void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
 {
     /*
