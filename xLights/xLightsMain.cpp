@@ -273,6 +273,7 @@ const long xLightsFrame::ID_CHOICE_PgoGroupName = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_SaveCoroGroup = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupDelete = wxNewId();
 const long xLightsFrame::ID_BUTTON_CoroGroupClear = wxNewId();
+const long xLightsFrame::ID_BUTTON_PgoCopyVoices = wxNewId();
 const long xLightsFrame::ID_GRID_COROFACES = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_AutoFadePgoElement = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_AutoFadePgoElement = wxNewId();
@@ -1133,6 +1134,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_pgo_filename->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer47->Add(Button_pgo_filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_pgo_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(236,23), 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    TextCtrl_pgo_filename->SetToolTip(_("Papagayo input file contains voices and phonemes."));
     FlexGridSizer47->Add(TextCtrl_pgo_filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Button_PgoStitch = new wxButton(PanelPapagayo, ID_BUTTON_PgoStitch, _("+"), wxDefaultPosition, wxSize(29,23), 0, wxDefaultValidator, _T("ID_BUTTON_PgoStitch"));
     Button_PgoStitch->SetToolTip(_("Stitch Papagayo file"));
@@ -1147,6 +1149,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_papagayo_output_sequence->SetBackgroundColour(wxColour(224,224,224));
     FlexGridSizer54->Add(Button_papagayo_output_sequence, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_papagayo_output_filename = new wxTextCtrl(PanelPapagayo, ID_TEXTCTRL67, wxEmptyString, wxDefaultPosition, wxSize(237,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL67"));
+    TextCtrl_papagayo_output_filename->SetToolTip(_("Sequence output will contain the generated effects."));
     FlexGridSizer54->Add(TextCtrl_papagayo_output_filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer56->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText68 = new wxStaticText(PanelPapagayo, ID_STATICTEXT71, _("3)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT71"));
@@ -1162,6 +1165,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Choice_PgoOutputType->Append(_("Coro faces"));
     Choice_PgoOutputType->Append(_("Image faces"));
     Choice_PgoOutputType->Append(_("Movie faces"));
+    Choice_PgoOutputType->SetToolTip(_("Output type determines the effects used to generate the sequence."));
     FlexGridSizer57->Add(Choice_PgoOutputType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_PgoOutputType = new wxStaticText(PanelPapagayo, ID_STATICTEXT_PgoOutputType, _("(explanation)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PgoOutputType"));
     FlexGridSizer57->Add(StaticText_PgoOutputType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1187,9 +1191,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer50->Add(BitmapButton_SaveCoroGroup, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CoroGroupDelete = new wxButton(PanelPapagayo, ID_BUTTON_CoroGroupDelete, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CoroGroupDelete"));
     Button_CoroGroupDelete->Hide();
+    Button_CoroGroupDelete->SetToolTip(_("Delete current Preset."));
     FlexGridSizer50->Add(Button_CoroGroupDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_CoroGroupClear = new wxButton(PanelPapagayo, ID_BUTTON_CoroGroupClear, _("Clear Grid"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CoroGroupClear"));
+    Button_CoroGroupClear->SetToolTip(_("Clear all grid values."));
     FlexGridSizer50->Add(Button_CoroGroupClear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_PgoCopyVoices = new wxButton(PanelPapagayo, ID_BUTTON_PgoCopyVoices, _("Copy First"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PgoCopyVoices"));
+    Button_PgoCopyVoices->SetToolTip(_("Copy Voice 1 values to other columns."));
+    FlexGridSizer50->Add(Button_PgoCopyVoices, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer56->Add(FlexGridSizer50, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer56->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer8 = new wxBoxSizer(wxHORIZONTAL);
@@ -1273,7 +1282,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PanelPreview, _("Preview"), false);
     Notebook1->AddPage(PaneNutcracker, _("Nutcracker"), false);
     Notebook1->AddPage(PanelCal, _("Schedule"), false);
-    Notebook1->AddPage(PanelPapagayo, _("Papagayo (IN DEVELOPMENT)"), false);
+    Notebook1->AddPage(PanelPapagayo, _("Papagayo"), false);
     FlexGridSizer2->Add(Notebook1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1->SetSizer(FlexGridSizer2);
     FlexGridSizer2->Fit(Panel1);
@@ -1449,6 +1458,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON_SaveCoroGroup,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton_SaveCoroGroupClick);
     Connect(ID_BUTTON_CoroGroupDelete,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupDeleteClick);
     Connect(ID_BUTTON_CoroGroupClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupClearClick);
+    Connect(ID_BUTTON_PgoCopyVoices,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PgoCopyVoicesClick);
     Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesCellSelect);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged);

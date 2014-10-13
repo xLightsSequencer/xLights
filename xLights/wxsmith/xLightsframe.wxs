@@ -2343,6 +2343,7 @@
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_pgo_filename" member="yes">
 																			<size>236,23</size>
+																			<tooltip>Papagayo input file contains voices and phonemes.</tooltip>
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -2395,6 +2396,7 @@
 																	<object class="sizeritem">
 																		<object class="wxTextCtrl" name="ID_TEXTCTRL67" variable="TextCtrl_papagayo_output_filename" member="yes">
 																			<size>237,20</size>
+																			<tooltip>Sequence output will contain the generated effects.</tooltip>
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -2440,6 +2442,7 @@
 																				<item>Image faces</item>
 																				<item>Movie faces</item>
 																			</content>
+																			<tooltip>Output type determines the effects used to generate the sequence.</tooltip>
 																			<handler function="OnChoice_PgoOutputTypeSelect" entry="EVT_CHOICE" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2531,6 +2534,7 @@
 																		<object class="wxButton" name="ID_BUTTON_CoroGroupDelete" variable="Button_CoroGroupDelete" member="yes">
 																			<label>Delete</label>
 																			<hidden>1</hidden>
+																			<tooltip>Delete current Preset.</tooltip>
 																			<handler function="OnButton_CoroGroupDeleteClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2540,7 +2544,18 @@
 																	<object class="sizeritem">
 																		<object class="wxButton" name="ID_BUTTON_CoroGroupClear" variable="Button_CoroGroupClear" member="yes">
 																			<label>Clear Grid</label>
+																			<tooltip>Clear all grid values.</tooltip>
 																			<handler function="OnButton_CoroGroupClearClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON_PgoCopyVoices" variable="Button_PgoCopyVoices" member="yes">
+																			<label>Copy First</label>
+																			<tooltip>Copy Voice 1 values to other columns.</tooltip>
+																			<handler function="OnButton_PgoCopyVoicesClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -2736,7 +2751,7 @@
 											</object>
 										</object>
 									</object>
-									<label>Papagayo (IN DEVELOPMENT)</label>
+									<label>Papagayo</label>
 								</object>
 							</object>
 							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
