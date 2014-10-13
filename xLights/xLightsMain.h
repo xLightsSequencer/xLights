@@ -423,6 +423,7 @@ private:
     void OnButton_PgoStitchClick(wxCommandEvent& event);
     void OnCheckBox_AutoFadePgoAllClick(wxCommandEvent& event);
     void OnChoice_PgoOutputTypeSelect(wxCommandEvent& event);
+    void OnButton_PgoCopyVoicesClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -634,6 +635,7 @@ private:
     static const long ID_BITMAPBUTTON_SaveCoroGroup;
     static const long ID_BUTTON_CoroGroupDelete;
     static const long ID_BUTTON_CoroGroupClear;
+    static const long ID_BUTTON_PgoCopyVoices;
     static const long ID_GRID_COROFACES;
     static const long ID_CHECKBOX_AutoFadePgoElement;
     static const long ID_TEXTCTRL_AutoFadePgoElement;
@@ -768,6 +770,7 @@ private:
     wxButton* Button_ChannelMap;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
+    wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
     wxCheckBox* CheckBox_AutoFadePgoElement;
     wxPanel* PaneNutcracker;
