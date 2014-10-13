@@ -222,6 +222,7 @@ public:
         eff_METEORS,
         eff_PIANO,
         eff_PICTURES,
+        eff_PINWHEEL,
         eff_SINGLESTRAND,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,

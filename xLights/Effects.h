@@ -27,7 +27,7 @@ void RenderSnowstorm(int Count, int Length);
 void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
 void RenderSpirograph(int R, int r, int d,bool Animate);
-void RenderPinwheel(int R, int r, int d,bool Animate);
+void RenderPinwheel(int R);
 
 
 void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1,

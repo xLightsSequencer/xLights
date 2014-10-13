@@ -496,7 +496,10 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,in
 {
     Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
 }
-
+void PixelBufferClass::RenderPinwheel(int Branches)
+{
+    Effect[CurrentLayer].RenderTree(Branches);
+}
 void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
         int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {

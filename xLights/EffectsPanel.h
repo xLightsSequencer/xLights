@@ -111,6 +111,7 @@ public:
     wxCheckBox* CheckBox_Spirlas_Shrink;
     wxChoice* Choice_Butterfly_Colors;
     wxTextCtrl* TextCtrl_Text_Font1;
+    wxPanel* Panel1_Pinwheel;
     wxBitmapButton* BitmapButton_MeteorsLength;
     wxStaticText* StaticText1;
     wxSlider* Slider_Circles_Size;
@@ -183,6 +184,7 @@ public:
     wxStaticText* StaticText89;
     wxChoice* Choice_Meteors_Type;
     wxStaticText* StaticText23;
+    wxStaticText* StaticText63;
     wxCheckBox* CheckBox_Circles_Plasma;
     wxStaticText* StaticText130;
     wxStaticText* StaticText55;
@@ -244,8 +246,8 @@ public:
     wxPanel* Panel4;
     wxStaticText* StaticText53;
     wxChoice* Choice_Text_Dir2;
-    wxBitmapButton* BitmapButton_ButterflyStyle;
     wxChoice* Choice_Text_Count4;
+    wxBitmapButton* BitmapButton_ButterflyStyle;
     wxSlider* Slider_Text_Position4;
     wxBitmapButton* BitmapButton_TextEffect4;
     wxCheckBox* CheckBox_Chase_Group_All;
@@ -390,6 +392,7 @@ public:
     wxChoice* Choice_Text_Count3;
     wxButton* Button1;
     wxPanel* Panel1_Piano;
+    wxSlider* Slider1;
     wxCheckBox* CheckBox_Palette1;
     wxStaticText* StaticText136;
     wxSlider* Slider_Spirals_Rotation;
@@ -400,6 +403,7 @@ public:
     wxStaticText* StaticText33;
     wxPanel* Panel1_Text;
     wxCheckBox* CheckBox_ColorWash_VFade;
+    wxBitmapButton* BitmapButton1;
     wxBitmapButton* BitmapButton_SnowflakesCount;
     wxTextCtrl* TextCtrl_Pictures_Filename;
     wxBitmapButton* BitmapButton_TextFont3;
@@ -628,6 +632,10 @@ protected:
     static const long ID_SLIDER_Pictures_GifSpeed;
     static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
     static const long ID_PANEL20;
+    static const long ID_STATICTEXT65;
+    static const long ID_SLIDER1;
+    static const long ID_BITMAPBUTTON11;
+    static const long ID_PANEL_Pinwheel;
     static const long ID_STATICTEXT63;
     static const long ID_CHOICE_SingleStrand_Colors;
     static const long ID_BITMAPBUTTON_SingleStrand_Colors;
