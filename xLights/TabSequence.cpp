@@ -1321,7 +1321,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
- case eff_COROFACES:
+    case eff_COROFACES:
 #if 0
 //        wxString parsed;
 //kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
@@ -2172,6 +2172,8 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|ID_SLIDER_Chase_Spacing1|E1_SLIDER_Chase_Spacing1";
     replace_str = replace_str + "|ID_CHECKBOX_Group_Arches1|E1_CHECKBOX_Chase_3dFade1";
 
+//  Single Strand
+    replace_str = replace_str + "|E1_CHECKBOX_R_TO_L1|E1_CHOICE_Chase_Type1=Right-Left";
 
 
     //    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp";
