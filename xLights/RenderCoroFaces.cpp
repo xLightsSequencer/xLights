@@ -133,35 +133,38 @@ static bool parse_model(const wxString& want_model)
     if (!pgoXml.Load(pgoFile.GetFullPath())) return false;
     wxXmlNode* root = pgoXml.GetRoot();
     if (!root || (root->GetName() != "papagayo")) return false;
-    wxXmlNode* CoroFaces = xLightsFrame::FindNode(pgoXml.GetRoot(), wxT("corofaces"), wxT("name"), wxEmptyString);
-    if (!CoroFaces) return false;
+    for (int compat = 0; compat < 2; ++compat)
+    {
+        wxXmlNode* Presets = xLightsFrame::FindNode(pgoXml.GetRoot(), compat? wxT("corofaces"): wxT("presets"), wxT("Name"), wxEmptyString, false); //kludge: backwards compatible with current settings
+        if (!Presets) continue; //should be there if seq was generated in this folder
 //    wxString buf;
 //group name is not available, so use first occurrence of model in *any* group:
 //NOTE: assumes phoneme/face mapping is consistent for any given model across groups, which should be the case since the lights don't move
-    for (wxXmlNode* group = CoroFaces->GetChildren(); group != NULL; group = group->GetNext())
-    {
-        wxString grpname = group->GetAttribute(wxT("name"));
-        debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(wxT("name"), wxT("??")).c_str());
+        for (wxXmlNode* group = Presets->GetChildren(); group != NULL; group = group->GetNext())
+        {
+            wxString grpname = group->GetAttribute(wxT("name"));
+            debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)group->GetAttribute(wxT("name"), wxT("??")).c_str());
 //        if (group->GetName() != "coro") continue;
 //        if (grpname.IsEmpty()) continue;
 //        wxXmlNode* voice = FindNode(group, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
-        for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
-        {
-            wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
-            debug(10, "found voice name '%s' vs. '%s'", (const char*)voice_name.c_str(), (const char*)want_model.c_str());
-            if (voice_name != want_model) continue;
+            for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
+            {
+                wxString voice_name = NoInactive(voice->GetAttribute(wxT("name")));
+                debug(10, "found voice name '%s' vs. '%s'", (const char*)voice_name.c_str(), (const char*)want_model.c_str());
+                if (voice_name != want_model) continue;
 //            model_xy[(const char*)want_model.c_str()] = voice;
 //XmlNode getting trashed later, so save it here
-            std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
-            map.clear();
-            debug(10, "model '%s': using xml info '%s'", (const char*)want_model.c_str(), (const char*)voice->GetContent().c_str());
-            for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
-            {
-                wxString value = attrp->GetValue();
-                if (!value.empty()) map[(const char*)attrp->GetName().c_str()] = (const char*)value.c_str();
-                debug(10, "has attr '%s' = '%s'", (const char*)attrp->GetName().c_str(), (const char*)attrp->GetValue().c_str());
+                std::unordered_map<std::string, std::string>& map = model_xy[(const char*)want_model.c_str()];
+                map.clear();
+                debug(10, "model '%s': using xml info '%s'", (const char*)want_model.c_str(), (const char*)voice->GetContent().c_str());
+                for (wxXmlAttribute* attrp = voice->GetAttributes(); attrp; attrp = attrp->GetNext())
+                {
+                    wxString value = attrp->GetValue();
+                    if (!value.empty()) map[(const char*)attrp->GetName().c_str()] = (const char*)value.c_str();
+                    debug(10, "has attr '%s' = '%s'", (const char*)attrp->GetName().c_str(), (const char*)attrp->GetValue().c_str());
+                }
+                return true;
             }
-            return true;
         }
     }
 #endif

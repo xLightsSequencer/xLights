@@ -1321,7 +1321,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
-    case eff_COROFACES:
+ case eff_COROFACES:
 #if 0
 //        wxString parsed;
 //kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
@@ -2804,7 +2804,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                wxString msg=_(wxString::Format("%s: Saving row %ld",ColName,NextGridRowToPlay+1));
+                wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
                 StatusBar1->SetStatusText(msg);
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
@@ -2905,7 +2905,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
             {
                 // start next effect
                 wxYield();
-                StatusBar1->SetStatusText(_(wxString::Format("%s: Saving row %ld",ColName,NextGridRowToPlay+1)));
+                StatusBar1->SetStatusText(_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1, Grid1->GetRows())));
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
                 EffectStr.Trim();

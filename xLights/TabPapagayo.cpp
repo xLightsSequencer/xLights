@@ -174,9 +174,13 @@ static const wxString SelectionHint = "(choose)", CreationHint = "(add new)", No
 
 void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN );
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
+//NOTE: file modes explained here: http://wxwindowsjp.sourceforge.jp/html/2.8.4/wx_wxfiledialog.html
+    wxString filename = wxFileSelector( "Choose Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN | wxFD_FILE_MUST_EXIST );
 //  wxString filename = "this5.pgo";
-    if (!filename.IsEmpty()) TextCtrl_pgo_filename->SetValue(filename);
+    if (filename.IsEmpty()) return;
+    TextCtrl_pgo_filename->SetValue(filename);
     LoadPapagayoFile(filename);
 //    LoadPgoSettings(); //reload in case models changed
 }
@@ -184,22 +188,27 @@ void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButton_PgoStitchClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Another Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN );
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
+    wxString filename = wxFileSelector( "Choose Another Papagayo File", "", "", "", "Papagayo files (*.pgo)|*.pgo", wxFD_OPEN | wxFD_FILE_MUST_EXIST );
 //  wxString filename = "this5.pgo";
     if (filename.IsEmpty()) return;
 
 //    TextCtrl_pgo_filename->SetValue(filename);
     wxString stitch_frame;
-    if (!EffectTreeDialog::PromptForName(this, &stitch_frame, wxT("Enter continuation frame#"), wxT("Frame# must not be empty"))) return;
+    if (!EffectTreeDialog::PromptForName(this, &stitch_frame, wxT("Enter continuation frame# (use 0 for horizontal stitch)"), wxT("Frame# must not be empty"))) return;
     int start_frame;
     start_frame = wxAtoi(stitch_frame);
-    if (!start_frame) return;
+    if (!start_frame) return; //TODO: horizontal stitch
     LoadPapagayoFile(filename, start_frame);
 }
 
 void xLightsFrame::OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Output Sequence", "", "", "", "Sequence files (*.xml)|*.xml", wxFD_OPEN );
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
+    wxString filename = wxFileSelector( "Choose Output Sequence", "", "", "", "Sequence files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+//    wxString filename = wxSaveFileSelector("what", wxEmptyString);
 //  wxString filename = "this5.pgo";
     if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
 }
@@ -228,6 +237,8 @@ static int single_delay, all_delay, eyes_delay; //auto-fade or eye movement fram
 
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     ButtonStartPapagayo->Enable(false);
     wxString OutputFormat = Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection()); //Choice_PgoOutputType->GetStringSelection();
     TextCtrlConversionStatus->Clear();
@@ -267,7 +278,16 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     filename = TextCtrl_papagayo_output_filename->GetValue();
 //only open/close file once for better performance:
     wxFile f(filename);
-    if (!f.Create(filename,true) || !f.IsOpened()) retmsg(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n",filename,f.GetLastError()));
+//    bool isnew = !wxFile::Exists(filename);
+//    for (int retry = 0; retry < 2; ++retry) //kludge: extraneous error 0 message is being for newly created files after event handler returns; pre-create file to try to avoid the message
+//    {
+        if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("write_pgo_header: Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+//        if (!isnew) break; //we don't get the extraneous message for pre-existing files
+//        f.Write("<xml/>");
+//        f.Close();
+//        f.ClearLastError();
+//        debug(10, "file pre-creation kludge");
+//    }
     int pgofile_status = write_pgo_header(f, voices.size()); //, filename);
 
     int numwr = 0;
@@ -302,8 +322,11 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
         }
     }
     StatusBar1->SetStatusText(wxString::Format("Wrote pgo xml: %d entries", numwr));
+    debug(10, "wrote pgo xml: %d entries", numwr);
     if (pgofile_status) write_pgo_footer(f, voices.size()); //,filename);
+    debug(10, "output file still open? %d, last err: %d", f.IsOpened(), f.GetLastError());
     f.Close();
+//    debug(10, "output file still open? %d, last err: %d", f.IsOpened(), f.GetLastError());
 //    IFDEBUG(wxMessageBox(debug_msg, _("Papagayo Debug")));
 }
 
@@ -768,9 +791,25 @@ static const wxString& readline(bool first = false)
     return _("");
 }
 
+//map Papagayo extended dictionary down to basic 10 phonemes:
+static std::unordered_map<std::string, std::string> equiv_dict = {
+    {"AA", "AI"}, {"AE", "AI"}, {"AH", "AI"}, {"AY", "AI"}, {"IH", "AI"},
+    {"AO", "O"}, {"AW", "O"}, {"OW", "O"},
+    {"B", "MBP"},
+    {"CH", "etc"}, {"D", "etc"}, {"DH", "etc"}, {"G", "etc"}, {"HH", "etc"}, {"JH", "etc"},
+    {"K", "etc"}, {"N", "etc"}, {"NG", "etc"}, {"R", "etc"}, {"S", "etc"}, {"SH", "etc"},
+    {"T", "etc"}, {"TH", "etc"}, {"Y", "etc"}, {"Z", "etc"}, {"ZH", "etc"},
+    {"EH", "E"}, {"ER", "E"}, {"EY", "E"}, {"IY", "E"},
+    {"F", "FV"}, {"V", "FV"},
+//    {"L", "L"},
+    {"M", "MBP"}, {"P", "MBP"},
+    {"OY", "WQ"}, {"W", "WQ"},
+    {"UH", "U"}, {"UW", "U"}};
+
 void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /*= 0*/)
 {
     wxString warnings;
+    int extended_xlates = 0;
 //    if (!CachedCueFilename.CmpNoCase(filename)) { debug_more(2, ", no change"); return; } //no change
     if (!frame_offset) voices.clear(); //clean out prev file
     if (!wxFileExists(filename)) retmsg(wxString::Format(_("File '%s' does not exist."), filename));
@@ -854,8 +893,9 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
                 break;
             }
             readline(); //start frame TODO: do we need to save this?
-            readline(); //end frame TODO: do we need to save this?
-            desc = wxString::Format(_("voice# %d, phrase %d '%s' @line %d"), v, phr, phrasename, PapagayoFileInfo.linenum);
+//            readline(); //end frame TODO: do we need to save this?
+            int end_frame = number.Matches(readline())? wxAtoi(PapagayoFileInfo.linebuf): 0;
+            desc = wxString::Format(_("voice# %d, phrase %d '%s', end frame %d @line %d"), v, phr, phrasename, end_frame, PapagayoFileInfo.linenum);
             debug(10, (const char*)desc.c_str());
             PhraseInfo newphrase;
             newphrase.name = phrasename;
@@ -878,15 +918,16 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
                 wtkz.GetNextToken(); //start frame TODO: do we need to save this?
                 wxString endfr = wtkz.GetNextToken(); //end frame TODO: do we need to save this?
 //                voices.back().phrases.push_back(newphrase);
+                if (number.Matches(endfr)) end_frame = std::max(end_frame, wxAtoi(endfr));
                 wxString syllcount = wtkz.GetNextToken();
                 wxString junk = wtkz.GetNextToken();
 //                wxMessageBox(wxString::Format(_("word '%s', end fr %s, #syll %s, junk %s"), wordname.c_str(), endfr.c_str(), syllcount.c_str(), junk.c_str()));
-                desc = wxString::Format(_("voice# %d, phrase %d, word %d '%s' @line %d"), v, phr, w, wordname, PapagayoFileInfo.linenum);
+                desc = wxString::Format(_("voice# %d, phrase %d, word %d '%s', end frame %d @line %d"), v, phr, w, wordname, end_frame, PapagayoFileInfo.linenum);
                 if (!junk.empty()) warnmsg(wxString::Format(_("Ignoring junk '%s' at end of %s @line %d"), junk.c_str(), desc.c_str(), PapagayoFileInfo.linenum));
                 debug(10, (const char*)desc.c_str());
 
-                int end_frame = number.Matches(endfr)? wxAtoi(endfr): -1;
-                if (end_frame < 1) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
+//                int end_frame = number.Matches(endfr)? wxAtoi(endfr): -1;
+                if (!number.Matches(endfr)) warnmsg(wxString::Format(_("Invalid file @line %d ('%s' end frame for %s)"), PapagayoFileInfo.linenum, endfr.c_str(), desc.c_str()));
 
                 int numsylls = number.Matches(syllcount)? wxAtoi(syllcount): -1;
                 if (numsylls < 0) retmsg(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), PapagayoFileInfo.linenum, syllcount.c_str(), desc.c_str()));
@@ -898,6 +939,11 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
                     wxStringTokenizer stkz = wxStringTokenizer(readline(), " ");
                     wxString stframe = stkz.GetNextToken();
                     wxString syllname = stkz.GetNextToken();
+                    if (!syllname.empty() && (equiv_dict.find((const char*)syllname.c_str()) != equiv_dict.end()))
+                    {
+                        syllname = equiv_dict[(const char*)syllname.c_str()];
+                        ++extended_xlates;
+                    }
 //                    wxMessageBox(wxString::Format(_("get syll %s, st fr %s, syll %s, allowed in %s? %d"), PapagayoFileInfo.linebuf, stframe, _(",") + newsyll.name + _(","), AllowedPhonemes, AllowedPhonemes.find(_(",") + newsyll.name + _(","))));
                     if (syllname.empty() || (AllowedPhonemes.find(_(",") + syllname + _(",")) == -1))
                     {
@@ -914,21 +960,25 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
 
                     newsyll.start_frame = number.Matches(stframe)? wxAtoi(stframe): -1;
                     if (newsyll.start_frame == -1) retmsg(wxString::Format(_("Invalid file @line %d ('%s' start frame for %s)"), PapagayoFileInfo.linenum, stframe.c_str(), desc.c_str()));
+//TODO                    rest_gap(newword.phonemes, newsyll.start_frame); //insert rest to fill gaps
                     newsyll.end_frame = end_frame; //assume end of phrase until another phoneme is found
                     newsyll.start_frame += frame_offset; //stitch
                     newsyll.end_frame += frame_offset;
                     if (syll > 1) (&newsyll)[-1].end_frame = newsyll.start_frame; //don't overlap?
                     newword.phonemes.push_back(newsyll);
                 }
+
                 newphrase.words.push_back(newword);
 
             }
             newvoice->phrases.push_back(newphrase);
+//TODO           rest_gap(newword.phonemes, newsyll.start_frame); //insert rest to fill gaps
 
         }
         if (newvoice == &emptyvoice) voices.push_back(*newvoice);
     }
     if (!readline().empty()) warnmsg(wxString::Format(_("Ignoring junk at eof ('%s' found on line %d)"), PapagayoFileInfo.linebuf.c_str(), PapagayoFileInfo.linenum));
+    if (extended_xlates) warnmsg(wxString::Format(_("Extended dictionary phonemes found: %d (translated to set of basic 10)"), extended_xlates));
     PapagayoFileInfo.file.Close();
 
     if (!warnings.empty()) wxMessageBox(warnings, _("Papagayo Warning"));
@@ -1327,11 +1377,12 @@ public:
 //    dc.SetBrush(*wxBLUE_BRUSH);
 //    dc.SetPen(*wxRED_PEN);
 //    dc.SetTextForeground(*wxBLUE); //make it easier to see which cell will be changing
-        wxSize textsize = dc.GetTextExtent(grid.GetCellValue(row, col));
+        wxString txt = grid.GetCellValue(row, col) + wxT(" "); //put a little empty space at right
+        wxSize textsize = dc.GetTextExtent(txt);
         wxPoint xy(std::min(rect.width - textsize.x, 0), 0); //push it left if it's too long
         xy.x += rect.x + 2;
         xy.y += rect.y + 2;
-        dc.DrawText(grid.GetCellValue(row, col), xy.x, xy.y);
+        dc.DrawText(txt, xy.x, xy.y);
         if (rect.width < textsize.x)
         {
             static wxSize textsize(0, 0);
@@ -1817,7 +1868,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
 //        m_text->Show();
         grid->DisableCellEditControl(); //don't need drop-down listbox
 //        m_value = grid->GetTable()->GetValue(row, col);
-        wxString filename = wxFileSelector(wxT("Choose Image File"), parts.GetPath(), parts.GetFullName(), "", "Image files (*.bmp;*.gif;*.jpg;*.png)|*.bmp;*.gif;*.jpg;*.png", wxFD_FILE_MUST_EXIST);
+        wxString filename = wxFileSelector(wxT("Choose Image File"), parts.GetPath(), parts.GetFullName(), "", "Image files (*.bmp;*.gif;*.jpg;*.png)|*.bmp;*.gif;*.jpg;*.png", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         debug(10, "got new filename '%s' from file selector, orig value was '%s', default path '%s', default file '%s', sep %c", (const char*)filename.c_str(), (const char*)parts.GetFullPath().c_str(), (const char*)parts.GetPath().c_str(), (const char*)parts.GetFullName().c_str(), (char)wxFileName::GetPathSeparator());
         /*if (!filename.IsEmpty())*/ m_value = filename;
         ApplyEdit(row, col, grid);
@@ -2101,6 +2152,8 @@ void xLightsFrame::OnTimer2Trigger(wxTimerEvent& event)
 }
 #endif // 0
 
+//static bool my_init = false;
+
 //populate choice lists with model names, etc.
 void xLightsFrame::InitPapagayoTab(bool tab_changed)
 {
@@ -2153,6 +2206,7 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
         }
     debug(10, "set up %d rows, %d cols with custom grid cell editor, renderer", GridCoroFaces->GetRows(), GridCoroFaces->GetCols());
 #endif //ndef GRID_EDIT_KLUDGE
+//    my_init = true;
 }
 
 //add (X,Y) info back into settings file for easier reference / debug
@@ -2180,12 +2234,15 @@ static wxString addxy(ModelClass* model, const char* desc, wxString nodestr)
 //NOTE: this only saves one group name at a time to the xmldoc, then saves entire xmldoc to file
 void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
 {
+//    if (!my_init) return; //kludge; event handlers messed up?
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     wxString grpname;
     if (!GetGroupName(grpname)) return;
 #ifdef GRID_EDIT_KLUDGE
     PgoGridCellSelect(GridCoroFaces->GetCursorRow(), GridCoroFaces->GetCursorColumn(), __LINE__); //force cell update if edit in progress
 #endif //def GRID_EDIT_KLUDGE
-    int num_voice = -1;
+    int num_saved = -1, num_deleted = 0;
     wxString warnings;
     wxDateTime now = wxDateTime::Now(); //NOTE: now.Format("%F %T") seems to be broken
     debug(10, "SaveCoroGroupClick: save group '%s' to xmldoc, timestamp '%s %s'", (const char*)grpname.c_str(), (const char*)now.FormatDate().c_str(), (const char*)now.FormatTime().c_str()); //Format(wxT("%F %T")).c_str());
@@ -2206,7 +2263,6 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
                 break;
             }
             wxString voice_model = NoInactive(GridCoroFaces->GetCellValue(Model_Row, i));
-            ModelClass* model_info = (mode == 'c')? ModelClass::FindModel(voice_model): 0; //only need parsed model info for Coro faces
 //        if (Voice(i)->GetSelection() >= 0) voice_model = Voice(i)->GetString(Voice(i)->GetSelection());
 //        if (Choice_PgoModelVoiceEdit->GetSelection() >= 0) voice_model = Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection());
             if ((voice_model == SelectionHint) || (voice_model == NoneHint)) //warn if user forgot to set model
@@ -2214,10 +2270,18 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
                 if (non_empty) warnings += wxString::Format(wxT("\nVoice# %d not saved (no model selected)."), i + 1);
                 continue;
             }
-            wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+            wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), !voice_model.IsEmpty());
 //        voice->AddAttribute(wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1));
+            if (voice_model.IsEmpty())
+            {
+                if (voice) node->RemoveChild(voice); //delete voice
+                debug(10, "voice# %d deleted? %d, compat %d, was type '%s', v# '%s'", i + 1, voice, compat, voice? (const char*)voice->GetName().c_str(): "(none)", voice? (const char*)voice->GetAttribute(wxT("voiceNumber")).c_str(): "(none)");
+                if (voice) ++num_deleted;
+                continue;
+            }
             AddNonDupAttr(voice, Name, voice_model); //NOTE: could be blank
-            if (voice_model.empty()) continue;
+//            if (voice_model.empty()) continue;
+            ModelClass* model_info = (mode == 'c')? ModelClass::FindModel(voice_model): 0; //only need parsed model info for Coro faces
             wxString emptystr;
             AddNonDupAttr(voice, wxT("Outline"), addxy(model_info, "outline", GridCoroFaces->GetCellValue(Outline_Row, i)));
             AddNonDupAttr(voice, wxT("Eyes_open"), (mode != 'a')? addxy(model_info, "eyes_open", GridCoroFaces->GetCellValue(Eyes_open_Row, i)): emptystr);
@@ -2236,8 +2300,8 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
             AddNonDupAttr(voice, wxT("rest"), (mode != 'a')? addxy(model_info, "rest", GridCoroFaces->GetCellValue(rest_Row, i)): emptystr);
             AddNonDupAttr(voice, wxT("U"), (mode != 'a')? addxy(model_info, "U", GridCoroFaces->GetCellValue(U_Row, i)): emptystr);
             AddNonDupAttr(voice, wxT("WQ"), (mode != 'a')? addxy(model_info, "WQ", GridCoroFaces->GetCellValue(WQ_Row, i)): emptystr);
-            if (num_voice < 0) ++num_voice; //remember that a voice was selected
-            if (non_empty) ++num_voice;
+            if (num_saved < 0) ++num_saved; //remember that a voice was selected
+            if (non_empty) ++num_saved;
         }
 //save global settings also:
         AddNonDupAttr(node, LastMode, Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection())); //Choice_PgoOutputType->GetStringSelection());
@@ -2249,13 +2313,14 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(node, EyesLR, CheckBox_CoroEyesRandomLR->GetValue()? Yes: No);
         compat = 99; //break out of compat loop
     }
-    if (num_voice < 0)
+//    if (num_deleted) warnings += wxString::Format(wxT("\n%d deleted."), num_deleted);
+    if (num_saved < 0)
     {
         wxMessageBox(wxT("Please select one or more voice models."), wxT("Missing data"));
         return;
     }
     if (!SavePgoSettings()) return; //TODO: this should be called from somewhere else as well
-    wxMessageBox(wxString::Format(wxT("Preset '%s' saved (%d %s)."), grpname, num_voice, (num_voice == 1)? wxT("voice"): wxT("voices")) + warnings, wxT("Success"));
+    wxMessageBox(wxString::Format(wxT("Preset '%s' saved (%d %s)."), grpname, num_saved, (num_saved == 1)? wxT("voice"): wxT("voices")) + warnings, wxT("Success"));
 }
 
 //just use choice list event instead of explicit Open button:
@@ -2285,6 +2350,8 @@ static wxString ExtractNodes(wxString parsed_info, bool bypass)
 //this loads one group name at a time from the xmldoc
 void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     debug(10, "PgoGroupNameSelect selection %d = '%s'", Choice_PgoGroupName->GetSelection(), (const char*)Choice_PgoGroupName->GetString(Choice_PgoGroupName->GetSelection())); //(const char*)Choice_PgoGroupName->GetStringSelection()); //, Choice_PgoModelVoiceEdit->GetCount());
 //    if (Choice_PgoModelVoiceEdit->GetCount() < 1) return; //settings not loaded yet
     wxString grpname;
@@ -2397,6 +2464,8 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 //TODO: use Save for Delete as well?
 void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "CoroGroupDeleteClick: delete group '%s' from xmldoc", (const char*)grpname.c_str());
@@ -2416,6 +2485,8 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
 //NOTE: doesn't save
 void xLightsFrame::OnButton_CoroGroupClearClick(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
     GridCoroFaces->ClearGrid();
     for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
@@ -2445,6 +2516,8 @@ public:
 
 void xLightsFrame::OnGridCoroFacesCellSelect(wxGridEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
 #ifdef GRID_EDIT_KLUDGE
 #if 1 //kludgey way
     PgoGridCellSelect(event.GetRow(), event.GetCol(), __LINE__);
@@ -2609,6 +2682,8 @@ void xLightsFrame::PgoGridCellSelect(int row, int col, int where)
 static char prev_mode = 0;
 void xLightsFrame::OnChoice_PgoOutputTypeSelect(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     char mode = (char)Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection()).Lower().GetChar(0); //Choice_PgoOutputType->GetStringSelection().Lower().GetChar(0);
     if (mode == prev_mode) return; //avoid redundant changes
     prev_mode = mode;
@@ -2653,6 +2728,8 @@ void xLightsFrame::OnChoice_PgoOutputTypeSelect(wxCommandEvent& event)
 
 void xLightsFrame::OnButton_PgoCopyVoicesClick(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
+
     debug(10, "copy voice1 to other voices 2..%d", GridCoroFaces->GetCols());
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
     for (int c = 1; c < GridCoroFaces->GetCols(); ++c)
