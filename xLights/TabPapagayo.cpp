@@ -1309,6 +1309,57 @@ bool xLightsFrame::SavePgoSettings(void)
     pgoFile.SetFullName(wxT(XLIGHTS_PGOFACES_FILE));
     debug(10, "SavePgoSettings: write xmldoc to '%s'", (const char*)pgoFile.GetFullPath().c_str());
 
+//compare to other Presets for consistency (inconsistency causes potential rendering problems):
+    wxString warnings;
+    std::unordered_map<std::string, int> seen;
+    std::unordered_map<std::string, std::string> face_map;
+    for (int compat = 0; compat < 2; ++compat)
+    {
+        wxXmlNode* Presets = xLightsFrame::FindNode(pgoXml.GetRoot(), compat? wxT("corofaces"): wxT("presets"), Name, wxEmptyString, false); //kludge: backwards compatible with current settings
+        if (!Presets) continue; //should be there if seq was generated in this folder
+        for (wxXmlNode* group = Presets->GetChildren(); group != NULL; group = group->GetNext())
+        {
+            wxString grpname = group->GetAttribute(Name, wxT("??"));
+            if (seen[(const char*)grpname.c_str()] & (compat + 1))
+            {
+                warnings += wxString::Format(wxT("\nDuplicate found for Preset '%s'."), grpname);
+                continue;
+            }
+            seen[(const char*)grpname.c_str()] |= (compat + 1);
+            if (compat && (seen[(const char*)grpname.c_str()] & 1)) continue; //don't care about old, shadowed settings
+            debug(15, "found %s group '%s'", (const char*)group->GetName().c_str(), (const char*)grpname.c_str());
+
+            for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
+            {
+                wxString model_name = NoInactive(voice->GetAttribute(Name));
+                wxString prev_grp = face_map[(const char*)(model_name + "::parent").c_str()];
+                debug(10, "found voice name '%s', occurred before in group '%s'", (const char*)model_name.c_str(), (const char*)prev_grp.c_str());
+                face_map[(const char*)(model_name + "::parent").c_str()] = (const char*)grpname.c_str();
+                for (wxXmlAttribute* attr = voice->GetAttributes(); attr; attr = attr->GetNext())
+                {
+                    if (attr->GetName() == wxT("voiceNumber")) continue; //don't care about this one
+                    wxString cmpkey = model_name + wxT("::") + attr->GetName();
+//                    if (!prev_grp.IsEmpty())
+                    if (!prev_grp.IsEmpty() && (grpname != prev_grp)) //don't report mismatch between new and back-compat settings
+                        if (face_map[(const char*)cmpkey.c_str()] != (const char*)attr->GetValue().c_str())
+#if 0 //too verbose
+                            warnings += wxString::Format(wxT("\n'%s' %s in Preset '%s' doesn't match Preset '%s' ('%s' vs. '%s')"), model_name, attr->GetName(), grpname, prev_grp, wxString(face_map[(const char*)cmpkey.c_str()])/*.BeforeFirst(':')*/, attr->GetValue()/*.BeforeFirst(':')*/);
+#else
+                            if (!seen[(const char*)(grpname + "::" + model_name).c_str()]++)
+                                warnings += wxString::Format(wxT("\n'%s' in Preset '%s' doesn't match Preset '%s' ('%s')"), model_name, grpname, prev_grp, attr->GetName());
+#endif // 0
+                    face_map[(const char*)cmpkey.c_str()] = (const char*)attr->GetValue().c_str(); //keep latest
+                }
+//TODO: also warn if extra attrs found in prev?
+            }
+        }
+    }
+    if (warnings.Find(wxT("doesn't match")) != wxNOT_FOUND)
+        warnings += wxT("\nPlease re-save your Presets to make them consistent and avoid rendering problems.");
+    if (warnings.Find(wxT("Duplicate found")) != wxNOT_FOUND)
+        warnings += wxT("\nManual clean-up of xlights_papagayo.xml is needed for consistent results.");
+    if (!warnings.IsEmpty()) wxMessageBox(wxT("Warning:") + warnings);
+
     AddNonDupAttr(pgoXml.GetRoot(), LastPreset, Choice_PgoGroupName->GetString(Choice_PgoGroupName->GetSelection())); //Choice_PgoGroupName->GetStringSelection()));
 #if 0
 //save autoface settings:
@@ -2418,12 +2469,23 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 //    for (wxXmlNode* voice = node->GetChildren(); voice != NULL; voice = voice->GetNext())
         {
             wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), false);
-            if (!voice) break;
+            debug(10, "found voice[%d/%d] '%s'", i, GridCoroFaces->GetCols(), voice? (const char*)voice->GetAttribute(Name).c_str(): "(none)");
+            wxString voice_name;
+            if (voice) voice_name = NoInactive(voice->GetAttribute(Name));
+            if (!voice || voice_name.IsEmpty())
+            {
+                wxString empty;
+                if (i >= GridCoroFaces->GetCols()) break;
+                for (int r = 0; r < GridCoroFaces->GetRows(); ++r) //clear column
+                    GridCoroFaces->SetCellValue(r, i, (r == Model_Row)? SelectionHint: empty);
+                GridCoroFaces->SetColLabelValue(i, wxString::Format(wxT("Voice %d"), i + 1));
+                debug(10, "cleared grid col %d", i);
+                continue;
+            }
 //        int voice_num = wxAtoi(voice->GetAttribute(wxT("voiceNumber"), wxT("0")));
 //        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
 //        int inx = Voice(i)->FindString(voice->GetAttribute(Name));
-            wxString voice_name = NoInactive(voice->GetAttribute(Name));
-            if (voice_name.IsEmpty()) continue;
+//            if (voice_name.IsEmpty()) continue;
             grenlarge(GridCoroFaces, i + 1); //widen grid if needed to accommodate settings
             GridCoroFaces->SetColLabelValue(i, voice_name);
             if (GridCoroFaces->GetCellValue(Model_Row, i).IsEmpty()) GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
@@ -2523,19 +2585,37 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
     wxString grpname;
     if (!GetGroupName(grpname)) return;
     debug(10, "CoroGroupDeleteClick: delete group '%s' from xmldoc", (const char*)grpname.c_str());
+    bool found = false;
     for (int compat = 0; compat < 2; ++compat)
     {
         wxXmlNode* Presets = FindNode(pgoXml.GetRoot(), compat? wxT("corofaces"): wxT("presets"), Name, wxEmptyString, true); //kludge: donbackwards compatible with current settings
         wxXmlNode* node = FindNode(Presets, compat? wxT("coro"): wxT("preset"), Name, grpname, false);
         if (!node) continue;
         Presets->RemoveChild(node); //delete group
-        Choice_PgoGroupName->SetSelection(0); //"choose"
-        GridCoroFaces->ClearGrid();
+        found = true;
         debug(10, "group deleted from '%s' node", (const char*)Presets->GetName().c_str());
-        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
-            GridCoroFaces->SetCellValue(Model_Row, c, SelectionHint);
 //TODO: reset fade + blink?
     }
+    if (!found) return;
+    if (!SavePgoSettings()) return;
+    wxArrayString remains;
+    for (int i = 0; i < Choice_PgoGroupName->GetCount(); ++i)
+        if (Choice_PgoGroupName->GetString(i) != grpname) remains.Add(Choice_PgoGroupName->GetString(i));
+    Choice_PgoGroupName->Clear();
+    Choice_PgoGroupName->Append(remains);
+//    Choice_PgoGroupName->SetSelection(0); //"choose"
+    GridCoroFaces->BeginBatch();
+    Choice_PgoGroupName->SetSelection((Choice_PgoGroupName->GetCount() > 2)? 2: 1); //default to "add new" or "choose" hint
+    if (Choice_PgoGroupName->GetCount() > 2)
+        OnChoice_PgoGroupNameSelect(event);
+    else
+    {
+        OnButton_CoroGroupClearClick(event);
+        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+            GridCoroFaces->SetColLabelValue(c, wxString::Format(wxT("Voice %d"), c + 1));
+    }
+    GridCoroFaces->EndBatch();
+    wxMessageBox(wxString::Format(wxT("Preset '%s' deleted."), grpname), wxT("Success"));
 }
 
 //NOTE: doesn't save

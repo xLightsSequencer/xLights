@@ -7,8 +7,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
 <next>
-	-bug (djulien) Fixed Coro Faces render problem on models with > 26 columns, adjust text size on model zoom in/out
-	-enh (djulien) Added Papagayo horizontal stitch (supports any number of voices within reason), accept 39 extended phonemes (auto-map to basic 10), removed duplicate phoneme in frame message (CAUTION: phonemes will be dropped with no warnings), start making Model dialog resizable, show reason for "reseting flags" message
+	-bug (djulien) Fixed Coro Faces render problem on models with > 26 columns, adjust text size on model zoom in/out, Papagayo Preset delete button
+	-enh (djulien) Added Papagayo horizontal stitch (supports any number of voices within reason), accept 39 extended phonemes (auto-map to basic 10), removed duplicate phoneme in frame message (CAUTION: phonemes will be dropped with no warnings), added Preset consistency check, start making Model dialog resizable, show reason for "reseting flags" message
 3.4.18
 	-enh (djulien) Merged Papagayo sub-tabs; implemented Image option (Movie option TBD); enabled fade on Auto faces; added Copy column button; flattened xlights_papagayo.xml file (old Presets still used for backwards compatibility, but new Presets are written a level higher and merged)
 	-bug (djulien) Fixed Papagayo auto-fade; mostly works now, but there seems to still be some flicker (caused by something else within xLights)
