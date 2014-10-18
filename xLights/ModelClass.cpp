@@ -949,12 +949,16 @@ bool ModelClass::IsCustom(void)
 
 //convert # to AA format so it matches Custom Model grid display:
 //this makes it *so* much easier to visually compare with Custom Model grid display
+//A - Z == 1 - 26
+//AA - AZ == 27 - 52
+//BA - BZ == 53 - 78
+//etc
 static wxString AA(int x)
 {
     wxString retval;
     --x;
-    if (x >= 26 * 26) { retval += 'A' + x / (26 * 26); x %= 26 * 26; }
-    if (x >= 26) { retval += 'A' + x / 26; x %= 26; }
+//    if (x >= 26 * 26) { retval += 'A' + x / (26 * 26); x %= 26 * 26; }
+    if (x >= 26) { retval += 'A' + x / 26 - 1; x %= 26; }
     retval += 'A' + x;
     return retval;
 }
@@ -1064,7 +1068,7 @@ bool ModelClass::ParseFaceElement(const wxString& multi_str, std::vector<wxPoint
             while (!xystr.empty() && (xystr[0] >= 'A') && (xystr[0] <= 'Z'))
             {
                 xval *= 26;
-                xval += xystr[0] - 'A';
+                xval += xystr[0] - 'A' + 1;
                 xystr.Remove(0, 1);
                 parts |= 1;
             }

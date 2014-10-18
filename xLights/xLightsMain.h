@@ -1002,8 +1002,8 @@ private:
 //  papagayo
     void PapagayoError(const wxString& msg);
     //void AutoFace();
-    int write_pgo_header(wxFile& f, int MaxVoices);
-    void write_pgo_footer(wxFile& f, int MaxVoices);
+    int write_pgo_header(wxFile& f); //, int MaxVoices);
+    void write_pgo_footer(wxFile& f); //, int MaxVoices);
 //    void AutoFace(wxFile& f, int MaxVoices,int start_frame,int end_frame,const wxString& phoneme, const wxString& word);
     void AutoFace(wxFile& f, int start_frame, void* voice_ptr, void* phrase_ptr, void* word_ptr, void* phoneme_ptr);
 

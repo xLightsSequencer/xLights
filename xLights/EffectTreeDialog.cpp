@@ -318,7 +318,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString *name, wxString 
             // validate inputs
             *name=dialog.GetValue();
             name->Trim();
-            if (name->IsEmpty())
+            if (name->IsEmpty() && !errorMsg.IsEmpty()) // !errorMsg => empty is allowed -DJ
             {
                 ok=false;
                 wxMessageBox(errorMsg, _("ERROR"));

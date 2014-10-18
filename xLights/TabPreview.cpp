@@ -70,12 +70,19 @@ void xLightsFrame::CompareMyDisplayToSeq()
     int SeqModelCount=SeqModels.size();
     if (SeqModelCount == 0) return;
     bool match=SeqModelCount == ListBoxElementList->GetCount();
+    wxString reason; //tell the user why -DJ
+    if (!match) reason = wxString::Format(wxT(", model count mismatch: sequence has %d, preview has %d"), SeqModelCount, ListBoxElementList->GetCount());
     for(int i=0; i < SeqModelCount && match; i++)
     {
-        if (ListBoxElementList->FindString(SeqModels[i]) == wxNOT_FOUND) match=false;
+        if (ListBoxElementList->FindString(SeqModels[i]) == wxNOT_FOUND)
+        {
+            match=false;
+            reason += wxString::Format(wxT(", '%s' not in preview"), SeqModels[i]);
+        }
     }
     if (match) return;
-    int retval = wxMessageBox(_("Reset 'My Display' flags on element models to match sequence?"),_("Adjust Preview"),wxCENTRE | wxYES_NO);
+    if (!reason.IsEmpty()) reason = wxT("\nReason: ") + reason.Mid(2);
+    int retval = wxMessageBox(_("Reset 'My Display' flags on element models to match sequence?") + reason,_("Adjust Preview"),wxCENTRE | wxYES_NO);
     if (retval != wxYES) return;
 
     // reset My Display flags

@@ -221,9 +221,17 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 //        size_t colorcnt=GetColorCount();
 //        int ColorIdx=0;
 //        palette.GetHSV(ColorIdx, hsv);
+#if 0
         hsv.hue=0.0;
         hsv.value=1.0;
         hsv.saturation=1.0;
+#else
+        wxColor color;
+//        palette.GetColor(ColorMap.size() % GetColorCount(), color); //assign user-selected colors to shape palette sequentially, loop if run out of colors
+        palette.GetColor(0, color); //use first color; user must make sure it matches model node type
+        color = *wxWHITE; //kludge: must use WHITE to get single-color nodes to show correctly
+        Color2HSV(color, hsv);
+#endif // 0
 
         std::vector<wxPoint> first_xy;
         ModelClass* model_info = ModelClass::FindModel(cur_model);
@@ -269,8 +277,9 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         }
         for (auto it = first_xy.begin(); it != first_xy.end(); ++it)
         {
+            --(*it).x; // "A" = 1 = first col
             SetPixel((*it).x, BufferHt - (*it).y, hsv); //only need to turn on first pixel for each face part
-            debug(10, "turn on (x %d, y %d), set to color [h %3.2f, s %3.2f, v %3.2f]", (*it).x, (*it).y, hsv.hue, hsv.saturation, hsv.value);
+            debug(10, "turn on (x %d, y %d), set to color [r %d, g %d, b %d] => [h %3.2f, s %3.2f, v %3.2f]", (*it).x, (*it).y, color.Red(), color.Green(), color.Blue(), hsv.hue, hsv.saturation, hsv.value);
         }
 
 #if 0 //obsolete

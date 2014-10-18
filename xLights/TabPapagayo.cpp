@@ -6,6 +6,7 @@
  * Copyright: Matt Brown ()
  * License:
  **************************************************************/
+//TODO: clean up the mess in here
 
 #include "xLightsMain.h"
 
@@ -181,7 +182,7 @@ void xLightsFrame::OnButton_pgo_filenameClick(wxCommandEvent& event)
 //  wxString filename = "this5.pgo";
     if (filename.IsEmpty()) return;
     TextCtrl_pgo_filename->SetValue(filename);
-    LoadPapagayoFile(filename);
+    LoadPapagayoFile(filename, -1);
 //    LoadPgoSettings(); //reload in case models changed
 }
 
@@ -195,11 +196,11 @@ void xLightsFrame::OnButton_PgoStitchClick(wxCommandEvent& event)
     if (filename.IsEmpty()) return;
 
 //    TextCtrl_pgo_filename->SetValue(filename);
-    wxString stitch_frame;
-    if (!EffectTreeDialog::PromptForName(this, &stitch_frame, wxT("Enter continuation frame# (use 0 for horizontal stitch)"), wxT("Frame# must not be empty"))) return;
-    int start_frame;
-    start_frame = wxAtoi(stitch_frame);
-    if (!start_frame) return; //TODO: horizontal stitch
+    wxString stitch_frame = wxT("0"); //default value
+    if (!EffectTreeDialog::PromptForName(this, &stitch_frame, wxT("Enter continuation frame#"), wxEmptyString)) return; //wxT("Frame# must not be empty"))) return;
+    if (stitch_frame.IsEmpty()) stitch_frame = "0"; //kludge: PromptForName doesn't handle empty/default, so supply a default value here
+    int start_frame = wxAtoi(stitch_frame);
+//    if (!start_frame) return; //TODO: horizontal stitch
     LoadPapagayoFile(filename, start_frame);
 }
 
@@ -276,6 +277,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     wxString debug_msg, filename;
 //mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
     filename = TextCtrl_papagayo_output_filename->GetValue();
+    if (filename.IsEmpty()) retmsg(wxString("Please choose an output file name."));
 //only open/close file once for better performance:
     wxFile f(filename);
 //    bool isnew = !wxFile::Exists(filename);
@@ -288,7 +290,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 //        f.ClearLastError();
 //        debug(10, "file pre-creation kludge");
 //    }
-    int pgofile_status = write_pgo_header(f, voices.size()); //, filename);
+    int pgofile_status = write_pgo_header(f); //, voices.size()); //, filename);
 
     int numwr = 0;
     phonemes_by_start_frame.clear();
@@ -323,7 +325,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     }
     StatusBar1->SetStatusText(wxString::Format("Wrote pgo xml: %d entries", numwr));
     debug(10, "wrote pgo xml: %d entries", numwr);
-    if (pgofile_status) write_pgo_footer(f, voices.size()); //,filename);
+    if (pgofile_status) write_pgo_footer(f); //, voices.size()); //,filename);
     debug(10, "output file still open? %d, last err: %d", f.IsOpened(), f.GetLastError());
     f.Close();
 //    debug(10, "output file still open? %d, last err: %d", f.IsOpened(), f.GetLastError());
@@ -343,7 +345,7 @@ static void nochange(wxFile& f)
 }
 
 // int Voice,int MaxVoice,int StartFrame, int EndFrame,wxString Phoneme
-int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
+int xLightsFrame::write_pgo_header(wxFile& f) //, int MaxVoices)
 {
 //TODO: rewrite to use XmlDoc?  perf not too bad as is
     // wxFile f;
@@ -372,16 +374,16 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
         f.Write("<tr>\n");
         f.Write("    <td>Start Time</td>\n");
         f.Write("    <td>Label</td>\n");
-        for(int voice=1; voice<=MaxVoices; voice++)
+        for(int voice = 1; voice <= voices.size(); voice++)
         {
-            if (voice > GridCoroFaces->GetCols())
-                f.Write(wxString::Format("    <td>VOICE%d</td>\n",voice)); //write dummy value
-            else
-            {
+//            if (voice > GridCoroFaces->GetCols())
+//                f.Write(wxString::Format("    <td>VOICE%d</td>\n",voice)); //write dummy value
+//            else
+//            {
                 wxString voice_name = GridCoroFaces->GetCellValue(Model_Row, voice - 1);
                 if (voice_name == SelectionHint) continue; //don't write this one
                 f.Write(wxString::Format("    <td>%s</td>\n", NoInactive(voice_name))); //use actual voice model name
-            }
+//            }
         }
         f.Write("</tr>\n");
 
@@ -389,7 +391,7 @@ int xLightsFrame::write_pgo_header(wxFile& f, int MaxVoices)
         f.Write("<tr>\n");
         f.Write("    <td Protected=\"0\">0.000</td>\n");
         f.Write("    <td Protected=\"0\">Blank</td>\n");
-        for (int voice=1; voice<=MaxVoices; voice++) //use actual #voices
+        for (int voice = 1; voice <= voices.size(); voice++) //use actual #voices
             if (GridCoroFaces->GetCellValue(Model_Row, voice - 1) == SelectionHint) continue; //don't write this one
             else blank(f);
         f.Write("</tr>\n");
@@ -412,7 +414,7 @@ static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, In
     return true; //dup entry; no need to change position
 }
 
-void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
+void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
 {
 //TODO: rewrite to use XmlDoc?  perf not too bad as is
 #if 1 //sort and write merged pgo events
@@ -434,7 +436,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
     wxString errors;
     std::vector<wxString> frame_phonemes(voices.size());
     std::vector<wxString> frame_eyes(voices.size());
-    int all_fade_frame[4], eyes_move_frame[4]; //= std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
+    std::vector<int> all_fade_frame(voices.size()), eyes_move_frame(voices.size()); //= std::numeric_limits<int>::max(), eyes_move_frame = 0; //std::numeric_limits<int>::max(); //, single_fade_frame = std::numeric_limits<int>::max(); //auto-fade frame counts
     std::unordered_map<std::string, int> single_fade_frame; //per-phoneme deadline
 //    if (eyes_delay) eyes_move_frame = rand() % eyes_delay;
 #if 0 //obsolete
@@ -463,10 +465,10 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         if (ModelClass::ParseFaceElement(GridCoroFaces->GetCellValue(WQ_Row, v), &xy)) oldxy.phon[v]["WQ"] = wxString::Format(wxT("%d:%d"), xy.x, xy.y); if (!str.empty()) parsed.phon[v]["WQ"] = "+" + str;
     }
 #endif // 0
-    int prev_voice_frame[4];
-    bool want_voice[4], discarded[4], want_fade[4]; //multiple faces might be fading at same time so use an array
-    std::unordered_map<std::string, std::string> img_lkup[4];
-    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    std::vector<int> prev_voice_frame(voices.size());
+    std::vector<bool> want_voice(voices.size()), discarded(voices.size()), want_fade(voices.size()); //multiple faces might be fading at same time so use an array
+    std::vector<std::unordered_map<std::string, std::string>> img_lkup(voices.size());
+    for (int c = 0; c < voices.size(); ++c)
     {
         want_voice[c] = (GridCoroFaces->GetCellValue(Model_Row, c) != SelectionHint); //don't write this one
         discarded[c] = false;
@@ -660,11 +662,13 @@ void xLightsFrame::write_pgo_footer(wxFile& f, int MaxVoices)
         if (new_short_desc != shorter_desc) shorter_desc.clear(); //can't use shorter desc (word or phoneme varies)
         debug(10, "footer: merge fr %d (%7.3f sec) '%s'", it->first, it->first * 0.05, (const char*)frame_desc.c_str());
         int voice = it->second.v - &voices[0];
+#if 0 //users don't want to know if phoneme was dropped
         if (!frame_phonemes[voice].empty() && (err_frame != it->first) && want_voice[voice])
         {
-            errors += wxString::Format(wxT("Duplicate phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+            errors += wxString::Format(wxT("Extra phoneme for '%s' in frame %d (%7.3f sec)\n"), it->second.v->name, it->first, (double)it->first * 0.050);
             err_frame = it->first; //only report each frame 1x
         }
+#endif // 0
         frame_phonemes[voice] = it->second.q->name; //remember current phoneme for each voice
         if (all_delay) all_fade_frame[voice] = it->first + all_delay; //set next deadline
         if (single_delay) single_fade_frame[phkey] = it->first + single_delay; //set per-phoneme deadline
@@ -791,6 +795,19 @@ static const wxString& readline(bool first = false)
     return _("");
 }
 
+//enlarge grid if a new column is needed:
+static void grenlarge(wxGrid* grid, int numcols)
+{
+    if (grid->GetCols() >= numcols) return; //no need to enlarge grid
+    grid->InsertCols(numcols - 1, 1); //assume only one needed
+    for (int r = 0; r < grid->GetRows(); ++r)
+    {
+        grid->SetCellEditor(r, voices.size(), grid->GetCellEditor(r, 0));
+        if (r != Model_Row) grid->SetCellRenderer(r, voices.size(), grid->GetCellRenderer(r, 0));
+    }
+}
+
+
 //map Papagayo extended dictionary down to basic 10 phonemes:
 static std::unordered_map<std::string, std::string> equiv_dict = {
     {"AA", "AI"}, {"AE", "AI"}, {"AH", "AI"}, {"AY", "AI"}, {"IH", "AI"},
@@ -806,15 +823,18 @@ static std::unordered_map<std::string, std::string> equiv_dict = {
     {"OY", "WQ"}, {"W", "WQ"},
     {"UH", "U"}, {"UW", "U"}};
 
+static bool pgo_first = true;
+
 void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /*= 0*/)
 {
     wxString warnings;
     int extended_xlates = 0;
 //    if (!CachedCueFilename.CmpNoCase(filename)) { debug_more(2, ", no change"); return; } //no change
-    if (!frame_offset) voices.clear(); //clean out prev file
+    if (frame_offset < 0) voices.clear(); //clean out prev file
     if (!wxFileExists(filename)) retmsg(wxString::Format(_("File '%s' does not exist."), filename));
     if (!PapagayoFileInfo.file.Open(filename)) retmsg(wxString::Format(_("Can't open file '%s'."), filename));
     debug(3, "read file '%s', frame offset %d", (const char*)filename.c_str(), frame_offset);
+    char mode = (char)Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection()).Lower().GetChar(0); //Choice_PgoOutputType->GetStringSelection().Lower().GetChar(0);
 
 //        wxStringTokenizer tkz(linebuf, "\t");
 //        linebuf += "\teol"; //end-of-line check for missing params
@@ -856,6 +876,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
      */
     // songs.samppersec=samppersec;
 
+    GridCoroFaces->BeginBatch();
     int total_voices = 0, total_phrases = 0, total_words = 0, total_syllables = 0;
     for (int v = 1; v <= numvoices; ++v)
     {
@@ -873,6 +894,7 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
 //        if (!numphrases) warnmsg(wxString::Format(_("Suspicious file @line %d ('%s' phrases for %s)"), PapagayoFileInfo.linenum, PapagayoFileInfo.linebuf.c_str(), desc.c_str()));
         if (numphrases > 0) ++total_voices;
 
+        bool voice_found = false;
         VoiceInfo emptyvoice, *newvoice = &emptyvoice;
         for (auto it = voices.begin(); it != voices.end(); ++it)
             if (it->name == voicename)
@@ -880,9 +902,18 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
                 debug(10, "found dup voice '%s', stitch? %d", (const char*)voicename.c_str(), frame_offset);
                 if (!frame_offset) warnmsg(wxString::Format(_("Duplicate voice name: %s"), voicename.c_str()));
                 else newvoice = &*it; //add to previous info
+                voice_found = true;
                 break;
             }
-        debug(10, "new voice '%s' had %d phrases", (const char*)voicename.c_str(), newvoice->phrases.size());
+        if (pgo_first || !voice_found) //add new column to grid
+        {
+            debug(10, "grid had %d cols, enlarge? %d, set col#%d label", GridCoroFaces->GetCols(), GridCoroFaces->GetCols() <= voices.size(), voices.size());
+            grenlarge(GridCoroFaces, voices.size() + 1);
+            GridCoroFaces->SetColumnWidth(voices.size(), (mode != 'c') && (mode != 'a')? 180: 100); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
+            GridCoroFaces->SetColLabelValue(voices.size(), voicename);
+            if (GridCoroFaces->GetCellValue(Model_Row, voices.size()).IsEmpty()) GridCoroFaces->SetCellValue(Model_Row, voices.size(), SelectionHint);
+        }
+        debug(10, "new? %d voice '%s' had %d phrases", !voice_found, (const char*)voicename.c_str(), newvoice->phrases.size());
         newvoice->name = voicename;
         for (int phr = 1; phr <= numphrases; ++phr)
         {
@@ -976,7 +1007,21 @@ void xLightsFrame::LoadPapagayoFile(const wxString& filename, int frame_offset /
 
         }
         if (newvoice == &emptyvoice) voices.push_back(*newvoice);
+        debug(10, "#voices now = %d", voices.size());
     }
+    debug(10, "grid has %d cols, only %d voices needed, delete %d cols, pgo first? %d", GridCoroFaces->GetCols(), voices.size(), GridCoroFaces->GetCols() - voices.size(), pgo_first);
+    pgo_first = false; //don't overwrite voices/columns next time
+    if (voices.size() && (GridCoroFaces->GetCols() > voices.size())) //trim unused columns from grid
+#if 0
+        GridCoroFaces->DeleteCols(voices.size(), GridCoroFaces->GetCols() - voices.size());
+#else //kludge: just hide column(s)
+        for (int c = voices.size(); c < GridCoroFaces->GetCols(); ++c)
+        {
+            GridCoroFaces->SetColMinimalWidth(c, 0);
+            GridCoroFaces->SetColumnWidth(c, 0); //LabelValue(c, wxT("(none)")); //NoneHint);
+        }
+#endif // 1
+    GridCoroFaces->EndBatch();
     if (!readline().empty()) warnmsg(wxString::Format(_("Ignoring junk at eof ('%s' found on line %d)"), PapagayoFileInfo.linebuf.c_str(), PapagayoFileInfo.linenum));
     if (extended_xlates) warnmsg(wxString::Format(_("Extended dictionary phonemes found: %d (translated to set of basic 10)"), extended_xlates));
     PapagayoFileInfo.file.Close();
@@ -1393,7 +1438,8 @@ public:
             dc.DrawRectangle(newrect);
             dc.DrawText(wxT("... "), newrect.x, newrect.y); //left-truncation indicator
         }
-        debug(10, "cell renderer[r %d, c %d]: text '%s', rect (%d, %d, %d, %d), draw at (%d, %d)", row, col, (const char*)grid.GetCellValue(row, col).c_str(), rect.x, rect.y, rect.width, rect.height, xy.x, xy.y);
+        if (!grid.GetCellValue(row, col).IsEmpty())
+            debug(10, "cell renderer[r %d, c %d]: text '%s', rect (%d, %d, %d, %d), draw at (%d, %d)", row, col, (const char*)grid.GetCellValue(row, col).c_str(), rect.x, rect.y, rect.width, rect.height, xy.x, xy.y);
     }
 };
 
@@ -2253,8 +2299,9 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         wxXmlNode* node = FindNode(Presets, compat? wxT("coro"): wxT("preset"), Name, grpname, !compat);
 //        if (!node) continue;
         char mode = (char)node->GetAttribute(LastMode, wxT("Coro")).Lower().GetChar(0); //default
-        for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
+        for (int i = 0; i < (pgo_first? GridCoroFaces->GetCols(): voices.size()); ++i)
         {
+            debug(10, "save grp[%d]: mode '%c', pgo first? %d, #cols %d, #voices %d", i, mode, pgo_first, GridCoroFaces->GetCols(), voices.size());
             bool non_empty = false;
             for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
             {
@@ -2265,6 +2312,7 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
             wxString voice_model = NoInactive(GridCoroFaces->GetCellValue(Model_Row, i));
 //        if (Voice(i)->GetSelection() >= 0) voice_model = Voice(i)->GetString(Voice(i)->GetSelection());
 //        if (Choice_PgoModelVoiceEdit->GetSelection() >= 0) voice_model = Choice_PgoModelVoiceEdit->GetString(Choice_PgoModelVoiceEdit->GetSelection());
+            debug(10, "got model name '%s', non-empty? %d", (const char*)voice_model.c_str(), non_empty);
             if ((voice_model == SelectionHint) || (voice_model == NoneHint)) //warn if user forgot to set model
             {
                 if (non_empty) warnings += wxString::Format(wxT("\nVoice# %d not saved (no model selected)."), i + 1);
@@ -2366,14 +2414,20 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
         wxXmlNode* Presets = FindNode(pgoXml.GetRoot(), (compat & 1)? wxT("corofaces"): wxT("presets"), Name, wxEmptyString, true); //kludge: donbackwards compatible with current settings
         wxXmlNode* node = FindNode(Presets, (compat & 1)? wxT("coro"): wxT("preset"), Name, grpname, compat & 2);
         if (!node) continue; //try another compatibility mode
-        for (int i = 0; i < GridCoroFaces->GetCols(); ++i)
+        for (int i = 0; /*i < GridCoroFaces->GetCols()*/; ++i)
 //    for (wxXmlNode* voice = node->GetChildren(); voice != NULL; voice = voice->GetNext())
         {
-            wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), true);
+            wxXmlNode* voice = FindNode(node, "voice", wxT("voiceNumber"), wxString::Format(wxT("%d"), i + 1), false);
+            if (!voice) break;
 //        int voice_num = wxAtoi(voice->GetAttribute(wxT("voiceNumber"), wxT("0")));
 //        if ((voice_num < 1) || (voice_num > GridCoroFaces->GetCols())) continue; //bad voice#
 //        int inx = Voice(i)->FindString(voice->GetAttribute(Name));
             wxString voice_name = NoInactive(voice->GetAttribute(Name));
+            if (voice_name.IsEmpty()) continue;
+            grenlarge(GridCoroFaces, i + 1); //widen grid if needed to accommodate settings
+            GridCoroFaces->SetColLabelValue(i, voice_name);
+            if (GridCoroFaces->GetCellValue(Model_Row, i).IsEmpty()) GridCoroFaces->SetCellValue(Model_Row, i, SelectionHint);
+            GridCoroFaces->SetColumnWidth(i, myGridCellChoiceEditor::WantFiles? 180: 100); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
 #if 0
         int inx = Choice_PgoModelVoiceEdit->FindString(voice_name);
         if ((inx < 0) && !voice_name.empty())
@@ -2478,6 +2532,8 @@ void xLightsFrame::OnButton_CoroGroupDeleteClick(wxCommandEvent& event)
         Choice_PgoGroupName->SetSelection(0); //"choose"
         GridCoroFaces->ClearGrid();
         debug(10, "group deleted from '%s' node", (const char*)Presets->GetName().c_str());
+        for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+            GridCoroFaces->SetCellValue(Model_Row, c, SelectionHint);
 //TODO: reset fade + blink?
     }
 }
@@ -2693,7 +2749,7 @@ void xLightsFrame::OnChoice_PgoOutputTypeSelect(wxCommandEvent& event)
 //change cell status:
     debug(10, "change output type: want files? %d, want custom? %d, update grid...", myGridCellChoiceEditor::WantFiles, myGridCellChoiceEditor::WantCustom);
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
-    for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
+    for (int c = 0; c < (pgo_first? GridCoroFaces->GetCols(): voices.size()); ++c)
     {
         GridCoroFaces->SetColumnWidth(c, myGridCellChoiceEditor::WantFiles? 180: 100); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
 //        if (WantFiles || WantCustom) continue;
@@ -2734,6 +2790,7 @@ void xLightsFrame::OnButton_PgoCopyVoicesClick(wxCommandEvent& event)
     GridCoroFaces->BeginBatch(); //postpone repaint until after all updates
     for (int c = 1; c < GridCoroFaces->GetCols(); ++c)
         for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
+//            if ((r == Model_Row) && !GridCoroFaces->GetCellValue(r, c).IsEmpty())
             GridCoroFaces->SetCellValue(r, c, GridCoroFaces->GetCellValue(r, 0));
     GridCoroFaces->EndBatch();
 }

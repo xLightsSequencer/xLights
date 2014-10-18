@@ -5,8 +5,11 @@
 		<centered>1</centered>
 		<help>Pixels Start in the upper left and go right or down depending on Vertical or Horizontal orientation.  Trees are always Vertical.</help>
 		<id_arg>0</id_arg>
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>3</cols>
+			<growablecols>3</growablecols>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
@@ -315,7 +318,6 @@
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
-				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
@@ -356,12 +358,12 @@
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
-				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 					<cols>1</cols>
 					<rows>2</rows>
+					<growablecols>1</growablecols>
 					<growablerows>1</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
@@ -435,14 +437,13 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>5</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW2" variable="ScrolledWindow2" member="yes">
-							<size>430,323</size>
 							<minsize>504,-1</minsize>
+							<style>wxVSCROLL|wxHSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
 							<object class="wxGrid" name="ID_GRID_Custom" variable="GridCustom" member="yes">
 								<cols>1</cols>
 								<rows>1</rows>
@@ -454,7 +455,7 @@
 								<handler function="OnGridCustomCellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 							</object>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -476,9 +477,8 @@
 						</object>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
-				<option>1</option>
 			</object>
 		</object>
 	</object>
