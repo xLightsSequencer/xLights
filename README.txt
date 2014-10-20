@@ -6,7 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
+3.4.20
 	-enh (djulien) Added Papagayo Preset stitch (allows Presets to be combined dynamically at run time)
 	NOTES:
 	 - Papagayo Presets match by model or voice name now rather than column#.  This means they can move around between columns and still work.
