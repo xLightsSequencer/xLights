@@ -6,6 +6,21 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+<next>
+	-enh (djulien) Added Papagayo Preset stitch (allows Presets to be combined dynamically at run time)
+	NOTES:
+	 - Papagayo Presets match by model or voice name now rather than column#.  This means they can move around between columns and still work.
+	 - The format of the xlights_papagayo.xml file (where pgo Presets are stored) changed but should be backward-compatible.
+	 - Custom model info is cached with the Presets; if you change your Custom Models then re-Save the associated Presets
+	 - workflow for horizontal (side-by-side) stitch of multiple pgo files + presets is as follows:
+	   1. clear grid
+	   2. load first pgo file
+	   3. select corresponding Preset; this will "bind" the Preset info to the voice(s) in the pgo file
+	   4. load next pgo file using "+" button, specify "0" for #frames to shift
+	   5. select corresponding Preset
+	   6. select output file if not already set
+	   7. click button at the bottom to generate the sequence
+	   8. load additional pgo files as desired; for vertical stitch (concatenate) enter a non-0 value for #frames to shift
 3.4.19
 	-bug (djulien) Fixed Coro Faces render problem on models with > 26 columns, adjust text size on model zoom in/out, Papagayo Preset delete button
 	-enh (djulien) Added Papagayo horizontal stitch (supports any number of voices within reason), accept 39 extended phonemes (auto-map to basic 10), removed duplicate phoneme in frame message (CAUTION: phonemes will be dropped with no warnings), added Preset consistency check, start making Model dialog resizable, show reason for "reseting flags" message
