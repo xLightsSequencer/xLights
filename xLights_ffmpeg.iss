@@ -25,6 +25,8 @@ Source: "bin/gawk.exe"; DestDir: "{app}"
 Source: "bin/coroface.awk"; DestDir: "{app}"
 Source: "bin/corofaces.bat"; DestDir: "{app}"
 Source: "bin/picturefaces.awk"; DestDir: "{app}"
+Source: "bin/modelxls.awk"; DestDir: "{app}"
+Source: "bin/modelxls.bat"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
 Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: recursesubdirs

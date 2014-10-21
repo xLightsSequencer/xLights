@@ -1,0 +1,1 @@
+gawk -f modelxls.awk xlights_rgbeffects.xml > xlights_rgbeffects.csv
