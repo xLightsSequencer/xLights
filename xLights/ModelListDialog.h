@@ -21,6 +21,7 @@ public:
     wxHtmlEasyPrinting* HtmlEasyPrint;
 
     //(*Declarations(ModelListDialog)
+    wxButton* Button_ExportCsv;
     wxButton* Button_Modify;
     wxButton* Button_Layout;
     wxButton* Button_Delete;
@@ -40,6 +41,7 @@ protected:
     static const long ID_BUTTON2;
     static const long ID_BUTTON5;
     static const long ID_BUTTON_LAYOUT;
+    static const long ID_BUTTON_ExportCsv;
     //*)
 
 private:
@@ -51,6 +53,7 @@ private:
     void OnButton_RenameClick(wxCommandEvent& event);
     void OnButton_LayoutClick(wxCommandEvent& event);
     void OnButton_CopyClick(wxCommandEvent& event);
+    void OnButton_ExportCsvClick(wxCommandEvent& event);
     //*)
 
     bool ValidateModelName(const wxString& name);

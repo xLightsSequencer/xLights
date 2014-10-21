@@ -2,8 +2,10 @@
 #include "ModelDialog.h"
 #include "ChannelLayoutDialog.h"
 #include <wx/msgdlg.h>
+#include <wx/filedlg.h>
 #include <wx/textdlg.h>
 #include <wx/xml/xml.h>
+#include <wx/file.h>
 
 //(*InternalHeaders(ModelListDialog)
 #include <wx/intl.h>
@@ -18,6 +20,7 @@ const long ModelListDialog::ID_BUTTON4 = wxNewId();
 const long ModelListDialog::ID_BUTTON2 = wxNewId();
 const long ModelListDialog::ID_BUTTON5 = wxNewId();
 const long ModelListDialog::ID_BUTTON_LAYOUT = wxNewId();
+const long ModelListDialog::ID_BUTTON_ExportCsv = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ModelListDialog,wxDialog)
@@ -54,6 +57,8 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     FlexGridSizer3->Add(Button_Copy, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Layout = new wxButton(this, ID_BUTTON_LAYOUT, _("Node Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LAYOUT"));
     FlexGridSizer3->Add(Button_Layout, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_ExportCsv = new wxButton(this, ID_BUTTON_ExportCsv, _("Export CSV"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ExportCsv"));
+    FlexGridSizer3->Add(Button_ExportCsv, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
@@ -70,6 +75,7 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_RenameClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_CopyClick);
     Connect(ID_BUTTON_LAYOUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_LayoutClick);
+    Connect(ID_BUTTON_ExportCsv,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_ExportCsvClick);
     //*)
 }
 
@@ -257,3 +263,42 @@ void ModelListDialog::OnButton_LayoutClick(wxCommandEvent& event)
     dialog.ShowModal();
 }
 
+
+#define retmsg(msg)  \
+{ \
+    wxMessageBox(msg, _("Export Error")); \
+    return; \
+}
+
+void ModelListDialog::OnButton_ExportCsvClick(wxCommandEvent& event)
+{
+#if 0
+model name
+display as
+type of strings
+#strings
+#nodes
+start channel
+start node = (channel+2)/3;
+#endif // 0
+    wxString filename = wxFileSelector(wxT("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+//    if (filename.IsEmpty()) retmsg(wxString("Please choose an output file name."));
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+//    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    f.Write(wxT("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node\n"));
+
+    int first = 0, last = ListBox1->GetCount();
+    if (ListBox1->GetSelection() != wxNOT_FOUND) last = 1 + (first = ListBox1->GetSelection());
+    for (int i = first; i < last; ++i)
+    {
+        wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
+        ModelClass model;
+        model.SetFromXml(node);
+        f.Write(wxString::Format(wxT("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d\n"), model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1));
+    }
+    f.Close();
+    retmsg(wxString::Format(wxT("Models exported: %d of %d"), last - first, ListBox1->GetCount()));
+}

@@ -212,7 +212,6 @@ private:
     int GetCustomMaxChannel(const wxString& customModel);
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
-    int NodesPerString();
 
     wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
@@ -267,6 +266,9 @@ public:
     void DisplayEffectOnWindow(wxWindow* window);
     bool CanRotate();
     void Rotate(int degrees);
+    const wxString& GetStringType(void) { return StringType; }
+    const wxString& GetDisplayAs(void) { return DisplayAs; }
+    int NodesPerString();
 
     int GetRotation();
     int ChannelsPerNode();
