@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      RenderTwinkle.cpp
+ * Name:      RenderShimmer.cpp
  * Purpose:  Sean Meighan (sean@meighan.net)
  * Created:   2012-12-23
  * Copyright: 2012 by Sean Meighan
@@ -22,7 +22,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
+void RgbEffects::RenderShimmer(int Count,int Steps, bool Strobe)
 {
 
     int x,y,i,i7,ColorIdx;
@@ -40,58 +40,43 @@ void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
     if(Strobe) srand (time(NULL)); // for strobe effect, make lights be random
     else srand(1); // else always have the same random numbers for each frame (state)
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-
+    srand (time(NULL));
     size_t colorcnt=GetColorCount();
 
     i=0;
-
+    int on_off=0;
+    int irandom=Strobe;
     for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
             i++;
-
-            if(i%step==1 || step==1) // Should we draw a light?
+            int imod=(state/10)%2;
+            int icolor=(state/10)%colorcnt;
+            if(irandom==1)
             {
-                // Yes, so now decide on what color it should be
-
-                ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+                ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
                 palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-                //    mod_number=rand()% max_modulo;
-                //    if(mod_number<1) mod_number=1;
-                //     i7=(state/4) % mod_number; // Our twinkle is 9 steps. 4 ramping up, 5th at full brightness and then 4 more ramping down
-                //  Note that we are adding state to this calculation, this causes a different blink rate for each light
-                i7=(state+rand())% max_modulo;
-
-//                if(i7==0 || i7==8)  hsv.value = 0.1;
-//                if(i7==1 || i7==7)  hsv.value = 0.3;
-//                if(i7==2 || i7==6)  hsv.value = 0.5;
-//                if(i7==3 || i7==5)  hsv.value = 0.7;
-//                if(i7==4)  hsv.value = 1.0;
-//                else  hsv.value = 0.0;
-
-                if(i7<=max_modulo2)
+            }
+            else
+                palette.GetHSV(icolor, hsv); // Now go and get the hsv value for this ColorIdx
+            if(on_off==1)
+            {
+                if(imod==1) // Should we draw a light?
                 {
-                    if(max_modulo2>0) hsv.value = (1.0*i7)/max_modulo2;
-                    else  hsv.value =0;
+                    // Yes, so now decide on what color it should be
+
                 }
                 else
                 {
-                    if(max_modulo2>0) hsv.value = (max_modulo-i7)*1.0/(max_modulo2);
-                    else hsv.value = 0;
+                    hsv.value=0.0;
                 }
-                if(hsv.value<0.0) hsv.value=0.0;
-
-                if(Strobe)
-                {
-                    if(i7==max_modulo2)  hsv.value = 1.0;
-                    else  hsv.value = 0.0;
-                }
-
-
-                //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
-                SetPixel(x,y,hsv); // Turn pixel on
             }
+            else
+            {
+
+            }
+            SetPixel(x,y,hsv); // Turn pixel
         }
     }
 }

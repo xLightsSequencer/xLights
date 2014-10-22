@@ -1150,6 +1150,12 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
                              );
     }
+    else if (effect == "Shimmer")
+    {
+        buffer.RenderShimmer(wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Count"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Steps"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Shimmer_Strobe"]=="1");
+    }
     else if (effect == "SingleStrand")
     {
         buffer.RenderSingleStrand(
@@ -1321,7 +1327,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_FACES:
         buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
- case eff_COROFACES:
+    case eff_COROFACES:
 #if 0
 //        wxString parsed;
 //kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
@@ -1380,6 +1386,11 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
+        break;
+    case eff_SHIMMER:
+        buffer.RenderShimmer(panel->Slider_Shimmer_Count->GetValue(),
+                             panel->Slider_Shimmer_Steps->GetValue(),
+                             panel->CheckBox_Shimmer_Strobe->GetValue());
         break;
     case eff_SINGLESTRAND:
         buffer.RenderSingleStrand(panel->Choice_SingleStrand_Colors->GetSelection(),

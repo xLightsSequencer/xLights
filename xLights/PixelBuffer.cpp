@@ -500,6 +500,10 @@ void PixelBufferClass::RenderPinwheel(int Branches)
 {
     Effect[CurrentLayer].RenderTree(Branches);
 }
+void PixelBufferClass::RenderShimmer(int Count,int Steps,bool Strobe)
+{
+    Effect[CurrentLayer].RenderShimmer(Count,Steps,Strobe);
+}
 void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
         int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {

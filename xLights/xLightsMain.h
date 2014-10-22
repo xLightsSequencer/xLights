@@ -223,6 +223,7 @@ public:
         eff_PIANO,
         eff_PICTURES,
         eff_PINWHEEL,
+        eff_SHIMMER,
         eff_SINGLESTRAND,
         eff_SNOWFLAKES,
         eff_SNOWSTORM,

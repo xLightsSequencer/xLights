@@ -6,8 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
-	-enh (djulien) Added model CSV export
+3.4.21
+	-enh (djulien) Added model CSV export to the Models screen. This csv file can be opened by Excel or 
+		Open Office spreadsheets
 3.4.20
 	-enh (djulien) Added Papagayo Preset stitch (allows Presets to be combined dynamically at run time)
 	NOTES:
