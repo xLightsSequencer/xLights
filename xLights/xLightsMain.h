@@ -638,12 +638,12 @@ private:
     static const long ID_BUTTON_CoroGroupClear;
     static const long ID_BUTTON_PgoCopyVoices;
     static const long ID_GRID_COROFACES;
-    static const long ID_CHECKBOX_AutoFadePgoElement;
-    static const long ID_TEXTCTRL_AutoFadePgoElement;
+    static const long ID_CHECKBOX_PgoAutoReset;
+    static const long ID_TEXTCTRL_PgoAutoRest;
     static const long ID_STATICTEXT34;
     static const long ID_CHECKBOX_CoroEyesRandomBlink;
-    static const long ID_CHECKBOX_AutoFadePgoAll;
-    static const long ID_TEXTCTRL_AutoFadePgoAll;
+    static const long ID_CHECKBOX_PgoAutoFade;
+    static const long ID_TEXTCTRL_PgoAutoFade;
     static const long ID_STATICTEXT35;
     static const long ID_CHECKBOX_CoroEyesRandomLR;
     static const long ID_STATICTEXT70;
@@ -683,9 +683,9 @@ private:
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
-    wxCheckBox* CheckBox_AutoFadePgoAll;
     wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
+    wxTextCtrl* TextCtrl_PgoAutoFade;
     wxButton* ButtonClearLog;
     EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
@@ -773,7 +773,6 @@ private:
     wxSlider* SliderChaseSpeed;
     wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
-    wxCheckBox* CheckBox_AutoFadePgoElement;
     wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
@@ -786,6 +785,7 @@ private:
     wxMenu* MenuFile;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
+    wxTextCtrl* TextCtrl_PgoAutoRest;
     wxStaticText* StaticText_PgoOutputType;
     wxButton* ButtonChangeDir;
     wxGrid* Grid1;
@@ -803,6 +803,7 @@ private:
     wxStaticText* StaticText34;
     wxSlider* SliderBgColorC;
     wxStatusBar* StatusBar1;
+    wxCheckBox* CheckBox_PgoAutoRest;
     wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
@@ -834,6 +835,7 @@ private:
     wxButton* Button_PgoStitch;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
@@ -868,7 +870,6 @@ private:
     wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText1;
     wxStaticText* StaticText2;
-    wxTextCtrl* TextCtrl_AutoFadePgoAll;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* SliderBgColorB;
     wxPanel* PanelTestRgb;
@@ -895,7 +896,6 @@ private:
     wxButton* ButtonNetworkChange;
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
-    wxTextCtrl* TextCtrl_AutoFadePgoElement;
     wxRadioButton* RadioButtonRgbCycle3;
     EffectsPanel* EffectsPanel2;
     wxSlider* SliderBgColorA;

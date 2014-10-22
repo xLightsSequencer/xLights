@@ -8,6 +8,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 =================================
 <next>
 	-enh (djulien) Added model CSV export
+	-enh (djulien) Change Pgo "auto fade element" to "auto rest" (not functional yet), leave initial Pgo Preset cleared for stitch
 3.4.20
 	-enh (djulien) Added Papagayo Preset stitch (allows Presets to be combined dynamically at run time)
 	NOTES:
