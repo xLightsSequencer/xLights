@@ -53,10 +53,10 @@ static const wxString SelectionHint = "(choose)", CreationHint = "(add new)", No
 
 static const wxString LastPreset = wxT("last_preset");
 static const wxString LastMode = wxT("last_mode");
-static const wxString AutoFadeElement = wxT("auto_fade_element");
-static const wxString AutoFadeAll = wxT("auto_fade_all");
-static const wxString DelayElement = wxT("delay_element");
-static const wxString DelayAll = wxT("delay_all");
+static const wxString AutoRest = wxT("auto_rest");
+static const wxString AutoFade = wxT("auto_fade");
+static const wxString DelayRest = wxT("delay_rest");
+static const wxString DelayFade = wxT("delay_fade");
 static const wxString EyesBlink = wxT("eyes_blink");
 static const wxString EyesLR = wxT("eyes_lr");
 static const wxString Yes = wxT("Y");
@@ -942,25 +942,25 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     all_delay = 0;
     single_delay = 0;
     eyes_delay = 0;
-    if (CheckBox_AutoFadePgoElement->GetValue())
+    if (CheckBox_PgoAutoRest->GetValue())
     {
         double val;
-        if (!TextCtrl_AutoFadePgoElement->GetValue().ToDouble(&val))
-            retmsg(wxString::Format("Invalid single element delay value: '%s'", TextCtrl_AutoFadePgoElement->GetValue()));
+        if (!TextCtrl_PgoAutoRest->GetValue().ToDouble(&val))
+            retmsg(wxString::Format("Invalid single element delay value: '%s'", TextCtrl_PgoAutoRest->GetValue()));
         single_delay = val * 20; //#sec => #frames
     }
-    if (CheckBox_AutoFadePgoAll->GetValue())
+    if (CheckBox_PgoAutoFade->GetValue())
     {
         double val;
-        if (!TextCtrl_AutoFadePgoAll->GetValue().ToDouble(&val))
-            retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_AutoFadePgoAll->GetValue()));
+        if (!TextCtrl_PgoAutoFade->GetValue().ToDouble(&val))
+            retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_PgoAutoFade->GetValue()));
         all_delay = val * 20; //#sec => #frames
     }
-    if (CheckBox_AutoFadePgoAll->GetValue())
+    if (CheckBox_PgoAutoFade->GetValue())
     {
         double val;
-        if (!TextCtrl_AutoFadePgoAll->GetValue().ToDouble(&val))
-            retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_AutoFadePgoAll->GetValue()));
+        if (!TextCtrl_PgoAutoFade->GetValue().ToDouble(&val))
+            retmsg(wxString::Format("Invalid all element delay value: '%s'", TextCtrl_PgoAutoFade->GetValue()));
         all_delay = val * 20; //#sec => #frames
     }
     if (CheckBox_CoroEyesRandomBlink->GetValue() || CheckBox_CoroEyesRandomLR->GetValue()) eyes_delay = 100; //rand() % 30; //TODO: adjust value?
@@ -1164,6 +1164,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
     for (int cc = 0; cc < voices.size(); ++cc)
     {
         int c = voices[cc].gridcol;
+        debug(10, "cre phon lkup[%d] => %d, eyes delay %d", cc, c, eyes_delay);
         want_voice[c] = (GridCoroFaces->GetCellValue(Model_Row, c) != SelectionHint); //don't write this one
         discarded[c] = false;
         want_fade[c] = false;
@@ -1911,6 +1912,10 @@ bool xLightsFrame::LoadPgoSettings(void)
             NotebookPgoParms->SetSelection(i);
             break;
         }
+#else
+    Choice_PgoOutputType->SetSelection(0); //"choose"
+    wxCommandEvent non_evt;
+    OnChoice_PgoOutputTypeSelect(non_evt); //force UI update
 #endif // 0
 
 #if 0
@@ -1931,10 +1936,10 @@ bool xLightsFrame::LoadPgoSettings(void)
 //individual UI controls are loaded when the user chooses a group name later
 //only the list of available groups is populated here
 #if 1 //leave this here for old settings
-    CheckBox_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeElement) == Yes);
-    CheckBox_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFadeAll) == Yes);
-    TextCtrl_AutoFadePgoElement->SetValue(pgoXml.GetRoot()->GetAttribute(DelayElement));
-    TextCtrl_AutoFadePgoAll->SetValue(pgoXml.GetRoot()->GetAttribute(DelayAll));
+    CheckBox_PgoAutoRest->SetValue(pgoXml.GetRoot()->GetAttribute(AutoRest) == Yes);
+    CheckBox_PgoAutoFade->SetValue(pgoXml.GetRoot()->GetAttribute(AutoFade) == Yes);
+    TextCtrl_PgoAutoRest->SetValue(pgoXml.GetRoot()->GetAttribute(DelayRest));
+    TextCtrl_PgoAutoFade->SetValue(pgoXml.GetRoot()->GetAttribute(DelayFade));
     CheckBox_CoroEyesRandomBlink->SetValue(pgoXml.GetRoot()->GetAttribute(EyesBlink) == Yes);
     CheckBox_CoroEyesRandomLR->SetValue(pgoXml.GetRoot()->GetAttribute(EyesLR) == Yes);
     for (int i = 0; i < Choice_PgoOutputType->GetCount(); ++i)
@@ -1976,6 +1981,7 @@ bool xLightsFrame::LoadPgoSettings(void)
 //    }
 //    else
 //        Choice_PgoGroupName->SetSelection(1); //"add new" hint
+#if 0 //default to last-used preset
     Choice_PgoGroupName->SetSelection((Choice_PgoGroupName->GetCount() > 2)? 2: 1); //default to "add new" or "choose" hint
     for (int i = 2; i < Choice_PgoGroupName->GetCount(); ++i) //sort might change order, so rescan list for last-used
         if (Choice_PgoGroupName->GetString(i) == last_preset)
@@ -1986,6 +1992,12 @@ bool xLightsFrame::LoadPgoSettings(void)
             break;
         }
 //    wxMessageBox(wxString::Format(_("found %d grps: %s"), Choice_PgoGroupName->GetCount(), buf));
+#else //leave clear initially
+    Choice_PgoGroupName->SetSelection(1); //default to "choose" hint
+//    OnChoice_PgoGroupNameSelect(non_evt); //kludge: force UI to update
+    myGridCellChoiceEditor::WantFiles = false;
+    initcol(GridCoroFaces);
+#endif // 0
 
 #if 0
 //load image settings:
@@ -2147,10 +2159,10 @@ bool xLightsFrame::SavePgoSettings(void)
     debug(10, "mode = %d '%s'", NotebookPgoParms->GetSelection(), (NotebookPgoParms->GetSelection() != -1)? (const char*)NotebookPgoParms->GetPageText(NotebookPgoParms->GetSelection()).c_str(): "(none)");
     if (NotebookPgoParms->GetSelection() != -1) //remember last-used tab (user friendly, not critical)
         AddNonDupAttr(pgoXml.GetRoot(), LastPreset, NotebookPgoParms->GetPageText(NotebookPgoParms->GetSelection()));
-    AddNonDupAttr(pgoXml.GetRoot(), AutoFadeElement, CheckBox_AutoFadePgoElement->GetValue()? Yes: No);
-    AddNonDupAttr(pgoXml.GetRoot(), AutoFadeAll, CheckBox_AutoFadePgoAll->GetValue()? Yes: No);
-    AddNonDupAttr(pgoXml.GetRoot(), DelayElement, TextCtrl_AutoFadePgoElement->GetValue());
-    AddNonDupAttr(pgoXml.GetRoot(), DelayAll, TextCtrl_AutoFadePgoAll->GetValue());
+    AddNonDupAttr(pgoXml.GetRoot(), AutoRest, CheckBox_PgoAutoRest->GetValue()? Yes: No);
+    AddNonDupAttr(pgoXml.GetRoot(), AutoFade, CheckBox_PgoAutoFade->GetValue()? Yes: No);
+    AddNonDupAttr(pgoXml.GetRoot(), DelayRest, TextCtrl_PgoAutoRest->GetValue());
+    AddNonDupAttr(pgoXml.GetRoot(), DelayFade, TextCtrl_PgoAutoFade->GetValue());
     AddNonDupAttr(pgoXml.GetRoot(), EyesBlink, CheckBox_CoroEyesRandomBlink->GetValue()? Yes: No);
     AddNonDupAttr(pgoXml.GetRoot(), EyesLR, CheckBox_CoroEyesRandomLR->GetValue()? Yes: No);
     wxXmlNode* node = FindNode(AutoFace, wxT("auto"), Name, wxEmptyString, true); //TODO: not sure which child node to use; there are no group names on this tab
@@ -2528,10 +2540,10 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         }
 //save global settings also:
         AddNonDupAttr(group, LastMode, Choice_PgoOutputType->GetString(Choice_PgoOutputType->GetSelection())); //Choice_PgoOutputType->GetStringSelection());
-        AddNonDupAttr(group, AutoFadeElement, CheckBox_AutoFadePgoElement->GetValue()? Yes: No);
-        AddNonDupAttr(group, AutoFadeAll, CheckBox_AutoFadePgoAll->GetValue()? Yes: No);
-        AddNonDupAttr(group, DelayElement, TextCtrl_AutoFadePgoElement->GetValue());
-        AddNonDupAttr(group, DelayAll, TextCtrl_AutoFadePgoAll->GetValue());
+        AddNonDupAttr(group, AutoRest, CheckBox_PgoAutoRest->GetValue()? Yes: No);
+        AddNonDupAttr(group, AutoFade, CheckBox_PgoAutoFade->GetValue()? Yes: No);
+        AddNonDupAttr(group, DelayRest, TextCtrl_PgoAutoRest->GetValue());
+        AddNonDupAttr(group, DelayFade, TextCtrl_PgoAutoFade->GetValue());
         AddNonDupAttr(group, EyesBlink, CheckBox_CoroEyesRandomBlink->GetValue()? Yes: No);
         AddNonDupAttr(group, EyesLR, CheckBox_CoroEyesRandomLR->GetValue()? Yes: No);
         compat = 99; //break out of compat loop
@@ -2644,10 +2656,10 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
 #else
 //            if (!compat) //saved with preset instead of global (shared across voices)
             wxXmlNode* options = (compat & 1)? pgoXml.GetRoot(): group;
-            CheckBox_AutoFadePgoElement->SetValue(options->GetAttribute(AutoFadeElement) == Yes);
-            CheckBox_AutoFadePgoAll->SetValue(options->GetAttribute(AutoFadeAll) == Yes);
-            TextCtrl_AutoFadePgoElement->SetValue(options->GetAttribute(DelayElement));
-            TextCtrl_AutoFadePgoAll->SetValue(options->GetAttribute(DelayAll));
+            CheckBox_PgoAutoRest->SetValue(options->GetAttribute(AutoRest) == Yes);
+            CheckBox_PgoAutoFade->SetValue(options->GetAttribute(AutoFade) == Yes);
+            TextCtrl_PgoAutoRest->SetValue(options->GetAttribute(DelayRest));
+            TextCtrl_PgoAutoFade->SetValue(options->GetAttribute(DelayFade));
             CheckBox_CoroEyesRandomBlink->SetValue(options->GetAttribute(EyesBlink) == Yes);
             CheckBox_CoroEyesRandomLR->SetValue(options->GetAttribute(EyesLR) == Yes);
 
