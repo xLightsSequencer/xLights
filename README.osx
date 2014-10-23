@@ -42,6 +42,9 @@ However, I followed the method used for Linux from inside a Terminal window:
        requires g++0x, we need to use the clang compiler.  This also
        requires setting the minimum maxosx version to 10.7.
 
+    NOTE: If using OS X Yosemite, you will need to edit webview_webkit.mm
+       to change “#include <WebKit/WebKit.h>” to “#include <WebKit/WebKitLegacy.h>”
+
   cd <wxMac base dir>
   export CXXFLAGS="-stdlib=libc++ -std=c++11" 
   export OBJCXXFLAGS="-stdlib=libc++ -std=c++11" 
@@ -51,7 +54,7 @@ However, I followed the method used for Linux from inside a Terminal window:
   export CXXCPP="clang++ -E" 
   export CC=clang 
   export CPP="clang -E" 
-  ./configure  --prefix=/opt/local --disable-shared --disable-debug_flag --enable-macosx_arch=i386,x86_64  \
+  ./configure  --prefix=/opt/local --disable-shared --disable-debug_flag --enable-macosx_arch=i386,x86_64 \
                --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking --with-macosx-version-min=10.7 --with-libjpeg=builtin
   make 
   make install
