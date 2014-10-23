@@ -426,6 +426,9 @@ private:
     void OnCheckBox_AutoFadePgoAllClick(wxCommandEvent& event);
     void OnChoice_PgoOutputTypeSelect(wxCommandEvent& event);
     void OnButton_PgoCopyVoicesClick(wxCommandEvent& event);
+    void OnTextCtrl_PgoMinRestText(wxCommandEvent& event);
+    void OnTextCtrl_PgoMaxRestText(wxCommandEvent& event);
+    void OnTextCtrl_PgoAutoFadeText(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -640,7 +643,9 @@ private:
     static const long ID_BUTTON_PgoCopyVoices;
     static const long ID_GRID_COROFACES;
     static const long ID_CHECKBOX_PgoAutoReset;
-    static const long ID_TEXTCTRL_PgoAutoRest;
+    static const long ID_TEXTCTRL_PgoMinRest;
+    static const long ID_STATICTEXT27;
+    static const long ID_TEXTCTRL_PgoMaxRest;
     static const long ID_STATICTEXT34;
     static const long ID_CHECKBOX_CoroEyesRandomBlink;
     static const long ID_CHECKBOX_PgoAutoFade;
@@ -715,6 +720,7 @@ private:
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
+    wxTextCtrl* TextCtrl_PgoMaxRest;
     wxButton* Button_pgo_filename;
     wxButton* Button_PlayEffect;
     wxRadioButton* RadioButtonRgbChase4;
@@ -729,6 +735,7 @@ private:
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
+    wxStaticText* StaticText25;
     wxBitmapButton* BitmapButton_locked;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
@@ -737,6 +744,7 @@ private:
     wxButton* ButtonStopNow;
     wxStaticText* StaticText126;
     wxPanel* PanelConvert;
+    wxTextCtrl* TextCtrl_PgoMinRest;
     wxNotebook* Notebook1;
     wxStaticText* StaticText127;
     wxButton* ButtonSaveSetup;
@@ -786,7 +794,6 @@ private:
     wxMenu* MenuFile;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
-    wxTextCtrl* TextCtrl_PgoAutoRest;
     wxStaticText* StaticText_PgoOutputType;
     wxButton* ButtonChangeDir;
     wxGrid* Grid1;

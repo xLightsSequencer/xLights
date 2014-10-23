@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+<next>
+	-bug (djulien) Fixed up auto-fade arithmetic (morph flicker still occurs)
+	-enh (djulien) Rework auto-rest options; UI is functional but not the logic
 3.4.22
 	-enh (sean) Added new effect class "Shimmer". This effect is basically a square wave, it turns all lights on and then all 
 		lights off.

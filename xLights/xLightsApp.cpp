@@ -30,6 +30,12 @@ bool xLightsApp::OnInit()
             WantDebug = true;
             info += _("Debug is ON\n");
         }
+        else if (wxApp::argv[i].StartsWith(wxT("/debug=")))
+        {
+            WantDebug = true;
+            DebugPath = wxApp::argv[i].Mid(7);
+            info += _("Debug is ON, path = '") + DebugPath + _("'");
+        }
         else if (!strcasecmp(wxApp::argv[i], "/noauto"))
         {
             RunPrompt = true;
@@ -57,6 +63,7 @@ bool xLightsApp::OnInit()
 //global flags from command line:
 bool xLightsApp::WantDebug = false;
 bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
+wxString xLightsApp::DebugPath;
 
 //re-added global keyboard handler: -DJ
 //couldn't get PaneNutcracker keyboard handler to work, so just use a global filter as suggested in
