@@ -1153,7 +1153,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Shimmer")
     {
         buffer.RenderShimmer(wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Count"]),
-                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Steps"]),
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Duty_Factor"]),
                              SettingsMap[LayerStr+"CHECKBOX_Shimmer_Strobe"]=="1");
     }
     else if (effect == "SingleStrand")
@@ -1389,7 +1389,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_SHIMMER:
         buffer.RenderShimmer(panel->Slider_Shimmer_Count->GetValue(),
-                             panel->Slider_Shimmer_Steps->GetValue(),
+                             panel->Slider_Shimmer_Duty_Factor->GetValue(),
                              panel->CheckBox_Shimmer_Strobe->GetValue());
         break;
     case eff_SINGLESTRAND:

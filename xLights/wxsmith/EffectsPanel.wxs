@@ -2009,14 +2009,17 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
-										<label>Label</label>
+										<label>Duty Factor</label>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Shimmer_Steps" variable="Slider_Shimmer_Steps" member="yes" />
+									<object class="wxSlider" name="ID_SLIDER_Shimmer_Duty_Factor" variable="Slider_Shimmer_Duty_Factor" member="yes">
+										<value>50</value>
+										<min>1</min>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>

@@ -87,6 +87,7 @@ public:
     wxBitmapButton* BitmapButton_CirclesPlasma;
     wxCheckBox* CheckBox_Shimmer_Strobe;
     wxBitmapButton* BitmapButton_FadeIn;
+    wxSlider* Slider_Shimmer_Duty_Factor;
     wxPanel* Panel_Text1;
     wxBitmapButton* BitmapButton_Wave_Thickness;
     wxBitmapButton* BitmapButton_TextToCenter2;
@@ -323,7 +324,6 @@ public:
     wxChoice* Choice_Text_Effect2;
     wxBitmapButton* BitmapButton_NumberWaves;
     wxStaticText* StaticText_Piano_NumKeys;
-    wxSlider* Slider_Shimmer_Steps;
     wxPanel* Panel1_CoroFaces;
     wxBitmapButton* BitmapButton_FitToTime;
     wxPanel* Panel1_Pictures;
@@ -653,7 +653,7 @@ protected:
     static const long ID_SLIDER_Shimmer_Count;
     static const long ID_BITMAPBUTTON12;
     static const long ID_STATICTEXT68;
-    static const long ID_SLIDER_Shimmer_Steps;
+    static const long ID_SLIDER_Shimmer_Duty_Factor;
     static const long ID_BITMAPBUTTON13;
     static const long ID_STATICTEXT69;
     static const long ID_CHECKBOX_Shimmer_Strobe;

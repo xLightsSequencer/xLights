@@ -22,7 +22,26 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderShimmer(int Count,int Steps, bool Strobe)
+#define WANT_DEBUG_IMPL
+#define WANT_DEBUG  -99 //unbuffered in case app crashes
+#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+#define debug(level, ...)
+#define debug_more(level, ...)
+#define debug_function(level)
+#endif
+
+//cut down on mem allocs outside debug() when WANT_DEBUG is off:
+#ifdef WANT_DEBUG
+#define IFDEBUG(stmt)  stmt
+#else
+#define IFDEBUG(stmt)
+#endif // WANT_DEBUG
+
+
+
+
+void RgbEffects::RenderShimmer(int Count,int Duty_Factor, bool Strobe)
 {
 
     int x,y,i,i7,ColorIdx;
@@ -31,7 +50,7 @@ void RgbEffects::RenderShimmer(int Count,int Steps, bool Strobe)
     if(lights>0) step=BufferHt*BufferWi/lights;
     else step=1;
     int max_modulo;
-    max_modulo=Steps;
+    max_modulo=Duty_Factor;
     if(max_modulo<2) max_modulo=2;  // scm  could we be getting 0 passed in?
     int max_modulo2=max_modulo/2;
     if(max_modulo2<1) max_modulo2=1;
@@ -45,37 +64,34 @@ void RgbEffects::RenderShimmer(int Count,int Steps, bool Strobe)
 
     i=0;
     int on_off=0;
-    int irandom=Strobe;
+    int irandom=Strobe; // Should we randomly assign colors from palette or cycle thru sequentially?
+    int istate=state%1000;
+    int imod=state%100;
+    debug(10, "State %d ", state);
+    int icolor=(state/10)%colorcnt;
     for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
         {
             i++;
-            int imod=(state/10)%2;
-            int icolor=(state/10)%colorcnt;
-            if(irandom==1)
+            if(irandom==1) // Should we randomly assign colors from palette or cycle thru sequentially?
             {
                 ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
                 palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
             }
             else
                 palette.GetHSV(icolor, hsv); // Now go and get the hsv value for this ColorIdx
-            if(on_off==1)
+            if(imod<=Duty_Factor)  // Should we draw a light?
             {
-                if(imod==1) // Should we draw a light?
-                {
-                    // Yes, so now decide on what color it should be
-
-                }
-                else
-                {
-                    hsv.value=0.0;
-                }
+                // Yes, use HSV value calculated above
             }
             else
             {
-
+                hsv.value=0.0; // this is the off cycle for a light so set to BLACK
+                hsv.saturation=1.0;
             }
+
+
             SetPixel(x,y,hsv); // Turn pixel
         }
     }
