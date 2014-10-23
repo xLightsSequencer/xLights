@@ -4,7 +4,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#define DEBUG_FILE  "C:\\Users\\don\\Documents\\djdebug.log" //"C:\\debug.log"
+//#define DEBUG_FILE  "C:\\Users\\don\\Documents\\djdebug.log" //"C:\\debug.log"
+
+//  seans show directory: C:\Users\sean\Documents\xmas2014
+//#define DEBUG_FILE  "C:\\Users\\sean\\Documents\\Xmas2014\\djdebug.log" //"C:\\debug.log"
+
+#define DEBUG_FILE  "C:\\Users\\sean\\Documents\\Xmas2014\\djdebug.log" //"C:\\debug.log"
 
 
 #ifdef WANT_DEBUG

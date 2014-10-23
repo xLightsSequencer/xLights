@@ -444,19 +444,19 @@ wxString xLightsFrame::CreateEffectStringRandom()
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
     {
         eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
+                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1 ||eff_PINWHEEL == eff1)? eff1+1:eff1;
         //          eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
         //        || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
         eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff_NONE:eff1;
+                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1 ||eff_PINWHEEL == eff1)? eff_NONE:eff1;
         if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
-                ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
+                ||  eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2 ||eff_PINWHEEL == eff2)? eff2+1:eff2;
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
-                ||  eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
+                ||  eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2 ||eff_PINWHEEL == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
         if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
         //       eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
         //     || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
@@ -1152,9 +1152,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Shimmer")
     {
-        buffer.RenderShimmer(wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Count"]),
-                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Duty_Factor"]),
-                             SettingsMap[LayerStr+"CHECKBOX_Shimmer_Strobe"]=="1");
+        buffer.RenderShimmer(wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Duty_Factor"]),
+                             SettingsMap[LayerStr+"CHECKBOX_Shimmer_Use_All_Colors"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Shimmer_Blink_Timing"]=="1",
+                             wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Blinks_Per_Row"]));
     }
     else if (effect == "SingleStrand")
     {
@@ -1388,9 +1389,10 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_SHIMMER:
-        buffer.RenderShimmer(panel->Slider_Shimmer_Count->GetValue(),
-                             panel->Slider_Shimmer_Duty_Factor->GetValue(),
-                             panel->CheckBox_Shimmer_Strobe->GetValue());
+        buffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
+                             panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
+                             panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
+                             panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
         buffer.RenderSingleStrand(panel->Choice_SingleStrand_Colors->GetSelection(),

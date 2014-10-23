@@ -500,9 +500,9 @@ void PixelBufferClass::RenderPinwheel(int Branches)
 {
     Effect[CurrentLayer].RenderTree(Branches);
 }
-void PixelBufferClass::RenderShimmer(int Count,int Duty_Factor,bool Strobe)
+void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {
-    Effect[CurrentLayer].RenderShimmer(Count,Duty_Factor,Strobe);
+    Effect[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
 }
 void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
         int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)

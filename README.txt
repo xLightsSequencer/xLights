@@ -9,7 +9,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 3.4.22
 	-enh (sean) Added new effect class "Shimmer". This effect is basically a square wave, it turns all lights on and then all 
 		lights off.
-	-enh (djulien) Added model CSV export
+	-enh (sean) Removed FACES, COROFACES and PINWHEEL from the "Create Random Effects" button
 	-enh (djulien) Change Pgo "auto fade element" to "auto rest" (not functional yet), leave initial Pgo Preset cleared for stitch
 3.4.21
 	-enh (djulien) Added model CSV export to the Models screen. This csv file can be opened by Excel or 

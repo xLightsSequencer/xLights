@@ -16,7 +16,7 @@ void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, in
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
-void RenderShimmer(int Count,int Duty_Factor,bool Strobe);
+void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
 void RenderSingleStrand(int ColorScheme,int Number_Chases,int Color_Mix1,int Chase_Spacing1,int Chase_Type1,
                         bool Chase_3dFade1, bool Chase_Group_All);
 void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
