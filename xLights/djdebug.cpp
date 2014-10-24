@@ -3,13 +3,9 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include "xLightsApp.h"
 
-//#define DEBUG_FILE  "C:\\Users\\don\\Documents\\djdebug.log" //"C:\\debug.log"
-
-//  seans show directory: C:\Users\sean\Documents\xmas2014
-//#define DEBUG_FILE  "C:\\Users\\sean\\Documents\\Xmas2014\\djdebug.log" //"C:\\debug.log"
-
-#define DEBUG_FILE  "C:\\Users\\sean\\Documents\\Xmas2014\\djdebug.log" //"C:\\debug.log"
+#define DEBUG_FILE  "C:\\Users\\%USERID%\\Documents\\djdebug.log" //"C:\\debug.log"
 
 
 #ifdef WANT_DEBUG
@@ -45,7 +41,15 @@ public:
     {
         static FILE* outf = 0; //= fopen(DEBUG_FILE, "w");
         if (level > ABS(WANT_DEBUG)) return; //caller doesn't want this much detail
-        if (!outf) outf = fopen(DEBUG_FILE, "wt");
+        if (!outf && !xLightsApp::DebugPath.IsEmpty()) outf = fopen((const char*)xLightsApp::DebugPath.c_str(), "wt");
+        if (!outf)
+        {
+            wxString path = DEBUG_FILE;
+//            path.Replace(wxT("%USERID%"), wxGetUserId());
+            int ofs = path.Find(wxT("%USERID%"));
+            if (ofs != wxNOT_FOUND) path = path.Left(ofs) + wxGetUserId() + path.Mid(ofs + 8);
+            outf = fopen((const char*)path.c_str(), "wt");
+        }
         if (!outf) outf = stdout;
         static int seqnum = 0;
         if (!seqnum)
@@ -65,7 +69,7 @@ public:
         else fprintf(outf, "[DEBUG@%d %d]%s ", line, seqnum++, nesting.c_str());
         vfprintf(outf, fmt, argp);
         fputs("\n", outf);
-        if (ABS(WANT_DEBUG) < 0) fflush(outf); //slower performance, but helps to ensure we get the info
+        if (WANT_DEBUG < 0) fflush(outf); //slower performance, but helps to ensure we get the info
         va_end(argp);
     }
 };

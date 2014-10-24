@@ -283,6 +283,7 @@
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
+		<Unit filename="RenderShimmer.cpp" />
 		<Unit filename="RenderSingleStrand.cpp" />
 		<Unit filename="RenderSnowflakes.cpp" />
 		<Unit filename="RenderSnowstorm.cpp" />

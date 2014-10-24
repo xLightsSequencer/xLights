@@ -20,6 +20,7 @@ OutputBaseFilename=xLights_Nutcracker_3_4_x
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
+Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
 Source: "bin/ffmpeg.exe"; DestDir: "{app}"
 Source: "bin/gawk.exe"; DestDir: "{app}"
 Source: "bin/coroface.awk"; DestDir: "{app}"
@@ -29,11 +30,11 @@ Source: "bin/modelxls.awk"; DestDir: "{app}"
 Source: "bin/modelxls.bat"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
-Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: recursesubdirs
+Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 ;Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 ;Source: "C:\wxWidgets-3.0.0\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
+
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
 Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme

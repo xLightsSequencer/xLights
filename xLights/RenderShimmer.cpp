@@ -22,10 +22,11 @@
 #include <cmath>
 #include "RgbEffects.h"
 #include <wx/utils.h>
-
-//#define WANT_DEBUG_IMPL
-#define WANT_DEBUG  -99 //unbuffered in case app crashes
 #include "djdebug.cpp"
+
+#define WANT_DEBUG_IMPL
+#define WANT_DEBUG  -99 //unbuffered in case app crashes
+
 #ifndef debug_function //dummy defs if debug cpp not included above
 #define debug(level, ...)
 #define debug_more(level, ...)
@@ -69,7 +70,7 @@ void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Ti
     int icolor=istate%colorcnt;
     wxString TimeNow =wxNow();
 
-//    debug(10, "%s:%6d istate=%4d imod=%4d icolor=%1d", (const char*)TimeNow,state,istate,imod,icolor);
+    debug(10, "%s:%6d istate=%4d imod=%4d icolor=%1d", (const char*)TimeNow,state,istate,imod,icolor);
     for (y=0; y<BufferHt; y++) // For my 20x120 megatree, BufferHt=120
     {
         for (x=0; x<BufferWi; x++) // BufferWi=20 in the above example
