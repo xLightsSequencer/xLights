@@ -16,9 +16,9 @@ void RgbEffects::RenderPinwheel(int int_R)
     xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
     yc= (int)(BufferHt/2);
     R=xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
-    r=xc*(int_r/100.0); // start little circle at 1/4 of max width
+    r=xc*(int_R/100.0); // start little circle at 1/4 of max width
     if(r>R) r=R;
-    d=xc*(int_d/100.0);
+    d=xc*(int_R*2/100.0);
 
     mod1440  = state%1440;
     state360 = state%360;

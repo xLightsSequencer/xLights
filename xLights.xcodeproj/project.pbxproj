@@ -12,6 +12,8 @@
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
+		67879B7419F94544009D994D /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7219F94544009D994D /* RenderPinwheel.cpp */; };
+		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
@@ -97,6 +99,8 @@
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabPapagayo.cpp; sourceTree = "<group>"; };
+		67879B7219F94544009D994D /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
+		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AddShowDialog.cpp; sourceTree = "<group>"; };
 		67A619BD17B51C0F008E95BB /* AddShowDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddShowDialog.h; sourceTree = "<group>"; };
@@ -301,6 +305,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67879B7219F94544009D994D /* RenderPinwheel.cpp */,
+				67879B7319F94544009D994D /* RenderShimmer.cpp */,
 				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
 				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
@@ -529,10 +535,12 @@
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
 				67A61A4D17B51C0F008E95BB /* SeqOpenDialog.cpp in Sources */,
 				67A61A4E17B51C0F008E95BB /* SeqParmsDialog.cpp in Sources */,
+				67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
+				67879B7419F94544009D994D /* RenderPinwheel.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
