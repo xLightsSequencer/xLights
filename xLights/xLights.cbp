@@ -283,6 +283,7 @@
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
+		<Unit filename="RenderRipple.cpp" />
 		<Unit filename="RenderShimmer.cpp" />
 		<Unit filename="RenderSingleStrand.cpp" />
 		<Unit filename="RenderSnowflakes.cpp" />
@@ -326,6 +327,7 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="djdebug.cpp" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
 		<Unit filename="resource.rc">
