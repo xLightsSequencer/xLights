@@ -14,7 +14,7 @@ void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
     size_t colorcnt=GetColorCount();
 
 
-      xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
+    xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
     yc= (int)(BufferHt/2);
     R=xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
     r=xc*(int_r/100.0); // start little circle at 1/4 of max width

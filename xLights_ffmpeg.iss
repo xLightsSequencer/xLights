@@ -30,7 +30,7 @@ Source: "bin/modelxls.awk"; DestDir: "{app}"
 Source: "bin/modelxls.bat"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
-Source: "songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
+Source: "C:\Users\sean\Documents\c++\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 ;Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 ;Source: "C:\wxWidgets-3.0.0\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"

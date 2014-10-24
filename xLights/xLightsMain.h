@@ -223,6 +223,7 @@ public:
         eff_PIANO,
         eff_PICTURES,
         eff_PINWHEEL,
+        eff_RIPPLE,
         eff_SHIMMER,
         eff_SINGLESTRAND,
         eff_SNOWFLAKES,
@@ -236,37 +237,6 @@ public:
         eff_LASTEFFECT //Always the last entry
     };
 
-    /* copy from sep 29
-    enum RGB_EFFECTS_e
-    {
-        eff_NONE,
-        eff_BARS,
-        eff_BUTTERFLY,
-        eff_CIRCLES,
-        eff_COLORWASH,
-        eff_CURTAIN,
-        eff_FIRE,
-        eff_FIREWORKS,
-        eff_GARLANDS,
-        eff_LIFE,
-        eff_METEORS,
-        eff_PIANO,
-        eff_PICTURES,
-        eff_SNOWFLAKES,
-        eff_SNOWSTORM,
-        eff_SPIRALS,
-        eff_SPIROGRAPH,
-        eff_TEXT,
-        eff_TREE,
-        eff_TWINKLE,
-        eff_SINGLESTRAND,
-        eff_FACES,
-        eff_WAVE,
-        eff_GLEDIATOR,
-        eff_COROFACES,
-        eff_LASTEFFECT //Always the last entry
-    };
-    */
 
     enum LAYER_OPTIONS_e
     {
