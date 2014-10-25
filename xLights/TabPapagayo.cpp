@@ -920,10 +920,22 @@ void xLightsFrame::OnButton_papagayo_output_sequenceClick(wxCommandEvent& event)
 class InfoChain
 {
 public:
+#if 0 //don't do this; if object is enlarged then pointers are invalidated!
     VoiceInfo* v;
     PhraseInfo* p;
     WordInfo* w;
     PhonemeInfo* q;
+#define VoiceInfoPtr(Info)  Info.v
+#define PhraseInfoPtr(Info)  Info.p
+#define WordInfoPtr(Info)  Info.w
+#define PhonemeInfoPtr(Info)  Info.q
+#else //TODO: replace this with a more efficient addressing mechanism; below is a quick fix for ptr invalidation problem on enlarged objects
+    int v, p, w, q; //voice, phrase, word, phoneme indexes
+#define VoiceInfoPtr(Info)  ((VoiceInfo*)&voices[Info.v])
+#define PhraseInfoPtr(Info)  ((PhraseInfo*)&voices[Info.v].phrases[Info.p])
+#define WordInfoPtr(Info)  ((WordInfo*)&voices[Info.v].phrases[Info.p].words[Info.w])
+#define PhonemeInfoPtr(Info)  ((PhonemeInfo*)&voices[Info.v].phrases[Info.p].words[Info.w].phonemes[Info.q])
+#endif
     bool NeedFade; //set Morph option if next frame is > auto-fade delay for this voice
 //    bool NeedRest; //refers to space between phonemes, not programmer 8P
 };
@@ -1101,13 +1113,21 @@ static bool Sorter(const std::pair<int, InfoChain>& lhs, const std::pair<int, In
 {
     if (lhs.first != rhs.first) return (lhs.first < rhs.first);
 //secondary sort to help trap dups; NOTE: strings are not unique, so deref ptrs and use string compares; case-sensitive is okay since we just need a unique sort order
-    if (lhs.second.v->name != rhs.second.v->name) { /*debug(80, "sorter: v cmp %d", (lhs.second.v->name < rhs.second.v->name))*/; return (lhs.second.v->name < rhs.second.v->name); }
-    if (lhs.second.p->name != rhs.second.p->name) { /*debug(80, "sorter: p cmp %d", (lhs.second.p->name < rhs.second.p->name))*/; return (lhs.second.p->name < rhs.second.p->name); }
-    if (lhs.second.w->name != rhs.second.w->name) { /*debug(80, "sorter: w cmp %d", (lhs.second.w->name < rhs.second.w->name))*/; return (lhs.second.w->name < rhs.second.w->name); }
-    if (lhs.second.q->name != rhs.second.q->name) { /*debug(80, "sorter: q cmp %d", (lhs.second.q->name < rhs.second.q->name))*/; return (lhs.second.q->name < rhs.second.q->name); }
+    if (VoiceInfoPtr(lhs.second)->name != VoiceInfoPtr(rhs.second)->name) { /*debug(80, "sorter: v cmp %d", (lhs.second.v->name < rhs.second.v->name))*/; return (VoiceInfoPtr(lhs.second)->name < VoiceInfoPtr(rhs.second)->name); }
+    if (PhraseInfoPtr(lhs.second)->name != PhraseInfoPtr(rhs.second)->name) { /*debug(80, "sorter: p cmp %d", (lhs.second.p->name < rhs.second.p->name))*/; return (PhraseInfoPtr(lhs.second)->name < PhraseInfoPtr(rhs.second)->name); }
+    if (WordInfoPtr(lhs.second)->name != WordInfoPtr(rhs.second)->name) { /*debug(80, "sorter: w cmp %d", (lhs.second.w->name < rhs.second.w->name))*/; return (WordInfoPtr(lhs.second)->name < WordInfoPtr(rhs.second)->name); }
+    if (PhonemeInfoPtr(lhs.second)->name != PhonemeInfoPtr(rhs.second)->name) { /*debug(80, "sorter: q cmp %d", (lhs.second.q->name < rhs.second.q->name))*/; return (PhonemeInfoPtr(lhs.second)->name < PhonemeInfoPtr(rhs.second)->name); }
 //    debug(80, "sorter: all =");
     return true; //dup entry; no need to change position
 }
+
+static void dump_list(const char* desc)
+{
+    debug(10, "DUMP %s: %d ents", desc, phonemes_by_start_frame.size());
+    for (auto it = phonemes_by_start_frame.begin(); it != phonemes_by_start_frame.end(); ++it)
+        debug(10, "sorted[%d/%d]: st fr key %d => st %d, end %d, fade? %d, v %d %s, phr %d %s, w %d %s, phon %d %s", it - phonemes_by_start_frame.begin(), phonemes_by_start_frame.size(), it->first, PhonemeInfoPtr(it->second)->start_frame, PhonemeInfoPtr(it->second)->end_frame, it->second.NeedFade, it->second.v, (const char*)VoiceInfoPtr(it->second)->name.c_str(), it->second.p, (const char*)PhraseInfoPtr(it->second)->name.c_str(), it->second.w, (const char*)WordInfoPtr(it->second)->name.c_str(), it->second.q, (const char*)PhonemeInfoPtr(it->second)->name.c_str());
+}
+
 
 void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
 {
@@ -1119,10 +1139,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
     debug(10, "... sorted %d frames, first frame %d, last frame %d", phonemes_by_start_frame.size(), phonemes_by_start_frame[0].first, phonemes_by_start_frame[std::max<int>(phonemes_by_start_frame.size() - 2, 0)].first);
     std::pair<int, InfoChain> eof;
     eof.first = std::numeric_limits<int>::max(); //MAXINT; //dummy entry to force last entry to be written
-    eof.second.v = &voices[0];
-    eof.second.p = &voices[0].phrases[0];
-    eof.second.w = &voices[0].phrases[0].words[0];
-    eof.second.q = &voices[0].phrases[0].words[0].phonemes[0];
+//make sure eof entry points somewhere valid:
+    eof.second.v = 0; //&voices[0];
+    eof.second.p = 0; //&voices[0].phrases[0];
+    eof.second.w = 0; //&voices[0].phrases[0].words[0];
+    eof.second.q = 0; //&voices[0].phrases[0].words[0].phonemes[0];
     phonemes_by_start_frame.push_back(eof);
     int prev_frame = -1, err_frame = -1;
 //TODO: do we need to keep end_frame?
@@ -1192,36 +1213,48 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
         img_lkup[c]["WQ"] = GridCoroFaces->GetCellValue(WQ_Row, c).c_str();
     }
 //check gaps to insert rests for each voice:
-    int numrest = 0;
+    std::vector<int> need_rest; //refers to space between phonemes, or programmer, or both 8P
+    IFDEBUG(dump_list("before rests"));
     if (rest_min_delay)
         for (auto it = phonemes_by_start_frame.begin(); it != phonemes_by_start_frame.end(); ++it)
         {
-            int voice = it->second.v - &voices[0];
+            int voice = it->second.v; //- &voices[0];
             if (prev_voice_frame[voice] != -1)
             {
-                debug(10, "auto-rest check: voice# %d at frame %d (%7.3f sec), duration %d (%7.3f sec), time until next frame %d (%7.3f sec), need rest? %d", voice + 1, phonemes_by_start_frame[prev_voice_frame[voice]].first, phonemes_by_start_frame[prev_voice_frame[voice]].first * 0.05, phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first, (phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first) * .05, it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame, (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame) * .05, (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame > rest_min_delay) && (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame <= rest_max_delay));
-                if ((it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame > rest_min_delay) && (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame <= rest_max_delay)) //insert a rest
-                {
-#if 0 //no worky yet
-                    PhonemeInfo rest;
-                    rest.name = "rest";
-                    rest.start_frame = phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame + rest_min_delay;
-                    rest.end_frame = rest.start_frame + rest_max_delay - rest_min_delay; //fill in (partial) gap
-                    phonemes_by_start_frame[prev_voice_frame[voice]].second.w->phonemes.push_back(rest);
-                    std::pair<int, InfoChain> newent = phonemes_by_start_frame[prev_voice_frame[voice]];
-                    newent.first = rest.start_frame;
-                    newent.second.q = (PhonemeInfo*)&phonemes_by_start_frame[prev_voice_frame[voice]].second.w->phonemes.back();
-                    phonemes_by_start_frame.push_back(newent); //include rests in re-sort
-                    debug(10, "auto-rest voice# %d at frame %d (%7.3f sec)", voice + 1, newent.first, newent.first * 0.05);
-#endif // 0
-                    ++numrest;
-                }
+                debug(10, "auto-rest check: voice# %d at frame %d (%7.3f sec), duration %d (%7.3f sec), time until next frame %d (%7.3f sec), need rest? %d", voice + 1, phonemes_by_start_frame[prev_voice_frame[voice]].first, phonemes_by_start_frame[prev_voice_frame[voice]].first * 0.05, PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first, (PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first) * .05, it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame, (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame) * .05, (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame > rest_min_delay) && (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame <= rest_max_delay));
+                if ((it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame > rest_min_delay) && (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame <= rest_max_delay)) //insert a rest
+//                {
+//                    std::pair<int, int> newrest;
+//                    newrest.first = it->first - phonemes_by_start_frame.begin(); //where to insert new entry
+//                    newrest.second = prev_voice_frame[voice]; //where prev frame for this voice was
+//                    rest_positions.push_back(newrest); //NOTE: can't enlarge phonemes_by_start_frame during iteration, so just remember position and do it later
+//                }
+                    need_rest.push_back(prev_voice_frame[voice]); //NOTE: can't enlarge phonemes_by_start_frame during iteration, so just remember position and do it later
             }
             prev_voice_frame[voice] = it - phonemes_by_start_frame.begin();
         }
-    debug(10, "auto-rests inserted: %d", numrest);
-    if (numrest) //the lazy way: put rests into correct position before checking for fades
+    debug(10, "need to add %d rest(s)", need_rest.size());
+    for (auto it = need_rest.begin(); it != need_rest.end(); ++it) //now go back and insert rests
+    {
+        PhonemeInfo rest;
+        rest.name = "rest";
+        rest.start_frame = PhonemeInfoPtr(phonemes_by_start_frame[*it].second)->end_frame + rest_min_delay;
+        rest.end_frame = rest.start_frame + rest_max_delay - rest_min_delay; //fill in (partial) gap
+        WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes.push_back(rest); //add rest to previous word
+        std::pair<int, InfoChain> newent = phonemes_by_start_frame[*it];
+        newent.first = rest.start_frame;
+        newent.second.q = (PhonemeInfo*)&WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes.back() - &WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes[0];
+        phonemes_by_start_frame.push_back(newent); //include rests in re-sort
+        wxString buf;
+        for (auto itph = WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes.begin(); itph != WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes.end(); ++itph)
+            buf += wxString::Format(wxT(", %s at %7.3f sec"), (*itph).name, (*itph).start_frame * .05);
+        debug(10, "auto-rest voice# %d at frame %d (%7.3f sec), word %s now has %d phonemes: %s", newent.second.v /*- &voices[0]*/ + 1, newent.first, newent.first * 0.05, (const char*)WordInfoPtr(phonemes_by_start_frame[*it].second)->name.c_str(), WordInfoPtr(phonemes_by_start_frame[*it].second)->phonemes.size(), (const char*)buf.c_str());
+    }
+    debug(10, "auto-rests inserted: %d", need_rest.size());
+    IFDEBUG(dump_list("after rests"));
+    if (!need_rest.empty()) //the lazy way: put rests into correct position before checking for fades
         sort(phonemes_by_start_frame.begin(), phonemes_by_start_frame.end(), Sorter); //preserve array indexes and just sort tags
+    IFDEBUG(dump_list("after rest sort"));
 
 //auto-fade look ahead for each voice:
 //NOTE: fade must be known before the gap, not after, so a look-ahead scan is needed
@@ -1229,11 +1262,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
     if (fade_delay)
         for (auto it = phonemes_by_start_frame.begin(); it != phonemes_by_start_frame.end(); ++it)
         {
-            int voice = it->second.v - &voices[0];
+            int voice = it->second.v; //- &voices[0];
             if (prev_voice_frame[voice] != -1)
             {
-                debug(10, "auto-fade check: voice# %d at frame %d (%7.3f sec), duration %d (%7.3f sec), time until next frame %d (%7.3f sec), need fade? %d", voice + 1, phonemes_by_start_frame[prev_voice_frame[voice]].first, phonemes_by_start_frame[prev_voice_frame[voice]].first * 0.05, phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first, (phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first) * .05, it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame, (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame) * .05, it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame > fade_delay);
-                if (it->first - phonemes_by_start_frame[prev_voice_frame[voice]].second.q->end_frame > fade_delay) //backtrack and update
+                debug(10, "auto-fade check: voice# %d at frame %d (%7.3f sec), duration %d (%7.3f sec), time until next frame %d (%7.3f sec), need fade? %d", voice + 1, phonemes_by_start_frame[prev_voice_frame[voice]].first, phonemes_by_start_frame[prev_voice_frame[voice]].first * 0.05, PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first, (PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame - phonemes_by_start_frame[prev_voice_frame[voice]].first) * .05, it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame, (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame) * .05, it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame > fade_delay);
+                if (it->first - PhonemeInfoPtr(phonemes_by_start_frame[prev_voice_frame[voice]].second)->end_frame > fade_delay) //backtrack and update
                 {
                     phonemes_by_start_frame[prev_voice_frame[voice]].second.NeedFade = true;
                     debug(10, "auto-fade voice# %d at frame %d (%7.3f sec)", voice + 1, phonemes_by_start_frame[prev_voice_frame[voice]].first, phonemes_by_start_frame[prev_voice_frame[voice]].first * 0.05);
@@ -1244,7 +1277,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
         }
     debug(10, "auto-fades detected: %d", numfade);
     if (rest_min_delay || fade_delay)
-        StatusBar1->SetStatusText(StatusBar1->GetStatusText() + wxString::Format(wxT(", fades: %d, rests: %d"), numfade, numrest));
+        StatusBar1->SetStatusText(StatusBar1->GetStatusText() + wxString::Format(wxT(", fades: %d, rests: %d"), numfade, need_rest.size()));
     wxString fxname, fxparams;
 #if 0 //sample xml effect strings:
     <td Protected="0">Color Wash,None,Effect 1,ID_CHECKBOX_LayerMorph=0,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=100,ID_SLIDER_Contrast=0,ID_SLIDER_EffectLayerMix=0,E1_SLIDER_Speed=10,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_CHECKBOX_OverlayBkg=0,E1_SLIDER_ColorWash_Count=1,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=0,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=0,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_CHECKBOX_OverlayBkg=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=1,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=1,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
@@ -1276,11 +1309,15 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
             break;
     }
 
+//    int watchdog = 0;
     for (auto it = phonemes_by_start_frame.begin(); it != phonemes_by_start_frame.end(); ++it) //write out sorted entries
     {
-        std::string phkey = (const char*)it->second.q->name.c_str();
-        phkey += (const char*)it->second.v->name.c_str(); //tag phoneme with voice name so it can have different delay deadline
-        debug(10, "compare frame %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s' vs. prev frame %d = %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s', auto-fade %d", it->first, it->second.v, (const char*)it->second.v->name.c_str(), it->second.p, (const char*)it->second.p->name.c_str(), it->second.w, (const char*)it->second.w->name.c_str(), it->second.q, (const char*)it->second.q->name.c_str(), prev_frame, (it != phonemes_by_start_frame.begin())? (it - 1)->first: -2, (it != phonemes_by_start_frame.begin())? (it - 1)->second.v: 0, (it != phonemes_by_start_frame.begin())? (const char*)(it - 1)->second.v->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.p: 0, (it != phonemes_by_start_frame.begin())? (const char*)(it - 1)->second.p->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.w: 0, (it != phonemes_by_start_frame.begin())? (const char*)(it - 1)->second.w->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.q: 0, (it != phonemes_by_start_frame.begin())? (const char*)(it - 1)->second.q->name.c_str(): "(none)", fade_frame[it->second.v - & voices[0]]);
+//        if (++watchdog > 5000) break; //whoops
+//        debug(10, "here1 %d/%d", it - phonemes_by_start_frame.begin(), phonemes_by_start_frame.size());
+        std::string phkey = (const char*)PhonemeInfoPtr(it->second)->name.c_str();
+//        debug(10, "here2 %d", it - phonemes_by_start_frame.begin());
+        phkey += (const char*)VoiceInfoPtr(it->second)->name.c_str(); //tag phoneme with voice name so it can have different delay deadline
+        debug(10, "compare frame %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s' vs. prev frame %d = %d v 0x%x '%s', phr 0x%x '%s', w 0x%x '%s', phon 0x%x '%s', auto-fade %d", it->first, it->second.v, (const char*)VoiceInfoPtr(it->second)->name.c_str(), it->second.p, (const char*)PhraseInfoPtr(it->second)->name.c_str(), it->second.w, (const char*)WordInfoPtr(it->second)->name.c_str(), it->second.q, (const char*)PhonemeInfoPtr(it->second)->name.c_str(), prev_frame, (it != phonemes_by_start_frame.begin())? (it - 1)->first: -2, (it != phonemes_by_start_frame.begin())? (it - 1)->second.v: 0, (it != phonemes_by_start_frame.begin())? (const char*)VoiceInfoPtr((it - 1)->second)->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.p: 0, (it != phonemes_by_start_frame.begin())? (const char*)PhraseInfoPtr((it - 1)->second)->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.w: 0, (it != phonemes_by_start_frame.begin())? (const char*)WordInfoPtr((it - 1)->second)->name.c_str(): "(none)", (it != phonemes_by_start_frame.begin())? (it - 1)->second.q: 0, (it != phonemes_by_start_frame.begin())? (const char*)PhonemeInfoPtr((it - 1)->second)->name.c_str(): "(none)", fade_frame[VoiceInfoPtr(it->second) - &voices[0]]);
         if (it != phonemes_by_start_frame.begin())
             if (Sorter(*(it - 1), *it) && Sorter(*it, *(it - 1))) continue; //skip duplicates; reuse Sorter lggic: lhs >= rhs && rhs >= lhs ==> lhs == rhs
         if (it->first != prev_frame)
@@ -1308,7 +1345,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
                     {
                         if (!want_voice[voice])
                         {
-                            if (!discarded[voice]) errors += wxString::Format(wxT("Discarded '%s' starting in frame %d (%7.3f sec) - no Pgo settings\n"), it->second.v->name, it->first, (double)it->first * 0.050);
+                            if (!discarded[voice]) errors += wxString::Format(wxT("Discarded '%s' starting in frame %d (%7.3f sec) - no Pgo settings\n"), VoiceInfoPtr(it->second)->name, it->first, (double)it->first * 0.050);
                             discarded[voice] = true;
                         }
 //separated X:Y for phoneme, outlines, eyes
@@ -1384,7 +1421,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
             debug(10, "footer: start new fr %d (%7.3f sec)", it->first, it->first * 0.05);
             prev_frame = it->first; //start new frame
             frame_desc.clear();
-            shorter_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
+            shorter_desc = wxString::Format(wxT("'%s':%s"), WordInfoPtr(it->second)->name, PhonemeInfoPtr(it->second)->name); //word:phoneme
             for (int voice = 0; voice < voices.size(); voice++) //use actual #voices
                 frame_phonemes[voice].clear();
         }
@@ -1393,11 +1430,11 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
 //        debug(10, "  0x%x vs phr[0] 0x%x == %d", it->second.p, &it->second.v->phrases[0], it->second.p - &it->second.v->phrases[0]);
 //        debug(10, "  0x%x vs w[0] 0x%x == %d", it->second.w, &it->second.p->words[0], it->second.w - &it->second.p->words[0]);
 //        debug(10, "  0x%x vs phon[0] 0x%x == %d", it->second.q, &it->second.w->phonemes[0], it->second.q - &it->second.w->phonemes[0]);
-        frame_desc += wxString::Format(wxT(", '%s':'%s':%s"), it->second.v->name, it->second.w->name, it->second.q->name); //voice:word:phoneme
-        wxString new_short_desc = wxString::Format(wxT("'%s':%s"), it->second.w->name, it->second.q->name); //word:phoneme
+        frame_desc += wxString::Format(wxT(", '%s':'%s':%s"), VoiceInfoPtr(it->second)->name, WordInfoPtr(it->second)->name, PhonemeInfoPtr(it->second)->name); //voice:word:phoneme
+        wxString new_short_desc = wxString::Format(wxT("'%s':%s"), WordInfoPtr(it->second)->name, PhonemeInfoPtr(it->second)->name); //word:phoneme
         if (new_short_desc != shorter_desc) shorter_desc.clear(); //can't use shorter desc (word or phoneme varies)
         debug(10, "footer: merge fr %d (%7.3f sec) '%s'", it->first, it->first * 0.05, (const char*)frame_desc.c_str());
-        int voice = it->second.v - &voices[0];
+        int voice = VoiceInfoPtr(it->second) - &voices[0];
 #if 0 //users don't want to know if phoneme was dropped
         if (!frame_phonemes[voice].empty() && (err_frame != it->first) && want_voice[voice])
         {
@@ -1405,8 +1442,8 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
             err_frame = it->first; //only report each frame 1x
         }
 #endif // 0
-        frame_phonemes[voice] = it->second.q->name; //remember current phoneme for each voice
-        if (fade_delay) fade_frame[voice] = it->second.q->end_frame + fade_delay; //set next deadline
+        frame_phonemes[voice] = PhonemeInfoPtr(it->second)->name; //remember current phoneme for each voice
+        if (fade_delay) fade_frame[voice] = PhonemeInfoPtr(it->second)->end_frame + fade_delay; //set next deadline
 //        if (single_delay) single_fade_frame[phkey] = it->first + single_delay; //set per-phoneme deadline
         want_fade[voice] = it->second.NeedFade; //remember to fade this voice during next flush
 //TODO: need to improve random (random start time but somewhat fixed duration)
@@ -1487,10 +1524,10 @@ void xLightsFrame::AutoFace(wxFile& f, int start_frame, void* voice_ptr, void* p
 {
     std::pair<int, InfoChain> newent;
     newent.first = start_frame; //voices[voice_inx].phrases[phrase_inx].words[word_inx].phonemes[phoneme_inx].start_frame; //sort key
-    newent.second.v = (VoiceInfo*)voice_ptr;
-    newent.second.p = (PhraseInfo*)phrase_ptr;
-    newent.second.w = (WordInfo*)word_ptr;
-    newent.second.q = (PhonemeInfo*)phoneme_ptr;
+    newent.second.v = (VoiceInfo*)voice_ptr - &voices[0];
+    newent.second.p = (PhraseInfo*)phrase_ptr - &VoiceInfoPtr(newent.second)->phrases[0];
+    newent.second.w = (WordInfo*)word_ptr - &PhraseInfoPtr(newent.second)->words[0];
+    newent.second.q = (PhonemeInfo*)phoneme_ptr - &WordInfoPtr(newent.second)->phonemes[0];
     newent.second.NeedFade = false; //look-ahead after sort will decide if fade is needed
     phonemes_by_start_frame.push_back(newent); //build a list for sorting before writing to file
     debug(10, "AutoFace: fr %d, v# %d '%s', phr# %d '%s', w# %d '%s', phon# %d '%s'", start_frame, ((VoiceInfo*)voice_ptr) - &voices[0], (const char*)((VoiceInfo*)voice_ptr)->name.c_str(), ((PhraseInfo*)phrase_ptr) - &((VoiceInfo*)voice_ptr)->phrases[0], (const char*)((PhraseInfo*)phrase_ptr)->name.c_str(), ((WordInfo*)word_ptr) - &((PhraseInfo*)phrase_ptr)->words[0], (const char*)((WordInfo*)word_ptr)->name.c_str(), ((PhonemeInfo*)phoneme_ptr) - &((WordInfo*)word_ptr)->phonemes[0], (const char*)((PhonemeInfo*)phoneme_ptr)->name.c_str());
@@ -1555,6 +1592,7 @@ static void grenlarge(wxGrid* grid, int numcols)
     {
         int newcol = grid->GetCols();
         grid->InsertCols(newcol, 1); //numcols - grid->GetCols()); //should only need 1, but allow multiple
+        grid->SetColLabelValue(newcol, wxString::Format(wxT("Voice %d"), newcol + 1));
         for (int r = 0; r < grid->GetRows(); ++r)
         {
             grid->SetCellEditor(r, newcol, grid->GetCellEditor(r, 0));
@@ -1577,7 +1615,7 @@ static void initcol(wxGrid* grid, int col = -1, bool resetvals = true)
 #define sbwidth  16 //TODO: adjust value for Mac or Linux?
         int smallw = (grid->GetSize().x - grid->GetRowLabelSize() - sbwidth)/ 4;
         if (col == 3) smallw += grid->GetSize().x - grid->GetRowLabelSize() - sbwidth - 4 * smallw; //kludge: make it an exact fit to scroll bar looks okay
-        debug(10, "init col[%d]: w %d", col, smallw);
+        debug(10, "init col[%d]: w %d", c, smallw);
         grid->SetColumnWidth(c, myGridCellChoiceEditor::WantFiles? 180: smallw); //GridCoroFaces->GetColumnWidth(c) + (myGridCellChoiceEditor::WantFiles? 100: -100)); //give a little more room to display file names, but preserve user sizing
         if (grid->GetCellValue(Model_Row, c).IsEmpty()) grid->SetCellValue(Model_Row, c, SelectionHint); //fixup
 //        if (WantFiles || WantCustom) continue;
