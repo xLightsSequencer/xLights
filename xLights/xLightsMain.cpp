@@ -408,7 +408,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.22)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.4.23)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -1591,7 +1591,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FacesPhoneme.Add("etc");
     FacesPhoneme.Add("rest");
 
-       CoroFacesPhoneme.Add("AI");
+    CoroFacesPhoneme.Add("AI");
     CoroFacesPhoneme.Add("E");
     CoroFacesPhoneme.Add("FV");
     CoroFacesPhoneme.Add("L");
@@ -1627,6 +1627,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MeteorsEffect.Add("Explode");
     MeteorsEffect.Add("Icicles"); //random length drip effect -DJ
     MeteorsEffect.Add("Icicles + bkg"); //with bkg (dim) icicles -DJ
+
+    RippleMovement.Add("Explode");
+    RippleMovement.Add("Implode");
+    RippleObjectToDraw.Add("Circle");
+    RippleObjectToDraw.Add("Square");
+    RippleObjectToDraw.Add("Triangle");
+
 
     TextEffectDirections.Add("left"); //0
     TextEffectDirections.Add("right"); //1
@@ -1857,7 +1864,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Faces_Phoneme->Set(FacesPhoneme);
     panel->Choice_Faces_Phoneme->SetSelection(0);
 
-     panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
+    panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
     panel->Choice_CoroFaces_Phoneme->SetSelection(0);
 
 

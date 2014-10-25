@@ -63,26 +63,28 @@ void RgbEffects::RenderRipple(int PaletteRepeat, int Direction, int Rotation, in
 
     i=0;
     double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
+    float rx;
     xc = BufferWi/2;
     yc=BufferHt/2;
     int on_off=0;
 
-    int slices=100;
+    int slices=200;
     int istate=state/slices; // istate will be a counter every slices units of state. each istate is a square wave
     int imod=(state/(slices/10))%10; // divide this square
     int icolor=istate%colorcnt;
     wxString TimeNow =wxNow();
-    float rx=(state%slices)/(slices*1.0);
+    rx=(state%slices)/(slices*1.0);
+
     int x1 = xc - (xc*rx);
     int x2 = xc + (xc*rx);
     int y1 = yc - (yc*rx);
     int y2 = yc + (yc*rx);
     enum {Square, Circle, Triangle} shape = Circle;
-
+    double radius;
     //  debug(10, "%s:%6d istate=%4d imod=%4d icolor=%1d", (const char*)TimeNow,state,istate,imod,icolor);
     ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-int explode;
+    int explode;
     switch (shape)
     {
 
@@ -125,7 +127,14 @@ int explode;
         }
         break;
     case Circle:
-        Drawcircle( xc, yc, rx, hsv);
+        radius = (xc*rx);
+        Drawcircle( xc, yc, radius, hsv);
+        radius=radius/2;
+        Drawcircle( xc, yc, radius, hsv);
+         radius=radius/2;
+        Drawcircle( xc, yc, radius, hsv);
+         radius=radius/2;
+        Drawcircle( xc, yc, radius, hsv);
         break;
     case Triangle:
         break;
@@ -165,7 +174,7 @@ void RgbEffects::Drawcircle(int xc,int yc,double radius,wxImage::HSVValue hsv)
         radian = 	degrees * (M_PI/180.0);
         x = radius * cos(radian) + xc;
         y = radius * sin(radian) + yc;
-         SetP(x,y,hsv); // Turn pixel
+        SetP(x,y,hsv); // Turn pixel
     }
 
 }

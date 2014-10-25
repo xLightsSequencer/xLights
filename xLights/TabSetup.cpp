@@ -210,7 +210,7 @@ void xLightsFrame::UpdateChannelNames()
 {
     wxArrayString ChNames;
     ModelClass model;
-    wxString FormatSpec;
+    wxString FormatSpec,RGBFormatSpec;
     int ChannelNum,ChanPerNode,NodeNum,AbsoluteNodeNum;
     size_t NodeCount,n,c;
     NetInfo.GetAllChannelNames(ChNames);
@@ -222,7 +222,8 @@ void xLightsFrame::UpdateChannelNames()
             model.SetFromXml(e);
             NodeCount=model.GetNodeCount();
             ChanPerNode = model.ChannelsPerNode();
-            FormatSpec = "Ch %d: "+model.name+" #%d";
+            FormatSpec = "Ch %d (Node %d): "+model.name+" ";
+            RGBFormatSpec = "Ch %d (RGB Node %d): "+model.name+" #";
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model.NodeStartChannel(n);
@@ -233,7 +234,8 @@ void xLightsFrame::UpdateChannelNames()
                     if (ChannelNum < ChNames.Count())
                     {
                         AbsoluteNodeNum=ChannelNum+1;
-                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
+                        //   ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
+                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,AbsoluteNodeNum);
                     }
                 }
                 else
@@ -243,7 +245,8 @@ void xLightsFrame::UpdateChannelNames()
                         if (ChannelNum < ChNames.Count())
                         {
                             AbsoluteNodeNum=(ChannelNum/3)+1;
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
+                            //  ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
+                            ChNames[ChannelNum] = wxString::Format(RGBFormatSpec,ChannelNum+1,AbsoluteNodeNum)+model.GetChannelColorLetter(c);
                         }
                         ChannelNum++;
                     }
@@ -282,7 +285,8 @@ void xLightsFrame::MoveNetworkRow(int fromRow, int toRow)
     {
         //Network XML can have nodes other than "network" nodes. (like "testpreset") We
         //need to make sure we only consider the "network" nodes.
-        if (e->GetName() == "network") {
+        if (e->GetName() == "network")
+        {
             if (cnt==fromRow) fromNode=e;
             if (cnt==toRow) toNode=e;
             cnt++;
@@ -319,7 +323,8 @@ void xLightsFrame::OnButtonNetworkChangeClick(wxCommandEvent& event)
     long cnt=0;
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == "network") {
+        if (e->GetName() == "network")
+        {
             if (cnt==SelectedItem)
             {
                 if (e->GetAttribute("NetworkType") == "E131")
@@ -352,7 +357,8 @@ void xLightsFrame::OnButtonNetworkDeleteClick(wxCommandEvent& event)
     long cnt=0;
     for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        if (e->GetName() == "network") {
+        if (e->GetName() == "network")
+        {
             if (cnt==SelectedItem)
             {
                 root->RemoveChild(e);
