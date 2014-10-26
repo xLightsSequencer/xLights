@@ -10,7 +10,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
                      Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
 	-bug (djulien) Fixed multi-cell morph (caused Papagayo flicker), avoid error if try to save file with no pgo data
-	-enh (sean) Increased custom model from 300x65000 to 1000x65000
+	-enh (sean) Increased custom model from 300x300 to 1000x1000
 3.4.23	Oct 25, 2014
 	-enh (sean) Added Ripple Effect Class
 	-bug (sean) Recompiled entire rpoject , we believe a few modeuls were compiled with debug and that was
