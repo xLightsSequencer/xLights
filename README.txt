@@ -6,25 +6,26 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
-        -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
+3.4.24
+    -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
                      Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
 	-bug (djulien) Fixed multi-cell morph (caused Papagayo flicker), avoid error if try to save file with no pgo data
-3.4.23
+	-enh (sean) Increased custom model from 300x65000 to 1000x65000
+3.4.23	Oct 25, 2014
 	-enh (sean) Added Ripple Effect Class
 	-bug (sean) Recompiled entire rpoject , we believe a few modeuls were compiled with debug and that was
 				causing the error message in the model screen. Since that recompile, we have not see the error
 	-bug (djulien) Fixed up auto-fade arithmetic (morph flicker still occurs); fix pgo grid column label with presets > 4 voices
 	-enh (djulien) Papgayo: Rework auto-rest options, insert rests between phonemes
-3.4.22
+3.4.22	Oct 23, 2014
 	-enh (sean) Added new effect class "Shimmer". This effect is basically a square wave, it turns all lights on and then all 
 		lights off.
 	-enh (sean) Removed FACES, COROFACES and PINWHEEL from the "Create Random Effects" button
 	-enh (djulien) Change Pgo "auto fade element" to "auto rest" (not functional yet), leave initial Pgo Preset cleared for stitch
-3.4.21
+3.4.21	Oct 20, 2014
 	-enh (djulien) Added model CSV export to the Models screen. This csv file can be opened by Excel or 
 		Open Office spreadsheets
-3.4.20
+3.4.20	Oct 19, 2014
 	-enh (djulien) Added Papagayo Preset stitch (allows Presets to be combined dynamically at run time)
 	NOTES:
 	 - Papagayo Presets match by model or voice name now rather than column#.  This means they can move around between columns and still work.
@@ -39,20 +40,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	   6. select output file if not already set
 	   7. click button at the bottom to generate the sequence
 	   8. load additional pgo files as desired; for vertical stitch (concatenate) enter a non-0 value for #frames to shift
-3.4.19
+3.4.19	Oct 18, 2014	
 	-bug (djulien) Fixed Coro Faces render problem on models with > 26 columns, adjust text size on model zoom in/out, Papagayo Preset delete button
 	-enh (djulien) Added Papagayo horizontal stitch (supports any number of voices within reason), accept 39 extended phonemes (auto-map to basic 10), removed duplicate phoneme in frame message (CAUTION: phonemes will be dropped with no warnings), added Preset consistency check, start making Model dialog resizable, show reason for "reseting flags" message
-3.4.18
+3.4.18	Oct 13,2014
 	-enh (djulien) Merged Papagayo sub-tabs; implemented Image option (Movie option TBD); enabled fade on Auto faces; added Copy column button; flattened xlights_papagayo.xml file (old Presets still used for backwards compatibility, but new Presets are written a level higher and merged)
 	-bug (djulien) Fixed Papagayo auto-fade; mostly works now, but there seems to still be some flicker (caused by something else within xLights)
 	-enh (sean)    New effect class PinWheel. This is NOT working yet, it is a place holder. 
-3.4.17 PRE-RELEASE. There are still bugs we are working in the corofaces code. One we know of , outline does not show in PREVIEW
+3.4.17	Oct 8, 2014 
+	PRE-RELEASE. There are still bugs we are working in the corofaces code. One we know of , outline does not show in PREVIEW
 	-enh (djulien) This release sees the Papagayo Tab for Corofaces working.
 					To use this, choose a pgo file as input, choose a file for output.
 					Choose your custom models from a pull down list. Be sure they have "Part of my Display" checked.
 					Assign channels to Phonemes. You can assign multiple channels by doing ctl-click.
 					Create an xml file of the pgo.
-3.4.16
+3.4.16	Oct 1, 2014
 	-enh (djulien) Add zoom in/out buttons on Custom Model grid display (makes it easier to see larger grids)
 	-enh (djulien) On Papagayo Coro faces tab, moved model name into grid, show drop-down list of choices in grid cells, allow Pagagayo file stitch ("+" button), add UI controls for face element auto-fade, save/restore last tab, show list of checkboxes in Coro Faces effect panel
 3.4.15  Sep 28, 2014
