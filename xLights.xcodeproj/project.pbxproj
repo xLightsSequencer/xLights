@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
@@ -91,6 +92,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
 				67879B7219F94544009D994D /* RenderPinwheel.cpp */,
 				67879B7319F94544009D994D /* RenderShimmer.cpp */,
 				67C6488619E3396C006526CD /* RenderCoroFaces.cpp */,
@@ -543,6 +546,7 @@
 				67879B7419F94544009D994D /* RenderPinwheel.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
+				6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */,
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
