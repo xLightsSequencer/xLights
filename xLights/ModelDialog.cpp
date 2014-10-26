@@ -39,7 +39,8 @@ const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
 const long ModelDialog::ID_Slider_Model_Brightness = wxNewId();
 const long ModelDialog::ID_SPINCTRL5 = wxNewId();
-const long ModelDialog::ID_STATICTEXT13 = wxNewId();
+const long ModelDialog::ID_STATICTEXT15 = wxNewId();
+const long ModelDialog::ID_TEXTCTRL2 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
 const long ModelDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -172,9 +173,11 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     SpinCtrl1->SetValue(_T("0"));
     FlexGridSizer6->Add(SpinCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText10 = new wxStaticText(this, ID_STATICTEXT13, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
-    FlexGridSizer2->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StarSizesLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+    FlexGridSizer2->Add(StarSizesLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    StarSizes = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    FlexGridSizer2->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer3->AddGrowableRow(1);
     cbIndividualStartNumbers = new wxCheckBox(this, ID_CHECKBOX2, _("Individual Start Chans"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
@@ -403,6 +406,9 @@ void ModelDialog::UpdateLabels()
     wxString NodeLabel = ModelClass::HasSingleChannel(StringType) ? _("lights") : _("RGB Nodes");
     wxString s;
 
+    StarSizesLabel->Hide();
+    StarSizes->Hide();
+
     if (DisplayAs == "Arches")
     {
         StaticText_Strings->SetLabelText(_("# of Arches"));
@@ -430,6 +436,9 @@ void ModelDialog::UpdateLabels()
         StaticText_Nodes->SetLabelText(s);
         StaticText_Strands->SetLabelText(_("# of points"));
         SpinCtrl_parm3->Enable(true);
+        StarSizesLabel->Show();
+        StarSizes->Show();
+
     }
     else if (DisplayAs == "Single Line" || DisplayAs == "Wreath")
     {
@@ -677,8 +686,12 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Order");
     e->DeleteAttribute("Dir");
     e->DeleteAttribute("Antialias");
+    e->DeleteAttribute("starSizes");
     e->AddAttribute("DisplayAs", Choice_DisplayAs->GetStringSelection());
     e->AddAttribute("StringType", Choice_StringType->GetStringSelection());
+    if (Choice_DisplayAs->GetStringSelection() == "Star") {
+        e->AddAttribute("starSizes", StarSizes->GetValue());
+    }
     e->AddAttribute("parm1", wxString::Format("%d",SpinCtrl_parm1->GetValue()));
     e->AddAttribute("parm2", wxString::Format("%d",SpinCtrl_parm2->GetValue()));
     e->AddAttribute("parm3", wxString::Format("%d",SpinCtrl_parm3->GetValue()));
@@ -714,6 +727,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     SpinCtrl_parm1->SetValue(e->GetAttribute("parm1"));
     SpinCtrl_parm2->SetValue(e->GetAttribute("parm2"));
     SpinCtrl_parm3->SetValue(e->GetAttribute("parm3"));
+    StarSizes->SetValue(e->GetAttribute("starSizes"));
     SpinCtrl_StartChannel->SetValue(e->GetAttribute("StartChannel"));
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");

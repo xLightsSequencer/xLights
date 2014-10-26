@@ -33,7 +33,7 @@ public:
     void UpdateXml(wxXmlNode* e);
 
     //(*Declarations(ModelDialog)
-    wxStaticText* StaticText10;
+    wxStaticText* StarSizesLabel;
     wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
@@ -47,6 +47,7 @@ public:
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
+    wxTextCtrl* StarSizes;
     wxStaticText* StaticText3;
     wxChoice* Choice_StringType;
     wxButton* Button_CustomModelZoomIn;
@@ -105,7 +106,8 @@ protected:
     static const long ID_STATICTEXT7;
     static const long ID_Slider_Model_Brightness;
     static const long ID_SPINCTRL5;
-    static const long ID_STATICTEXT13;
+    static const long ID_STATICTEXT15;
+    static const long ID_TEXTCTRL2;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
     static const long ID_SCROLLEDWINDOW1;

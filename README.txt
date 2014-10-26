@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+<next>
+        -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
+                     Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
 3.4.23
 	-enh (sean) Added Ripple Effect Class
 	-bug (sean) Recompiled entire rpoject , we believe a few modeuls were compiled with debug and that was

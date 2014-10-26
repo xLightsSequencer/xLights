@@ -218,6 +218,7 @@ private:
     long parm1;         /**< Number of strings in the model (except for frames & custom) */
     long parm2;         /**< Number of nodes per string in the model (except for frames & custom) */
     long parm3;         /**< Number of strands per string in the model (except for frames & custom) */
+    std::vector<int> starSizes;
     bool IsLtoR;         // true=left to right, false=right to left
     bool isBotToTop;
     long Antialias;      // amount of anti-alias (0,1,2)

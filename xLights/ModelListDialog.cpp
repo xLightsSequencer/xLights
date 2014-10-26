@@ -142,23 +142,24 @@ void ModelListDialog::OnButton_ModifyClick(wxCommandEvent& event)
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);
     int DlgResult;
     bool ok;
-    ModelDialog dialog(this);
-    dialog.SetFromXml(e);
-    dialog.TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
+    ModelDialog *dialog = new ModelDialog(this);
+    dialog->SetFromXml(e);
+    dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
     do
     {
         ok=true;
-        DlgResult=dialog.ShowModal();
+        DlgResult=dialog->ShowModal();
         if (DlgResult == wxID_OK)
         {
             // validate inputs
             if (ok)
             {
-                dialog.UpdateXml(e);
+                dialog->UpdateXml(e);
             }
         }
     }
     while (DlgResult == wxID_OK && !ok);
+    delete dialog;
 }
 
 void ModelListDialog::OnButton_DeleteClick(wxCommandEvent& event)
