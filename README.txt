@@ -6,9 +6,12 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-<next>
+3.4.23
+	-enh (sean) Added Ripple Effect Class
+	-bug (sean) Recompiled entire rpoject , we believe a few modeuls were compiled with debug and that was
+				causing the error message in the model screen. Since that recompile, we have not see the error
 	-bug (djulien) Fixed up auto-fade arithmetic (morph flicker still occurs); fix pgo grid column label with presets > 4 voices
-	-enh (djulien) Rework auto-rest options, insert rests between phonemes
+	-enh (djulien) Papgayo: Rework auto-rest options, insert rests between phonemes
 3.4.22
 	-enh (sean) Added new effect class "Shimmer". This effect is basically a square wave, it turns all lights on and then all 
 		lights off.
