@@ -336,17 +336,20 @@ double RgbEffects::GetEffectPeriodPosition()
     return retval;
 }
 
-double RgbEffects::GetEffectTimeIntervalPosition()
+double RgbEffects::GetEffectTimeIntervalPosition(bool from_last /*= false*/)
 {
     double retval;
     if (nextEffTimePeriod == 0)
     {
         retval = 1;
     }
+    else if (from_last) //calculate based on start of previous non-empty cell -DJ
+        retval = (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod); //NOTE: curEffEndPer appears to be start time of next non-blank cell
     else
     {
         retval = (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer);
     }
+//    debug(10, "GetEffTiIntPos(fr last? %d): (cur %d - curst %d)/(curend %d - curst) = %f, (cur - curst)/(next %d - curst) = %f, (cur - prev %d)/(curend - prev) = %f", from_last, curPeriod, curEffStartPer, curEffEndPer, GetEffectPeriodPosition(), nextEffTimePeriod, (double)(curPeriod-curEffStartPer)/(nextEffTimePeriod-curEffStartPer), prevNonBlankStartPeriod, (double)(curPeriod - prevNonBlankStartPeriod) / (curEffEndPer - prevNonBlankStartPeriod));
     return retval;
 }
 void RgbEffects::ClearWaveBuffer1()
@@ -379,11 +382,13 @@ void RgbEffects::GetFadeSteps( int& fadeInSteps, int& fadeOutSteps)
     fadeOutSteps = fadeoutsteps;
 }
 
-void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec)
+void RgbEffects::SetEffectDuration(int startMsec, int endMsec, int nextMsec, bool new_effect_starts)
 {
     curEffStartPer = startMsec/XTIMER_INTERVAL;
     curEffEndPer = endMsec/XTIMER_INTERVAL;
     nextEffTimePeriod = nextMsec/XTIMER_INTERVAL;
+    if (new_effect_starts) prevNonBlankStartPeriod = curEffStartPer; //remember when current effect really started -DJ
+//    debug(10, "SetEffectDurection: start %d, end %d, netx %d, new? %d", startMsec, endMsec, nextMsec, new_effect_starts);
 }
 
 void RgbEffects::GetEffectPeriods( int& start, int& next, int& endp)

@@ -131,7 +131,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
     float svthresh = effectMixThreshold;
     if (effectMixVaries) //vary mix threshold gradually during effect interval -DJ
 //        effectMixThreshold = Effect[0].GetEffectPeriodPosition();
-        effectMixThreshold = 1 - Effect[0].GetEffectPeriodPosition(); //seems to be backwards, so reverse it
+//        effectMixThreshold = 1 - Effect[0].GetEffectPeriodPosition(); //seems to be backwards, so reverse it
+        effectMixThreshold = 1 - Effect[0].GetEffectTimeIntervalPosition(true); //seems to be backwards, so reverse it
 //    debug(1, "get mixed color: varies? %d, mix thresh %f", effectMixVaries, effectMixThreshold);
 //    wxColour svc0 = c0, svc1 = c1;
 
@@ -297,9 +298,9 @@ void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
 {
     Effect[layer].SetFadeTimes(inTime, outTime);
 }
-void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextTime)
+void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextTime, bool new_effect_starts)
 {
-    Effect[layer].SetEffectDuration(startTime, endTime, nextTime);
+    Effect[layer].SetEffectDuration(startTime, endTime, nextTime, new_effect_starts);
 }
 void PixelBufferClass::SetFitToTime(int layer, bool fit)
 {

@@ -902,7 +902,33 @@ void xLightsFrame::OnButton_papagayo_output_sequenceClick1(wxCommandEvent& event
 {
     if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
 
+#if 1 //generates "error 0" message (mscvrt dll mismatch with wxWidgets?)
     wxString filename = wxFileSelector( "Choose Output Sequence", "", "", "", "Sequence files (*.xml)|*.xml", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+//    wxString filename = wxSaveFileSelector("Output Sequence", "xml files (*.xml)|*.xml");
+//#ifdef __WXMSW__
+//    SetErrorMode(SEM_FAILCRITICALERRORS); //don't display errors
+//#endif // __WXMSW__
+//    wxFile f(filename);
+//    bool isnew = !wxFile::Exists(filename);
+//    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+//    f.Write("test", 4);
+//    f.Close();
+#else //this also gets the error
+    wxString filename;
+    wxTextEntryDialog dialog(this, "Choose output sequence name:", "Save Sequence File As");
+    for (;;)
+    {
+        if (dialog.ShowModal() != wxID_OK) return;
+        filename = dialog.GetValue();
+        filename.Trim();
+        if (!filename.IsEmpty()) break;
+        wxMessageBox(wxT("File name cannot be empty"), wxT("ERROR"));
+    }
+    wxFileName oName(filename);
+    oName.SetPath(CurrentDir);
+    oName.SetExt("xml");
+    filename = oName.GetFullPath();
+#endif
 //    wxString filename = wxSaveFileSelector("what", wxEmptyString);
 //  wxString filename = "this5.pgo";
     if (!filename.IsEmpty()) TextCtrl_papagayo_output_filename->SetValue(filename);
@@ -952,6 +978,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     TextCtrlConversionStatus->Clear();
     ButtonStartPapagayo->Enable(true);
     debug(10, "out fmt = '%c'", outmode); //(const char*)OutputFormat.c_str());
+    if (!voices.size()) retmsg(wxT("No Papagayo voice info found."));
 
     fade_delay = 0;
     rest_min_delay = 0;
