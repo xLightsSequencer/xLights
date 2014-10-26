@@ -1148,7 +1148,7 @@ private:
     wxArrayString TextEffectDirections;
     wxArrayString PictureEffectDirections;
     wxArrayString PianoEffectStyles;
-      wxArrayString PianoKeyPlacement;
+    wxArrayString PianoKeyPlacement;
     wxArrayString RippleObjectToDraw;
     wxArrayString RippleMovement;
     wxArrayString SingleStrandTypes;

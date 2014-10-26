@@ -500,10 +500,9 @@ void PixelBufferClass::RenderPinwheel(int Branches)
 {
     Effect[CurrentLayer].RenderTree(Branches);
 }
-void PixelBufferClass::RenderRipple(int PaletteRepeat, int Direction, int Rotation, int Thickness,
-                                     bool Blend, bool Show3D, bool grow, bool shrink)
+void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement)
 {
-    Effect[CurrentLayer].RenderRipple(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
+    Effect[CurrentLayer].RenderRipple( Object_To_Draw,  Movement);
 }
 void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {

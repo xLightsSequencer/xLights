@@ -42,10 +42,16 @@
 #endif // WANT_DEBUG
 
 
+#define RENDER_RIPPLE_CIRCLE     0
+#define RENDER_RIPPLE_SQUARE     1
+#define RENDER_RIPPLE_TRIANGLE   2
+
+#define MOVEMENT_EXPLODE    0
+#define MOVEMENT_IMPLODE    1
 
 
-void RgbEffects::RenderRipple(int PaletteRepeat, int Direction, int Rotation, int Thickness,
-                              bool Blend, bool Show3D, bool grow, bool shrink)
+
+void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
 {
 
     int x,y,i,i7,ColorIdx;
@@ -85,12 +91,12 @@ void RgbEffects::RenderRipple(int PaletteRepeat, int Direction, int Rotation, in
     ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
     int explode;
-    switch (shape)
+    switch (Object_To_Draw)
     {
 
-    case Square:
+    case RENDER_RIPPLE_SQUARE:
         explode=1;
-        if(explode==1)
+        if(Movement==MOVEMENT_EXPLODE)
         {
             // This is the object expanding out, or explode looikng
             int x1 = xc - (xc*rx);
@@ -107,13 +113,39 @@ void RgbEffects::RenderRipple(int PaletteRepeat, int Direction, int Rotation, in
                 SetP(x,y1,hsv); // Turn pixel
                 SetP(x,y2,hsv); // Turn pixel
             }
+
+            hsv.value = (hsv.value /3)*2;
+            for(y=y1; y<=y2; y++)
+            {
+                SetP(x1+1,y,hsv); // Turn pixel
+                SetP(x2-1,y,hsv); // Turn pixel
+            }
+            for(x=x1; x<=x2; x++)
+            {
+                SetP(x,y1+1,hsv); // Turn pixel
+                SetP(x,y2-1,hsv); // Turn pixel
+            }
+
+            hsv.value = hsv.value /3;
+            for(y=y1; y<=y2; y++)
+            {
+                SetP(x1+2,y,hsv); // Turn pixel
+                SetP(x2-2,y,hsv); // Turn pixel
+            }
+            for(x=x1; x<=x2; x++)
+            {
+                SetP(x,y1+2,hsv); // Turn pixel
+                SetP(x,y2-2,hsv); // Turn pixel
+            }
+
+
         }
-        else
+        else if(Movement==MOVEMENT_IMPLODE)
         {
-            int x1 = xc - (xc*rx);
-            int x2 = xc + (xc*rx);
-            int y1 = yc - (yc*rx);
-            int y2 = yc + (yc*rx);
+            int x1 = (xc*rx);
+            int x2 = BufferWi - (xc*rx);
+            int y1 =  (yc*rx);
+            int y2 = BufferHt - (yc*rx);
             for(y=y2; y>=y1; y--)
             {
                 SetP(x1,y,hsv); // Turn pixel
@@ -126,14 +158,17 @@ void RgbEffects::RenderRipple(int PaletteRepeat, int Direction, int Rotation, in
             }
         }
         break;
-    case Circle:
-        radius = (xc*rx);
+    case RENDER_RIPPLE_CIRCLE:
+        if(Movement==MOVEMENT_IMPLODE)
+            radius = xc-(xc*rx);
+        else
+            radius = (xc*rx);
         Drawcircle( xc, yc, radius, hsv);
         radius=radius/2;
         Drawcircle( xc, yc, radius, hsv);
-         radius=radius/2;
+        radius=radius/2;
         Drawcircle( xc, yc, radius, hsv);
-         radius=radius/2;
+        radius=radius/2;
         Drawcircle( xc, yc, radius, hsv);
         break;
     case Triangle:

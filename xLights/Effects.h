@@ -16,8 +16,7 @@ void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, in
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
-void RenderRipple(int PaletteRepeat, int Direction, int Rotation, int Thickness,
-                  bool Blend, bool Show3D, bool grow, bool shrink);
+void RenderRipple(int Object_To_Draw, int Movement);
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
 void SetP(int x, int y, wxImage::HSVValue hsv);
 void Drawcircle(int xc,int yc,double radius, wxImage::HSVValue hsv);

@@ -61,7 +61,6 @@ public:
     wxButton* Button_Palette3;
     wxBitmapButton* BitmapButton_TextLine1;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
-    wxBitmapButton* BitmapButton_ShimmerUseAllColors;
     wxStaticText* StaticText4;
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
@@ -124,7 +123,6 @@ public:
     wxBitmapButton* BitmapButton_TextPosition3;
     wxCheckBox* CheckBox_Circles_Radial;
     wxBitmapButton* BitmapButton_ButterflyChunks;
-    wxBitmapButton* BitmapButton_DutyFactor;
     wxStaticText* StaticText87;
     wxCheckBox* CheckBox_Circles_Bounce;
     wxTextCtrl* TextCtrl_Text_Line3;
@@ -136,6 +134,7 @@ public:
     wxSlider* Slider_Snowstorm_Length;
     wxTextCtrl* TextCtrl_Text_Line1;
     wxBitmapButton* BitmapButton_SingleStrand_Colors;
+    wxBitmapButton* BitmapButton_Shimmer_Blink_Timing;
     wxStaticText* StaticText10;
     wxChoice* Choice_Curtain_Effect;
     wxBitmapButton* BitmapButton_Chase_Group_All;
@@ -197,10 +196,9 @@ public:
     wxStaticText* StaticText55;
     wxCheckBox* CheckBox_Spirals_3D;
     wxBitmapButton* BitmapButton_ColorWashHFade;
-    wxCheckBox* CheckBox1;
     wxSlider* Slider_Fireworks_Velocity;
     wxStaticText* StaticText15;
-    wxSlider* Slider4;
+    wxSlider* Slider_Ripple_Thickness;
     wxSlider* Slider_Spirals_Count;
     wxPanel* Panel1_Curtain;
     wxSlider* Slider_Piano_NumRows;
@@ -215,7 +213,6 @@ public:
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxSlider* Slider_Spirograph_R;
     wxStaticText* StaticText39;
-    wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButton_LayerEffect;
     wxStaticText* StaticText67;
@@ -229,7 +226,6 @@ public:
     wxCheckBox* CheckBox_TextToCenter1;
     wxPanel* Panel1_Twinkle;
     wxBitmapButton* BitmapButton_FireworksCount;
-    wxBitmapButton* BitmapButton_ShimmerBlinkTiming;
     wxBitmapButton* BitmapButton_SpiralsDirection;
     wxStaticText* StaticText27;
     wxBitmapButton* BitmapButton_PicturesFilename;
@@ -318,13 +314,13 @@ public:
     wxCheckBox* CheckBox_ColorWash_HFade;
     wxStaticText* StaticText132;
     wxBitmapButton* BitmapButton_Direction;
+    wxCheckBox* CheckBox_Ripple_Blend;
     wxStaticText* StaticText128;
     wxStaticText* StaticText44;
     wxStaticText* StaticText95;
     wxChoice* Choice_Butterfly_Direction;
     wxBitmapButton* BitmapButton_Wave_Height;
     wxStaticText* StaticText98;
-    wxBitmapButton* BitmapButton11;
     wxSlider* Slider_Meteors_Count;
     wxBitmapButton* BitmapButton_TwinkleStrobe;
     wxStaticText* StaticText88;
@@ -355,6 +351,7 @@ public:
     wxSlider* Slider_Tree_Branches;
     wxCheckBox* CheckBox_TextToCenter3;
     wxBitmapButton* BitmapButton_Spirographd;
+    wxBitmapButton* BitmapButton_Ripple_Movement;
     wxPanel* Panel1_Meteors;
     wxSlider* Slider_Butterfly_Style;
     wxBitmapButton* BitmapButton_Wave_Direction;
@@ -381,6 +378,7 @@ public:
     wxBitmapButton* BitmapButton_PicturesDirection;
     wxPanel* Panel1_Circles;
     wxButton* Button_Text_Font3;
+    wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
     wxBitmapButton* BitmapButton_SpiralsBlend;
     wxBitmapButton* BitmapButton_WaveType;
     wxSlider* Slider_Snowstorm_Count;
@@ -397,11 +395,13 @@ public:
     wxPanel* Panel1_Snowstorm;
     wxPanel* Panel1_Wave;
     wxStaticText* StaticText47;
+    wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
     wxCheckBox* CheckBox_Circles_Collide;
     wxStaticText* StaticText69;
     wxStaticText* StaticText3;
     wxSlider* Slider_Life_Seed;
     wxBitmapButton* BitmapButton_Piano_CueFilename;
+    wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
     wxBitmapButton* BitmapButton_CirclesBounce;
     wxChoice* Choice_CoroFaces_Phoneme;
     wxStaticText* StaticText80;
@@ -429,6 +429,7 @@ public:
     wxStaticText* StaticText33;
     wxPanel* Panel1_Text;
     wxCheckBox* CheckBox_ColorWash_VFade;
+    wxBitmapButton* BitmapButton_Shimmer_Blinks_Per_Row;
     wxBitmapButton* BitmapButton1;
     wxBitmapButton* BitmapButton_SnowflakesCount;
     wxTextCtrl* TextCtrl_Pictures_Filename;
@@ -436,7 +437,6 @@ public:
     wxBitmapButton* BitmapButton_FadeOut;
     wxSlider* Slider_Thickness_Percentage;
     wxStaticText* StaticText5;
-    wxBitmapButton* BitmapButton_BlinksPerRow;
     wxBitmapButton* BitmapButton_TextEffect2;
     wxPanel* Panel1_Tree;
     wxFlexGridSizer* FlexGridSizer_Palette;
@@ -673,12 +673,12 @@ protected:
     static const long ID_CHOICE_Ripple_Movement;
     static const long ID_BITMAPBUTTON13;
     static const long ID_STATICTEXT74;
-    static const long ID_SLIDER4;
+    static const long ID_SLIDER_Ripple_Thickness;
     static const long ID_BITMAPBUTTON14;
     static const long ID_STATICTEXT75;
     static const long ID_SLIDER5;
     static const long ID_BITMAPBUTTON15;
-    static const long ID_CHECKBOX2;
+    static const long ID_CHECKBOX_Ripple_Blend;
     static const long ID_BITMAPBUTTON16;
     static const long ID_CHECKBOX3;
     static const long ID_BITMAPBUTTON17;
@@ -691,7 +691,7 @@ protected:
     static const long ID_BITMAPBUTTON_ShimmerUseAllColors;
     static const long ID_STATICTEXT70;
     static const long ID_CHECKBOX_Shimmer_Blink_Timing;
-    static const long ID_BITMAPBUTTON_ShimmerBlinkTiming;
+    static const long ID_BITMAPBUTTON_Shimmer_Blink_Timing;
     static const long ID_STATICTEXT67;
     static const long ID_SLIDER_Shimmer_Blinks_Per_Row;
     static const long ID_BITMAPBUTTON_BlinksPerRow;
@@ -1113,6 +1113,11 @@ private:
     void OnBitmapButton_SingleStrand_ColorsClick(wxCommandEvent& event);
     void OnTextCtrl2Text(wxCommandEvent& event);
     void OnTextCtrl1Text(wxCommandEvent& event);
+    void OnBitmapButton_Ripple_Object_To_DrawClick(wxCommandEvent& event);
+    void OnBitmapButton_Shimmer_Blink_TimingClick(wxCommandEvent& event);
+    void OnBitmapButton_Shimmer_Duty_FactorClick(wxCommandEvent& event);
+    void OnBitmapButton_Shimmer_Use_All_ColorsClick(wxCommandEvent& event);
+    void OnBitmapButton_Shimmer_Blinks_Per_RowClick(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

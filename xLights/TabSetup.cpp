@@ -222,18 +222,18 @@ void xLightsFrame::UpdateChannelNames()
             model.SetFromXml(e);
             NodeCount=model.GetNodeCount();
             ChanPerNode = model.ChannelsPerNode();
-            FormatSpec = "Ch %d (Node %d): "+model.name+" ";
-            RGBFormatSpec = "Ch %d (RGB Node %d): "+model.name+" #";
+            FormatSpec = "Ch %d (RGB Node %d): " + model.name;
+            RGBFormatSpec = "Ch %d (RGB Node %d-";
             for(n=0; n < NodeCount; n++)
             {
                 ChannelNum=model.NodeStartChannel(n);
-
                 NodeNum=n+1;
-                if (ChanPerNode==1)
+                if (ChanPerNode==1) // just skip the one channel code, force us always to go to rgb display
                 {
                     if (ChannelNum < ChNames.Count())
                     {
                         AbsoluteNodeNum=ChannelNum+1;
+                        AbsoluteNodeNum=(ChannelNum/3)+1; // even on single channel  lights show the rgb node#
                         //   ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
                         ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,AbsoluteNodeNum);
                     }
@@ -245,8 +245,9 @@ void xLightsFrame::UpdateChannelNames()
                         if (ChannelNum < ChNames.Count())
                         {
                             AbsoluteNodeNum=(ChannelNum/3)+1;
-                            //  ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
-                            ChNames[ChannelNum] = wxString::Format(RGBFormatSpec,ChannelNum+1,AbsoluteNodeNum)+model.GetChannelColorLetter(c);
+                            // ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model.GetChannelColorLetter(c);
+                           ChNames[ChannelNum] = wxString::Format(RGBFormatSpec,ChannelNum+1,AbsoluteNodeNum) +
+                                                                  model.GetChannelColorLetter(c) + ") " + model.name;
                         }
                         ChannelNum++;
                     }

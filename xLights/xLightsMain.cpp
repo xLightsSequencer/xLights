@@ -1667,6 +1667,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
     PictureEffectDirections.Add("flag wave"); //17; flag waving in wind -DJ
 
+
+//  remember to godown to around line 1800 to active ate these add's
+
 //read from choice list instead of hard-coded duplication: -DJ
 //    PianoEffectStyles.Add("Color Organ");
 //    PianoEffectStyles.Add("Equalizer (bars)");
@@ -1867,7 +1870,10 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
     panel->Choice_CoroFaces_Phoneme->SetSelection(0);
 
-
+    panel->Choice_Ripple_Movement->Set(RippleMovement);
+    panel->Choice_Ripple_Movement->SetSelection(0);
+    panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);
+    panel->Choice_Ripple_Object_To_Draw->SetSelection(0);
 
 }
 

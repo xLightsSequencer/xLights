@@ -1152,14 +1152,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Count"]),
-                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Direction"]),
-                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Rotation"]),
-                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Thickness"]),
-                            SettingsMap[LayerStr+"CHECKBOX_Spirals_Blend"]=="1",
-                            SettingsMap[LayerStr+"CHECKBOX_Spirals_3D"]=="1",
-                            SettingsMap[LayerStr+"CHECKBOX_Spirals_Grow"]=="1",
-                            SettingsMap[LayerStr+"CHECKBOX_Spirals_Shrink"]=="1"
+        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
+                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
@@ -1401,14 +1395,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_RIPPLE:
-        buffer.RenderRipple(panel->Slider_Spirals_Count->GetValue(),
-                            panel->Slider_Spirals_Direction->GetValue(),
-                            panel->Slider_Spirals_Rotation->GetValue(),
-                            panel->Slider_Spirals_Thickness->GetValue(),
-                            panel->CheckBox_Spirals_Blend->GetValue(),
-                            panel->CheckBox_Spirals_3D->GetValue(),
-                            panel->CheckBox_Spirals_Grow->GetValue(),
-                            panel->CheckBox_Spirlas_Shrink->GetValue());
+        buffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
+                            panel->Choice_Ripple_Movement->GetSelection());
         break;
     case eff_SHIMMER:
         buffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
