@@ -171,7 +171,8 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
         radius=radius/2;
         Drawcircle( xc, yc, radius, hsv);
         break;
-    case Triangle:
+    case RENDER_RIPPLE_TRIANGLE:
+
         break;
     }
 }

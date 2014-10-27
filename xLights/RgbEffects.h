@@ -110,7 +110,7 @@ public:
     void GetPixel(int x, int y, wxColour &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
-    void SetEffectDuration(int startMsec, int endMsec, int nextMsec);
+    void SetEffectDuration(int startMsec, int endMsec, int nextMsec, bool new_effect_starts);
     void SetFitToTime(bool fit);
 
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
@@ -126,6 +126,7 @@ protected:
     int curEffStartPer;    /**< Start 50ms period of current effect. */
     int curEffEndPer;      /**<  */
     int nextEffTimePeriod; /**<  */
+    int prevNonBlankStartPeriod; //when last non-empty effect started
     wxString cur_model; //name of model currently in effect (used by RenderCoroFaces)
     int cur_period; //current frame# within sequence
 
@@ -545,7 +546,6 @@ protected:
     long timer_countdown[4]; // was  long timer_countdown[1];
     bool fitToTime;
 
-    double GetEffectTimeIntervalPosition();
     MetaBall metaballs[10];
     wxString ModeName; //model currently in effect
 
@@ -554,6 +554,7 @@ protected:
 
 public:
     double GetEffectPeriodPosition(); //made public -DJ
+    double GetEffectTimeIntervalPosition(bool from_last = false); //made public, added optional param -DJ
 
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
