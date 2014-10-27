@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "xLightsApp.h"
-
 #define DEBUG_FILE  "C:\\Users\\%USERID%\\Documents\\djdebug.log" //"C:\\debug.log"
 
 

@@ -227,6 +227,9 @@ const long xLightsFrame::ID_BITMAPBUTTON_GRID_CUT = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_GRID_COPY = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_GRID_PASTE = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
+const long xLightsFrame::ID_CHOICE_VIEWS = wxNewId();
+const long xLightsFrame::ID_BT_EDIT_VIEWS = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
@@ -402,6 +405,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer68;
     wxFlexGridSizer* FlexGridSizer31;
+    wxFlexGridSizer* FlexGridSizer39;
     wxFlexGridSizer* FlexGridSizer28;
     wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
     wxMenu* MenuPlaylist;
@@ -999,6 +1003,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_ChannelMap->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     FlexGridSizer38->Add(Button_ChannelMap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     BoxSizer7->Add(FlexGridSizer38, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText28 = new wxStaticText(SeqPanelRight, ID_STATICTEXT31, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT31"));
+    FlexGridSizer39->Add(StaticText28, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Views = new wxChoice(SeqPanelRight, ID_CHOICE_VIEWS, wxDefaultPosition, wxSize(152,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEWS"));
+    FlexGridSizer39->Add(Choice_Views, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit Views"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
+    FlexGridSizer39->Add(btEditViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer7->Add(FlexGridSizer39, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(BoxSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Grid1 = new wxGrid(SeqPanelRight, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
     Grid1->CreateGrid(0,2);
@@ -1446,6 +1458,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BITMAPBUTTON_GRID_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridCopyClick);
     Connect(ID_BITMAPBUTTON_GRID_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridPasteClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
+    Connect(ID_CHOICE_VIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_ViewsSelect);
+    Connect(ID_BT_EDIT_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtEditViewsClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
@@ -2563,3 +2577,6 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
+
+
+

@@ -327,6 +327,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="ViewsDialog.cpp" />
+		<Unit filename="ViewsDialog.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
@@ -363,6 +365,7 @@
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
+		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
 		<Unit filename="xLightsApp.h" />
@@ -399,6 +402,7 @@
 					<wxDialog wxs="wxsmith/SeqOpenDialog.wxs" src="SeqOpenDialog.cpp" hdr="SeqOpenDialog.h" fwddecl="0" i18n="1" name="SeqOpenDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ViewsDialog.wxs" src="ViewsDialog.cpp" hdr="ViewsDialog.h" fwddecl="0" i18n="1" name="ViewsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

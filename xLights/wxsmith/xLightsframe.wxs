@@ -1956,6 +1956,40 @@
 																						<border>5</border>
 																						<option>1</option>
 																					</object>
+																					<object class="sizeritem">
+																						<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
+																							<cols>3</cols>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText28" member="yes">
+																									<label>View:</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxChoice" name="ID_CHOICE_VIEWS" variable="Choice_Views" member="yes">
+																									<size>152,21</size>
+																									<handler function="OnChoice_ViewsSelect" entry="EVT_CHOICE" />
+																								</object>
+																								<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BT_EDIT_VIEWS" variable="btEditViews" member="yes">
+																									<label>Edit Views</label>
+																									<handler function="OnbtEditViewsClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																						</object>
+																						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																				<border>5</border>

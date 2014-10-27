@@ -25,8 +25,8 @@
 #include <wx/utils.h>
 #include "djdebug.cpp"
 
-#define WANT_DEBUG_IMPL
-#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
 
 #ifndef debug_function //dummy defs if debug cpp not included above
 #define debug(level, ...)
