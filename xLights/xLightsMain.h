@@ -74,6 +74,7 @@
 #include "ChannelMapDialog.h"
 #include "SeqOpenDialog.h"
 #include "SeqExportDialog.h"
+#include "ViewsDialog.h"
 #include "SeqElementMismatchDialog.h"
 #include "PixelBuffer.h"
 #include "NetInfo.h"
@@ -399,6 +400,8 @@ private:
     void OnTextCtrl_PgoMinRestText(wxCommandEvent& event);
     void OnTextCtrl_PgoMaxRestText(wxCommandEvent& event);
     void OnTextCtrl_PgoAutoFadeText(wxCommandEvent& event);
+    void OnbtEditViewsClick(wxCommandEvent& event);
+    void OnChoice_ViewsSelect(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -564,6 +567,9 @@ private:
     static const long ID_BITMAPBUTTON_GRID_COPY;
     static const long ID_BITMAPBUTTON_GRID_PASTE;
     static const long ID_BUTTON1;
+    static const long ID_STATICTEXT31;
+    static const long ID_CHOICE_VIEWS;
+    static const long ID_BT_EDIT_VIEWS;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS2;
@@ -670,6 +676,7 @@ private:
     wxButton* Button_CoroGroupDelete;
     wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
+    wxButton* btEditViews;
     wxStaticText* StaticText36;
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
@@ -775,6 +782,7 @@ private:
     wxSlider* SliderFgColorB;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
+    wxChoice* Choice_Views;
     wxMenuItem* MenuItemSavePlaylists;
     wxTextCtrl* txtCtrlSparkleFreq;
     wxStaticText* StaticText14;
@@ -834,6 +842,7 @@ private:
     wxStaticText* StaticText8;
     wxBitmapButton* BitmapButton_EffectLayerMix;
     wxMenuItem* MenuItemRefresh;
+    wxStaticText* StaticText28;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText29;
     wxSlider* SliderFgColorA;
@@ -1044,6 +1053,11 @@ private:
     wxString LoadEffectsFileNoCheck();
     void CreateDefaultEffectsXml();
     void UpdateEffectsList();
+    void UpdateView();
+    void ShowAllModelsView();
+    void ShowModelsView();
+    void ViewHideAllModels();
+    void UpdateViewList();
     void UpdateModelsList();
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
@@ -1052,6 +1066,8 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
     void UpdateGrid();
+    // Functions for update state of sequence grid
+    void AllRowsAreUpdated();
 
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
@@ -1124,6 +1140,7 @@ private:
     wxXmlNode* EffectsNode;
     wxXmlNode* ModelsNode;
     wxXmlNode* PalettesNode;
+    wxXmlNode* ViewsNode;
     bool MixTypeChanged;
     bool FadesChanged;
     long SeqBaseChannel;

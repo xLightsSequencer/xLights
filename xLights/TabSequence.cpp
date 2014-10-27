@@ -1,5 +1,6 @@
 #include <wx/utils.h> //check keyboard state -DJ
 #include <wx/tokenzr.h>
+#include "ViewsDialog.h"
 
 void xLightsFrame::CreateDefaultEffectsXml()
 {
@@ -554,6 +555,7 @@ void xLightsFrame::UpdateGrid()
                 }
             }
         }
+        Grid1->ForceRefresh();
     }
     else
     {
@@ -804,6 +806,7 @@ void xLightsFrame::ShowModelsDialog()
         }
     }
     dialog.HtmlEasyPrint=HtmlEasyPrint;
+    dialog.CenterOnParent();
     dialog.ShowModal();
 
     // append any new models to the main xml structure
@@ -824,6 +827,90 @@ void xLightsFrame::ShowModelsDialog()
 void xLightsFrame::OnButton_ModelsClick(wxCommandEvent& event)
 {
     ShowModelsDialog();
+}
+
+void xLightsFrame::UpdateViewList()
+{
+    //TODO: Add code to read in model list with v2 values
+    wxString name;
+    ModelClass *model;
+    Choice_Views->Clear();
+    Choice_Views->Append("All Selected Models");
+    for(wxXmlNode* e=ViewsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "view")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                Choice_Views->Append(name,e);
+            }
+        }
+    }
+    Choice_Views->SetSelection(0);
+    ShowAllModelsView();
+}
+
+void xLightsFrame::OnChoice_ViewsSelect(wxCommandEvent& event)
+{
+    UpdateView();
+}
+
+void xLightsFrame::UpdateView()
+{
+    if(Choice_Views->GetSelection() == 0)
+    {
+        ShowAllModelsView();
+    }
+    else
+    {
+        ShowModelsView();
+    }
+}
+
+void xLightsFrame::ShowAllModelsView()
+{
+    int cols = Grid1->GetCols();
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    {
+       Grid1->ShowCol(col);
+    }
+}
+
+void xLightsFrame::ViewHideAllModels()
+{
+    int cols = Grid1->GetCols();
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    {
+       Grid1->HideCol(col);
+    }
+}
+
+void xLightsFrame::ShowModelsView()
+{
+    ViewHideAllModels();
+    for(wxXmlNode* e=ViewsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "view")
+        {
+            wxString name=e->GetAttribute("name");
+            if(name == Choice_Views->GetString(Choice_Views->GetSelection()))
+            {
+                wxString views = e->GetAttribute("models");
+                wxArrayString viewArr =wxSplit(views,',');
+                int cols = Grid1->GetCols();
+                for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+                {
+                    wxString colModel = Grid1->GetColLabelValue(col);
+                    if(viewArr.Index(colModel,false,false)!=wxNOT_FOUND)
+                    {
+                        Grid1->ShowCol(col);
+                    }
+                }
+                break;
+            }
+        }
+    }
 }
 
 void xLightsFrame::UpdateModelsList()
@@ -906,6 +993,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "models") ModelsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
+        if (e->GetName() == "views") ViewsNode=e;
     }
     if (ModelsNode == 0)
     {
@@ -923,6 +1011,13 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
         root->AddChild( PalettesNode );
     }
+
+    if (ViewsNode == 0)
+    {
+        ViewsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "views" );
+        root->AddChild( ViewsNode );
+    }
+
     return effectsFile.GetFullPath();
 }
 
@@ -945,6 +1040,7 @@ void xLightsFrame::LoadEffectsFile()
     }
 
     UpdateModelsList();
+    UpdateViewList();
 }
 
 // returns true on success
@@ -1742,6 +1838,7 @@ void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
 {
     PaletteMgmtDialog dialog(this);
     dialog.initialize(PalettesNode,EffectsPanel1,EffectsPanel2);
+    dialog.CenterOnParent();
     dialog.ShowModal();
     SaveEffectsFile();
 }
@@ -1829,6 +1926,7 @@ void xLightsFrame::ChooseModelsForSequence()
 
 
     dialog.StaticText_Filename->SetLabel(xlightsFilename);
+    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return;
 
     // add checked models to grid
@@ -1885,6 +1983,7 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
     dialog.CheckBox_EnableBasic->SetValue(SeqChanCtrlBasic);
     dialog.CheckBox_EnableColor->SetValue(SeqChanCtrlColor);
     dialog.SetNetInfo(&NetInfo);
+    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return;
     SeqBaseChannel=dialog.SpinCtrlBaseChannel->GetValue();
     SeqChanCtrlBasic=dialog.CheckBox_EnableBasic->GetValue();
@@ -2419,7 +2518,7 @@ void xLightsFrame::ImportAudacityTimings()
         this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
         _("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
-
+    OpenDialog->CenterOnParent();
     if (OpenDialog->ShowModal() == wxID_OK)
     {
         fName =	OpenDialog->GetPath();
@@ -2445,6 +2544,7 @@ void xLightsFrame::ImportxLightsXMLTimings()
                             _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
+    OpenDialog.CenterOnParent();
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         fName =	OpenDialog.GetPath();
@@ -2564,6 +2664,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
         }
     }
     EnableSequenceControls(true);
+    //Grid1->HideCol(Grid1->GetNumberCols()-1);
     return true;
 }
 
@@ -3014,6 +3115,7 @@ void xLightsFrame::SaveSequence()
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         do
         {
+            dialog.CenterOnParent();
             if (dialog.ShowModal() != wxID_OK) return;
             // validate inputs
             NewFilename=dialog.GetValue();
@@ -3286,6 +3388,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     do
     {
         ok=true;
+        dialog.CenterOnParent();
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -3380,6 +3483,18 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 }
 
+void xLightsFrame::OnbtEditViewsClick(wxCommandEvent& event)
+{
+    int DlgResult;
+    ViewsDialog dialog(this);
+    dialog.SetModelAndViewNodes(ModelsNode,ViewsNode);
+    dialog.CenterOnParent();
+    dialog.ShowModal();
+    SaveEffectsFile();
+    UpdateViewList();
+}
+
+
 wxXmlNode* xLightsFrame::SelectModelToExport()
 {
     ExportModelSelect dialog(this);
@@ -3391,6 +3506,7 @@ wxXmlNode* xLightsFrame::SelectModelToExport()
         dialog.ModelChoice->Append(Grid1->GetColLabelValue(col));
     }
     dialog.ModelChoice->SetSelection(0);
+    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return NULL;
     return GetModelNode(dialog.ModelChoice->GetStringSelection());
 }
@@ -3424,6 +3540,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     do
     {
         ok=true;
+        dialog.CenterOnParent();
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -3770,4 +3887,11 @@ void xLightsFrame::PasteFromClipboard()
     {
         wxMessageBox(_("One or more of the values were not pasted because they did not contain a number"),_("Paste Error"));
     }
+}
+
+void xLightsFrame::AllRowsAreUpdated()
+{
+//    for(int row=0;row<Grid1->GetRows();row++)
+//    {
+//    }
 }
