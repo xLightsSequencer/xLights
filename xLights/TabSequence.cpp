@@ -806,7 +806,6 @@ void xLightsFrame::ShowModelsDialog()
         }
     }
     dialog.HtmlEasyPrint=HtmlEasyPrint;
-    dialog.CenterOnParent();
     dialog.ShowModal();
 
     // append any new models to the main xml structure
@@ -1839,7 +1838,6 @@ void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
 {
     PaletteMgmtDialog dialog(this);
     dialog.initialize(PalettesNode,EffectsPanel1,EffectsPanel2);
-    dialog.CenterOnParent();
     dialog.ShowModal();
     SaveEffectsFile();
 }
@@ -1927,7 +1925,6 @@ void xLightsFrame::ChooseModelsForSequence()
 
 
     dialog.StaticText_Filename->SetLabel(xlightsFilename);
-    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return;
 
     // add checked models to grid
@@ -1984,7 +1981,6 @@ void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
     dialog.CheckBox_EnableBasic->SetValue(SeqChanCtrlBasic);
     dialog.CheckBox_EnableColor->SetValue(SeqChanCtrlColor);
     dialog.SetNetInfo(&NetInfo);
-    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return;
     SeqBaseChannel=dialog.SpinCtrlBaseChannel->GetValue();
     SeqChanCtrlBasic=dialog.CheckBox_EnableBasic->GetValue();
@@ -2519,7 +2515,6 @@ void xLightsFrame::ImportAudacityTimings()
         this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
         _("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
     wxString fName;
-    OpenDialog->CenterOnParent();
     if (OpenDialog->ShowModal() == wxID_OK)
     {
         fName =	OpenDialog->GetPath();
@@ -2545,7 +2540,6 @@ void xLightsFrame::ImportxLightsXMLTimings()
                             _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
 
-    OpenDialog.CenterOnParent();
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         fName =	OpenDialog.GetPath();
@@ -3116,7 +3110,6 @@ void xLightsFrame::SaveSequence()
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         do
         {
-            dialog.CenterOnParent();
             if (dialog.ShowModal() != wxID_OK) return;
             // validate inputs
             NewFilename=dialog.GetValue();
@@ -3389,7 +3382,6 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     do
     {
         ok=true;
-        dialog.CenterOnParent();
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
@@ -3507,7 +3499,6 @@ wxXmlNode* xLightsFrame::SelectModelToExport()
         dialog.ModelChoice->Append(Grid1->GetColLabelValue(col));
     }
     dialog.ModelChoice->SetSelection(0);
-    dialog.CenterOnParent();
     if (dialog.ShowModal() != wxID_OK) return NULL;
     return GetModelNode(dialog.ModelChoice->GetStringSelection());
 }
@@ -3541,7 +3532,6 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     do
     {
         ok=true;
-        dialog.CenterOnParent();
         DlgResult=dialog.ShowModal();
         if (DlgResult == wxID_OK)
         {
