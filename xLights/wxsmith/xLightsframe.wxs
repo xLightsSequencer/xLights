@@ -1870,7 +1870,6 @@
 																							</object>
 																							<object class="sizeritem">
 																								<object class="wxChoice" name="ID_CHOICE_VIEWS" variable="Choice_Views" member="yes">
-																									<size>88,21</size>
 																									<handler function="OnChoice_ViewsSelect" entry="EVT_CHOICE" />
 																								</object>
 																								<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1880,6 +1879,7 @@
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BT_EDIT_VIEWS" variable="btEditViews" member="yes">
 																									<label>Edit View</label>
+																									<size>51,21</size>
 																									<handler function="OnbtEditViewsClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

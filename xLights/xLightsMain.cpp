@@ -972,9 +972,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer38 = new wxFlexGridSizer(1, 12, 0, 0);
     StaticText28 = new wxStaticText(SeqPanelRight, ID_STATICTEXT31, _("View:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT31"));
     FlexGridSizer38->Add(StaticText28, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_Views = new wxChoice(SeqPanelRight, ID_CHOICE_VIEWS, wxDefaultPosition, wxSize(88,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEWS"));
+    Choice_Views = new wxChoice(SeqPanelRight, ID_CHOICE_VIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEWS"));
     FlexGridSizer38->Add(Choice_Views, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
+    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit View"), wxDefaultPosition, wxSize(51,21), 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
     FlexGridSizer38->Add(btEditViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticLine1 = new wxStaticLine(SeqPanelRight, ID_STATICLINE1, wxDefaultPosition, wxSize(2,-1), wxLI_VERTICAL, _T("ID_STATICLINE1"));
     StaticLine1->SetMinSize(wxSize(0,1));
