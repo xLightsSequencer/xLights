@@ -70,11 +70,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-ENH (sean) The scale slider in the PREVIEW tab now goes to 300. before range was 1-100, now 1-300
 	-bug (djulien) Avoid wx assert error during save/load pgo settings (bad grid row#), default to first group after loading settings (however, this can lead to mismatches), don't show "suspicious" message for missing voice data, list all models (even if not in Preview)
 	-bug (djulien) Allow pgo parser to tolerate blank voices
-3.4.12
+3.4.12	Aug 19, 2014
         -ENH (dkulp) HLS import - now uses wxYield to display progress during load
         -ENH (dkulp) HLS import - if an HLS universe has less channels than configured in xLights, use the xLights value.
                      If the HLS universe has more, display a warning.
-3.4.11	Aug 19, 2014
 	-ENH (sean) 4th Open option of Nuctacrker, "New Animation Sequence", now allows fractional times. Before
 		only values like "10,11,15" were allowed. Now "10.123,11.32123,15.2"
 3.4.11	Aug 15, 2014
@@ -216,7 +215,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 3.2.12	Dec 11, 2013
 	- Enhancement (Sean) Updated all files in songs directory to have readme files showing
 		link to where to purchase music. Added some new songs.
-3.2.11	Dc 6, 2013
+3.2.11	Dec 6, 2013
 	- Enhancement (Frankr) Nodes per string increased to 65536, You can now create a model that
 		will do your entire house.
 	-Bug fix (djulien): set Piano shape + map default file path to Piano subfolder within xLights folder, not up one level
@@ -232,7 +231,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
         be imported into the grid (only the times where effects start are imported).
     - Enhancement (Sean) Single Strand now has pull down to select chase types.
     - Enhancement (Sean) Single Strand now has 3d Fade checkbox to apply to chases
-3.2.8	- Enhancement (Sean) Re-release of single strand effects. Now they work without need to set
+3.2.8	Nov 21, 2013
+	- Enhancement (Sean) Re-release of single strand effects. Now they work without need to set
 			"fit to time".
 3.2.7	Nov 15, 2013
 	- Bug (frankr) Windows model displayed wrong channel counts. 
