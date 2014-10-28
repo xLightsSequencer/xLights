@@ -834,7 +834,7 @@ void xLightsFrame::UpdateViewList()
     wxString name;
     ModelClass *model;
     Choice_Views->Clear();
-    Choice_Views->Append("All Selected Models");
+    Choice_Views->Append("All Models");
     for(wxXmlNode* e=ViewsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "view")

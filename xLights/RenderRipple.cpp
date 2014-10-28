@@ -164,6 +164,7 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
         else
             radius = (xc*rx);
 
+
         Drawcircle( xc, yc, radius, hsv);
         radius=radius/2;
         Drawcircle( xc, yc, radius, hsv);

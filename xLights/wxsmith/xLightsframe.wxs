@@ -1860,33 +1860,6 @@
 																							<cols>12</cols>
 																							<rows>1</rows>
 																							<object class="sizeritem">
-																								<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText28" member="yes">
-																									<label>View:</label>
-																									<size>-1,-1</size>
-																								</object>
-																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																								<border>5</border>
-																								<option>1</option>
-																							</object>
-																							<object class="sizeritem">
-																								<object class="wxChoice" name="ID_CHOICE_VIEWS" variable="Choice_Views" member="yes">
-																									<handler function="OnChoice_ViewsSelect" entry="EVT_CHOICE" />
-																								</object>
-																								<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																								<border>5</border>
-																								<option>1</option>
-																							</object>
-																							<object class="sizeritem">
-																								<object class="wxButton" name="ID_BT_EDIT_VIEWS" variable="btEditViews" member="yes">
-																									<label>Edit View</label>
-																									<size>51,21</size>
-																									<handler function="OnbtEditViewsClick" entry="EVT_BUTTON" />
-																								</object>
-																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																								<border>5</border>
-																								<option>1</option>
-																							</object>
-																							<object class="sizeritem">
 																								<object class="wxStaticLine" name="ID_STATICLINE1" variable="StaticLine1" member="yes">
 																									<size>2,-1</size>
 																									<minsize>0,1</minsize>
@@ -1971,6 +1944,33 @@
 																									<default>1</default>
 																									<tooltip>Paste</tooltip>
 																									<handler function="OnBitmapButtonGridPasteClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText28" member="yes">
+																									<label>View:</label>
+																									<size>-1,-1</size>
+																								</object>
+																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxChoice" name="ID_CHOICE_VIEWS" variable="Choice_Views" member="yes">
+																									<handler function="OnChoice_ViewsSelect" entry="EVT_CHOICE" />
+																								</object>
+																								<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BT_EDIT_VIEWS" variable="btEditViews" member="yes">
+																									<label>Edit View</label>
+																									<size>61,21</size>
+																									<handler function="OnbtEditViewsClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>

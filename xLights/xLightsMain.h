@@ -560,9 +560,6 @@ private:
     static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON4;
     static const long ID_BUTTON_CREATE_RANDOM;
-    static const long ID_STATICTEXT31;
-    static const long ID_CHOICE_VIEWS;
-    static const long ID_BT_EDIT_VIEWS;
     static const long ID_STATICLINE1;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
@@ -571,6 +568,9 @@ private:
     static const long ID_BITMAPBUTTON_GRID_CUT;
     static const long ID_BITMAPBUTTON_GRID_COPY;
     static const long ID_BITMAPBUTTON_GRID_PASTE;
+    static const long ID_STATICTEXT31;
+    static const long ID_CHOICE_VIEWS;
+    static const long ID_BT_EDIT_VIEWS;
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
