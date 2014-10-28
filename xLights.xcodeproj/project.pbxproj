@@ -84,6 +84,7 @@
 		67B4C91A17B536D60006B951 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67B4C91917B536D60006B951 /* icon.icns */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
+		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67C7968F17B578B100CEE775 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67C7968E17B578B100CEE775 /* icon.icns */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
@@ -204,6 +205,7 @@
 		67B4C92C17B53DE70006B951 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
 		67C6488619E3396C006526CD /* RenderCoroFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCoroFaces.cpp; sourceTree = "<group>"; };
+		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
 		67C7968E17B578B100CEE775 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */,
 				67879B7219F94544009D994D /* RenderPinwheel.cpp */,
 				67879B7319F94544009D994D /* RenderShimmer.cpp */,
@@ -524,6 +527,7 @@
 				67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */,
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
+				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
 				67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */,
 				67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
