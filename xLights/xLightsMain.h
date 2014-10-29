@@ -987,6 +987,10 @@ private:
     void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
     void ConversionError(const wxString& msg);
+    void AppendConvertLog(const wxString& msg);
+    void AppendConvertStatus(const wxString &msg);
+    bool mapEmptyChannels();
+    bool isSetOffAtEnd();
 
     wxString base64_encode();
     std::string base64_decode(const wxString& encoded_string);
