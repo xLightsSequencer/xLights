@@ -615,10 +615,14 @@ void ModelClass::InitStar()
         double pctIncr=1.0 / (double)numlights;     // this is cw
         if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
         int ChanIncr=SingleChannel ?  1 : 3;
-        size_t NodeCount=GetNodeCount();
         for(size_t cnt=0; cnt<numlights; cnt++)
         {
-            int n = start + cnt;
+            int n = 0;
+            if (SingleNode) {
+                n = 0;
+            } else {
+                n = start + cnt;
+            }
             if (Nodes[n]->StringNum != LastStringNum)
             {
                 LastStringNum=Nodes[n]->StringNum;
