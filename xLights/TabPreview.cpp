@@ -153,7 +153,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     {
         PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,index,xPos,yPos,actChannel);
         index+=PreviewModels[i]->GetNodeCount();
-        StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i,PreviewModels.size()));
+        StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
     }
 
     dc.GetSize(&w, &h);
