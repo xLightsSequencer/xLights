@@ -153,6 +153,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     {
         PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,index,xPos,yPos,actChannel);
         index+=PreviewModels[i]->GetNodeCount();
+        StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i,PreviewModels.size()));
     }
 
     dc.GetSize(&w, &h);
@@ -198,7 +199,8 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     SaveEffectsFile();
     // Update List on Sequencer page
     UpdateModelsList();
-
+    UpdatePreview();
+    StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
 }
 
 
