@@ -283,7 +283,7 @@ void xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event)
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    m->Rotate(PREVIEWROTATIONFACTOR*SliderPreviewRotate->GetValue());
+    m->SetModelCoord(PREVIEWROTATIONFACTOR*SliderPreviewRotate->GetValue());
     UpdatePreview();
 }
 

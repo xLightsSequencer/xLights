@@ -1273,7 +1273,7 @@
 															<object class="sizeritem">
 																<object class="wxListBox" name="ID_LISTBOX_ELEMENT_LIST" variable="ListBoxElementList" member="yes">
 																	<default>-1</default>
-																	<size>132,102</size>
+																	<size>132,240</size>
 																	<style>wxLB_SORT</style>
 																	<handler function="OnListBoxElementListSelect" entry="EVT_LISTBOX" />
 																</object>
@@ -1347,7 +1347,7 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticTextPreviewRotation" member="yes">
-																	<label>Single String Rotation</label>
+																	<label>Model Rotation</label>
 																	<enabled>0</enabled>
 																</object>
 																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1356,8 +1356,9 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_PREVIEW_ROTATE" variable="SliderPreviewRotate" member="yes">
-																	<min>-30</min>
-																	<max>30</max>
+																	<min>-60</min>
+																	<max>60</max>
+																	<tickfreq>15</tickfreq>
 																	<enabled>0</enabled>
 																	<style>wxTRANSPARENT_WINDOW</style>
 																	<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />

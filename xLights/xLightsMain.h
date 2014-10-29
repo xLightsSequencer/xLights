@@ -1124,7 +1124,7 @@ private:
     void InsertRow();
     void UpdatePreview();
     void BuildWholeHouseModel(wxString modelName);
-    void ShowModelsDialog();;
+    void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
