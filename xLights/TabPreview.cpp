@@ -146,7 +146,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
 
     wxClientDC dc(ScrolledWindowPreview);
-    dc.Clear();
 
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
@@ -199,7 +198,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     SaveEffectsFile();
     // Update List on Sequencer page
     UpdateModelsList();
-    UpdatePreview();
     StatusBar1->SetStatusText(wxString::Format("Completed creating '%s' whole house model",modelName));
 }
 
