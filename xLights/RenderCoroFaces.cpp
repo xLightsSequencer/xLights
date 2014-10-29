@@ -27,6 +27,13 @@
 //#include <wx/checklst.h>
 #include <wx/xml/xml.h>
 
+#ifdef _MSC_VER
+ #include <hash_map>
+ #define unordered_map  hash_map //not c++ 2011 compat?
+#else
+ #include <unordered_map>
+#endif
+
 
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  -99 //unbuffered in case app crashes
