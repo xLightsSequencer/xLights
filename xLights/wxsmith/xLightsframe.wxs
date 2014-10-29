@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.4.24)</title>
+		<title>xLights/Nutcracker  (Ver 3.5.0)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -1291,15 +1291,6 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
-																	<label>Build Whole House Model</label>
-																	<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
-																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
 																<object class="wxButton" name="ID_BUTTON_SAVE_PREVIEW" variable="ButtonSavePreview" member="yes">
 																	<label>Save</label>
 																	<handler function="OnButtonSavePreviewClick" entry="EVT_BUTTON" />
@@ -1361,6 +1352,15 @@
 																	<enabled>0</enabled>
 																	<style>wxTRANSPARENT_WINDOW</style>
 																	<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
+																	<label>Build Whole House Model</label>
+																	<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>

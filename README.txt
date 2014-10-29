@@ -6,9 +6,18 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.5.0	Oct 29, 2014
+	-enh (dpitts) New button added to the preview screen. This will create a Whole House Model for you automatically.
+		There is now a new type of model "Whole House". You no longer need to use spreadsheets and the custom model.
+		Procedure: Layout your preview. When everything is correct, press "Create Whole House Model". Give it a name.
+		This new whole house model should NOT have "Part of my Display" checked.
+		Add the new whole house model as a column in your Nutcracker grid.
+		enjoy the new feature, many thanks to Dave Pitts!!
+	-bug (dkulp) fixed issue with Star model with users sequences that were older than Oct 20th. This was crashing 
+		xlights at launch time.
 3.4.24	Oct 28, 2014
 	-enh (dpitts) New feature to allow creating views. A view is a collection of models. When you select a view it acts
-		like a filter and only shows you the models contained in your view.
+		like a filter and only shows you the models contained in your view. T
     -enh (dkulp) Star model can now have multiple star size “layers” to model exploding star type things
                      Example: a 100 node star may have 50 for the outer layer, 30 for the middle, 20 for the inner.
 	-bug (djulien) Fixed multi-cell morph (caused Papagayo flicker), avoid error if try to save file with no pgo data
