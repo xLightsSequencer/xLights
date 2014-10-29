@@ -2798,12 +2798,12 @@ showlock(Wave_Direction)
 
 showlock(Glediator_Filename)
 
-showlock(Ripple_Object_To_Draw);
+showlock(Ripple_Object_To_Draw)
 
-showlock(Shimmer_Duty_Factor);
-showlock(Shimmer_Use_All_Colors);
-showlock(Shimmer_Blink_Timing);
-showlock(Shimmer_Blinks_Per_Row);
+showlock(Shimmer_Duty_Factor)
+showlock(Shimmer_Use_All_Colors)
+showlock(Shimmer_Blink_Timing)
+showlock(Shimmer_Blinks_Per_Row)
 
 void EffectsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 {

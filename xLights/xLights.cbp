@@ -329,6 +329,8 @@
 		</Unit>
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
+		<Unit filename="WholeHouseModelNameDialog.cpp" />
+		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
@@ -366,6 +368,7 @@
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
+		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
 		<Unit filename="xLightsApp.h" />
