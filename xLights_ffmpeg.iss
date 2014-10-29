@@ -37,7 +37,7 @@ Source: "piano/*.*"; DestDir: "{app}/piano"
 
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
-Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
+;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
 
 
