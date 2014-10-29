@@ -81,6 +81,8 @@
 #include "NetInfo.h"
 #include "PaletteMgmtDialog.h"
 #include "ExportModelSelect.h"
+#include "ViewsDialog.h"
+#include "WholeHouseModelNameDialog.h"
 
 class EffectTreeDialog;
 
@@ -403,6 +405,8 @@ private:
     void OnTextCtrl_PgoAutoFadeText(wxCommandEvent& event);
     void OnbtEditViewsClick(wxCommandEvent& event);
     void OnChoice_ViewsSelect(wxCommandEvent& event);
+    void OnButtonBuildCustomModelClick(wxCommandEvent& event);
+    void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -517,6 +521,7 @@ private:
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
     static const long ID_BUTTON_MODELS_PREVIEW;
+    static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_BUTTON_SAVE_PREVIEW;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
@@ -738,6 +743,7 @@ private:
     wxButton* ButtonDisplayElements;
     wxListBox* ListBoxElementList;
     wxStaticText* StaticText10;
+    wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* txtCtlBrightness;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
@@ -1113,7 +1119,8 @@ private:
     void SaveSequence();
     void InsertRow();
     void UpdatePreview();
-    void ShowModelsDialog();
+    void BuildWholeHouseModel(wxString modelName);
+    void ShowModelsDialog();;
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);

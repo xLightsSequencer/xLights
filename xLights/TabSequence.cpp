@@ -1,6 +1,5 @@
 #include <wx/utils.h> //check keyboard state -DJ
 #include <wx/tokenzr.h>
-#include "ViewsDialog.h"
 
 void xLightsFrame::CreateDefaultEffectsXml()
 {

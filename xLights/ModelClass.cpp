@@ -26,10 +26,42 @@
 #include <wx/graphics.h>
 #include "xLightsMain.h" //for Preview and Other model collections
 
+
+void ModelClass::InitWholeHouse(wxString WholeHouseData)
+{
+    long xCoord,yCoord,actChn;
+    wxArrayString data;
+    SetBufferSize(parm2,parm1);
+    SetRenderSize(parm2,parm1);
+
+    if(WholeHouseData.Length()> 0)
+    {
+        wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
+        int nodeCount=wholeHouseDataArr.size();
+        SetNodeCount(1,nodeCount);
+        Nodes.resize(nodeCount);
+        for(size_t i=0; i < nodeCount; i++)
+        {
+            data=wxSplit(wholeHouseDataArr[i],',');
+            data[0].ToLong(&actChn);
+            data[1].ToLong(&xCoord);
+            data[2].ToLong(&yCoord);
+//            SetNodeCount(1,0);
+            Nodes[i]->StringNum = 0;
+            Nodes[i]->ActChan = actChn;
+            Nodes[i]->Coords[0].bufX = xCoord;
+            Nodes[i]->Coords[0].bufY = yCoord;
+            int j = GetCoordCount(i);
+            int k=0;
+        }
+        CopyBufCoord2ScreenCoord();
+    }
+}
+
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 {
     wxString tempstr,channelstr;
-    wxString customModel,RGBorder;
+    wxString customModel,RGBorder,WholeHouseData;
     long degrees, StartChannel, channel;
     size_t i;
     long i2;
@@ -66,6 +98,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     tempstr.ToLong(&parm3);
     tempstr=ModelNode->GetAttribute("starSizes");
     starSizes.resize(0);
+
     while (tempstr.Contains(",")) {
         wxString t2 = tempstr.SubString(0, tempstr.Find(","));
         i2 = 0;
@@ -82,7 +115,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         starSizes.resize(starSizes.size() + 1);
         starSizes[starSizes.size() - 1] = i2;
     }
-    
+
     tempstr=ModelNode->GetAttribute("StartChannel","1");
     tempstr.ToLong(&StartChannel);
     if (ModelNode->HasAttribute("ModelBrightness"))
@@ -165,7 +198,14 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     // initialize model based on the DisplayAs value
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    if (token == "Tree")
+    if(DisplayAs=="WholeHouse")
+    {
+        WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
+        InitWholeHouse(WholeHouseData);
+        return;
+    }
+
+    else if (token == "Tree")
     {
         InitVMatrix();
         token = tkz.GetNextToken();
@@ -539,24 +579,24 @@ void ModelClass::InitStar()
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2);
 
-    
+
     int numlights=parm1*parm2;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
     SetBufferSize(starSizes[0]+1,starSizes[0]+1);
-    
-    
+
+
     int LastStringNum=-1;
     int chan,cursegment,nextsegment,x,y;
     int start = 0;
-    
+
     for (int cur = 0; cur < starSizes.size(); cur++) {
         numlights = starSizes[cur];
-        
+
         int offset=numlights/2;
-        
+
         int coffset = 0;
         if (cur > 0) {
             for (int f = cur; f > 0; f--) {
@@ -565,7 +605,7 @@ void ModelClass::InitStar()
                 coffset += (i2 - i) / 2;
             }
         }
-        
+
         int numsegments=parm3*2;
         double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
         double dpct=1.0/(double)numsegments;
@@ -613,8 +653,8 @@ void ModelClass::InitStar()
         }
         start += numlights;
     }
-    
-    
+
+
 }
 
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
@@ -1399,6 +1439,54 @@ private:
 
 #endif
 
+void ModelClass::AddToWholeHouseModel(wxWindow* window,int index,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    wxPen pen;
+//    wxDouble w, h;
+    int w, h;
+//    ModelGraphics gc(window);
+    wxClientDC dc(window);
+    int nodeIndex = index;
+    /*
+    // this isn't an ideal scaling algorithm - room for improvement here
+    double windowDiagonal=sqrt(w*w+h*h);
+    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
+    double scale=windowDiagonal / modelDiagonal * PreviewScale;
+    */
+
+    //gc.GetSize(&w, &h);
+    dc.GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w)+w/2;
+    int h1 = -(int(offsetYpct*h)+h-
+                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+
+
+    double scrx,scry;
+//    gc.Translate(int(offsetXpct*w)+w/2,
+//                 -(int(offsetYpct*h)+h-
+//                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            //gc.AddSquare(*color,sx*scale,sy*scale,0.0);
+            scrx = sx*scale;
+            scry = sy*scale;
+            xPos[nodeIndex] = scrx+w1;
+            yPos[nodeIndex] = scry+h1;
+
+            actChannel[nodeIndex++] = Nodes[n]->ActChan;
+        }
+    }
+}
 
 // display model using a single color
 void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)

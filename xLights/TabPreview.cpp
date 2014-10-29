@@ -112,6 +112,96 @@ void xLightsFrame::UpdatePreview()
     }
 }
 
+void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
+{
+    WholeHouseModelNameDialog whDialog(this);
+    if (whDialog.ShowModal() != wxID_OK) return;
+    wxString modelName = whDialog.Text_WholehouseModelName->GetValue();
+    if(modelName.Length()> 0)
+    {
+        BuildWholeHouseModel(modelName);
+    }
+}
+
+void xLightsFrame::BuildWholeHouseModel(wxString modelName)
+{
+    size_t numberOfNodes=0;
+    const wxColour *color;
+    int w,h,wScaled,hScaled;
+    size_t index=0;
+    float scale=0;
+    wxString WholeHouseData="";
+
+    wxString SelModelName=ListBoxElementList->GetStringSelection();
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        numberOfNodes+= PreviewModels[i]->GetNodeCount();
+    }
+    std::vector<int> xPos;
+    std::vector<int> yPos;
+    std::vector<int> actChannel;
+    xPos.resize(numberOfNodes);
+    yPos.resize(numberOfNodes);
+    actChannel.resize(numberOfNodes);
+
+
+    wxClientDC dc(ScrolledWindowPreview);
+    dc.Clear();
+
+    // Add node position and channel number to arrays
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,index,xPos,yPos,actChannel);
+        index+=PreviewModels[i]->GetNodeCount();
+    }
+
+    dc.GetSize(&w, &h);
+    // Add WholeHouseData attribute
+    if(w>h){scale = (float)400/(float)w;}
+    else{scale = (float)400/(float)h;}
+    wScaled = (int)(scale*w);
+    hScaled = (int)(scale*h);
+    int xoffset=wScaled/2;
+    // Create a new model node
+    wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
+    e->AddAttribute("name", modelName);
+    e->AddAttribute("DisplayAs", "WholeHouse");
+    e->AddAttribute("StringType", "RGB Nodes");
+    e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
+    e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
+
+    for(int i=0;i<numberOfNodes;i++)
+    {
+        // Scale to 600 px max
+        xPos[i] = (int)(scale*(float)xPos[i]);
+        yPos[i] = (int)((scale*(float)yPos[i])+hScaled);
+        WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
+        if(i!=numberOfNodes-1)
+        {
+            WholeHouseData+=";";
+        }
+    }
+
+    e->AddAttribute("WholeHouseData", WholeHouseData);
+    // Delete exisiting wholehouse model with same name
+    for(wxXmlNode* n=ModelsNode->GetChildren(); n!=NULL; n=n->GetNext() )
+    {
+        if (n->GetAttribute("name") == modelName)
+        {
+            ModelsNode->RemoveChild(n);
+            // No break, remove them all if more than one
+        }
+    }
+    // Add model node to models
+    ModelsNode->AddChild(e);
+    // Save models to effects file
+    SaveEffectsFile();
+    // Update List on Sequencer page
+    UpdateModelsList();
+
+}
+
+
 void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
     int sel=ListBoxElementList->GetSelection();

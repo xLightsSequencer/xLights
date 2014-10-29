@@ -201,6 +201,7 @@ private:
     void InitFrame();
     void InitStar();
     void InitWreath();
+    void InitWholeHouse(wxString);
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
@@ -265,6 +266,7 @@ public:
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
     void DisplayEffectOnWindow(wxWindow* window);
+    void AddToWholeHouseModel(wxWindow* window,int index,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     bool CanRotate();
     void Rotate(int degrees);
     const wxString& GetStringType(void) { return StringType; }
