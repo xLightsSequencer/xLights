@@ -157,6 +157,8 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
     dc.GetSize(&w, &h);
     // Add WholeHouseData attribute
+    int ii=0;
+
     if(w>h){scale = (float)400/(float)w;}
     else{scale = (float)400/(float)h;}
     wScaled = (int)(scale*w);

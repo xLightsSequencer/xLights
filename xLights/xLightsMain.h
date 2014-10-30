@@ -522,7 +522,6 @@ private:
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
     static const long ID_BUTTON_MODELS_PREVIEW;
-    static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_BUTTON_SAVE_PREVIEW;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
@@ -530,6 +529,7 @@ private:
     static const long ID_STATICTEXT25;
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
+    static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_SCROLLEDWINDOW_PREVIEW;
     static const long ID_PANEL_PREVIEW;
     static const long ID_SCROLLEDWINDOW1;
