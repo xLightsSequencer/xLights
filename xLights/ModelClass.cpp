@@ -104,6 +104,16 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     rgbidx[1]=std::max(RGBorder.Find('G'),0);
     rgbidx[2]=std::max(RGBorder.Find('B'),0);
 
+    if(ModelNode->HasAttribute("versionNumber"))
+    {
+        tempstr=ModelNode->GetAttribute("versionNumber");
+        tempstr.ToLong(&ModelVersion);
+    }
+    else
+    {
+        ModelVersion=0;
+    }
+
     tempstr=ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);
     tempstr=ModelNode->GetAttribute("parm2");
@@ -165,6 +175,11 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
     PreviewRotation=degrees;
+    if (ModelVersion == 0)
+    {
+        //PreviewRotation *= 3; //Fix for formerversion of model rotation
+        ModelVersion = 1;
+    }
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings= HasOneString(DisplayAs) ? 1 : parm1;
@@ -265,7 +280,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         CopyBufCoord2ScreenCoord();
     }
 
-    SetModelCoord(PreviewRotation);
+    if (DisplayAs != "Single Line")
+    {
+        SetModelCoord(PreviewRotation);
+    }
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
     {
@@ -709,11 +727,6 @@ void ModelClass::InitWreath()
         }
     }
 }
-
-
-
-
-
 // initialize screen coordinates
 // parm1=Number of Strings/Arches
 // parm2=Pixels Per String/Arch
@@ -1315,10 +1328,13 @@ void ModelClass::UpdateXmlWithScale()
     ModelXml->DeleteAttribute("offsetYpct");
     ModelXml->DeleteAttribute("PreviewScale");
     ModelXml->DeleteAttribute("PreviewRotation");
+    if (ModelXml->HasAttribute("versionNumber"))
+        ModelXml->DeleteAttribute("versionNumber");
     ModelXml->AddAttribute("offsetXpct", wxString::Format("%6.4f",offsetXpct));
     ModelXml->AddAttribute("offsetYpct", wxString::Format("%6.4f",offsetYpct));
     ModelXml->AddAttribute("PreviewScale", wxString::Format("%6.4f",PreviewScale));
     ModelXml->AddAttribute("PreviewRotation", wxString::Format("%d",PreviewRotation));
+    ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
 }
 
 
