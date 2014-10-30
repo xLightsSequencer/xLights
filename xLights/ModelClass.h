@@ -275,7 +275,7 @@ public:
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
     void DisplayEffectOnWindow(wxWindow* window);
-    void AddToWholeHouseModel(wxWindow* window,int index,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
+    void AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     bool CanRotate();
     void Rotate(int degrees);
     const wxString& GetStringType(void) { return StringType; }

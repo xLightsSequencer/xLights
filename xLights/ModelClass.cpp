@@ -30,6 +30,8 @@
 void ModelClass::InitWholeHouse(wxString WholeHouseData)
 {
     long xCoord,yCoord,actChn;
+    int nodeCount=0;
+    int lastActChn=0;
     wxArrayString data;
     SetBufferSize(parm2,parm1);
     SetRenderSize(parm2,parm1);
@@ -37,22 +39,34 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
     if(WholeHouseData.Length()> 0)
     {
         wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
-        int nodeCount=wholeHouseDataArr.size();
-        SetNodeCount(1,nodeCount);
-        Nodes.resize(nodeCount);
-        for(size_t i=0; i < nodeCount; i++)
+        int coordinateCount=wholeHouseDataArr.size();
+
+        // Load first coordinate
+        data=wxSplit(wholeHouseDataArr[0],',');
+        data[0].ToLong(&actChn);
+        data[1].ToLong(&xCoord);
+        data[2].ToLong(&yCoord);
+        SetNodeCount(1,1);
+        Nodes.back()->StringNum = 0;
+        Nodes.back()->ActChan = actChn;
+        Nodes.back()->Coords[0].bufX = xCoord;
+        Nodes.back()->Coords[0].bufY = yCoord;
+        int j = GetCoordCount(0);
+        lastActChn = actChn;
+        for(size_t i=1; i < coordinateCount; i++)
         {
             data=wxSplit(wholeHouseDataArr[i],',');
             data[0].ToLong(&actChn);
             data[1].ToLong(&xCoord);
             data[2].ToLong(&yCoord);
-//            SetNodeCount(1,0);
-            Nodes[i]->StringNum = 0;
-            Nodes[i]->ActChan = actChn;
-            Nodes[i]->Coords[0].bufX = xCoord;
-            Nodes[i]->Coords[0].bufY = yCoord;
-            int j = GetCoordCount(i);
-            int k=0;
+            if(actChn != lastActChn)
+            {
+                SetNodeCount(1,0);
+                Nodes.back()->StringNum = 0;
+                Nodes.back()->ActChan = actChn;
+            }
+            Nodes.back()->AddBufCoord(xCoord,yCoord);
+            lastActChn = actChn;
         }
         CopyBufCoord2ScreenCoord();
     }
@@ -1445,28 +1459,19 @@ private:
 
 #endif
 
-void ModelClass::AddToWholeHouseModel(wxWindow* window,int index,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
+void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     int w, h;
     wxClientDC dc(window);
-    int nodeIndex = index;
-
-
     dc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
     int w1 = int(offsetXpct*w)+w/2;
     int h1 = -(int(offsetYpct*h)+h-
                    std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
-
-
     double scrx,scry;
-//    gc.Translate(int(offsetXpct*w)+w/2,
-//                 -(int(offsetYpct*h)+h-
-//                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
-
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -1474,13 +1479,14 @@ void ModelClass::AddToWholeHouseModel(wxWindow* window,int index,std::vector<int
         {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            //gc.AddSquare(*color,sx*scale,sy*scale,0.0);
             scrx = sx*scale;
             scry = sy*scale;
-            xPos[nodeIndex] = scrx+w1;
-            yPos[nodeIndex] = scry+h1;
-
-            actChannel[nodeIndex++] = Nodes[n]->ActChan;
+            //xPos[nodeIndex] = scrx+w1;
+            //yPos[nodeIndex] = scry+h1;
+            //actChannel[nodeIndex++] = Nodes[n]->ActChan;
+            xPos.push_back(scrx+w1);
+            yPos.push_back(scry+h1);
+            actChannel.push_back(Nodes[n]->ActChan);
         }
     }
 }

@@ -140,9 +140,9 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     std::vector<int> xPos;
     std::vector<int> yPos;
     std::vector<int> actChannel;
-    xPos.resize(numberOfNodes);
-    yPos.resize(numberOfNodes);
-    actChannel.resize(numberOfNodes);
+//    xPos.resize(numberOfNodes);
+//    yPos.resize(numberOfNodes);
+//    actChannel.resize(numberOfNodes);
 
 
     wxClientDC dc(ScrolledWindowPreview);
@@ -150,7 +150,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,index,xPos,yPos,actChannel);
+        PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,xPos,yPos,actChannel);
         index+=PreviewModels[i]->GetNodeCount();
         StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
     }
@@ -172,13 +172,13 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     e->AddAttribute("parm1", wxString::Format(wxT("%i"), wScaled));
     e->AddAttribute("parm2", wxString::Format(wxT("%i"), hScaled));
 
-    for(int i=0;i<numberOfNodes;i++)
+    for(int i=0;i<xPos.size();i++)
     {
         // Scale to 600 px max
         xPos[i] = (int)(scale*(float)xPos[i]);
         yPos[i] = (int)((scale*(float)yPos[i])+hScaled);
         WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
-        if(i!=numberOfNodes-1)
+        if(i!=xPos.size()-1)
         {
             WholeHouseData+=";";
         }
