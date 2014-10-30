@@ -216,9 +216,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     {
         WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
         InitWholeHouse(WholeHouseData);
-        return;
     }
-
     else if (token == "Tree")
     {
         InitVMatrix();
@@ -267,8 +265,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         CopyBufCoord2ScreenCoord();
     }
 
-
-
+    SetModelCoord(PreviewRotation);
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
     {
@@ -713,6 +710,10 @@ void ModelClass::InitWreath()
     }
 }
 
+
+
+
+
 // initialize screen coordinates
 // parm1=Number of Strings/Arches
 // parm2=Pixels Per String/Arch
@@ -724,6 +725,7 @@ void ModelClass::SetLineCoord()
     int numlights=parm1*parm2;
     int half=numlights/2;
     SetRenderSize(numlights*2,numlights);
+
     double radians=toRadians(PreviewRotation);
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -925,7 +927,7 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
 
 bool ModelClass::CanRotate()
 {
-    return DisplayAs == "Single Line";
+    return true; // DisplayAs == "Single Line";
 }
 
 void ModelClass::Rotate(int degrees)
@@ -1461,7 +1463,6 @@ void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,st
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    wxPen pen;
     int w, h;
     wxClientDC dc(window);
     dc.GetSize(&w, &h);
@@ -1508,7 +1509,6 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
 
     gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    double scrx,scry;
     gc.Translate(int(offsetXpct*w)+w/2,
                  -(int(offsetYpct*h)+h-
                    std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
@@ -1522,9 +1522,6 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
             gc.AddSquare(*color,sx*scale,sy*scale,0.0);
-            scrx = sx*scale;
-            scry = sy*scale;
-            //      StatusBar1->SetStatusText(_("Status: DisplayModelOnWindow " )+wxString::Format(" x=%5ld y=%5ld ",scrx,scry));
         }
     }
 }
@@ -1616,16 +1613,6 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
         radius = 0.5;
     }
 
-    /*
-    // check that origin is in the right place
-    color.Set(0,0,255);
-    gc.AddCircle(color, 0,0,1);
-    gc.AddCircle(color, 1,1,1);
-    gc.AddCircle(color, 2,2,1);
-    gc.AddCircle(color, 3,3,1);
-    gc.AddCircle(color, 4,4,1);
-     */
-
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
@@ -1638,11 +1625,42 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            //#     dc.DrawPoint(Nodes[i].screenX, Nodes[i].screenY);
-            //dc.DrawPoint(sx,sy);
-            //dc.DrawCircle(sx*scale,sy*scale,radius);
-            //gc->DrawEllipse(sx*scale,sy*scale,radius,radius);
             gc.AddCircle(color, sx*scale,sy*scale,radius);
+        }
+    }
+}
+void ModelClass::SetModelCoord( int degrees)
+{
+    PreviewRotation=degrees;
+    //For now treat Single line the same way it was in the past
+    if (DisplayAs == "Single Line")
+    {
+        SetLineCoord();
+    }
+
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    double centerx,centery;
+    double radians=toRadians(PreviewRotation);
+
+    centerx = BufferWi/2 +1;
+    centery = BufferHt/2 +1;
+
+    for(size_t nn=0; nn<NodeCount; nn++)
+    {
+        size_t CoordCount=GetCoordCount(nn);
+        if( ! Nodes[nn]->OrigCoordsSaved())
+            Nodes[nn]->SaveCoords();
+
+        for(size_t cc=0; cc < CoordCount; cc++)
+        {
+            //Calculate new Screen x and y based on current rotation value
+            sx=Nodes[nn]->OrigCoords[cc].screenX;
+            sy=Nodes[nn]->OrigCoords[cc].screenY;
+            Nodes[nn]->Coords[cc].screenX = cos(radians) * (sx-centerx)
+                   - sin(radians)*(sy-centery)+centerx;
+            Nodes[nn]->Coords[cc].screenY = sin(radians) * (sx-centerx)
+                   + cos(radians)*(sy-centery)+centery;
         }
     }
 }

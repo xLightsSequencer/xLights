@@ -407,6 +407,7 @@ private:
     void OnChoice_ViewsSelect(wxCommandEvent& event);
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
     void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
+    void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -527,6 +528,7 @@ private:
     static const long ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE;
     static const long ID_SLIDER_PREVIEW_SCALE;
     static const long ID_STATICTEXT25;
+    static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
     static const long ID_SCROLLEDWINDOW_PREVIEW;
     static const long ID_PANEL_PREVIEW;
@@ -798,6 +800,7 @@ private:
     wxStaticText* StaticText34;
     wxSlider* SliderBgColorC;
     wxStatusBar* StatusBar1;
+    wxTextCtrl* TextCtrlModelRotationDegrees;
     wxCheckBox* CheckBox_PgoAutoRest;
     wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
@@ -1124,7 +1127,7 @@ private:
     void InsertRow();
     void UpdatePreview();
     void BuildWholeHouseModel(wxString modelName);
-    void ShowModelsDialog();;
+    void ShowModelsDialog();
     void ShowPreviewTime(long ElapsedMSec);
     void PreviewOutput(int period);
     void TimerOutput(int period);
@@ -1147,6 +1150,7 @@ private:
     bool GetGroupName(wxString& grpname);
     void PgoGridCellSelect(int row, int col, int where);
     void GetMouthNodes(const wxString& model_name);
+    void PreviewRotationUpdated(int newRotation);
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ

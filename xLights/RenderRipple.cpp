@@ -218,6 +218,6 @@ void RgbEffects::Drawcircle(int xc,int yc,double radius,wxImage::HSVValue hsv)
 
 void RgbEffects::SetP(int x, int y, wxImage::HSVValue hsv)
 {
-    if(x>=0 && x<BufferWi and y>=0 && y<BufferHt)
+    if(x>=0 && x<BufferWi && y>=0 && y<BufferHt)
         SetPixel(x,y,hsv);
 }
