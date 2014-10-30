@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.5.1	Oct 30, 2014
+	-bug (dpitts) Found bug that causes crash. Single color models that have multiple lights (think 1 string of single color
+		with 50 lights uses 1 channel, but draws 50 places) was not allocating memory correctly for each pseudo light.
+	-enh (frankr) Ability added to preview screen, you now can rotate any object not just single string.
 3.5.0	Oct 29, 2014
 	-enh (dpitts) New button added to the preview screen. This will create a Whole House Model for you automatically.
 		There is now a new type of model "Whole House". You no longer need to use spreadsheets and the custom model.
