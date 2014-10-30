@@ -138,7 +138,6 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
                 SetP(x,y2-2,hsv); // Turn pixel
             }
 
-
         }
         else if(Movement==MOVEMENT_IMPLODE)
         {
