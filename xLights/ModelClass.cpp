@@ -177,7 +177,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     PreviewRotation=degrees;
     if (ModelVersion == 0)
     {
-        PreviewRotation *= 3; //Fix for formerversion of model rotation
+        //PreviewRotation *= 3; //Fix for formerversion of model rotation
         ModelVersion = 1;
     }
 
@@ -280,7 +280,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         CopyBufCoord2ScreenCoord();
     }
 
-    SetModelCoord(PreviewRotation);
+    if (DisplayAs != "Single Line")
+    {
+        SetModelCoord(PreviewRotation);
+    }
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
     {
@@ -724,11 +727,6 @@ void ModelClass::InitWreath()
         }
     }
 }
-
-
-
-
-
 // initialize screen coordinates
 // parm1=Number of Strings/Arches
 // parm2=Pixels Per String/Arch
