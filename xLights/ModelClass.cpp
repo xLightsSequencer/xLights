@@ -1637,8 +1637,8 @@ void ModelClass::SetModelCoord( int degrees)
     double centerx,centery;
     double radians=toRadians(PreviewRotation);
 
-    centerx = BufferHt/2;
-    centery = BufferWi/2 ;
+    centerx = BufferWi/2 +1;
+    centery = BufferHt/2 +1;
 
     for(size_t nn=0; nn<NodeCount; nn++)
     {

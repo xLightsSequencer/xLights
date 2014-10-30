@@ -210,7 +210,8 @@ void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
     int newscale=m->GetScale()*100.0;
     SliderPreviewScale->SetValue(newscale);
     TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
-    SliderPreviewRotate->SetValue(m->GetRotation()/PREVIEWROTATIONFACTOR);
+    SliderPreviewRotate->SetValue(m->GetRotation());
+    TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
     bool canrotate=m->CanRotate();
     SliderPreviewRotate->Enable(canrotate);
     StaticTextPreviewRotation->Enable(canrotate);
@@ -278,14 +279,23 @@ void xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated(wxScrollEvent& event)
     PreviewScaleUpdated(newscale);
 }
 
-void xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event)
+void xLightsFrame::PreviewRotationUpdated(int newRotation)
 {
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    m->SetModelCoord(PREVIEWROTATIONFACTOR*SliderPreviewRotate->GetValue());
+    m->SetModelCoord(newRotation);
     UpdatePreview();
 }
+
+void xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event)
+{
+    int newRotation=SliderPreviewRotate->GetValue();
+    TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",newRotation));
+    PreviewRotationUpdated(newRotation);
+}
+
+
 
 void xLightsFrame::OnButtonModelsPreviewClick(wxCommandEvent& event)
 {
@@ -395,4 +405,17 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     {
         PlayerDlg->MediaCtrl->Seek(msec);
     }
+}
+void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
+{
+    int newRotDegrees = wxAtoi(TextCtrlModelRotationDegrees->GetValue());
+    SliderPreviewRotate->SetValue(newRotDegrees);
+    PreviewRotationUpdated(newRotDegrees);
+}
+
+void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
+{
+    int newscale = wxAtoi(TextCtrlPreviewElementSize->GetValue()); //SliderPreviewScale->GetValue();
+    SliderPreviewScale->SetValue(newscale);
+    PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
 }
