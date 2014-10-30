@@ -48,14 +48,22 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
         return;
     }
 #endif
-    int CycleLen=colorcnt*SpeedFactor;
-    if (state > (colorcnt-1)*SpeedFactor*RepeatCount && RepeatCount < 10)
+    if (!fitToTime)
     {
-        GetMultiColorBlend(double(RepeatCount%2), false, color);
+        int CycleLen=colorcnt*SpeedFactor;
+        if (state > (colorcnt-1)*SpeedFactor*RepeatCount && RepeatCount < 10)
+        {
+            GetMultiColorBlend(double(RepeatCount%2), false, color);
+        }
+        else
+        {
+            GetMultiColorBlend(double(state % CycleLen) / double(CycleLen), true, color);
+        }
     }
     else
     {
-        GetMultiColorBlend(double(state % CycleLen) / double(CycleLen), true, color);
+        double position = GetEffectTimeIntervalPosition();
+        GetMultiColorBlend( position, true, color);
     }
     Color2HSV(color,hsv);
     double HalfHt=double(BufferHt-1)/2.0;
