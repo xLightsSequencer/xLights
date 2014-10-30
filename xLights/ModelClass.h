@@ -66,6 +66,7 @@ private:
         int ActChan;   // 0 is the first channel
         int StringNum; // node is part of this string (0 is the first string)
         std::vector<CoordStruct> Coords;
+        std::vector<CoordStruct> OrigCoords;
 
         // only for use in initializing the custom model
         void AddBufCoord(wxCoord x, wxCoord y)
@@ -127,6 +128,14 @@ private:
             StringNum=StringNumber;
             Coords.resize(NodesPerString);
             chanCnt=NODE_RGB_CHAN_CNT;
+        }
+        bool OrigCoordsSaved()
+        {
+            return Coords.size() == OrigCoords.size();
+        }
+        void SaveCoords()
+        {
+            OrigCoords = Coords;
         }
 
         virtual ~NodeBaseClass()
@@ -272,6 +281,7 @@ public:
     const wxString& GetStringType(void) { return StringType; }
     const wxString& GetDisplayAs(void) { return DisplayAs; }
     int NodesPerString();
+    void SetModelCoord(int degrees);
 
     int GetRotation();
     int ChannelsPerNode();
