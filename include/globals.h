@@ -17,7 +17,7 @@
 #define XLIGHTS_SCHEDULE_FILE      "xlights_schedule.xml"
 #define XLIGHTS_RGBEFFECTS_FILE    "xlights_rgbeffects.xml"
 #define XLIGHTS_PGOFACES_FILE      "xlights_papagayo.xml"
-#define XLIGHTS_RGBEFFECTS_VERSION "0002"
+#define XLIGHTS_RGBEFFECTS_VERSION "0003"
 #define XLIGHTS_SEQUENCE_EXT       "xseq"
 #define XLIGHTS_SEQ_STATIC_COLUMNS 2
 
