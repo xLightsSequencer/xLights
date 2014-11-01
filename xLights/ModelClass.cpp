@@ -1593,26 +1593,26 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
 }
 
 // uses DrawCircle instead of DrawPoint
-void ModelClass::DisplayEffectOnWindow(wxWindow* window)
+void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
 {
     wxColour color;
-    wxDouble w, h;
+    int w, h;
 
-    ModelGraphics gc(window);
-    gc.GetSize(&w, &h);
+
+    preview->GetSize(&w, &h);
 
     double scaleX = double(w) * 0.95 / RenderWi;
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
-    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
+//    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
-    double radius = scale/2.0;
-    if (radius < 0.5)
+    double pointSize = scale/.20;
+    if (pointSize < 1)
     {
-        radius = 0.5;
+        pointSize = 1;
     }
-
+    preview->StartDrawing(pointSize);
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
@@ -1625,10 +1625,12 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            gc.AddCircle(color, sx*scale,sy*scale,radius);
+            preview->DrawPoint(color,(sx*scale)+w/2,h-((sy*scale)+double(RenderHt)*0.025*scale));
         }
     }
+    preview->EndDrawing();
 }
+
 void ModelClass::SetModelCoord( int degrees)
 {
     PreviewRotation=degrees;

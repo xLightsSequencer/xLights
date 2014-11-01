@@ -173,6 +173,7 @@ const long xLightsFrame::ID_BUTTON_PLAY_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
+const long xLightsFrame::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
 const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
 const long xLightsFrame::ID_LISTBOX_ELEMENT_LIST = wxNewId();
 const long xLightsFrame::ID_BUTTON_MODELS_PREVIEW = wxNewId();
@@ -186,7 +187,6 @@ const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
 const long xLightsFrame::ID_BUTTON_BUILD_WHOLEHOUSE_MODEL = wxNewId();
 const long xLightsFrame::ID_SCROLLEDWINDOW_PREVIEW = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_SCROLLEDWINDOW1 = wxNewId();
 const long xLightsFrame::ID_BUTTON13 = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
 const long xLightsFrame::ID_BUTTON58 = wxNewId();
@@ -367,6 +367,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
+    wxBoxSizer* BoxSizerSequencePreview;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
@@ -413,7 +414,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
     wxMenu* MenuPlaylist;
     wxFlexGridSizer* FlexGridSizer26;
-    wxFlexGridSizer* FlexGridSizer30;
 
     Create(parent, wxID_ANY, _("xLights/Nutcracker  (Ver 3.5.1)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
@@ -781,7 +781,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer34->AddGrowableCol(1);
     FlexGridSizer34->AddGrowableRow(0);
     FlexGridSizer35 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText5 = new wxStaticText(PanelPreview, ID_STATICTEXT21, _("Display Elements"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
+    ButtonSelectModelGroups = new wxButton(PanelPreview, ID_BUTTON_SELECT_MODEL_GROUPS, _("Select Model Groups"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_MODEL_GROUPS"));
+    FlexGridSizer35->Add(ButtonSelectModelGroups, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText5 = new wxStaticText(PanelPreview, ID_STATICTEXT21, _("Preview Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
     FlexGridSizer35->Add(StaticText5, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ListBoxElementList = new wxListBox(PanelPreview, ID_LISTBOX_ELEMENT_LIST, wxDefaultPosition, wxSize(132,240), 0, 0, wxLB_SORT, wxDefaultValidator, _T("ID_LISTBOX_ELEMENT_LIST"));
     FlexGridSizer35->Add(ListBoxElementList, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -791,7 +793,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer35->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer37 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer37->AddGrowableCol(1);
-    StaticText23 = new wxStaticText(PanelPreview, ID_STATICTEXT22, _("Element Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
+    StaticText23 = new wxStaticText(PanelPreview, ID_STATICTEXT22, _("Model Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
     FlexGridSizer37->Add(StaticText23, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewElementSize = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE, _("50"), wxDefaultPosition, wxSize(30,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE"));
     FlexGridSizer37->Add(TextCtrlPreviewElementSize, 1, wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -831,13 +833,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SeqPanelLeft = new wxPanel(SplitterWindow2, ID_PANEL31, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL31"));
     SeqPanelLeft->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     BoxSizer6 = new wxBoxSizer(wxVERTICAL);
-    FlexGridSizer30 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer30->AddGrowableCol(0);
-    FlexGridSizer30->AddGrowableRow(0);
-    ScrolledWindow1 = new wxScrolledWindow(SeqPanelLeft, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxSize(276,225), wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
-    ScrolledWindow1->SetBackgroundColour(wxColour(0,0,0));
-    FlexGridSizer30->Add(ScrolledWindow1, 1, wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
-    BoxSizer6->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizerSequencePreview = new wxBoxSizer(wxHORIZONTAL);
+    BoxSizer6->Add(BoxSizerSequencePreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, SeqPanelLeft, _("Combined Effect"));
     FlexGridSizer33 = new wxFlexGridSizer(0, 4, 0, 0);
     Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, _("Play (F3)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
@@ -1421,6 +1418,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_PLAY_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
     Connect(ID_BUTTON_STOP_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
     Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
+    Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
     Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSavePreviewClick);
@@ -1434,7 +1432,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ScrolledWindowPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
     ScrolledWindowPreview->Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
-    ScrolledWindow1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
     Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayEffectClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_UpdateGridClick);
     Connect(ID_BUTTON58,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ModelsClick);
@@ -1516,6 +1513,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
+
+    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
+    seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
+    BoxSizerSequencePreview->Add(seqPreview, 1, wxEXPAND);
+
+
+
 
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
@@ -1902,6 +1906,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->Choice_Ripple_Object_To_Draw->Set(RippleObjectToDraw);
     panel->Choice_Ripple_Object_To_Draw->SetSelection(0);
 
+
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
@@ -2248,7 +2253,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     heartbeat("exit", true); //tell fido about graceful exit -DJ
     // Disconnect the resize events, otherwise they get called as we are shutting down
     ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
-    ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
+    //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
 
     Destroy();
 }
@@ -2583,7 +2588,5 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
-
-
 
 

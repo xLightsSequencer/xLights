@@ -36,6 +36,8 @@
 #include <wx/checklst.h>
 #include <wx/listbox.h>
 
+#include "SequencePreview.h"
+
 typedef std::vector<long> StartChannelVector_t;
 
 #define NODE_RGB_CHAN_CNT 3
@@ -274,7 +276,7 @@ public:
     int GetNodeNumber(size_t nodenum);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
-    void DisplayEffectOnWindow(wxWindow* window);
+    void DisplayEffectOnWindow(SequencePreview* preview);
     void AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     bool CanRotate();
     void Rotate(int degrees);

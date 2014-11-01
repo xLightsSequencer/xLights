@@ -83,6 +83,9 @@
 #include "ExportModelSelect.h"
 #include "ViewsDialog.h"
 #include "WholeHouseModelNameDialog.h"
+#include "CurrentPreviewModels.h"
+#include "PreviewModels.h"
+#include "SequencePreview.h"
 
 class EffectTreeDialog;
 
@@ -408,6 +411,7 @@ private:
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
     void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
+    void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -519,6 +523,7 @@ private:
     static const long ID_BUTTON_STOP_PREVIEW;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
+    static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
     static const long ID_BUTTON_MODELS_PREVIEW;
@@ -532,7 +537,6 @@ private:
     static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
     static const long ID_SCROLLEDWINDOW_PREVIEW;
     static const long ID_PANEL_PREVIEW;
-    static const long ID_SCROLLEDWINDOW1;
     static const long ID_BUTTON13;
     static const long ID_BUTTON3;
     static const long ID_BUTTON58;
@@ -741,6 +745,7 @@ private:
     wxButton* Button_CoroGroupClear;
     wxStaticText* StaticTextSequenceFileName;
     wxBitmapButton* BitmapButton_SparkleFrequency;
+    wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
     wxListBox* ListBoxElementList;
@@ -772,7 +777,6 @@ private:
     wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
-    wxScrolledWindow* ScrolledWindow1;
     wxButton* Button_UpdateGrid;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
@@ -916,6 +920,9 @@ private:
     wxDateTime starttime;
     play_modes play_mode;
     NetInfoClass NetInfo;
+
+    SequencePreview * seqPreview;
+
 
     int effGridPrevX;
     int effGridPrevY;
@@ -1159,6 +1166,7 @@ private:
     wxXmlNode* ModelsNode;
     wxXmlNode* PalettesNode;
     wxXmlNode* ViewsNode;
+    wxXmlNode* ModelGroupsNode;
     bool MixTypeChanged;
     bool FadesChanged;
     long SeqBaseChannel;

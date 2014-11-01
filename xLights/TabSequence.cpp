@@ -992,6 +992,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
         if (e->GetName() == "views") ViewsNode=e;
+        if (e->GetName() == "modelGroups") ModelGroupsNode=e;
     }
     if (ModelsNode == 0)
     {
@@ -1015,6 +1016,13 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         ViewsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "views" );
         root->AddChild( ViewsNode );
     }
+
+    if (ModelGroupsNode == 0)
+    {
+        ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
+        root->AddChild( ModelGroupsNode );
+    }
+
 
     return effectsFile.GetFullPath();
 }
@@ -1635,7 +1643,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
-    buffer.DisplayEffectOnWindow(ScrolledWindow1);
+    buffer.DisplayEffectOnWindow(seqPreview);
     size_t chnum;
     wxByte intensity;
     if (CheckBoxLightOutput->IsChecked() && xout)
@@ -3353,8 +3361,8 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
 
 void xLightsFrame::ClearEffectWindow()
 {
-    wxClientDC dc(ScrolledWindow1);
-    dc.Clear();
+    //wxClientDC dc(ScrolledWindow1); //dp
+    //dc.Clear();
 }
 
 void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
@@ -3719,7 +3727,7 @@ void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 
 void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)
 {
-    ScrolledWindow1->ClearBackground();
+    //ScrolledWindow1->ClearBackground();
 }
 
 // pass true for cutting, false for copying

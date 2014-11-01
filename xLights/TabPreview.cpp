@@ -174,7 +174,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
     for(int i=0;i<xPos.size();i++)
     {
-        // Scale to 600 px max
         xPos[i] = (int)(scale*(float)xPos[i]);
         yPos[i] = (int)((scale*(float)yPos[i])+hScaled);
         WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
@@ -420,4 +419,27 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
     int newscale = wxAtoi(TextCtrlPreviewElementSize->GetValue()); //SliderPreviewScale->GetValue();
     SliderPreviewScale->SetValue(newscale);
     PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
+}
+
+void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
+{
+    wxString name;
+    bool checked;
+    wxXmlNode* e;
+    CurrentPreviewModels dialog(this);
+    for(e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                dialog.CheckListBoxCurrentGroups->Append(name,e);
+                bool isChecked = e->GetAttribute("selected")=="1"?true:false;
+                dialog.CheckListBoxCurrentGroups->Check(dialog.CheckListBoxCurrentGroups->GetCount()-1,isChecked);
+            }
+        }
+    }
+    dialog.ShowModal();
+    SaveEffectsFile();
 }

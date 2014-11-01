@@ -1263,8 +1263,17 @@
 														<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 															<cols>1</cols>
 															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
+																	<label>Select Model Groups</label>
+																	<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT21" variable="StaticText5" member="yes">
-																	<label>Display Elements</label>
+																	<label>Preview Models:</label>
 																</object>
 																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -1305,7 +1314,7 @@
 																	<growablecols>1</growablecols>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText23" member="yes">
-																			<label>Element Size</label>
+																			<label>Model Size</label>
 																		</object>
 																		<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -1429,21 +1438,7 @@
 														<object class="wxBoxSizer" variable="BoxSizer6" member="no">
 															<orient>wxVERTICAL</orient>
 															<object class="sizeritem">
-																<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
-																	<cols>1</cols>
-																	<growablecols>0</growablecols>
-																	<growablerows>0</growablerows>
-																	<object class="sizeritem">
-																		<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
-																			<size>276,225</size>
-																			<bg>#000000</bg>
-																			<style>wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL</style>
-																			<handler function="OnScrolledWindow1Resize" entry="EVT_SIZE" />
-																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-																		<option>1</option>
-																	</object>
-																</object>
+																<object class="wxBoxSizer" variable="BoxSizerSequencePreview" member="no" />
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>

@@ -32,6 +32,7 @@
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXDEBUG__" />
 					<Add directory="$(#wxvc)/include" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -98,6 +99,7 @@
 					<Add option="/DNCCDLLIMPL" />
 					<Add option="/DNDEBUG" />
 					<Add directory="$(#wxvc)/include" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -154,6 +156,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -181,6 +184,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -206,6 +210,7 @@
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-D__WXDEBUG__" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config --libs std,media`" />
@@ -225,6 +230,7 @@
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DNDEBUG" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -308,6 +314,8 @@
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />
 		<Unit filename="SeqParmsDialog.h" />
+		<Unit filename="SequencePreview.cpp" />
+		<Unit filename="SequencePreview.h" />
 		<Unit filename="SerialPortWithRate.cpp" />
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
