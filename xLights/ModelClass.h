@@ -244,6 +244,7 @@ private:
     int PreviewRotation;
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
+    long ModelVersion;
 
     StartChannelVector_t stringStartChan;
     wxXmlNode* ModelXml;

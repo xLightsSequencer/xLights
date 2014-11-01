@@ -962,6 +962,7 @@ void xLightsFrame::ResetEffectsXml()
     ModelsNode=NULL;
     EffectsNode=NULL;
     PalettesNode=NULL;
+    ViewsNode=NULL;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()

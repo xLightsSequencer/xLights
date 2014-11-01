@@ -6,6 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.5.2	Oct 30,2014
+	-bug (frankr) Fix for preview moving some elements into the wrong place. Before the ability to rotate any element
+		rotations were in 3 degree increments, now they are 1 degree. This change caused existing previews to draw elements in
+		a new position. New code detects old rotation or new rotation values and draws both correctly.
+	-bug (frankr) Fixed issue related to  views when switching to new show folder. Under some circumstances, xlights would crash.
 3.5.1	Oct 30, 2014
 	-bug (dpitts) Found bug that causes crash. Single color models that have multiple lights (think 1 string of single color
 		with 50 lights uses 1 channel, but draws 50 places) was not allocating memory correctly for each pseudo light.
