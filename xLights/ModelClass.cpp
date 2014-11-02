@@ -1475,31 +1475,29 @@ private:
 
 #endif
 
-void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
+void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
+    wxPen pen;
     int w, h;
-    wxClientDC dc(window);
-    dc.GetSize(&w, &h);
+    preview->GetSize(&w,&h);
+
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
     int w1 = int(offsetXpct*w)+w/2;
-    int h1 = -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+
     double scrx,scry;
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
-            sx=Nodes[n]->Coords[c].screenX;
+            sx=Nodes[n]->Coords[c].screenX+(RenderWi);
             sy=Nodes[n]->Coords[c].screenY;
             scrx = sx*scale;
             scry = sy*scale;
-            //xPos[nodeIndex] = scrx+w1;
-            //yPos[nodeIndex] = scry+h1;
-            //actChannel[nodeIndex++] = Nodes[n]->ActChan;
             xPos.push_back(scrx+w1);
             yPos.push_back(scry+h1);
             actChannel.push_back(Nodes[n]->ActChan);
@@ -1508,26 +1506,18 @@ void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,st
 }
 
 // display model using a single color
-void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* color)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
-    wxDouble w, h;
-    ModelGraphics gc(window);
+    int w, h;
+    preview->GetSize(&w,&h);
 
-    /*
-    // this isn't an ideal scaling algorithm - room for improvement here
-    double windowDiagonal=sqrt(w*w+h*h);
-    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
-    double scale=windowDiagonal / modelDiagonal * PreviewScale;
-    */
-
-    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc.Translate(int(offsetXpct*w)+w/2,
-                 -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+
+    int w1 = int(offsetXpct*w)+w/2;
+    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
 
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -1535,36 +1525,28 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
         for(size_t c=0; c < CoordCount; c++)
         {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
+            sx=Nodes[n]->Coords[c].screenX+RenderWi;
             sy=Nodes[n]->Coords[c].screenY;
-            gc.AddSquare(*color,sx*scale,sy*scale,0.0);
+            preview->DrawPoint(*color,(sx*scale)+w1,(sy*scale)+h1);
         }
     }
 }
 
 // display model using colors stored in each node
 // used when preview is running
-void ModelClass::DisplayModelOnWindow(wxWindow* window)
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
     wxColour color;
-    wxDouble w, h;
-    ModelGraphics gc(window);
+    int w, h;
+    preview->GetSize(&w, &h);
 
-    /*
-    // this isn't an ideal scaling algorithm - room for improvement here
-    double windowDiagonal=sqrt(w*w+h*h);
-    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
-    double scale=windowDiagonal / modelDiagonal * PreviewScale;
-    */
-
-    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc.Translate(int(offsetXpct*w)+w/2,
-                 -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+
+    int w1 = int(offsetXpct*w)+w/2;
+    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
 
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0)
@@ -1577,9 +1559,9 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX;
+                sx=Nodes[n]->Coords[c].screenX+RenderWi;;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc.AddSquare(color,sx*scale,sy*scale,0.0);
+                preview->DrawPoint(color,(sx*scale)+w1,(sy*scale)+h1);
             }
         }
     }
@@ -1600,9 +1582,9 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
                     c2 = color;
                 }
 
-                sx=Nodes[n]->Coords[c].screenX;
+                sx=Nodes[n]->Coords[c].screenX+RenderWi;;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc.AddSquare(c2,sx*scale,sy*scale,0.0);
+                preview->DrawPoint(c2,(sx*scale)+w1,(sy*scale)+h1);
             }
         }
     }
@@ -1623,11 +1605,7 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
 
 //    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
-    double pointSize = scale/.20;
-    if (pointSize < 1)
-    {
-        pointSize = 1;
-    }
+    double pointSize = 2.5;
     preview->StartDrawing(pointSize);
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
@@ -1639,9 +1617,9 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
         for(size_t c=0; c < CoordCount; c++)
         {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
+            sx=Nodes[n]->Coords[c].screenX+RenderWi/2;
             sy=Nodes[n]->Coords[c].screenY;
-            preview->DrawPoint(color,(sx*scale)+w/2,h-((sy*scale)+double(RenderHt)*0.025*scale));
+            preview->DrawPoint(color,(sx*scale),h-((sy*scale)+double(RenderHt)*0.025*scale));
         }
     }
     preview->EndDrawing();

@@ -37,6 +37,7 @@
 #include <wx/listbox.h>
 
 #include "SequencePreview.h"
+#include "ModelPreview.h"
 
 typedef std::vector<long> StartChannelVector_t;
 
@@ -275,10 +276,11 @@ public:
     double GetScale();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
+    void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
-    void DisplayModelOnWindow(wxWindow* window, const wxColour* color);
+    void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview);
-    void AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
+    void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     bool CanRotate();
     void Rotate(int degrees);
     const wxString& GetStringType(void) { return StringType; }

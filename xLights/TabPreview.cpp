@@ -101,15 +101,15 @@ void xLightsFrame::CompareMyDisplayToSeq()
 void xLightsFrame::UpdatePreview()
 {
     const wxColour *color;
+    double pointSize = 2.5;
     wxString SelModelName=ListBoxElementList->GetStringSelection();
-    //ScrolledWindowPreview->ClearBackground();
-    wxClientDC dc(ScrolledWindowPreview);
-    dc.Clear();
+    modelPreview->StartDrawing(pointSize);
     for (int i=0; i<PreviewModels.size(); i++)
     {
         color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
-        PreviewModels[i]->DisplayModelOnWindow(ScrolledWindowPreview,color);
+        PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
+    modelPreview->EndDrawing();
 }
 
 void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
@@ -140,22 +140,17 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     std::vector<int> xPos;
     std::vector<int> yPos;
     std::vector<int> actChannel;
-//    xPos.resize(numberOfNodes);
-//    yPos.resize(numberOfNodes);
-//    actChannel.resize(numberOfNodes);
 
-
-    wxClientDC dc(ScrolledWindowPreview);
+    modelPreview->GetSize(&w, &h);
 
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,xPos,yPos,actChannel);
+        PreviewModels[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel);
         index+=PreviewModels[i]->GetNodeCount();
         StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
     }
 
-    dc.GetSize(&w, &h);
     // Add WholeHouseData attribute
     int ii=0;
 
@@ -163,7 +158,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     else{scale = (float)400/(float)h;}
     wScaled = (int)(scale*w);
     hScaled = (int)(scale*h);
-    int xoffset=wScaled/2;
     // Create a new model node
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     e->AddAttribute("name", modelName);
@@ -175,7 +169,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     for(int i=0;i<xPos.size();i++)
     {
         xPos[i] = (int)(scale*(float)xPos[i]);
-        yPos[i] = (int)((scale*(float)yPos[i])+hScaled);
+        yPos[i] = (int)((scale*(float)yPos[i]));
         WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
         if(i!=xPos.size()-1)
         {
@@ -224,7 +218,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
     m_previous_mouse_y = event.GetPosition().y;
-    //StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+    StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
@@ -247,13 +241,14 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = event.GetPosition().y - m_previous_mouse_y;
-        ScrolledWindowPreview->GetClientSize(&wi,&ht);
+        modelPreview->GetSize(&wi,&ht);
         if (wi > 0 && ht > 0)
         {
             m->AddOffset(delta_x/wi, delta_y/ht);
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
+        StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         UpdatePreview();
     }
 }
@@ -367,8 +362,10 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 void xLightsFrame::PreviewOutput(int period)
 {
     size_t m, n, chnum, NodeCnt;
+    double pointSize = 2.5;
     wxByte intensity;
     TimerOutput(period);
+    modelPreview->StartDrawing(pointSize);
     for (m=0; m<PreviewModels.size(); m++)
     {
         NodeCnt=PreviewModels[m]->GetNodeCount();
@@ -388,8 +385,9 @@ void xLightsFrame::PreviewOutput(int period)
                 }
             }
         }
-        PreviewModels[m]->DisplayModelOnWindow(ScrolledWindowPreview);
+        PreviewModels[m]->DisplayModelOnWindow(modelPreview);
     }
+    modelPreview->EndDrawing();
     int amtdone = period * SliderPreviewTime->GetMax() / (SeqNumPeriods-1);
     SliderPreviewTime->SetValue(amtdone);
 }

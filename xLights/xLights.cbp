@@ -266,6 +266,8 @@
 		<Unit filename="ModelDialog.h" />
 		<Unit filename="ModelListDialog.cpp" />
 		<Unit filename="ModelListDialog.h" />
+		<Unit filename="ModelPreview.cpp" />
+		<Unit filename="ModelPreview.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />

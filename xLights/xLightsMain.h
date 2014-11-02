@@ -85,6 +85,7 @@
 #include "WholeHouseModelNameDialog.h"
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
+#include "ModelPreview.h"
 #include "SequencePreview.h"
 
 class EffectTreeDialog;
@@ -412,6 +413,7 @@ private:
     void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -535,7 +537,7 @@ private:
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
     static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
-    static const long ID_SCROLLEDWINDOW_PREVIEW;
+    static const long ID_SCROLLEDWINDOW1;
     static const long ID_PANEL_PREVIEW;
     static const long ID_BUTTON13;
     static const long ID_BUTTON3;
@@ -921,7 +923,8 @@ private:
     play_modes play_mode;
     NetInfoClass NetInfo;
 
-    SequencePreview * seqPreview;
+    ModelPreview* modelPreview;
+    SequencePreview* seqPreview;
 
 
     int effGridPrevX;

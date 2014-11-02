@@ -185,7 +185,7 @@ const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
 const long xLightsFrame::ID_BUTTON_BUILD_WHOLEHOUSE_MODEL = wxNewId();
-const long xLightsFrame::ID_SCROLLEDWINDOW_PREVIEW = wxNewId();
+const long xLightsFrame::ID_SCROLLEDWINDOW1 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON13 = wxNewId();
 const long xLightsFrame::ID_BUTTON3 = wxNewId();
@@ -336,6 +336,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxBoxSizer* BoxSizer6;
     wxMenu* MenuHelp;
     wxFlexGridSizer* FlexGridSizer4;
+    wxBoxSizer* BoxSizerModelsPreview;
     wxFlexGridSizer* FlexGridSizer47;
     wxFlexGridSizer* FlexGridSizer54;
     wxFlexGridSizer* FlexGridSizerTest;
@@ -814,8 +815,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonBuildWholeHouseModel = new wxButton(PanelPreview, ID_BUTTON_BUILD_WHOLEHOUSE_MODEL, _("Build Whole House Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BUILD_WHOLEHOUSE_MODEL"));
     FlexGridSizer35->Add(ButtonBuildWholeHouseModel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34->Add(FlexGridSizer35, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    ScrolledWindowPreview = new wxScrolledWindow(PanelPreview, ID_SCROLLEDWINDOW_PREVIEW, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW_PREVIEW"));
-    ScrolledWindowPreview->SetBackgroundColour(wxColour(0,0,0));
+    ScrolledWindowPreview = new wxScrolledWindow(PanelPreview, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+    BoxSizerModelsPreview = new wxBoxSizer(wxHORIZONTAL);
+    ScrolledWindowPreview->SetSizer(BoxSizerModelsPreview);
+    BoxSizerModelsPreview->Fit(ScrolledWindowPreview);
+    BoxSizerModelsPreview->SetSizeHints(ScrolledWindowPreview);
     FlexGridSizer34->Add(ScrolledWindowPreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer34, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     PanelPreview->SetSizer(FlexGridSizerPreview);
@@ -1427,11 +1431,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelRotationDegreesText);
     Connect(ID_SLIDER_PREVIEW_ROTATE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated);
     Connect(ID_BUTTON_BUILD_WHOLEHOUSE_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonBuildWholeHouseModelClick);
+    ScrolledWindowPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
     ScrolledWindowPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
-    ScrolledWindowPreview->Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayEffectClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_UpdateGridClick);
     Connect(ID_BUTTON58,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ModelsClick);
@@ -1518,9 +1522,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
     BoxSizerSequencePreview->Add(seqPreview, 1, wxEXPAND);
 
-
-
-
+    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
+    BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
@@ -2590,3 +2593,8 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
 }
 
 
+
+void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
+{
+    UpdatePreview();
+}
