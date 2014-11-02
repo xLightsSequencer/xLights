@@ -17,7 +17,7 @@ EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 EVT_LEFT_UP(ModelPreview::mouseLeftUp)
 EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
 //EVT_RIGHT_DOWN(ModelPreview::rightClick)
-EVT_SIZE(ModelPreview::resized)
+//EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
 //EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
@@ -47,7 +47,8 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
 void ModelPreview::render( wxPaintEvent& event )
 {
     if (mIsInitialized)
-    {   event.ResumePropagation(1);
+    {
+        event.ResumePropagation(1);
         event.Skip (); // continue the event
     }
 }
@@ -55,7 +56,8 @@ void ModelPreview::render( wxPaintEvent& event )
 void ModelPreview::resized(wxSizeEvent& event)
 {
     if (mIsInitialized)
-    {   event.ResumePropagation(1);
+    {
+        event.ResumePropagation(1);
         event.Skip (); // continue the event
     }
 }
@@ -72,12 +74,6 @@ ModelPreview::ModelPreview(wxPanel* parent, int* args) :
 {
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-    InitializePreview();
-    Refresh(true);
-    // HACK: for some reason, canvas does not draw until the parent has
-    // been resized, so force a resize here. wxWindows skip the resize
-    // processing if the actual size does not change, so change the size
-    // and then change it back to get the desired effect.
 }
 
 ModelPreview::~ModelPreview()

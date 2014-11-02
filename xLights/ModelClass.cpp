@@ -1591,7 +1591,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
 }
 
 // uses DrawCircle instead of DrawPoint
-void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
+void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSize)
 {
     wxColour color;
     int w, h;
@@ -1605,7 +1605,6 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
 
 //    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
 
-    double pointSize = 2.5;
     preview->StartDrawing(pointSize);
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();

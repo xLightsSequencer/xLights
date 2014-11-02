@@ -279,7 +279,7 @@ public:
     void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
-    void DisplayEffectOnWindow(SequencePreview* preview);
+    void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     bool CanRotate();
     void Rotate(int degrees);

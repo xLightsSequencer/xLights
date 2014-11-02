@@ -1177,6 +1177,8 @@ private:
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
     PixelBufferClass buffer;
+    double mPointSize = 2.0;
+
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;

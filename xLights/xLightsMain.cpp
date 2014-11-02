@@ -2597,8 +2597,3 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
 }
 
 
-
-void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
-{
-    UpdatePreview();
-}

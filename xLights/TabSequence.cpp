@@ -1644,7 +1644,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
-    buffer.DisplayEffectOnWindow(seqPreview);
+    buffer.DisplayEffectOnWindow(seqPreview,mPointSize);
     size_t chnum;
     wxByte intensity;
     if (CheckBoxLightOutput->IsChecked() && xout)

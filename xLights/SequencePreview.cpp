@@ -40,8 +40,6 @@ SequencePreview::SequencePreview(wxPanel* parent, int* args) :
 {
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-    InitializePreview();
-    Refresh(true);
 }
 
 SequencePreview::~SequencePreview()

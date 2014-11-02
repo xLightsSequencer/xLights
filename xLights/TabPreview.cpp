@@ -101,9 +101,8 @@ void xLightsFrame::CompareMyDisplayToSeq()
 void xLightsFrame::UpdatePreview()
 {
     const wxColour *color;
-    double pointSize = 2.5;
     wxString SelModelName=ListBoxElementList->GetStringSelection();
-    modelPreview->StartDrawing(pointSize);
+    modelPreview->StartDrawing(mPointSize);
     for (int i=0; i<PreviewModels.size(); i++)
     {
         color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
@@ -258,7 +257,12 @@ void xLightsFrame::OnScrolledWindowPreviewResize(wxSizeEvent& event)
     UpdatePreview();
 }
 
-//refactored
+void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
+{
+    UpdatePreview();
+}
+
+
 void xLightsFrame::PreviewScaleUpdated(int newscale)
 {
     int sel=ListBoxElementList->GetSelection();
@@ -362,10 +366,9 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 void xLightsFrame::PreviewOutput(int period)
 {
     size_t m, n, chnum, NodeCnt;
-    double pointSize = 2.5;
     wxByte intensity;
     TimerOutput(period);
-    modelPreview->StartDrawing(pointSize);
+    modelPreview->StartDrawing(mPointSize);
     for (m=0; m<PreviewModels.size(); m++)
     {
         NodeCnt=PreviewModels[m]->GetNodeCount();
