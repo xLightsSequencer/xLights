@@ -1617,9 +1617,9 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview)
         for(size_t c=0; c < CoordCount; c++)
         {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX+RenderWi/2;
+            sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            preview->DrawPoint(color,(sx*scale),h-((sy*scale)+double(RenderHt)*0.025*scale));
+            preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+double(RenderHt)*0.025*scale));
         }
     }
     preview->EndDrawing();
