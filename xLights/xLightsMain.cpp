@@ -2037,6 +2037,10 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     {
         StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
     }
+    else if (pagenum == SEQUENCETAB)
+    {
+        seqPreview->InitializePreview();
+    }
     else
     {
         StatusBar1->SetStatusText(_(""));

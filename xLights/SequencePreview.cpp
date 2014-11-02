@@ -42,10 +42,6 @@ SequencePreview::SequencePreview(wxPanel* parent, int* args) :
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     InitializePreview();
     Refresh(true);
-    // HACK: for some reason, canvas does not draw until the parent has
-    // been resized, so force a resize here. wxWindows skip the resize
-    // processing if the actual size does not change, so change the size
-    // and then change it back to get the desired effect.
 }
 
 SequencePreview::~SequencePreview()
@@ -65,9 +61,6 @@ void SequencePreview::ClearBackground()
 
 void SequencePreview::resized(wxSizeEvent& evt)
 {
-//	wxGLCanvas::OnSize(evt);
-    ClearBackground();
-    //Refresh();
 }
 
 
@@ -102,6 +95,7 @@ int SequencePreview::getHeight()
 
 void SequencePreview::InitializePreview()
 {
+    mIsInitialized = true;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -136,7 +130,7 @@ void SequencePreview::EndDrawing()
 
 void SequencePreview::render( wxPaintEvent& evt )
 {
-    if(mIsDrawing) return;
+    if(mIsDrawing || !mIsInitialized) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

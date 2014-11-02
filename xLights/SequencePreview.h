@@ -38,6 +38,8 @@ private:
 	void keyReleased(wxKeyEvent& event);
 
     bool mIsDrawing = false;
+    bool mIsInitialized = false;
+
     wxGLContext*	m_context;
 
 	DECLARE_EVENT_TABLE()
