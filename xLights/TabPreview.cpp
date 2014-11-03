@@ -198,23 +198,29 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
 void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
-    SelectModel(ListBoxElementList->GetSelection());
+    SelectModel(ListBoxElementList->GetString(ListBoxElementList->GetSelection()));
 }
 
-void xLightsFrame::SelectModel(int index)
+void xLightsFrame::SelectModel(wxString name)
 {
-    int sel=index;
-    if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    int newscale=m->GetScale()*100.0;
-    SliderPreviewScale->SetValue(newscale);
-    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
-    SliderPreviewRotate->SetValue(m->GetRotation());
-    TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
-    bool canrotate=m->CanRotate();
-    SliderPreviewRotate->Enable(canrotate);
-    StaticTextPreviewRotation->Enable(canrotate);
-    UpdatePreview();
+    for(int i=0;i<ListBoxElementList->GetCount();i++)
+    {
+        if (name == ListBoxElementList->GetString(i))
+        {
+            ListBoxElementList->SetSelection(i);
+            ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
+            int newscale=m->GetScale()*100.0;
+            SliderPreviewScale->SetValue(newscale);
+            TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
+            SliderPreviewRotate->SetValue(m->GetRotation());
+            TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
+            bool canrotate=m->CanRotate();
+            SliderPreviewRotate->Enable(canrotate);
+            StaticTextPreviewRotation->Enable(canrotate);
+            UpdatePreview();
+            break;
+        }
+    }
 
 }
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
@@ -233,7 +239,7 @@ void xLightsFrame::FindSelectedModel(int x,int y)
         if(PreviewModels[i]->HitTest(modelPreview,x,y))
         {
             ListBoxElementList->SetSelection(i);
-            SelectModel(i);
+            SelectModel(PreviewModels[i]->name);
             break;
         }
     }

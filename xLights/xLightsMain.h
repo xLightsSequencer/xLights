@@ -1171,7 +1171,7 @@ private:
     void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
     void FindSelectedModel(int x,int y);
-    void SelectModel(int index);
+    void SelectModel(wxString name);
 
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
