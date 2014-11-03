@@ -999,7 +999,6 @@ private:
     bool isSetOffAtEnd();
 
     wxString base64_encode();
-    std::string base64_decode(const wxString& encoded_string);
 
     SeqDataType* RenderModelToData(wxXmlNode *modelNode);
     wxXmlNode* SelectModelToExport();
