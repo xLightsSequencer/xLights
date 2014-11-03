@@ -173,6 +173,8 @@ const long xLightsFrame::ID_BUTTON_PLAY_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_PREVIEW = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
+const long xLightsFrame::ID_STATICTEXT_CURRENT_PREVIEW_SIZE = wxNewId();
+const long xLightsFrame::ID_BUTTON_SET_PREVIEW_SIZE = wxNewId();
 const long xLightsFrame::ID_BUTTON_SELECT_MODEL_GROUPS = wxNewId();
 const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
 const long xLightsFrame::ID_LISTBOX_ELEMENT_LIST = wxNewId();
@@ -354,6 +356,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer38;
     wxFlexGridSizer* FlexGridSizer23;
     wxMenuItem* MenuItem5;
+    wxFlexGridSizer* FlexGridSizer41;
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItemAddList;
     wxStaticBoxSizer* StaticBoxSizer4;
@@ -410,11 +413,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer68;
     wxFlexGridSizer* FlexGridSizer31;
+    wxFlexGridSizer* FlexGridSizer40;
     wxFlexGridSizer* FlexGridSizer39;
     wxFlexGridSizer* FlexGridSizer28;
     wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
     wxMenu* MenuPlaylist;
     wxFlexGridSizer* FlexGridSizer26;
+    wxFlexGridSizer* FlexGridSizer30;
 
     Create(parent, wxID_ANY, _("xLights/Nutcracker OpenGL Beta (Ver 3.6.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
@@ -775,8 +780,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer31->Add(ButtonStopPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxSize(58,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
-    FlexGridSizer31->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
+    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxSize(619,21), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
+    FlexGridSizer41->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer30->Add(FlexGridSizer41, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer40 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticTextCurrentPreviewSize = new wxStaticText(PanelPreview, ID_STATICTEXT_CURRENT_PREVIEW_SIZE, _("Current Size: 1920x1080"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_CURRENT_PREVIEW_SIZE"));
+    FlexGridSizer40->Add(StaticTextCurrentPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonSetPreviewSize = new wxButton(PanelPreview, ID_BUTTON_SET_PREVIEW_SIZE, _("Set Size"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_PREVIEW_SIZE"));
+    FlexGridSizer40->Add(ButtonSetPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer31, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34 = new wxFlexGridSizer(1, 2, 0, 0);
     FlexGridSizer34->AddGrowableCol(1);
@@ -1422,6 +1437,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_PLAY_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
     Connect(ID_BUTTON_STOP_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
     Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
+    Connect(ID_BUTTON_SET_PREVIEW_SIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetPreviewSizeClick);
     Connect(ID_BUTTON_SELECT_MODEL_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSelectModelGroupsClick);
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
@@ -2041,6 +2057,10 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     {
         seqPreview->InitializePreview();
     }
+    else if (pagenum == PREVIEWTAB)
+    {
+        modelPreview->InitializePreview();
+    }
     else
     {
         StatusBar1->SetStatusText(_(""));
@@ -2596,4 +2616,64 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     return retnode;
 }
 
+void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
+{
+    int DlgResult;
+    dlgPreviewSize dialog(this);
+    dialog.TextCtrl_PreviewWidth->SetValue(wxString::Format("%d",modelPreview->getWidth()));
+    dialog.TextCtrl_PreviewHeight->SetValue(wxString::Format("%d",modelPreview->getHeight()));
+    dialog.CenterOnParent();
+    DlgResult = dialog.ShowModal();
+    if (DlgResult == wxID_OK)
+    {
+        if(!dialog.TextCtrl_PreviewWidth->IsEmpty() && !dialog.TextCtrl_PreviewHeight->IsEmpty())
+        {
+            int w = wxAtoi(dialog.TextCtrl_PreviewWidth->GetValue());
+            int h = wxAtoi(dialog.TextCtrl_PreviewHeight->GetValue());
+            if(w > 0 && h > 0)
+            {
+                SetPreviewSize(w,h);
+            }
+        }
+    }
+}
 
+void xLightsFrame::SetPreviewSize(int width,int height)
+{
+    StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Current Size: %d x %d",width,height));
+    SetXmlSetting("previewWidth",wxString::Format("%d",width));
+    SetXmlSetting("previewHeight",wxString::Format("%d",height));
+    SaveEffectsFile();
+    modelPreview->SetCanvasSize(width,height);
+}
+
+void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
+{
+    wxXmlNode* e;
+    // Delete existing setting node
+    for(e=SettingsNode->GetChildren(); e!=NULL; e=e->GetNext())
+    {
+        if(e->GetName() == settingName)
+        {
+            SettingsNode->RemoveChild(e);
+        }
+    }
+    // Add new one
+    wxXmlNode* setting = new wxXmlNode( wxXML_ELEMENT_NODE, settingName );
+    setting->AddAttribute("value",value);
+    SettingsNode->AddChild(setting);
+}
+
+wxString xLightsFrame::GetXmlSetting(const wxString& settingName)
+{
+    wxXmlNode* e;
+    // Delete existing setting node
+    for(e=SettingsNode->GetChildren(); e!=NULL; e=e->GetNext())
+    {
+        if(e->GetName() == settingName)
+        {
+            return e->GetAttribute("value");
+        }
+    }
+    return "Not Found";
+}
