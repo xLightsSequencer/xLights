@@ -198,7 +198,12 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
 void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
-    int sel=ListBoxElementList->GetSelection();
+    SelectModel(ListBoxElementList->GetSelection());
+}
+
+void xLightsFrame::SelectModel(int index)
+{
+    int sel=index;
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
     int newscale=m->GetScale()*100.0;
@@ -210,14 +215,28 @@ void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
     SliderPreviewRotate->Enable(canrotate);
     StaticTextPreviewRotation->Enable(canrotate);
     UpdatePreview();
-}
 
+}
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
+    FindSelectedModel(event.GetX(),event.GetY());
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
     m_previous_mouse_y = event.GetPosition().y;
     StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+}
+
+void xLightsFrame::FindSelectedModel(int x,int y)
+{
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->HitTest(modelPreview,x,y))
+        {
+            ListBoxElementList->SetSelection(i);
+            SelectModel(i);
+            break;
+        }
+    }
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)

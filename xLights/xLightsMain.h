@@ -1170,6 +1170,9 @@ private:
     void PgoGridCellSelect(int row, int col, int where);
     void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
+    void FindSelectedModel(int x,int y);
+    void SelectModel(int index);
+
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
