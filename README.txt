@@ -6,9 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-3.6.0	Nov 2,2014
+3.6.0	Nov 4,2014
 	-enh (dpitts) NUTCRACKER and PREVIEW windows now use OpenGL to draw objects. The result of this is xLights can now draw very
-		large objects with no delay. Dave is now working on getting a fixed preview window size.
+		large objects with no delay. 
+	-enh (dpitts) New ability to set the resolution of the PREVIEW screen. Set the size and it will be remembered. This is needed to 
+				help when making Whole House Models. This way you can always come back to the layout you had been working on.
+	-enh (dpitts) You can now click and drag objects in the PREVIEW tab. If there are multiple objects under your mouse hold 
+		the shift key while clicking and it will cycle through all of them
 3.5.2	Oct 30,2014
 	-bug (frankr) Fix for preview moving some elements into the wrong place. Before the ability to rotate any element
 		rotations were in 3 degree increments, now they are 1 degree. This change caused existing previews to draw elements in
