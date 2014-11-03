@@ -2158,7 +2158,9 @@ void FRAMECLASS ReadLorFile(const char* filename)
         cnt = 0;
         for (int u = 0; u < dmxUnitSizes[network].size(); u++)
         {
-            cnt += dmxUnitSizes[network][u];
+            if (cnt < dmxUnitSizes[network][u]) {
+                cnt = dmxUnitSizes[network][u];
+            }
         }
         AppendConvertStatus (wxString::Format(_("DMX Network %d:  %d channels\n"),network,cnt));
     }
