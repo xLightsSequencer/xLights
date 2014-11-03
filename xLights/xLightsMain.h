@@ -976,6 +976,9 @@ private:
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
+    int mHitTestNextSelectModelIndex=0;
+
+
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const char* filename);

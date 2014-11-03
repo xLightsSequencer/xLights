@@ -234,13 +234,31 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 
 void xLightsFrame::FindSelectedModel(int x,int y)
 {
+    wxArrayInt found;
     for (int i=0; i<PreviewModels.size(); i++)
     {
         if(PreviewModels[i]->HitTest(modelPreview,x,y))
         {
-            ListBoxElementList->SetSelection(i);
-            SelectModel(PreviewModels[i]->name);
-            break;
+            //ListBoxElementList->SetSelection(i);
+            found.push_back(i);
+        }
+    }
+    if(found.GetCount()==1)
+    {
+        SelectModel(PreviewModels[found[0]]->name);
+        mHitTestNextSelectModelIndex = 0;
+    }
+    else if (found.GetCount()>1)
+    {
+        for(int i=0;i<found.GetCount();i++)
+        {
+            if(mHitTestNextSelectModelIndex==i)
+            {
+                SelectModel(PreviewModels[found[i]]->name);
+                mHitTestNextSelectModelIndex += 1;
+                mHitTestNextSelectModelIndex %= found.GetCount();
+                break;
+            }
         }
     }
 }
