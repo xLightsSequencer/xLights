@@ -6,6 +6,8 @@
 #ifndef __xmlparser_hpp__
 #define __xmlparser_hpp__
 
+#include <stdlib.h>
+
 class SP_XmlPullEvent;
 class SP_XmlPullEventQueue;
 class SP_XmlReader;
@@ -19,7 +21,7 @@ public:
 
 	/// append more input xml source
 	/// @return how much byte has been consumed
-	int append( const char * source, int len );
+	int append( const char * source, size_t len );
 
 	/// @return NOT NULL : the pull event
 	/// @return NULL : error or need more input
@@ -38,14 +40,23 @@ public:
 
 	const char * getEncoding();
 
+    void setMaxTextSize(int sz) {
+        maxTextSize = sz;
+    }
+    int getMaxTextSize() {
+        return maxTextSize;
+    }
 protected:
 	void changeReader( SP_XmlReader * reader );
 
 	SP_XmlReader * getReader( int type );
+    
+    void enqueueEvent(SP_XmlPullEvent *ev);
 
 	void setError( const char * error );
 
 	friend class SP_XmlReader;
+    friend class SP_XmlPCDataReader;
 
 private:
 	SP_XmlPullEventQueue * mEventQueue;
@@ -57,6 +68,8 @@ private:
 	int mRootTagState;
 
 	int mLevel;
+    
+    int maxTextSize;
 
 	int mIgnoreWhitespace;
 

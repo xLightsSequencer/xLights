@@ -88,6 +88,7 @@
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
 		67B4C91A17B536D60006B951 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67B4C91917B536D60006B951 /* icon.icns */; };
+		67BAE6E31A08252700CB7041 /* spxml-0.5 in Resources */ = {isa = PBXBuildFile; fileRef = 67BAE6E21A08252700CB7041 /* spxml-0.5 */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
@@ -215,6 +216,7 @@
 		67B4C92717B53DB50006B951 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		67B4C92B17B53DE70006B951 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		67B4C92C17B53DE70006B951 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
+		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
 		67C6488619E3396C006526CD /* RenderCoroFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCoroFaces.cpp; sourceTree = "<group>"; };
 		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
@@ -398,6 +400,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
 				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
@@ -485,6 +488,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				67A61A4817B51C0F008E95BB /* resource.rc in Resources */,
+				67BAE6E31A08252700CB7041 /* spxml-0.5 in Resources */,
 				67A61A5A17B51C0F008E95BB /* AddShowDialog.wxs in Resources */,
 				67A61A5B17B51C0F008E95BB /* ChannelLayoutDialog.wxs in Resources */,
 				67A61A5C17B51C0F008E95BB /* ChannelMapDialog.wxs in Resources */,

@@ -34,6 +34,7 @@ SP_XmlPullParser :: SP_XmlPullParser()
 	mRowIndex = mColIndex = 0;
 
 	memset( mEncoding, 0, sizeof( mEncoding ) );
+    maxTextSize = 2000000000;
 }
 
 SP_XmlPullParser :: ~SP_XmlPullParser()
@@ -61,7 +62,7 @@ const char * SP_XmlPullParser :: getEncoding()
 	return mEncoding;
 }
 
-int SP_XmlPullParser :: append( const char * source, int len )
+int SP_XmlPullParser :: append( const char * source, size_t len )
 {
 	if( NULL != mError ) return 0;
 
@@ -167,6 +168,11 @@ void SP_XmlPullParser :: changeReader( SP_XmlReader * reader )
 
 	mReaderPool->save( mReader );
 	mReader = reader;
+}
+
+void SP_XmlPullParser :: enqueueEvent(SP_XmlPullEvent *event)
+{
+    mEventQueue->enqueue( event );
 }
 
 SP_XmlReader * SP_XmlPullParser :: getReader( int type )
