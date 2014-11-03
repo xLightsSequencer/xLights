@@ -700,6 +700,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
         ApplyEdit(row, col, grid);
         return;
     }
+#ifndef __linux__
     wxGridCellEditorEvtHandler* evtHandler = NULL;
     if (m_control)
         evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
@@ -718,6 +719,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
 //        m_row = row;
 //        m_col = col;
     }
+#endif
 //no worky; use grid event handler instead
     wxEvtHandler* evtHandler2 = NULL;
     if (m_text) evtHandler2 = m_text->GetEventHandler(); //wxDynamicCast(m_text->GetEventHandler(), wxGridCellEditorEvtHandler);
@@ -749,6 +751,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
 //    Combo()->Popup();
 #endif
 
+#ifndef __linux__
     if (evtHandler)
     {
         // When dropping down the menu, a kill focus event
@@ -757,6 +760,7 @@ void myGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
         evtHandler->SetInSetFocus(false);
 #endif
    }
+#endif
 }
 
 #define notWXUNUSED(thing)  thing

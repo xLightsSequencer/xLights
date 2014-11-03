@@ -52,6 +52,10 @@ bool FRAMECLASS isSetOffAtEnd() {
 }
 #endif
 
+#ifndef MAX_READ_BLOCK_SIZE
+#define MAX_READ_BLOCK_SIZE 4096 * 1024
+#endif
+
 
 /*
    base64.cpp and base64.h
@@ -142,15 +146,14 @@ wxString FRAMECLASS base64_encode()
     return ret;
 }
 
-
-std::string FRAMECLASS base64_decode(const wxString& encoded_string)
+//returns number of chars at the end that couldn't be decoded
+int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data)
 {
-    int in_len = encoded_string.size();
+    size_t in_len = encoded_string.size();
     int i = 0;
     int j = 0;
     int in_ = 0;
     unsigned char char_array_4[4], char_array_3[3];
-    std::string ret;
 
     while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
     {
@@ -169,13 +172,14 @@ std::string FRAMECLASS base64_decode(const wxString& encoded_string)
 
             for (i = 0; (i < 3); i++)
             {
-                ret += char_array_3[i];
+                data.resize(data.size() + 1);
+                data[data.size() - 1] = char_array_3[i];
             }
             i = 0;
         }
     }
 
-    if (i)
+    if (i && encoded_string[in_] == '=')
     {
         for (j = i; j <4; j++)
         {
@@ -193,10 +197,11 @@ std::string FRAMECLASS base64_decode(const wxString& encoded_string)
 
         for (j = 0; (j < i - 1); j++)
         {
-            ret += char_array_3[j];
+            data.resize(data.size() + 1);
+            data[data.size() - 1] = char_array_3[j];
         }
     }
-    return ret;
+    return i;
 }
 
 void FRAMECLASS ConversionInit()
@@ -1397,7 +1402,7 @@ const char * getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const char *
 void FRAMECLASS ReadVixFile(const char* filename)
 {
     wxString NodeName,NodeValue,msg;
-    std::string VixSeqData;
+    std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
     long cnt = 0;
@@ -1410,11 +1415,12 @@ void FRAMECLASS ReadVixFile(const char* filename)
     AppendConvertStatus (_("Reading Vixen sequence\n"));
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
+    parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
     wxFile file(filename);
-    int maxSizeOfRead = 1024 * 1024;
-    char *bytes = new char[maxSizeOfRead];
-    int read = file.Read(bytes, maxSizeOfRead);
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
+    wxString carryOver;
 
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
@@ -1423,7 +1429,7 @@ void FRAMECLASS ReadVixFile(const char* filename)
     {
         if (!event)
         {
-            read = file.Read(bytes, maxSizeOfRead);
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0)
             {
                 done = true;
@@ -1482,7 +1488,16 @@ void FRAMECLASS ReadVixFile(const char* filename)
                     }
                     else if (context[1] == _("EventValues"))
                     {
-                        VixSeqData=base64_decode(NodeValue);
+                        //AppendConvertStatus(wxString::Format(_("Chunk Size=%d\n"), NodeValue.size()));
+                        if (carryOver.size() > 0) {
+                            NodeValue.insert(0, carryOver);
+                        }
+                        int i = base64_decode(NodeValue, VixSeqData);
+                        if (i != 0) {
+                            carryOver = NodeValue.Mid(NodeValue.size() - i - 1, i);
+                        } else {
+                            carryOver.Clear();
+                        }
                     }
                     else if (context[1] == _("Profile"))
                     {
@@ -1601,9 +1616,8 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
     wxFile file(filename);
-    int maxSizeOfRead = 1024 * 1024;
-    char *bytes = new char[maxSizeOfRead];
-    int read = file.Read(bytes, maxSizeOfRead);
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
 
     // pass one, get the metadata
@@ -1613,7 +1627,7 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
     {
         if (!event)
         {
-            read = file.Read(bytes, maxSizeOfRead);
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0)
             {
                 done = true;
@@ -1770,7 +1784,7 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
     wxYield();
     
     parser = new SP_XmlPullParser();
-    read = file.Read(bytes, maxSizeOfRead);
+    read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
 
 
@@ -1781,7 +1795,7 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
     {
         if (!event)
         {
-            read = file.Read(bytes, maxSizeOfRead);
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0)
             {
                 done = true;
@@ -1991,7 +2005,6 @@ void FRAMECLASS ReadLorFile(const char* filename)
     std::vector<std::vector<int>> dmxUnitSizes;
     LORInfoMap rgbChannels;
 
-    int lastNet = 0;
     LorTimingList.clear();
 
     ConversionInit();
@@ -2005,9 +2018,8 @@ void FRAMECLASS ReadLorFile(const char* filename)
 
     SP_XmlPullParser *parser = new SP_XmlPullParser();
     wxFile file(filename);
-    int maxSizeOfRead = 1024 * 1024;
-    char *bytes = new char[maxSizeOfRead];
-    int read = file.Read(bytes, maxSizeOfRead);
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
     bool mapEmpty = mapEmptyChannels();
 
@@ -2019,7 +2031,7 @@ void FRAMECLASS ReadLorFile(const char* filename)
     {
         if (!event)
         {
-            read = file.Read(bytes, maxSizeOfRead);
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0)
             {
                 done = true;
@@ -2173,7 +2185,7 @@ void FRAMECLASS ReadLorFile(const char* filename)
 
     parser = new SP_XmlPullParser();
     file.Seek(0);
-    read = file.Read(bytes, maxSizeOfRead);
+    read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
     parser->append(bytes, read);
 
     //pass 2, convert the data
@@ -2184,7 +2196,7 @@ void FRAMECLASS ReadLorFile(const char* filename)
     {
         if (!event)
         {
-            read = file.Read(bytes, maxSizeOfRead);
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
             if (read == 0)
             {
                 done = true;

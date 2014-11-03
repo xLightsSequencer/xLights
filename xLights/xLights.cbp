@@ -213,7 +213,8 @@
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
-					<Add option="`wx-config --libs std,media`" />
+					<Add option="-lGL -lGLU " />
+					<Add option="`wx-config --libs std,media,gl`" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -234,7 +235,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config --version=3.0 --libs std,media`" />
+					<Add option="-lGL -lGLU " />
+					<Add option="`wx-config --version=3.0 --libs std,media,gl`" />
 				</Linker>
 			</Target>
 		</Build>
