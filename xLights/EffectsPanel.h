@@ -414,7 +414,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxBitmapButton* BitmapButton_SpirographR;
     wxChoice* Choice_Text_Count3;
-    wxButton* Button1;
+    wxButton* ButtonGledFile;
     wxPanel* Panel1_Piano;
     wxSlider* Slider1;
     wxCheckBox* CheckBox_Palette1;
@@ -594,7 +594,7 @@ protected:
     static const long ID_SLIDER_Garlands_Spacing;
     static const long ID_BITMAPBUTTON_SLIDER_Garlands_Spacing;
     static const long ID_PANEL14;
-    static const long ID_BUTTON3;
+    static const long ID_BUTTON_GLED_FILE;
     static const long ID_BITMAPBUTTON10;
     static const long ID_TEXTCTRL_Glediator_Filename;
     static const long ID_PANEL17;

@@ -168,31 +168,31 @@ void xLightsFrame::AddPlaylist(const wxString& name)
     wxBoxSizer* BoxSizer5 = new wxBoxSizer(wxVERTICAL);
 
     id=baseid+PLAYLIST_ADD;
-    wxButton* Button2 = new wxButton(PanelPlayList, id, _(">"));
-    Button2->SetMinSize(wxSize(35,20));
-    Button2->SetToolTip(_("Add selected file"));
-    BoxSizer5->Add(Button2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxButton* ButtonAddSelFile = new wxButton(PanelPlayList, id, _(">"));
+    ButtonAddSelFile->SetMinSize(wxSize(35,20));
+    ButtonAddSelFile->SetToolTip(_("Add selected file"));
+    BoxSizer5->Add(ButtonAddSelFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonPlaylistAddClick);
 
     id=baseid+PLAYLIST_ADD_ALL;
-    wxButton* Button3 = new wxButton(PanelPlayList, id, _(">>"));
-    Button3->SetMinSize(wxSize(35,20));
-    Button3->SetToolTip(_("Add all files"));
-    BoxSizer5->Add(Button3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxButton* ButtonAddAllFiles = new wxButton(PanelPlayList, id, _(">>"));
+    ButtonAddAllFiles->SetMinSize(wxSize(35,20));
+    ButtonAddAllFiles->SetToolTip(_("Add all files"));
+    BoxSizer5->Add(ButtonAddAllFiles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonPlaylistAddAllClick);
 
     id=baseid+PLAYLIST_DELETE;
-    wxButton* Button4 = new wxButton(PanelPlayList, id, _("<"));
-    Button4->SetMinSize(wxSize(35,20));
-    Button4->SetToolTip(_("Delete selected item"));
-    BoxSizer5->Add(Button4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxButton* ButtonDelSelFile = new wxButton(PanelPlayList, id, _("<"));
+    ButtonDelSelFile->SetMinSize(wxSize(35,20));
+    ButtonDelSelFile->SetToolTip(_("Delete selected item"));
+    BoxSizer5->Add(ButtonDelSelFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonPlaylistDeleteClick);
 
     id=baseid+PLAYLIST_DELETE_ALL;
-    wxButton* Button5 = new wxButton(PanelPlayList, id, _("<<"));
-    Button5->SetMinSize(wxSize(35,20));
-    Button5->SetToolTip(_("Delete all items"));
-    BoxSizer5->Add(Button5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxButton* ButtonDelAllFiles = new wxButton(PanelPlayList, id, _("<<"));
+    ButtonDelAllFiles->SetMinSize(wxSize(35,20));
+    ButtonDelAllFiles->SetToolTip(_("Delete all items"));
+    BoxSizer5->Add(ButtonDelAllFiles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonPlaylistDeleteAllClick);
 
     FlexGridSizer4->Add(BoxSizer5, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
