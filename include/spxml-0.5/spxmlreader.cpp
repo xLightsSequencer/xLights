@@ -254,6 +254,14 @@ void SP_XmlPCDataReader :: read( SP_XmlPullParser * parser, char c )
 		changeReader( parser, reader );
 	} else {
 		mBuffer->append( c );
+        if (mBuffer->getSize() >= parser->getMaxTextSize())
+        {
+            SP_XmlPullEvent * event = getEvent(parser);
+            if (event != NULL) {
+                parser->enqueueEvent(event);
+                mBuffer->clean();
+            }
+        }
 	}
 }
 

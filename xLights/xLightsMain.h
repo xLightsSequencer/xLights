@@ -87,7 +87,7 @@
 #include "PreviewModels.h"
 #include "ModelPreview.h"
 #include "SequencePreview.h"
-#include "DlgPreviewSize.h"
+#include "dlgPreviewSize.h"
 
 class EffectTreeDialog;
 
@@ -1015,7 +1015,6 @@ private:
     bool isSetOffAtEnd();
 
     wxString base64_encode();
-    std::string base64_decode(const wxString& encoded_string);
 
     SeqDataType* RenderModelToData(wxXmlNode *modelNode);
     wxXmlNode* SelectModelToExport();

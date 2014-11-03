@@ -20,11 +20,11 @@ class PreviewModels: public wxDialog
 		//(*Declarations(PreviewModels)
 		wxTextCtrl* TextModelGroupName;
 		wxStaticText* StaticText2;
-		wxButton* Button1;
+		wxButton* ButtonClose;
 		wxListBox* ListBoxModelGroups;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
-		wxButton* Button2;
+		wxButton* ButtonUpdateGroup;
 		wxButton* ButtonAddToModelGroup;
 		wxButton* ButtonRemoveModelGroup;
 		wxButton* ButtonRemoveFromModelGroup;
@@ -47,8 +47,8 @@ class PreviewModels: public wxDialog
 		static const long ID_BUTTON_REMOVE_FROM_MODEL_GROUP;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTBOX_MODELS_IN_GROUP;
-		static const long ID_BUTTON2;
-		static const long ID_BUTTON1;
+		static const long ID_BUTTON_UPDATE_GROUP;
+		static const long ID_BUTTON_CLOSE;
 		//*)
 
 	private:
