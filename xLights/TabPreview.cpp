@@ -444,7 +444,12 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
             msec = seekPoint;
         }
         PlayerDlg->MediaCtrl->Seek(msec);
+#if defined(__WXMSW__)
         Sleep(1000);
+#else
+        sleep(1);
+#endif
+
         PlayerDlg->MediaCtrl->Stop();
         PlayerDlg->MediaCtrl->Seek(msec);
         //Update the slider back to where the user last selected since it played past that point
