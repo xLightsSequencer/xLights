@@ -87,7 +87,7 @@
 #include "PreviewModels.h"
 #include "ModelPreview.h"
 #include "SequencePreview.h"
-#include "DlgPreviewSize.h"
+#include "dlgPreviewSize.h"
 
 class EffectTreeDialog;
 
