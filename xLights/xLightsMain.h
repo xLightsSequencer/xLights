@@ -87,6 +87,7 @@
 #include "PreviewModels.h"
 #include "ModelPreview.h"
 #include "SequencePreview.h"
+#include "DlgPreviewSize.h"
 
 class EffectTreeDialog;
 
@@ -414,6 +415,7 @@ private:
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
+    void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -525,6 +527,8 @@ private:
     static const long ID_BUTTON_STOP_PREVIEW;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
+    static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
+    static const long ID_BUTTON_SET_PREVIEW_SIZE;
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
@@ -785,6 +789,7 @@ private:
     wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
+    wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
@@ -820,8 +825,8 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
-    wxPanel* PanelTestStandard;
     wxPanel* SeqPanelRight;
+    wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
     wxButton* ButtonSeqExport;
@@ -839,6 +844,7 @@ private:
     wxButton* Button_PgoStitch;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText4;
@@ -1092,6 +1098,9 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
     void UpdateGrid();
+    void SetPreviewSize(int width,int height);
+    void SetXmlSetting(const wxString& settingName,const wxString& value);
+    wxString GetXmlSetting(const wxString& settingName);
     // Functions for update state of sequence grid
     void AllRowsAreUpdated();
 
@@ -1170,6 +1179,7 @@ private:
     wxXmlNode* PalettesNode;
     wxXmlNode* ViewsNode;
     wxXmlNode* ModelGroupsNode;
+    wxXmlNode* SettingsNode;
     bool MixTypeChanged;
     bool FadesChanged;
     long SeqBaseChannel;

@@ -24,6 +24,7 @@ public:
     void SetPointSize(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void EndDrawing();
+	void SetCanvasSize(int width,int height);
 private:
 	void render(wxPaintEvent& event);
 	void SetOrigin();

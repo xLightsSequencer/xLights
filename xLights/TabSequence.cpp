@@ -963,6 +963,8 @@ void xLightsFrame::ResetEffectsXml()
     EffectsNode=NULL;
     PalettesNode=NULL;
     ViewsNode=NULL;
+    ModelGroupsNode=NULL;
+    SettingsNode=NULL;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -994,6 +996,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "palettes") PalettesNode=e;
         if (e->GetName() == "views") ViewsNode=e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
+        if (e->GetName() == "settings") SettingsNode=e;
     }
     if (ModelsNode == 0)
     {
@@ -1024,6 +1027,21 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         root->AddChild( ModelGroupsNode );
     }
 
+    if(SettingsNode==0)
+    {
+        SettingsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "settings" );
+        root->AddChild( SettingsNode );
+        SetXmlSetting("previewWidth","1280");
+        SetXmlSetting("previewHeight","720");
+    }
+    int previewWidth=wxAtoi(GetXmlSetting("previewWidth"));
+    int previewHeight=wxAtoi(GetXmlSetting("previewHeight"));
+    if (previewWidth==0 || previewHeight==0)
+    {
+        previewWidth = 1280;
+        previewHeight = 720;
+    }
+    SetPreviewSize(previewWidth,previewHeight);
 
     return effectsFile.GetFullPath();
 }

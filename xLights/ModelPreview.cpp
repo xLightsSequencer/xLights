@@ -101,6 +101,16 @@ int ModelPreview::getHeight()
     return GetSize().y;
 }
 
+void ModelPreview::SetCanvasSize(int width,int height)
+{
+    SetSize(width,height);
+    wxSize s;
+    s.SetWidth(width);
+    s.SetHeight(height);
+    SetMaxSize(s);
+    SetMinSize(s);
+}
+
 void ModelPreview::InitializePreview()
 {
     wxGLCanvas::SetCurrent(*m_context);
