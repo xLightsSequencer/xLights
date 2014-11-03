@@ -285,6 +285,7 @@ public:
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
+    bool HitTest(ModelPreview* preview,int x,int y);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     void SetModelScreenCoordinates(int x, int y);
     bool CanRotate();

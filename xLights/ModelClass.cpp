@@ -1505,6 +1505,46 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     }
 }
 
+bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    int w, h;
+    preview->GetSize(&w,&h);
+
+    int y1 = h-y;
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w)+w/2;
+    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX+RenderWi;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            SetModelScreenCoordinates(sx,sy);
+        }
+    }
+    if (x>=mMinScreenX && x<=mMaxScreenX && y1>=mMinScreenY && y1 <= mMaxScreenY)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // display model using a single color
 void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* color)
 {
@@ -1513,6 +1553,11 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
     wxPen pen;
     int w, h;
     preview->GetSize(&w,&h);
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
 
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
@@ -1527,7 +1572,9 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX+RenderWi;
             sy=Nodes[n]->Coords[c].screenY;
-            preview->DrawPoint(*color,(sx*scale)+w1,(sy*scale)+h1);
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            preview->DrawPoint(*color,sx,sy);
         }
     }
 }
@@ -1670,9 +1717,9 @@ void ModelClass::SetModelScreenCoordinates(int x, int y)
     {
         mMaxScreenX = x;
     }
-    if (y>mMinScreenY)
+    if (y<mMinScreenY)
     {
-        mMaxScreenY = y;
+        mMinScreenY = y;
     }
     if (y>mMaxScreenY)
     {
