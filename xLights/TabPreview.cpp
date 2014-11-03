@@ -239,7 +239,6 @@ void xLightsFrame::FindSelectedModel(int x,int y)
     {
         if(PreviewModels[i]->HitTest(modelPreview,x,y))
         {
-            //ListBoxElementList->SetSelection(i);
             found.push_back(i);
         }
     }

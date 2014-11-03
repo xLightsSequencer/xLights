@@ -126,7 +126,6 @@ void ModelPreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrig
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
-    glEnable(GL_TEXTURE_2D);   // textures
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -142,6 +141,7 @@ void ModelPreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrig
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y);
+    glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -166,6 +166,15 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
     glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
+    if(image == NULL)
+    {
+       image = new Image( wxT("E:\\Users\\David\\dropbox\\christmas\\Nutcracker\\source\\bin\\Pic1.jpg") );
+       sprite = new Drawable(image);
+    }
+    glColor3ub(255, 255,255);
+    glEnable(GL_TEXTURE_2D);   // textures
+    sprite->render();
+    glDisable(GL_TEXTURE_2D);   // textures
     glBegin(GL_POINTS);
 }
 
