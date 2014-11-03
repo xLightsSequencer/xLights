@@ -408,6 +408,8 @@ private:
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
     void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
+    void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
+    void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -959,6 +961,7 @@ private:
     wxArrayString FileNames;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
+    long seekPoint;
 
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
