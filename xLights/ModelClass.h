@@ -247,6 +247,8 @@ private:
     bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
 
+    double mMinScreenX=0;
+    double mMinScreenY=0;
     double mMaxScreenX=0;
     double mMaxScreenY=0;
 
@@ -284,6 +286,7 @@ public:
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
+    void SetModelScreenCoordinates(int x, int y)
     bool CanRotate();
     void Rotate(int degrees);
     const wxString& GetStringType(void) { return StringType; }
