@@ -20,7 +20,7 @@ all: makefile subdirs
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS): FORCE
-	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" linux_release
+	@${MAKE} -C $@ -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
 
 #############################################################################
@@ -28,14 +28,14 @@ $(SUBDIRS): FORCE
 debug: $(addsuffix _debug,$(SUBDIRS))
 
 $(addsuffix _debug,$(SUBDIRS)):
-	@${MAKE} -C $(subst _debug,,$@) -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" linux_debug
+	@${MAKE} -C $(subst _debug,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
 
 #############################################################################
 
 clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
-	@${MAKE} -C $(subst _clean,,$@) -f xLights.cbp.mak OBJDIR_DEBUGLINUX=".objs_debug" clean
+	@${MAKE} -C $(subst _clean,,$@) -f xLights.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
 
 #############################################################################
 
@@ -57,10 +57,10 @@ xLights/xLights.cbp.mak: xLights/xLights.cbp
 	cat xLights/xLights.cbp.mak.orig \
 		| sed \
 			-e "s/^CFLAGS = \(.*\)/CFLAGS = \1 -std=gnu++0x/" \
-			-e "s/CFLAGS_RELEASELINUX = \(.*\)/CFLAGS_RELEASELINUX = \1 $(IGNORE_WARNINGS)/" \
-			-e "s/LDFLAGS_DEBUGLINUX = \(.*\)/LDFLAGS_DEBUGLINUX = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
-			-e "s/LDFLAGS_RELEASELINUX = \(.*\)/LDFLAGS_RELEASELINUX = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
-			-e "s/OBJDIR_DEBUGLINUX = \(.*\)/OBJDIR_DEBUGLINUX = .objs_debug/" \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/LDFLAGS_LINUX_DEBUG = \(.*\)/LDFLAGS_LINUX_DEBUG = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
+			-e "s/LDFLAGS_LINUX_RELEASE = \(.*\)/LDFLAGS_LINUX_RELEASE = \1 \`pkg-config --libs gstreamer-interfaces-0.10\`/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xLights/xLights.cbp.mak
 
 #############################################################################
