@@ -247,6 +247,9 @@ private:
     bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
 
+    double mMaxScreenX=0;
+    double mMaxScreenY=0;
+
     StartChannelVector_t stringStartChan;
     wxXmlNode* ModelXml;
     wxByte rgbidx[3]; // records the order in which the color values are sent to the physical device

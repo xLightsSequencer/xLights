@@ -1659,3 +1659,25 @@ void ModelClass::SetModelCoord( int degrees)
         }
     }
 }
+
+void SetModelScreenCoordinates(int x, int y)
+{
+    if (x<mMinScreenX)
+    {
+        mMinScreenX = x;
+    }
+    if (x>mMaxScreenX)
+    {
+        mMaxScreenX = x;
+    }
+    if (y>mMinScreenY)
+    {
+        mMaxScreenY = y;
+    }
+    if (y>mMaxScreenY)
+    {
+        mMaxScreenY = y;
+    }
+
+
+}
