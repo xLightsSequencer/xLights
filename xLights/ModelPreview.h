@@ -7,6 +7,9 @@
 #include "wx/glcanvas.h"
 #endif
 
+#include "Image.h"
+#include "Drawable.h"
+
 class ModelPreview : public wxGLCanvas
 {
 
@@ -43,6 +46,9 @@ private:
     bool mIsInitialized = false;
     wxDouble mPointSize = 2.0;
     wxGLContext*	m_context;
+
+    Image* image = NULL;
+    Drawable* sprite;
 
 	DECLARE_EVENT_TABLE()
 };

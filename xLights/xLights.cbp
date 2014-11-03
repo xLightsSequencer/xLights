@@ -251,6 +251,8 @@
 		<Unit filename="ChannelMapDialog.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
+		<Unit filename="Drawable.cpp" />
+		<Unit filename="Drawable.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
@@ -262,6 +264,10 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="Image.cpp" />
+		<Unit filename="Image.h" />
+		<Unit filename="Image_Loader.cpp" />
+		<Unit filename="Image_Loader.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
@@ -310,6 +316,7 @@
 		<Unit filename="RenderWave.cpp" />
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
+		<Unit filename="SOIL.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
