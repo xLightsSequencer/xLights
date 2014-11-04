@@ -8,7 +8,7 @@
 #endif
 
 #include "Image.h"
-#include "Drawable.h"
+#include "XlightsDrawable.h"
 
 class ModelPreview : public wxGLCanvas
 {
@@ -55,7 +55,7 @@ private:
     wxGLContext*	m_context;
 
     Image* image = NULL;
-    Drawable* sprite;
+    xLightsDrawable* sprite;
 
 	DECLARE_EVENT_TABLE()
 };

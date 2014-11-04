@@ -193,7 +193,7 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
         if (image == NULL)
         {
            image = new Image(mBackgroundImage);
-           sprite = new Drawable(image);
+           sprite = new xLightsDrawable(image);
         }
         float intensity = mBackgroundBrightness*.01;
         glColor3f(intensity, intensity, intensity);
