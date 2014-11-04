@@ -25,7 +25,7 @@
 
 // edge: 0=left, 1=center, 2=right
 // effect: 0=open, 1=close, 2=open then close, 3=close then open
-void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
+void RgbEffects::RenderCurtain(wxXmlNode* model,int edge, int effect, int swag, bool repeat)
 {
     double a;
     wxImage::HSVValue hsv;

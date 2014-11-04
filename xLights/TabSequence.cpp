@@ -28,12 +28,14 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 
 void xLightsFrame::PlayRgbSequence()
 {
+    wxXmlNode* modelNode;
     if (SeqData.size() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
     SeqPlayColumn=Grid1->GetGridCursorCol();
+
     if (SeqPlayColumn < XLIGHTS_SEQ_STATIC_COLUMNS)
     {
         wxMessageBox("Select a cell in a display element column before clicking Play", "Error");
@@ -49,8 +51,8 @@ void xLightsFrame::PlayRgbSequence()
         wxMessageBox(_("Can not find model: ")+ModelName, _("Error"));
         return;
     }
-    wxXmlNode* ModelXml=(wxXmlNode*)Choice_Models->GetClientData(sel);
-    buffer.InitBuffer(ModelXml);
+    mCurrentPlayingModel=(wxXmlNode*)Choice_Models->GetClientData(sel);
+    buffer.InitBuffer(mCurrentPlayingModel);
     ClearEffectWindow();
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
@@ -82,8 +84,9 @@ void xLightsFrame::PlayEffect()
     {
         EffectTreeDlg->Show(false);
     }
-    wxXmlNode* ModelXml=(wxXmlNode*)Choice_Models->GetClientData(sel);
-    buffer.InitBuffer(ModelXml);
+
+    mCurrentPlayingModel = (wxXmlNode*)Choice_Models->GetClientData(sel);
+    buffer.InitBuffer(mCurrentPlayingModel);
     ResetEffectStates();
     ClearEffectWindow();
     buffer.SetMixType(Choice_LayerMethod->GetStringSelection());
@@ -1155,7 +1158,7 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 }
 
 // layer is 0 or 1
-bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
+bool xLightsFrame::RenderEffectFromMap(wxXmlNode* model,int layer, int period, MapStringString& SettingsMap)
 {
     bool retval=true;
 
@@ -1170,14 +1173,14 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Bars")
     {
-        buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+"SLIDER_Bars_BarCount"]),
+        buffer.RenderBars(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Bars_BarCount"]),
                           BarEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Bars_Direction"]),
                           SettingsMap[LayerStr+"CHECKBOX_Bars_Highlight"]=="1",
                           SettingsMap[LayerStr+"CHECKBOX_Bars_3D"]=="1");
     }
     else if (effect == "Butterfly")
     {
-        buffer.RenderButterfly(ButterflyEffectColors.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Colors"]),
+        buffer.RenderButterfly(model,ButterflyEffectColors.Index(SettingsMap[LayerStr+"CHOICE_Butterfly_Colors"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Style"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Chunks"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Butterfly_Skip"]),
@@ -1186,7 +1189,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Circles")
     {
 
-        buffer.RenderCircles(wxAtoi(SettingsMap[LayerStr+"SLIDER_Circles_Count"]),
+        buffer.RenderCircles(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Circles_Count"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Circles_Size"]),
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Bounce"]=="1",
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Collide"]=="1",
@@ -1200,57 +1203,57 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Color Wash")
     {
-        buffer.RenderColorWash(SettingsMap[LayerStr+"CHECKBOX_ColorWash_HFade"]=="1",
+        buffer.RenderColorWash(model,SettingsMap[LayerStr+"CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap[LayerStr+"CHECKBOX_ColorWash_VFade"]=="1",
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_ColorWash_Count"]));
     }
     else if (effect == "Curtain")
     {
-        buffer.RenderCurtain(CurtainEdge.Index(SettingsMap[LayerStr+"CHOICE_Curtain_Edge"]),
+        buffer.RenderCurtain(model,CurtainEdge.Index(SettingsMap[LayerStr+"CHOICE_Curtain_Edge"]),
                              CurtainEffect.Index(SettingsMap[LayerStr+"CHOICE_Curtain_Effect"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Curtain_Swag"]),
                              SettingsMap[LayerStr+"CHECKBOX_Curtain_Repeat"]=="1");
     }
     else if (effect == "Faces")
     {
-        buffer.RenderFaces(FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]));
+        buffer.RenderFaces(model,FacesPhoneme.Index(SettingsMap[LayerStr+"CHOICE_Faces_Phoneme"]));
     }
     else if (effect == "CoroFaces")
     {
-        buffer.RenderCoroFaces(SettingsMap[LayerStr+"CHOICE_CoroFaces_Phoneme"],
+        buffer.RenderCoroFaces(model,SettingsMap[LayerStr+"CHOICE_CoroFaces_Phoneme"],
                                SettingsMap[LayerStr+"CHOICE_CoroFaces_Eyes"],
                                SettingsMap[LayerStr+"CHECKBOX_CoroFaces_Outline"] == "1");
     }
     else if (effect == "Fire")
     {
-        buffer.RenderFire(wxAtoi(SettingsMap[LayerStr+"SLIDER_Fire_Height"]),
+        buffer.RenderFire(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Fire_Height"]),
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Fire_HueShift"]),
                           SettingsMap[LayerStr+"CHECKBOX_Fire_GrowFire"]=="1");
     }
     else if (effect == "Fireworks")
     {
-        buffer.RenderFireworks(wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Number_Explosions"]),
+        buffer.RenderFireworks(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Number_Explosions"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Count"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Velocity"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Fireworks_Fade"]));
     }
     else if (effect == "Garlands")
     {
-        buffer.RenderGarlands(wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Type"]),
+        buffer.RenderGarlands(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Type"]),
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Garlands_Spacing"]));
     }
     else if (effect == "Glediator")
     {
-        buffer.RenderGlediator(SettingsMap[LayerStr+"TEXTCTRL_Glediator_Filename"]);
+        buffer.RenderGlediator(model,SettingsMap[LayerStr+"TEXTCTRL_Glediator_Filename"]);
     }
     else if (effect == "Life")
     {
-        buffer.RenderLife(wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Count"]),
+        buffer.RenderLife(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Count"]),
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Life_Seed"]));
     }
     else if (effect == "Meteors")
     {
-        buffer.RenderMeteors(MeteorsEffectTypes.Index(SettingsMap[LayerStr+"CHOICE_Meteors_Type"]),
+        buffer.RenderMeteors(model,MeteorsEffectTypes.Index(SettingsMap[LayerStr+"CHOICE_Meteors_Type"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Meteors_Count"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Meteors_Length"]),
                              MeteorsEffect.Index(SettingsMap[LayerStr+"CHOICE_Meteors_Effect"]),
@@ -1258,7 +1261,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Piano")
     {
-        buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap[LayerStr+"CHOICE_Piano_Style"]),
+        buffer.RenderPiano(model,PianoEffectStyles.Index(SettingsMap[LayerStr+"CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Piano_NumKeys"]),
                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Piano_NumRows"]),
                            PianoKeyPlacement.Index(SettingsMap[LayerStr+"CHOICE_Piano_Placement"]),
@@ -1269,27 +1272,27 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Pictures")
     {
-        buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Pictures_Direction"]),
+        buffer.RenderPictures(model,PictureEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Pictures_Direction"]),
                               SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"],
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
                              );
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
+        buffer.RenderRipple(model,RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
                             RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
     {
-        buffer.RenderShimmer(wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Duty_Factor"]),
+        buffer.RenderShimmer(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Duty_Factor"]),
                              SettingsMap[LayerStr+"CHECKBOX_Shimmer_Use_All_Colors"]=="1",
                              SettingsMap[LayerStr+"CHECKBOX_Shimmer_Blink_Timing"]=="1",
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Shimmer_Blinks_Per_Row"]));
     }
     else if (effect == "SingleStrand")
     {
-        buffer.RenderSingleStrand(
+        buffer.RenderSingleStrand(model,
             SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
             wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
             wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
@@ -1300,17 +1303,17 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Snowflakes")
     {
-        buffer.RenderSnowflakes(wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowflakes_Count"]),
+        buffer.RenderSnowflakes(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowflakes_Count"]),
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowflakes_Type"]));
     }
     else if (effect == "Snowstorm")
     {
-        buffer.RenderSnowstorm(wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowstorm_Count"]),
+        buffer.RenderSnowstorm(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowstorm_Count"]),
                                wxAtoi(SettingsMap[LayerStr+"SLIDER_Snowstorm_Length"]));
     }
     else if (effect == "Spirals")
     {
-        buffer.RenderSpirals(wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Count"]),
+        buffer.RenderSpirals(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Count"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Direction"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Rotation"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirals_Thickness"]),
@@ -1322,14 +1325,14 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Spirograph")
     {
-        buffer.RenderSpirograph(wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_R"]),
+        buffer.RenderSpirograph(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_R"]),
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_r"]),
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_d"]),
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_Animate"]));
     }
     else if (effect == "Text")
     {
-        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
+        buffer.RenderText(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
@@ -1363,18 +1366,18 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Tree")
     {
-        buffer.RenderTree(wxAtoi(SettingsMap[LayerStr+"SLIDER_Tree_Branches"]));
+        buffer.RenderTree(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Tree_Branches"]));
     }
     else if (effect == "Twinkle")
     {
-        buffer.RenderTwinkle(wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Count"]),
+        buffer.RenderTwinkle(model,wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Count"]),
                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Twinkle_Steps"]),
                              SettingsMap[LayerStr+"CHECKBOX_Twinkle_Strobe"]=="1");
     }
     else if (effect == "Wave")
     {
 
-        buffer.RenderWave(WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
+        buffer.RenderWave(model,WaveType.Index(SettingsMap[LayerStr+"CHOICE_Wave_Type"]), //
                           FillColors.Index(SettingsMap[LayerStr+"CHOICE_Fill_Colors"]),
                           SettingsMap[LayerStr+"CHECKBOX_Mirror_Wave"]=="1",
                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Waves"]),
@@ -1420,20 +1423,20 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         retval = false;
         break;   // none
     case eff_BARS:
-        buffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
+        buffer.RenderBars(mCurrentPlayingModel,panel->Slider_Bars_BarCount->GetValue(),
                           panel->Choice_Bars_Direction->GetSelection(),
                           panel->CheckBox_Bars_Highlight->GetValue(),
                           panel->CheckBox_Bars_3D->GetValue());
         break;
     case eff_BUTTERFLY:
-        buffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
+        buffer.RenderButterfly(mCurrentPlayingModel,panel->Choice_Butterfly_Colors->GetSelection(),
                                panel->Slider_Butterfly_Style->GetValue(),
                                panel->Slider_Butterfly_Chunks->GetValue(),
                                panel->Slider_Butterfly_Skip->GetValue(),
                                panel->Choice_Butterfly_Direction->GetSelection());
         break;
     case eff_CIRCLES:
-        buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
+        buffer.RenderCircles(mCurrentPlayingModel,panel->Slider_Circles_Count->GetValue(),
                              panel->Slider_Circles_Size->GetValue(),
                              panel->CheckBox_Circles_Bounce->GetValue(),
                              panel->CheckBox_Circles_Collide->GetValue(),
@@ -1446,18 +1449,18 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
 
         break;
     case eff_COLORWASH:
-        buffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
+        buffer.RenderColorWash(mCurrentPlayingModel,panel->CheckBox_ColorWash_HFade->GetValue(),
                                panel->CheckBox_ColorWash_VFade->GetValue(),
                                panel->Slider_ColorWash_Count->GetValue());
         break;
     case eff_CURTAIN:
-        buffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
+        buffer.RenderCurtain(mCurrentPlayingModel,panel->Choice_Curtain_Edge->GetSelection(),
                              panel->Choice_Curtain_Effect->GetSelection(),
                              panel->Slider_Curtain_Swag->GetValue(),
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FACES:
-        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
+        buffer.RenderFaces(mCurrentPlayingModel,panel->Choice_Faces_Phoneme->GetSelection());
         break;
     case eff_COROFACES:
 #if 0
@@ -1470,42 +1473,42 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
             parsed += panel->CheckListBox_CoroFaceElements->GetString(i);
         }
 #endif // 0
-        buffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
+        buffer.RenderCoroFaces(mCurrentPlayingModel,panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
                                panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
                                panel->CheckBox_CoroFaces_Outline->GetValue());
         break;
 
     case eff_FIRE:
-        buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
+        buffer.RenderFire(mCurrentPlayingModel,panel->Slider_Fire_Height->GetValue(),
                           panel->Slider_Fire_HueShift->GetValue(),
                           panel->CheckBox_Fire_GrowFire->GetValue());
         break;
     case eff_FIREWORKS:
-        buffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
+        buffer.RenderFireworks(mCurrentPlayingModel,panel->Slider_Fireworks_Number_Explosions->GetValue(),
                                panel->Slider_Fireworks_Count->GetValue(),
                                panel->Slider_Fireworks_Velocity->GetValue(),
                                panel->Slider_Fireworks_Fade->GetValue());
         break;
     case eff_GARLANDS:
-        buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
+        buffer.RenderGarlands(mCurrentPlayingModel,panel->Slider_Garlands_Type->GetValue(),
                               panel->Slider_Garlands_Spacing->GetValue());
         break;
     case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
-        buffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
+        buffer.RenderGlediator(mCurrentPlayingModel,panel->TextCtrl_Glediator_Filename->GetValue());
         break;
     case eff_LIFE:
-        buffer.RenderLife(panel->Slider_Life_Count->GetValue(),
+        buffer.RenderLife(mCurrentPlayingModel,panel->Slider_Life_Count->GetValue(),
                           panel->Slider_Life_Seed->GetValue());
         break;
     case eff_METEORS:
-        buffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
+        buffer.RenderMeteors(mCurrentPlayingModel,panel->Choice_Meteors_Type->GetSelection(),
                              panel->Slider_Meteors_Count->GetValue(),
                              panel->Slider_Meteors_Length->GetValue(),
                              panel->Choice_Meteors_Effect->GetSelection(),
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;
     case eff_PIANO: //changed slider to choice list, added other controls -DJ
-        buffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
+        buffer.RenderPiano(mCurrentPlayingModel,panel->Choice_Piano_Style->GetSelection(),
                            panel->Slider_Piano_NumKeys->GetValue(),
                            panel->Slider_Piano_NumRows->GetValue(),
                            panel->Choice_Piano_KeyPlacement->GetSelection(),
@@ -1515,22 +1518,22 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                            panel->TextCtrl_Piano_ShapeFilename->GetValue());
         break;
     case eff_PICTURES:
-        buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
+        buffer.RenderPictures(mCurrentPlayingModel,panel->Choice_Pictures_Direction->GetSelection(),
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_RIPPLE:
-        buffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
+        buffer.RenderRipple(mCurrentPlayingModel,panel->Choice_Ripple_Object_To_Draw->GetSelection(),
                             panel->Choice_Ripple_Movement->GetSelection());
         break;
     case eff_SHIMMER:
-        buffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
+        buffer.RenderShimmer(mCurrentPlayingModel,panel->Slider_Shimmer_Duty_Factor->GetValue(),
                              panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
                              panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
                              panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
-        buffer.RenderSingleStrand(panel->Choice_SingleStrand_Colors->GetSelection(),
+        buffer.RenderSingleStrand(mCurrentPlayingModel,panel->Choice_SingleStrand_Colors->GetSelection(),
                                   panel->Slider_Number_Chases->GetValue(),
                                   panel->Slider_Color_Mix1->GetValue(),
                                   panel->Slider_Chase_Spacing1->GetValue(),
@@ -1539,15 +1542,15 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                   panel->CheckBox_Chase_Group_All->GetValue());
         break;
     case eff_SNOWFLAKES:
-        buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
+        buffer.RenderSnowflakes(mCurrentPlayingModel,panel->Slider_Snowflakes_Count->GetValue(),
                                 panel->Slider_Snowflakes_Type->GetValue());
         break;
     case eff_SNOWSTORM:
-        buffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
+        buffer.RenderSnowstorm(mCurrentPlayingModel,panel->Slider_Snowstorm_Count->GetValue(),
                                panel->Slider_Snowstorm_Length->GetValue());
         break;
     case eff_SPIRALS:
-        buffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
+        buffer.RenderSpirals(mCurrentPlayingModel,panel->Slider_Spirals_Count->GetValue(),
                              panel->Slider_Spirals_Direction->GetValue(),
                              panel->Slider_Spirals_Rotation->GetValue(),
                              panel->Slider_Spirals_Thickness->GetValue(),
@@ -1557,13 +1560,13 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Spirlas_Shrink->GetValue());
         break;
     case eff_SPIROGRAPH:
-        buffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
+        buffer.RenderSpirograph(mCurrentPlayingModel,panel->Slider_Spirograph_R->GetValue(),
                                 panel->Slider_Spirograph_r->GetValue(),
                                 panel->Slider_Spirograph_d->GetValue(),
                                 panel->CheckBox_Spirograph_Animate->GetValue());
         break;
     case eff_TEXT:
-        buffer.RenderText(panel->Slider_Text_Position1->GetValue(),
+        buffer.RenderText(mCurrentPlayingModel,panel->Slider_Text_Position1->GetValue(),
                           panel->TextCtrl_Text_Line1->GetValue(),
                           panel->TextCtrl_Text_Font1->GetValue(),
                           panel->Choice_Text_Dir1->GetSelection(),
@@ -1597,15 +1600,15 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
 
         break;
     case eff_TREE:
-        buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
+        buffer.RenderTree(mCurrentPlayingModel,panel->Slider_Tree_Branches->GetValue());
         break;
     case eff_TWINKLE:
-        buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
+        buffer.RenderTwinkle(mCurrentPlayingModel,panel->Slider_Twinkle_Count->GetValue(),
                              panel->Slider_Twinkle_Steps->GetValue(),
                              panel->CheckBox_Twinkle_Strobe->GetValue());
         break;
     case eff_WAVE:
-        buffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
+        buffer.RenderWave(mCurrentPlayingModel,panel->Choice_Wave_Type->GetSelection(),
                           panel->Choice_Fill_Colors->GetSelection(),
                           panel->CheckBox_Mirror_Wave->GetValue(),
                           panel->Slider_Number_Waves->GetValue(),
@@ -2991,8 +2994,8 @@ void xLightsFrame::RenderGridToSeqData()
                 UpdateEffectDuration(!EffectStr.IsEmpty());
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
-            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+            effectsToUpdate = RenderEffectFromMap(ModelNode,0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(ModelNode,1, p, SettingsMap);
 
             if (effectsToUpdate)
             {
@@ -3084,8 +3087,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                 UpdateEffectDuration(!EffectStr.IsEmpty());
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
-            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+            effectsToUpdate = RenderEffectFromMap(modelNode,0, p, SettingsMap);
+            effectsToUpdate |= RenderEffectFromMap(modelNode,1, p, SettingsMap);
 
             if (effectsToUpdate)
             {

@@ -94,7 +94,7 @@ void RgbEffects::SnowstormAdvance(SnowstormClass& ssItem)
     ssItem.points.push_back(xy);
 }
 
-void RgbEffects::RenderSnowstorm(int Count, int Length)
+void RgbEffects::RenderSnowstorm(wxXmlNode* model,int Count, int Length)
 {
     // create new meteors
     wxImage::HSVValue hsv,hsv0,hsv1;

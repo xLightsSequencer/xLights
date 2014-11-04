@@ -66,7 +66,7 @@ int FindChannelAtXY(int x, int y, const wxString& model)
 #endif // 0
 
 
-void RgbEffects::RenderFaces(int Phoneme)
+void RgbEffects::RenderFaces(wxXmlNode* model,int Phoneme)
 {
 
 

@@ -25,7 +25,7 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
+void RgbEffects::RenderFireworks(wxXmlNode* model,int Number_Explosions,int Count,float Velocity,int Fade)
 {
     int idxFlakes=0;
     int i=0,mod100;

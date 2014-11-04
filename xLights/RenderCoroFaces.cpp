@@ -184,7 +184,7 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 //void RgbEffects::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline)
+void RgbEffects::RenderCoroFaces(wxXmlNode* model,const wxString& Phoneme, const wxString& eyes, bool face_outline)
 {
 //    const wxString& parsed_xy = IsParsed(x_y)? x_y: wxEmptyString;
 //NOTE:
@@ -203,7 +203,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(auto_phonemes[(const char*)Phoneme.c_str()]); //TODO: add params for eyes, outline
+        RenderFaces(model,auto_phonemes[(const char*)Phoneme.c_str()]); //TODO: add params for eyes, outline
         return;
     }
 

@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
+void RgbEffects::RenderSnowflakes(wxXmlNode* model,int Count, int SnowflakeType)
 {
     int i,n,x,y0,y,check,delta_y;
     wxColour color1,color2;

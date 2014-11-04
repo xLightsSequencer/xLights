@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+void RgbEffects::RenderSpirals(wxXmlNode* model,int PaletteRepeat, int Direction, int Rotation, int Thickness,
                                bool Blend, bool Show3D, bool grow, bool shrink)
 {
     int strand_base,strand,thick,x,y,ColorIdx;
