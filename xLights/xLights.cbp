@@ -251,8 +251,8 @@
 		<Unit filename="ChannelMapDialog.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
-		<Unit filename="Drawable.cpp" />
-		<Unit filename="Drawable.h" />
+		<Unit filename="XlightsDrawable.cpp" />
+		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
