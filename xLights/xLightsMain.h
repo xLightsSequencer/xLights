@@ -994,8 +994,8 @@ private:
 
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
-    void ReadVixFile(const char* filename);
-    void ReadLorFile(const char* filename);
+    void ReadVixFile(const wxString& filename);
+    void ReadLorFile(const wxString& filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
     void ReadFalconFile(const wxString& FileName);
@@ -1024,6 +1024,7 @@ private:
     void ConversionError(const wxString& msg);
     void AppendConvertLog(const wxString& msg);
     void AppendConvertStatus(const wxString &msg);
+    void SetStatusText(const wxString &msg);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
 

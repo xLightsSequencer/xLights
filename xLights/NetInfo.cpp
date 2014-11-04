@@ -1,4 +1,26 @@
+
 #include "NetInfo.h"
+
+
+inline std::string string_format(const std::string fmt, ...) {
+    int n, size=100;
+    std::string str;
+    va_list ap;
+    while (1) {
+        str.resize(size);
+        va_start(ap, fmt);
+        int n = vsnprintf((char *)str.c_str(), size, fmt.c_str(), ap);
+        va_end(ap);
+        if (n > -1 && n < size) {
+            return str;
+        }
+        if (n > -1) {
+            size=n+1;
+        } else {
+            size*=2;
+        }
+    }
+}
 
 void NetInfoClass::Clear()
 {
@@ -60,7 +82,7 @@ void NetInfoClass::GetAllChannelNames(wxArrayString& names)
     {
         for(size_t NetCh=0; NetCh < NetMaxChannel[NetNum]; NetCh++)
         {
-            names.Add(wxString::Format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1)));
+            names.push_back(string_format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1)));
             ChNum++;
         }
     }
@@ -74,9 +96,9 @@ wxString NetInfoClass::GetChannelName(int ChNum)
     {
         if (NetCh < NetMaxChannel[NetNum])
         {
-            return wxString::Format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1));
+            return string_format("Ch %d: Net %d #%d",int(ChNum+1),int(NetNum+1),int(NetCh+1));
         }
         NetCh-=NetMaxChannel[NetNum];
     }
-    return wxString::Format("Ch %d: invalid",ChNum);
+    return string_format("Ch %d: invalid",ChNum);
 }
