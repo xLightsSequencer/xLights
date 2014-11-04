@@ -397,7 +397,6 @@ void xLightsFrame::PreviewOutput(int period)
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
 {
-    /*
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -408,59 +407,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     {
         PlayerDlg->MediaCtrl->Seek(msec);
     }
-    */
 }
-void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
-{
-    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
-    long msec=newperiod * XTIMER_INTERVAL;
-    if (mediaFilename.IsEmpty())
-    {
-        ResetTimer(PLAYING_SEQ_ANIM, msec);
-    }
-    else
-    {
-        PlayerDlg->MediaCtrl->Seek(msec);
-        if(PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
-        {
-            PlayerDlg->MediaCtrl->Play();
-        }
-        seekPoint = msec;
-    }
-}
-
-void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
-{
-    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
-    long msec=newperiod * XTIMER_INTERVAL;
-    if (mediaFilename.IsEmpty())
-    {
-        ResetTimer(PLAYING_SEQ_ANIM, msec);
-    }
-    else
-    {
-        if( msec > seekPoint)
-        {
-            msec = seekPoint;
-        }
-        PlayerDlg->MediaCtrl->Seek(msec);
-#if defined(__WXMSW__)
-        Sleep(1000);
-#else
-        sleep(1);
-#endif
-
-        PlayerDlg->MediaCtrl->Stop();
-        PlayerDlg->MediaCtrl->Seek(msec);
-        //Update the slider back to where the user last selected since it played past that point
-        int frame = msec / XTIMER_INTERVAL;
-        SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
-        //Update the time box.
-        ShowPreviewTime(msec);
-    }
-}
-
-
 void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
 {
     int newRotDegrees = wxAtoi(TextCtrlModelRotationDegrees->GetValue());
