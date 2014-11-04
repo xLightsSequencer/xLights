@@ -497,6 +497,15 @@ void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
         SaveEffectsFile();
         UpdatePreview();
     }
-
 }
+
+void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    mBackgroundBrightness = Slider_BackgroundBrightness->GetValue();
+    SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+    modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
+    SaveEffectsFile();
+    UpdatePreview();
+}
+
 

@@ -1044,7 +1044,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     SetPreviewSize(previewWidth,previewHeight);
 
     mBackgroundImage = GetXmlSetting("backgroundImage");
-
+    mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness"));
+    Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
     return effectsFile.GetFullPath();
 }
 

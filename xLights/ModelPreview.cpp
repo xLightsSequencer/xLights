@@ -111,7 +111,7 @@ void ModelPreview::SetCanvasSize(int width,int height)
     SetMinSize(s);
 }
 
-void ModelPreview::InitializePreview(wxString img)
+void ModelPreview::InitializePreview(wxString img,int brightness)
 {
     image = NULL;
     mBackgroundImage = img;
@@ -159,6 +159,15 @@ void ModelPreview::SetbackgroundImage(wxString img)
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
 }
 
+void ModelPreview::SetBackgroundBrightness(int brightness)
+{
+   mBackgroundBrightness = brightness;
+   if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
+   {
+        mBackgroundBrightness = 100;
+   }
+}
+
 void ModelPreview::SetPointSize(wxDouble pointSize)
 {
     mPointSize = pointSize;
@@ -182,7 +191,8 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
            image = new Image(mBackgroundImage);
            sprite = new Drawable(image);
         }
-        glColor3ub(255, 255,255);
+        float intensity = mBackgroundBrightness*.01;
+        glColor3f(intensity, intensity, intensity);
         glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
     }

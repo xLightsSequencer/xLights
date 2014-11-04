@@ -1262,10 +1262,10 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
-																	<cols>3</cols>
+																	<cols>5</cols>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT_CURRENT_PREVIEW_SIZE" variable="StaticTextCurrentPreviewSize" member="yes">
-																			<label>Current Size: 1920x1080</label>
+																			<label>Size: 1920x1080</label>
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -1282,8 +1282,24 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxButton" name="ID_BUTTON_SET_BACKGROUND_IMAGE" variable="ButtonSetBackgroundImage" member="yes">
-																			<label>Background Image</label>
+																			<label>Image</label>
 																			<handler function="OnButtonSetBackgroundImageClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
+																			<label>Brightness:</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_BACKGROUND_BRIGHTNESS" variable="Slider_BackgroundBrightness" member="yes">
+																			<handler function="OnSlider_BackgroundBrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
