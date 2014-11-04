@@ -168,7 +168,7 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
     prepare2DViewport(0,0,getWidth(), getHeight());
     if(image == NULL)
     {
-       image = new Image( wxT("E:\\Users\\David\\dropbox\\christmas\\Nutcracker\\source\\bin\\Pic1.jpg") );
+       image = new Image( wxT("C:\\Users\\Sean\\Pictures\\Pic1.jpg") );
        sprite = new Drawable(image);
     }
     glColor3ub(255, 255,255);
