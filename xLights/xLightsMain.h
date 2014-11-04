@@ -1187,6 +1187,7 @@ private:
     void PreviewRotationUpdated(int newRotation);
     void FindSelectedModel(int x,int y);
     void SelectModel(wxString name);
+    void UnSelectAllModels();
 
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml

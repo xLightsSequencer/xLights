@@ -106,7 +106,7 @@ void xLightsFrame::UpdatePreview()
     modelPreview->StartDrawing(mPointSize);
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
     modelPreview->EndDrawing();
@@ -210,6 +210,7 @@ void xLightsFrame::SelectModel(wxString name)
         {
             ListBoxElementList->SetSelection(i);
             ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
+            m->Selected = true;
             int newscale=m->GetScale()*100.0;
             SliderPreviewScale->SetValue(newscale);
             TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
@@ -226,12 +227,25 @@ void xLightsFrame::SelectModel(wxString name)
 }
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
+    if(!event.wxKeyboardState::ControlDown())
+    {
+        UnSelectAllModels();
+    }
     FindSelectedModel(event.GetX(),event.GetY());
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
     m_previous_mouse_y = event.GetPosition().y;
     StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
 }
+
+void xLightsFrame::UnSelectAllModels()
+{
+   for (int i=0; i<PreviewModels.size(); i++)
+    {
+        PreviewModels[i]->Selected = false;
+    }
+}
+
 void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
 {
     FindSelectedModel(event.GetX(),event.GetY());
