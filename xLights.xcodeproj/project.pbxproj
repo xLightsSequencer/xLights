@@ -97,6 +97,9 @@
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
+		67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6131A097A35003E978F /* Image_Loader.cpp */; };
+		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
+		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -233,6 +236,9 @@
 		67E7087417B51AB400A22034 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		67E7087517B51AB400A22034 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		67E7087817B51AB400A22034 /* xLights-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "xLights-Info.plist"; sourceTree = "<group>"; };
+		67F4C6131A097A35003E978F /* Image_Loader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image_Loader.cpp; sourceTree = "<group>"; };
+		67F4C6141A097A35003E978F /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
+		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,6 +329,9 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
+				67F4C6141A097A35003E978F /* Image.cpp */,
+				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */,
 				67694F1E1A0729220030D020 /* ModelPreview.cpp */,
 				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
@@ -537,6 +546,7 @@
 				67A61A3017B51C0F008E95BB /* ModelListDialog.cpp in Sources */,
 				67A61A3117B51C0F008E95BB /* NetInfo.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
+				67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */,
 				67A543FE1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
@@ -567,6 +577,7 @@
 				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
 				67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
+				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
 				67A61A4D17B51C0F008E95BB /* SeqOpenDialog.cpp in Sources */,
 				67A61A4E17B51C0F008E95BB /* SeqParmsDialog.cpp in Sources */,
@@ -582,6 +593,7 @@
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
+				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */,
