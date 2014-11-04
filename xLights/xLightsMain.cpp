@@ -1454,6 +1454,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ScrolledWindowPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);
+    ScrolledWindowPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewRightDown,0,this);
     ScrolledWindowPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
     Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayEffectClick);
@@ -2681,3 +2682,7 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName)
     }
     return "Not Found";
 }
+
+
+
+

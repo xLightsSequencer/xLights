@@ -281,6 +281,7 @@ public:
     double GetScale();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
+    wxXmlNode* GetModelXml();
     void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);

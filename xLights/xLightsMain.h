@@ -417,6 +417,8 @@ private:
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
     void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
+    void OnScrolledWindowPreviewRightDClick(wxMouseEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
