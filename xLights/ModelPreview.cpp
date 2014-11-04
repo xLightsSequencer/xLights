@@ -111,8 +111,11 @@ void ModelPreview::SetCanvasSize(int width,int height)
     SetMinSize(s);
 }
 
-void ModelPreview::InitializePreview()
+void ModelPreview::InitializePreview(wxString img)
 {
+    image = NULL;
+    mBackgroundImage = img;
+    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,6 +152,12 @@ void ModelPreview::SetOrigin()
 {
 }
 
+void ModelPreview::SetbackgroundImage(wxString img)
+{
+    image = NULL;
+    mBackgroundImage = img;
+    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+}
 
 void ModelPreview::SetPointSize(wxDouble pointSize)
 {
@@ -166,14 +175,18 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
     glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
-    if(image == NULL)
+    if(mBackgroundImageExists)
     {
-       image = new Image( wxT("E:\\Users\\David\\dropbox\\christmas\\Nutcracker\\source\\bin\\Pic1.jpg") );
-       sprite = new Drawable(image);
+        if (image == NULL)
+        {
+           image = new Image(mBackgroundImage);
+           sprite = new Drawable(image);
+        }
+        glColor3ub(255, 255,255);
+        glEnable(GL_TEXTURE_2D);   // textures
+        sprite->render();
     }
-    glColor3ub(255, 255,255);
-    glEnable(GL_TEXTURE_2D);   // textures
-    sprite->render();
+
     glDisable(GL_TEXTURE_2D);   // textures
     glBegin(GL_POINTS);
 }

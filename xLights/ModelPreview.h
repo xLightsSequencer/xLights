@@ -22,12 +22,13 @@ public:
 	int getWidth();
 	int getHeight();
 	void ClearBackground();
-    void InitializePreview();
+    void InitializePreview(wxString img);
     void StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
+	void SetbackgroundImage(wxString image);
 private:
 	void render(wxPaintEvent& event);
 	void SetOrigin();
@@ -44,6 +45,8 @@ private:
 
     bool mIsDrawing = false;
     bool mIsInitialized = false;
+    bool mBackgroundImageExists = false;
+    wxString mBackgroundImage;
     wxDouble mPointSize = 2.0;
     wxGLContext*	m_context;
 

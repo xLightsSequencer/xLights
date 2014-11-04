@@ -1043,6 +1043,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewSize(previewWidth,previewHeight);
 
+    mBackgroundImage = GetXmlSetting("backgroundImage");
+
     return effectsFile.GetFullPath();
 }
 

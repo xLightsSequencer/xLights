@@ -486,3 +486,17 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
     dialog.ShowModal();
     SaveEffectsFile();
 }
+
+void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty())
+    {
+        SetXmlSetting("backgroundImage",filename);
+        modelPreview->SetbackgroundImage(filename);
+        SaveEffectsFile();
+        UpdatePreview();
+    }
+
+}
+

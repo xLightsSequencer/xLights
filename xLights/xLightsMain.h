@@ -416,6 +416,7 @@ private:
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
+    void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -529,6 +530,7 @@ private:
     static const long ID_SLIDER_PREVIEW_TIME;
     static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
     static const long ID_BUTTON_SET_PREVIEW_SIZE;
+    static const long ID_BUTTON_SET_BACKGROUND_IMAGE;
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
@@ -802,6 +804,7 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
+    wxButton* ButtonSetBackgroundImage;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
     wxChoice* Choice_Views;
@@ -977,6 +980,7 @@ private:
     wxArrayInt ChannelColors;
 
     int mHitTestNextSelectModelIndex=0;
+    wxString mBackgroundImage;
 
 
     // convert
