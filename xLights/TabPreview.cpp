@@ -397,7 +397,6 @@ void xLightsFrame::PreviewOutput(int period)
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
 {
-    /*
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -408,10 +407,12 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     {
         PlayerDlg->MediaCtrl->Seek(msec);
     }
-    */
 }
+
 void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
 {
+    //when drag event starts stop the timer till the drag event ends.
+    Timer1.Stop();
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -421,16 +422,19 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
     else
     {
         PlayerDlg->MediaCtrl->Seek(msec);
+        ShowPreviewTime(msec);
         if(PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
         {
             PlayerDlg->MediaCtrl->Play();
         }
+        PreviewOutput(newperiod);
         seekPoint = msec;
     }
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
 {
+
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -452,6 +456,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
         //Update the time box.
         ShowPreviewTime(msec);
+        Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     }
 }
 
