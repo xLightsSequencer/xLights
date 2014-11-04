@@ -71,6 +71,10 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
         CopyBufCoord2ScreenCoord();
     }
 }
+wxXmlNode* ModelClass::GetModelXml()
+{
+    return this->ModelXml;
+}
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 {

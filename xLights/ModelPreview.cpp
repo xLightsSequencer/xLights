@@ -16,7 +16,7 @@ EVT_MOTION(ModelPreview::mouseMoved)
 EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 EVT_LEFT_UP(ModelPreview::mouseLeftUp)
 EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
-//EVT_RIGHT_DOWN(ModelPreview::rightClick)
+EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
@@ -30,6 +30,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
+    event.ResumePropagation(1);
+    event.Skip (); // continue the event
+}
+
+void ModelPreview::rightClick(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -64,8 +69,7 @@ void ModelPreview::resized(wxSizeEvent& event)
 
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
-void ModelPreview::rightClick(wxMouseEvent& event) {
-}
+//void ModelPreview::rightClick(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 

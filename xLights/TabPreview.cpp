@@ -1,3 +1,4 @@
+#include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -231,7 +232,35 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     m_previous_mouse_y = event.GetPosition().y;
     StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
 }
+void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
+{
+    FindSelectedModel(event.GetX(),event.GetY());
+    ListBoxElementList->GetSelection();
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
 
+    wxXmlNode* e=m->GetModelXml();
+    int DlgResult;
+    bool ok;
+    ModelDialog *dialog = new ModelDialog(this);
+    dialog->SetFromXml(e);
+    dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
+    do
+    {
+        ok=true;
+        DlgResult=dialog->ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            if (ok)
+            {
+                dialog->UpdateXml(e);
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    UpdatePreview();
+    delete dialog;
+}
 void xLightsFrame::FindSelectedModel(int x,int y)
 {
     wxArrayInt found;

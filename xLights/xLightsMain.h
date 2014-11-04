@@ -417,7 +417,9 @@ private:
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
     void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
     void OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event);
+    void OnScrolledWindowPreviewRightDClick(wxMouseEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     //*)
 
