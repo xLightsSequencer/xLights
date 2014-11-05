@@ -16,7 +16,7 @@ EVT_MOTION(ModelPreview::mouseMoved)
 EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 EVT_LEFT_UP(ModelPreview::mouseLeftUp)
 EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
-//EVT_RIGHT_DOWN(ModelPreview::rightClick)
+EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
@@ -30,6 +30,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
+    event.ResumePropagation(1);
+    event.Skip (); // continue the event
+}
+
+void ModelPreview::rightClick(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -64,8 +69,7 @@ void ModelPreview::resized(wxSizeEvent& event)
 
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
-void ModelPreview::rightClick(wxMouseEvent& event) {
-}
+//void ModelPreview::rightClick(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
@@ -111,8 +115,11 @@ void ModelPreview::SetCanvasSize(int width,int height)
     SetMinSize(s);
 }
 
-void ModelPreview::InitializePreview()
+void ModelPreview::InitializePreview(wxString img,int brightness)
 {
+    image = NULL;
+    mBackgroundImage = img;
+    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,6 +156,21 @@ void ModelPreview::SetOrigin()
 {
 }
 
+void ModelPreview::SetbackgroundImage(wxString img)
+{
+    image = NULL;
+    mBackgroundImage = img;
+    mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+}
+
+void ModelPreview::SetBackgroundBrightness(int brightness)
+{
+   mBackgroundBrightness = brightness;
+   if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
+   {
+        mBackgroundBrightness = 100;
+   }
+}
 
 void ModelPreview::SetPointSize(wxDouble pointSize)
 {
@@ -166,14 +188,19 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
     glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
-    if(image == NULL)
+    if(mBackgroundImageExists)
     {
-       image = new Image( wxT("C:\\Users\\Sean\\Pictures\\Pic1.jpg") );
-       sprite = new Drawable(image);
+        if (image == NULL)
+        {
+           image = new Image(mBackgroundImage);
+           sprite = new xLightsDrawable(image);
+        }
+        float intensity = mBackgroundBrightness*.01;
+        glColor3f(intensity, intensity, intensity);
+        glEnable(GL_TEXTURE_2D);   // textures
+        sprite->render();
     }
-    glColor3ub(255, 255,255);
-    glEnable(GL_TEXTURE_2D);   // textures
-    sprite->render();
+
     glDisable(GL_TEXTURE_2D);   // textures
     glBegin(GL_POINTS);
 }

@@ -24,7 +24,7 @@
 #include "RgbEffects.h"
 
 // Direction: 0=up, 1=down, 2=expand, 3=compress, 4=left, 5=right, 6=H-expand, 7=H-compress
-void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
+void RgbEffects::RenderBars(wxXmlNode* model,int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
     int x,y,n,ColorIdx;
     wxImage::HSVValue hsv;

@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
+void RgbEffects::RenderSingleStrand(wxXmlNode* model,int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
     int x,x1,x0,y,i,ColorIdx,chases,width,slow_state;

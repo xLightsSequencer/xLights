@@ -417,7 +417,7 @@ void RgbEffects::Piano_map_colors(void)
 
 
 //render piano fx during sequence:
-void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename)
+void RgbEffects::RenderPiano(wxXmlNode* model,int Style, int NumKeys, int NumRows, int Placement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename)
 {
 //    wxImage::HSVValue hsv;
 //    wxColor color;

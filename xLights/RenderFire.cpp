@@ -77,7 +77,7 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 }
 
 // 10 <= HeightPct <= 100
-void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
+void RgbEffects::RenderFire(wxXmlNode* model,int HeightPct,int HueShift,bool GrowFire)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
     wxColour color;

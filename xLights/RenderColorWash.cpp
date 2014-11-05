@@ -28,7 +28,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
+void RgbEffects::RenderColorWash(wxXmlNode* model,bool HorizFade, bool VertFade, int RepeatCount)
 {
     static int SpeedFactor=200;
     int x,y;

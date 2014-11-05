@@ -246,7 +246,6 @@ private:
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
-
     double mMinScreenX=0;
     double mMinScreenY=0;
     double mMaxScreenX=0;
@@ -269,6 +268,7 @@ public:
     int RenderHt,RenderWi;  // size of the rendered output
     bool MyDisplay;
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
+    bool Selected=false;
 
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     size_t GetNodeCount();
@@ -281,6 +281,7 @@ public:
     double GetScale();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
+    wxXmlNode* GetModelXml();
     void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);

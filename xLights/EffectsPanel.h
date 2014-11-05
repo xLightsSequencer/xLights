@@ -70,6 +70,7 @@ public:
     wxStaticText* StaticText42;
     wxBitmapButton* BitmapButton_PicturesSpeed;
     wxChoice* Choice_Piano_KeyPlacement;
+    wxButton* ButtonGledFile;
     wxBitmapButton* BitmapButton_TextPosition4;
     wxButton* Button_Piano_CueFilename;
     wxBitmapButton* BitmapButton_TextCount1;
@@ -414,7 +415,6 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxBitmapButton* BitmapButton_SpirographR;
     wxChoice* Choice_Text_Count3;
-    wxButton* ButtonGledFile;
     wxPanel* Panel1_Piano;
     wxSlider* Slider1;
     wxCheckBox* CheckBox_Palette1;

@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderTree(int Branches)
+void RgbEffects::RenderTree(wxXmlNode* model,int Branches)
 {
 
     int x,y,i,r,ColorIdx,pixels_per_branch;

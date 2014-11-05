@@ -1,3 +1,4 @@
+#include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -105,7 +106,7 @@ void xLightsFrame::UpdatePreview()
     modelPreview->StartDrawing(mPointSize);
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
     modelPreview->EndDrawing();
@@ -209,6 +210,7 @@ void xLightsFrame::SelectModel(wxString name)
         {
             ListBoxElementList->SetSelection(i);
             ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
+            m->Selected = true;
             int newscale=m->GetScale()*100.0;
             SliderPreviewScale->SetValue(newscale);
             TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
@@ -225,6 +227,10 @@ void xLightsFrame::SelectModel(wxString name)
 }
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
+    if(!event.wxKeyboardState::ControlDown())
+    {
+        UnSelectAllModels();
+    }
     FindSelectedModel(event.GetX(),event.GetY());
     m_dragging = true;
     m_previous_mouse_x = event.GetPosition().x;
@@ -232,6 +238,43 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
 }
 
+void xLightsFrame::UnSelectAllModels()
+{
+   for (int i=0; i<PreviewModels.size(); i++)
+    {
+        PreviewModels[i]->Selected = false;
+    }
+}
+
+void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
+{
+    FindSelectedModel(event.GetX(),event.GetY());
+    ListBoxElementList->GetSelection();
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
+
+    wxXmlNode* e=m->GetModelXml();
+    int DlgResult;
+    bool ok;
+    ModelDialog *dialog = new ModelDialog(this);
+    dialog->SetFromXml(e);
+    dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
+    do
+    {
+        ok=true;
+        DlgResult=dialog->ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            if (ok)
+            {
+                dialog->UpdateXml(e);
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    UpdatePreview();
+    delete dialog;
+}
 void xLightsFrame::FindSelectedModel(int x,int y)
 {
     wxArrayInt found;
@@ -486,3 +529,26 @@ void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
     dialog.ShowModal();
     SaveEffectsFile();
 }
+
+void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty())
+    {
+        SetXmlSetting("backgroundImage",filename);
+        modelPreview->SetbackgroundImage(filename);
+        SaveEffectsFile();
+        UpdatePreview();
+    }
+}
+
+void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    mBackgroundBrightness = Slider_BackgroundBrightness->GetValue();
+    SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+    modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
+    SaveEffectsFile();
+    UpdatePreview();
+}
+
+

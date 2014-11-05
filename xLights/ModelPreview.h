@@ -8,7 +8,7 @@
 #endif
 
 #include "Image.h"
-#include "Drawable.h"
+#include "XlightsDrawable.h"
 
 class ModelPreview : public wxGLCanvas
 {
@@ -22,12 +22,16 @@ public:
 	int getWidth();
 	int getHeight();
 	void ClearBackground();
-    void InitializePreview();
+	void InitializePreview(wxString img,int brightness);
+    void InitializePreview(wxString img);
     void StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
+	void SetbackgroundImage(wxString image);
+	void SetBackgroundBrightness(int brightness);
+
 private:
 	void render(wxPaintEvent& event);
 	void SetOrigin();
@@ -44,11 +48,14 @@ private:
 
     bool mIsDrawing = false;
     bool mIsInitialized = false;
+    bool mBackgroundImageExists = false;
+    wxString mBackgroundImage;
+    int  mBackgroundBrightness=100;
     wxDouble mPointSize = 2.0;
     wxGLContext*	m_context;
 
     Image* image = NULL;
-    Drawable* sprite;
+    xLightsDrawable* sprite;
 
 	DECLARE_EVENT_TABLE()
 };

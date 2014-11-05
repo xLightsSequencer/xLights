@@ -43,7 +43,7 @@
 
 
 
-void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
+void RgbEffects::RenderShimmer(wxXmlNode* model,int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {
 
     int x,y,i,i7,ColorIdx;

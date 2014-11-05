@@ -419,147 +419,147 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
 }
 
 
-void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
+void PixelBufferClass::RenderBars(wxXmlNode* model,int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
-    Effect[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);
+    Effect[CurrentLayer].RenderBars(model,PaletteRepeat,Direction,Highlight,Show3D);
 }
 
-void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
+void PixelBufferClass::RenderButterfly(wxXmlNode* model, int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
 {
-    Effect[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection);
+    Effect[CurrentLayer].RenderButterfly(model,ColorScheme,Style,Chunks,Skip, ButterflyDirection);
 }
 
-void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
+void PixelBufferClass::RenderCircles(wxXmlNode* model, int number,int radius, bool bounce, bool collide, bool random,
                                      bool radial, bool radial_3D,  int start_x, int start_y, bool plasma)
 {
-    Effect[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
+    Effect[CurrentLayer].RenderCircles(model,number, radius, bounce, collide, random, radial, radial_3D, start_x, start_y, plasma);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
+void PixelBufferClass::RenderColorWash(wxXmlNode* model, bool HorizFade, bool VertFade, int RepeatCount)
 {
-    Effect[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
+    Effect[CurrentLayer].RenderColorWash(model,HorizFade,VertFade,RepeatCount);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat)
+void PixelBufferClass::RenderCurtain(wxXmlNode* model, int edge, int effect, int swag, bool repeat)
 {
-    Effect[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
+    Effect[CurrentLayer].RenderCurtain(model,edge,effect,swag,repeat);
 }
 
-void PixelBufferClass::RenderFaces(int Phoneme)
+void PixelBufferClass::RenderFaces(wxXmlNode* model, int Phoneme)
 {
-    Effect[CurrentLayer].RenderFaces(Phoneme);
+    Effect[CurrentLayer].RenderFaces(model,Phoneme);
 }
 //void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline)
+void PixelBufferClass::RenderCoroFaces(wxXmlNode* model, const wxString& Phoneme, const wxString& eyes, bool face_outline)
 {
 //    Effect[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y/*, parsed_xy*/);
-    Effect[CurrentLayer].RenderCoroFaces(Phoneme, eyes, face_outline);
+    Effect[CurrentLayer].RenderCoroFaces(model,Phoneme, eyes, face_outline);
 }
 
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)
+void PixelBufferClass::RenderFire(wxXmlNode* model, int HeightPct,int HueShift,bool GrowFire)
 {
-    Effect[CurrentLayer].RenderFire(HeightPct,HueShift,GrowFire);
+    Effect[CurrentLayer].RenderFire(model,HeightPct,HueShift,GrowFire);
 }
 
-void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
+void PixelBufferClass::RenderFireworks(wxXmlNode* model, int Number_Explosions,int Count,float Velocity,int Fade)
 {
-    Effect[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
+    Effect[CurrentLayer].RenderFireworks(model,Number_Explosions,Count,Velocity,Fade);
 }
 
-void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing)
+void PixelBufferClass::RenderGarlands(wxXmlNode* model, int GarlandType, int Spacing)
 {
-    Effect[CurrentLayer].RenderGarlands(GarlandType,Spacing);
+    Effect[CurrentLayer].RenderGarlands(model,GarlandType,Spacing);
 }
 
-void PixelBufferClass::RenderGlediator( const wxString& NewPictureName)
+void PixelBufferClass::RenderGlediator(wxXmlNode* model,  const wxString& NewPictureName)
 {
-    Effect[CurrentLayer].RenderGlediator(NewPictureName);
+    Effect[CurrentLayer].RenderGlediator(model,NewPictureName);
 }
 
 
-void PixelBufferClass::RenderLife(int Count, int Seed)
+void PixelBufferClass::RenderLife(wxXmlNode* model, int Count, int Seed)
 {
-    Effect[CurrentLayer].RenderLife(Count,Seed);
+    Effect[CurrentLayer].RenderLife(model,Count,Seed);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void PixelBufferClass::RenderMeteors(wxXmlNode* model, int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
-    Effect[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
+    Effect[CurrentLayer].RenderMeteors(model,MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
-void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) //added more controls -DJ
+void PixelBufferClass::RenderPiano(wxXmlNode* model, int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) //added more controls -DJ
 {
-    Effect[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
+    Effect[CurrentLayer].RenderPiano(model,Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
+void PixelBufferClass::RenderPictures(wxXmlNode* model, int dir, const wxString& NewPictureName,int GifSpeed)
 {
-    Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
+    Effect[CurrentLayer].RenderPictures(model,dir,NewPictureName,GifSpeed);
 }
-void PixelBufferClass::RenderPinwheel(int Branches)
+void PixelBufferClass::RenderPinwheel(wxXmlNode* model, int Branches)
 {
-    Effect[CurrentLayer].RenderTree(Branches);
+    Effect[CurrentLayer].RenderTree(model,Branches);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement)
+void PixelBufferClass::RenderRipple(wxXmlNode* model, int Object_To_Draw, int Movement)
 {
-    Effect[CurrentLayer].RenderRipple( Object_To_Draw,  Movement);
+    Effect[CurrentLayer].RenderRipple(model, Object_To_Draw,  Movement);
 }
-void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
+void PixelBufferClass::RenderShimmer(wxXmlNode* model, int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {
-    Effect[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
+    Effect[CurrentLayer].RenderShimmer(model,Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
 }
-void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
+void PixelBufferClass::RenderSingleStrand(wxXmlNode* model, int ColorScheme,int Number_Chases, int Color_Mix1,
         int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {
-    Effect[CurrentLayer].RenderSingleStrand( ColorScheme,Number_Chases, Color_Mix1,
+    Effect[CurrentLayer].RenderSingleStrand(model, ColorScheme,Number_Chases, Color_Mix1,
             Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
 }
 
-void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)
+void PixelBufferClass::RenderSnowflakes(wxXmlNode* model, int Count, int SnowflakeType)
 {
-    Effect[CurrentLayer].RenderSnowflakes(Count,SnowflakeType);
+    Effect[CurrentLayer].RenderSnowflakes(model,Count,SnowflakeType);
 }
 
-void PixelBufferClass::RenderSnowstorm(int Count, int Length)
+void PixelBufferClass::RenderSnowstorm(wxXmlNode* model, int Count, int Length)
 {
-    Effect[CurrentLayer].RenderSnowstorm(Count,Length);
+    Effect[CurrentLayer].RenderSnowstorm(model,Count,Length);
 }
 
-void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
+void PixelBufferClass::RenderSpirals(wxXmlNode* model, int PaletteRepeat, int Direction, int Rotation, int Thickness,
                                      bool Blend, bool Show3D, bool grow, bool shrink)
 {
-    Effect[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
+    Effect[CurrentLayer].RenderSpirals(model,PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
+void PixelBufferClass::RenderSpirograph(wxXmlNode* model, int R, int r, int d, bool Animate)
 {
-    Effect[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
+    Effect[CurrentLayer].RenderSpirograph(model, R,  r,  d, Animate);
 }
 
-void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
+void PixelBufferClass::RenderText(wxXmlNode* model, int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
                                   int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,
                                   int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3,
                                   int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)
 {
-    Effect[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,
+    Effect[CurrentLayer].RenderText(model,Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,
                                     Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,
                                     Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,
                                     Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4);
 }
 
-void PixelBufferClass::RenderTree(int Branches)
+void PixelBufferClass::RenderTree(wxXmlNode* model, int Branches)
 {
-    Effect[CurrentLayer].RenderTree(Branches);
+    Effect[CurrentLayer].RenderTree(model,Branches);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
+void PixelBufferClass::RenderTwinkle(wxXmlNode* model, int Count,int Steps,bool Strobe)
 {
-    Effect[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
+    Effect[CurrentLayer].RenderTwinkle(model,Count,Steps,Strobe);
 }
 
-void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
+void PixelBufferClass::RenderWave(wxXmlNode* model, int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
                                   int WaveHeight, int WaveDirection)
 {
-    Effect[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection);
+    Effect[CurrentLayer].RenderWave(model,WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection);
 }

@@ -1,4 +1,4 @@
-#include "Drawable.h"
+#include "XlightsDrawable.h"
 #include <iostream>
 
 #ifdef __WXMAC__
@@ -13,7 +13,7 @@
  * This is a simple class built on top of OpenGL that manages drawing images in a higher-level and quicker way.
  */
 
-Drawable::Drawable(Image* image_arg)
+xLightsDrawable::xLightsDrawable(Image* image_arg)
 {
 
     x=0;
@@ -32,47 +32,47 @@ Drawable::Drawable(Image* image_arg)
     else image=NULL;
 }
 
-void Drawable::setFlip(bool x, bool y)
+void xLightsDrawable::setFlip(bool x, bool y)
 {
     xflip=x;
     yflip=y;
 }
 
-void Drawable::setHotspot(int x, int y)
+void xLightsDrawable::setHotspot(int x, int y)
 {
     hotspotX=x;
     hotspotY=y;
 }
 
-void Drawable::move(int x, int y)
+void xLightsDrawable::move(int x, int y)
 {
-    Drawable::x=x;
-    Drawable::y=y;
+    xLightsDrawable::x=x;
+    xLightsDrawable::y=y;
 }
 
-void Drawable::scale(float x, float y)
+void xLightsDrawable::scale(float x, float y)
 {
-    Drawable::xscale=x;
-    Drawable::yscale=y;
+    xLightsDrawable::xscale=x;
+    xLightsDrawable::yscale=y;
 }
 
-void Drawable::scale(float k)
+void xLightsDrawable::scale(float k)
 {
-    Drawable::xscale=k;
-    Drawable::yscale=k;
+    xLightsDrawable::xscale=k;
+    xLightsDrawable::yscale=k;
 }
 
-void Drawable::setImage(Image* image)
+void xLightsDrawable::setImage(Image* image)
 {
-    Drawable::image=image;
+    xLightsDrawable::image=image;
 }
 
-void Drawable::rotate(int angle)
+void xLightsDrawable::rotate(int angle)
 {
-    Drawable::angle=angle;
+    xLightsDrawable::angle=angle;
 }
 
-void Drawable::render()
+void xLightsDrawable::render()
 {
     assert(image!=NULL);
 

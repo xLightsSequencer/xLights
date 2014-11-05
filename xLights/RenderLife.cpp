@@ -43,7 +43,7 @@ int RgbEffects::Life_CountNeighbors(int x0, int y0)
 }
 
 // use tempbuf for calculations
-void RgbEffects::RenderLife(int Count, int Type)
+void RgbEffects::RenderLife(wxXmlNode* model,int Count, int Type)
 {
     int i,x,y,cnt;
     bool isLive;

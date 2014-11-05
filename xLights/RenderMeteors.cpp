@@ -39,7 +39,7 @@
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
-void RgbEffects::RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
+void RgbEffects::RenderMeteors(wxXmlNode* model,int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
 {
     switch (MeteorsEffect) {
         case METEORS_DOWN: //0:

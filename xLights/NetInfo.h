@@ -2,8 +2,15 @@
 #define XLIGHTSNETINFO_H
 
 #include <vector>
+#ifdef FPP
+#include <string>
+typedef std::string wxString;
+typedef std::vector<int> wxArrayInt;
+typedef std::vector<std::string> wxArrayString;
+#else
 #include <wx/string.h>
 #include <wx/arrstr.h>
+#endif
 
 class NetInfoClass
 {

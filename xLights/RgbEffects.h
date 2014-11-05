@@ -32,6 +32,7 @@
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 #include <wx/textfile.h>
+#include <wx/xml/xml.h>
 
 #include "../include/globals.h"
 

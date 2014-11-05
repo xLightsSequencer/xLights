@@ -68,7 +68,7 @@
 
 
 
-void RgbEffects::RenderGlediator( const wxString& GledFilename)
+void RgbEffects::RenderGlediator(wxXmlNode* model, const wxString& GledFilename)
 {
     wxFile f;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in

@@ -416,6 +416,11 @@ private:
     void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
+    void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
+    void OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event);
+    void OnScrolledWindowPreviewRightDClick(wxMouseEvent& event);
+    void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -529,6 +534,9 @@ private:
     static const long ID_SLIDER_PREVIEW_TIME;
     static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
     static const long ID_BUTTON_SET_PREVIEW_SIZE;
+    static const long ID_BUTTON_SET_BACKGROUND_IMAGE;
+    static const long ID_STATICTEXT32;
+    static const long ID_SLIDER_BACKGROUND_BRIGHTNESS;
     static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
@@ -755,6 +763,7 @@ private:
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
     wxListBox* ListBoxElementList;
+    wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* txtCtlBrightness;
@@ -802,6 +811,7 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
+    wxButton* ButtonSetBackgroundImage;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
     wxChoice* Choice_Views;
@@ -868,6 +878,7 @@ private:
     wxMenuItem* MenuItemRefresh;
     wxStaticText* StaticText28;
     wxRadioButton* RadioButtonRgbAlt;
+    wxStaticText* StaticText30;
     wxStaticText* StaticText29;
     wxSlider* SliderFgColorA;
     wxCheckBox* CheckBoxOffAtEnd;
@@ -931,7 +942,8 @@ private:
 
     ModelPreview* modelPreview;
     SequencePreview* seqPreview;
-
+    // The model that is currently playing in sequence editor
+    wxXmlNode* mCurrentPlayingModel;
 
     int effGridPrevX;
     int effGridPrevY;
@@ -977,12 +989,14 @@ private:
     wxArrayInt ChannelColors;
 
     int mHitTestNextSelectModelIndex=0;
+    wxString mBackgroundImage;
+    int mBackgroundBrightness=100;
 
 
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
-    void ReadVixFile(const char* filename);
-    void ReadLorFile(const char* filename);
+    void ReadVixFile(const wxString& filename);
+    void ReadLorFile(const wxString& filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
     void ReadFalconFile(const wxString& FileName);
@@ -1011,6 +1025,7 @@ private:
     void ConversionError(const wxString& msg);
     void AppendConvertLog(const wxString& msg);
     void AppendConvertStatus(const wxString &msg);
+    void SetStatusText(const wxString &msg);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
 
@@ -1125,7 +1140,7 @@ private:
     void ResetEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
+    bool RenderEffectFromMap(wxXmlNode* model,int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();
@@ -1174,6 +1189,7 @@ private:
     void PreviewRotationUpdated(int newRotation);
     void FindSelectedModel(int x,int y);
     void SelectModel(wxString name);
+    void UnSelectAllModels();
 
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
