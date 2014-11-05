@@ -51,7 +51,7 @@
 
 
 
-void RgbEffects::RenderRipple(wxXmlNode* model,int Object_To_Draw, int Movement)
+void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
 {
 
     int x,y,i,i7,ColorIdx;

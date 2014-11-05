@@ -22,7 +22,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderTwinkle(wxXmlNode* model,int Count,int Steps, bool Strobe)
+void RgbEffects::RenderTwinkle(int Count,int Steps, bool Strobe)
 {
 
     int x,y,i,i7,ColorIdx;

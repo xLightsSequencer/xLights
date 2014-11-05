@@ -32,7 +32,7 @@
 	(06) cos(abs(x)+abs(y))*(abs(x)+abs(y))
 */
 
-void RgbEffects::RenderButterfly(wxXmlNode* model, int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
+void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
 {
     int x,y,d,xc,yc,x0,y0;
     double n,x1,y1,f;
@@ -47,7 +47,6 @@ void RgbEffects::RenderButterfly(wxXmlNode* model, int ColorScheme, int Style, i
     if(ButterflyDirection==1) offset = -offset;
     xc=BufferWi/2;
     yc=BufferHt/2;
-    int ModelBrightness = wxAtoi(model->GetAttribute("ModelBrightness"));
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)

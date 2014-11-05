@@ -24,7 +24,7 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderCircles(wxXmlNode* model,int number,int radius, bool bounce, bool collide, bool random,
+void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                                bool radial, bool radial_3D, int start_x, int start_y, bool plasma)
 {
 

@@ -28,7 +28,6 @@
 
 #include "ModelClass.h"
 #include "RgbEffects.h"
-#include "wx/xml/xml.h"
 
 /**
  * \brief enumeration of the different techniques used in layering effects

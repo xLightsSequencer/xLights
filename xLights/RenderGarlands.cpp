@@ -23,7 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderGarlands(wxXmlNode* model,int GarlandType, int Spacing)
+void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
 {
     int x,y,yadj,ylimit,ring;
     double ratio;

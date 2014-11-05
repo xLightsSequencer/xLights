@@ -224,7 +224,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 //#define WANT_DEBUG 100
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderPictures(wxXmlNode* model,int dir, const wxString& NewPictureName2,int GifSpeed)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
 {
     const int speedfactor=4;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in

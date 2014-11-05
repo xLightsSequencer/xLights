@@ -3,7 +3,7 @@
 #include "RgbEffects.h"
 
 
-void RgbEffects::RenderSpirograph(wxXmlNode* model,int int_R, int int_r, int int_d,bool Animate)
+void RgbEffects::RenderSpirograph(int int_R, int int_r, int int_d,bool Animate)
 {
     int i,x,y,xc,yc,ColorIdx;
     int mod1440,state360,d_mod;

@@ -942,8 +942,7 @@ private:
 
     ModelPreview* modelPreview;
     SequencePreview* seqPreview;
-    // The model that is currently playing in sequence editor
-    wxXmlNode* mCurrentPlayingModel;
+
 
     int effGridPrevX;
     int effGridPrevY;
@@ -1140,7 +1139,7 @@ private:
     void ResetEffectDuration();
     void UpdateBufferPalette(EffectsPanel* panel, int layer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    bool RenderEffectFromMap(wxXmlNode* model,int layer, int period, MapStringString& SettingsMap);
+    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
     void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap);
     void ClearEffectWindow();

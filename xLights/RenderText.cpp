@@ -43,7 +43,7 @@
 // Effect is 0: normal, 1: vertical text down, 2: vertical text up,
 //           3: timer in seconds, where Line is the starting value in seconds
 //           4: timer in days, hours, minute, seconds, where Line is the target date as YYYYMMDD
-void RgbEffects::RenderText(wxXmlNode* model,int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
+void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
                             int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,
                             int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3,
                             int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)

@@ -26,7 +26,7 @@
 
 
 
-void RgbEffects::RenderWave(wxXmlNode* model,int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
+void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
 {
     /*
     WaveType.Add("Sine");       // 0
