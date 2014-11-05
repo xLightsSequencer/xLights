@@ -49,6 +49,8 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     {
         return;
     }
+    previewLoaded = false;
+    previewPlaying = false;
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
     ResetTimer(NO_SEQ);
@@ -56,6 +58,7 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
+    bbPlayPause->SetBitmap(playIcon);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
     CompareMyDisplayToSeq();
@@ -318,6 +321,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         return;
     }
     int LastPreviewChannel=0;
+    if(!previewPlaying)
+    {
+        bbPlayPause->SetBitmap(pauseIcon);
+        previewPlaying = true;
+    }
+    else
+    {
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+    }
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
@@ -338,7 +351,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             return;
         }
-        PlayCurrentXlightsFile();
+        if (!previewLoaded)
+        {
+            PlayCurrentXlightsFile();
+            previewLoaded = true;
+        }
+        else
+        {
+            PlayerDlg->MediaCtrl->Pause();
+
+        }
         heartbeat("playback preview", true); //tell fido to start watching -DJ
         break;
     }
@@ -352,7 +374,12 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
     }
     else
     {
+        bbPlayPause->SetBitmap(playIcon);
         PlayerDlg->MediaCtrl->Pause();
+        PlayerDlg->MediaCtrl->Seek(0);
+        previewPlaying = false;
+        SliderPreviewTime->SetValue(0);
+        ShowPreviewTime(0);
     }
 }
 
@@ -441,7 +468,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
     {
         ResetTimer(PLAYING_SEQ_ANIM, msec);
     }
-    else
+    else if(SeqPlayerState != PLAYING_SEQ_ANIM)
     {
         if( msec > seekPoint)
         {
