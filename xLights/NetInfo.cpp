@@ -1,6 +1,7 @@
 
 #include "NetInfo.h"
 
+#include <stdarg.h>
 
 inline std::string string_format(const std::string fmt, ...) {
     int n, size=100;
