@@ -62,7 +62,6 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
     CompareMyDisplayToSeq();
-    PlayCurrentXlightsFile(PAUSE_SEQ);
 }
 
 // ask user if they want to reset MyDisplay flags to match sequence
@@ -381,7 +380,6 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
         previewPlaying = false;
         SliderPreviewTime->SetValue(0);
         ShowPreviewTime(0);
-        PreviewOutput(0);
     }
 }
 

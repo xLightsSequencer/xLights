@@ -1043,7 +1043,7 @@ private:
     void AddPlaylist(const wxString& name);
     wxString OnOffString(bool b);
     wxString CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random);
-    bool PlayCurrentXlightsFile(SeqPlayerStates state=STARTING_SEQ);
+    bool PlayCurrentXlightsFile();
     void RunPlaylist(int nbidx, wxString& script);
     void PlayerError(const wxString& msg);
     void SendToLogAndStatusBar(const wxString& msg);

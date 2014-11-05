@@ -792,7 +792,7 @@ void xLightsFrame::StopPlayback()
 }
 
 // returns true on success
-bool xLightsFrame::PlayCurrentXlightsFile(SeqPlayerStates state)
+bool xLightsFrame::PlayCurrentXlightsFile()
 {
     if (SeqNumChannels <= 0)
     {
@@ -812,7 +812,7 @@ bool xLightsFrame::PlayCurrentXlightsFile(SeqPlayerStates state)
     }
     else
     {
-        ResetTimer(state);
+        ResetTimer(STARTING_SEQ);
         return true;
     }
     return false;
