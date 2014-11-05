@@ -290,10 +290,11 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL5" variable="SpinCtrl1" member="yes">
+								<object class="wxSpinCtrl" name="ID_SPINCTRLMODELBRIGHTNESS" variable="SpinCtrlModelBrightness" member="yes">
 									<value>0</value>
 									<min>-100</min>
 									<size>52,21</size>
+									<handler function="OnSpinCtrlModelBrightnessChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

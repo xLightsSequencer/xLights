@@ -68,7 +68,6 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
             Nodes.back()->AddBufCoord(xCoord,yCoord);
             lastActChn = actChn;
         }
-        CopyBufCoord2ScreenCoord();
     }
 }
 wxXmlNode* ModelClass::GetModelXml()
@@ -235,6 +234,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     {
         WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
         InitWholeHouse(WholeHouseData);
+        CopyBufCoord2ScreenCoord();
     }
     else if (token == "Tree")
     {
@@ -261,7 +261,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     else if (DisplayAs == "Single Line")
     {
         InitLine();
-        SetLineCoord();
+        CopyBufCoord2ScreenCoord();
+        //SetLineCoord();
     }
     else if (DisplayAs == "Arches")
     {
@@ -284,10 +285,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         CopyBufCoord2ScreenCoord();
     }
 
-    if (DisplayAs != "Single Line")
-    {
+    //if (DisplayAs != "Single Line")
+    //{
         SetModelCoord(PreviewRotation);
-    }
+    //}
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
     {
@@ -569,7 +570,8 @@ void ModelClass::SetTreeCoord(long degrees)
             angle=StartAngle + double(bufferX) * AngleIncr;
             x0=radius * sin(angle);
             Nodes[n]->Coords[c].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
-            Nodes[n]->Coords[c].screenY=bufferY * factor;
+//            Nodes[n]->Coords[c].screenY=bufferY * factor;
+            Nodes[n]->Coords[c].screenY=(bufferY * factor)-(RenderHt/2);
         }
     }
 }
@@ -612,13 +614,18 @@ void ModelClass::InitStar()
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2);
 
-
+    int maxLights = 0;
     int numlights=parm1*parm2;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
-    SetBufferSize(starSizes[0]+1,starSizes[0]+1);
+    for (int x = 0; x < starSizes.size(); x++) {
+        if (starSizes[x] > maxLights) {
+            maxLights = starSizes[x];
+        }
+    }
+    SetBufferSize(maxLights+1,maxLights+1);
 
 
     int LastStringNum=-1;
@@ -630,7 +637,8 @@ void ModelClass::InitStar()
 
         int offset=numlights/2;
 
-        int coffset = 0;
+        int coffset = (maxLights - numlights) / 2;
+        /*
         if (cur > 0) {
             for (int f = cur; f > 0; f--) {
                 int i = starSizes[f];
@@ -638,6 +646,7 @@ void ModelClass::InitStar()
                 coffset += (i2 - i) / 2;
             }
         }
+         */
 
         int numsegments=parm3*2;
         double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
@@ -1314,13 +1323,14 @@ void ModelClass::CopyBufCoord2ScreenCoord()
 {
     size_t NodeCount=GetNodeCount();
     int xoffset=BufferWi/2;
+    int yoffset=BufferHt/2;
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
             Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY-yoffset;
         }
     }
     SetRenderSize(BufferHt,BufferWi);
@@ -1381,8 +1391,8 @@ bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
     int y1 = h-y;
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
-    int w1 = int(offsetXpct*w)+w/2;
-    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     mMinScreenX = w;
     mMinScreenY = h;
@@ -1394,13 +1404,25 @@ bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
         for(size_t c=0; c < CoordCount; c++)
         {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX+RenderWi;
+            sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
             sx = (sx*scale)+w1;
             sy = (sy*scale)+h1;
             SetModelScreenCoordinates(sx,sy);
         }
     }
+    // Set minimum bounding rectangle
+    if(mMaxScreenY-mMinScreenY<4)
+    {
+        mMaxScreenY+=2;
+        mMinScreenY-=2;
+    }
+    if(mMaxScreenX-mMinScreenX<4)
+    {
+        mMaxScreenX+=2;
+        mMinScreenX-=2;
+    }
+
     if (x>=mMinScreenX && x<=mMaxScreenX && y1>=mMinScreenY && y1 <= mMaxScreenY)
     {
         return true;
@@ -1420,15 +1442,10 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
     int w, h;
     preview->GetSize(&w,&h);
 
-    mMinScreenX = w;
-    mMinScreenY = h;
-    mMaxScreenX = 0;
-    mMaxScreenY = 0;
-
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
-    int w1 = int(offsetXpct*w)+w/2;
-    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -1436,7 +1453,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         for(size_t c=0; c < CoordCount; c++)
         {
             // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX+RenderWi;
+            sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
             sx = (sx*scale)+w1;
             sy = (sy*scale)+h1;
@@ -1458,8 +1475,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
 
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
-    int w1 = int(offsetXpct*w)+w/2;
-    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0)
@@ -1472,9 +1489,11 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX+RenderWi;;
+                sx=Nodes[n]->Coords[c].screenX;;
                 sy=Nodes[n]->Coords[c].screenY;
-                preview->DrawPoint(color,(sx*scale)+w1,(sy*scale)+h1);
+                sx = (sx*scale)+w1;
+                sy = (sy*scale)+h1;
+                preview->DrawPoint(color,sx,sy);
             }
         }
     }
@@ -1495,9 +1514,11 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
                     c2 = color;
                 }
 
-                sx=Nodes[n]->Coords[c].screenX+RenderWi;;
+                sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                preview->DrawPoint(c2,(sx*scale)+w1,(sy*scale)+h1);
+                sx = (sx*scale)+w1;
+                sy = (sy*scale)+h1;
+                preview->DrawPoint(color,sx,sy);
             }
         }
     }
@@ -1516,8 +1537,6 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
-//    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
-
     preview->StartDrawing(pointSize);
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
@@ -1531,7 +1550,7 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+double(RenderHt)*0.025*scale));
+            preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
         }
     }
     preview->EndDrawing();
@@ -1540,19 +1559,10 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
 void ModelClass::SetModelCoord( int degrees)
 {
     PreviewRotation=degrees;
-    //For now treat Single line the same way it was in the past
-    if (DisplayAs == "Single Line")
-    {
-        SetLineCoord();
-    }
 
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    double centerx,centery;
     double radians=toRadians(PreviewRotation);
-
-    centerx = BufferWi/2 +1;
-    centery = BufferHt/2 +1;
 
     for(size_t nn=0; nn<NodeCount; nn++)
     {
@@ -1565,10 +1575,11 @@ void ModelClass::SetModelCoord( int degrees)
             //Calculate new Screen x and y based on current rotation value
             sx=Nodes[nn]->OrigCoords[cc].screenX;
             sy=Nodes[nn]->OrigCoords[cc].screenY;
-            Nodes[nn]->Coords[cc].screenX = cos(radians) * (sx-centerx)
-                   - sin(radians)*(sy-centery)+centerx;
-            Nodes[nn]->Coords[cc].screenY = sin(radians) * (sx-centerx)
-                   + cos(radians)*(sy-centery)+centery;
+
+            Nodes[nn]->Coords[cc].screenX = cos(radians) * (sx)
+                   - sin(radians)*(sy);
+            Nodes[nn]->Coords[cc].screenY = sin(radians) * (sx)
+                   + cos(radians)*sy;
         }
     }
 }
