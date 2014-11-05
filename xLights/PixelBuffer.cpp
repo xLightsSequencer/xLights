@@ -389,8 +389,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             // Apply brightness
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
             hsv = wxImage::RGBtoHSV(rgb);
-            //ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
-            hsv.value = hsv.value * ((double)brightness/(double)100)*ModelBrightness;
+            //ModelBrightness is a value between -100 and 100  (0 being no adjustment)
+            //brightness is between 0 and 400 (100 being "normal")
+            double nmb = brightness + ModelBrightness;
+            
+            hsv.value = hsv.value * (nmb/(double)100.0);
 
 
             // Apply Contrast
