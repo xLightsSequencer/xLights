@@ -57,7 +57,7 @@ private:
 
     int sparkle_count;
     int brightness;
-     int ModelBrightness;
+    int ModelBrightness;
     int contrast;
     int CurrentLayer;  // 0 or 1
     float effectMixThreshold;

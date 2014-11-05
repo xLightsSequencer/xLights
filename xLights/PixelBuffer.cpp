@@ -36,6 +36,7 @@ PixelBufferClass::~PixelBufferClass()
 void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 {
     SetFromXml(ModelNode, zeroBased);
+    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness")));
     for(size_t i=0; i<2; i++)
     {
         Effect[i].InitBuffer(BufferHt, BufferWi);
@@ -388,7 +389,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             // Apply brightness
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
             hsv = wxImage::RGBtoHSV(rgb);
-            ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
+            //ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
             hsv.value = hsv.value * ((double)brightness/(double)100)*ModelBrightness;
 
 
