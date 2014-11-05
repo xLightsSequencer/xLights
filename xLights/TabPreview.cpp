@@ -324,7 +324,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         if (sel == wxNOT_FOUND) return;
         ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
-        double delta_y = event.GetPosition().y - m_previous_mouse_y;
+        double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
         modelPreview->GetSize(&wi,&ht);
         if (wi > 0 && ht > 0)
         {
