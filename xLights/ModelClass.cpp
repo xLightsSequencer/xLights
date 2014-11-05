@@ -1652,6 +1652,7 @@ void ModelClass::SetModelCoord( int degrees)
     if (DisplayAs == "Single Line")
     {
         SetLineCoord();
+        return;
     }
 
     size_t NodeCount=Nodes.size();
