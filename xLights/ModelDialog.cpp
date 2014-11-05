@@ -38,7 +38,7 @@ const long ModelDialog::ID_STATICTEXT10 = wxNewId();
 const long ModelDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelDialog::ID_STATICTEXT7 = wxNewId();
 const long ModelDialog::ID_Slider_Model_Brightness = wxNewId();
-const long ModelDialog::ID_SPINCTRL5 = wxNewId();
+const long ModelDialog::ID_SPINCTRLMODELBRIGHTNESS = wxNewId();
 const long ModelDialog::ID_STATICTEXT15 = wxNewId();
 const long ModelDialog::ID_TEXTCTRL2 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
@@ -169,9 +169,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     Slider_Model_Brightness = new wxSlider(this, ID_Slider_Model_Brightness, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_Slider_Model_Brightness"));
     FlexGridSizer6->Add(Slider_Model_Brightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrl1 = new wxSpinCtrl(this, ID_SPINCTRL5, _T("0"), wxDefaultPosition, wxSize(52,21), 0, -100, 100, 0, _T("ID_SPINCTRL5"));
-    SpinCtrl1->SetValue(_T("0"));
-    FlexGridSizer6->Add(SpinCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrlModelBrightness = new wxSpinCtrl(this, ID_SPINCTRLMODELBRIGHTNESS, _T("0"), wxDefaultPosition, wxSize(52,21), 0, -100, 100, 0, _T("ID_SPINCTRLMODELBRIGHTNESS"));
+    SpinCtrlModelBrightness->SetValue(_T("0"));
+    FlexGridSizer6->Add(SpinCtrlModelBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StarSizesLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
     FlexGridSizer2->Add(StarSizesLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -252,6 +252,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrl_StartChannelChange);
     Connect(ID_Slider_Model_Brightness,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
     Connect(ID_Slider_Model_Brightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSlider_Model_BrightnessCmdScroll);
+    Connect(ID_SPINCTRLMODELBRIGHTNESS,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ModelDialog::OnSpinCtrlModelBrightnessChange);
     Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelDialog::OncbIndividualStartNumbersClick);
     Connect(ID_GRID_START_CHANNELS,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelDialog::OngridStartChannelsCellChange);
     Connect(ID_BITMAPBUTTON_CUSTOM_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelDialog::OnBitmapButtonCustomCutClick);
@@ -624,6 +625,14 @@ void ModelDialog::OnSpinCtrl_StartChannelChange(wxSpinEvent& event)
     UpdateStartChannels();
 }
 
+
+
+void ModelDialog::OnSpinCtrlModelBrightnessChange(wxSpinEvent& event)
+{
+    Slider_Model_Brightness->SetValue(SpinCtrlModelBrightness->GetValue());
+}
+
+
 void ModelDialog::OngridStartChannelsCellChange(wxGridEvent& event)
 {
     int row = event.GetRow(),
@@ -681,7 +690,7 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("parm1");
     e->DeleteAttribute("parm2");
     e->DeleteAttribute("parm3");
-     e->DeleteAttribute("ModelBrightness");
+    e->DeleteAttribute("ModelBrightness");
     e->DeleteAttribute("StartChannel");
     e->DeleteAttribute("Order");
     e->DeleteAttribute("Dir");
@@ -740,6 +749,7 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
         tempStr=e->GetAttribute("ModelBrightness","0");
         tempStr.ToLong(&n);
         Slider_Model_Brightness->SetValue(n);
+        SpinCtrlModelBrightness->SetValue(n);
     }
     direction=e->GetAttribute("Dir");
     if(e->HasAttribute("StartSide"))
@@ -937,7 +947,7 @@ void ModelDialog::OnSpinCtrl_parm3Change(wxSpinEvent& event)
 
 void ModelDialog::OnSlider_Model_BrightnessCmdScroll(wxScrollEvent& event)
 {
-    SpinCtrl1->SetValue(wxString::Format("%d",Slider_Model_Brightness->GetValue()));
+    SpinCtrlModelBrightness->SetValue(wxString::Format("%d",Slider_Model_Brightness->GetValue()));
 }
 
 
@@ -1001,4 +1011,3 @@ void ModelDialog::OnButton_CustomModelZoomInClick(wxCommandEvent& event)
 //    debug(10, "font+: is now size = %d, %d, pt %d, cell w %d, min w %d", font.GetPixelSize().x, font.GetPixelSize().y, font.GetPointSize(), ((myGrid*)GridCustom)->GetColWidth(0), GridCustom->GetColMinimalAcceptableWidth());
     GridCustom->EndBatch();
 }
-
