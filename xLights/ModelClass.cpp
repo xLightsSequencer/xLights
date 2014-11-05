@@ -614,13 +614,18 @@ void ModelClass::InitStar()
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2);
 
-
+    int maxLights = 0;
     int numlights=parm1*parm2;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
-    SetBufferSize(starSizes[0]+1,starSizes[0]+1);
+    for (int x = 0; x < starSizes.size(); x++) {
+        if (starSizes[x] > maxLights) {
+            maxLights = starSizes[x];
+        }
+    }
+    SetBufferSize(maxLights+1,maxLights+1);
 
 
     int LastStringNum=-1;
@@ -632,7 +637,8 @@ void ModelClass::InitStar()
 
         int offset=numlights/2;
 
-        int coffset = 0;
+        int coffset = (maxLights - numlights) / 2;
+        /*
         if (cur > 0) {
             for (int f = cur; f > 0; f--) {
                 int i = starSizes[f];
@@ -640,6 +646,7 @@ void ModelClass::InitStar()
                 coffset += (i2 - i) / 2;
             }
         }
+         */
 
         int numsegments=parm3*2;
         double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
