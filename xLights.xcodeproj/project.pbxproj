@@ -18,6 +18,7 @@
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1D1A069BBE0030D020 /* SequencePreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1A1A069BBE0030D020 /* SequencePreview.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
+		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
 		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
@@ -116,6 +117,7 @@
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1A1A069BBE0030D020 /* SequencePreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequencePreview.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
+		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
 		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WholeHouseModelNameDialog.cpp; sourceTree = "<group>"; };
@@ -327,6 +329,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
 				67F4C6141A097A35003E978F /* Image.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
@@ -533,6 +536,7 @@
 				67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */,
 				67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */,
 				67A61A2817B51C0F008E95BB /* ChannelMapDialog.cpp in Sources */,
+				677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
