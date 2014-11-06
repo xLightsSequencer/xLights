@@ -351,7 +351,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 
     if(m_rotating)
     {
-        m->RotateWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
+        m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,event.GetPosition().y);
         TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
         UpdatePreview();
     }

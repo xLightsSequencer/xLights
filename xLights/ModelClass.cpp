@@ -1785,7 +1785,7 @@ void ModelClass::SetModelScreenCoordinates(int x, int y)
     }
 }
 
-void ModelClass::ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY)
+void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY)
 {
     int w, h;
     float newScale;
@@ -1806,7 +1806,7 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY)
     SetScale(newScale);
 }
 
-void ModelClass::RotateWithHandles(ModelPreview* preview, int mouseX,int mouseY)
+void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int mouseX,int mouseY)
 {
     int w, h;
     float newScale;
@@ -1826,10 +1826,14 @@ void ModelClass::RotateWithHandles(ModelPreview* preview, int mouseX,int mouseY)
     }
     else if (sx<=0)
     {
-        PreviewRotation = -180+angle;
+        PreviewRotation = 90+(90+angle);
     }
     else
     {
-        PreviewRotation = 180+angle;
+        PreviewRotation = -90-(90-angle);
+    }
+    if(ShiftKeyPressed)
+    {
+       PreviewRotation = (int)(PreviewRotation/5) * 5;
     }
 }

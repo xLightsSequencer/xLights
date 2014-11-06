@@ -297,8 +297,8 @@ public:
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
-    void ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY);
-    void RotateWithHandles(ModelPreview* preview, int mouseX,int mouseY);
+    void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
+    void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     void SetModelScreenCoordinates(int x, int y);
