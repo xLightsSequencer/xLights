@@ -303,6 +303,7 @@
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
+		<Unit filename="RenderPinwheel.cpp" />
 		<Unit filename="RenderRipple.cpp" />
 		<Unit filename="RenderShimmer.cpp" />
 		<Unit filename="RenderSingleStrand.cpp" />
