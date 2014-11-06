@@ -9,7 +9,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights-Nutcracker
-AppVersion=3.6.0b
+AppVersion=3.6.0c
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 UninstallDisplayIcon={app}\xLights.exe

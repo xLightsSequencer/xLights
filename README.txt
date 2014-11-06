@@ -9,10 +9,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 3.6.0	Nov 4,2014
 	-enh (dpitts) NUTCRACKER and PREVIEW windows now use OpenGL to draw objects. The result of this is xLights can now draw very
 		large objects with no delay. 
+	-enh (dpitts) New ability to load an image into the background of the PREVIEW tab. There is a brightness slider to dim the image you
+		just loaded to give it a dusk time feel.
 	-enh (dpitts) New ability to set the resolution of the PREVIEW screen. Set the size and it will be remembered. This is needed to 
 				help when making Whole House Models. This way you can always come back to the layout you had been working on.
-	-enh (dpitts) You can now click and drag objects in the PREVIEW tab. If there are multiple objects under your mouse hold 
-		the shift key while clicking and it will cycle through all of them
+	-enh (dpitts) You can now click and drag objects in the PREVIEW tab. If there are multiple objects under your mouse click multiple
+		times and it will cycle through all of them
+	-enh (dpitts) Now objects are sized and rotated about their graphical center, This means objects do not move around
+		the screen if you resize or rotate.
+	-enh (sean) Added Pinwheel effect
+	-bug (dpitts) Model Brightness Now works 
+	-enh (dkulp) Allow star layers to be ordered low to high (to inside layer first)
+	-bug (captmurdoch,materdaddy,dkulp) Modify make files and libraries so 3.6.0 can be compiled on MAC and on Linux
 3.5.2	Oct 30,2014
 	-bug (frankr) Fix for preview moving some elements into the wrong place. Before the ability to rotate any element
 		rotations were in 3 degree increments, now they are 1 degree. This change caused existing previews to draw elements in
