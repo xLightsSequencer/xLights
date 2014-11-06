@@ -180,6 +180,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     if(PreviewScale<0 || PreviewScale>1){PreviewScale = .33;}
     tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
+
     PreviewRotation=degrees;
     if (ModelVersion == 0)
     {

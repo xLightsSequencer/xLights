@@ -120,6 +120,7 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
     image = NULL;
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
+    mBackgroundBrightness = brightness;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
