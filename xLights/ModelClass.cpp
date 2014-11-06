@@ -171,10 +171,13 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 
     tempstr=ModelNode->GetAttribute("offsetXpct","0");
     tempstr.ToDouble(&offsetXpct);
+    if(offsetXpct<0 || offsetXpct>1){offsetXpct = .5;}
     tempstr=ModelNode->GetAttribute("offsetYpct","0");
     tempstr.ToDouble(&offsetYpct);
+    if(offsetYpct<0 || offsetYpct>1){offsetYpct = .5;}
     tempstr=ModelNode->GetAttribute("PreviewScale","0.333");
     tempstr.ToDouble(&PreviewScale);
+    if(PreviewScale<0 || PreviewScale>1){PreviewScale = .33;}
     tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
     PreviewRotation=degrees;
