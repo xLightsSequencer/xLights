@@ -18,31 +18,31 @@ LIBDIR =
 LIB = 
 LDFLAGS = 
 
-INC_LINUX_DEBUG = $(INC)
+INC_LINUX_DEBUG = $(INC) -Iinclude
 CFLAGS_LINUX_DEBUG = $(CFLAGS) -std=c++0x -Wall -g `wx-config --cflags` -Winvalid-pch -DWX_PRECOMP -D__WXDEBUG__
 RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)
-LDFLAGS_LINUX_DEBUG =  `wx-config --libs std,media` $(LDFLAGS)
-OBJDIR_LINUX_DEBUG = .objs
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU  `wx-config --libs std,media,gl` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
+OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xLights
 
-INC_LINUX_RELEASE = $(INC)
-CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=c++0x -Wall `wx-config --version=3.0 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG
+INC_LINUX_RELEASE = $(INC) -Iinclude
+CFLAGS_LINUX_RELEASE = $(CFLAGS) -O2 -std=c++0x -Wall `wx-config --version=3.0 --cflags` -Winvalid-pch -DWX_PRECOMP -DNDEBUG -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 RESINC_LINUX_RELEASE = $(RESINC)
-RCFLAGS_LINUX_RELEASE = $(RCFLAGS)
+RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-switch -Wno-unused-but-set-variable -Wno-parentheses -Wno-return-type -Wno-uninitialized -Wno-unused-value -Wno-sequence-point -Wno-comment -Wno-unused-function
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)
-LDFLAGS_LINUX_RELEASE =  -s `wx-config --version=3.0 --libs std,media` $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -s -lGL -lGLU  `wx-config --version=3.0 --libs std,media,gl` $(LDFLAGS) `pkg-config --libs gstreamer-interfaces-0.10`
 OBJDIR_LINUX_RELEASE = .objs
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/heartbeat.o $(OBJDIR_LINUX_DEBUG)/TabSetup.o $(OBJDIR_LINUX_DEBUG)/TabPapagayo.o $(OBJDIR_LINUX_DEBUG)/TabConvert.o $(OBJDIR_LINUX_DEBUG)/ShowDatesDialog.o $(OBJDIR_LINUX_DEBUG)/SerialPortWithRate.o $(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o $(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_DEBUG)/RgbEffects.o $(OBJDIR_LINUX_DEBUG)/RenderWave.o $(OBJDIR_LINUX_DEBUG)/RenderTwinkle.o $(OBJDIR_LINUX_DEBUG)/RenderTree.o $(OBJDIR_LINUX_DEBUG)/xlights_out.o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o $(OBJDIR_LINUX_DEBUG)/xLightsApp.o $(OBJDIR_LINUX_DEBUG)/RenderText.o $(OBJDIR_LINUX_DEBUG)/serial.o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o $(OBJDIR_LINUX_DEBUG)/NetInfo.o $(OBJDIR_LINUX_DEBUG)/ModelListDialog.o $(OBJDIR_LINUX_DEBUG)/ModelDialog.o $(OBJDIR_LINUX_DEBUG)/ModelClass.o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o $(OBJDIR_LINUX_DEBUG)/E131Dialog.o $(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o $(OBJDIR_LINUX_DEBUG)/RenderFire.o $(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o $(OBJDIR_LINUX_DEBUG)/RenderSpirals.o $(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o $(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o $(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o $(OBJDIR_LINUX_DEBUG)/RenderPictures.o $(OBJDIR_LINUX_DEBUG)/RenderPiano.o $(OBJDIR_LINUX_DEBUG)/RenderMeteors.o $(OBJDIR_LINUX_DEBUG)/RenderLife.o $(OBJDIR_LINUX_DEBUG)/RenderGlediator.o $(OBJDIR_LINUX_DEBUG)/RenderGarlands.o $(OBJDIR_LINUX_DEBUG)/RenderFireworks.o $(OBJDIR_LINUX_DEBUG)/AddShowDialog.o $(OBJDIR_LINUX_DEBUG)/RenderFaces.o $(OBJDIR_LINUX_DEBUG)/RenderCurtain.o $(OBJDIR_LINUX_DEBUG)/RenderColorWash.o $(OBJDIR_LINUX_DEBUG)/RenderCircles.o $(OBJDIR_LINUX_DEBUG)/RenderButterfly.o $(OBJDIR_LINUX_DEBUG)/RenderBars.o $(OBJDIR_LINUX_DEBUG)/PlayerFrame.o $(OBJDIR_LINUX_DEBUG)/PlaybackOptionsDialog.o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/TabSetup.o $(OBJDIR_LINUX_DEBUG)/ShowDatesDialog.o $(OBJDIR_LINUX_DEBUG)/TabConvert.o $(OBJDIR_LINUX_DEBUG)/TabPapagayo.o $(OBJDIR_LINUX_DEBUG)/SerialPortWithRate.o $(OBJDIR_LINUX_DEBUG)/ViewsDialog.o $(OBJDIR_LINUX_DEBUG)/WholeHouseModelNameDialog.o $(OBJDIR_LINUX_DEBUG)/djdebug.o $(OBJDIR_LINUX_DEBUG)/dlgPreviewSize.o $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o $(OBJDIR_LINUX_DEBUG)/RenderTree.o $(OBJDIR_LINUX_DEBUG)/RenderTwinkle.o $(OBJDIR_LINUX_DEBUG)/RenderWave.o $(OBJDIR_LINUX_DEBUG)/RgbEffects.o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o $(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o $(OBJDIR_LINUX_DEBUG)/SequencePreview.o $(OBJDIR_LINUX_DEBUG)/xLightsApp.o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o $(OBJDIR_LINUX_DEBUG)/xlights_out.o $(OBJDIR_LINUX_DEBUG)/heartbeat.o $(OBJDIR_LINUX_DEBUG)/serial.o $(OBJDIR_LINUX_DEBUG)/RenderText.o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o $(OBJDIR_LINUX_DEBUG)/Image.o $(OBJDIR_LINUX_DEBUG)/Image_Loader.o $(OBJDIR_LINUX_DEBUG)/ModelClass.o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o $(OBJDIR_LINUX_DEBUG)/ModelDialog.o $(OBJDIR_LINUX_DEBUG)/ModelListDialog.o $(OBJDIR_LINUX_DEBUG)/ModelPreview.o $(OBJDIR_LINUX_DEBUG)/NetInfo.o $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o $(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o $(OBJDIR_LINUX_DEBUG)/XlightsDrawable.o $(OBJDIR_LINUX_DEBUG)/E131Dialog.o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o $(OBJDIR_LINUX_DEBUG)/RenderPinwheel.o $(OBJDIR_LINUX_DEBUG)/RenderFire.o $(OBJDIR_LINUX_DEBUG)/RenderFireworks.o $(OBJDIR_LINUX_DEBUG)/RenderGarlands.o $(OBJDIR_LINUX_DEBUG)/RenderGlediator.o $(OBJDIR_LINUX_DEBUG)/RenderLife.o $(OBJDIR_LINUX_DEBUG)/RenderMeteors.o $(OBJDIR_LINUX_DEBUG)/RenderPiano.o $(OBJDIR_LINUX_DEBUG)/RenderPictures.o $(OBJDIR_LINUX_DEBUG)/RenderFaces.o $(OBJDIR_LINUX_DEBUG)/RenderRipple.o $(OBJDIR_LINUX_DEBUG)/RenderShimmer.o $(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o $(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o $(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o $(OBJDIR_LINUX_DEBUG)/RenderSpirals.o $(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o $(OBJDIR_LINUX_DEBUG)/PreviewModels.o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o $(OBJDIR_LINUX_DEBUG)/PlaybackOptionsDialog.o $(OBJDIR_LINUX_DEBUG)/PlayerFrame.o $(OBJDIR_LINUX_DEBUG)/AddShowDialog.o $(OBJDIR_LINUX_DEBUG)/RenderBars.o $(OBJDIR_LINUX_DEBUG)/RenderButterfly.o $(OBJDIR_LINUX_DEBUG)/RenderCircles.o $(OBJDIR_LINUX_DEBUG)/RenderColorWash.o $(OBJDIR_LINUX_DEBUG)/RenderCoroFaces.o $(OBJDIR_LINUX_DEBUG)/RenderCurtain.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/heartbeat.o $(OBJDIR_LINUX_RELEASE)/TabSetup.o $(OBJDIR_LINUX_RELEASE)/TabPapagayo.o $(OBJDIR_LINUX_RELEASE)/TabConvert.o $(OBJDIR_LINUX_RELEASE)/ShowDatesDialog.o $(OBJDIR_LINUX_RELEASE)/SerialPortWithRate.o $(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o $(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_RELEASE)/RgbEffects.o $(OBJDIR_LINUX_RELEASE)/RenderWave.o $(OBJDIR_LINUX_RELEASE)/RenderTwinkle.o $(OBJDIR_LINUX_RELEASE)/RenderTree.o $(OBJDIR_LINUX_RELEASE)/xlights_out.o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o $(OBJDIR_LINUX_RELEASE)/xLightsApp.o $(OBJDIR_LINUX_RELEASE)/RenderText.o $(OBJDIR_LINUX_RELEASE)/serial.o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o $(OBJDIR_LINUX_RELEASE)/NetInfo.o $(OBJDIR_LINUX_RELEASE)/ModelListDialog.o $(OBJDIR_LINUX_RELEASE)/ModelDialog.o $(OBJDIR_LINUX_RELEASE)/ModelClass.o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o $(OBJDIR_LINUX_RELEASE)/E131Dialog.o $(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o $(OBJDIR_LINUX_RELEASE)/RenderFire.o $(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o $(OBJDIR_LINUX_RELEASE)/RenderSpirals.o $(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o $(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o $(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o $(OBJDIR_LINUX_RELEASE)/RenderPictures.o $(OBJDIR_LINUX_RELEASE)/RenderPiano.o $(OBJDIR_LINUX_RELEASE)/RenderMeteors.o $(OBJDIR_LINUX_RELEASE)/RenderLife.o $(OBJDIR_LINUX_RELEASE)/RenderGlediator.o $(OBJDIR_LINUX_RELEASE)/RenderGarlands.o $(OBJDIR_LINUX_RELEASE)/RenderFireworks.o $(OBJDIR_LINUX_RELEASE)/AddShowDialog.o $(OBJDIR_LINUX_RELEASE)/RenderFaces.o $(OBJDIR_LINUX_RELEASE)/RenderCurtain.o $(OBJDIR_LINUX_RELEASE)/RenderColorWash.o $(OBJDIR_LINUX_RELEASE)/RenderCircles.o $(OBJDIR_LINUX_RELEASE)/RenderButterfly.o $(OBJDIR_LINUX_RELEASE)/RenderBars.o $(OBJDIR_LINUX_RELEASE)/PlayerFrame.o $(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/TabSetup.o $(OBJDIR_LINUX_RELEASE)/ShowDatesDialog.o $(OBJDIR_LINUX_RELEASE)/TabConvert.o $(OBJDIR_LINUX_RELEASE)/TabPapagayo.o $(OBJDIR_LINUX_RELEASE)/SerialPortWithRate.o $(OBJDIR_LINUX_RELEASE)/ViewsDialog.o $(OBJDIR_LINUX_RELEASE)/WholeHouseModelNameDialog.o $(OBJDIR_LINUX_RELEASE)/djdebug.o $(OBJDIR_LINUX_RELEASE)/dlgPreviewSize.o $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o $(OBJDIR_LINUX_RELEASE)/RenderTree.o $(OBJDIR_LINUX_RELEASE)/RenderTwinkle.o $(OBJDIR_LINUX_RELEASE)/RenderWave.o $(OBJDIR_LINUX_RELEASE)/RgbEffects.o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o $(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o $(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o $(OBJDIR_LINUX_RELEASE)/SequencePreview.o $(OBJDIR_LINUX_RELEASE)/xLightsApp.o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o $(OBJDIR_LINUX_RELEASE)/xlights_out.o $(OBJDIR_LINUX_RELEASE)/heartbeat.o $(OBJDIR_LINUX_RELEASE)/serial.o $(OBJDIR_LINUX_RELEASE)/RenderText.o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o $(OBJDIR_LINUX_RELEASE)/Image.o $(OBJDIR_LINUX_RELEASE)/Image_Loader.o $(OBJDIR_LINUX_RELEASE)/ModelClass.o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o $(OBJDIR_LINUX_RELEASE)/ModelDialog.o $(OBJDIR_LINUX_RELEASE)/ModelListDialog.o $(OBJDIR_LINUX_RELEASE)/ModelPreview.o $(OBJDIR_LINUX_RELEASE)/NetInfo.o $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o $(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o $(OBJDIR_LINUX_RELEASE)/XlightsDrawable.o $(OBJDIR_LINUX_RELEASE)/E131Dialog.o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o $(OBJDIR_LINUX_RELEASE)/RenderPinwheel.o $(OBJDIR_LINUX_RELEASE)/RenderFire.o $(OBJDIR_LINUX_RELEASE)/RenderFireworks.o $(OBJDIR_LINUX_RELEASE)/RenderGarlands.o $(OBJDIR_LINUX_RELEASE)/RenderGlediator.o $(OBJDIR_LINUX_RELEASE)/RenderLife.o $(OBJDIR_LINUX_RELEASE)/RenderMeteors.o $(OBJDIR_LINUX_RELEASE)/RenderPiano.o $(OBJDIR_LINUX_RELEASE)/RenderPictures.o $(OBJDIR_LINUX_RELEASE)/RenderFaces.o $(OBJDIR_LINUX_RELEASE)/RenderRipple.o $(OBJDIR_LINUX_RELEASE)/RenderShimmer.o $(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o $(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o $(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o $(OBJDIR_LINUX_RELEASE)/RenderSpirals.o $(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o $(OBJDIR_LINUX_RELEASE)/PreviewModels.o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o $(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o $(OBJDIR_LINUX_RELEASE)/PlayerFrame.o $(OBJDIR_LINUX_RELEASE)/AddShowDialog.o $(OBJDIR_LINUX_RELEASE)/RenderBars.o $(OBJDIR_LINUX_RELEASE)/RenderButterfly.o $(OBJDIR_LINUX_RELEASE)/RenderCircles.o $(OBJDIR_LINUX_RELEASE)/RenderColorWash.o $(OBJDIR_LINUX_RELEASE)/RenderCoroFaces.o $(OBJDIR_LINUX_RELEASE)/RenderCurtain.o
 
 all: linux_debug linux_release
 
@@ -59,167 +59,212 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) $(LIBDIR_LINUX_DEBUG) -o $(OUT_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
 
-$(OBJDIR_LINUX_DEBUG)/heartbeat.o: heartbeat.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c heartbeat.cpp -o $(OBJDIR_LINUX_DEBUG)/heartbeat.o
-
 $(OBJDIR_LINUX_DEBUG)/TabSetup.o: TabSetup.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabSetup.cpp -o $(OBJDIR_LINUX_DEBUG)/TabSetup.o
-
-$(OBJDIR_LINUX_DEBUG)/TabPapagayo.o: TabPapagayo.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabPapagayo.cpp -o $(OBJDIR_LINUX_DEBUG)/TabPapagayo.o
-
-$(OBJDIR_LINUX_DEBUG)/TabConvert.o: TabConvert.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabConvert.cpp -o $(OBJDIR_LINUX_DEBUG)/TabConvert.o
 
 $(OBJDIR_LINUX_DEBUG)/ShowDatesDialog.o: ShowDatesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ShowDatesDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ShowDatesDialog.o
 
+$(OBJDIR_LINUX_DEBUG)/TabConvert.o: TabConvert.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabConvert.cpp -o $(OBJDIR_LINUX_DEBUG)/TabConvert.o
+
+$(OBJDIR_LINUX_DEBUG)/TabPapagayo.o: TabPapagayo.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c TabPapagayo.cpp -o $(OBJDIR_LINUX_DEBUG)/TabPapagayo.o
+
 $(OBJDIR_LINUX_DEBUG)/SerialPortWithRate.o: SerialPortWithRate.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SerialPortWithRate.cpp -o $(OBJDIR_LINUX_DEBUG)/SerialPortWithRate.o
 
-$(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o: SeqParmsDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqParmsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o
+$(OBJDIR_LINUX_DEBUG)/ViewsDialog.o: ViewsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ViewsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ViewsDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o: SeqOpenDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqOpenDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o
+$(OBJDIR_LINUX_DEBUG)/WholeHouseModelNameDialog.o: WholeHouseModelNameDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c WholeHouseModelNameDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/WholeHouseModelNameDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/djdebug.o: djdebug.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c djdebug.cpp -o $(OBJDIR_LINUX_DEBUG)/djdebug.o
+
+$(OBJDIR_LINUX_DEBUG)/dlgPreviewSize.o: dlgPreviewSize.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c dlgPreviewSize.cpp -o $(OBJDIR_LINUX_DEBUG)/dlgPreviewSize.o
 
 $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o: SeqExportDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqExportDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqExportDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o: SeqElementMismatchDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqElementMismatchDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/RgbEffects.o: RgbEffects.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RgbEffects.cpp -o $(OBJDIR_LINUX_DEBUG)/RgbEffects.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderWave.o: RenderWave.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderWave.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderWave.o
+$(OBJDIR_LINUX_DEBUG)/RenderTree.o: RenderTree.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderTree.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderTree.o
 
 $(OBJDIR_LINUX_DEBUG)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderTwinkle.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderTwinkle.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderTree.o: RenderTree.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderTree.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderTree.o
+$(OBJDIR_LINUX_DEBUG)/RenderWave.o: RenderWave.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderWave.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderWave.o
 
-$(OBJDIR_LINUX_DEBUG)/xlights_out.o: xlights_out.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xlights_out.cpp -o $(OBJDIR_LINUX_DEBUG)/xlights_out.o
+$(OBJDIR_LINUX_DEBUG)/RgbEffects.o: RgbEffects.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RgbEffects.cpp -o $(OBJDIR_LINUX_DEBUG)/RgbEffects.o
 
-$(OBJDIR_LINUX_DEBUG)/xLightsMain.o: xLightsMain.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xLightsMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o
+$(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o: SeqElementMismatchDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqElementMismatchDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqElementMismatchDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o: SeqOpenDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqOpenDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqOpenDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o: SeqParmsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SeqParmsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/SeqParmsDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/SequencePreview.o: SequencePreview.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c SequencePreview.cpp -o $(OBJDIR_LINUX_DEBUG)/SequencePreview.o
 
 $(OBJDIR_LINUX_DEBUG)/xLightsApp.o: xLightsApp.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xLightsApp.cpp -o $(OBJDIR_LINUX_DEBUG)/xLightsApp.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderText.o: RenderText.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderText.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderText.o
+$(OBJDIR_LINUX_DEBUG)/xLightsMain.o: xLightsMain.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xLightsMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xLightsMain.o
+
+$(OBJDIR_LINUX_DEBUG)/xlights_out.o: xlights_out.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xlights_out.cpp -o $(OBJDIR_LINUX_DEBUG)/xlights_out.o
+
+$(OBJDIR_LINUX_DEBUG)/heartbeat.o: heartbeat.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c heartbeat.cpp -o $(OBJDIR_LINUX_DEBUG)/heartbeat.o
 
 $(OBJDIR_LINUX_DEBUG)/serial.o: serial.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c serial.cpp -o $(OBJDIR_LINUX_DEBUG)/serial.o
 
-$(OBJDIR_LINUX_DEBUG)/EffectsPanel.o: EffectsPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectsPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o
-
-$(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/NetInfo.o: NetInfo.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c NetInfo.cpp -o $(OBJDIR_LINUX_DEBUG)/NetInfo.o
-
-$(OBJDIR_LINUX_DEBUG)/ModelListDialog.o: ModelListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelListDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/ModelDialog.o: ModelDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/ModelClass.o: ModelClass.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelClass.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelClass.o
+$(OBJDIR_LINUX_DEBUG)/RenderText.o: RenderText.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderText.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderText.o
 
 $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o: ExportModelSelect.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ExportModelSelect.cpp -o $(OBJDIR_LINUX_DEBUG)/ExportModelSelect.o
 
-$(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o: EffectTreeDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectTreeDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o
+$(OBJDIR_LINUX_DEBUG)/Image.o: Image.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Image.cpp -o $(OBJDIR_LINUX_DEBUG)/Image.o
 
-$(OBJDIR_LINUX_DEBUG)/EffectListDialog.o: EffectListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o
+$(OBJDIR_LINUX_DEBUG)/Image_Loader.o: Image_Loader.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Image_Loader.cpp -o $(OBJDIR_LINUX_DEBUG)/Image_Loader.o
 
-$(OBJDIR_LINUX_DEBUG)/E131Dialog.o: E131Dialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c E131Dialog.cpp -o $(OBJDIR_LINUX_DEBUG)/E131Dialog.o
+$(OBJDIR_LINUX_DEBUG)/ModelClass.o: ModelClass.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelClass.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelClass.o
 
-$(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o: ChannelMapDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ChannelMapDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o
+$(OBJDIR_LINUX_DEBUG)/EffectsPanel.o: EffectsPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectsPanel.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectsPanel.o
+
+$(OBJDIR_LINUX_DEBUG)/ModelDialog.o: ModelDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/ModelListDialog.o: ModelListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelListDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/ModelPreview.o: ModelPreview.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ModelPreview.cpp -o $(OBJDIR_LINUX_DEBUG)/ModelPreview.o
+
+$(OBJDIR_LINUX_DEBUG)/NetInfo.o: NetInfo.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c NetInfo.cpp -o $(OBJDIR_LINUX_DEBUG)/NetInfo.o
 
 $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ChannelLayoutDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ChannelLayoutDialog.o
 
+$(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o: ChannelMapDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ChannelMapDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ChannelMapDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o: CurrentPreviewModels.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c CurrentPreviewModels.cpp -o $(OBJDIR_LINUX_DEBUG)/CurrentPreviewModels.o
+
+$(OBJDIR_LINUX_DEBUG)/XlightsDrawable.o: XlightsDrawable.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c XlightsDrawable.cpp -o $(OBJDIR_LINUX_DEBUG)/XlightsDrawable.o
+
+$(OBJDIR_LINUX_DEBUG)/E131Dialog.o: E131Dialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c E131Dialog.cpp -o $(OBJDIR_LINUX_DEBUG)/E131Dialog.o
+
+$(OBJDIR_LINUX_DEBUG)/EffectListDialog.o: EffectListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectListDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o: EffectTreeDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c EffectTreeDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/EffectTreeDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderPinwheel.o: RenderPinwheel.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderPinwheel.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderPinwheel.o
+
 $(OBJDIR_LINUX_DEBUG)/RenderFire.o: RenderFire.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderFire.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderFire.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o: RenderSpirograph.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSpirograph.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderSpirals.o: RenderSpirals.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSpirals.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSpirals.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o: RenderSnowstorm.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSnowstorm.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o: RenderSnowflakes.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSnowflakes.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o: RenderSingleStrand.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSingleStrand.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderPictures.o: RenderPictures.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderPictures.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderPictures.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderPiano.o: RenderPiano.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderPiano.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderPiano.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderMeteors.o: RenderMeteors.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderMeteors.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderMeteors.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderLife.o: RenderLife.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderLife.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderLife.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderGlediator.o: RenderGlediator.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderGlediator.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderGlediator.o
-
-$(OBJDIR_LINUX_DEBUG)/RenderGarlands.o: RenderGarlands.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderGarlands.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderGarlands.o
 
 $(OBJDIR_LINUX_DEBUG)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderFireworks.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderFireworks.o
 
-$(OBJDIR_LINUX_DEBUG)/AddShowDialog.o: AddShowDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c AddShowDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/AddShowDialog.o
+$(OBJDIR_LINUX_DEBUG)/RenderGarlands.o: RenderGarlands.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderGarlands.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderGarlands.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderGlediator.o: RenderGlediator.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderGlediator.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderGlediator.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderLife.o: RenderLife.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderLife.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderLife.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderMeteors.o: RenderMeteors.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderMeteors.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderMeteors.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderPiano.o: RenderPiano.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderPiano.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderPiano.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderPictures.o: RenderPictures.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderPictures.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderPictures.o
 
 $(OBJDIR_LINUX_DEBUG)/RenderFaces.o: RenderFaces.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderFaces.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderFaces.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderCurtain.o: RenderCurtain.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderCurtain.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderCurtain.o
+$(OBJDIR_LINUX_DEBUG)/RenderRipple.o: RenderRipple.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderRipple.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderRipple.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderColorWash.o: RenderColorWash.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderColorWash.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderColorWash.o
+$(OBJDIR_LINUX_DEBUG)/RenderShimmer.o: RenderShimmer.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderShimmer.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderShimmer.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderCircles.o: RenderCircles.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderCircles.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderCircles.o
+$(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o: RenderSingleStrand.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSingleStrand.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSingleStrand.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderButterfly.o: RenderButterfly.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderButterfly.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderButterfly.o
+$(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o: RenderSnowflakes.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSnowflakes.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSnowflakes.o
 
-$(OBJDIR_LINUX_DEBUG)/RenderBars.o: RenderBars.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderBars.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderBars.o
+$(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o: RenderSnowstorm.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSnowstorm.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSnowstorm.o
 
-$(OBJDIR_LINUX_DEBUG)/PlayerFrame.o: PlayerFrame.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayerFrame.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayerFrame.o
+$(OBJDIR_LINUX_DEBUG)/RenderSpirals.o: RenderSpirals.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSpirals.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSpirals.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o: RenderSpirograph.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderSpirograph.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderSpirograph.o
+
+$(OBJDIR_LINUX_DEBUG)/PreviewModels.o: PreviewModels.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PreviewModels.cpp -o $(OBJDIR_LINUX_DEBUG)/PreviewModels.o
+
+$(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PaletteMgmtDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/PixelBuffer.o: PixelBuffer.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PixelBuffer.cpp -o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o
 
 $(OBJDIR_LINUX_DEBUG)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlaybackOptionsDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/PlaybackOptionsDialog.o
 
-$(OBJDIR_LINUX_DEBUG)/PixelBuffer.o: PixelBuffer.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PixelBuffer.cpp -o $(OBJDIR_LINUX_DEBUG)/PixelBuffer.o
+$(OBJDIR_LINUX_DEBUG)/PlayerFrame.o: PlayerFrame.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c PlayerFrame.cpp -o $(OBJDIR_LINUX_DEBUG)/PlayerFrame.o
+
+$(OBJDIR_LINUX_DEBUG)/AddShowDialog.o: AddShowDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c AddShowDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/AddShowDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderBars.o: RenderBars.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderBars.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderBars.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderButterfly.o: RenderButterfly.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderButterfly.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderButterfly.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderCircles.o: RenderCircles.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderCircles.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderCircles.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderColorWash.o: RenderColorWash.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderColorWash.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderColorWash.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderCoroFaces.o: RenderCoroFaces.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderCoroFaces.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderCoroFaces.o
+
+$(OBJDIR_LINUX_DEBUG)/RenderCurtain.o: RenderCurtain.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c RenderCurtain.cpp -o $(OBJDIR_LINUX_DEBUG)/RenderCurtain.o
 
 clean_linux_debug: 
 	rm -f $(OBJ_LINUX_DEBUG) $(OUT_LINUX_DEBUG)
@@ -235,180 +280,229 @@ linux_release: before_linux_release out_linux_release after_linux_release
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) $(LIBDIR_LINUX_RELEASE) -o $(OUT_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
 
-$(OBJDIR_LINUX_RELEASE)/heartbeat.o: heartbeat.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c heartbeat.cpp -o $(OBJDIR_LINUX_RELEASE)/heartbeat.o
-
 $(OBJDIR_LINUX_RELEASE)/TabSetup.o: TabSetup.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabSetup.cpp -o $(OBJDIR_LINUX_RELEASE)/TabSetup.o
-
-$(OBJDIR_LINUX_RELEASE)/TabPapagayo.o: TabPapagayo.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabPapagayo.cpp -o $(OBJDIR_LINUX_RELEASE)/TabPapagayo.o
-
-$(OBJDIR_LINUX_RELEASE)/TabConvert.o: TabConvert.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabConvert.cpp -o $(OBJDIR_LINUX_RELEASE)/TabConvert.o
 
 $(OBJDIR_LINUX_RELEASE)/ShowDatesDialog.o: ShowDatesDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ShowDatesDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ShowDatesDialog.o
 
+$(OBJDIR_LINUX_RELEASE)/TabConvert.o: TabConvert.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabConvert.cpp -o $(OBJDIR_LINUX_RELEASE)/TabConvert.o
+
+$(OBJDIR_LINUX_RELEASE)/TabPapagayo.o: TabPapagayo.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c TabPapagayo.cpp -o $(OBJDIR_LINUX_RELEASE)/TabPapagayo.o
+
 $(OBJDIR_LINUX_RELEASE)/SerialPortWithRate.o: SerialPortWithRate.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SerialPortWithRate.cpp -o $(OBJDIR_LINUX_RELEASE)/SerialPortWithRate.o
 
-$(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o: SeqParmsDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqParmsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o
+$(OBJDIR_LINUX_RELEASE)/ViewsDialog.o: ViewsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ViewsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ViewsDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o: SeqOpenDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqOpenDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o
+$(OBJDIR_LINUX_RELEASE)/WholeHouseModelNameDialog.o: WholeHouseModelNameDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c WholeHouseModelNameDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/WholeHouseModelNameDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/djdebug.o: djdebug.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c djdebug.cpp -o $(OBJDIR_LINUX_RELEASE)/djdebug.o
+
+$(OBJDIR_LINUX_RELEASE)/dlgPreviewSize.o: dlgPreviewSize.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c dlgPreviewSize.cpp -o $(OBJDIR_LINUX_RELEASE)/dlgPreviewSize.o
 
 $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o: SeqExportDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqExportDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqExportDialog.o
 
-$(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o: SeqElementMismatchDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqElementMismatchDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/RgbEffects.o: RgbEffects.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RgbEffects.cpp -o $(OBJDIR_LINUX_RELEASE)/RgbEffects.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderWave.o: RenderWave.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderWave.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderWave.o
+$(OBJDIR_LINUX_RELEASE)/RenderTree.o: RenderTree.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderTree.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderTree.o
 
 $(OBJDIR_LINUX_RELEASE)/RenderTwinkle.o: RenderTwinkle.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderTwinkle.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderTwinkle.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderTree.o: RenderTree.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderTree.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderTree.o
+$(OBJDIR_LINUX_RELEASE)/RenderWave.o: RenderWave.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderWave.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderWave.o
 
-$(OBJDIR_LINUX_RELEASE)/xlights_out.o: xlights_out.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xlights_out.cpp -o $(OBJDIR_LINUX_RELEASE)/xlights_out.o
+$(OBJDIR_LINUX_RELEASE)/RgbEffects.o: RgbEffects.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RgbEffects.cpp -o $(OBJDIR_LINUX_RELEASE)/RgbEffects.o
 
-$(OBJDIR_LINUX_RELEASE)/xLightsMain.o: xLightsMain.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xLightsMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o
+$(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o: SeqElementMismatchDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqElementMismatchDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqElementMismatchDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o: SeqOpenDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqOpenDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqOpenDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o: SeqParmsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SeqParmsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/SeqParmsDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/SequencePreview.o: SequencePreview.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c SequencePreview.cpp -o $(OBJDIR_LINUX_RELEASE)/SequencePreview.o
 
 $(OBJDIR_LINUX_RELEASE)/xLightsApp.o: xLightsApp.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xLightsApp.cpp -o $(OBJDIR_LINUX_RELEASE)/xLightsApp.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderText.o: RenderText.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderText.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderText.o
+$(OBJDIR_LINUX_RELEASE)/xLightsMain.o: xLightsMain.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xLightsMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xLightsMain.o
+
+$(OBJDIR_LINUX_RELEASE)/xlights_out.o: xlights_out.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xlights_out.cpp -o $(OBJDIR_LINUX_RELEASE)/xlights_out.o
+
+$(OBJDIR_LINUX_RELEASE)/heartbeat.o: heartbeat.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c heartbeat.cpp -o $(OBJDIR_LINUX_RELEASE)/heartbeat.o
 
 $(OBJDIR_LINUX_RELEASE)/serial.o: serial.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c serial.cpp -o $(OBJDIR_LINUX_RELEASE)/serial.o
 
-$(OBJDIR_LINUX_RELEASE)/EffectsPanel.o: EffectsPanel.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectsPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o
-
-$(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/NetInfo.o: NetInfo.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c NetInfo.cpp -o $(OBJDIR_LINUX_RELEASE)/NetInfo.o
-
-$(OBJDIR_LINUX_RELEASE)/ModelListDialog.o: ModelListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelListDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/ModelDialog.o: ModelDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/ModelClass.o: ModelClass.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelClass.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelClass.o
+$(OBJDIR_LINUX_RELEASE)/RenderText.o: RenderText.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderText.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderText.o
 
 $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o: ExportModelSelect.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ExportModelSelect.cpp -o $(OBJDIR_LINUX_RELEASE)/ExportModelSelect.o
 
-$(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o: EffectTreeDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectTreeDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o
+$(OBJDIR_LINUX_RELEASE)/Image.o: Image.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Image.cpp -o $(OBJDIR_LINUX_RELEASE)/Image.o
 
-$(OBJDIR_LINUX_RELEASE)/EffectListDialog.o: EffectListDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o
+$(OBJDIR_LINUX_RELEASE)/Image_Loader.o: Image_Loader.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Image_Loader.cpp -o $(OBJDIR_LINUX_RELEASE)/Image_Loader.o
 
-$(OBJDIR_LINUX_RELEASE)/E131Dialog.o: E131Dialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c E131Dialog.cpp -o $(OBJDIR_LINUX_RELEASE)/E131Dialog.o
+$(OBJDIR_LINUX_RELEASE)/ModelClass.o: ModelClass.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelClass.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelClass.o
 
-$(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o: ChannelMapDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ChannelMapDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o
+$(OBJDIR_LINUX_RELEASE)/EffectsPanel.o: EffectsPanel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectsPanel.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectsPanel.o
+
+$(OBJDIR_LINUX_RELEASE)/ModelDialog.o: ModelDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/ModelListDialog.o: ModelListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelListDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/ModelPreview.o: ModelPreview.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ModelPreview.cpp -o $(OBJDIR_LINUX_RELEASE)/ModelPreview.o
+
+$(OBJDIR_LINUX_RELEASE)/NetInfo.o: NetInfo.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c NetInfo.cpp -o $(OBJDIR_LINUX_RELEASE)/NetInfo.o
 
 $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o: ChannelLayoutDialog.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ChannelLayoutDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ChannelLayoutDialog.o
 
+$(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o: ChannelMapDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ChannelMapDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ChannelMapDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o: CurrentPreviewModels.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c CurrentPreviewModels.cpp -o $(OBJDIR_LINUX_RELEASE)/CurrentPreviewModels.o
+
+$(OBJDIR_LINUX_RELEASE)/XlightsDrawable.o: XlightsDrawable.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c XlightsDrawable.cpp -o $(OBJDIR_LINUX_RELEASE)/XlightsDrawable.o
+
+$(OBJDIR_LINUX_RELEASE)/E131Dialog.o: E131Dialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c E131Dialog.cpp -o $(OBJDIR_LINUX_RELEASE)/E131Dialog.o
+
+$(OBJDIR_LINUX_RELEASE)/EffectListDialog.o: EffectListDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectListDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectListDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o: EffectTreeDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c EffectTreeDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/EffectTreeDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderPinwheel.o: RenderPinwheel.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderPinwheel.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderPinwheel.o
+
 $(OBJDIR_LINUX_RELEASE)/RenderFire.o: RenderFire.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderFire.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderFire.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o: RenderSpirograph.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSpirograph.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderSpirals.o: RenderSpirals.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSpirals.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSpirals.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o: RenderSnowstorm.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSnowstorm.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o: RenderSnowflakes.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSnowflakes.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o: RenderSingleStrand.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSingleStrand.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderPictures.o: RenderPictures.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderPictures.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderPictures.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderPiano.o: RenderPiano.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderPiano.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderPiano.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderMeteors.o: RenderMeteors.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderMeteors.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderMeteors.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderLife.o: RenderLife.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderLife.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderLife.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderGlediator.o: RenderGlediator.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderGlediator.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderGlediator.o
-
-$(OBJDIR_LINUX_RELEASE)/RenderGarlands.o: RenderGarlands.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderGarlands.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderGarlands.o
 
 $(OBJDIR_LINUX_RELEASE)/RenderFireworks.o: RenderFireworks.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderFireworks.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderFireworks.o
 
-$(OBJDIR_LINUX_RELEASE)/AddShowDialog.o: AddShowDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c AddShowDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/AddShowDialog.o
+$(OBJDIR_LINUX_RELEASE)/RenderGarlands.o: RenderGarlands.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderGarlands.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderGarlands.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderGlediator.o: RenderGlediator.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderGlediator.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderGlediator.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderLife.o: RenderLife.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderLife.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderLife.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderMeteors.o: RenderMeteors.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderMeteors.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderMeteors.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderPiano.o: RenderPiano.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderPiano.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderPiano.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderPictures.o: RenderPictures.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderPictures.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderPictures.o
 
 $(OBJDIR_LINUX_RELEASE)/RenderFaces.o: RenderFaces.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderFaces.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderFaces.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderCurtain.o: RenderCurtain.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderCurtain.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderCurtain.o
+$(OBJDIR_LINUX_RELEASE)/RenderRipple.o: RenderRipple.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderRipple.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderRipple.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderColorWash.o: RenderColorWash.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderColorWash.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderColorWash.o
+$(OBJDIR_LINUX_RELEASE)/RenderShimmer.o: RenderShimmer.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderShimmer.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderShimmer.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderCircles.o: RenderCircles.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderCircles.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderCircles.o
+$(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o: RenderSingleStrand.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSingleStrand.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSingleStrand.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderButterfly.o: RenderButterfly.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderButterfly.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderButterfly.o
+$(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o: RenderSnowflakes.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSnowflakes.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSnowflakes.o
 
-$(OBJDIR_LINUX_RELEASE)/RenderBars.o: RenderBars.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderBars.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderBars.o
+$(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o: RenderSnowstorm.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSnowstorm.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSnowstorm.o
 
-$(OBJDIR_LINUX_RELEASE)/PlayerFrame.o: PlayerFrame.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayerFrame.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayerFrame.o
+$(OBJDIR_LINUX_RELEASE)/RenderSpirals.o: RenderSpirals.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSpirals.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSpirals.o
 
-$(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlaybackOptionsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o
+$(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o: RenderSpirograph.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderSpirograph.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderSpirograph.o
+
+$(OBJDIR_LINUX_RELEASE)/PreviewModels.o: PreviewModels.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PreviewModels.cpp -o $(OBJDIR_LINUX_RELEASE)/PreviewModels.o
+
+$(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o: PaletteMgmtDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PaletteMgmtDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PaletteMgmtDialog.o
 
 $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o: PixelBuffer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PixelBuffer.cpp -o $(OBJDIR_LINUX_RELEASE)/PixelBuffer.o
 
+$(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o: PlaybackOptionsDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlaybackOptionsDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/PlaybackOptionsDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/PlayerFrame.o: PlayerFrame.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c PlayerFrame.cpp -o $(OBJDIR_LINUX_RELEASE)/PlayerFrame.o
+
+$(OBJDIR_LINUX_RELEASE)/AddShowDialog.o: AddShowDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c AddShowDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/AddShowDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderBars.o: RenderBars.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderBars.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderBars.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderButterfly.o: RenderButterfly.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderButterfly.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderButterfly.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderCircles.o: RenderCircles.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderCircles.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderCircles.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderColorWash.o: RenderColorWash.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderColorWash.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderColorWash.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderCoroFaces.o: RenderCoroFaces.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderCoroFaces.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderCoroFaces.o
+
+$(OBJDIR_LINUX_RELEASE)/RenderCurtain.o: RenderCurtain.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c RenderCurtain.cpp -o $(OBJDIR_LINUX_RELEASE)/RenderCurtain.o
+
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
-heartbeat.cpp: heartbeat.h
-
 TabSetup.cpp: xLightsMain.h SerialPortWithRate.h E131Dialog.h
 
-xLightsMain.h: EffectTreeDialog.h xlights_out.h PlayerFrame.h EffectsPanel.h AddShowDialog.h ShowDatesDialog.h PlaybackOptionsDialog.h ModelListDialog.h EffectListDialog.h SeqParmsDialog.h ChannelMapDialog.h SeqOpenDialog.h SeqExportDialog.h SeqElementMismatchDialog.h PixelBuffer.h NetInfo.h PaletteMgmtDialog.h ExportModelSelect.h
+xLightsMain.h: EffectTreeDialog.h xlights_out.h PlayerFrame.h EffectsPanel.h AddShowDialog.h ShowDatesDialog.h PlaybackOptionsDialog.h ModelListDialog.h EffectListDialog.h SeqParmsDialog.h ChannelMapDialog.h SeqOpenDialog.h SeqExportDialog.h ViewsDialog.h SeqElementMismatchDialog.h PixelBuffer.h NetInfo.h PaletteMgmtDialog.h ExportModelSelect.h WholeHouseModelNameDialog.h CurrentPreviewModels.h PreviewModels.h ModelPreview.h SequencePreview.h dlgPreviewSize.h
 
 EffectTreeDialog.h: xLightsMain.h
 
 ModelListDialog.h: ModelClass.h
+
+ModelClass.h: SequencePreview.h ModelPreview.h
+
+ModelPreview.h: Image.h XlightsDrawable.h
+
+XlightsDrawable.h: Image.h
 
 ChannelMapDialog.h: NetInfo.h
 
@@ -418,39 +512,51 @@ RgbEffects.h: Effects.h
 
 PaletteMgmtDialog.h: EffectsPanel.h
 
-TabPapagayo.cpp: xLightsMain.h
+ShowDatesDialog.cpp: ShowDatesDialog.h
 
 TabConvert.cpp: xLightsMain.h
 
-ShowDatesDialog.cpp: ShowDatesDialog.h
+TabPapagayo.cpp: xLightsMain.h
 
 SerialPortWithRate.cpp: SerialPortWithRate.h
 
-SeqParmsDialog.cpp: SeqParmsDialog.h
+ViewsDialog.cpp: ViewsDialog.h djdebug.cpp
 
-SeqOpenDialog.cpp: SeqOpenDialog.h
+djdebug.cpp: xLightsApp.h
+
+WholeHouseModelNameDialog.cpp: WholeHouseModelNameDialog.h
+
+dlgPreviewSize.cpp: dlgPreviewSize.h
 
 SeqExportDialog.cpp: SeqExportDialog.h
 
-SeqElementMismatchDialog.cpp: SeqElementMismatchDialog.h
-
-RgbEffects.cpp: RgbEffects.h
-
-RenderWave.cpp: RgbEffects.h
+RenderTree.cpp: RgbEffects.h
 
 RenderTwinkle.cpp: RgbEffects.h
 
-RenderTree.cpp: RgbEffects.h
+RenderWave.cpp: RgbEffects.h
 
-xlights_out.cpp: xlights_out.h xLightsMain.h serial.h
+RgbEffects.cpp: RgbEffects.h
+
+SeqElementMismatchDialog.cpp: SeqElementMismatchDialog.h
+
+SeqOpenDialog.cpp: SeqOpenDialog.h
+
+SeqParmsDialog.cpp: SeqParmsDialog.h
+
+SequencePreview.cpp: SequencePreview.h
+
+xLightsApp.cpp: xLightsApp.h xLightsMain.h
 
 xLightsMain.cpp: xLightsMain.h xLightsApp.h heartbeat.h xLightsBasic.cpp TabTest.cpp TabSchedule.cpp TabPreview.cpp TabSequence.cpp
 
 xLightsBasic.cpp: serial.h
 
-xLightsApp.cpp: xLightsApp.h xLightsMain.h
+TabPreview.cpp: ModelDialog.h
 
-RenderText.cpp: RgbEffects.h
+xlights_out.cpp: xlights_out.h xLightsMain.h serial.h
+
+heartbeat.cpp: heartbeat.h
 
 serial.cpp: serial.h serial_win32.cpp serial_osx.cpp serial_posix.cpp
 
@@ -458,75 +564,97 @@ serial_osx.cpp: serial.h
 
 serial_posix.cpp: serial.h
 
-EffectsPanel.cpp: EffectsPanel.h
-
-PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
-
-NetInfo.cpp: NetInfo.h
-
-ModelListDialog.cpp: ModelListDialog.h ModelDialog.h ChannelLayoutDialog.h
-
-ModelDialog.cpp: ModelDialog.h ModelClass.h
-
-ModelClass.cpp: ModelClass.h
+RenderText.cpp: RgbEffects.h
 
 ExportModelSelect.cpp: ExportModelSelect.h
 
-EffectTreeDialog.cpp: EffectTreeDialog.h
+Image.cpp: Image.h Image_Loader.h
 
-EffectListDialog.cpp: EffectListDialog.h
+Image_Loader.cpp: Image_Loader.h
 
-E131Dialog.cpp: E131Dialog.h
+ModelClass.cpp: ModelClass.h xLightsMain.h
 
-ChannelMapDialog.cpp: ChannelMapDialog.h
+EffectsPanel.cpp: EffectsPanel.h
+
+ModelDialog.cpp: ModelDialog.h ModelClass.h
+
+ModelListDialog.cpp: ModelListDialog.h ModelDialog.h ChannelLayoutDialog.h
+
+ModelPreview.cpp: ModelPreview.h
+
+NetInfo.cpp: NetInfo.h
 
 ChannelLayoutDialog.cpp: ChannelLayoutDialog.h
 
+ChannelMapDialog.cpp: ChannelMapDialog.h
+
+CurrentPreviewModels.cpp: CurrentPreviewModels.h
+
+XlightsDrawable.cpp: XlightsDrawable.h
+
+E131Dialog.cpp: E131Dialog.h
+
+EffectListDialog.cpp: EffectListDialog.h
+
+EffectTreeDialog.cpp: EffectTreeDialog.h
+
+RenderPinwheel.cpp: RgbEffects.h
+
 RenderFire.cpp: RgbEffects.h
-
-RenderSpirograph.cpp: RgbEffects.h
-
-RenderSpirals.cpp: RgbEffects.h
-
-RenderSnowstorm.cpp: RgbEffects.h
-
-RenderSnowflakes.cpp: RgbEffects.h
-
-RenderSingleStrand.cpp: RgbEffects.h
-
-RenderPictures.cpp: RgbEffects.h xLightsApp.h
-
-RenderPiano.cpp: RgbEffects.h
-
-RenderMeteors.cpp: RgbEffects.h
-
-RenderLife.cpp: RgbEffects.h
-
-RenderGlediator.cpp: RgbEffects.h xLightsApp.h
-
-RenderGarlands.cpp: RgbEffects.h
 
 RenderFireworks.cpp: RgbEffects.h
 
-AddShowDialog.cpp: AddShowDialog.h
+RenderGarlands.cpp: RgbEffects.h
+
+RenderGlediator.cpp: RgbEffects.h xLightsApp.h
+
+RenderLife.cpp: RgbEffects.h
+
+RenderMeteors.cpp: RgbEffects.h
+
+RenderPiano.cpp: RgbEffects.h
+
+RenderPictures.cpp: RgbEffects.h xLightsApp.h
 
 RenderFaces.cpp: RgbEffects.h xLightsMain.h
 
-RenderCurtain.cpp: RgbEffects.h
+RenderRipple.cpp: RgbEffects.h djdebug.cpp
 
-RenderColorWash.cpp: RgbEffects.h
+RenderShimmer.cpp: RgbEffects.h djdebug.cpp
 
-RenderCircles.cpp: RgbEffects.h
+RenderSingleStrand.cpp: RgbEffects.h
 
-RenderButterfly.cpp: RgbEffects.h
+RenderSnowflakes.cpp: RgbEffects.h
 
-RenderBars.cpp: RgbEffects.h
+RenderSnowstorm.cpp: RgbEffects.h
 
-PlayerFrame.cpp: PlayerFrame.h
+RenderSpirals.cpp: RgbEffects.h
+
+RenderSpirograph.cpp: RgbEffects.h
+
+PreviewModels.cpp: PreviewModels.h
+
+PaletteMgmtDialog.cpp: PaletteMgmtDialog.h
+
+PixelBuffer.cpp: PixelBuffer.h
 
 PlaybackOptionsDialog.cpp: PlaybackOptionsDialog.h
 
-PixelBuffer.cpp: PixelBuffer.h
+PlayerFrame.cpp: PlayerFrame.h
+
+AddShowDialog.cpp: AddShowDialog.h
+
+RenderBars.cpp: RgbEffects.h
+
+RenderButterfly.cpp: RgbEffects.h
+
+RenderCircles.cpp: RgbEffects.h
+
+RenderColorWash.cpp: RgbEffects.h
+
+RenderCoroFaces.cpp: RgbEffects.h xLightsMain.h
+
+RenderCurtain.cpp: RgbEffects.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

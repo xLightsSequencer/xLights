@@ -16,6 +16,10 @@ void RenderMeteors(int ColorScheme, int Count, int Length, int MeteorsEffect, in
 void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Clipping,
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
+void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
+                    bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj);
+void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv,int xc_adj, int yc_adj);
+
 void RenderRipple(int Object_To_Draw, int Movement);
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
 void SetP(int x, int y, wxImage::HSVValue hsv);
@@ -32,7 +36,6 @@ void RenderSnowstorm(int Count, int Length);
 void RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
                    bool Blend, bool Show3D, bool grow, bool shrink);
 void RenderSpirograph(int R, int r, int d,bool Animate);
-void RenderPinwheel(int R);
 
 
 void RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int TextRotation1,int Effect1,
