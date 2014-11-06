@@ -266,9 +266,9 @@ public:
     wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
     wxBitmapButton* BitmapButton_TextDir2;
+    wxChoice* Choice_Text_Dir2;
     wxPanel* Panel4;
     wxStaticText* StaticText53;
-    wxChoice* Choice_Text_Dir2;
     wxChoice* Choice_Text_Count4;
     wxBitmapButton* BitmapButton_ButterflyStyle;
     wxSlider* Slider_Text_Position4;
@@ -285,8 +285,8 @@ public:
     wxSlider* Slider_Garlands_Type;
     wxBitmapButton* BitmapButton_Piano_NumKeys;
     wxCheckBox* CheckBox_OverlayBkg;
-    wxBitmapButton* BitmapButton_FireGrow;
     wxStaticText* StaticText57;
+    wxBitmapButton* BitmapButton_FireGrow;
     wxStaticText* StaticText90;
     wxStaticText* StaticText93;
     wxBitmapButton* BitmapButton_Color_Mix1;
@@ -354,6 +354,7 @@ public:
     wxBitmapButton* BitmapButton_TextEffect1;
     wxSlider* Slider_Pictures_GifSpeed;
     wxPanel* Panel_Text3;
+    wxSlider* Slider_PinwheelXC;
     wxChoice* Choice_Piano_Style;
     wxBitmapButton* BitmapButton_ColorWashVFade;
     wxChoice* Choice_Faces_Phoneme;
@@ -380,6 +381,7 @@ public:
     wxStaticText* StaticText50;
     wxSlider* Slider_Text_Position2;
     wxChoice* Choice_Ripple_Object_To_Draw;
+    wxStaticText* StaticText81;
     wxStaticText* StaticText58;
     wxBitmapButton* BitmapButton_TextDir1;
     wxBitmapButton* BitmapButton_CurtainRepeat;
@@ -398,6 +400,7 @@ public:
     wxPanel* Panel1_None;
     wxBitmapButton* BitmapButton_Palette1;
     wxChoice* Choice_Text_Count2;
+    wxSlider* Slider_PinwheelYC;
     wxStaticText* StaticText73;
     wxBitmapButton* BitmapButton_ButterflyColors;
     wxBitmapButton* BitmapButton_MeteorsType;
@@ -430,6 +433,7 @@ public:
     wxCheckBox* CheckBox_Palette1;
     wxCheckBox* CheckBox_Shimmer_Use_All_Colors;
     wxStaticText* StaticText136;
+    wxStaticText* StaticText82;
     wxSlider* Slider_Spirals_Rotation;
     wxButton* Button_Palette5;
     wxStaticText* StaticText51;
@@ -689,6 +693,10 @@ protected:
     static const long ID_STATICTEXT82;
     static const long ID_CHOICE_Pinwheel_3D;
     static const long ID_BITMAPBUTTON_Pinwheel3D;
+    static const long ID_SLIDER_PinwheelYC;
+    static const long ID_STATICTEXT85;
+    static const long ID_SLIDER_PinwheelXC;
+    static const long ID_STATICTEXT83;
     static const long ID_PANEL_Pinwheel;
     static const long ID_STATICTEXT71;
     static const long ID_CHOICE_Ripple_Object_To_Draw;
@@ -1154,6 +1162,10 @@ private:
     void OnBitmapButton_Ripple3DClick1(wxCommandEvent& event);
     void OnBitmapButton_PinwheelRotationClick(wxCommandEvent& event);
     void OnBitmapButton_Pinwheel3DClick(wxCommandEvent& event);
+    void OnTextCtrl_Pinwheel_ArmsText(wxCommandEvent& event);
+    void OnTextCtrl_Pinwheel_TwistText(wxCommandEvent& event);
+    void OnTextCtrl_Pinwheel_ThicknessText(wxCommandEvent& event);
+    void OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

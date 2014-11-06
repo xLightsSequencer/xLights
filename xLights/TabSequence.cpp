@@ -1524,7 +1524,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->Slider_Pinwheel_Twist->GetValue(),
                               panel->Slider_Pinwheel_Thickness->GetValue(),
                               panel->CheckBox_Pinwheel_Rotation->GetValue(),
-                              panel->Choice_Pinwheel_3D->GetSelection()
+                              panel->Choice_Pinwheel_3D->GetSelection(),
+                              panel->Slider_PinwheelXC->GetValue(),
+                              panel->Slider_PinwheelYC->GetValue()
                              );
         break;
     case eff_RIPPLE:

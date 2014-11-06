@@ -204,6 +204,10 @@ const long EffectsPanel::ID_BITMAPBUTTON19 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT82 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Pinwheel_3D = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_Pinwheel3D = wxNewId();
+const long EffectsPanel::ID_SLIDER_PinwheelYC = wxNewId();
+const long EffectsPanel::ID_STATICTEXT85 = wxNewId();
+const long EffectsPanel::ID_SLIDER_PinwheelXC = wxNewId();
+const long EffectsPanel::ID_STATICTEXT83 = wxNewId();
 const long EffectsPanel::ID_PANEL_Pinwheel = wxNewId();
 const long EffectsPanel::ID_STATICTEXT71 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Ripple_Object_To_Draw = wxNewId();
@@ -500,6 +504,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
+    wxFlexGridSizer* FlexGridSizer62;
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
@@ -1155,26 +1160,26 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer42->Fit(Panel1_Pictures);
     FlexGridSizer42->SetSizeHints(Panel1_Pictures);
     Panel1_Pinwheel = new wxPanel(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pinwheel"));
-    FlexGridSizer55 = new wxFlexGridSizer(5, 3, 0, 0);
+    FlexGridSizer55 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer55->AddGrowableCol(1);
     StaticText63 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT65, _("Number Arms"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
-    FlexGridSizer55->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Pinwheel_Arms = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Arms, 3, 1, 20, wxDefaultPosition, wxSize(120,24), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Arms"));
+    FlexGridSizer55->Add(StaticText63, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Pinwheel_Arms = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Arms, 3, 1, 20, wxDefaultPosition, wxSize(100,40), wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Arms"));
     FlexGridSizer55->Add(Slider_Pinwheel_Arms, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_PinwheelNumberArms = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON11, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
     BitmapButton_PinwheelNumberArms->SetDefault();
     BitmapButton_PinwheelNumberArms->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer55->Add(BitmapButton_PinwheelNumberArms, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer55->Add(BitmapButton_PinwheelNumberArms, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     StaticText74 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT76, _("Twist"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT76"));
     FlexGridSizer55->Add(StaticText74, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Pinwheel_Twist = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Twist, 0, -180, 180, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Twist"));
+    Slider_Pinwheel_Twist = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Twist, 0, -180, 180, wxDefaultPosition, wxSize(100,40), wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Twist"));
     FlexGridSizer55->Add(Slider_Pinwheel_Twist, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_PinwheelTwist = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON12, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
     BitmapButton_PinwheelTwist->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer55->Add(BitmapButton_PinwheelTwist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer55->Add(BitmapButton_PinwheelTwist, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText75 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT77, _("Arm Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT77"));
-    FlexGridSizer55->Add(StaticText75, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Pinwheel_Thickness = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Thickness, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Thickness"));
+    FlexGridSizer55->Add(StaticText75, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Pinwheel_Thickness = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Thickness, 0, 0, 100, wxDefaultPosition, wxSize(100,40), wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Thickness"));
     FlexGridSizer55->Add(Slider_Pinwheel_Thickness, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_PinwheelThickness = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON18, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON18"));
     BitmapButton_PinwheelThickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -1201,6 +1206,16 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Pinwheel3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer61->Add(BitmapButton_Pinwheel3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer55->Add(FlexGridSizer61, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer62 = new wxFlexGridSizer(0, 3, 0, 0);
+    Slider_PinwheelYC = new wxSlider(Panel1_Pinwheel, ID_SLIDER_PinwheelYC, 0, -100, 100, wxDefaultPosition, wxSize(40,80), wxSL_VERTICAL|wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_PinwheelYC"));
+    FlexGridSizer62->Add(Slider_PinwheelYC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer55->Add(FlexGridSizer62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText82 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT85, _("X-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT85"));
+    FlexGridSizer55->Add(StaticText82, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_PinwheelXC = new wxSlider(Panel1_Pinwheel, ID_SLIDER_PinwheelXC, 0, -100, 100, wxDefaultPosition, wxSize(80,40), wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_PinwheelXC"));
+    FlexGridSizer55->Add(Slider_PinwheelXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText81 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT83, _("Y-axis center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT83"));
+    FlexGridSizer55->Add(StaticText81, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Pinwheel->SetSizer(FlexGridSizer55);
     FlexGridSizer55->Fit(Panel1_Pinwheel);
     FlexGridSizer55->SetSizeHints(Panel1_Pinwheel);
@@ -2642,6 +2657,20 @@ void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
 }
 
 
+//  Pinwheel
+/*
+void EffectsPanel::Update_TextCtrl_Pinwheel_Arms()
+{
+    TextCtrl_Pinwheel_Arms->SetValue(wxString::Format("%d",Slider_Pinwheel_Arms->GetValue()));
+}
+
+void EffectsPanel::OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event)
+{
+    Update_TextCtrl_Pinwheel_Arms();
+}
+*/
+
+
 //new Piano effect UI handlers: -DJ
 void EffectsPanel::OnPiano_StyleSelect(wxCommandEvent& event)
 {
@@ -2898,4 +2927,7 @@ void EffectsPanel::OnBitmapButton_Shimmer_Blinks_Per_RowClick(wxCommandEvent& ev
 {
 }
 */
+
+
+
 

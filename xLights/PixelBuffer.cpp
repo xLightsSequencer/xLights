@@ -501,9 +501,10 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,in
     Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
 }
 void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
-                                       bool pinwheel_rotation,int pinwheel_3D)
+                                       bool pinwheel_rotation,int pinwheel_3D,int xc_adj, int yc_adj)
 {
-    Effect[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,pinwheel_thickness,pinwheel_rotation,pinwheel_3D);
+    Effect[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
+                                        pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj);
 }
 void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement)
 {

@@ -4,7 +4,8 @@
 
 
 void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
-                                int pinwheel_thickness,bool pinwheel_rotation,int pinwheel_3d)
+                                int pinwheel_thickness,bool pinwheel_rotation,
+                                int pinwheel_3d, int xc_adj, int yc_adj)
 {
     int i,a,x,y,xc,yc,ColorIdx,base_degrees;
     int mod1440,state360,d_mod;
@@ -42,8 +43,15 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
 
         ColorIdx=a%colorcnt;
         palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-        base_degrees = (a-1)*degrees_per_arm + state;
-        Draw_arm( base_degrees, xc, pinwheel_twist,hsv);
+        if(pinwheel_rotation==1) // do we have CW rotation
+        {
+            base_degrees = (a-1)*degrees_per_arm + state; // yes
+        }
+        else
+        {
+            base_degrees = (a-1)*degrees_per_arm - state; // no, we are CCW
+        }
+        Draw_arm( base_degrees, xc, pinwheel_twist,hsv,xc_adj,yc_adj);
         if(pinwheel_thickness>0)
         {
             tmax= (pinwheel_thickness/100.0)*degrees_per_arm/2.0;
@@ -58,34 +66,32 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                 {
                     hsv1.value = hsv.value * ((t)/tmax);
                 }
-                Draw_arm( base_degrees-t, xc, pinwheel_twist,hsv1);
-                Draw_arm( base_degrees+t, xc, pinwheel_twist,hsv1);
+                Draw_arm( base_degrees-t, xc, pinwheel_twist,hsv1,xc_adj,yc_adj);
+                Draw_arm( base_degrees+t, xc, pinwheel_twist,hsv1,xc_adj,yc_adj);
             }
         }
     }
 }
 
-void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv)
+void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,
+                           wxImage::HSVValue hsv,int xc_adj,int yc_adj)
 {
     float r,phi;
     int x,y,xc,yc;
     float pi_180 = M_PI/180;
     int degrees_twist,degrees;
     size_t colorcnt=GetColorCount();
-    xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
+    xc= (int)(BufferWi/2);
     yc= (int)(BufferHt/2);
-
+    xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
+    yc = yc + (yc_adj/100.0)*yc;
     for(r=0.0; r<=max_radius; r+=0.5)
     {
         degrees_twist=(r/max_radius)*pinwheel_twist;
         degrees = base_degrees + degrees_twist;
-
         phi = degrees * pi_180;
-
         x = r * cos (phi) + xc;
         y = r * sin (phi) + yc;
-
-
         SetPixel(x,y,hsv);
     }
 }
