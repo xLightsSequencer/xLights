@@ -199,6 +199,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
 void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
+    UnSelectAllModels();
     SelectModel(ListBoxElementList->GetString(ListBoxElementList->GetSelection()));
 }
 

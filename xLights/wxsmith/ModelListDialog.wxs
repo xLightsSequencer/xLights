@@ -14,6 +14,7 @@
 							<default>-1</default>
 							<minsize>150,150</minsize>
 							<style>wxLB_SINGLE|wxLB_SORT</style>
+							<handler function="OnListBox_ListBox1" entry="EVT_LISTBOX" />
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 						<border>5</border>

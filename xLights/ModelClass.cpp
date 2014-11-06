@@ -1361,8 +1361,8 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
 
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
-    int w1 = int(offsetXpct*w)+w/2;
-    int h1 = h-(int(offsetYpct*h)+h-std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     double scrx,scry;
     for(size_t n=0; n<NodeCount; n++)
@@ -1370,12 +1370,12 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
-            sx=Nodes[n]->Coords[c].screenX+(RenderWi);
+            sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            scrx = sx*scale;
-            scry = sy*scale;
-            xPos.push_back(scrx+w1);
-            yPos.push_back(scry+h1);
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            xPos.push_back(sx);
+            yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
         }
     }

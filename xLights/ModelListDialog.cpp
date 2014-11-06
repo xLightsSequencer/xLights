@@ -69,6 +69,7 @@ ModelListDialog::ModelListDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
+    Connect(ID_LISTBOX1,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&ModelListDialog::OnListBox_ListBox1);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_NewClick);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_ModifyClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelListDialog::OnButton_DeleteClick);
@@ -302,4 +303,15 @@ start node = (channel+2)/3;
     }
     f.Close();
     retmsg(wxString::Format(wxT("Models exported: %d of %d"), last - first, ListBox1->GetCount()));
+}
+
+void ModelListDialog::OnListBox_ListBox1(wxCommandEvent& event)
+{
+    wxXmlNode* ModelNode=(wxXmlNode*)ListBox1->GetClientData(ListBox1->GetSelection());
+    wxString displayAs = ModelNode->GetAttribute("DisplayAs");
+    bool enable = displayAs == "WholeHouse"?false:true;
+    Button_Modify->Enable(enable);
+    Button_Layout->Enable(enable);
+    Button_Copy->Enable(enable);
+    Button_ExportCsv->Enable(enable);
 }
