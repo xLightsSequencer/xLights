@@ -36,7 +36,7 @@ PixelBufferClass::~PixelBufferClass()
 void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 {
     SetFromXml(ModelNode, zeroBased);
-    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness")));
+    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
     for(size_t i=0; i<2; i++)
     {
         Effect[i].InitBuffer(BufferHt, BufferWi);
