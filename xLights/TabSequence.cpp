@@ -869,18 +869,18 @@ void xLightsFrame::UpdateView()
 void xLightsFrame::ShowAllModelsView()
 {
     int cols = Grid1->GetCols();
-    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
     {
-       Grid1->ShowCol(col);
+        Grid1->ShowCol(col);
     }
 }
 
 void xLightsFrame::ViewHideAllModels()
 {
     int cols = Grid1->GetCols();
-    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
     {
-       Grid1->HideCol(col);
+        Grid1->HideCol(col);
     }
 }
 
@@ -897,7 +897,7 @@ void xLightsFrame::ShowModelsView()
                 wxString views = e->GetAttribute("models");
                 wxArrayString viewArr =wxSplit(views,',');
                 int cols = Grid1->GetCols();
-                for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+                for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
                 {
                     wxString colModel = Grid1->GetColLabelValue(col);
                     if(viewArr.Index(colModel,false,false)!=wxNOT_FOUND)
@@ -1518,6 +1518,14 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
+        break;
+    case eff_PINWHEEL:
+        buffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
+                              panel->Slider_Pinwheel_Twist->GetValue(),
+                              panel->Slider_Pinwheel_Thickness->GetValue(),
+                              panel->CheckBox_Pinwheel_Rotation->GetValue(),
+                              panel->Choice_Pinwheel_3D->GetSelection()
+                             );
         break;
     case eff_RIPPLE:
         buffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),

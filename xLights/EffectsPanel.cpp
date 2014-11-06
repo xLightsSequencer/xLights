@@ -190,8 +190,20 @@ const long EffectsPanel::ID_SLIDER_Pictures_GifSpeed = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
 const long EffectsPanel::ID_PANEL20 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT65 = wxNewId();
-const long EffectsPanel::ID_SLIDER1 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Pinwheel_Arms = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON11 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT76 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Pinwheel_Twist = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON12 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT77 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Pinwheel_Thickness = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON18 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT78 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Pinwheel_Rotation = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON19 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT82 = wxNewId();
+const long EffectsPanel::ID_CHOICE_Pinwheel_3D = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_Pinwheel3D = wxNewId();
 const long EffectsPanel::ID_PANEL_Pinwheel = wxNewId();
 const long EffectsPanel::ID_STATICTEXT71 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Ripple_Object_To_Draw = wxNewId();
@@ -206,7 +218,7 @@ const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
 const long EffectsPanel::ID_SLIDER5 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON15 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Ripple_Blend = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON16 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON21 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX3 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON17 = wxNewId();
 const long EffectsPanel::ID_PANELRipple = wxNewId();
@@ -497,6 +509,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer52;
+    wxFlexGridSizer* FlexGridSizer61;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
     wxFlexGridSizer* FlexGridSizer49;
@@ -529,6 +542,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer39;
     wxFlexGridSizer* FlexGridSizer28;
     wxFlexGridSizer* FlexGridSizer26;
+    wxFlexGridSizer* FlexGridSizer60;
     wxFlexGridSizer* FlexGridSizer30;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -1143,13 +1157,50 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pinwheel = new wxPanel(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pinwheel"));
     FlexGridSizer55 = new wxFlexGridSizer(5, 3, 0, 0);
     FlexGridSizer55->AddGrowableCol(1);
-    StaticText63 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT65, _("Number Branches"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
+    StaticText63 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT65, _("Number Arms"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
     FlexGridSizer55->Add(StaticText63, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider1 = new wxSlider(Panel1_Pinwheel, ID_SLIDER1, 3, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
-    FlexGridSizer55->Add(Slider1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton1 = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON11, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
-    BitmapButton1->SetDefault();
-    FlexGridSizer55->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    Slider_Pinwheel_Arms = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Arms, 3, 1, 20, wxDefaultPosition, wxSize(120,24), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Arms"));
+    FlexGridSizer55->Add(Slider_Pinwheel_Arms, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_PinwheelNumberArms = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON11, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
+    BitmapButton_PinwheelNumberArms->SetDefault();
+    BitmapButton_PinwheelNumberArms->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer55->Add(BitmapButton_PinwheelNumberArms, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    StaticText74 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT76, _("Twist"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT76"));
+    FlexGridSizer55->Add(StaticText74, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Pinwheel_Twist = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Twist, 0, -180, 180, wxDefaultPosition, wxSize(119,24), 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Twist"));
+    FlexGridSizer55->Add(Slider_Pinwheel_Twist, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_PinwheelTwist = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON12, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
+    BitmapButton_PinwheelTwist->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer55->Add(BitmapButton_PinwheelTwist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText75 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT77, _("Arm Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT77"));
+    FlexGridSizer55->Add(StaticText75, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Pinwheel_Thickness = new wxSlider(Panel1_Pinwheel, ID_SLIDER_Pinwheel_Thickness, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Pinwheel_Thickness"));
+    FlexGridSizer55->Add(Slider_Pinwheel_Thickness, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_PinwheelThickness = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON18, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON18"));
+    BitmapButton_PinwheelThickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer55->Add(BitmapButton_PinwheelThickness, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer59 = new wxFlexGridSizer(0, 4, 0, 0);
+    StaticText76 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT78, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT78"));
+    FlexGridSizer59->Add(StaticText76, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Pinwheel_Rotation = new wxCheckBox(Panel1_Pinwheel, ID_CHECKBOX_Pinwheel_Rotation, _("CCW"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Pinwheel_Rotation"));
+    CheckBox_Pinwheel_Rotation->SetValue(true);
+    FlexGridSizer59->Add(CheckBox_Pinwheel_Rotation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_PinwheelRotation = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON19, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(18,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON19"));
+    BitmapButton_PinwheelRotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer59->Add(BitmapButton_PinwheelRotation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer55->Add(FlexGridSizer59, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer61 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText77 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT82, _("3D"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT82"));
+    FlexGridSizer61->Add(StaticText77, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Pinwheel_3D = new wxChoice(Panel1_Pinwheel, ID_CHOICE_Pinwheel_3D, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Pinwheel_3D"));
+    Choice_Pinwheel_3D->SetSelection( Choice_Pinwheel_3D->Append(_("None")) );
+    Choice_Pinwheel_3D->Append(_("3D"));
+    Choice_Pinwheel_3D->Append(_("3D Inverted"));
+    FlexGridSizer61->Add(Choice_Pinwheel_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Pinwheel3D = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON_Pinwheel3D, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Pinwheel3D"));
+    BitmapButton_Pinwheel3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer61->Add(BitmapButton_Pinwheel3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer55->Add(FlexGridSizer61, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Pinwheel->SetSizer(FlexGridSizer55);
     FlexGridSizer55->Fit(Panel1_Pinwheel);
     FlexGridSizer55->SetSizeHints(Panel1_Pinwheel);
@@ -1175,34 +1226,33 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Ripple_Thickness = new wxSlider(Panel1_Ripple, ID_SLIDER_Ripple_Thickness, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Thickness"));
     FlexGridSizer57->Add(Slider_Ripple_Thickness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton4 = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON14, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
-    BitmapButton4->SetDefault();
-    BitmapButton4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer57->Add(BitmapButton4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_RippleThickness = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON14, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
+    BitmapButton_RippleThickness->SetDefault();
+    BitmapButton_RippleThickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer57->Add(BitmapButton_RippleThickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText73 = new wxStaticText(Panel1_Ripple, ID_STATICTEXT75, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT75"));
     FlexGridSizer57->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider5 = new wxSlider(Panel1_Ripple, ID_SLIDER5, 1, -1, 1, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER5"));
     FlexGridSizer57->Add(Slider5, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton5 = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON15, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
-    BitmapButton5->SetDefault();
-    BitmapButton5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer57->Add(BitmapButton5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    BitmapButton_RippleDirection = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON15, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
+    BitmapButton_RippleDirection->SetDefault();
+    BitmapButton_RippleDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer57->Add(BitmapButton_RippleDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer60 = new wxFlexGridSizer(0, 4, 0, 0);
     CheckBox_Ripple_Blend = new wxCheckBox(Panel1_Ripple, ID_CHECKBOX_Ripple_Blend, _("Blend"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple_Blend"));
     CheckBox_Ripple_Blend->SetValue(false);
-    FlexGridSizer57->Add(CheckBox_Ripple_Blend, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer59 = new wxFlexGridSizer(0, 3, 0, 0);
-    BitmapButton6 = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON16, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON16"));
-    BitmapButton6->SetDefault();
-    FlexGridSizer59->Add(BitmapButton6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer59->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer60->Add(CheckBox_Ripple_Blend, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_RippleBlend = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON21, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
+    BitmapButton_RippleBlend->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer60->Add(BitmapButton_RippleBlend, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox2 = new wxCheckBox(Panel1_Ripple, ID_CHECKBOX3, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     CheckBox2->SetValue(false);
-    FlexGridSizer59->Add(CheckBox2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer57->Add(FlexGridSizer59, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton7 = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON17, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
-    BitmapButton7->SetDefault();
-    BitmapButton7->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer57->Add(BitmapButton7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer60->Add(CheckBox2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    BitmapButton_Ripple3D = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON17, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
+    BitmapButton_Ripple3D->SetDefault();
+    BitmapButton_Ripple3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer60->Add(BitmapButton_Ripple3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer57->Add(FlexGridSizer60, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Ripple->SetSizer(FlexGridSizer57);
     FlexGridSizer57->Fit(Panel1_Ripple);
     FlexGridSizer57->SetSizeHints(Panel1_Ripple);
@@ -2043,11 +2093,17 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesFilenameClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesDirectionClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesSpeedClick);
-    Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TreeBranchesClick);
+    Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelNumberArmsClick);
+    Connect(ID_BITMAPBUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelTwistClick);
+    Connect(ID_BITMAPBUTTON18,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelThicknessClick);
+    Connect(ID_BITMAPBUTTON19,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelRotationClick);
+    Connect(ID_BITMAPBUTTON_Pinwheel3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Pinwheel3DClick);
     Connect(ID_BITMAPBUTTON20,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_Object_To_DrawClick);
-    Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsDirectionClick);
-    Connect(ID_BITMAPBUTTON16,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpiralsBlendClick);
-    Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Spirals3DClick);
+    Connect(ID_BITMAPBUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_MovementClick);
+    Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleThicknessClick);
+    Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleDirectionClick);
+    Connect(ID_BITMAPBUTTON21,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleBlendClick);
+    Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple3DClick);
     Connect(ID_BITMAPBUTTON_DutyFactor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Duty_FactorClick);
     Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Use_All_ColorsClick);
     Connect(ID_BITMAPBUTTON_Shimmer_Blink_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Blink_TimingClick);
@@ -2723,6 +2779,22 @@ showlock(Piano_ShapeFilename)
 showlock(PicturesFilename)
 showlock(PicturesDirection)
 showlock(PicturesSpeed)
+
+showlock(PinwheelNumberArms)
+showlock(PinwheelTwist)
+showlock(PinwheelThickness)
+showlock(Pinwheel3D)
+showlock(PinwheelRotation)
+
+
+showlock(Ripple3D)
+showlock(Ripple_Object_To_Draw)
+showlock(Ripple_Movement)
+showlock(RippleThickness)
+showlock(RippleDirection)
+showlock(RippleBlend)
+
+
 showlock(SnowflakesCount)
 showlock(SnowflakesType)
 showlock(SnowstormCount)
@@ -2798,8 +2870,6 @@ showlock(Wave_Direction)
 
 showlock(Glediator_Filename)
 
-showlock(Ripple_Object_To_Draw)
-
 showlock(Shimmer_Duty_Factor)
 showlock(Shimmer_Use_All_Colors)
 showlock(Shimmer_Blink_Timing)
@@ -2828,7 +2898,4 @@ void EffectsPanel::OnBitmapButton_Shimmer_Blinks_Per_RowClick(wxCommandEvent& ev
 {
 }
 */
-
-
-
 
