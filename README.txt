@@ -6,7 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-3.6.0	Nov 4,2014
+3.6.0	Nov 6,2014
 	-enh (dpitts) NUTCRACKER and PREVIEW windows now use OpenGL to draw objects. The result of this is xLights can now draw very
 		large objects with no delay. 
 	-enh (dpitts) New ability to load an image into the background of the PREVIEW tab. There is a brightness slider to dim the image you
@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 		times and it will cycle through all of them
 	-enh (dpitts) Now objects are sized and rotated about their graphical center, This means objects do not move around
 		the screen if you resize or rotate.
+	-enh (dpitts) New rotate handles. Grab the handle and move mouse to rotate. Highlighted model is now magenta insteads of yellow
 	-enh (sean) Added Pinwheel effect
 	-bug (dpitts) Model Brightness Now works 
 	-enh (dkulp) Allow star layers to be ordered low to high (to inside layer first)
