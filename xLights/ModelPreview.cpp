@@ -205,8 +205,8 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
 
 void ModelPreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
 {
-    glBegin(GL_POINTS);
     glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_POINTS);
     glBegin(GL_POINTS);
     glVertex2f(x, y);
     glEnd();
@@ -222,6 +222,17 @@ void ModelPreview::DrawRectangle(const wxColour &color, wxDouble x, wxDouble y,i
     glVertex2f(x, y+height);
     glEnd();
 }
+
+void ModelPreview::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2)
+{
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_LINES);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y2);
+    glEnd();
+
+}
+
 
 
 void ModelPreview::EndDrawing()

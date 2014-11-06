@@ -43,7 +43,7 @@ typedef std::vector<long> StartChannelVector_t;
 
 #define NODE_RGB_CHAN_CNT           3
 #define NODE_SINGLE_COLOR_CHAN_CNT  1
-#define RECT_HANDLE_WIDTH           5
+#define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
 
 class ModelClass
@@ -228,6 +228,7 @@ private:
     int GetCustomMaxChannel(const wxString& customModel);
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
+    long toDegrees(double radians);
     void TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1);
 
     wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
@@ -255,7 +256,7 @@ private:
     double mMinScreenY=0;
     double mMaxScreenX=0;
     double mMaxScreenY=0;
-    wxPoint mHandlePosition[4];
+    wxPoint mHandlePosition[5];
     int mDragMode;
     int mLastResizeX;
     StartChannelVector_t stringStartChan;
@@ -287,6 +288,7 @@ public:
     void AddOffset(double xPct, double yPct);
     void SetScale(double newscale);
     double GetScale();
+    int GetPreviewRotation();
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
@@ -296,6 +298,7 @@ public:
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
     void ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY);
+    void RotateWithHandles(ModelPreview* preview, int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     void SetModelScreenCoordinates(int x, int y);

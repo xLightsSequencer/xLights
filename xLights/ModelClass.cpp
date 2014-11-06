@@ -356,6 +356,10 @@ double ModelClass::GetScale()
     return PreviewScale;
 }
 
+int ModelClass::GetPreviewRotation()
+{
+    return PreviewRotation;
+}
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
@@ -545,6 +549,12 @@ double ModelClass::toRadians(long degrees)
 {
     return 2.0*M_PI*double(degrees)/360.0;
 }
+
+long ModelClass::toDegrees(double radians)
+{
+    return (radians/(2*M_PI))*360.0;
+}
+
 
 // initialize screen coordinates for tree
 void ModelClass::SetTreeCoord(long degrees)
@@ -1473,7 +1483,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[0].x = sx;
         mHandlePosition[0].y = sy;
         // Upper Right Handle
@@ -1482,7 +1492,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[1].x = sx;
         mHandlePosition[1].y = sy;
         // Lower Right Handle
@@ -1491,7 +1501,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[2].x = sx;
         mHandlePosition[2].y = sy;
         // Lower Left Handle
@@ -1500,10 +1510,27 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[3].x = sx;
         mHandlePosition[3].y = sy;
 
+        // Draw rotation handle square
+        sx = -RECT_HANDLE_WIDTH/2;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        preview->DrawRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        // Save rotate handle
+        mHandlePosition[4].x = sx;
+        mHandlePosition[4].y = sy;
+        // Draw rotation handle from center to 25 over rendered height
+        sx = 0;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        preview->DrawLine(*wxWHITE,w1,h1,sx,sy);
     }
 }
 
@@ -1595,6 +1622,13 @@ int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y)
         preview->SetCursor(GetResizeCursor(3));
         status = OVER_R_BOTTOM_HANDLE;
     }
+    else if (x>mHandlePosition[4].x && x<mHandlePosition[4].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[4].y && y<mHandlePosition[4].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(wxCURSOR_HAND);
+        status = OVER_ROTATE_HANDLE;
+    }
+
     else
     {
         preview->SetCursor(wxCURSOR_DEFAULT);
@@ -1757,7 +1791,6 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY)
     float newScale;
     // Get Center Point
     preview->GetSize(&w, &h);
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
     // Get mouse point in model space/ not screen space
@@ -1773,3 +1806,30 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY)
     SetScale(newScale);
 }
 
+void ModelClass::RotateWithHandles(ModelPreview* preview, int mouseX,int mouseY)
+{
+    int w, h;
+    float newScale;
+    preview->GetSize(&w, &h);
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+    // Get mouse point in screen space where center of model is origin.
+    int sx,sy;
+    sx = mouseX-w1;
+    sy = (h-mouseY)-h1;
+    //Calculate angle of mouse from center.
+    float tan = (float)sx/(float)sy;
+    int angle = -toDegrees((double)atan(tan));
+    if(sy>=0)
+    {
+        PreviewRotation = angle;
+    }
+    else if (sx<=0)
+    {
+        PreviewRotation = -180+angle;
+    }
+    else
+    {
+        PreviewRotation = 180+angle;
+    }
+}

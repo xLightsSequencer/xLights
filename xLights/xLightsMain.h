@@ -110,6 +110,7 @@ class EffectTreeDialog;
 #define OVER_R_TOP_HANDLE           2
 #define OVER_L_BOTTOM_HANDLE        3
 #define OVER_R_BOTTOM_HANDLE        4
+#define OVER_ROTATE_HANDLE          5
 
 
 
@@ -1254,6 +1255,7 @@ private:
 
     bool m_dragging;
     bool m_resizing;
+    bool m_rotating;
     int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;

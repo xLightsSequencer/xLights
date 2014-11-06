@@ -101,12 +101,13 @@ void xLightsFrame::CompareMyDisplayToSeq()
 
 void xLightsFrame::UpdatePreview()
 {
-    const wxColour *color;
+    const wxColour* color;
+    const wxColour selectColor(255,0,255);
     wxString SelModelName=ListBoxElementList->GetStringSelection();
     modelPreview->StartDrawing(mPointSize);
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i]->Selected) ? &selectColor : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
     modelPreview->EndDrawing();
@@ -228,12 +229,17 @@ void xLightsFrame::SelectModel(wxString name)
 }
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
-    if (m_over_handle != OVER_NO_HANDLE)
+    if (m_over_handle == OVER_ROTATE_HANDLE)
+    {
+        m_rotating = true;
+    }
+    else if (m_over_handle != OVER_NO_HANDLE)
     {
         m_resizing = true;
     }
     else
     {
+        m_rotating = false;
         m_resizing = false;
         if(!event.wxKeyboardState::ControlDown())
         {
@@ -326,6 +332,7 @@ int xLightsFrame::FindSelectedModel(int x,int y)
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
+    m_rotating = false;
     m_dragging = false;
     m_resizing = false;
 }
@@ -338,20 +345,24 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
     int wi,ht;
-    if(m_resizing)
+    int sel=ListBoxElementList->GetSelection();
+    if (sel == wxNOT_FOUND) return;
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+
+    if(m_rotating)
     {
-        int sel=ListBoxElementList->GetSelection();
-        if (sel == wxNOT_FOUND) return;
-        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+        m->RotateWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
+        TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
+        UpdatePreview();
+    }
+    else if(m_resizing)
+    {
         m->ResizeWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
         TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",(int)(m->GetScale()*100)));
         UpdatePreview();
     }
     else if (m_dragging && event.Dragging())
     {
-        int sel=ListBoxElementList->GetSelection();
-        if (sel == wxNOT_FOUND) return;
-        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
         modelPreview->GetSize(&wi,&ht);
@@ -366,9 +377,6 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     }
     else
     {
-        int sel=ListBoxElementList->GetSelection();
-        if (sel == wxNOT_FOUND) return;
-        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
         if(m->Selected)
         {
             m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - event.GetPosition().y);
