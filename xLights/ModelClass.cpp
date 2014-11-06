@@ -786,7 +786,7 @@ void ModelClass::SetArchCoord()
             x=xoffset + (int)floor(midpt*sin(angle)+midpt);
             y=(int)floor(midpt*cos(angle)+0.5);
             Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y;
+            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
         }
     }
 }
@@ -1460,6 +1460,144 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
             preview->DrawPoint(*color,sx,sy);
         }
     }
+    if(Selected)
+    {
+        //Draw bounding rectangle
+        double radians=toRadians(PreviewRotation);
+        // Upper Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[0].x = sx;
+        mHandlePosition[0].y = sy;
+        // Upper Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[1].x = sx;
+        mHandlePosition[1].y = sy;
+        // Lower Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[2].x = sx;
+        mHandlePosition[2].y = sy;
+        // Lower Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawRectangle(*color,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[3].x = sx;
+        mHandlePosition[3].y = sy;
+
+    }
+}
+
+wxCursor ModelClass::GetResizeCursor(int cornerIndex)
+{
+    int angleState;
+    //LeftTop and RightBottom
+    switch(cornerIndex)
+    {
+        // Left top when PreviewRotation = 0
+        case 0:
+            angleState = (int)(PreviewRotation/22.5);
+            break;
+        // Right Top
+        case 1:
+            angleState = ((int)(PreviewRotation/22.5)+4)%16;
+            break;
+        // Right Bottom
+        case 2:
+            angleState = ((int)(PreviewRotation/22.5)+8)%16;
+            break;
+        // Right Bottom
+        default:
+            angleState = ((int)(PreviewRotation/22.5)+12)%16;
+            break;
+    }
+    switch(angleState)
+    {
+        case 0:
+            return wxCURSOR_SIZENWSE;
+        case 1:
+            return wxCURSOR_SIZEWE;
+        case 2:
+            return wxCURSOR_SIZEWE;
+        case 3:
+            return wxCURSOR_SIZENESW;
+        case 4:
+            return wxCURSOR_SIZENESW;
+        case 5:
+            return wxCURSOR_SIZENS;
+        case 6:
+            return wxCURSOR_SIZENS;
+        case 7:
+            return wxCURSOR_SIZENWSE;
+        case 8:
+            return wxCURSOR_SIZENWSE;
+        case 9:
+            return wxCURSOR_SIZEWE;
+        case 10:
+            return wxCURSOR_SIZEWE;
+        case 11:
+            return wxCURSOR_SIZENESW;
+        case 12:
+            return wxCURSOR_SIZENESW;
+        case 13:
+            return wxCURSOR_SIZENS;
+        case 14:
+            return wxCURSOR_SIZENS;
+        default:
+            return wxCURSOR_SIZENWSE;
+    }
+
+}
+
+int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y)
+{
+    int status;
+    if (x>mHandlePosition[0].x && x<mHandlePosition[0].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[0].y && y<mHandlePosition[0].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(0));
+        status = OVER_L_TOP_HANDLE;
+    }
+    else if (x>mHandlePosition[1].x && x<mHandlePosition[1].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[1].y && y<mHandlePosition[1].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(1));
+        status = OVER_R_TOP_HANDLE;
+    }
+    else if (x>mHandlePosition[2].x && x<mHandlePosition[2].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[2].y && y<mHandlePosition[2].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(2));
+        status = OVER_R_BOTTOM_HANDLE;
+    }
+    else if (x>mHandlePosition[3].x && x<mHandlePosition[3].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[3].y && y<mHandlePosition[3].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(3));
+        status = OVER_R_BOTTOM_HANDLE;
+    }
+    else
+    {
+        preview->SetCursor(wxCURSOR_DEFAULT);
+        status = OVER_NO_HANDLE;
+    }
+    return status;
 }
 
 // display model using colors stored in each node
@@ -1562,6 +1700,7 @@ void ModelClass::SetModelCoord( int degrees)
 
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
+    wxCoord sx1,sy1;
     double radians=toRadians(PreviewRotation);
 
     for(size_t nn=0; nn<NodeCount; nn++)
@@ -1576,12 +1715,17 @@ void ModelClass::SetModelCoord( int degrees)
             sx=Nodes[nn]->OrigCoords[cc].screenX;
             sy=Nodes[nn]->OrigCoords[cc].screenY;
 
-            Nodes[nn]->Coords[cc].screenX = cos(radians) * (sx)
-                   - sin(radians)*(sy);
-            Nodes[nn]->Coords[cc].screenY = sin(radians) * (sx)
-                   + cos(radians)*sy;
+            TranslatePoint(radians,sx,sy,&sx1,&sy1);
+            Nodes[nn]->Coords[cc].screenX = sx1;
+            Nodes[nn]->Coords[cc].screenY = sy1;
         }
     }
+}
+
+void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1)
+{
+    *x1 = cos(radians)*(x)-(sin(radians)*y);
+    *y1 = sin(radians)*(x)+(cos(radians)*y);
 }
 
 void ModelClass::SetModelScreenCoordinates(int x, int y)
@@ -1603,3 +1747,26 @@ void ModelClass::SetModelScreenCoordinates(int x, int y)
         mMaxScreenY = y;
     }
 }
+
+void ModelClass::ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY)
+{
+    int w, h;
+    float newScale;
+    // Get Center Point
+    preview->GetSize(&w, &h);
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+    // Get mouse point in model space/ not screen space
+    int sx,sy;
+    sx = mouseX-w1;
+    sy = (h-mouseY)-h1;
+    double radians=-toRadians(PreviewRotation); // negative angle to reverse translation
+    TranslatePoint(radians,sx,sy,&sx,&sy);
+    sx = abs(sx) - RECT_HANDLE_WIDTH;
+    sy = abs(sy) - RECT_HANDLE_WIDTH;
+    if(RenderWi >= RenderHt){newScale = (float)(sx*2)/(float)w;}
+    else {newScale = (float)(sy*2)/(float)h;}
+    SetScale(newScale);
+}
+

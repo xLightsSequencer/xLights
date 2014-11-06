@@ -227,15 +227,26 @@ void xLightsFrame::SelectModel(wxString name)
 }
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
-    if(!event.wxKeyboardState::ControlDown())
+    if (m_over_handle != OVER_NO_HANDLE)
     {
-        UnSelectAllModels();
+        m_resizing = true;
     }
-    FindSelectedModel(event.GetX(),event.GetY());
-    m_dragging = true;
-    m_previous_mouse_x = event.GetPosition().x;
-    m_previous_mouse_y = event.GetPosition().y;
-    StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+    else
+    {
+        m_resizing = false;
+        if(!event.wxKeyboardState::ControlDown())
+        {
+            UnSelectAllModels();
+        }
+
+        if(FindSelectedModel(event.GetX(),event.GetY())!=0)
+        {
+            m_dragging = true;
+            m_previous_mouse_x = event.GetPosition().x;
+            m_previous_mouse_y = event.GetPosition().y;
+            StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+        }
+    }
 }
 
 void xLightsFrame::UnSelectAllModels()
@@ -244,6 +255,7 @@ void xLightsFrame::UnSelectAllModels()
     {
         PreviewModels[i]->Selected = false;
     }
+    UpdatePreview();
 }
 
 void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
@@ -275,7 +287,8 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
     UpdatePreview();
     delete dialog;
 }
-void xLightsFrame::FindSelectedModel(int x,int y)
+
+int xLightsFrame::FindSelectedModel(int x,int y)
 {
     wxArrayInt found;
     for (int i=0; i<PreviewModels.size(); i++)
@@ -285,7 +298,11 @@ void xLightsFrame::FindSelectedModel(int x,int y)
             found.push_back(i);
         }
     }
-    if(found.GetCount()==1)
+    if (found.GetCount()==0)
+    {
+        return 0;
+    }
+    else if(found.GetCount()==1)
     {
         SelectModel(PreviewModels[found[0]]->name);
         mHitTestNextSelectModelIndex = 0;
@@ -303,11 +320,13 @@ void xLightsFrame::FindSelectedModel(int x,int y)
             }
         }
     }
+    return found.GetCount();
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
     m_dragging = false;
+    m_resizing = false;
 }
 
 void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
@@ -318,7 +337,16 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
     int wi,ht;
-    if (m_dragging && event.Dragging())
+    if(m_resizing)
+    {
+        int sel=ListBoxElementList->GetSelection();
+        if (sel == wxNOT_FOUND) return;
+        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+        m->ResizeWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
+        TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",(int)(m->GetScale()*100)));
+        UpdatePreview();
+    }
+    else if (m_dragging && event.Dragging())
     {
         int sel=ListBoxElementList->GetSelection();
         if (sel == wxNOT_FOUND) return;
@@ -334,6 +362,16 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         m_previous_mouse_y = event.GetPosition().y;
         StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         UpdatePreview();
+    }
+    else
+    {
+        int sel=ListBoxElementList->GetSelection();
+        if (sel == wxNOT_FOUND) return;
+        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+        if(m->Selected)
+        {
+            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - event.GetPosition().y);
+        }
     }
 }
 

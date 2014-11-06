@@ -105,6 +105,14 @@ class EffectTreeDialog;
 
 #define FixedPages 7
 
+#define OVER_NO_HANDLE              0
+#define OVER_L_TOP_HANDLE           1
+#define OVER_R_TOP_HANDLE           2
+#define OVER_L_BOTTOM_HANDLE        3
+#define OVER_R_BOTTOM_HANDLE        4
+
+
+
 static wxCriticalSection gs_xoutCriticalSection;
 
 typedef std::map<wxString,wxString> MapStringString;
@@ -1186,9 +1194,10 @@ private:
     void PgoGridCellSelect(int row, int col, int where);
     void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
-    void FindSelectedModel(int x,int y);
+    int FindSelectedModel(int x,int y);
     void SelectModel(wxString name);
     void UnSelectAllModels();
+
 
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
@@ -1244,6 +1253,8 @@ private:
     EffectTreeDialog *EffectTreeDlg;
 
     bool m_dragging;
+    bool m_resizing;
+    int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()

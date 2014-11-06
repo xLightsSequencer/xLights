@@ -200,21 +200,32 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
         glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
     }
-
     glDisable(GL_TEXTURE_2D);   // textures
-    glBegin(GL_POINTS);
 }
 
 void ModelPreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
 {
+    glBegin(GL_POINTS);
     glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_POINTS);
     glVertex2f(x, y);
+    glEnd();
 }
+
+void ModelPreview::DrawRectangle(const wxColour &color, wxDouble x, wxDouble y,int width, int height)
+{
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x+width, y);
+    glVertex2f(x+width, y+height);
+    glVertex2f(x, y+height);
+    glEnd();
+}
+
 
 void ModelPreview::EndDrawing()
 {
-    glEnd();
-    glFlush();
     SwapBuffers();
     mIsDrawing = false;
 }

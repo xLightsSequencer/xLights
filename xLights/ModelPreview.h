@@ -27,6 +27,7 @@ public:
     void StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
+    void DrawRectangle(const wxColour &color, wxDouble x, wxDouble y,int width, int height);
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
 	void SetbackgroundImage(wxString image);

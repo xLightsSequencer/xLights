@@ -41,8 +41,10 @@
 
 typedef std::vector<long> StartChannelVector_t;
 
-#define NODE_RGB_CHAN_CNT 3
-#define NODE_SINGLE_COLOR_CHAN_CNT 1
+#define NODE_RGB_CHAN_CNT           3
+#define NODE_SINGLE_COLOR_CHAN_CNT  1
+#define RECT_HANDLE_WIDTH           5
+#define BOUNDING_RECT_OFFSET        8
 
 class ModelClass
 {
@@ -70,6 +72,7 @@ private:
         int StringNum; // node is part of this string (0 is the first string)
         std::vector<CoordStruct> Coords;
         std::vector<CoordStruct> OrigCoords;
+
 
         // only for use in initializing the custom model
         void AddBufCoord(wxCoord x, wxCoord y)
@@ -225,6 +228,7 @@ private:
     int GetCustomMaxChannel(const wxString& customModel);
     void InitCustomMatrix(const wxString& customModel);
     double toRadians(long degrees);
+    void TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1);
 
     wxString DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame
     wxString StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
@@ -246,11 +250,14 @@ private:
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
+
     double mMinScreenX=0;
     double mMinScreenY=0;
     double mMaxScreenX=0;
     double mMaxScreenY=0;
-
+    wxPoint mHandlePosition[4];
+    int mDragMode;
+    int mLastResizeX;
     StartChannelVector_t stringStartChan;
     wxXmlNode* ModelXml;
     wxByte rgbidx[3]; // records the order in which the color values are sent to the physical device
@@ -258,6 +265,7 @@ private:
     // for rgb order, set: 0,1,2
     // for grb order, set: 1,0,2
     // for brg order, set: 2,0,1
+
 
 protected:
     std::vector<NodeBaseClassPtr> Nodes;
@@ -282,10 +290,12 @@ public:
     int GetLastChannel();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
+    wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
     void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
+    void ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     void SetModelScreenCoordinates(int x, int y);
@@ -295,7 +305,7 @@ public:
     const wxString& GetDisplayAs(void) { return DisplayAs; }
     int NodesPerString();
     void SetModelCoord(int degrees);
-
+    int CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y);
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum);
