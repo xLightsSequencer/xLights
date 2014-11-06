@@ -124,6 +124,9 @@ void ModelListDialog::OnButton_NewClick(wxCommandEvent& event)
             {
                 wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
                 e->AddAttribute("name", name);
+                e->AddAttribute("offsetXpct","0.5");
+                e->AddAttribute("offsetYpct","0.5");
+
                 dialog.UpdateXml(e);
                 ListBox1->Append(name,e);
             }
