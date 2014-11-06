@@ -1207,7 +1207,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer61->Add(BitmapButton_Pinwheel3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer55->Add(FlexGridSizer61, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer62 = new wxFlexGridSizer(0, 3, 0, 0);
-    Slider_PinwheelYC = new wxSlider(Panel1_Pinwheel, ID_SLIDER_PinwheelYC, 0, -100, 100, wxDefaultPosition, wxSize(40,80), wxSL_VERTICAL|wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_PinwheelYC"));
+    Slider_PinwheelYC = new wxSlider(Panel1_Pinwheel, ID_SLIDER_PinwheelYC, 0, -100, 100, wxDefaultPosition, wxSize(40,80), wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_PinwheelYC"));
     FlexGridSizer62->Add(Slider_PinwheelYC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer55->Add(FlexGridSizer62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText82 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT85, _("X-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT85"));

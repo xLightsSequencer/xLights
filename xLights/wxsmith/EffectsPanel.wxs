@@ -2117,7 +2117,7 @@
 											<object class="wxSlider" name="ID_SLIDER_PinwheelYC" variable="Slider_PinwheelYC" member="yes">
 												<min>-100</min>
 												<size>40,80</size>
-												<style>wxSL_VERTICAL|wxSL_LABELS</style>
+												<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE</style>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
