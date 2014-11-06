@@ -17,8 +17,9 @@ void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Cli
                  const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename); //added controls -DJ
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
-                    bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj);
-void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv,int xc_adj, int yc_adj);
+                    bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
+void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv,
+              int xc_adj, int yc_adj);
 
 void RenderRipple(int Object_To_Draw, int Movement);
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);

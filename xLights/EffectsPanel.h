@@ -49,6 +49,7 @@ public:
     wxBitmapButton* BitmapButton_GarlandsSpacing;
     wxChoice* Choice_Text_Dir1;
     wxSlider* Slider_Spirals_Direction;
+    wxSlider* Slider_Pinwheel_ArmSize;
     wxBitmapButton* BitmapButton_OverlayBkg;
     wxButton* Button_Pictures_Filename;
     wxBitmapButton* BitmapButton_TextCount4;
@@ -70,6 +71,7 @@ public:
     wxStaticText* StaticText42;
     wxBitmapButton* BitmapButton_PicturesSpeed;
     wxChoice* Choice_Piano_KeyPlacement;
+    wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
     wxButton* ButtonGledFile;
     wxBitmapButton* BitmapButton_TextPosition4;
     wxButton* Button_Piano_CueFilename;
@@ -287,6 +289,7 @@ public:
     wxCheckBox* CheckBox_OverlayBkg;
     wxStaticText* StaticText57;
     wxBitmapButton* BitmapButton_FireGrow;
+    wxStaticText* StaticText84;
     wxStaticText* StaticText90;
     wxStaticText* StaticText93;
     wxBitmapButton* BitmapButton_Color_Mix1;
@@ -681,6 +684,9 @@ protected:
     static const long ID_STATICTEXT65;
     static const long ID_SLIDER_Pinwheel_Arms;
     static const long ID_BITMAPBUTTON11;
+    static const long ID_STATICTEXT98;
+    static const long ID_SLIDER_Pinwheel_ArmSize;
+    static const long ID_BITMAPBUTTON16;
     static const long ID_STATICTEXT76;
     static const long ID_SLIDER_Pinwheel_Twist;
     static const long ID_BITMAPBUTTON12;
@@ -693,10 +699,10 @@ protected:
     static const long ID_STATICTEXT82;
     static const long ID_CHOICE_Pinwheel_3D;
     static const long ID_BITMAPBUTTON_Pinwheel3D;
-    static const long ID_SLIDER_PinwheelYC;
     static const long ID_STATICTEXT85;
     static const long ID_SLIDER_PinwheelXC;
     static const long ID_STATICTEXT83;
+    static const long ID_SLIDER_PinwheelYC;
     static const long ID_PANEL_Pinwheel;
     static const long ID_STATICTEXT71;
     static const long ID_CHOICE_Ripple_Object_To_Draw;
@@ -1166,6 +1172,7 @@ private:
     void OnTextCtrl_Pinwheel_TwistText(wxCommandEvent& event);
     void OnTextCtrl_Pinwheel_ThicknessText(wxCommandEvent& event);
     void OnSlider_Pinwheel_ArmsCmdScroll(wxScrollEvent& event);
+    void OnBitmapButton_Pinwheel_ArmSizeClick(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

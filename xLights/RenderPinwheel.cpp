@@ -5,7 +5,7 @@
 
 void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                                 int pinwheel_thickness,bool pinwheel_rotation,
-                                int pinwheel_3d, int xc_adj, int yc_adj)
+                                int pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
 {
     int i,a,x,y,xc,yc,ColorIdx,base_degrees;
     int mod1440,state360,d_mod;
@@ -38,6 +38,7 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
 
     int degrees_per_arm=1;
     if(pinwheel_arms>0) degrees_per_arm= 360/pinwheel_arms;
+    float armsize = (pinwheel_armsize/100.0);
     for(a=1; a<=pinwheel_arms; a++)
     {
 
@@ -51,7 +52,7 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
         {
             base_degrees = (a-1)*degrees_per_arm - state; // no, we are CCW
         }
-        Draw_arm( base_degrees, xc, pinwheel_twist,hsv,xc_adj,yc_adj);
+        Draw_arm( base_degrees, xc*armsize, pinwheel_twist,hsv,xc_adj,yc_adj);
         if(pinwheel_thickness>0)
         {
             tmax= (pinwheel_thickness/100.0)*degrees_per_arm/2.0;
@@ -66,8 +67,8 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                 {
                     hsv1.value = hsv.value * ((t)/tmax);
                 }
-                Draw_arm( base_degrees-t, xc, pinwheel_twist,hsv1,xc_adj,yc_adj);
-                Draw_arm( base_degrees+t, xc, pinwheel_twist,hsv1,xc_adj,yc_adj);
+                Draw_arm( base_degrees-t, xc*armsize, pinwheel_twist,hsv1,xc_adj,yc_adj);
+                Draw_arm( base_degrees+t, xc*armsize, pinwheel_twist,hsv1,xc_adj,yc_adj);
             }
         }
     }
@@ -85,7 +86,9 @@ void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,
     yc= (int)(BufferHt/2);
     xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
     yc = yc + (yc_adj/100.0)*yc;
-    for(r=0.0; r<=max_radius; r+=0.5)
+
+
+    for(r=0.0; r<=max_radius; r+=0.2)
     {
         degrees_twist=(r/max_radius)*pinwheel_twist;
         degrees = base_degrees + degrees_twist;
