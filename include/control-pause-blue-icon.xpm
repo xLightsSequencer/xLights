@@ -1,5 +1,5 @@
 /* XPM */
-static char *control_pause_blue_icon[] = {
+static const char *control_pause_blue_icon[] = {
 /* columns rows colors chars-per-pixel */
 "24 24 96 2",
 "   c #1C3B56",

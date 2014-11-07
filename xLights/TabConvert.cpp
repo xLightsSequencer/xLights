@@ -74,8 +74,6 @@ wxString Right(const wxString &in, int len) {
     return in.substr(in.size() - len, len);
 }
 
-
-
 /*
    base64.cpp and base64.h
 
