@@ -1397,41 +1397,13 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
 
 bool ModelClass::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2)
 {
-    size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
-    int w, h;
-    preview->GetSize(&w,&h);
-
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
-
-    mMinScreenX = w;
-    mMinScreenY = h;
-    mMaxScreenX = 0;
-    mMaxScreenY = 0;
-
-
-    for(size_t n=0; n<NodeCount; n++)
-    {
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++)
-        {
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
-            SetModelScreenCoordinates(sx,sy);
-        }
-    }
-
+    SetMinMaxModelScreenCoordinates(preview);
     int xs = x1<x2?x1:x2;
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
 
-    if (xs>=mMinScreenX && xf<=mMaxScreenX && ys>=mMinScreenY && yf <= mMaxScreenY)
+    if (mMinScreenX>=xs && mMaxScreenX<=xf && mMinScreenY>=ys && mMaxScreenY<=yf)
     {
         return true;
     }
@@ -1444,47 +1416,8 @@ bool ModelClass::IsContained(ModelPreview* preview, int x1, int y1, int x2, int 
 
 bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
 {
-    size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
-    int w, h;
-    preview->GetSize(&w,&h);
-
-    int y1 = h-y;
-
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
-
-    mMinScreenX = w;
-    mMinScreenY = h;
-    mMaxScreenX = 0;
-    mMaxScreenY = 0;
-    for(size_t n=0; n<NodeCount; n++)
-    {
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++)
-        {
-            // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
-            SetModelScreenCoordinates(sx,sy);
-        }
-    }
-    // Set minimum bounding rectangle
-    if(mMaxScreenY-mMinScreenY<4)
-    {
-        mMaxScreenY+=2;
-        mMinScreenY-=2;
-    }
-    if(mMaxScreenX-mMinScreenX<4)
-    {
-        mMaxScreenX+=2;
-        mMinScreenX-=2;
-    }
-
+    int y1 = preview->getHeight()-y;
+    SetMinMaxModelScreenCoordinates(preview);
     if (x>=mMinScreenX && x<=mMaxScreenX && y1>=mMinScreenY && y1 <= mMaxScreenY)
     {
         return true;
@@ -1814,23 +1747,60 @@ void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,w
     *y1 = sin(radians)*(x)+(cos(radians)*y);
 }
 
-void ModelClass::SetModelScreenCoordinates(int x, int y)
+void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview)
 {
-    if (x<mMinScreenX)
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    int w, h;
+    preview->GetSize(&w,&h);
+
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
+    for(size_t n=0; n<NodeCount; n++)
     {
-        mMinScreenX = x;
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            if (sx<mMinScreenX)
+            {
+                mMinScreenX = sx;
+            }
+            if (sx>mMaxScreenX)
+            {
+                mMaxScreenX = sx;
+            }
+            if (sy<mMinScreenY)
+            {
+                mMinScreenY = sy;
+            }
+            if (sy>mMaxScreenY)
+            {
+                mMaxScreenY = sy;
+            }
+        }
     }
-    if (x>mMaxScreenX)
+    // Set minimum bounding rectangle
+    if(mMaxScreenY-mMinScreenY<4)
     {
-        mMaxScreenX = x;
+        mMaxScreenY+=2;
+        mMinScreenY-=2;
     }
-    if (y<mMinScreenY)
+    if(mMaxScreenX-mMinScreenX<4)
     {
-        mMinScreenY = y;
-    }
-    if (y>mMaxScreenY)
-    {
-        mMaxScreenY = y;
+        mMaxScreenX+=2;
+        mMinScreenX-=2;
     }
 }
 
@@ -1886,3 +1856,84 @@ void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, 
        PreviewRotation = (int)(PreviewRotation/5) * 5;
     }
 }
+
+void ModelClass::SetTop(ModelPreview* preview,int y)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    int h = preview->getHeight();
+    int screenCenterY = h*offsetYpct;
+    int newCenterY = screenCenterY + (y-mMaxScreenY);
+    offsetYpct = ((float)newCenterY/(float)h);
+}
+
+void ModelClass::SetBottom(ModelPreview* preview,int y)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    int h = preview->getHeight();
+    int screenCenterY = h*offsetYpct;
+    int newCenterY = screenCenterY + (y-mMinScreenY);
+    offsetYpct = ((float)newCenterY/(float)h);
+}
+
+void ModelClass::SetLeft(ModelPreview* preview,int x)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    int w = preview->getWidth();
+    int screenCenterX = w*offsetXpct;
+    int newCenterX = screenCenterX + (x-mMinScreenX);
+    offsetXpct = ((float)newCenterX/(float)w);
+}
+
+void ModelClass::SetRight(ModelPreview* preview,int x)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    int w = preview->getWidth();
+    int screenCenterX = w*offsetXpct;
+    int newCenterX = screenCenterX + (x-mMaxScreenX);
+    offsetXpct = ((float)newCenterX/(float)w);
+}
+
+void ModelClass::SetHcenterOffset(float offset)
+{
+    offsetXpct = offset;
+}
+
+void ModelClass::SetVcenterOffset(float offset)
+{
+    offsetYpct = offset;
+}
+
+int ModelClass::GetTop(ModelPreview* preview)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    return mMaxScreenY;
+}
+
+int ModelClass::GetBottom(ModelPreview* preview)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    return mMinScreenY;
+}
+
+int ModelClass::GetLeft(ModelPreview* preview)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    return mMinScreenX;
+}
+
+int ModelClass::GetRight(ModelPreview* preview)
+{
+    SetMinMaxModelScreenCoordinates(preview);
+    return mMaxScreenX;
+}
+
+float ModelClass::GetHcenterOffset()
+{
+    return offsetXpct;
+}
+
+float ModelClass::GetVcenterOffset()
+{
+    return offsetYpct;
+}
+

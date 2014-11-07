@@ -335,6 +335,14 @@ const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
 const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
 
+const long xLightsFrame::ID_PREVIEW_ALIGN = wxNewId();
+const long xLightsFrame::ID_PREVIEW_MODEL_PROPERTIES = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_TOP = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_LEFT = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_RIGHT = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_H_CENTER = wxNewId();
+const long xLightsFrame::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)

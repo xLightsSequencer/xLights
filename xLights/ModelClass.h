@@ -278,7 +278,7 @@ public:
     bool MyDisplay;
     long ModelBrightness;   // Value from -100 to +100 indicates an adjustment to brightness for this model
     bool Selected=false;
-
+    bool GroupSelected=false;
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     size_t GetNodeCount();
     int GetChanCount();
@@ -302,7 +302,7 @@ public:
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
-    void SetModelScreenCoordinates(int x, int y);
+    void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     bool CanRotate();
     void Rotate(int degrees);
     const wxString& GetStringType(void) { return StringType; }
@@ -328,6 +328,20 @@ public:
     static size_t EnumModels(wxArrayString* choices, const wxString& InactivePrefix);
     wxString GetNodeXY(const wxString& nodenumstr);
     wxString GetNodeXY(int nodeinx);
+
+    void SetTop(ModelPreview* preview,int y);
+    void SetBottom(ModelPreview* preview,int y);
+    void SetLeft(ModelPreview* preview,int x);
+    void SetRight(ModelPreview* preview,int x);
+    void SetHcenterOffset(float offset);
+    void SetVcenterOffset(float offset);
+
+    int GetTop(ModelPreview* preview);
+    int GetBottom(ModelPreview* preview);
+    int GetLeft(ModelPreview* preview);
+    int GetRight(ModelPreview* preview);
+    float GetHcenterOffset();
+    float GetVcenterOffset();
 
     long GetNumArches()
     {

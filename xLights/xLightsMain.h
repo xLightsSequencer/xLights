@@ -698,6 +698,18 @@ private:
     static const long ID_COPYROW_EFFECT; //copy random effect across row -DJ
     static const long ID_CLEARROW_EFFECT; //clear all effects on this row -DJ
 
+    static const long ID_PREVIEW_ALIGN;
+    static const long ID_PREVIEW_MODEL_PROPERTIES;
+    static const long ID_PREVIEW_ALIGN_TOP;
+    static const long ID_PREVIEW_ALIGN_BOTTOM;
+    static const long ID_PREVIEW_ALIGN_LEFT;
+    static const long ID_PREVIEW_ALIGN_RIGHT;
+    static const long ID_PREVIEW_ALIGN_H_CENTER;
+    static const long ID_PREVIEW_ALIGN_V_CENTER;
+
+
+
+
     //(*Declarations(xLightsFrame)
     wxRadioButton* RadioButtonRgbChase;
     wxSlider* Slider_EffectLayerMix;
@@ -1206,10 +1218,23 @@ private:
     void PgoGridCellSelect(int row, int col, int where);
     void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
-    int FindSelectedModel(int x,int y);
+    int FindModelsClicked(int x,int y,wxArrayInt* found);
     void SelectModel(wxString name);
+    bool SelectSingleModel(int x,int y);
+    bool SelectMultipleModels(int x,int y);
+    void SetSelectedModelToGroupSelected();
     void UnSelectAllModels();
-
+    bool MultipleModelsSelected();
+    void SelectAllInBoundingRect();
+    void OnPreviewModelPopup(wxCommandEvent &event);
+    void PreviewModelAlignTops();
+    void PreviewModelAlignBottoms();
+    void PreviewModelAlignLeft();
+    void PreviewModelAlignRight();
+    void PreviewModelAlignHCenter();
+    void PreviewModelAlignVCenter();
+    void ShowModelProperties();
+    int GetSelectedModelIndex();
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ

@@ -84,7 +84,7 @@ void xLightsFrame::UpdatePreview()
     }
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
+        color = (PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
     modelPreview->EndDrawing();
@@ -207,7 +207,14 @@ void xLightsFrame::SelectModel(wxString name)
 
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
-    if (event.ShiftDown())
+    if (event.ControlDown())
+    {
+        SelectMultipleModels(event.GetX(),event.GetY());
+        m_dragging = true;
+        m_previous_mouse_x = event.GetPosition().x;
+        m_previous_mouse_y = event.GetPosition().y;
+    }
+    else if (event.ShiftDown())
     {
         m_creating_bound_rect = true;
         m_bound_start_x = event.GetPosition().x;
@@ -232,7 +239,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if(FindSelectedModel(event.GetX(),event.GetY())!=0)
+        if(SelectSingleModel(event.GetX(),event.GetY()))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetPosition().x;
@@ -247,16 +254,203 @@ void xLightsFrame::UnSelectAllModels()
    for (int i=0; i<PreviewModels.size(); i++)
     {
         PreviewModels[i]->Selected = false;
+        PreviewModels[i]->GroupSelected = false;
     }
     UpdatePreview();
 }
 
+
 void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
 {
-    if ( FindSelectedModel(event.GetX(),event.GetY()) == 0 )
+//<<<<<<< HEAD
+//    if ( FindSelectedModel(event.GetX(),event.GetY()) == 0 )
+//    {
+//        return;
+//    }
+//=======//
+
+    wxMenu mnu;
+    wxMenu mnuAlign;
+    if (MultipleModelsSelected())
     {
-        return;
+        mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_LEFT,"Left");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
+        mnuAlign.Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
+        mnu.AppendSeparator();
     }
+
+    mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    PopupMenu(&mnu);
+
+}
+
+void xLightsFrame::OnPreviewModelPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
+    {
+        PreviewModelAlignTops();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
+    {
+        PreviewModelAlignBottoms();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
+    {
+        PreviewModelAlignLeft();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT)
+    {
+        PreviewModelAlignRight();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER)
+    {
+        PreviewModelAlignHCenter();
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
+    {
+        PreviewModelAlignVCenter();
+    }
+    else if (event.GetId() == ID_PREVIEW_MODEL_PROPERTIES)
+    {
+        ShowModelProperties();
+    }
+
+}
+
+void xLightsFrame::PreviewModelAlignTops()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    int top = PreviewModels[selectedindex]->GetTop(modelPreview);
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetTop(modelPreview,top);
+        }
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::PreviewModelAlignBottoms()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    int bottom = PreviewModels[selectedindex]->GetBottom(modelPreview);
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetBottom(modelPreview,bottom);
+        }
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::PreviewModelAlignLeft()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    int left = PreviewModels[selectedindex]->GetLeft(modelPreview);
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetLeft(modelPreview,left);
+        }
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::PreviewModelAlignRight()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    int right = PreviewModels[selectedindex]->GetRight(modelPreview);
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetRight(modelPreview,right);
+        }
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::PreviewModelAlignHCenter()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    float center = PreviewModels[selectedindex]->GetHcenterOffset();
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetHcenterOffset(center);
+        }
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::PreviewModelAlignVCenter()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex<0)
+        return;
+    float center = PreviewModels[selectedindex]->GetVcenterOffset();
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->GroupSelected)
+        {
+            PreviewModels[i]->SetVcenterOffset(center);
+        }
+    }
+    UpdatePreview();
+}
+
+
+
+
+int xLightsFrame::GetSelectedModelIndex()
+{
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->Selected)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+bool xLightsFrame::MultipleModelsSelected()
+{
+    int selectedModelCount=0;
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected)
+        {
+            selectedModelCount++;
+        }
+    }
+    if (selectedModelCount>1)
+        return true;
+    else
+        return false;
+}
+
+void xLightsFrame::ShowModelProperties()
+{
     ListBoxElementList->GetSelection();
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
 
@@ -284,40 +478,95 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
     delete dialog;
 }
 
-int xLightsFrame::FindSelectedModel(int x,int y)
+
+
+int xLightsFrame::FindModelsClicked(int x,int y,wxArrayInt* found)
 {
-    wxArrayInt found;
+    found;
     for (int i=0; i<PreviewModels.size(); i++)
     {
         if(PreviewModels[i]->HitTest(modelPreview,x,y))
         {
-            found.push_back(i);
+            found->push_back(i);
         }
     }
-    if (found.GetCount()==0)
+    return found->GetCount();
+}
+
+
+bool xLightsFrame::SelectSingleModel(int x,int y)
+{
+    wxArrayInt found;
+    int modelCount = FindModelsClicked(x,y,&found);
+    if (modelCount==0)
     {
-        return 0;
+        return false;
     }
-    else if(found.GetCount()==1)
+    else if(modelCount==1)
     {
         SelectModel(PreviewModels[found[0]]->name);
         mHitTestNextSelectModelIndex = 0;
+        return true;
     }
-    else if (found.GetCount()>1)
+    else if (modelCount>1)
     {
-        for(int i=0;i<found.GetCount();i++)
+        for(int i=0;i<modelCount;i++)
         {
             if(mHitTestNextSelectModelIndex==i)
             {
                 SelectModel(PreviewModels[found[i]]->name);
                 mHitTestNextSelectModelIndex += 1;
-                mHitTestNextSelectModelIndex %= found.GetCount();
-                break;
+                mHitTestNextSelectModelIndex %= modelCount;
+                return true;
             }
         }
     }
-    return found.GetCount();
+    return false;
 }
+
+bool xLightsFrame::SelectMultipleModels(int x,int y)
+{
+    wxArrayInt found;
+    int modelCount = FindModelsClicked(x,y,&found);
+    if (modelCount==0)
+    {
+        return false;
+    }
+    else if(modelCount>0)
+    {
+        if(PreviewModels[found[0]]->Selected)
+        {
+            PreviewModels[found[0]]->Selected = false;
+            PreviewModels[found[0]]->GroupSelected = false;
+        }
+        else if (PreviewModels[found[0]]->GroupSelected)
+        {
+            SetSelectedModelToGroupSelected();
+            PreviewModels[found[0]]->Selected = true;
+            SelectModel(PreviewModels[found[0]]->name);
+        }
+        else
+        {
+            PreviewModels[found[0]]->GroupSelected = true;
+        }
+        UpdatePreview();
+        return true;
+    }
+    return false;
+}
+
+void xLightsFrame::SetSelectedModelToGroupSelected()
+{
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->Selected)
+        {
+            PreviewModels[i]->Selected = false;
+            PreviewModels[i]->GroupSelected = true;
+        }
+    }
+}
+
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
@@ -326,8 +575,23 @@ void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
     m_resizing = false;
     if(m_creating_bound_rect)
     {
+        m_bound_end_x = event.GetPosition().x;
+        m_bound_end_y = modelPreview->getHeight() - event.GetPosition().y;
+        SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
+    }
+}
+
+void xLightsFrame::SelectAllInBoundingRect()
+{
+   for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
+                                         m_bound_end_x,m_bound_end_y))
+        {
+            PreviewModels[i]->GroupSelected = true;
+        }
     }
 }
 
@@ -371,7 +635,13 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         modelPreview->GetSize(&wi,&ht);
         if (wi > 0 && ht > 0)
         {
-            m->AddOffset(delta_x/wi, delta_y/ht);
+            for (int i=0; i<PreviewModels.size(); i++)
+            {
+                if(PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected)
+                {
+                   PreviewModels[i]->AddOffset(delta_x/wi, delta_y/ht);
+                }
+            }
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
@@ -607,7 +877,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
             msec = seekPoint;
         }
         PlayerDlg->MediaCtrl->Seek(msec);
-        
+
         wxSleep(1);
 
         PlayerDlg->MediaCtrl->Stop();
