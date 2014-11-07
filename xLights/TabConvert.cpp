@@ -1243,7 +1243,11 @@ bool FRAMECLASS LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixCha
                         }
                         else
                         {
-                            VixChannelNames.push_back("");
+                            if (p->GetChildren() != NULL) {
+                                VixChannelNames.push_back(p->GetChildren()->GetContent());
+                            } else {
+                                VixChannelNames.push_back(p->GetContent());
+                            }
                         }
                     }
                 }
