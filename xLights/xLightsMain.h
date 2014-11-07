@@ -427,8 +427,8 @@ private:
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
     void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
-    void OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event);
-    void OnScrolledWindowPreviewRightDClick(wxMouseEvent& event);
+	void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
+    void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     //*)
@@ -538,8 +538,8 @@ private:
     static const long ID_PANEL_CONVERT;
     static const long ID_BUTTON_PREVIEW_OPEN;
     static const long ID_STATICTEXT23;
-    static const long ID_BUTTON_PLAY_PREVIEW;
-    static const long ID_BUTTON_STOP_PREVIEW;
+    static const long ID_BITMAPBUTTON5;
+    static const long ID_BITMAPBUTTON6;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
     static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
@@ -746,7 +746,6 @@ private:
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
-    wxButton* ButtonStopPreview;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
     wxBitmapButton* BitmapButton_Brightness;
@@ -838,7 +837,6 @@ private:
     wxStatusBar* StatusBar1;
     wxTextCtrl* TextCtrlModelRotationDegrees;
     wxCheckBox* CheckBox_PgoAutoRest;
-    wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
@@ -883,6 +881,8 @@ private:
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
     wxCheckBox* CheckBox_LayerMorph;
+    wxBitmapButton* bbStop;
+    wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
@@ -942,7 +942,10 @@ private:
     wxSplitterWindow* SplitterWindow2;
     //*)
 
-
+    wxBitmap pauseIcon;
+    wxBitmap playIcon;
+    bool previewLoaded;
+    bool previewPlaying;
     wxFileName networkFile;
     wxFileName scheduleFile;
     PlayerFrame* PlayerDlg;
@@ -1002,6 +1005,7 @@ private:
     wxArrayString FileNames;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
+    long seekPoint;
 
     int mHitTestNextSelectModelIndex;
     wxString mBackgroundImage;

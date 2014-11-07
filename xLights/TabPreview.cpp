@@ -12,35 +12,6 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Preview layout saved"));
 }
 
-/*
-void xLightsFrame::OnButtonSetBackgroundClick(wxCommandEvent& event)
-{
-    wxImage image;
-    wxClientDC dc(ScrolledWindowPreview);
-    wxSize dcSize=dc.GetSize();
-    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
-    if (!filename.IsEmpty())
-    {
-        if (image.LoadFile(filename,wxBITMAP_TYPE_ANY))
-        {
-            image.Rescale(dcSize.GetWidth(),dcSize.GetHeight());
-            wxBitmap bitmap(image);
-            dc.DrawBitmap(bitmap,0,0);
-        }
-        else
-        {
-            wxMessageBox(_("Unable to load background image"));
-        }
-    }
-}
-
-void xLightsFrame::OnButtonClearBackgroundClick(wxCommandEvent& event)
-{
-    wxClientDC dc(ScrolledWindowPreview);
-    dc.Clear();
-}
-*/
-
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
     wxArrayString SeqFiles;
@@ -50,6 +21,8 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     {
         return;
     }
+    previewLoaded = false;
+    previewPlaying = false;
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
     ResetTimer(NO_SEQ);
@@ -57,6 +30,7 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
+    bbPlayPause->SetBitmap(playIcon);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
     CompareMyDisplayToSeq();
@@ -477,6 +451,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         return;
     }
     int LastPreviewChannel=0;
+    if(!previewPlaying)
+    {
+        bbPlayPause->SetBitmap(pauseIcon);
+        previewPlaying = true;
+    }
+    else
+    {
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+    }
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
@@ -497,7 +481,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             return;
         }
-        PlayCurrentXlightsFile();
+        if (!previewLoaded)
+        {
+            PlayCurrentXlightsFile();
+            previewLoaded = true;
+        }
+        else
+        {
+            PlayerDlg->MediaCtrl->Pause();
+
+        }
         heartbeat("playback preview", true); //tell fido to start watching -DJ
         break;
     }
@@ -511,7 +504,12 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
     }
     else
     {
+        bbPlayPause->SetBitmap(playIcon);
         PlayerDlg->MediaCtrl->Pause();
+        PlayerDlg->MediaCtrl->Seek(0);
+        previewPlaying = false;
+        SliderPreviewTime->SetValue(0);
+        ShowPreviewTime(0);
     }
 }
 
@@ -569,6 +567,61 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
         PlayerDlg->MediaCtrl->Seek(msec);
     }
 }
+
+void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    //when drag event starts stop the timer till the drag event ends.
+    Timer1.Stop();
+    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    long msec=newperiod * XTIMER_INTERVAL;
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, msec);
+    }
+    else
+    {
+        PlayerDlg->MediaCtrl->Seek(msec);
+        ShowPreviewTime(msec);
+        if(PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+        {
+            PlayerDlg->MediaCtrl->Play();
+        }
+        PreviewOutput(newperiod);
+        seekPoint = msec;
+    }
+}
+
+void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
+{
+
+    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    long msec=newperiod * XTIMER_INTERVAL;
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, msec);
+    }
+    else if(SeqPlayerState != PLAYING_SEQ_ANIM)
+    {
+        if( msec > seekPoint)
+        {
+            msec = seekPoint;
+        }
+        PlayerDlg->MediaCtrl->Seek(msec);
+        Sleep(1000);
+        PlayerDlg->MediaCtrl->Stop();
+        PlayerDlg->MediaCtrl->Seek(msec);
+        //Update the slider back to where the user last selected since it played past that point
+        int frame = msec / XTIMER_INTERVAL;
+        SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
+        //Update the time box.
+        ShowPreviewTime(msec);
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+        Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
+    }
+}
+
+
 void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
 {
     int newRotDegrees = wxAtoi(TextCtrlModelRotationDegrees->GetValue());

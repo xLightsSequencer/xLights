@@ -228,7 +228,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 {
     const int speedfactor=4;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
-    int frame,maxframes;
+    static int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
 
@@ -253,9 +253,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
 
-    if(state==0 || maxmovieframes <= 0) maxmovieframes=10;
+    /*if(state==0 || maxmovieframes <= 0) maxmovieframes=10;
     maxframes=maxmovieframes;
-    frame = state%maxframes;
+    frame = state%maxframes;*/
 
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
@@ -267,43 +267,36 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
         //  build the next filename. the frame counter is incrementing through all frames
 
-        sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
+
         if(state==0) // only once, try 10000 files to find how high is frame count
         {
+            sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
             for (frame=1; frame<=9999; frame++)
             {
                 sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
                 if(wxFileExists(sPicture))
                 {
                     maxmovieframes=frame+1;
+                    break;
                 }
             }
+            frame=1;
+        } else
+        {
+            frame++;
         }
+        sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
     }
 
-
+/*
     NewPictureName=sPicture;
     if(!wxFileExists(NewPictureName))
     {
         maxframes=frame-1;
         return;
     }
-
-#if 0
-    // not compatible with DLL
-	if(createlog==1)
-    {
-        wxRemoveFile(filename);
-        if (!f.Create(filename,false))
-        {
-            // ConversionError(_("Unable to create file: ")+filename);
-            return;
-        }
-
-        buff = wxString::Format("NewPictureName %s, PictureName %s, NewPictureName2=%s, suffix=%s, frame=%d\n",NewPictureName,PictureName,NewPictureName2,suffix,frame);
-        f.Write(buff);
-    }
-#endif
+*/
+    NewPictureName=sPicture;
 
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
     {

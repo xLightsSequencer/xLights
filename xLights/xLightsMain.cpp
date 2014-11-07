@@ -169,8 +169,8 @@ const long xLightsFrame::ID_TEXTCTRL_CONVERSION_STATUS = wxNewId();
 const long xLightsFrame::ID_PANEL_CONVERT = wxNewId();
 const long xLightsFrame::ID_BUTTON_PREVIEW_OPEN = wxNewId();
 const long xLightsFrame::ID_STATICTEXT23 = wxNewId();
-const long xLightsFrame::ID_BUTTON_PLAY_PREVIEW = wxNewId();
-const long xLightsFrame::ID_BUTTON_STOP_PREVIEW = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON5 = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON6 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_TIME = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_CURRENT_PREVIEW_SIZE = wxNewId();
@@ -778,10 +778,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerPreview->Add(FlexGridSizer36, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer31 = new wxFlexGridSizer(1, 4, 0, 0);
     FlexGridSizer31->AddGrowableCol(3);
-    ButtonPlayPreview = new wxButton(PanelPreview, ID_BUTTON_PLAY_PREVIEW, _("Play"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_PREVIEW"));
-    FlexGridSizer31->Add(ButtonPlayPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonStopPreview = new wxButton(PanelPreview, ID_BUTTON_STOP_PREVIEW, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_PREVIEW"));
-    FlexGridSizer31->Add(ButtonStopPreview, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, wxBitmap(wxImage(_T("..\\images\\control-pause-blue-icon.png"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
+    bbPlayPause->SetBitmapDisabled(wxBitmap(wxImage(_T("..\\images\\control-pause-icon.png"))));
+    FlexGridSizer31->Add(bbPlayPause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, wxBitmap(wxImage(_T("..\\images\\control-stop-blue-icon.png"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    bbStop->SetBitmapDisabled(wxBitmap(wxImage(_T("..\\images\\control-stop-icon.png"))));
+    FlexGridSizer31->Add(bbStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxSize(58,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1444,8 +1446,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CHOOSE_FILE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonChooseFileClick);
     Connect(ID_BUTTON_START_CONVERSION,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartConversionClick);
     Connect(ID_BUTTON_PREVIEW_OPEN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPreviewOpenClick);
-    Connect(ID_BUTTON_PLAY_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
-    Connect(ID_BUTTON_STOP_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
+    Connect(ID_BITMAPBUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonPlayPreviewClick);
+    Connect(ID_BITMAPBUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopPreviewClick);
+    Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack);
+    Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_SCROLL_THUMBRELEASE,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease);
     Connect(ID_SLIDER_PREVIEW_TIME,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated);
     Connect(ID_BUTTON_SET_PREVIEW_SIZE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetPreviewSizeClick);
     Connect(ID_BUTTON_SET_BACKGROUND_IMAGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSetBackgroundImageClick);
@@ -1547,12 +1551,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
-    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
+	int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
     seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
     BoxSizerSequencePreview->Add(seqPreview, 1, wxEXPAND);
-
     modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
+
+	playIcon = wxBitmap(wxImage(_T("..\\images\\control-play-blue-icon.png")));
+    pauseIcon = wxBitmap(wxImage(_T("..\\images\\control-pause-blue-icon.png")));
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
@@ -2628,7 +2634,6 @@ wxXmlNode* xLightsFrame::FindNode(wxXmlNode* parent, const wxString& tag, const 
     if (!value.empty()) AddNonDupAttr(retnode, attr, value);
     return retnode;
 }
-
 void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
 {
     int DlgResult;
@@ -2650,7 +2655,6 @@ void xLightsFrame::OnButtonSetPreviewSizeClick(wxCommandEvent& event)
         }
     }
 }
-
 void xLightsFrame::SetPreviewSize(int width,int height)
 {
     StaticTextCurrentPreviewSize->SetLabelText(wxString::Format("Size: %d x %d",width,height));
@@ -2659,7 +2663,6 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     SaveEffectsFile();
     modelPreview->SetCanvasSize(width,height);
 }
-
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {
     wxXmlNode* e;
@@ -2676,7 +2679,6 @@ void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& val
     setting->AddAttribute("value",value);
     SettingsNode->AddChild(setting);
 }
-
 wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString& defaultValue)
 {
     wxXmlNode* e;

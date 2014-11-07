@@ -1213,20 +1213,22 @@
 													<rows>1</rows>
 													<growablecols>3</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_PLAY_PREVIEW" variable="ButtonPlayPreview" member="yes">
-															<label>Play</label>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="bbPlayPause" member="yes">
+															<bitmap>..\images\control-pause-blue-icon.png</bitmap>
+															<disabled>..\images\control-pause-icon.png</disabled>
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_STOP_PREVIEW" variable="ButtonStopPreview" member="yes">
-															<label>Pause</label>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="bbStop" member="yes">
+															<bitmap>..\images\control-stop-blue-icon.png</bitmap>
+															<disabled>..\images\control-stop-icon.png</disabled>
 															<handler function="OnButtonStopPreviewClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1248,7 +1250,8 @@
 																	<object class="sizeritem">
 																		<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
 																			<max>200</max>
-																			<size>619,21</size>
+																			<handler function="OnSliderPreviewTimeCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+																			<handler function="OnSliderPreviewTimeCmdScrollThumbRelease" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																			<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																		</object>
 																		<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
