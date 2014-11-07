@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker (Ver 3.6.0)</title>
+		<title>xLights/Nutcracker (Ver 3.6.1)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -2121,34 +2121,26 @@
 															<object class="sizeritem">
 																<object class="wxBoxSizer" variable="BoxSizer5" member="no">
 																	<object class="sizeritem">
-																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer4" member="no">
-																			<label>Effect 1</label>
-																			<orient>wxVERTICAL</orient>
-																			<object class="sizeritem">
-																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
-																					<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
+																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+																			<object class="notebookpage">
+																				<object class="wxPanel" name="ID_PANEL5" variable="Panel4" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
+																						<pos>0,0</pos>
+																						<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
+																					</object>
 																				</object>
-																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
+																				<label>Effect1</label>
+																			</object>
+																			<object class="notebookpage">
+																				<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes">
+																						<pos>0,0</pos>
+																					</object>
+																				</object>
+																				<label>Effect2</label>
 																			</object>
 																		</object>
-																		<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer5" member="no">
-																			<label>Effect 2</label>
-																			<orient>wxVERTICAL</orient>
-																			<object class="sizeritem">
-																				<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes" />
-																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>

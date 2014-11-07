@@ -430,6 +430,7 @@ private:
     void OnSlider_BackgroundBrightnessCmdScroll(wxScrollEvent& event);
     void OnScrolledWindowPreviewRightDClick(wxMouseEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
+    void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -608,7 +609,10 @@ private:
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL5;
     static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL6;
+    static const long ID_NOTEBOOK2;
     static const long ID_PANEL32;
     static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL30;
@@ -713,6 +717,7 @@ private:
     wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
     wxButton* btEditViews;
+    wxPanel* Panel5;
     wxStaticText* StaticText36;
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
@@ -729,6 +734,7 @@ private:
     wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
+    wxNotebook* Notebook2;
     wxPanel* PanelPapagayo;
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
@@ -861,6 +867,7 @@ private:
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
+    wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
     wxStaticText* StaticTextCurrentPreviewSize;
