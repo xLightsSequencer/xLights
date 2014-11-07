@@ -1395,6 +1395,53 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     }
 }
 
+bool ModelClass::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    int w, h;
+    preview->GetSize(&w,&h);
+
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
+
+
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            SetModelScreenCoordinates(sx,sy);
+        }
+    }
+
+    int xs = x1<x2?x1:x2;
+    int xf = x1>x2?x1:x2;
+    int ys = y1<y2?y1:y2;
+    int yf = y1>y2?y1:y2;
+
+    if (xs>=mMinScreenX && xf<=mMaxScreenX && ys>=mMinScreenY && yf <= mMaxScreenY)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
 {
     size_t NodeCount=Nodes.size();
@@ -1403,6 +1450,7 @@ bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
     preview->GetSize(&w,&h);
 
     int y1 = h-y;
+
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
     int w1 = int(offsetXpct*w);

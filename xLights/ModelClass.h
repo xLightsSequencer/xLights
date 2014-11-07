@@ -252,10 +252,10 @@ private:
     bool SingleChannel;  // true for traditional single-color strings
     long ModelVersion;
 
-    double mMinScreenX=0;
-    double mMinScreenY=0;
-    double mMaxScreenX=0;
-    double mMaxScreenY=0;
+    int mMinScreenX;
+    int mMinScreenY;
+    int mMaxScreenX;
+    int mMaxScreenY;
     wxPoint mHandlePosition[5];
     int mDragMode;
     int mLastResizeX;
@@ -300,6 +300,7 @@ public:
     void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
+    bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
     void SetModelScreenCoordinates(int x, int y);
     bool CanRotate();

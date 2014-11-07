@@ -1034,8 +1034,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         SetXmlSetting("previewWidth","1280");
         SetXmlSetting("previewHeight","720");
     }
-    int previewWidth=wxAtoi(GetXmlSetting("previewWidth"));
-    int previewHeight=wxAtoi(GetXmlSetting("previewHeight"));
+    int previewWidth=wxAtoi(GetXmlSetting("previewWidth","1280"));
+    int previewHeight=wxAtoi(GetXmlSetting("previewHeight","720"));
     if (previewWidth==0 || previewHeight==0)
     {
         previewWidth = 1280;
@@ -1043,8 +1043,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
     SetPreviewSize(previewWidth,previewHeight);
 
-    mBackgroundImage = GetXmlSetting("backgroundImage");
-    mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness"));
+    mBackgroundImage = GetXmlSetting("backgroundImage","");
+    mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
     return effectsFile.GetFullPath();
 }

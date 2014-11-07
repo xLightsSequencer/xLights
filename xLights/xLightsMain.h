@@ -1003,9 +1003,9 @@ private:
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
-    int mHitTestNextSelectModelIndex=0;
+    int mHitTestNextSelectModelIndex;
     wxString mBackgroundImage;
-    int mBackgroundBrightness=100;
+    int mBackgroundBrightness;
 
 
     // convert
@@ -1132,7 +1132,7 @@ private:
     void UpdateGrid();
     void SetPreviewSize(int width,int height);
     void SetXmlSetting(const wxString& settingName,const wxString& value);
-    wxString GetXmlSetting(const wxString& settingName);
+    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
     // Functions for update state of sequence grid
     void AllRowsAreUpdated();
 

@@ -2677,7 +2677,7 @@ void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& val
     SettingsNode->AddChild(setting);
 }
 
-wxString xLightsFrame::GetXmlSetting(const wxString& settingName)
+wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString& defaultValue)
 {
     wxXmlNode* e;
     // Delete existing setting node
@@ -2685,10 +2685,10 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName)
     {
         if(e->GetName() == settingName)
         {
-            return e->GetAttribute("value");
+            return e->GetAttribute("value",defaultValue);
         }
     }
-    return "Not Found";
+    return defaultValue;
 }
 
 
