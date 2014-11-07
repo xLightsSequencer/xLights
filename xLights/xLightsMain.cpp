@@ -33,6 +33,12 @@
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
+#include "../include/control-pause-blue-icon.xpm"
+#include "../include/control-pause-icon.xpm"
+#include "../include/control-play-blue-icon.xpm"
+#include "../include/control-play-icon.xpm"
+#include "../include/control-stop-blue-icon.xpm"
+#include "../include/control-stop-icon.xpm"
 
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
@@ -778,17 +784,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerPreview->Add(FlexGridSizer36, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer31 = new wxFlexGridSizer(1, 4, 0, 0);
     FlexGridSizer31->AddGrowableCol(3);
-    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, wxBitmap(wxImage(_T("..\\images\\control-pause-blue-icon.png"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
-    bbPlayPause->SetBitmapDisabled(wxBitmap(wxImage(_T("..\\images\\control-pause-icon.png"))));
+    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, control_pause_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
+    bbPlayPause->SetBitmapDisabled(control_pause_icon);
     FlexGridSizer31->Add(bbPlayPause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, wxBitmap(wxImage(_T("..\\images\\control-stop-blue-icon.png"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
-    bbStop->SetBitmapDisabled(wxBitmap(wxImage(_T("..\\images\\control-stop-icon.png"))));
+    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, control_stop_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    bbStop->SetBitmapDisabled(control_stop_icon);
     FlexGridSizer31->Add(bbStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxSize(58,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
-    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxSize(619,21), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
+    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
     FlexGridSizer41->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer30->Add(FlexGridSizer41, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40 = new wxFlexGridSizer(0, 5, 0, 0);
@@ -1557,8 +1563,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
-	playIcon = wxBitmap(wxImage(_T("..\\images\\control-play-blue-icon.png")));
-    pauseIcon = wxBitmap(wxImage(_T("..\\images\\control-pause-blue-icon.png")));
+	playIcon = wxBitmap(control_play_blue_icon);
+    pauseIcon = wxBitmap(control_pause_blue_icon);
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 

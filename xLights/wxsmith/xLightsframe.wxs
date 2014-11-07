@@ -1214,8 +1214,8 @@
 													<growablecols>3</growablecols>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="bbPlayPause" member="yes">
-															<bitmap>..\images\control-pause-blue-icon.png</bitmap>
-															<disabled>..\images\control-pause-icon.png</disabled>
+															<bitmap code="control_pause_blue_icon" />
+															<disabled code="control_pause_icon" />
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1224,8 +1224,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="bbStop" member="yes">
-															<bitmap>..\images\control-stop-blue-icon.png</bitmap>
-															<disabled>..\images\control-stop-icon.png</disabled>
+															<bitmap code="control_stop_blue_icon" />
+															<disabled code="control_stop_icon" />
 															<handler function="OnButtonStopPreviewClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
