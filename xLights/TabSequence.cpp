@@ -3049,12 +3049,39 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     SeqDataType* retData;
+    
 
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
     retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
-
+    
+    size_t firstChannel = 0;
+    if (modelNode->GetAttribute("exportFirstStrand") != "") {
+        int firstNode = 0;
+        firstNode = wxAtoi(modelNode->GetAttribute("exportFirstStrand"));
+        AppendConvertStatus(wxString::Format("First from model: %d\n", firstNode));
+        if (firstNode < 1) {
+            firstNode = 1;
+        }
+        firstNode--;
+        int PixelsPerStrand=wxAtoi(modelNode->GetAttribute("parm2")) / wxAtoi(modelNode->GetAttribute("parm3"));
+        AppendConvertStatus(wxString::Format("Pixels per strand: %d\n", PixelsPerStrand));
+        firstNode *= PixelsPerStrand;
+        AppendConvertStatus(wxString::Format("Calced firstNode: %d\n", firstNode));
+        if (firstNode > NodeCnt) {
+            firstNode = 0;
+        }
+        if (firstNode > 0) {
+            size_t chnum;
+            unsigned char intensity;
+            buffer.GetChanIntensity(firstNode, 0, &firstChannel, &intensity);
+            AppendConvertStatus(wxString::Format("firstNode: %d     NodeCnt:  %d    FirstChannel: %d\n",
+                                                 firstNode, NodeCnt, firstChannel));
+        }
+    }
+    
+    
     LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
@@ -3122,6 +3149,11 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                        if (chnum >= firstChannel) {
+                            chnum -= firstChannel;
+                        } else {
+                            chnum = cn * NodeCnt - firstChannel + chnum;
+                        }
                         (*retData)[chnum*SeqNumPeriods+p]=intensity;
                     }
                 }
@@ -3662,7 +3694,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     }
 
     delete dataBuf;
-    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
+    StatusBar1->SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 }
 
 void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)

@@ -40,6 +40,7 @@ const long ModelDialog::ID_STATICTEXT7 = wxNewId();
 const long ModelDialog::ID_Slider_Model_Brightness = wxNewId();
 const long ModelDialog::ID_SPINCTRLMODELBRIGHTNESS = wxNewId();
 const long ModelDialog::ID_STATICTEXT15 = wxNewId();
+const long ModelDialog::ID_SPINCONTROL_TREE_FIRST_STRING = wxNewId();
 const long ModelDialog::ID_TEXTCTRL2 = wxNewId();
 const long ModelDialog::ID_CHECKBOX2 = wxNewId();
 const long ModelDialog::ID_GRID_START_CHANNELS = wxNewId();
@@ -68,6 +69,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
+    wxFlexGridSizer* FlexGridSizer7;
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
@@ -173,10 +175,14 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     SpinCtrlModelBrightness->SetValue(_T("0"));
     FlexGridSizer6->Add(SpinCtrlModelBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StarSizesLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
-    FlexGridSizer2->Add(StarSizesLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    ExtraParameterLabel = new wxStaticText(this, ID_STATICTEXT15, _("Star Sizes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
+    FlexGridSizer2->Add(ExtraParameterLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
+    TreeFirstStringForExport = new wxSpinCtrl(this, ID_SPINCONTROL_TREE_FIRST_STRING, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 1, 1000, 0, _T("ID_SPINCONTROL_TREE_FIRST_STRING"));
+    FlexGridSizer7->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer2->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer3->AddGrowableRow(1);
@@ -407,8 +413,9 @@ void ModelDialog::UpdateLabels()
     wxString NodeLabel = ModelClass::HasSingleChannel(StringType) ? _("lights") : _("RGB Nodes");
     wxString s;
 
-    StarSizesLabel->Hide();
+    ExtraParameterLabel->Hide();
     StarSizes->Hide();
+    TreeFirstStringForExport->Hide();
 
     if (DisplayAs == "Arches")
     {
@@ -418,6 +425,12 @@ void ModelDialog::UpdateLabels()
         StaticText_Strands->SetLabelText(_("n/a"));
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
+    }
+    else if (DisplayAs == "Tree 360" || DisplayAs == "Tree 270")
+    {
+        ExtraParameterLabel->SetLabel("First Strand for Export");
+        ExtraParameterLabel->Show();
+        TreeFirstStringForExport->Show();
     }
     else if (DisplayAs == "Window Frame")
     {
@@ -429,15 +442,15 @@ void ModelDialog::UpdateLabels()
         StaticText_Strands->SetLabelText(s);
         SpinCtrl_parm3->Enable(true);
     }
-    else if (DisplayAs == "Star"
-            )
+    else if (DisplayAs == "Star")
     {
         StaticText_Strings->SetLabelText(_("Actual # of Strings"));
         s=_("# of ") + NodeLabel + _(" per String");
         StaticText_Nodes->SetLabelText(s);
         StaticText_Strands->SetLabelText(_("# of points"));
         SpinCtrl_parm3->Enable(true);
-        StarSizesLabel->Show();
+        ExtraParameterLabel->SetLabel("Star Layer Sizes");
+        ExtraParameterLabel->Show();
         StarSizes->Show();
 
     }
@@ -696,10 +709,15 @@ void ModelDialog::UpdateXml(wxXmlNode* e)
     e->DeleteAttribute("Dir");
     e->DeleteAttribute("Antialias");
     e->DeleteAttribute("starSizes");
+    e->DeleteAttribute("exportFirstStrand");
     e->AddAttribute("DisplayAs", Choice_DisplayAs->GetStringSelection());
     e->AddAttribute("StringType", Choice_StringType->GetStringSelection());
     if (Choice_DisplayAs->GetStringSelection() == "Star") {
         e->AddAttribute("starSizes", StarSizes->GetValue());
+    }
+    if (Choice_DisplayAs->GetStringSelection() == "Tree 360"
+        || Choice_DisplayAs->GetStringSelection() == "Tree 270") {
+        e->AddAttribute("exportFirstStrand", wxString::Format("%d",TreeFirstStringForExport->GetValue()));
     }
     e->AddAttribute("parm1", wxString::Format("%d",SpinCtrl_parm1->GetValue()));
     e->AddAttribute("parm2", wxString::Format("%d",SpinCtrl_parm2->GetValue()));
@@ -738,6 +756,11 @@ void ModelDialog::SetFromXml(wxXmlNode* e, const wxString& NameSuffix)
     SpinCtrl_parm3->SetValue(e->GetAttribute("parm3"));
     StarSizes->SetValue(e->GetAttribute("starSizes"));
     SpinCtrl_StartChannel->SetValue(e->GetAttribute("StartChannel"));
+    if (e->GetAttribute("exportFirstStrand") == "") {
+        TreeFirstStringForExport->SetValue("1");
+    } else {
+        TreeFirstStringForExport->SetValue(e->GetAttribute("exportFirstStrand"));
+    }
     //Choice_Order->SetStringSelection(e->GetAttribute("Order"));
     tempStr=e->GetAttribute("Antialias","0");
     tempStr.ToLong(&n);

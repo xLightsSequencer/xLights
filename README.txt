@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.2
+        -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
+                    This allows the exported models to work around issues with the 12:00 first strand for Nutcracker but the first 
+                    strand is expected to be the 9:00 position in HLS.
 3.6.1	Nov 6,2014
 	-bug (dkulp) Pinwheel effect was not producing data in Preview screen or on lights, it is fixed now
 	-enh (sean) Move Effect 1 and Effect 2 into tabs  . This gives more space for the preview screen
