@@ -555,6 +555,7 @@ void xLightsFrame::PreviewOutput(int period)
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
+{
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -606,7 +607,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
             msec = seekPoint;
         }
         PlayerDlg->MediaCtrl->Seek(msec);
-        
+
         wxSleep(1);
 
         PlayerDlg->MediaCtrl->Stop();
