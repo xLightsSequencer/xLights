@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.1	Nov 6,2014
+	-bug (dkulp) Pinwheel effect was not producing data in Preview screen or on lights, it is fixed now
+	-enh (sean) Move Effect 1 and Effect 2 into tabs  . This gives more space for the preview screen
+	-enh (dpitts) Selected objects in the preview are yellow , not magenta
 3.6.0	Nov 6,2014
 	-enh (dpitts) NUTCRACKER and PREVIEW windows now use OpenGL to draw objects. The result of this is xLights can now draw very
 		large objects with no delay. 
