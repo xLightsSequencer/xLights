@@ -105,6 +105,10 @@ void xLightsFrame::UpdatePreview()
     const wxColour selectColor(255,0,255);
     wxString SelModelName=ListBoxElementList->GetStringSelection();
     modelPreview->StartDrawing(mPointSize);
+    if(m_creating_bound_rect)
+    {
+        modelPreview->DrawRectangle(*wxYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
+    }
     for (int i=0; i<PreviewModels.size(); i++)
     {
         color = (PreviewModels[i]->Selected) ? &selectColor : wxLIGHT_GREY;
@@ -227,9 +231,16 @@ void xLightsFrame::SelectModel(wxString name)
     }
 
 }
+
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
-    if (m_over_handle == OVER_ROTATE_HANDLE)
+    if (event.ShiftDown())
+    {
+        m_creating_bound_rect = true;
+        m_bound_start_x = event.GetPosition().x;
+        m_bound_start_y = modelPreview->getHeight() - event.GetPosition().y;
+    }
+    else if (m_over_handle == OVER_ROTATE_HANDLE)
     {
         m_rotating = true;
     }
@@ -241,6 +252,8 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     {
         m_rotating = false;
         m_resizing = false;
+        m_creating_bound_rect = false;
+
         if(!event.wxKeyboardState::ControlDown())
         {
             UnSelectAllModels();
@@ -335,6 +348,11 @@ void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
     m_rotating = false;
     m_dragging = false;
     m_resizing = false;
+    if(m_creating_bound_rect)
+    {
+        m_creating_bound_rect = false;
+        UpdatePreview();
+    }
 }
 
 void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
@@ -345,6 +363,15 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
     int wi,ht;
+
+    if (m_creating_bound_rect)
+    {
+        m_bound_end_x = event.GetPosition().x;
+        m_bound_end_y = modelPreview->getHeight() - event.GetPosition().y;
+        UpdatePreview();
+        return;
+    }
+
     int sel=ListBoxElementList->GetSelection();
     if (sel == wxNOT_FOUND) return;
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);

@@ -1200,7 +1200,6 @@ private:
     void UnSelectAllModels();
 
 
-
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
     wxXmlDocument EffectsXml;
@@ -1256,6 +1255,11 @@ private:
     bool m_dragging;
     bool m_resizing;
     bool m_rotating;
+    bool m_creating_bound_rect;
+    int  m_bound_start_x;
+    int m_bound_start_y;
+    int m_bound_end_x;
+    int m_bound_end_y;
     int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;

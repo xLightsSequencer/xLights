@@ -213,7 +213,7 @@ void ModelPreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
     glEnd();
 }
 
-void ModelPreview::DrawRectangle(const wxColour &color, wxDouble x, wxDouble y,int width, int height)
+void ModelPreview::DrawFillRectangle(const wxColour &color, int x, int y,int width, int height)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_QUADS);
@@ -223,6 +223,75 @@ void ModelPreview::DrawRectangle(const wxColour &color, wxDouble x, wxDouble y,i
     glVertex2f(x, y+height);
     glEnd();
 }
+
+void ModelPreview::DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2)
+{
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    if (!dashed)
+    {
+        glBegin(GL_LINES);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y1);
+
+        glVertex2f(x2, y1);
+        glVertex2f(x2, y2);
+
+        glVertex2f(x2, y2);
+        glVertex2f(x1, y2);
+
+        glVertex2f(x1, y2);
+        glVertex2f(x1, y1);
+        glEnd();
+    }
+    else
+    {
+        glBegin(GL_POINTS);
+        // Line 1
+        int xs = x1<x2?x1:x2;
+        int xf = x1>x2?x1:x2;
+        for(int x=xs;x<=xf;x++)
+        {
+            if(x%8<4)
+            {
+                glVertex2f(x, y1);
+            }
+        }
+        // Line 2
+        int ys = y1<y2?y1:y2;
+        int yf = y1>y2?y1:y2;
+        for(int y=ys;y<=yf;y++)
+        {
+            if(y%8<4)
+            {
+                glVertex2f(x2,y);
+            }
+        }
+        // Line 3
+        xs = x1<x2?x1:x2;
+        xf = x1>x2?x1:x2;
+        for(int x=xs;x<=xf;x++)
+        {
+            if(x%8<4)
+            {
+                glVertex2f(x, y2);
+            }
+        }
+        // Line 4
+        ys = y1<y2?y1:y2;
+        yf = y1>y2?y1:y2;
+        for(int y=ys;y<=yf;y++)
+        {
+            if(y%8<4)
+            {
+                glVertex2f(x1,y);
+            }
+        }
+        glEnd();
+    }
+}
+
+
+
 
 void ModelPreview::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2)
 {
