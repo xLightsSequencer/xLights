@@ -279,7 +279,10 @@ void xLightsFrame::UnSelectAllModels()
 
 void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
 {
-    FindSelectedModel(event.GetX(),event.GetY());
+    if ( FindSelectedModel(event.GetX(),event.GetY()) == 0 )
+    {
+        return;
+    }
     ListBoxElementList->GetSelection();
     ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
 
