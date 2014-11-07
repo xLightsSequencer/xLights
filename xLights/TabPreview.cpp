@@ -1,3 +1,4 @@
+#include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -11,35 +12,6 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Preview layout saved"));
 }
 
-/*
-void xLightsFrame::OnButtonSetBackgroundClick(wxCommandEvent& event)
-{
-    wxImage image;
-    wxClientDC dc(ScrolledWindowPreview);
-    wxSize dcSize=dc.GetSize();
-    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
-    if (!filename.IsEmpty())
-    {
-        if (image.LoadFile(filename,wxBITMAP_TYPE_ANY))
-        {
-            image.Rescale(dcSize.GetWidth(),dcSize.GetHeight());
-            wxBitmap bitmap(image);
-            dc.DrawBitmap(bitmap,0,0);
-        }
-        else
-        {
-            wxMessageBox(_("Unable to load background image"));
-        }
-    }
-}
-
-void xLightsFrame::OnButtonClearBackgroundClick(wxCommandEvent& event)
-{
-    wxClientDC dc(ScrolledWindowPreview);
-    dc.Clear();
-}
-*/
-
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
     wxArrayString SeqFiles;
@@ -49,6 +21,8 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     {
         return;
     }
+    previewLoaded = false;
+    previewPlaying = false;
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
     ResetTimer(NO_SEQ);
@@ -56,6 +30,7 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
+    bbPlayPause->SetBitmap(playIcon);
     SliderPreviewTime->SetValue(0);
     TextCtrlPreviewTime->Clear();
     CompareMyDisplayToSeq();
@@ -100,16 +75,19 @@ void xLightsFrame::CompareMyDisplayToSeq()
 
 void xLightsFrame::UpdatePreview()
 {
-    const wxColour *color;
+    const wxColour* color;
     wxString SelModelName=ListBoxElementList->GetStringSelection();
-    //ScrolledWindowPreview->ClearBackground();
-    wxClientDC dc(ScrolledWindowPreview);
-    dc.Clear();
+    modelPreview->StartDrawing(mPointSize);
+    if(m_creating_bound_rect)
+    {
+        modelPreview->DrawRectangle(*wxYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
+    }
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->name == SelModelName) ? wxYELLOW : wxLIGHT_GREY;
-        PreviewModels[i]->DisplayModelOnWindow(ScrolledWindowPreview,color);
+        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
+        PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
+    modelPreview->EndDrawing();
 }
 
 void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
@@ -140,22 +118,17 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     std::vector<int> xPos;
     std::vector<int> yPos;
     std::vector<int> actChannel;
-//    xPos.resize(numberOfNodes);
-//    yPos.resize(numberOfNodes);
-//    actChannel.resize(numberOfNodes);
 
-
-    wxClientDC dc(ScrolledWindowPreview);
+    modelPreview->GetSize(&w, &h);
 
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        PreviewModels[i]->AddToWholeHouseModel(ScrolledWindowPreview,xPos,yPos,actChannel);
+        PreviewModels[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel);
         index+=PreviewModels[i]->GetNodeCount();
         StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
     }
 
-    dc.GetSize(&w, &h);
     // Add WholeHouseData attribute
     int ii=0;
 
@@ -163,7 +136,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     else{scale = (float)400/(float)h;}
     wScaled = (int)(scale*w);
     hScaled = (int)(scale*h);
-    int xoffset=wScaled/2;
     // Create a new model node
     wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "model");
     e->AddAttribute("name", modelName);
@@ -174,9 +146,8 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
     for(int i=0;i<xPos.size();i++)
     {
-        // Scale to 600 px max
         xPos[i] = (int)(scale*(float)xPos[i]);
-        yPos[i] = (int)((scale*(float)yPos[i])+hScaled);
+        yPos[i] = (int)((scale*(float)yPos[i]));
         WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
         if(i!=xPos.size()-1)
         {
@@ -206,31 +177,158 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 
 void xLightsFrame::OnListBoxElementListSelect(wxCommandEvent& event)
 {
-    int sel=ListBoxElementList->GetSelection();
-    if (sel == wxNOT_FOUND) return;
-    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
-    int newscale=m->GetScale()*100.0;
-    SliderPreviewScale->SetValue(newscale);
-    TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
-    SliderPreviewRotate->SetValue(m->GetRotation());
-    TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
-    bool canrotate=m->CanRotate();
-    SliderPreviewRotate->Enable(canrotate);
-    StaticTextPreviewRotation->Enable(canrotate);
-    UpdatePreview();
+    UnSelectAllModels();
+    SelectModel(ListBoxElementList->GetString(ListBoxElementList->GetSelection()));
+}
+
+void xLightsFrame::SelectModel(wxString name)
+{
+    for(int i=0;i<ListBoxElementList->GetCount();i++)
+    {
+        if (name == ListBoxElementList->GetString(i))
+        {
+            ListBoxElementList->SetSelection(i);
+            ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(i);
+            m->Selected = true;
+            int newscale=m->GetScale()*100.0;
+            SliderPreviewScale->SetValue(newscale);
+            TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",newscale));
+            SliderPreviewRotate->SetValue(m->GetRotation());
+            TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",m->GetRotation()));
+            bool canrotate=m->CanRotate();
+            SliderPreviewRotate->Enable(canrotate);
+            StaticTextPreviewRotation->Enable(canrotate);
+            UpdatePreview();
+            break;
+        }
+    }
+
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
-    m_dragging = true;
-    m_previous_mouse_x = event.GetPosition().x;
-    m_previous_mouse_y = event.GetPosition().y;
-    //StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+    if (event.ShiftDown())
+    {
+        m_creating_bound_rect = true;
+        m_bound_start_x = event.GetPosition().x;
+        m_bound_start_y = modelPreview->getHeight() - event.GetPosition().y;
+    }
+    else if (m_over_handle == OVER_ROTATE_HANDLE)
+    {
+        m_rotating = true;
+    }
+    else if (m_over_handle != OVER_NO_HANDLE)
+    {
+        m_resizing = true;
+    }
+    else
+    {
+        m_rotating = false;
+        m_resizing = false;
+        m_creating_bound_rect = false;
+
+        if(!event.wxKeyboardState::ControlDown())
+        {
+            UnSelectAllModels();
+        }
+
+        if(FindSelectedModel(event.GetX(),event.GetY())!=0)
+        {
+            m_dragging = true;
+            m_previous_mouse_x = event.GetPosition().x;
+            m_previous_mouse_y = event.GetPosition().y;
+            StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+        }
+    }
+}
+
+void xLightsFrame::UnSelectAllModels()
+{
+   for (int i=0; i<PreviewModels.size(); i++)
+    {
+        PreviewModels[i]->Selected = false;
+    }
+    UpdatePreview();
+}
+
+void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
+{
+    if ( FindSelectedModel(event.GetX(),event.GetY()) == 0 )
+    {
+        return;
+    }
+    ListBoxElementList->GetSelection();
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(ListBoxElementList->GetSelection());
+
+    wxXmlNode* e=m->GetModelXml();
+    int DlgResult;
+    bool ok;
+    ModelDialog *dialog = new ModelDialog(this);
+    dialog->SetFromXml(e);
+    dialog->TextCtrl_Name->Enable(false); // do not allow name changes; -why? -DJ
+    do
+    {
+        ok=true;
+        DlgResult=dialog->ShowModal();
+        if (DlgResult == wxID_OK)
+        {
+            // validate inputs
+            if (ok)
+            {
+                dialog->UpdateXml(e);
+            }
+        }
+    }
+    while (DlgResult == wxID_OK && !ok);
+    UpdatePreview();
+    delete dialog;
+}
+
+int xLightsFrame::FindSelectedModel(int x,int y)
+{
+    wxArrayInt found;
+    for (int i=0; i<PreviewModels.size(); i++)
+    {
+        if(PreviewModels[i]->HitTest(modelPreview,x,y))
+        {
+            found.push_back(i);
+        }
+    }
+    if (found.GetCount()==0)
+    {
+        return 0;
+    }
+    else if(found.GetCount()==1)
+    {
+        SelectModel(PreviewModels[found[0]]->name);
+        mHitTestNextSelectModelIndex = 0;
+    }
+    else if (found.GetCount()>1)
+    {
+        for(int i=0;i<found.GetCount();i++)
+        {
+            if(mHitTestNextSelectModelIndex==i)
+            {
+                SelectModel(PreviewModels[found[i]]->name);
+                mHitTestNextSelectModelIndex += 1;
+                mHitTestNextSelectModelIndex %= found.GetCount();
+                break;
+            }
+        }
+    }
+    return found.GetCount();
 }
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
+    m_rotating = false;
     m_dragging = false;
+    m_resizing = false;
+    if(m_creating_bound_rect)
+    {
+        m_creating_bound_rect = false;
+        UpdatePreview();
+    }
 }
 
 void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
@@ -241,21 +339,51 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
     int wi,ht;
-    if (m_dragging && event.Dragging())
+
+    if (m_creating_bound_rect)
     {
-        int sel=ListBoxElementList->GetSelection();
-        if (sel == wxNOT_FOUND) return;
-        ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+        m_bound_end_x = event.GetPosition().x;
+        m_bound_end_y = modelPreview->getHeight() - event.GetPosition().y;
+        UpdatePreview();
+        return;
+    }
+
+    int sel=ListBoxElementList->GetSelection();
+    if (sel == wxNOT_FOUND) return;
+    ModelClass* m=(ModelClass*)ListBoxElementList->GetClientData(sel);
+
+    if(m_rotating)
+    {
+        m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,event.GetPosition().y);
+        TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
+        UpdatePreview();
+    }
+    else if(m_resizing)
+    {
+        m->ResizeWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
+        TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",(int)(m->GetScale()*100)));
+        UpdatePreview();
+    }
+    else if (m_dragging && event.Dragging())
+    {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
-        double delta_y = event.GetPosition().y - m_previous_mouse_y;
-        ScrolledWindowPreview->GetClientSize(&wi,&ht);
+        double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
+        modelPreview->GetSize(&wi,&ht);
         if (wi > 0 && ht > 0)
         {
             m->AddOffset(delta_x/wi, delta_y/ht);
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
+        StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         UpdatePreview();
+    }
+    else
+    {
+        if(m->Selected)
+        {
+            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - event.GetPosition().y);
+        }
     }
 }
 
@@ -264,7 +392,12 @@ void xLightsFrame::OnScrolledWindowPreviewResize(wxSizeEvent& event)
     UpdatePreview();
 }
 
-//refactored
+void xLightsFrame::OnScrolledWindowPreviewPaint(wxPaintEvent& event)
+{
+    UpdatePreview();
+}
+
+
 void xLightsFrame::PreviewScaleUpdated(int newscale)
 {
     int sel=ListBoxElementList->GetSelection();
@@ -318,6 +451,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         return;
     }
     int LastPreviewChannel=0;
+    if(!previewPlaying)
+    {
+        bbPlayPause->SetBitmap(pauseIcon);
+        previewPlaying = true;
+    }
+    else
+    {
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+    }
     switch (SeqPlayerState)
     {
     case PAUSE_SEQ:
@@ -338,7 +481,16 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             return;
         }
-        PlayCurrentXlightsFile();
+        if (!previewLoaded)
+        {
+            PlayCurrentXlightsFile();
+            previewLoaded = true;
+        }
+        else
+        {
+            PlayerDlg->MediaCtrl->Pause();
+
+        }
         heartbeat("playback preview", true); //tell fido to start watching -DJ
         break;
     }
@@ -352,7 +504,12 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
     }
     else
     {
+        bbPlayPause->SetBitmap(playIcon);
         PlayerDlg->MediaCtrl->Pause();
+        PlayerDlg->MediaCtrl->Seek(0);
+        previewPlaying = false;
+        SliderPreviewTime->SetValue(0);
+        ShowPreviewTime(0);
     }
 }
 
@@ -370,6 +527,7 @@ void xLightsFrame::PreviewOutput(int period)
     size_t m, n, chnum, NodeCnt;
     wxByte intensity;
     TimerOutput(period);
+    modelPreview->StartDrawing(mPointSize);
     for (m=0; m<PreviewModels.size(); m++)
     {
         NodeCnt=PreviewModels[m]->GetNodeCount();
@@ -389,14 +547,14 @@ void xLightsFrame::PreviewOutput(int period)
                 }
             }
         }
-        PreviewModels[m]->DisplayModelOnWindow(ScrolledWindowPreview);
+        PreviewModels[m]->DisplayModelOnWindow(modelPreview);
     }
+    modelPreview->EndDrawing();
     int amtdone = period * SliderPreviewTime->GetMax() / (SeqNumPeriods-1);
     SliderPreviewTime->SetValue(amtdone);
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
-{
     int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
@@ -408,6 +566,63 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
         PlayerDlg->MediaCtrl->Seek(msec);
     }
 }
+
+void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    //when drag event starts stop the timer till the drag event ends.
+    Timer1.Stop();
+    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    long msec=newperiod * XTIMER_INTERVAL;
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, msec);
+    }
+    else
+    {
+        PlayerDlg->MediaCtrl->Seek(msec);
+        ShowPreviewTime(msec);
+        if(PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+        {
+            PlayerDlg->MediaCtrl->Play();
+        }
+        PreviewOutput(newperiod);
+        seekPoint = msec;
+    }
+}
+
+void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
+{
+
+    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    long msec=newperiod * XTIMER_INTERVAL;
+    if (mediaFilename.IsEmpty())
+    {
+        ResetTimer(PLAYING_SEQ_ANIM, msec);
+    }
+    else if(SeqPlayerState != PLAYING_SEQ_ANIM)
+    {
+        if( msec > seekPoint)
+        {
+            msec = seekPoint;
+        }
+        PlayerDlg->MediaCtrl->Seek(msec);
+        
+        wxSleep(1);
+
+        PlayerDlg->MediaCtrl->Stop();
+        PlayerDlg->MediaCtrl->Seek(msec);
+        //Update the slider back to where the user last selected since it played past that point
+        int frame = msec / XTIMER_INTERVAL;
+        SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
+        //Update the time box.
+        ShowPreviewTime(msec);
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+        Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
+    }
+}
+
+
 void xLightsFrame::OnTextCtrlModelRotationDegreesText(wxCommandEvent& event)
 {
     int newRotDegrees = wxAtoi(TextCtrlModelRotationDegrees->GetValue());
@@ -421,3 +636,50 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
     SliderPreviewScale->SetValue(newscale);
     PreviewScaleUpdated(newscale); //slider event not called automatically, so force it here
 }
+
+void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
+{
+    wxString name;
+    bool checked;
+    wxXmlNode* e;
+    CurrentPreviewModels dialog(this);
+    for(e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                dialog.CheckListBoxCurrentGroups->Append(name,e);
+                bool isChecked = e->GetAttribute("selected")=="1"?true:false;
+                dialog.CheckListBoxCurrentGroups->Check(dialog.CheckListBoxCurrentGroups->GetCount()-1,isChecked);
+            }
+        }
+    }
+    dialog.ShowModal();
+    SaveEffectsFile();
+}
+
+void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector( "Choose Background Image", CurrentDir, "", "", wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    if (!filename.IsEmpty())
+    {
+        mBackgroundImage = filename;
+        SetXmlSetting("backgroundImage",mBackgroundImage);
+        modelPreview->SetbackgroundImage(mBackgroundImage);
+        SaveEffectsFile();
+        UpdatePreview();
+    }
+}
+
+void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    mBackgroundBrightness = Slider_BackgroundBrightness->GetValue();
+    SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
+    modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
+    SaveEffectsFile();
+    UpdatePreview();
+}
+
+

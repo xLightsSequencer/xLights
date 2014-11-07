@@ -290,10 +290,11 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL5" variable="SpinCtrl1" member="yes">
+								<object class="wxSpinCtrl" name="ID_SPINCTRLMODELBRIGHTNESS" variable="SpinCtrlModelBrightness" member="yes">
 									<value>0</value>
 									<min>-100</min>
 									<size>52,21</size>
+									<handler function="OnSpinCtrlModelBrightnessChange" entry="EVT_SPINCTRL" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -305,7 +306,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT15" variable="StarSizesLabel" member="yes">
+						<object class="wxStaticText" name="ID_STATICTEXT15" variable="ExtraParameterLabel" member="yes">
 							<label>Star Sizes</label>
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -313,7 +314,25 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="StarSizes" member="yes" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+							<cols>3</cols>
+							<object class="sizeritem">
+								<object class="wxSpinCtrl" name="ID_SPINCONTROL_TREE_FIRST_STRING" variable="TreeFirstStringForExport" member="yes">
+									<value></value>
+									<min>1</min>
+									<max>1000</max>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="StarSizes" member="yes" />
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

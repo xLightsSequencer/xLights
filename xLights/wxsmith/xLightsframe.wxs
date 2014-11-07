@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker  (Ver 3.5.2)</title>
+		<title>xLights/Nutcracker (Ver 3.6.1)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -1213,20 +1213,22 @@
 													<rows>1</rows>
 													<growablecols>3</growablecols>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_PLAY_PREVIEW" variable="ButtonPlayPreview" member="yes">
-															<label>Play</label>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON5" variable="bbPlayPause" member="yes">
+															<bitmap code="control_pause_blue_icon" />
+															<disabled code="control_pause_icon" />
 															<handler function="OnButtonPlayPreviewClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_STOP_PREVIEW" variable="ButtonStopPreview" member="yes">
-															<label>Pause</label>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON6" variable="bbStop" member="yes">
+															<bitmap code="control_stop_blue_icon" />
+															<disabled code="control_stop_icon" />
 															<handler function="OnButtonStopPreviewClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1240,11 +1242,79 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
-															<max>200</max>
-															<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
+																	<cols>3</cols>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
+																			<max>200</max>
+																			<handler function="OnSliderPreviewTimeCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+																			<handler function="OnSliderPreviewTimeCmdScrollThumbRelease" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
+																			<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
+																	<cols>5</cols>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT_CURRENT_PREVIEW_SIZE" variable="StaticTextCurrentPreviewSize" member="yes">
+																			<label>Size: 1920x1080</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON_SET_PREVIEW_SIZE" variable="ButtonSetPreviewSize" member="yes">
+																			<label>Set Size</label>
+																			<handler function="OnButtonSetPreviewSizeClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxButton" name="ID_BUTTON_SET_BACKGROUND_IMAGE" variable="ButtonSetBackgroundImage" member="yes">
+																			<label>Image</label>
+																			<handler function="OnButtonSetBackgroundImageClick" entry="EVT_BUTTON" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
+																			<label>Brightness:</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxSlider" name="ID_SLIDER_BACKGROUND_BRIGHTNESS" variable="Slider_BackgroundBrightness" member="yes">
+																			<handler function="OnSlider_BackgroundBrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																</object>
+																<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
 														</object>
-														<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1263,8 +1333,17 @@
 														<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 															<cols>1</cols>
 															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON_SELECT_MODEL_GROUPS" variable="ButtonSelectModelGroups" member="yes">
+																	<label>Select Model Groups</label>
+																	<handler function="OnButtonSelectModelGroupsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT21" variable="StaticText5" member="yes">
-																	<label>Display Elements</label>
+																	<label>Preview Models:</label>
 																</object>
 																<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -1305,7 +1384,7 @@
 																	<growablecols>1</growablecols>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText23" member="yes">
-																			<label>Element Size</label>
+																			<label>Model Size</label>
 																		</object>
 																		<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
@@ -1390,13 +1469,14 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW_PREVIEW" variable="ScrolledWindowPreview" member="yes">
-															<bg>#000000</bg>
+														<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindowPreview" member="yes">
+															<handler function="OnScrolledWindowPreviewPaint" entry="EVT_PAINT" />
 															<handler function="OnScrolledWindowPreviewLeftDown" entry="EVT_LEFT_DOWN" />
 															<handler function="OnScrolledWindowPreviewLeftUp" entry="EVT_LEFT_UP" />
+															<handler function="OnScrolledWindowPreviewRightDown" entry="EVT_RIGHT_DOWN" />
 															<handler function="OnScrolledWindowPreviewMouseMove" entry="EVT_MOTION" />
 															<handler function="OnScrolledWindowPreviewMouseLeave" entry="EVT_LEAVE_WINDOW" />
-															<handler function="OnScrolledWindowPreviewResize" entry="EVT_SIZE" />
+															<object class="wxBoxSizer" variable="BoxSizerModelsPreview" member="no" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -1429,21 +1509,7 @@
 														<object class="wxBoxSizer" variable="BoxSizer6" member="no">
 															<orient>wxVERTICAL</orient>
 															<object class="sizeritem">
-																<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
-																	<cols>1</cols>
-																	<growablecols>0</growablecols>
-																	<growablerows>0</growablerows>
-																	<object class="sizeritem">
-																		<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
-																			<size>276,225</size>
-																			<bg>#000000</bg>
-																			<style>wxSIMPLE_BORDER|wxVSCROLL|wxHSCROLL</style>
-																			<handler function="OnScrolledWindow1Resize" entry="EVT_SIZE" />
-																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-																		<option>1</option>
-																	</object>
-																</object>
+																<object class="wxBoxSizer" variable="BoxSizerSequencePreview" member="no" />
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
@@ -2058,34 +2124,26 @@
 															<object class="sizeritem">
 																<object class="wxBoxSizer" variable="BoxSizer5" member="no">
 																	<object class="sizeritem">
-																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer4" member="no">
-																			<label>Effect 1</label>
-																			<orient>wxVERTICAL</orient>
-																			<object class="sizeritem">
-																				<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
-																					<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
+																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
+																			<object class="notebookpage">
+																				<object class="wxPanel" name="ID_PANEL5" variable="Panel4" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
+																						<pos>0,0</pos>
+																						<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
+																					</object>
 																				</object>
-																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
+																				<label>Effect1</label>
+																			</object>
+																			<object class="notebookpage">
+																				<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes">
+																						<pos>0,0</pos>
+																					</object>
+																				</object>
+																				<label>Effect2</label>
 																			</object>
 																		</object>
-																		<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxStaticBoxSizer" variable="StaticBoxSizer5" member="no">
-																			<label>Effect 2</label>
-																			<orient>wxVERTICAL</orient>
-																			<object class="sizeritem">
-																				<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes" />
-																				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
-																				<option>1</option>
-																			</object>
-																		</object>
-																		<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>

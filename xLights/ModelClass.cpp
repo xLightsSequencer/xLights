@@ -68,8 +68,11 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
             Nodes.back()->AddBufCoord(xCoord,yCoord);
             lastActChn = actChn;
         }
-        CopyBufCoord2ScreenCoord();
     }
+}
+wxXmlNode* ModelClass::GetModelXml()
+{
+    return this->ModelXml;
 }
 
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
@@ -168,12 +171,16 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 
     tempstr=ModelNode->GetAttribute("offsetXpct","0");
     tempstr.ToDouble(&offsetXpct);
+    if(offsetXpct<0 || offsetXpct>1){offsetXpct = .5;}
     tempstr=ModelNode->GetAttribute("offsetYpct","0");
     tempstr.ToDouble(&offsetYpct);
+    if(offsetYpct<0 || offsetYpct>1){offsetYpct = .5;}
     tempstr=ModelNode->GetAttribute("PreviewScale","0.333");
     tempstr.ToDouble(&PreviewScale);
+    if(PreviewScale<0 || PreviewScale>1){PreviewScale = .33;}
     tempstr=ModelNode->GetAttribute("PreviewRotation","0");
     tempstr.ToLong(&degrees);
+
     PreviewRotation=degrees;
     if (ModelVersion == 0)
     {
@@ -231,6 +238,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     {
         WholeHouseData = ModelNode->GetAttribute("WholeHouseData");
         InitWholeHouse(WholeHouseData);
+        CopyBufCoord2ScreenCoord();
     }
     else if (token == "Tree")
     {
@@ -257,7 +265,8 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     else if (DisplayAs == "Single Line")
     {
         InitLine();
-        SetLineCoord();
+        CopyBufCoord2ScreenCoord();
+        //SetLineCoord();
     }
     else if (DisplayAs == "Arches")
     {
@@ -280,10 +289,10 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         CopyBufCoord2ScreenCoord();
     }
 
-    if (DisplayAs != "Single Line")
-    {
+    //if (DisplayAs != "Single Line")
+    //{
         SetModelCoord(PreviewRotation);
-    }
+    //}
     size_t NodeCount=GetNodeCount();
     for(size_t i=0; i<NodeCount; i++)
     {
@@ -348,6 +357,10 @@ double ModelClass::GetScale()
     return PreviewScale;
 }
 
+int ModelClass::GetPreviewRotation()
+{
+    return PreviewRotation;
+}
 // initialize buffer coordinates
 // parm1=NumStrings
 // parm2=PixelsPerString
@@ -538,6 +551,12 @@ double ModelClass::toRadians(long degrees)
     return 2.0*M_PI*double(degrees)/360.0;
 }
 
+long ModelClass::toDegrees(double radians)
+{
+    return (radians/(2*M_PI))*360.0;
+}
+
+
 // initialize screen coordinates for tree
 void ModelClass::SetTreeCoord(long degrees)
 {
@@ -565,7 +584,8 @@ void ModelClass::SetTreeCoord(long degrees)
             angle=StartAngle + double(bufferX) * AngleIncr;
             x0=radius * sin(angle);
             Nodes[n]->Coords[c].screenX=floor(x0*(1.0-double(bufferY)/double(BufferHt)) + 0.5);
-            Nodes[n]->Coords[c].screenY=bufferY * factor;
+//            Nodes[n]->Coords[c].screenY=bufferY * factor;
+            Nodes[n]->Coords[c].screenY=(bufferY * factor)-(RenderHt/2);
         }
     }
 }
@@ -608,13 +628,18 @@ void ModelClass::InitStar()
     if (parm3 < 2) parm3=2; // need at least 2 arms
     SetNodeCount(parm1,parm2);
 
-
+    int maxLights = 0;
     int numlights=parm1*parm2;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
-    SetBufferSize(starSizes[0]+1,starSizes[0]+1);
+    for (int x = 0; x < starSizes.size(); x++) {
+        if (starSizes[x] > maxLights) {
+            maxLights = starSizes[x];
+        }
+    }
+    SetBufferSize(maxLights+1,maxLights+1);
 
 
     int LastStringNum=-1;
@@ -626,7 +651,8 @@ void ModelClass::InitStar()
 
         int offset=numlights/2;
 
-        int coffset = 0;
+        int coffset = (maxLights - numlights) / 2;
+        /*
         if (cur > 0) {
             for (int f = cur; f > 0; f--) {
                 int i = starSizes[f];
@@ -634,6 +660,7 @@ void ModelClass::InitStar()
                 coffset += (i2 - i) / 2;
             }
         }
+         */
 
         int numsegments=parm3*2;
         double segstart_x,segstart_y,segend_x,segend_y,segstart_pct,segend_pct,r,segpct,dseg;
@@ -773,7 +800,7 @@ void ModelClass::SetArchCoord()
             x=xoffset + (int)floor(midpt*sin(angle)+midpt);
             y=(int)floor(midpt*cos(angle)+0.5);
             Nodes[n]->Coords[c].screenX=x;
-            Nodes[n]->Coords[c].screenY=y;
+            Nodes[n]->Coords[c].screenY=y-(RenderHt/2);
         }
     }
 }
@@ -1310,13 +1337,14 @@ void ModelClass::CopyBufCoord2ScreenCoord()
 {
     size_t NodeCount=GetNodeCount();
     int xoffset=BufferWi/2;
+    int yoffset=BufferHt/2;
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
             Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY;
+            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY-yoffset;
         }
     }
     SetRenderSize(BufferHt,BufferWi);
@@ -1337,156 +1365,19 @@ void ModelClass::UpdateXmlWithScale()
     ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
 }
 
-
-#ifdef __WXOSX__
-class ModelGraphics
-{
-public:
-    ModelGraphics(wxWindow *window) : lastColor(*wxBLACK)
-    {
-        gc = wxGraphicsContext::Create(window);
-        gc->SetAntialiasMode(wxANTIALIAS_NONE);
-        gc->Scale(1, -1);
-        path = gc->CreatePath();
-        pen.SetColour(lastColor);
-        gc->SetPen(pen);
-        brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        brush.SetColour(lastColor);
-        gc->SetBrush(brush);
-    }
-    ~ModelGraphics()
-    {
-        gc->DrawPath(path);
-        gc->Flush();
-        delete gc;
-    }
-    void Translate(wxDouble x, wxDouble y)
-    {
-        gc->Translate(x, y);
-    }
-    void GetSize(wxDouble *x, wxDouble *y)
-    {
-        gc->GetSize(x, y);
-    }
-
-    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size)
-    {
-        if (lastColor != color)
-        {
-            flush(color);
-        }
-        path.AddRectangle(x, y, size, size);
-    }
-    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter)
-    {
-        if (lastColor != color)
-        {
-            flush(color);
-        }
-        path.AddEllipse(x, y, diameter, diameter);
-    }
-
-private:
-    void flush(const wxColour &color)
-    {
-        gc->DrawPath(path);
-        path = gc->CreatePath();
-        lastColor = color;
-        pen.SetColour(lastColor);
-        gc->SetPen(pen);
-        brush.SetColour(lastColor);
-        gc->SetBrush(brush);
-    }
-    wxBrush brush;
-    wxPen pen;
-    wxGraphicsContext *gc;
-    wxColor lastColor;
-    wxGraphicsPath path;
-};
-
-#else
-class ModelGraphics
-{
-public:
-    ModelGraphics(wxWindow *window) : dc(window), lastColor(*wxRED)
-    {
-        dc.SetAxisOrientation(true,true);
-        //dc.SetLogicalScale(1.0, -1.0);
-        pen.SetColour(lastColor);
-        dc.SetPen(pen);
-        brush.SetStyle(wxBRUSHSTYLE_SOLID);
-        brush.SetColour(lastColor);
-        dc.SetBrush(brush);
-    }
-    ~ModelGraphics()
-    {
-    }
-    void Translate(wxDouble x, wxDouble y)
-    {
-        dc.SetDeviceOrigin(x, -y);
-    }
-    void GetSize(wxDouble *x, wxDouble *y)
-    {
-        int x2, y2;
-        dc.GetSize(&x2, &y2);
-        *x = int(x2);
-        *y = int(y2);
-    }
-
-    void AddSquare(const wxColour &color, wxDouble x, wxDouble y, double size)
-    {
-        if (lastColor != color)
-        {
-            flush(color);
-        }
-        if (size < 2)
-        {
-            size = 2;
-        }
-        dc.DrawRectangle(x,y,size,size);
-    }
-    void AddCircle(const wxColour &color, wxDouble x, wxDouble y, double diameter)
-    {
-        if (lastColor != color)
-        {
-            flush(color);
-        }
-        if (diameter < 2)
-        {
-            diameter = 2;
-        }
-        dc.DrawEllipse(x - (diameter/2), y - (diameter / 2), diameter, diameter);
-    }
-
-private:
-    void flush(const wxColour &color)
-    {
-        lastColor = color;
-        pen.SetColour(lastColor);
-        dc.SetPen(pen);
-        brush.SetColour(lastColor);
-        dc.SetBrush(brush);
-    }
-    wxBrush brush;
-    wxPen pen;
-    wxColor lastColor;
-    wxClientDC dc;
-};
-
-#endif
-
-void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
+void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
+    wxPen pen;
     int w, h;
-    wxClientDC dc(window);
-    dc.GetSize(&w, &h);
+    preview->GetSize(&w,&h);
+
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
 
-    int w1 = int(offsetXpct*w)+w/2;
-    int h1 = -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1));
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+
     double scrx,scry;
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -1495,39 +1386,128 @@ void ModelClass::AddToWholeHouseModel(wxWindow* window,std::vector<int>& xPos,st
         {
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            scrx = sx*scale;
-            scry = sy*scale;
-            //xPos[nodeIndex] = scrx+w1;
-            //yPos[nodeIndex] = scry+h1;
-            //actChannel[nodeIndex++] = Nodes[n]->ActChan;
-            xPos.push_back(scrx+w1);
-            yPos.push_back(scry+h1);
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            xPos.push_back(sx);
+            yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
         }
     }
 }
 
+bool ModelClass::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    int w, h;
+    preview->GetSize(&w,&h);
+
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
+
+
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            SetModelScreenCoordinates(sx,sy);
+        }
+    }
+
+    int xs = x1<x2?x1:x2;
+    int xf = x1>x2?x1:x2;
+    int ys = y1<y2?y1:y2;
+    int yf = y1>y2?y1:y2;
+
+    if (xs>=mMinScreenX && xf<=mMaxScreenX && ys>=mMinScreenY && yf <= mMaxScreenY)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
+{
+    size_t NodeCount=Nodes.size();
+    wxCoord sx,sy;
+    int w, h;
+    preview->GetSize(&w,&h);
+
+    int y1 = h-y;
+
+    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+
+    mMinScreenX = w;
+    mMinScreenY = h;
+    mMaxScreenX = 0;
+    mMaxScreenY = 0;
+    for(size_t n=0; n<NodeCount; n++)
+    {
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++)
+        {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            SetModelScreenCoordinates(sx,sy);
+        }
+    }
+    // Set minimum bounding rectangle
+    if(mMaxScreenY-mMinScreenY<4)
+    {
+        mMaxScreenY+=2;
+        mMinScreenY-=2;
+    }
+    if(mMaxScreenX-mMinScreenX<4)
+    {
+        mMaxScreenX+=2;
+        mMinScreenX-=2;
+    }
+
+    if (x>=mMinScreenX && x<=mMaxScreenX && y1>=mMinScreenY && y1 <= mMaxScreenY)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 // display model using a single color
-void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* color)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
-    wxDouble w, h;
-    ModelGraphics gc(window);
+    int w, h;
+    preview->GetSize(&w,&h);
 
-    /*
-    // this isn't an ideal scaling algorithm - room for improvement here
-    double windowDiagonal=sqrt(w*w+h*h);
-    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
-    double scale=windowDiagonal / modelDiagonal * PreviewScale;
-    */
-
-    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc.Translate(int(offsetXpct*w)+w/2,
-                 -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -1537,34 +1517,190 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window, const wxColour* color)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            gc.AddSquare(*color,sx*scale,sy*scale,0.0);
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            preview->DrawPoint(*color,sx,sy);
         }
     }
+    if(Selected)
+    {
+        //Draw bounding rectangle
+        double radians=toRadians(PreviewRotation);
+        // Upper Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[0].x = sx;
+        mHandlePosition[0].y = sy;
+        // Upper Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[1].x = sx;
+        mHandlePosition[1].y = sy;
+        // Lower Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[2].x = sx;
+        mHandlePosition[2].y = sy;
+        // Lower Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[3].x = sx;
+        mHandlePosition[3].y = sy;
+
+        // Draw rotation handle square
+        sx = -RECT_HANDLE_WIDTH/2;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        // Save rotate handle
+        mHandlePosition[4].x = sx;
+        mHandlePosition[4].y = sy;
+        // Draw rotation handle from center to 25 over rendered height
+        sx = 0;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        preview->DrawLine(*wxWHITE,w1,h1,sx,sy);
+    }
+}
+
+wxCursor ModelClass::GetResizeCursor(int cornerIndex)
+{
+    int angleState;
+    //LeftTop and RightBottom
+    switch(cornerIndex)
+    {
+        // Left top when PreviewRotation = 0
+        case 0:
+            angleState = (int)(PreviewRotation/22.5);
+            break;
+        // Right Top
+        case 1:
+            angleState = ((int)(PreviewRotation/22.5)+4)%16;
+            break;
+        // Right Bottom
+        case 2:
+            angleState = ((int)(PreviewRotation/22.5)+8)%16;
+            break;
+        // Right Bottom
+        default:
+            angleState = ((int)(PreviewRotation/22.5)+12)%16;
+            break;
+    }
+    switch(angleState)
+    {
+        case 0:
+            return wxCURSOR_SIZENWSE;
+        case 1:
+            return wxCURSOR_SIZEWE;
+        case 2:
+            return wxCURSOR_SIZEWE;
+        case 3:
+            return wxCURSOR_SIZENESW;
+        case 4:
+            return wxCURSOR_SIZENESW;
+        case 5:
+            return wxCURSOR_SIZENS;
+        case 6:
+            return wxCURSOR_SIZENS;
+        case 7:
+            return wxCURSOR_SIZENWSE;
+        case 8:
+            return wxCURSOR_SIZENWSE;
+        case 9:
+            return wxCURSOR_SIZEWE;
+        case 10:
+            return wxCURSOR_SIZEWE;
+        case 11:
+            return wxCURSOR_SIZENESW;
+        case 12:
+            return wxCURSOR_SIZENESW;
+        case 13:
+            return wxCURSOR_SIZENS;
+        case 14:
+            return wxCURSOR_SIZENS;
+        default:
+            return wxCURSOR_SIZENWSE;
+    }
+
+}
+
+int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y)
+{
+    int status;
+    if (x>mHandlePosition[0].x && x<mHandlePosition[0].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[0].y && y<mHandlePosition[0].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(0));
+        status = OVER_L_TOP_HANDLE;
+    }
+    else if (x>mHandlePosition[1].x && x<mHandlePosition[1].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[1].y && y<mHandlePosition[1].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(1));
+        status = OVER_R_TOP_HANDLE;
+    }
+    else if (x>mHandlePosition[2].x && x<mHandlePosition[2].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[2].y && y<mHandlePosition[2].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(2));
+        status = OVER_R_BOTTOM_HANDLE;
+    }
+    else if (x>mHandlePosition[3].x && x<mHandlePosition[3].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[3].y && y<mHandlePosition[3].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(GetResizeCursor(3));
+        status = OVER_R_BOTTOM_HANDLE;
+    }
+    else if (x>mHandlePosition[4].x && x<mHandlePosition[4].x+RECT_HANDLE_WIDTH &&
+        y>mHandlePosition[4].y && y<mHandlePosition[4].y+RECT_HANDLE_WIDTH)
+    {
+        preview->SetCursor(wxCURSOR_HAND);
+        status = OVER_ROTATE_HANDLE;
+    }
+
+    else
+    {
+        preview->SetCursor(wxCURSOR_DEFAULT);
+        status = OVER_NO_HANDLE;
+    }
+    return status;
 }
 
 // display model using colors stored in each node
 // used when preview is running
-void ModelClass::DisplayModelOnWindow(wxWindow* window)
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
     wxColour color;
-    wxDouble w, h;
-    ModelGraphics gc(window);
+    int w, h;
+    preview->GetSize(&w, &h);
 
-    /*
-    // this isn't an ideal scaling algorithm - room for improvement here
-    double windowDiagonal=sqrt(w*w+h*h);
-    double modelDiagonal=sqrt(RenderWi*RenderWi+RenderHt*RenderHt);
-    double scale=windowDiagonal / modelDiagonal * PreviewScale;
-    */
-
-    gc.GetSize(&w, &h);
     double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-    gc.Translate(int(offsetXpct*w)+w/2,
-                 -(int(offsetYpct*h)+h-
-                   std::max((int(h)-int(double(RenderHt-1)*scale))/2,1)));
+
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
 
     // avoid performing StrobeRate test in inner loop for performance reasons
     if (StrobeRate==0)
@@ -1577,9 +1713,11 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
             for(size_t c=0; c < CoordCount; c++)
             {
                 // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX;
+                sx=Nodes[n]->Coords[c].screenX;;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc.AddSquare(color,sx*scale,sy*scale,0.0);
+                sx = (sx*scale)+w1;
+                sy = (sy*scale)+h1;
+                preview->DrawPoint(color,sx,sy);
             }
         }
     }
@@ -1602,33 +1740,28 @@ void ModelClass::DisplayModelOnWindow(wxWindow* window)
 
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                gc.AddSquare(c2,sx*scale,sy*scale,0.0);
+                sx = (sx*scale)+w1;
+                sy = (sy*scale)+h1;
+                preview->DrawPoint(color,sx,sy);
             }
         }
     }
 }
 
 // uses DrawCircle instead of DrawPoint
-void ModelClass::DisplayEffectOnWindow(wxWindow* window)
+void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSize)
 {
     wxColour color;
-    wxDouble w, h;
+    int w, h;
 
-    ModelGraphics gc(window);
-    gc.GetSize(&w, &h);
+
+    preview->GetSize(&w, &h);
 
     double scaleX = double(w) * 0.95 / RenderWi;
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
-    gc.Translate(w/2,-int(double(RenderHt)*scale + double(RenderHt)*0.025*scale));
-
-    double radius = scale/2.0;
-    if (radius < 0.5)
-    {
-        radius = 0.5;
-    }
-
+    preview->StartDrawing(pointSize);
     // layer calculation and map to output
     size_t NodeCount=Nodes.size();
     double sx,sy;
@@ -1641,27 +1774,20 @@ void ModelClass::DisplayEffectOnWindow(wxWindow* window)
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;
             sy=Nodes[n]->Coords[c].screenY;
-            gc.AddCircle(color, sx*scale,sy*scale,radius);
+            preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
         }
     }
+    preview->EndDrawing();
 }
+
 void ModelClass::SetModelCoord( int degrees)
 {
     PreviewRotation=degrees;
-    //For now treat Single line the same way it was in the past
-    if (DisplayAs == "Single Line")
-    {
-        SetLineCoord();
-        return;
-    }
 
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    double centerx,centery;
+    wxCoord sx1,sy1;
     double radians=toRadians(PreviewRotation);
-
-    centerx = BufferWi/2 +1;
-    centery = BufferHt/2 +1;
 
     for(size_t nn=0; nn<NodeCount; nn++)
     {
@@ -1674,10 +1800,89 @@ void ModelClass::SetModelCoord( int degrees)
             //Calculate new Screen x and y based on current rotation value
             sx=Nodes[nn]->OrigCoords[cc].screenX;
             sy=Nodes[nn]->OrigCoords[cc].screenY;
-            Nodes[nn]->Coords[cc].screenX = cos(radians) * (sx-centerx)
-                   - sin(radians)*(sy-centery)+centerx;
-            Nodes[nn]->Coords[cc].screenY = sin(radians) * (sx-centerx)
-                   + cos(radians)*(sy-centery)+centery;
+
+            TranslatePoint(radians,sx,sy,&sx1,&sy1);
+            Nodes[nn]->Coords[cc].screenX = sx1;
+            Nodes[nn]->Coords[cc].screenY = sy1;
         }
+    }
+}
+
+void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1)
+{
+    *x1 = cos(radians)*(x)-(sin(radians)*y);
+    *y1 = sin(radians)*(x)+(cos(radians)*y);
+}
+
+void ModelClass::SetModelScreenCoordinates(int x, int y)
+{
+    if (x<mMinScreenX)
+    {
+        mMinScreenX = x;
+    }
+    if (x>mMaxScreenX)
+    {
+        mMaxScreenX = x;
+    }
+    if (y<mMinScreenY)
+    {
+        mMinScreenY = y;
+    }
+    if (y>mMaxScreenY)
+    {
+        mMaxScreenY = y;
+    }
+}
+
+void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY)
+{
+    int w, h;
+    float newScale;
+    // Get Center Point
+    preview->GetSize(&w, &h);
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+    // Get mouse point in model space/ not screen space
+    int sx,sy;
+    sx = mouseX-w1;
+    sy = (h-mouseY)-h1;
+    double radians=-toRadians(PreviewRotation); // negative angle to reverse translation
+    TranslatePoint(radians,sx,sy,&sx,&sy);
+    sx = abs(sx) - RECT_HANDLE_WIDTH;
+    sy = abs(sy) - RECT_HANDLE_WIDTH;
+    if(RenderWi >= RenderHt){newScale = (float)(sx*2)/(float)w;}
+    else {newScale = (float)(sy*2)/(float)h;}
+    SetScale(newScale);
+}
+
+void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int mouseX,int mouseY)
+{
+    int w, h;
+    float newScale;
+    preview->GetSize(&w, &h);
+    int w1 = int(offsetXpct*w);
+    int h1 = int(offsetYpct*h);
+    // Get mouse point in screen space where center of model is origin.
+    int sx,sy;
+    sx = mouseX-w1;
+    sy = (h-mouseY)-h1;
+    //Calculate angle of mouse from center.
+    float tan = (float)sx/(float)sy;
+    int angle = -toDegrees((double)atan(tan));
+    if(sy>=0)
+    {
+        PreviewRotation = angle;
+    }
+    else if (sx<=0)
+    {
+        PreviewRotation = 90+(90+angle);
+    }
+    else
+    {
+        PreviewRotation = -90-(90-angle);
+    }
+    if(ShiftKeyPressed)
+    {
+       PreviewRotation = (int)(PreviewRotation/5) * 5;
     }
 }

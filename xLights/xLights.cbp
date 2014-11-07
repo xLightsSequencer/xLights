@@ -32,6 +32,7 @@
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXDEBUG__" />
 					<Add directory="$(#wxvc)/include" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -98,6 +99,7 @@
 					<Add option="/DNCCDLLIMPL" />
 					<Add option="/DNDEBUG" />
 					<Add directory="$(#wxvc)/include" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -154,6 +156,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -181,6 +184,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -206,9 +210,11 @@
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-D__WXDEBUG__" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
-					<Add option="`wx-config --libs std,media`" />
+					<Add option="-lGL -lGLU " />
+					<Add option="`wx-config --libs std,media,gl`" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -225,10 +231,12 @@
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DNDEBUG" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config --version=3.0 --libs std,media`" />
+					<Add option="-lGL -lGLU " />
+					<Add option="`wx-config --version=3.0 --libs std,media,gl`" />
 				</Linker>
 			</Target>
 		</Build>
@@ -241,6 +249,10 @@
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="ChannelMapDialog.cpp" />
 		<Unit filename="ChannelMapDialog.h" />
+		<Unit filename="CurrentPreviewModels.cpp" />
+		<Unit filename="CurrentPreviewModels.h" />
+		<Unit filename="XlightsDrawable.cpp" />
+		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
@@ -252,12 +264,18 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="Image.cpp" />
+		<Unit filename="Image.h" />
+		<Unit filename="Image_Loader.cpp" />
+		<Unit filename="Image_Loader.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
 		<Unit filename="ModelDialog.h" />
 		<Unit filename="ModelListDialog.cpp" />
 		<Unit filename="ModelListDialog.h" />
+		<Unit filename="ModelPreview.cpp" />
+		<Unit filename="ModelPreview.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
@@ -268,6 +286,8 @@
 		<Unit filename="PlaybackOptionsDialog.h" />
 		<Unit filename="PlayerFrame.cpp" />
 		<Unit filename="PlayerFrame.h" />
+		<Unit filename="PreviewModels.cpp" />
+		<Unit filename="PreviewModels.h" />
 		<Unit filename="RenderBars.cpp" />
 		<Unit filename="RenderButterfly.cpp" />
 		<Unit filename="RenderCircles.cpp" />
@@ -283,6 +303,7 @@
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
+		<Unit filename="RenderPinwheel.cpp" />
 		<Unit filename="RenderRipple.cpp" />
 		<Unit filename="RenderShimmer.cpp" />
 		<Unit filename="RenderSingleStrand.cpp" />
@@ -296,6 +317,7 @@
 		<Unit filename="RenderWave.cpp" />
 		<Unit filename="RgbEffects.cpp" />
 		<Unit filename="RgbEffects.h" />
+		<Unit filename="SOIL.h" />
 		<Unit filename="SeqElementMismatchDialog.cpp" />
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
@@ -304,6 +326,8 @@
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />
 		<Unit filename="SeqParmsDialog.h" />
+		<Unit filename="SequencePreview.cpp" />
+		<Unit filename="SequencePreview.h" />
 		<Unit filename="SerialPortWithRate.cpp" />
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />
@@ -332,6 +356,8 @@
 		<Unit filename="WholeHouseModelNameDialog.cpp" />
 		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="djdebug.cpp" />
+		<Unit filename="dlgPreviewSize.cpp" />
+		<Unit filename="dlgPreviewSize.h" />
 		<Unit filename="heartbeat.cpp" />
 		<Unit filename="heartbeat.h" />
 		<Unit filename="resource.rc">
@@ -357,18 +383,21 @@
 		</Unit>
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
+		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
+		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
+		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
 		<Unit filename="xLightsApp.h" />
@@ -406,6 +435,9 @@
 					<wxPanel wxs="wxsmith/EffectsPanel.wxs" src="EffectsPanel.cpp" hdr="EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectTreeDialog.wxs" src="EffectTreeDialog.cpp" hdr="EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ViewsDialog.wxs" src="ViewsDialog.cpp" hdr="ViewsDialog.h" fwddecl="0" i18n="1" name="ViewsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PreviewModels.wxs" src="PreviewModels.cpp" hdr="PreviewModels.h" fwddecl="0" i18n="1" name="PreviewModels" language="CPP" />
+					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
+					<wxDialog wxs="wxsmith/dlgPreviewSize.wxs" src="dlgPreviewSize.cpp" hdr="dlgPreviewSize.h" fwddecl="0" i18n="1" name="dlgPreviewSize" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

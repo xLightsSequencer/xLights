@@ -1201,7 +1201,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer54" member="no">
 										<cols>2</cols>
 										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON3" variable="Button1" member="yes">
+											<object class="wxButton" name="ID_BUTTON_GLED_FILE" variable="ButtonGledFile" member="yes">
 												<label>Glediator *.gled File</label>
 												<handler function="OnButton_Glediator_FilenameClick" entry="EVT_BUTTON" />
 											</object>
@@ -1941,37 +1941,286 @@
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
-								<cols>3</cols>
-								<rows>5</rows>
+								<cols>2</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
-										<label>Number Branches</label>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer63" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
+												<label>Number Arms</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Arms" variable="Slider_Pinwheel_Arms" member="yes">
+												<value>3</value>
+												<min>1</min>
+												<max>20</max>
+												<size>100,40</size>
+												<style>wxSL_LABELS</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_PinwheelNumberArms" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>22,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_PinwheelNumberArmsClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER1" variable="Slider1" member="yes">
-										<value>3</value>
-										<min>1</min>
-										<max>10</max>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer64" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT98" variable="StaticText84" member="yes">
+												<label>Size Arms</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Pinwheel_ArmSize" variable="Slider_Pinwheel_ArmSize" member="yes">
+												<value>100</value>
+												<max>400</max>
+												<style>wxSL_LABELS</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON16" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_Pinwheel_ArmSizeClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton1" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TreeBranchesClick" entry="EVT_BUTTON" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer66" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT76" variable="StaticText74" member="yes">
+												<label>Twist</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Twist" variable="Slider_Pinwheel_Twist" member="yes">
+												<min>-360</min>
+												<max>360</max>
+												<size>100,40</size>
+												<style>wxSL_LABELS</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON12" variable="BitmapButton_PinwheelTwist" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_PinwheelTwistClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer67" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT77" variable="StaticText75" member="yes">
+												<label>Arm Thickness</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" variable="Slider_Pinwheel_Thickness" member="yes">
+												<size>100,40</size>
+												<style>wxSL_LABELS</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON18" variable="BitmapButton_PinwheelThickness" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_PinwheelThicknessClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer59" member="no">
+										<cols>4</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT78" variable="StaticText76" member="yes">
+												<label>Rotation</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Pinwheel_Rotation" variable="CheckBox_Pinwheel_Rotation" member="yes">
+												<label>CCW</label>
+												<checked>1</checked>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>18,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_PinwheelRotationClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer61" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT82" variable="StaticText77" member="yes">
+												<label>3D</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE_Pinwheel_3D" variable="Choice_Pinwheel_3D" member="yes">
+												<content>
+													<item>None</item>
+													<item>3D</item>
+													<item>3D Inverted</item>
+												</content>
+												<selection>0</selection>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Pinwheel3D" variable="BitmapButton_Pinwheel3D" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_Pinwheel3DClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer62" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT85" variable="StaticText82" member="yes">
+												<label>X-axis Center</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_PinwheelXC" variable="Slider_PinwheelXC" member="yes">
+												<min>-100</min>
+												<size>128,40</size>
+												<style>wxSL_LABELS</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT83" variable="StaticText81" member="yes">
+												<label>Y-axis center</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_PinwheelYC" variable="Slider_PinwheelYC" member="yes">
+												<min>-100</min>
+												<size>40,80</size>
+												<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -2029,6 +2278,7 @@
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnBitmapButton_Ripple_MovementClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2051,12 +2301,13 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton4" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton_RippleThickness" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+										<handler function="OnBitmapButton_RippleThicknessClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
@@ -2081,44 +2332,38 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton5" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton_RippleDirection" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_SpiralsDirectionClick" entry="EVT_BUTTON" />
+										<handler function="OnBitmapButton_RippleDirectionClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Ripple_Blend" variable="CheckBox_Ripple_Blend" member="yes">
-										<label>Blend</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer59" member="no">
-										<cols>3</cols>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer60" member="no">
+										<cols>4</cols>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON16" variable="BitmapButton6" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>22,21</size>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_SpiralsBlendClick" entry="EVT_BUTTON" />
+											<object class="wxCheckBox" name="ID_CHECKBOX_Ripple_Blend" variable="CheckBox_Ripple_Blend" member="yes">
+												<label>Blend</label>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON21" variable="BitmapButton_RippleBlend" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_RippleBlendClick" entry="EVT_BUTTON" />
+											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
+											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
@@ -2129,22 +2374,22 @@
 											<border>2</border>
 											<option>1</option>
 										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON17" variable="BitmapButton_Ripple3D" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_Ripple3DClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON17" variable="BitmapButton7" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>21,21</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_Spirals3DClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
 									<option>1</option>
 								</object>
 							</object>

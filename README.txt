@@ -6,6 +6,30 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.2
+        -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
+                    This allows the exported models to work around issues with the 12:00 first strand for Nutcracker but the first 
+                    strand is expected to be the 9:00 position in HLS.
+3.6.1	Nov 6,2014
+	-bug (dkulp) Pinwheel effect was not producing data in Preview screen or on lights, it is fixed now
+	-enh (sean) Move Effect 1 and Effect 2 into tabs  . This gives more space for the preview screen
+	-enh (dpitts) Selected objects in the preview are yellow , not magenta
+3.6.0	Nov 6,2014
+	-enh (dpitts) NUTCRACKER and PREVIEW windows now use OpenGL to draw objects. The result of this is xLights can now draw very
+		large objects with no delay. 
+	-enh (dpitts) New ability to load an image into the background of the PREVIEW tab. There is a brightness slider to dim the image you
+		just loaded to give it a dusk time feel.
+	-enh (dpitts) New ability to set the resolution of the PREVIEW screen. Set the size and it will be remembered. This is needed to 
+				help when making Whole House Models. This way you can always come back to the layout you had been working on.
+	-enh (dpitts) You can now click and drag objects in the PREVIEW tab. If there are multiple objects under your mouse click multiple
+		times and it will cycle through all of them
+	-enh (dpitts) Now objects are sized and rotated about their graphical center, This means objects do not move around
+		the screen if you resize or rotate.
+	-enh (dpitts) New rotate handles. Grab the handle and move mouse to rotate. Highlighted model is now magenta insteads of yellow
+	-enh (sean) Added Pinwheel effect
+	-bug (dpitts) Model Brightness Now works 
+	-enh (dkulp) Allow star layers to be ordered low to high (to inside layer first)
+	-bug (captmurdoch,materdaddy,dkulp) Modify make files and libraries so 3.6.0 can be compiled on MAC and on Linux
 3.5.2	Oct 30,2014
 	-bug (frankr) Fix for preview moving some elements into the wrong place. Before the ability to rotate any element
 		rotations were in 3 degree increments, now they are 1 degree. This change caused existing previews to draw elements in

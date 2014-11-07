@@ -83,6 +83,11 @@
 #include "ExportModelSelect.h"
 #include "ViewsDialog.h"
 #include "WholeHouseModelNameDialog.h"
+#include "CurrentPreviewModels.h"
+#include "PreviewModels.h"
+#include "ModelPreview.h"
+#include "SequencePreview.h"
+#include "dlgPreviewSize.h"
 
 class EffectTreeDialog;
 
@@ -99,6 +104,15 @@ class EffectTreeDialog;
 #define PAPAGAYOTAB 6
 
 #define FixedPages 7
+
+#define OVER_NO_HANDLE              0
+#define OVER_L_TOP_HANDLE           1
+#define OVER_R_TOP_HANDLE           2
+#define OVER_L_BOTTOM_HANDLE        3
+#define OVER_R_BOTTOM_HANDLE        4
+#define OVER_ROTATE_HANDLE          5
+
+
 
 static wxCriticalSection gs_xoutCriticalSection;
 
@@ -408,6 +422,15 @@ private:
     void OnButtonBuildCustomModelClick(wxCommandEvent& event);
     void OnButtonBuildWholeHouseModelClick(wxCommandEvent& event);
     void OnTextCtrlModelRotationDegreesText(wxCommandEvent& event);
+    void OnButtonSelectModelGroupsClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewPaint(wxPaintEvent& event);
+    void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
+    void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
+    void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
+	void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
+    void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
+    void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
+    void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -515,10 +538,16 @@ private:
     static const long ID_PANEL_CONVERT;
     static const long ID_BUTTON_PREVIEW_OPEN;
     static const long ID_STATICTEXT23;
-    static const long ID_BUTTON_PLAY_PREVIEW;
-    static const long ID_BUTTON_STOP_PREVIEW;
+    static const long ID_BITMAPBUTTON5;
+    static const long ID_BITMAPBUTTON6;
     static const long ID_TEXTCTRL_PREVIEW_TIME;
     static const long ID_SLIDER_PREVIEW_TIME;
+    static const long ID_STATICTEXT_CURRENT_PREVIEW_SIZE;
+    static const long ID_BUTTON_SET_PREVIEW_SIZE;
+    static const long ID_BUTTON_SET_BACKGROUND_IMAGE;
+    static const long ID_STATICTEXT32;
+    static const long ID_SLIDER_BACKGROUND_BRIGHTNESS;
+    static const long ID_BUTTON_SELECT_MODEL_GROUPS;
     static const long ID_STATICTEXT21;
     static const long ID_LISTBOX_ELEMENT_LIST;
     static const long ID_BUTTON_MODELS_PREVIEW;
@@ -530,9 +559,8 @@ private:
     static const long ID_TEXTCTRL2;
     static const long ID_SLIDER_PREVIEW_ROTATE;
     static const long ID_BUTTON_BUILD_WHOLEHOUSE_MODEL;
-    static const long ID_SCROLLEDWINDOW_PREVIEW;
-    static const long ID_PANEL_PREVIEW;
     static const long ID_SCROLLEDWINDOW1;
+    static const long ID_PANEL_PREVIEW;
     static const long ID_BUTTON13;
     static const long ID_BUTTON3;
     static const long ID_BUTTON58;
@@ -581,7 +609,10 @@ private:
     static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL5;
     static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL6;
+    static const long ID_NOTEBOOK2;
     static const long ID_PANEL32;
     static const long ID_SPLITTERWINDOW2;
     static const long ID_PANEL30;
@@ -686,6 +717,7 @@ private:
     wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
     wxButton* btEditViews;
+    wxPanel* Panel5;
     wxStaticText* StaticText36;
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
@@ -702,6 +734,7 @@ private:
     wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
+    wxNotebook* Notebook2;
     wxPanel* PanelPapagayo;
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
@@ -713,7 +746,6 @@ private:
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
-    wxButton* ButtonStopPreview;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
     wxBitmapButton* BitmapButton_Brightness;
@@ -741,9 +773,11 @@ private:
     wxButton* Button_CoroGroupClear;
     wxStaticText* StaticTextSequenceFileName;
     wxBitmapButton* BitmapButton_SparkleFrequency;
+    wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
     wxListBox* ListBoxElementList;
+    wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* txtCtlBrightness;
@@ -772,13 +806,13 @@ private:
     wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
-    wxScrolledWindow* ScrolledWindow1;
     wxButton* Button_UpdateGrid;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
     wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
+    wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
@@ -791,6 +825,7 @@ private:
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
+    wxButton* ButtonSetBackgroundImage;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
     wxChoice* Choice_Views;
@@ -802,7 +837,6 @@ private:
     wxStatusBar* StatusBar1;
     wxTextCtrl* TextCtrlModelRotationDegrees;
     wxCheckBox* CheckBox_PgoAutoRest;
-    wxButton* ButtonPlayPreview;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
@@ -814,8 +848,8 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
-    wxPanel* PanelTestStandard;
     wxPanel* SeqPanelRight;
+    wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
     wxButton* ButtonSeqExport;
@@ -831,8 +865,10 @@ private:
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
+    wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxStaticText* StaticText4;
@@ -845,6 +881,8 @@ private:
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
     wxCheckBox* CheckBox_LayerMorph;
+    wxBitmapButton* bbStop;
+    wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
@@ -856,6 +894,7 @@ private:
     wxMenuItem* MenuItemRefresh;
     wxStaticText* StaticText28;
     wxRadioButton* RadioButtonRgbAlt;
+    wxStaticText* StaticText30;
     wxStaticText* StaticText29;
     wxSlider* SliderFgColorA;
     wxCheckBox* CheckBoxOffAtEnd;
@@ -903,7 +942,10 @@ private:
     wxSplitterWindow* SplitterWindow2;
     //*)
 
-
+    wxBitmap pauseIcon;
+    wxBitmap playIcon;
+    bool previewLoaded;
+    bool previewPlaying;
     wxFileName networkFile;
     wxFileName scheduleFile;
     PlayerFrame* PlayerDlg;
@@ -916,6 +958,10 @@ private:
     wxDateTime starttime;
     play_modes play_mode;
     NetInfoClass NetInfo;
+
+    ModelPreview* modelPreview;
+    SequencePreview* seqPreview;
+
 
     int effGridPrevX;
     int effGridPrevY;
@@ -959,11 +1005,17 @@ private:
     wxArrayString FileNames;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
+    long seekPoint;
+
+    int mHitTestNextSelectModelIndex;
+    wxString mBackgroundImage;
+    int mBackgroundBrightness;
+
 
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
-    void ReadVixFile(const char* filename);
-    void ReadLorFile(const char* filename);
+    void ReadVixFile(const wxString& filename);
+    void ReadLorFile(const wxString& filename);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
     void ReadFalconFile(const wxString& FileName);
@@ -992,6 +1044,7 @@ private:
     void ConversionError(const wxString& msg);
     void AppendConvertLog(const wxString& msg);
     void AppendConvertStatus(const wxString &msg);
+    void SetStatusText(const wxString &msg);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
 
@@ -1081,6 +1134,9 @@ private:
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
     void UpdateGrid();
+    void SetPreviewSize(int width,int height);
+    void SetXmlSetting(const wxString& settingName,const wxString& value);
+    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
     // Functions for update state of sequence grid
     void AllRowsAreUpdated();
 
@@ -1150,6 +1206,10 @@ private:
     void PgoGridCellSelect(int row, int col, int where);
     void GetMouthNodes(const wxString& model_name);
     void PreviewRotationUpdated(int newRotation);
+    int FindSelectedModel(int x,int y);
+    void SelectModel(wxString name);
+    void UnSelectAllModels();
+
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
@@ -1158,6 +1218,8 @@ private:
     wxXmlNode* ModelsNode;
     wxXmlNode* PalettesNode;
     wxXmlNode* ViewsNode;
+    wxXmlNode* ModelGroupsNode;
+    wxXmlNode* SettingsNode;
     bool MixTypeChanged;
     bool FadesChanged;
     long SeqBaseChannel;
@@ -1165,6 +1227,8 @@ private:
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
     PixelBufferClass buffer;
+    double mPointSize = 2.0;
+
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
@@ -1200,6 +1264,14 @@ private:
     EffectTreeDialog *EffectTreeDlg;
 
     bool m_dragging;
+    bool m_resizing;
+    bool m_rotating;
+    bool m_creating_bound_rect;
+    int  m_bound_start_x;
+    int m_bound_start_y;
+    int m_bound_end_x;
+    int m_bound_end_y;
+    int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
     std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()

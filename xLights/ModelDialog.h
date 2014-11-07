@@ -33,23 +33,23 @@ public:
     void UpdateXml(wxXmlNode* e);
 
     //(*Declarations(ModelDialog)
-    wxStaticText* StarSizesLabel;
     wxStaticText* StaticText9;
     wxSpinCtrl* SpinCtrl_parm2;
     wxSpinCtrl* SpinCtrl_parm1;
     wxStaticText* StaticText_Strings;
-    wxSpinCtrl* SpinCtrl1;
     wxTextCtrl* TextCtrl_Name;
     wxStaticText* StaticTextCustomModel;
     wxStaticText* StaticText2;
     wxScrolledWindow* ScrolledWindow1;
     wxStaticText* StaticText6;
+    wxSpinCtrl* SpinCtrlModelBrightness;
     wxSpinCtrl* SpinCtrl_parm3;
     wxStaticText* StaticText8;
     wxStaticText* StaticText1;
     wxTextCtrl* StarSizes;
     wxStaticText* StaticText3;
     wxChoice* Choice_StringType;
+    wxSpinCtrl* TreeFirstStringForExport;
     wxButton* Button_CustomModelZoomIn;
     wxGrid* GridCustom;
     wxBitmapButton* BitmapButtonCustomPaste;
@@ -61,6 +61,7 @@ public:
     wxBitmapButton* BitmapButtonCustomCopy;
     wxScrolledWindow* ScrolledWindow2;
     wxCheckBox* cbIndividualStartNumbers;
+    wxStaticText* ExtraParameterLabel;
     wxSlider* Slider_Model_Brightness;
     wxButton* ButtonCustomModelHelp;
     wxChoice* Choice_Antialias;
@@ -105,8 +106,9 @@ protected:
     static const long ID_CHECKBOX1;
     static const long ID_STATICTEXT7;
     static const long ID_Slider_Model_Brightness;
-    static const long ID_SPINCTRL5;
+    static const long ID_SPINCTRLMODELBRIGHTNESS;
     static const long ID_STATICTEXT15;
+    static const long ID_SPINCONTROL_TREE_FIRST_STRING;
     static const long ID_TEXTCTRL2;
     static const long ID_CHECKBOX2;
     static const long ID_GRID_START_CHANNELS;
@@ -143,6 +145,7 @@ private:
     void OnSlider_Model_BrightnessCmdScroll1(wxScrollEvent& event);
     void OnButton_CustomModelZoomOutClick(wxCommandEvent& event);
     void OnButton_CustomModelZoomInClick(wxCommandEvent& event);
+    void OnSpinCtrlModelBrightnessChange(wxSpinEvent& event);
     //*)
 
     void SetReadOnly(bool);

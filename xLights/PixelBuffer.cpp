@@ -36,6 +36,7 @@ PixelBufferClass::~PixelBufferClass()
 void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 {
     SetFromXml(ModelNode, zeroBased);
+    SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
     for(size_t i=0; i<2; i++)
     {
         Effect[i].InitBuffer(BufferHt, BufferWi);
@@ -388,8 +389,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             // Apply brightness
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
             hsv = wxImage::RGBtoHSV(rgb);
-            ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
-            hsv.value = hsv.value * ((double)brightness/(double)100)*ModelBrightness;
+            //ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
+
+            float fModelBrightness=((float)ModelBrightness/100) + 1.0;
+            hsv.value = hsv.value * ((double)brightness/(double)100)*fModelBrightness;
 
 
             // Apply Contrast
@@ -497,9 +500,11 @@ void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,in
 {
     Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
 }
-void PixelBufferClass::RenderPinwheel(int Branches)
+void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
+                                       bool pinwheel_rotation,int pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize)
 {
-    Effect[CurrentLayer].RenderTree(Branches);
+    Effect[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
+                                        pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
 }
 void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement)
 {

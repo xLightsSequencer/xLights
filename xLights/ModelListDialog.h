@@ -54,6 +54,8 @@ private:
     void OnButton_LayoutClick(wxCommandEvent& event);
     void OnButton_CopyClick(wxCommandEvent& event);
     void OnButton_ExportCsvClick(wxCommandEvent& event);
+    void OnListBox_Modellist_ModelsSelect(wxCommandEvent& event);
+    void OnListBox_ListBox1(wxCommandEvent& event);
     //*)
 
     bool ValidateModelName(const wxString& name);

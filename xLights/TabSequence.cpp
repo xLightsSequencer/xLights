@@ -869,18 +869,18 @@ void xLightsFrame::UpdateView()
 void xLightsFrame::ShowAllModelsView()
 {
     int cols = Grid1->GetCols();
-    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
     {
-       Grid1->ShowCol(col);
+        Grid1->ShowCol(col);
     }
 }
 
 void xLightsFrame::ViewHideAllModels()
 {
     int cols = Grid1->GetCols();
-    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+    for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
     {
-       Grid1->HideCol(col);
+        Grid1->HideCol(col);
     }
 }
 
@@ -897,7 +897,7 @@ void xLightsFrame::ShowModelsView()
                 wxString views = e->GetAttribute("models");
                 wxArrayString viewArr =wxSplit(views,',');
                 int cols = Grid1->GetCols();
-                for(int col = XLIGHTS_SEQ_STATIC_COLUMNS;col<cols;col++)
+                for(int col = XLIGHTS_SEQ_STATIC_COLUMNS; col<cols; col++)
                 {
                     wxString colModel = Grid1->GetColLabelValue(col);
                     if(viewArr.Index(colModel,false,false)!=wxNOT_FOUND)
@@ -963,6 +963,8 @@ void xLightsFrame::ResetEffectsXml()
     EffectsNode=NULL;
     PalettesNode=NULL;
     ViewsNode=NULL;
+    ModelGroupsNode=NULL;
+    SettingsNode=NULL;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -993,6 +995,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
         if (e->GetName() == "views") ViewsNode=e;
+        if (e->GetName() == "modelGroups") ModelGroupsNode=e;
+        if (e->GetName() == "settings") SettingsNode=e;
     }
     if (ModelsNode == 0)
     {
@@ -1017,6 +1021,31 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         root->AddChild( ViewsNode );
     }
 
+    if (ModelGroupsNode == 0)
+    {
+        ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
+        root->AddChild( ModelGroupsNode );
+    }
+
+    if(SettingsNode==0)
+    {
+        SettingsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "settings" );
+        root->AddChild( SettingsNode );
+        SetXmlSetting("previewWidth","1280");
+        SetXmlSetting("previewHeight","720");
+    }
+    int previewWidth=wxAtoi(GetXmlSetting("previewWidth","1280"));
+    int previewHeight=wxAtoi(GetXmlSetting("previewHeight","720"));
+    if (previewWidth==0 || previewHeight==0)
+    {
+        previewWidth = 1280;
+        previewHeight = 720;
+    }
+    SetPreviewSize(previewWidth,previewHeight);
+
+    mBackgroundImage = GetXmlSetting("backgroundImage","");
+    mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
+    Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
     return effectsFile.GetFullPath();
 }
 
@@ -1244,6 +1273,17 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"],
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
                              );
+    }
+    else if (effect == "Pinwheel")
+    {
+        buffer.RenderPinwheel(wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Arms"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Twist"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Thickness"]),
+                              SettingsMap[LayerStr+"CHECKBOX_Pinwheel_Rotation"] == "1",
+                              wxAtoi(SettingsMap[LayerStr+"CHOICE_Pinwheel_3D"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_PinwheelXC"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_PinwheelYC"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_ArmSize"]));
     }
     else if (effect == "Ripple")
     {
@@ -1490,6 +1530,17 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
+    case eff_PINWHEEL:
+        buffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
+                              panel->Slider_Pinwheel_Twist->GetValue(),
+                              panel->Slider_Pinwheel_Thickness->GetValue(),
+                              panel->CheckBox_Pinwheel_Rotation->GetValue(),
+                              panel->Choice_Pinwheel_3D->GetSelection(),
+                              panel->Slider_PinwheelXC->GetValue(),
+                              panel->Slider_PinwheelYC->GetValue(),
+                              panel->Slider_Pinwheel_ArmSize->GetValue()
+                             );
+        break;
     case eff_RIPPLE:
         buffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
                             panel->Choice_Ripple_Movement->GetSelection());
@@ -1636,7 +1687,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
     buffer.CalcOutput(EffectPeriod);
-    buffer.DisplayEffectOnWindow(ScrolledWindow1);
+    buffer.DisplayEffectOnWindow(seqPreview,mPointSize);
     size_t chnum;
     wxByte intensity;
     if (CheckBoxLightOutput->IsChecked() && xout)
@@ -1848,8 +1899,8 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     StaticTextSequenceFileName->SetLabel(filename);
     StaticTextPreviewFileName->SetLabel(filename);
     bool EnableButtons=!filename.IsEmpty();
-    ButtonPlayPreview->Enable(EnableButtons);
-    ButtonStopPreview->Enable(EnableButtons);
+    bbPlayPause->Enable(EnableButtons);
+    bbStop->Enable(EnableButtons);
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)
@@ -2998,12 +3049,39 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     SeqDataType* retData;
+    
 
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
     retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
-
+    
+    size_t firstChannel = 0;
+    if (modelNode->GetAttribute("exportFirstStrand") != "") {
+        int firstNode = 0;
+        firstNode = wxAtoi(modelNode->GetAttribute("exportFirstStrand"));
+        AppendConvertStatus(wxString::Format("First from model: %d\n", firstNode));
+        if (firstNode < 1) {
+            firstNode = 1;
+        }
+        firstNode--;
+        int PixelsPerStrand=wxAtoi(modelNode->GetAttribute("parm2")) / wxAtoi(modelNode->GetAttribute("parm3"));
+        AppendConvertStatus(wxString::Format("Pixels per strand: %d\n", PixelsPerStrand));
+        firstNode *= PixelsPerStrand;
+        AppendConvertStatus(wxString::Format("Calced firstNode: %d\n", firstNode));
+        if (firstNode > NodeCnt) {
+            firstNode = 0;
+        }
+        if (firstNode > 0) {
+            size_t chnum;
+            unsigned char intensity;
+            buffer.GetChanIntensity(firstNode, 0, &firstChannel, &intensity);
+            AppendConvertStatus(wxString::Format("firstNode: %d     NodeCnt:  %d    FirstChannel: %d\n",
+                                                 firstNode, NodeCnt, firstChannel));
+        }
+    }
+    
+    
     LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
@@ -3071,6 +3149,11 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                        if (chnum >= firstChannel) {
+                            chnum -= firstChannel;
+                        } else {
+                            chnum = cn * NodeCnt - firstChannel + chnum;
+                        }
                         (*retData)[chnum*SeqNumPeriods+p]=intensity;
                     }
                 }
@@ -3354,8 +3437,8 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
 
 void xLightsFrame::ClearEffectWindow()
 {
-    wxClientDC dc(ScrolledWindow1);
-    dc.Clear();
+    //wxClientDC dc(ScrolledWindow1); //dp
+    //dc.Clear();
 }
 
 void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
@@ -3611,7 +3694,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     }
 
     delete dataBuf;
-    StatusBar1->SetStatusText(_("Finished writing: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
+    StatusBar1->SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
 }
 
 void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
@@ -3720,7 +3803,7 @@ void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 
 void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)
 {
-    ScrolledWindow1->ClearBackground();
+    //ScrolledWindow1->ClearBackground();
 }
 
 // pass true for cutting, false for copying
