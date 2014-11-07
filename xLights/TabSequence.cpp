@@ -1274,6 +1274,17 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
                              );
     }
+    else if (effect == "Pinwheel")
+    {
+        buffer.RenderPinwheel(wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Arms"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Twist"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_Thickness"]),
+                              SettingsMap[LayerStr+"CHECKBOX_Pinwheel_Rotation"] == "1",
+                              wxAtoi(SettingsMap[LayerStr+"CHOICE_Pinwheel_3D"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_PinwheelXC"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_PinwheelYC"]),
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pinwheel_ArmSize"]));
+    }
     else if (effect == "Ripple")
     {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
