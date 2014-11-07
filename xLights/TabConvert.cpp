@@ -74,11 +74,6 @@ wxString Right(const wxString &in, int len) {
     return in.substr(in.size() - len, len);
 }
 
-
-#ifndef MAX_READ_BLOCK_SIZE
-#define MAX_READ_BLOCK_SIZE 4096 * 1024
-#endif
-
 /*
    base64.cpp and base64.h
 
