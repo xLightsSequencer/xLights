@@ -102,7 +102,6 @@ void xLightsFrame::CompareMyDisplayToSeq()
 void xLightsFrame::UpdatePreview()
 {
     const wxColour* color;
-    const wxColour selectColor(255,0,255);
     wxString SelModelName=ListBoxElementList->GetStringSelection();
     modelPreview->StartDrawing(mPointSize);
     if(m_creating_bound_rect)
@@ -111,7 +110,7 @@ void xLightsFrame::UpdatePreview()
     }
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->Selected) ? &selectColor : wxLIGHT_GREY;
+        color = (PreviewModels[i]->Selected) ? wxYELLOW : wxLIGHT_GREY;
         PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
     }
     modelPreview->EndDrawing();
