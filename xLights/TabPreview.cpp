@@ -132,8 +132,8 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     // Add WholeHouseData attribute
     int ii=0;
 
-    if(w>h){scale = (float)400/(float)w;}
-    else{scale = (float)400/(float)h;}
+    if(w>h){scale = (float)600/(float)w;}
+    else{scale = (float)600/(float)h;}
     wScaled = (int)(scale*w);
     hScaled = (int)(scale*h);
     // Create a new model node
@@ -470,6 +470,9 @@ void xLightsFrame::ShowModelProperties()
             if (ok)
             {
                 dialog->UpdateXml(e);
+                SaveEffectsFile();
+                UpdateModelsList();
+
             }
         }
     }
