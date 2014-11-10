@@ -706,9 +706,6 @@ private:
     static const long ID_PREVIEW_ALIGN_RIGHT;
     static const long ID_PREVIEW_ALIGN_H_CENTER;
     static const long ID_PREVIEW_ALIGN_V_CENTER;
-    static const long ID_PREVIEW_DISTRIBUTE;
-    static const long ID_PREVIEW_H_DISTRIBUTE;
-    static const long ID_PREVIEW_V_DISTRIBUTE;
 
 
 

@@ -343,9 +343,6 @@ const long xLightsFrame::ID_PREVIEW_ALIGN_LEFT = wxNewId();
 const long xLightsFrame::ID_PREVIEW_ALIGN_RIGHT = wxNewId();
 const long xLightsFrame::ID_PREVIEW_ALIGN_H_CENTER = wxNewId();
 const long xLightsFrame::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
-const long xLightsFrame::ID_PREVIEW_DISTRIBUTE = wxNewId();
-const long xLightsFrame::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
-const long xLightsFrame::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
