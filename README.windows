@@ -15,11 +15,66 @@ of wxWidgets for xLights/Nutcracker is 3.0.0.  Do not use the pre-compiled
 Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
 
 We are in the process of transitioning from the MinGW compiler to the
-MS Visual C++ compiler for Windows builds. Support for the MinGW compiler
-will removed sometime in 2014.
+MS Visual C++ compiler for Windows builds. Support for the MS Visual C+ compiler
+is a work in progress.
 
 
-Instructions for MS Visual C++
+Instructions for MinGW
+================================================
+
+Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
+
+  a) Install Code::Blocks for Windows (currently using version 13.12)
+
+     Download and install the codeblocks-13.12mingw-setup.exe file from here:
+        http://www.codeblocks.org/downloads
+     This includes Code::Blocks and the GNU C++ compiler needed for building xLights.
+
+  b) wxWidgets for Windows (currently using version 3.0.0)
+
+     Download the version with the Windows installer from here:
+        http://www.wxwidgets.org/downloads/
+     The installer only puts the wxWidgets source code on your system, you will need
+     to compile it yourself to create the dll. To compile it yourself:
+
+     1) Open a command prompt
+     2) cd to the build\msw directory under your wxWidgets base directory
+     3) Some users have reported that their path variable was too long, which confused the wx buld.
+        If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\Program Files (x86)\CodeBlocks\MinGW\bin
+
+     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
+     5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
+     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
+        then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
+        (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
+
+  c) In Code::Blocks:
+     1) select Settings > Compiler
+     2) click Linker Settings tab
+     3) Under Link libraries sub-tab should be:
+          $(#codeblocks)\MinGW\lib\libglu32.a
+          $(#wx)\lib\gcc_gll\libwxmsw30u_gl.a
+     4) Under Other linker options sub-tab should be:
+          -lopengl32
+          -lglut32
+     5) click Search Directories tab
+     6) Under Compiler sub-tab should be:
+          $(#wx)\include
+          $(#wx)\contrib\include
+     7) Under Linker sub-tab should be:
+          $(#wx)\lib\gcc_dll
+     8) Make sure "wx" & "codeblocks" are defined under Settings > Global Variables
+        as described in the Code::Blocks documentation. wx should be
+        set to your wxWidgets base directory. Just the "Base" field
+        needs to be filled in - to something like "C:\wxWidgets-3.0.0",
+        assuming that is where your copy of wxWidgets is located.
+        codeblocks should be something like "C:\Program Files (x86)\CodeBlocks"
+
+  d) Now you are ready to use Code::Blocks to build xLights
+     by double-clicking on the cbp file in the xLights directory.
+     Make sure you set the build target to MinGW_Debug or MinGW_Release!
+
+Instructions for MS Visual C++ (Incomplete)
 ==============================
 
 Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
@@ -74,53 +129,6 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
   f) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the xLights directory.
      Make sure you set the build target to MSVC_Debug or MSVC_Release!
-
-
-Instructions for MinGW (kept here for reference)
-================================================
-
-Here are the steps to compile xLights/Nutcracker for Windows using the MinGW compiler.
-
-  a) Install Code::Blocks for Windows (currently using version 13.12)
-
-     Download and install the codeblocks-13.12mingw-setup.exe file from here:
-        http://www.codeblocks.org/downloads
-     This includes Code::Blocks and the GNU C++ compiler needed for building xLights.
-
-  b) wxWidgets for Windows (currently using version 3.0.0)
-
-     Download the version with the Windows installer from here:
-        http://www.wxwidgets.org/downloads/
-     The installer only puts the wxWidgets source code on your system, you will need
-     to compile it yourself to create the dll. To compile it yourself:
-
-     1) Open a command prompt
-     2) cd to the build\msw directory under your wxWidgets base directory
-     3) Some users have reported that their path variable was too long, which confused the wx buld.
-        If so, try: SET Path=C:\Windows\system32;C:\Windows;C:\mingw\bin
-     4) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=debug
-     5) run: mingw32-make -f makefile.gcc MONOLITHIC=1 SHARED=1 UNICODE=1 CXXFLAGS="-std=gnu++0x" BUILD=release
-     6) If you downloaded the zip or 7z version of wxWidgets instead of the Windows installer version,
-        then you need to update your path environment variable to include C:\wxWidgets-3.0.0\lib\gcc_dll
-        (assuming C:\wxWidgets-3.0.0 is your wxWidgets base directory).
-
-  c) In Code::Blocks:
-     1) select Settings > Compiler
-     2) click Search Directories tab
-     3) Under Compiler sub-tab should be:
-          $(#wx)\include
-          $(#wx)\contrib\include
-     4) Under Linker sub-tab should be:
-          $(#wx)\lib\gcc_dll
-     5) Make sure "wx" is defined under Settings > Global Variables
-        as described in the Code::Blocks documentation. It should be
-        set to your wxWidgets base directory. Just the "Base" field
-        needs to be filled in - to something like "C:\wxWidgets-3.0.0",
-        assuming that is where your copy of wxWidgets is located.
-
-  d) Now you are ready to use Code::Blocks to build xLights
-     by double-clicking on the cbp file in the xLights directory.
-     Make sure you set the build target to MinGW_Debug or MinGW_Release!
 
 
 Windows Installer
