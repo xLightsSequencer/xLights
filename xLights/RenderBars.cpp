@@ -24,6 +24,21 @@
 #include "RgbEffects.h"
 
 // Direction: 0=up, 1=down, 2=expand, 3=compress, 4=left, 5=right, 6=H-expand, 7=H-compress
+/*
+   BarEffectDirections.Add("up");          // 0
+    BarEffectDirections.Add("down");        // 1
+    BarEffectDirections.Add("expand");      // 2
+    BarEffectDirections.Add("compress");    // 3
+    BarEffectDirections.Add("Left");        // 4
+    BarEffectDirections.Add("Right");       // 5
+    BarEffectDirections.Add("H-expand");    // 6
+    BarEffectDirections.Add("H-compress");  // 7
+    BarEffectDirections.Add("Alternate Up");// 8
+    BarEffectDirections.Add("Alternate Down");  // 9
+    BarEffectDirections.Add("Alternate Left");  // 10
+    BarEffectDirections.Add("Alternate Right"); // 11
+*/
+
 void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
     int x,y,n,ColorIdx;

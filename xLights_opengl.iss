@@ -35,6 +35,10 @@ Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
 Source: "C:\Users\sean\Documents\c++\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
+
+Source: "include/*.xpm"; DestDir: "{app}/include" 
+Source: "include/*.ico"; DestDir: "{app}/include" 
+
 ;Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 ;Source: "C:\wxWidgets-3.0.0\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
 
@@ -45,7 +49,7 @@ Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
 
 
 [Icons]
-Name: "{group}\xLights"; Filename: "{app}\xLights.exe" ;  IconFileName: "{app}\xLights.ico"
+Name: "{group}\xLights"; Filename: "{app}\xLights.exe" ;  IconFileName: "{app}\include\xLights.ico"
 
 [Registry]
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
