@@ -6,10 +6,20 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-3.6.2
-        -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
+3.6.2	Nov 7, 2014
+    -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
                     This allows the exported models to work around issues with the 12:00 first strand for Nutcracker but the first 
                     strand is expected to be the 9:00 position in HLS.
+	-enh (frankr) New play,pause,stop buttons in PREVIEW screen. Moving the slider plays sequence data and plays sound, 
+		Move it to place where you want to start. Press PLAY, sequence starts from there. STOP button resets sequence to 0:0.0
+	-enh (dpitts) New feature to select multiple objects in the PREVIEW window. 1st) Click and select first object that will be used
+		as baseline. 2nd) Hold the shift key down and draw a rectangle. Any objects that fall within the rectangle will be selected.
+		3rd) Right click and select how you want the selected objects to be aligned (Top, Bottom, Left, Right, Horizontal Center, 
+			Vertical Center). If items are stretched out horizontally, use Top/Bottom. If item are stretched out vertically, use
+			Left/Right.
+		NOTE: If you screw something up, exit without saving and come back in. Later we will add an undo key. 
+		NOTE2: If you have been editing your preview and it looks good, do a Save on the preview screen. Also do a "File,Backup". 
+		This will save your current preview work AND make a copy of it in the Backup subdirectory.
 3.6.1	Nov 6,2014
 	-bug (dkulp) Pinwheel effect was not producing data in Preview screen or on lights, it is fixed now
 	-enh (sean) Move Effect 1 and Effect 2 into tabs  . This gives more space for the preview screen
