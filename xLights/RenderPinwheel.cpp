@@ -88,7 +88,7 @@ void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,
     yc = yc + (yc_adj/100.0)*yc;
 
 
-    for(r=0.0; r<=max_radius; r+=0.5)
+    for(r=0.0; r<=max_radius; r+=0.2)
     {
         degrees_twist=(r/max_radius)*pinwheel_twist;
         degrees = base_degrees + degrees_twist;
