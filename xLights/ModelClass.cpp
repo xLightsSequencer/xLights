@@ -673,10 +673,8 @@ void ModelClass::InitStar()
         int ChanIncr=SingleChannel ?  1 : 3;
         for(size_t cnt=0; cnt<numlights; cnt++)
         {
-            int n = 0;
-            if (SingleNode) {
-                n = 0;
-            } else {
+            int n = cur;
+            if (!SingleNode) {
                 n = start + cnt;
             }
             if (Nodes[n]->StringNum != LastStringNum)
@@ -687,28 +685,36 @@ void ModelClass::InitStar()
             Nodes[n]->ActChan=chan;
             chan+=ChanIncr;
             size_t CoordCount=GetCoordCount(n);
+            int lastx = 0, lasty = 0;
             for(size_t c=0; c < CoordCount; c++)
             {
-                cursegment=(int)((double)numsegments*pct) % numsegments;
-                nextsegment=(cursegment+1) % numsegments;
-                segstart_pct=(double)cursegment / numsegments;
-                segend_pct=(double)nextsegment / numsegments;
-                dseg=pct - segstart_pct;
-                segpct=dseg / dpct;
-                r=cursegment%2==0 ? OuterRadius : InnerRadius;
-                segstart_x=r*sin(segstart_pct*2.0*M_PI);
-                segstart_y=r*cos(segstart_pct*2.0*M_PI);
-                r=nextsegment%2==0 ? OuterRadius : InnerRadius;
-                segend_x=r*sin(segend_pct*2.0*M_PI);
-                segend_y=r*cos(segend_pct*2.0*M_PI);
-                // now interpolate between segstart and segend
-                x=(segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
-                y=(segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
-                Nodes[n]->Coords[c].bufX=x;
-                Nodes[n]->Coords[c].bufY=y;
-                pct+=pctIncr;
-                if (pct >= 1.0) pct-=1.0;
-                if (pct < 0.0) pct+=1.0;
+                if (c >= numlights) {
+                    Nodes[n]->Coords[c].bufX=lastx;
+                    Nodes[n]->Coords[c].bufY=lasty;
+                } else {
+                    cursegment=(int)((double)numsegments*pct) % numsegments;
+                    nextsegment=(cursegment+1) % numsegments;
+                    segstart_pct=(double)cursegment / numsegments;
+                    segend_pct=(double)nextsegment / numsegments;
+                    dseg=pct - segstart_pct;
+                    segpct=dseg / dpct;
+                    r=cursegment%2==0 ? OuterRadius : InnerRadius;
+                    segstart_x=r*sin(segstart_pct*2.0*M_PI);
+                    segstart_y=r*cos(segstart_pct*2.0*M_PI);
+                    r=nextsegment%2==0 ? OuterRadius : InnerRadius;
+                    segend_x=r*sin(segend_pct*2.0*M_PI);
+                    segend_y=r*cos(segend_pct*2.0*M_PI);
+                    // now interpolate between segstart and segend
+                    x=(segend_x - segstart_x)*segpct + segstart_x + offset + 0.5 + coffset;
+                    y=(segend_y - segstart_y)*segpct + segstart_y + offset + 0.5 + coffset;
+                    Nodes[n]->Coords[c].bufX=x;
+                    Nodes[n]->Coords[c].bufY=y;
+                    lastx = x;
+                    lasty = y;
+                    pct+=pctIncr;
+                    if (pct >= 1.0) pct-=1.0;
+                    if (pct < 0.0) pct+=1.0;
+                }
             }
         }
         start += numlights;

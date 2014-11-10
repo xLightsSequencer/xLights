@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+    -bug (dkulp) Fix problem of stars using a single RGB node per concentric layer not displaying correctly.
 3.6.2	Nov 7, 2014
     -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
                     This allows the exported models to work around issues with the 12:00 first strand for Nutcracker but the first 
