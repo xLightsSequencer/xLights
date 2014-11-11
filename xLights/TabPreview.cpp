@@ -269,20 +269,20 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
     int selectedModelCnt = ModelsSelectedCount();
     if (selectedModelCnt > 1)
     {
-        mnuAlign = new wxMenU();
-        mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_LEFT,"Left");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
-        mnuAlign.Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
+        mnuAlign = new wxMenu();
+        mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
 
         mnuDistribute = new wxMenu();
-        mnuDistribute.Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
-        mnuDistribute.Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
+        mnuDistribute->Append(ID_PREVIEW_H_DISTRIBUTE,"Horizontal");
+        mnuDistribute->Append(ID_PREVIEW_V_DISTRIBUTE,"Vertical");
 
-        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
-        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", &mnuDistribute,"");
+        mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", mnuAlign,"");
+        mnu.Append(ID_PREVIEW_DISTRIBUTE,"Distribute", mnuDistribute,"");
         mnu.AppendSeparator();
     }
     else if (selectedModelCnt == 0)
