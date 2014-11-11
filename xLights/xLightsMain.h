@@ -214,6 +214,7 @@ public:
     char ExtType(const wxString& ext);
     bool Play(wxString& filename, long delay);
     void StopPlayback();
+    void StopPreviewPlayback();
     void StartScript(const char *scriptname);
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);

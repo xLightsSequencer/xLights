@@ -779,15 +779,19 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
     }
     else
     {
-        bbPlayPause->SetBitmap(playIcon);
-        PlayerDlg->MediaCtrl->Pause();
-        PlayerDlg->MediaCtrl->Seek(0);
-        previewPlaying = false;
-        SliderPreviewTime->SetValue(0);
-        ShowPreviewTime(0);
+        StopPreviewPlayback();
     }
 }
 
+void xLightsFrame::StopPreviewPlayback()
+{
+    bbPlayPause->SetBitmap(playIcon);
+    PlayerDlg->MediaCtrl->Pause();
+    PlayerDlg->MediaCtrl->Seek(0);
+    previewPlaying = false;
+    SliderPreviewTime->SetValue(0);
+    ShowPreviewTime(0);
+}
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
     int msec=ElapsedMSec % 1000;
@@ -840,6 +844,8 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     else
     {
         PlayerDlg->MediaCtrl->Seek(msec);
+        ShowPreviewTime(msec);
+        //PreviewOutput(newperiod);
     }
 }
 
@@ -881,6 +887,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         {
             msec = seekPoint;
         }
+        ShowPreviewTime(msec);
         PlayerDlg->MediaCtrl->Seek(msec);
 
         wxSleep(1);
@@ -891,7 +898,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         int frame = msec / XTIMER_INTERVAL;
         SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
         //Update the time box.
-        ShowPreviewTime(msec);
+
         bbPlayPause->SetBitmap(playIcon);
         previewPlaying = false;
         Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);

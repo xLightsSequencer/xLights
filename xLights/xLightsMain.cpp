@@ -793,34 +793,34 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticTextPreviewFileName = new wxStaticText(PanelPreview, ID_STATICTEXT23, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
     FlexGridSizer36->Add(StaticTextPreviewFileName, 1, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer36, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer31 = new wxFlexGridSizer(1, 4, 0, 0);
+    FlexGridSizer31 = new wxFlexGridSizer(1, 5, 0, 0);
     FlexGridSizer31->AddGrowableCol(3);
-    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, control_pause_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
+    bbPlayPause = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON5, control_pause_blue_icon, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON5"));
     bbPlayPause->SetBitmapDisabled(control_pause_icon);
     FlexGridSizer31->Add(bbPlayPause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, control_stop_blue_icon, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
+    bbStop = new wxBitmapButton(PanelPreview, ID_BITMAPBUTTON6, control_stop_blue_icon, wxDefaultPosition, wxSize(24,24), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON6"));
     bbStop->SetBitmapDisabled(control_stop_icon);
     FlexGridSizer31->Add(bbStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlPreviewTime = new wxTextCtrl(PanelPreview, ID_TEXTCTRL_PREVIEW_TIME, wxEmptyString, wxDefaultPosition, wxSize(58,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PREVIEW_TIME"));
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
-    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxSize(250,30), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
+    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxSize(725,24), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
     FlexGridSizer41->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer30->Add(FlexGridSizer41, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40 = new wxFlexGridSizer(0, 5, 0, 0);
     StaticTextCurrentPreviewSize = new wxStaticText(PanelPreview, ID_STATICTEXT_CURRENT_PREVIEW_SIZE, _("Size: 1920x1080"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_CURRENT_PREVIEW_SIZE"));
     FlexGridSizer40->Add(StaticTextCurrentPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSetPreviewSize = new wxButton(PanelPreview, ID_BUTTON_SET_PREVIEW_SIZE, _("Set Size"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_PREVIEW_SIZE"));
+    ButtonSetPreviewSize = new wxButton(PanelPreview, ID_BUTTON_SET_PREVIEW_SIZE, _("Set Size"), wxDefaultPosition, wxSize(48,23), 0, wxDefaultValidator, _T("ID_BUTTON_SET_PREVIEW_SIZE"));
     FlexGridSizer40->Add(ButtonSetPreviewSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSetBackgroundImage = new wxButton(PanelPreview, ID_BUTTON_SET_BACKGROUND_IMAGE, _("Image"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SET_BACKGROUND_IMAGE"));
+    ButtonSetBackgroundImage = new wxButton(PanelPreview, ID_BUTTON_SET_BACKGROUND_IMAGE, _("Image"), wxDefaultPosition, wxSize(48,23), 0, wxDefaultValidator, _T("ID_BUTTON_SET_BACKGROUND_IMAGE"));
     FlexGridSizer40->Add(ButtonSetBackgroundImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText30 = new wxStaticText(PanelPreview, ID_STATICTEXT32, _("Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
     FlexGridSizer40->Add(StaticText30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
+    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
     FlexGridSizer40->Add(Slider_BackgroundBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer31->Add(FlexGridSizer40, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerPreview->Add(FlexGridSizer31, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34 = new wxFlexGridSizer(1, 2, 0, 0);
     FlexGridSizer34->AddGrowableCol(1);
@@ -2237,6 +2237,12 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 //factored out from below so it can be reused by play/pause button -DJ
 void xLightsFrame::StopNow(void)
 {
+    int actTab = Notebook1->GetSelection();
+    if (actTab == PREVIEWTAB)
+    {
+        StopPreviewPlayback();
+        return;
+    }
     PlayerDlg->MediaCtrl->Stop();
     if (play_mode == play_sched)
     {
@@ -2247,7 +2253,7 @@ void xLightsFrame::StopNow(void)
     if (basic.IsRunning()) basic.halt();
     SetPlayMode(play_off);
     ResetTimer(NO_SEQ);
-    switch (Notebook1->GetSelection())
+    switch (actTab)
     {
     case TESTTAB:
         TestButtonsOff();
