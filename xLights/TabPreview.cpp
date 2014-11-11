@@ -262,16 +262,11 @@ void xLightsFrame::UnSelectAllModels()
 
 void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
 {
-//<<<<<<< HEAD
-//    if ( FindSelectedModel(event.GetX(),event.GetY()) == 0 )
-//    {
-//        return;
-//    }
-//=======//
 
     wxMenu mnu;
     wxMenu mnuAlign;
-    if (MultipleModelsSelected())
+    int selectedModelCnt = ModelsSelectedCount();
+    if (selectedModelCnt > 1)
     {
         mnuAlign.Append(ID_PREVIEW_ALIGN_TOP,"Top");
         mnuAlign.Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
@@ -282,11 +277,12 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
         mnu.AppendSeparator();
     }
-
-    mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
-    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
-    PopupMenu(&mnu);
-
+    else if (selectedModelCnt ==1 )
+    {
+        mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
+        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+        PopupMenu(&mnu);
+    }
 }
 
 void xLightsFrame::OnPreviewModelPopup(wxCommandEvent &event)
@@ -433,7 +429,7 @@ int xLightsFrame::GetSelectedModelIndex()
     return -1;
 }
 
-bool xLightsFrame::MultipleModelsSelected()
+int xLightsFrame::ModelsSelectedCount()
 {
     int selectedModelCount=0;
     for (int i=0; i<PreviewModels.size(); i++)
@@ -443,10 +439,7 @@ bool xLightsFrame::MultipleModelsSelected()
             selectedModelCount++;
         }
     }
-    if (selectedModelCount>1)
-        return true;
-    else
-        return false;
+    return selectedModelCount;
 }
 
 void xLightsFrame::ShowModelProperties()

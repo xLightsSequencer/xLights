@@ -1224,7 +1224,7 @@ private:
     bool SelectMultipleModels(int x,int y);
     void SetSelectedModelToGroupSelected();
     void UnSelectAllModels();
-    bool MultipleModelsSelected();
+    int ModelsSelectedCount();
     void SelectAllInBoundingRect();
     void OnPreviewModelPopup(wxCommandEvent &event);
     void PreviewModelAlignTops();
