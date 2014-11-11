@@ -189,13 +189,13 @@ const long xLightsFrame::ID_STATICTEXT21 = wxNewId();
 const long xLightsFrame::ID_LISTBOX_ELEMENT_LIST = wxNewId();
 const long xLightsFrame::ID_BUTTON_MODELS_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_PREVIEW = wxNewId();
+const long xLightsFrame::ID_BUTTON_BUILD_WHOLEHOUSE_MODEL = wxNewId();
 const long xLightsFrame::ID_STATICTEXT22 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_SCALE = wxNewId();
 const long xLightsFrame::ID_STATICTEXT25 = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
-const long xLightsFrame::ID_BUTTON_BUILD_WHOLEHOUSE_MODEL = wxNewId();
 const long xLightsFrame::ID_SCROLLEDWINDOW1 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const long xLightsFrame::ID_BUTTON13 = wxNewId();
@@ -439,7 +439,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 3.6.2)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 3.6.3)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -802,7 +802,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer31->Add(TextCtrlPreviewTime, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer30 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
-    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
+    SliderPreviewTime = new wxSlider(PanelPreview, ID_SLIDER_PREVIEW_TIME, 0, 0, 200, wxDefaultPosition, wxSize(250,30), 0, wxDefaultValidator, _T("ID_SLIDER_PREVIEW_TIME"));
     FlexGridSizer41->Add(SliderPreviewTime, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer30->Add(FlexGridSizer41, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer40 = new wxFlexGridSizer(0, 5, 0, 0);
@@ -814,7 +814,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer40->Add(ButtonSetBackgroundImage, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText30 = new wxStaticText(PanelPreview, ID_STATICTEXT32, _("Brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT32"));
     FlexGridSizer40->Add(StaticText30, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
+    Slider_BackgroundBrightness = new wxSlider(PanelPreview, ID_SLIDER_BACKGROUND_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxSize(80,20), 0, wxDefaultValidator, _T("ID_SLIDER_BACKGROUND_BRIGHTNESS"));
     FlexGridSizer40->Add(Slider_BackgroundBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer30->Add(FlexGridSizer40, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer31->Add(FlexGridSizer30, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -833,6 +833,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer35->Add(ButtonModelsPreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonSavePreview = new wxButton(PanelPreview, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
     FlexGridSizer35->Add(ButtonSavePreview, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonBuildWholeHouseModel = new wxButton(PanelPreview, ID_BUTTON_BUILD_WHOLEHOUSE_MODEL, _("Build Whole House Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BUILD_WHOLEHOUSE_MODEL"));
+    FlexGridSizer35->Add(ButtonBuildWholeHouseModel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer37 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer37->AddGrowableCol(1);
     StaticText23 = new wxStaticText(PanelPreview, ID_STATICTEXT22, _("Model Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
@@ -853,8 +855,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SliderPreviewRotate->SetTickFreq(15);
     SliderPreviewRotate->Disable();
     FlexGridSizer35->Add(SliderPreviewRotate, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonBuildWholeHouseModel = new wxButton(PanelPreview, ID_BUTTON_BUILD_WHOLEHOUSE_MODEL, _("Build Whole House Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BUILD_WHOLEHOUSE_MODEL"));
-    FlexGridSizer35->Add(ButtonBuildWholeHouseModel, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer34->Add(FlexGridSizer35, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
     ScrolledWindowPreview = new wxScrolledWindow(PanelPreview, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
     BoxSizerModelsPreview = new wxBoxSizer(wxHORIZONTAL);
@@ -1472,11 +1472,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_LISTBOX_ELEMENT_LIST,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnListBoxElementListSelect);
     Connect(ID_BUTTON_MODELS_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelsPreviewClick);
     Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSavePreviewClick);
+    Connect(ID_BUTTON_BUILD_WHOLEHOUSE_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonBuildWholeHouseModelClick);
     Connect(ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlPreviewElementSizeText);
     Connect(ID_SLIDER_PREVIEW_SCALE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewScaleCmdSliderUpdated);
     Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrlModelRotationDegreesText);
     Connect(ID_SLIDER_PREVIEW_ROTATE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSliderPreviewRotateCmdSliderUpdated);
-    Connect(ID_BUTTON_BUILD_WHOLEHOUSE_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonBuildWholeHouseModelClick);
     ScrolledWindowPreview->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewPaint,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftDown,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewLeftUp,0,this);

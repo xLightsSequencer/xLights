@@ -6,7 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.3	Nov 11, 2014
     -bug (dkulp) Fix problem of stars using a single RGB node per concentric layer not displaying correctly.
+	-enh (sean) Moved "Create Whole House Model" button to be higher on the screen. This helps people with lower
+		resolution computers.
+	-enh (sean) reformatted Pinwheel screen so that it does not take as much screen to draw form.
 3.6.2	Nov 7, 2014
     -enh (dkulp) Tree360 and Tree270 can now specify which strand to use for the first column when exporting and individual model.
                     This allows the exported models to work around issues with the 12:00 first strand for Nutcracker but the first 
@@ -18,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 		3rd) Right click and select how you want the selected objects to be aligned (Top, Bottom, Left, Right, Horizontal Center, 
 			Vertical Center). If items are stretched out horizontally, use Top/Bottom. If item are stretched out vertically, use
 			Left/Right.
+			A group that is highlighted in yellow can be moved anywhere on the screen, hold the ctrl key down before moving.
+			Note: A highlighted group cannot be sized or rotated. That will be added in a future release.
 		NOTE: If you screw something up, exit without saving and come back in. Later we will add an undo key. 
 		NOTE2: If you have been editing your preview and it looks good, do a Save on the preview screen. Also do a "File,Backup". 
 		This will save your current preview work AND make a copy of it in the Backup subdirectory.

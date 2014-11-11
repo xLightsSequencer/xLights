@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker (Ver 3.6.2)</title>
+		<title>xLights/Nutcracker (Ver 3.6.3)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -1250,6 +1250,7 @@
 																	<object class="sizeritem">
 																		<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
 																			<max>200</max>
+																			<size>250,30</size>
 																			<handler function="OnSliderPreviewTimeCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 																			<handler function="OnSliderPreviewTimeCmdScrollThumbRelease" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																			<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -1302,6 +1303,7 @@
 																	</object>
 																	<object class="sizeritem">
 																		<object class="wxSlider" name="ID_SLIDER_BACKGROUND_BRIGHTNESS" variable="Slider_BackgroundBrightness" member="yes">
+																			<size>80,20</size>
 																			<handler function="OnSlider_BackgroundBrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1379,6 +1381,15 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
+																<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
+																	<label>Build Whole House Model</label>
+																	<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
 																	<cols>2</cols>
 																	<growablecols>1</growablecols>
@@ -1449,15 +1460,6 @@
 																	<enabled>0</enabled>
 																	<style>wxTRANSPARENT_WINDOW</style>
 																	<handler function="OnSliderPreviewRotateCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
-																</object>
-																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
-																<option>1</option>
-															</object>
-															<object class="sizeritem">
-																<object class="wxButton" name="ID_BUTTON_BUILD_WHOLEHOUSE_MODEL" variable="ButtonBuildWholeHouseModel" member="yes">
-																	<label>Build Whole House Model</label>
-																	<handler function="OnButtonBuildWholeHouseModelClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>

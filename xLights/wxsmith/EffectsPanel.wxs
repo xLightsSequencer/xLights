@@ -38,7 +38,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" variable="BitmapButton_PaletteRep" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_PaletteRepClick" entry="EVT_BUTTON" />
@@ -68,7 +68,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_DirectionClick" entry="EVT_BUTTON" />
@@ -84,7 +84,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-										<cols>4</cols>
+										<cols>5</cols>
 										<object class="sizeritem">
 											<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" variable="CheckBox_Bars_Highlight" member="yes">
 												<label>Highlight</label>
@@ -97,7 +97,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" variable="BitmapButton_Highlight" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_HighlightClick" entry="EVT_BUTTON" />
 											</object>
@@ -118,22 +119,22 @@
 											<border>2</border>
 											<option>1</option>
 										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_3DClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>20,20</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_3DClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -165,7 +166,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Butterfly_Color" variable="BitmapButton_ButterflyColors" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyColorsClick" entry="EVT_BUTTON" />
@@ -196,7 +197,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Style" variable="BitmapButton_ButterflyStyle" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyStyleClick" entry="EVT_BUTTON" />
@@ -227,7 +228,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Chunks" variable="BitmapButton_ButterflyChunks" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflyChunksClick" entry="EVT_BUTTON" />
@@ -258,7 +259,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Butterfly_Skip" variable="BitmapButton_ButterflySkip" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ButterflySkipClick" entry="EVT_BUTTON" />
@@ -284,7 +285,7 @@
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON9" variable="BitmapButton8" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -324,7 +325,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Count" variable="BitmapButton_CirclesCount" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesCountClick" entry="EVT_BUTTON" />
 											</object>
@@ -362,7 +364,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Circles_Size" variable="BitmapButton_CirclesSize" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesSizeClick" entry="EVT_BUTTON" />
 											</object>
@@ -395,7 +398,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce" variable="BitmapButton_CirclesBounce" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesBounceClick" entry="EVT_BUTTON" />
 											</object>
@@ -429,8 +433,9 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Collide" variable="BitmapButton_CirclesCollide" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
 												<hidden>1</hidden>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesCollideClick" entry="EVT_BUTTON" />
 											</object>
@@ -463,7 +468,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial" variable="BitmapButton_CirclesRadial" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesRadialClick" entry="EVT_BUTTON" />
 											</object>
@@ -496,7 +502,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma" variable="BitmapButton_CirclesPlasma" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesPlasmaClick" entry="EVT_BUTTON" />
 											</object>
@@ -524,7 +531,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D" variable="BitmapButton_CirclesRadial3D" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_CirclesRadial3DClick" entry="EVT_BUTTON" />
 											</object>
@@ -549,20 +557,21 @@
 											<border>5</border>
 											<option>1</option>
 										</object>
-										<object class="spacer">
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m" variable="BitmapButton_RandomMotion" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
 												<hidden>1</hidden>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_RandomMotionClick" entry="EVT_BUTTON" />
 											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>1</border>
 											<option>1</option>
@@ -603,7 +612,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_ColorWash_Count" variable="BitmapButton_ColorWashCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_ColorWashCountClick" entry="EVT_BUTTON" />
@@ -613,61 +622,77 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
-										<label>Horizontal</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_HFade" variable="CheckBox_ColorWash_HFade" member="yes">
-										<label>Fade</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade" variable="BitmapButton_ColorWashHFade" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>20,20</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ColorWashHFadeClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText31" member="yes">
-										<label>Vertical</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" variable="CheckBox_ColorWash_VFade" member="yes">
-										<label>Fade</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade" variable="BitmapButton_ColorWashVFade" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>20,20</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_ColorWashVFadeClick" entry="EVT_BUTTON" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer70" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT32" variable="StaticText30" member="yes">
+												<label>Horizontal</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_HFade" variable="CheckBox_ColorWash_HFade" member="yes">
+												<label>Fade</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade" variable="BitmapButton_ColorWashHFade" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_ColorWashHFadeClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer75" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText31" member="yes">
+												<label>Vertical</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_ColorWash_VFade" variable="CheckBox_ColorWash_VFade" member="yes">
+												<label>Fade</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade" variable="BitmapButton_ColorWashVFade" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_ColorWashVFadeClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -774,7 +799,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Edge" variable="BitmapButton_CurtainEdge" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainEdgeClick" entry="EVT_BUTTON" />
@@ -809,7 +834,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Curtain_Effect" variable="BitmapButton_CurtainEffect" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainEffectClick" entry="EVT_BUTTON" />
@@ -839,7 +864,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Curtain_Swag" variable="BitmapButton_CurtainSwag" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>20,20</size>
+										<size>21,21</size>
 										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_CurtainSwagClick" entry="EVT_BUTTON" />
@@ -849,29 +874,37 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_Curtain_Repeat" variable="CheckBox_Curtain_Repeat" member="yes">
-										<label>Repeat</label>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer76" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Curtain_Repeat" variable="CheckBox_Curtain_Repeat" member="yes">
+												<label>Repeat</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat" variable="BitmapButton_CurtainRepeat" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>20,20</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_CurtainRepeatClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat" variable="BitmapButton_CurtainRepeat" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>20,20</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_CurtainRepeatClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -1948,7 +1981,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT65" variable="StaticText63" member="yes">
-												<label>Number Arms</label>
+												<label>#Arms</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -1959,8 +1992,7 @@
 												<value>3</value>
 												<min>1</min>
 												<max>20</max>
-												<size>100,40</size>
-												<style>wxSL_LABELS</style>
+												<size>80,20</size>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -1970,7 +2002,7 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON11" variable="BitmapButton_PinwheelNumberArms" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_PinwheelNumberArmsClick" entry="EVT_BUTTON" />
@@ -1989,7 +2021,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT98" variable="StaticText84" member="yes">
-												<label>Size Arms</label>
+												<label>Size</label>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -1999,7 +2031,7 @@
 											<object class="wxSlider" name="ID_SLIDER_Pinwheel_ArmSize" variable="Slider_Pinwheel_ArmSize" member="yes">
 												<value>100</value>
 												<max>400</max>
-												<style>wxSL_LABELS</style>
+												<size>80,20</size>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2036,8 +2068,7 @@
 											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Twist" variable="Slider_Pinwheel_Twist" member="yes">
 												<min>-360</min>
 												<max>360</max>
-												<size>100,40</size>
-												<style>wxSL_LABELS</style>
+												<size>80,20</size>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2064,7 +2095,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT77" variable="StaticText75" member="yes">
-												<label>Arm Thickness</label>
+												<label>Thick</label>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2072,8 +2103,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_Pinwheel_Thickness" variable="Slider_Pinwheel_Thickness" member="yes">
-												<size>100,40</size>
-												<style>wxSL_LABELS</style>
+												<size>80,20</size>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2118,7 +2148,7 @@
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON19" variable="BitmapButton_PinwheelRotation" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
-												<size>18,21</size>
+												<size>21,21</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<handler function="OnBitmapButton_PinwheelRotationClick" entry="EVT_BUTTON" />
 											</object>
@@ -2185,8 +2215,7 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_PinwheelXC" variable="Slider_PinwheelXC" member="yes">
 												<min>-100</min>
-												<size>128,40</size>
-												<style>wxSL_LABELS</style>
+												<size>80,20</size>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -2211,8 +2240,8 @@
 										<object class="sizeritem">
 											<object class="wxSlider" name="ID_SLIDER_PinwheelYC" variable="Slider_PinwheelYC" member="yes">
 												<min>-100</min>
-												<size>40,80</size>
-												<style>wxSL_VERTICAL|wxSL_LABELS|wxSL_INVERSE</style>
+												<size>20,80</size>
+												<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -4520,7 +4549,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette1" variable="BitmapButton_Palette1" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
@@ -4552,7 +4581,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette2" variable="BitmapButton_Palette2" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
@@ -4583,7 +4612,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette3" variable="BitmapButton_Palette3" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
@@ -4614,7 +4643,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette4" variable="BitmapButton_Palette4" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
@@ -4645,7 +4674,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette5" variable="BitmapButton_Palette5" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
@@ -4676,7 +4705,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette6" variable="BitmapButton_Palette6" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
@@ -4775,7 +4804,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
@@ -4806,7 +4835,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
@@ -4840,7 +4869,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,20</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
@@ -4866,7 +4895,7 @@
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
 											<bitmap code="padlock16x16_blue_xpm" />
 											<default>1</default>
-											<size>20,20</size>
+											<size>21,21</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
