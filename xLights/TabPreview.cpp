@@ -277,12 +277,13 @@ void xLightsFrame::OnScrolledWindowPreviewRightDown(wxMouseEvent& event)
         mnu.Append(ID_PREVIEW_ALIGN, 	        "Align", &mnuAlign,"");
         mnu.AppendSeparator();
     }
-    else if (selectedModelCnt ==1 )
+    else if (selectedModelCnt == 0)
     {
-        mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
-        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
-        PopupMenu(&mnu);
+        return;
     }
+    mnu.Append(ID_PREVIEW_MODEL_PROPERTIES,"Model Properties");
+    mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPreviewModelPopup, NULL, this);
+    PopupMenu(&mnu);
 }
 
 void xLightsFrame::OnPreviewModelPopup(wxCommandEvent &event)
