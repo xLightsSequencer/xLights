@@ -598,6 +598,9 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         {
             LastIntensity.resize(SeqNumChannels,1);
             ResetTimer(PLAYING_SEQ);
+        } else if (ShowPreview && previewPlaying)
+        {
+            StopPreviewPlayback();
         }
         break;
     }

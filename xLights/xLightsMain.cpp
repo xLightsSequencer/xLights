@@ -2105,6 +2105,11 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     if (pagenum == PREVIEWTAB)
     {
         UpdatePreview();
+        if(!mediaFilename.IsEmpty())
+        {
+            StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
+            ResetTimer(PAUSE_SEQ);
+        }
     }
     if (pagenum == PAPAGAYOTAB)
     {
@@ -2237,6 +2242,12 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
 //factored out from below so it can be reused by play/pause button -DJ
 void xLightsFrame::StopNow(void)
 {
+    int actTab = Notebook1->GetSelection();
+    if (actTab == PREVIEWTAB)
+    {
+        StopPreviewPlayback();
+        return;
+    }
     PlayerDlg->MediaCtrl->Stop();
     if (play_mode == play_sched)
     {
@@ -2247,7 +2258,7 @@ void xLightsFrame::StopNow(void)
     if (basic.IsRunning()) basic.halt();
     SetPlayMode(play_off);
     ResetTimer(NO_SEQ);
-    switch (Notebook1->GetSelection())
+    switch (actTab)
     {
     case TESTTAB:
         TestButtonsOff();
