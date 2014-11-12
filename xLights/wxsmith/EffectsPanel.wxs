@@ -17,6 +17,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON27" variable="BitmapButton6" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\bars.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticText23" member="yes">
 										<label>Palette Rep</label>
 									</object>
@@ -146,6 +164,22 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer36" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON28" variable="BitmapButton7" member="yes" />
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT27" variable="StaticText25" member="yes">
 										<label>Colors</label>
@@ -300,6 +334,19 @@
 						<object class="wxPanel" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
 								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON29" variable="BitmapButton9" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\circles.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT137" variable="StaticText136" member="yes">
 										<label>Number of Circles</label>
@@ -591,6 +638,22 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON30" variable="BitmapButton10" member="yes" />
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT21" variable="StaticText5" member="yes">
 										<label>Count</label>
 									</object>
@@ -772,6 +835,25 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON22" variable="BitmapButton1" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\curtain.ico</bitmap>
+										<handler function="OnBitmapButton1Click2" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
 										<label>Curtain Edge</label>
 									</object>
@@ -940,6 +1022,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON23" variable="BitmapButton2" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\fire.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT84" variable="StaticText83" member="yes">
 										<label>Height</label>
 									</object>
@@ -1034,6 +1134,24 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton3" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\fireworks.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT95" variable="StaticText94" member="yes">
 										<label>Number of Explosions</label>
@@ -1166,6 +1284,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON25" variable="BitmapButton4" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\garlands.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT34" variable="StaticText32" member="yes">
 										<label>Garland Type</label>
 									</object>
@@ -1229,7 +1365,20 @@
 						<object class="wxPanel" name="ID_PANEL17" variable="Panel1_Glediator" member="yes">
 							<pos>37,9</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
-								<cols>1</cols>
+								<cols>2</cols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON26" variable="BitmapButton5" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\glediator.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer54" member="no">
 										<cols>2</cols>
@@ -1258,6 +1407,11 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Glediator_Filename" variable="TextCtrl_Glediator_Filename" member="yes">
 										<size>255,21</size>
@@ -1265,6 +1419,11 @@
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -1343,6 +1502,24 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" variable="BitmapButton11" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\meteors.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText39" member="yes">
 										<label>Colors</label>

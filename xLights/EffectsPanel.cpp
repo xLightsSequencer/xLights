@@ -13,6 +13,7 @@
 
 //(*IdInit(EffectsPanel)
 const long EffectsPanel::ID_PANEL4 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON27 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT25 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Bars_BarCount = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Bars_BarCount = wxNewId();
@@ -24,6 +25,7 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Bars_3D = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Bars_3D = wxNewId();
 const long EffectsPanel::ID_PANEL8 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON28 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT27 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Butterfly_Colors = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Butterfly_Color = wxNewId();
@@ -40,6 +42,7 @@ const long EffectsPanel::ID_STATICTEXT60 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Butterfly_Direction = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON9 = wxNewId();
 const long EffectsPanel::ID_PANEL10 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON29 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT137 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Circles_Count = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Circles_Count = wxNewId();
@@ -59,6 +62,7 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Random_m = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m = wxNewId();
 const long EffectsPanel::ID_PANEL37 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON30 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT21 = wxNewId();
 const long EffectsPanel::ID_SLIDER_ColorWash_Count = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_ColorWash_Count = wxNewId();
@@ -76,6 +80,7 @@ const long EffectsPanel::ID_CHOICE_CoroFaces_Eyes = wxNewId();
 const long EffectsPanel::ID_STATICTEXT66 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_CoroFaces_Outline = wxNewId();
 const long EffectsPanel::ID_PANEL28 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON22 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT6 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Curtain_Edge = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Curtain_Edge = wxNewId();
@@ -91,6 +96,7 @@ const long EffectsPanel::ID_PANEL1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Faces_Phoneme = wxNewId();
 const long EffectsPanel::ID_PANEL6 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON23 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT84 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Fire_Height = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Fire_Height = wxNewId();
@@ -101,6 +107,7 @@ const long EffectsPanel::ID_STATICTEXT135 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Fire_GrowFire = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Fire_GrowFire = wxNewId();
 const long EffectsPanel::ID_PANEL12 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON24 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT95 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Fireworks_Number_Explosions = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Number_Explosions = wxNewId();
@@ -114,6 +121,7 @@ const long EffectsPanel::ID_STATICTEXT96 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Fireworks_Fade = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Fade = wxNewId();
 const long EffectsPanel::ID_PANEL36 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON25 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT34 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Garlands_Type = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Garlands_Type = wxNewId();
@@ -121,6 +129,7 @@ const long EffectsPanel::ID_STATICTEXT35 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Garlands_Spacing = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Garlands_Spacing = wxNewId();
 const long EffectsPanel::ID_PANEL14 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON26 = wxNewId();
 const long EffectsPanel::ID_BUTTON_GLED_FILE = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON10 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Glediator_Filename = wxNewId();
@@ -132,6 +141,7 @@ const long EffectsPanel::ID_STATICTEXT37 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Life_Seed = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Life_Seed = wxNewId();
 const long EffectsPanel::ID_PANEL16 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON31 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT39 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Meteors_Type = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Meteors_Type = wxNewId();
@@ -568,6 +578,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Bars = new wxPanel(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer35->AddGrowableCol(1);
+    BitmapButton6 = new wxBitmapButton(Panel1_Bars, ID_BITMAPBUTTON27, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\bars.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON27"));
+    FlexGridSizer35->Add(BitmapButton6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer35->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText23 = new wxStaticText(Panel1_Bars, ID_STATICTEXT25, _("Palette Rep"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT25"));
     FlexGridSizer35->Add(StaticText23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Bars_BarCount = new wxSlider(Panel1_Bars, ID_SLIDER_Bars_BarCount, 1, 1, 5, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Bars_BarCount"));
@@ -608,6 +622,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Butterfly = new wxPanel(Choicebook1, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL10"));
     FlexGridSizer36 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer36->AddGrowableCol(1);
+    BitmapButton7 = new wxBitmapButton(Panel1_Butterfly, ID_BITMAPBUTTON28, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON28"));
+    FlexGridSizer36->Add(BitmapButton7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer36->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer36->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText25 = new wxStaticText(Panel1_Butterfly, ID_STATICTEXT27, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT27"));
     FlexGridSizer36->Add(StaticText25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Butterfly_Colors = new wxChoice(Panel1_Butterfly, ID_CHOICE_Butterfly_Colors, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Butterfly_Colors"));
@@ -652,6 +670,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer36->SetSizeHints(Panel1_Butterfly);
     Panel1_Circles = new wxPanel(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL37"));
     FlexGridSizer80 = new wxFlexGridSizer(0, 2, 0, 0);
+    BitmapButton9 = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON29, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\circles.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON29"));
+    FlexGridSizer80->Add(BitmapButton9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer80->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText136 = new wxStaticText(Panel1_Circles, ID_STATICTEXT137, _("Number of Circles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT137"));
     FlexGridSizer80->Add(StaticText136, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer17 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -741,6 +762,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_ColorWash = new wxPanel(Choicebook1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
     FlexGridSizer37 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer37->AddGrowableCol(1);
+    BitmapButton10 = new wxBitmapButton(Panel1_ColorWash, ID_BITMAPBUTTON30, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON30"));
+    FlexGridSizer37->Add(BitmapButton10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer37->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer37->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(Panel1_ColorWash, ID_STATICTEXT21, _("Count"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT21"));
     FlexGridSizer37->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Slider_ColorWash_Count = new wxSlider(Panel1_ColorWash, ID_SLIDER_ColorWash_Count, 1, 1, 10, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_ColorWash_Count"));
@@ -802,6 +827,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Curtain = new wxPanel(Choicebook1, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer7->AddGrowableCol(1);
+    BitmapButton1 = new wxBitmapButton(Panel1_Curtain, ID_BITMAPBUTTON22, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\curtain.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON22"));
+    FlexGridSizer7->Add(BitmapButton1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(Panel1_Curtain, ID_STATICTEXT6, _("Curtain Edge"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer7->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Curtain_Edge = new wxChoice(Panel1_Curtain, ID_CHOICE_Curtain_Edge, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Curtain_Edge"));
@@ -861,6 +890,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fire = new wxPanel(Choicebook1, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL12"));
     FlexGridSizer38 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer38->AddGrowableCol(1);
+    BitmapButton2 = new wxBitmapButton(Panel1_Fire, ID_BITMAPBUTTON23, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\fire.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON23"));
+    FlexGridSizer38->Add(BitmapButton2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer38->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText83 = new wxStaticText(Panel1_Fire, ID_STATICTEXT84, _("Height"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT84"));
     FlexGridSizer38->Add(StaticText83, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Fire_Height = new wxSlider(Panel1_Fire, ID_SLIDER_Fire_Height, 50, 10, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fire_Height"));
@@ -892,6 +925,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fireworks = new wxPanel(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL36"));
     FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer73->AddGrowableCol(1);
+    BitmapButton3 = new wxBitmapButton(Panel1_Fireworks, ID_BITMAPBUTTON24, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\fireworks.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
+    FlexGridSizer73->Add(BitmapButton3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText94 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
     FlexGridSizer73->Add(StaticText94, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Slider_Fireworks_Number_Explosions = new wxSlider(Panel1_Fireworks, ID_SLIDER_Fireworks_Number_Explosions, 10, 1, 95, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Number_Explosions"));
@@ -930,6 +967,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Garlands = new wxPanel(Choicebook1, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL14"));
     FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer39->AddGrowableCol(1);
+    BitmapButton4 = new wxBitmapButton(Panel1_Garlands, ID_BITMAPBUTTON25, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\garlands.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON25"));
+    FlexGridSizer39->Add(BitmapButton4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer39->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer39->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText32 = new wxStaticText(Panel1_Garlands, ID_STATICTEXT34, _("Garland Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT34"));
     FlexGridSizer39->Add(StaticText32, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Garlands_Type = new wxSlider(Panel1_Garlands, ID_SLIDER_Garlands_Type, 0, 0, 4, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Garlands_Type"));
@@ -950,7 +991,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer39->Fit(Panel1_Garlands);
     FlexGridSizer39->SetSizeHints(Panel1_Garlands);
     Panel1_Glediator = new wxPanel(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
-    FlexGridSizer53 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
+    BitmapButton5 = new wxBitmapButton(Panel1_Glediator, ID_BITMAPBUTTON26, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\glediator.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON26"));
+    FlexGridSizer53->Add(BitmapButton5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer53->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer54 = new wxFlexGridSizer(0, 2, 0, 0);
     ButtonGledFile = new wxButton(Panel1_Glediator, ID_BUTTON_GLED_FILE, _("Glediator *.gled File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GLED_FILE"));
     FlexGridSizer54->Add(ButtonGledFile, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -958,8 +1002,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_Glediator_Filename->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer54->Add(BitmapButton_Glediator_Filename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer53->Add(FlexGridSizer54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer53->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Glediator_Filename = new wxTextCtrl(Panel1_Glediator, ID_TEXTCTRL_Glediator_Filename, wxEmptyString, wxDefaultPosition, wxSize(255,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Glediator_Filename"));
     FlexGridSizer53->Add(TextCtrl_Glediator_Filename, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer53->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Glediator->SetSizer(FlexGridSizer53);
     FlexGridSizer53->Fit(Panel1_Glediator);
     FlexGridSizer53->SetSizeHints(Panel1_Glediator);
@@ -988,6 +1034,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Meteors = new wxPanel(Choicebook1, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL18"));
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41->AddGrowableCol(1);
+    BitmapButton11 = new wxBitmapButton(Panel1_Meteors, ID_BITMAPBUTTON31, wxBitmap(wxImage(_T("C:\\Users\\sean\\Documents\\.xlights_3.6.x\\xLights\\include\\meteors.ico"))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
+    FlexGridSizer41->Add(BitmapButton11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer41->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText39 = new wxStaticText(Panel1_Meteors, ID_STATICTEXT39, _("Colors"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT39"));
     FlexGridSizer41->Add(StaticText39, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Choice_Meteors_Type = new wxChoice(Panel1_Meteors, ID_CHOICE_Meteors_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Meteors_Type"));
@@ -2111,6 +2161,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashCountClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashHFadeClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashVFadeClick);
+    Connect(ID_BITMAPBUTTON22,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton1Click2);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Edge,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEdgeClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Curtain_Effect,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainEffectClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Curtain_Swag,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CurtainSwagClick);
@@ -2973,6 +3024,7 @@ void EffectsPanel::OnBitmapButton_Shimmer_Blinks_Per_RowClick(wxCommandEvent& ev
 }
 */
 
-
-
+void EffectsPanel::OnBitmapButton1Click2(wxCommandEvent& event)
+{
+}
 
