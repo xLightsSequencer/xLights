@@ -34,6 +34,8 @@ public:
     void SetPaletteColor(int idx, const wxColour* c);
     wxString GetEffectString();
     wxString GetRandomEffectString(int effidx);
+    void SetButtonColor(wxButton* btn, const wxColour* c);
+
     static const int PALETTE_SIZE = 6;
 
     //(*Declarations(EffectsPanel)
@@ -1176,7 +1178,6 @@ private:
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);
-    void SetButtonColor(wxButton* btn, const wxColour* c);
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetAttrPrefix();
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
