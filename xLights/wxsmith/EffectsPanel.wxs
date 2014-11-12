@@ -8,8 +8,75 @@
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
 					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes" />
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
+								<cols>3</cols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton25" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\None.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText99" member="yes">
+										<label>The &quot;None&quot; effect tells xLights NOT to create anything in this cell. &#x0A;It wont blank out the cell, it wont change the contents of the cell.&#x0A; &quot;None,None&quot; Is used when you want to let imported data come &#x0A;through without having Nutcracker effects step on them.&#x0A; The icon for this effect is indicating that Nutcracker is &#x0A;unplugged from generating anything.</label>
+										<style>wxRAISED_BORDER</style>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
 						<label>None</label>
+					</object>
+					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL19" variable="Panel1_Off" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
+								<cols>3</cols>
+								<rows>5</rows>
+								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON43" variable="BitmapButton23" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\Off.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT100" variable="StaticText97" member="yes">
+										<label>This Effect simply turns every pixel off on this model.</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Off</label>
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
@@ -165,7 +232,9 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON28" variable="BitmapButton7" member="yes" />
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON28" variable="BitmapButton7" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\butterfly.ico</bitmap>
+									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
@@ -638,7 +707,9 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON30" variable="BitmapButton10" member="yes" />
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON30" variable="BitmapButton10" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\ColorWash.ico</bitmap>
+									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
@@ -1436,6 +1507,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON32" variable="BitmapButton12" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\life.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT36" variable="StaticText35" member="yes">
 										<label>Cells to start</label>
 									</object>
@@ -2154,6 +2243,19 @@
 								<cols>2</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton13" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\pinwheel.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer63" member="no">
 										<cols>3</cols>
 										<object class="sizeritem">
@@ -2438,6 +2540,24 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer57" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON34" variable="BitmapButton14" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\ripple.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT71" variable="StaticText69" member="yes">
 										<label>Object to Draw</label>
@@ -2733,10 +2853,30 @@
 										<object class="wxFlexGridSizer" variable="FlexGridSizer24" member="no">
 											<cols>3</cols>
 											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON35" variable="BitmapButton15" member="yes">
+													<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\singleStrand.ico</bitmap>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="spacer">
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
 												<object class="wxStaticText" name="ID_STATICTEXT63" variable="StaticText61" member="yes">
 													<label>Colors</label>
 												</object>
-												<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+												<flag>wxALIGN_RIGHT|wxALIGN_TOP</flag>
+												<border>5</border>
+												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes">
@@ -2948,6 +3088,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON36" variable="BitmapButton16" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\snowflakes.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT80" variable="StaticText79" member="yes">
 										<label>Max flakes</label>
 									</object>
@@ -3016,6 +3174,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON37" variable="BitmapButton17" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\snowstorm.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT45" variable="StaticText45" member="yes">
 										<label>Max flakes</label>
 									</object>
@@ -3080,6 +3256,24 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON38" variable="BitmapButton18" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\spirals.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT38" variable="StaticText34" member="yes">
 										<label>Palette Rep</label>
@@ -3313,6 +3507,24 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON39" variable="BitmapButton19" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\spirograph.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT88" variable="StaticText87" member="yes">
 										<label>R - Radius of outer circle</label>
@@ -4313,6 +4525,24 @@
 								<rows>5</rows>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON40" variable="BitmapButton20" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\tree.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT87" variable="StaticText86" member="yes">
 										<label>Number Branches</label>
 									</object>
@@ -4352,6 +4582,24 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON41" variable="BitmapButton21" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\twinkle.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT86" variable="StaticText85" member="yes">
 										<label>Number Lights</label>
 									</object>
@@ -4373,7 +4621,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" variable="BitmapButton_TwinkleCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleCountClick" entry="EVT_BUTTON" />
 									</object>
@@ -4404,7 +4653,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" variable="BitmapButton_TwinkleSteps" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleStepsClick" entry="EVT_BUTTON" />
 									</object>
@@ -4416,12 +4666,7 @@
 									<object class="wxCheckBox" name="ID_CHECKBOX_Twinkle_Strobe" variable="CheckBox_Twinkle_Strobe" member="yes">
 										<label>Strobe</label>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -4429,12 +4674,18 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" variable="BitmapButton_TwinkleStrobe" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_TwinkleStrobeClick" entry="EVT_BUTTON" />
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>1</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -4446,6 +4697,24 @@
 							<pos>184,10</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
 								<cols>3</cols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON42" variable="BitmapButton22" member="yes">
+										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\wave.ico</bitmap>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT49" variable="StaticText47" member="yes">
 										<label>Wave Type</label>

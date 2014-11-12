@@ -314,9 +314,12 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                 else if (name.StartsWith("ID_BUTTON"))
                 {
                     color.Set(value);
-                    if (efPanel != NULL) {
+                    if (efPanel != NULL)
+                    {
                         efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
-                    } else {
+                    }
+                    else
+                    {
                         CtrlWin->SetBackgroundColour(color);
                     }
                     //CtrlWin->SetBackgroundColour(color);
@@ -1177,6 +1180,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         retval = false;
     }
+    else if (effect == "Off")
+    {
+        buffer.RenderOff();
+    }
     else if (effect == "Bars")
     {
         buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+"SLIDER_Bars_BarCount"]),
@@ -1438,6 +1445,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     {
     case eff_NONE:
         retval = false;
+        break;   // none
+    case eff_OFF:
+        buffer.RenderOff();
         break;   // none
     case eff_BARS:
         buffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
@@ -3058,19 +3068,21 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     SeqDataType* retData;
-    
+
 
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
     retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
-    
+
     size_t firstChannel = 0;
-    if (modelNode->GetAttribute("exportFirstStrand") != "") {
+    if (modelNode->GetAttribute("exportFirstStrand") != "")
+    {
         int firstNode = 0;
         firstNode = wxAtoi(modelNode->GetAttribute("exportFirstStrand"));
         AppendConvertStatus(wxString::Format("First from model: %d\n", firstNode));
-        if (firstNode < 1) {
+        if (firstNode < 1)
+        {
             firstNode = 1;
         }
         firstNode--;
@@ -3078,10 +3090,12 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
         AppendConvertStatus(wxString::Format("Pixels per strand: %d\n", PixelsPerStrand));
         firstNode *= PixelsPerStrand;
         AppendConvertStatus(wxString::Format("Calced firstNode: %d\n", firstNode));
-        if (firstNode > NodeCnt) {
+        if (firstNode > NodeCnt)
+        {
             firstNode = 0;
         }
-        if (firstNode > 0) {
+        if (firstNode > 0)
+        {
             size_t chnum;
             unsigned char intensity;
             buffer.GetChanIntensity(firstNode, 0, &firstChannel, &intensity);
@@ -3089,8 +3103,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                                                  firstNode, NodeCnt, firstChannel));
         }
     }
-    
-    
+
+
     LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
@@ -3158,9 +3172,12 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
-                        if (chnum >= firstChannel) {
+                        if (chnum >= firstChannel)
+                        {
                             chnum -= firstChannel;
-                        } else {
+                        }
+                        else
+                        {
                             chnum = cn * NodeCnt - firstChannel + chnum;
                         }
                         (*retData)[chnum*SeqNumPeriods+p]=intensity;
@@ -3223,6 +3240,11 @@ void xLightsFrame::SaveSequence()
         SeqXmlFileName=oName.GetFullPath();
     }
 
+
+    wxStopWatch sw; // start a stopwatch timer
+
+
+
     StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
     int r,c;
     wxXmlDocument doc;
@@ -3259,7 +3281,10 @@ void xLightsFrame::SaveSequence()
     RenderGridToSeqData();  // incorporate effects into xseq file
     WriteXLightsFile(xlightsFilename);
     UnsavedChanges = false;
-    StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
+    float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+    wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+    StatusBar1->SetStatusText(displayBuff);
+    //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)

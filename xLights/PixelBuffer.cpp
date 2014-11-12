@@ -421,6 +421,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
     }
 }
 
+void PixelBufferClass::RenderOff(void)
+{
+    Effect[CurrentLayer].RenderOff();
+}
 
 void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
