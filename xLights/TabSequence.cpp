@@ -196,6 +196,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
     wxColour color;
     wxWindow *CtrlWin, *ContextWin;
     wxString before,after,name,value;
+    EffectsPanel *efPanel;
     int cnt=0;
 
 //NOTE: the settings loop after this section does not initialize controls.
@@ -277,14 +278,17 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
             {
                 ContextWin=EffectsPanel1;
                 name="ID_"+name.Mid(3);
+                efPanel = EffectsPanel1;
             }
             else if (name.StartsWith("E2_"))
             {
                 ContextWin=EffectsPanel2;
                 name="ID_"+name.Mid(3);
+                efPanel = EffectsPanel2;
             }
             else
             {
+                efPanel = NULL;
                 ContextWin=SeqPanelLeft;
             }
             value=before.AfterFirst('=');
@@ -310,7 +314,12 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                 else if (name.StartsWith("ID_BUTTON"))
                 {
                     color.Set(value);
-                    CtrlWin->SetBackgroundColour(color);
+                    if (efPanel != NULL) {
+                        efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
+                    } else {
+                        CtrlWin->SetBackgroundColour(color);
+                    }
+                    //CtrlWin->SetBackgroundColour(color);
                     //SetTextColor(CtrlWin);
                 }
                 else if (name.StartsWith("ID_CHECKBOX"))

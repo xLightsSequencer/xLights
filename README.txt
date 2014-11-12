@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+    -bug (dkulp) OSX - selecting cells on the Nutcracker grid was not updating the colors on the palette buttons
     -bug (dkulp) On OSX Yosemite, the Font dialog for the text effect would cause a crash.
 3.6.3	Nov 11, 2014
     -bug (dkulp) Fix problem of stars using a single RGB node per concentric layer not displaying correctly.
