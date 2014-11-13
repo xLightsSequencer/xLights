@@ -1,0 +1,25 @@
+/* XPM */
+static const char *twinkle[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 3 1 ",
+"  c #1616C7C73F3F",
+". c #00008484FFFF",
+"X c None",
+/* pixels */
+"XXXXXXXXXXXXXXXX",
+"XXXX.XXXXX.XXXXX",
+"XX.XXX.XXXXXXXXX",
+"XXXXXXXX XXXX.XX",
+"XXXXXXXXXXXXXX X",
+"XX.XXXXXX.XX.XXX",
+"XXXX XXXXXXXXXXX",
+"X XXXXXXXXXXXXXX",
+"XX.XX.X XXX..X X",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXX.X.XXX.XX",
+"X XXXXX.XXXXXXX.",
+"XXXXXXXXXXXXXXXX",
+"XXX X.XXX XXXXXX",
+"XXXXXXXXXXXX...X",
+"XXXXXXX.XX XXXXX"
+};

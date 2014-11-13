@@ -1,0 +1,26 @@
+/* XPM */
+static const char *tree[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 4 1 ",
+"  c #AB4409",
+". c #13AB09",
+"X c #ABA809",
+"o c None",
+/* pixels */
+"ooooooo..ooooooo",
+"oooooo....oooooo",
+"ooooo... ..ooooo",
+"oooooo....oooooo",
+"ooooo..X...ooooo",
+"ooooo......ooooo",
+"oooo........oooo",
+"ooooo..X...ooooo",
+"oooo..... ..oooo",
+"ooo.. .......ooo",
+"oo............oo",
+"oooo........oooo",
+"ooo....XX....ooo",
+"oo... ..... ..oo",
+"o..............o",
+"................"
+};

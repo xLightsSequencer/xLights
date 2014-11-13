@@ -1,0 +1,26 @@
+/* XPM */
+static const char *pinwheel[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 4 1 ",
+"  c red",
+". c #13132F2FE8E8",
+"X c #AFAF1313E8E8",
+"o c None",
+/* pixels */
+"ooooo....ooooooo",
+"ooooooooo..ooooo",
+"ooooooooooo.oooo",
+"ooooooooooo.oooo",
+"ooooooooooo.oooo",
+"ooo   o oo.ooooo",
+"o  ooo oo.oooooo",
+" oooooo .ooooooo",
+"  oooooXoooooooo",
+"  oooooXoooooooo",
+" ooooooXoooooooo",
+"ooooooooXooooooo",
+"oooooooooXooooXX",
+"ooooooooooXooXoo",
+"oooooooooooXXooo",
+"oooooooooooooooo"
+};

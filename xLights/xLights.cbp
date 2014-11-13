@@ -251,8 +251,6 @@
 		<Unit filename="ChannelMapDialog.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
-		<Unit filename="XlightsDrawable.cpp" />
-		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectListDialog.cpp" />
@@ -301,6 +299,7 @@
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
+		<Unit filename="RenderOff.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
 		<Unit filename="RenderPinwheel.cpp" />
@@ -355,6 +354,8 @@
 		<Unit filename="ViewsDialog.h" />
 		<Unit filename="WholeHouseModelNameDialog.cpp" />
 		<Unit filename="WholeHouseModelNameDialog.h" />
+		<Unit filename="XlightsDrawable.cpp" />
+		<Unit filename="XlightsDrawable.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="dlgPreviewSize.cpp" />
 		<Unit filename="dlgPreviewSize.h" />

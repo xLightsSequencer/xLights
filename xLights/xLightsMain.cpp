@@ -40,6 +40,8 @@
 #include "../include/control-stop-blue-icon.xpm"
 #include "../include/control-stop-icon.xpm"
 
+
+
 //(*InternalHeaders(xLightsFrame)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>

@@ -1,0 +1,25 @@
+/* XPM */
+static const char *bars[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 3 1 ",
+"  c #FF0008",
+". c #1AFF00",
+"X c #0062FF",
+/* pixels */
+"                ",
+"                ",
+"                ",
+"                ",
+"                ",
+"................",
+"................",
+"................",
+"................",
+"................",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX"
+};

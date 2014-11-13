@@ -1,0 +1,27 @@
+/* XPM */
+static const char *curtain[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 5 1 ",
+"  c gray2",
+". c #FF0008",
+"X c #1AFF00",
+"o c #777F8C",
+"O c #0062FF",
+/* pixels */
+"oooo ...... oooo",
+"oooo ...... oooo",
+"oooo ...... oooo",
+"oooo ...... oooo",
+"oooo ...... oooo",
+"oooo XXXXXX oooo",
+"oooo XXXXXX oooo",
+"oooo XXXXXX oooo",
+"oooo XXXXXX  ooo",
+"ooo  XXXXXX  ooo",
+"ooo OOOOOOOO ooo",
+"oo  OOOOOOOO  oo",
+"o  OOOOOOOOOO  o",
+"  OOOOOOOOOOOO  ",
+"OOOOOOOOOOOOOOOO",
+"OOOOOOOOOOOOOOOO"
+};

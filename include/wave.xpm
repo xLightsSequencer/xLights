@@ -1,0 +1,27 @@
+/* XPM */
+static const char *wave[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 5 1 ",
+"  c red",
+". c #1D1DCFCF2626",
+"X c #FFFF84840000",
+"o c #1D1D5555CFCF",
+"O c None",
+/* pixels */
+"OOOoooOOOOOOOOOO",
+"OOoooooooOOOOOOO",
+"ooo.....oooOOOOO",
+"o...XXXX..oOOOOo",
+"..XXX  XX.ooOooo",
+".XX  X  X..oOo..",
+"XX  XXX XX.ooo.X",
+"X XX..X  X..o.X ",
+" X.....X XX...X ",
+"X..ooo.X  X..X  ",
+"..ooOo.XX XXXX X",
+".ooOOo..X  XX  X",
+"ooOOOoo..X    X.",
+"oOOOOOoo.XXX XX.",
+"OOOOOOOoo..XXX..",
+"OOOOOOOOoo.....o"
+};

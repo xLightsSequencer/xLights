@@ -1,0 +1,25 @@
+/* XPM */
+static const char *spirals[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 3 1 ",
+"  c #FF0008",
+". c #0051FF",
+"X c None",
+/* pixels */
+"XXXX.XXX XXX.XXX",
+"XXX..XX  XXX.XXX",
+"XX..XXX XXX.XXX ",
+"X..XXX  XX..XX  ",
+"X.XXX  XX..XXX X",
+".XXX  XX..XXX XX",
+".XX  XX..XXX  XX",
+"XX  XX..XXX  XXX",
+"X XXXX.XXX  XXX.",
+"  XXX..XX  XXX..",
+" XXX..XX  XX....",
+" XX..XX  XXX.XXX",
+"XXX.XX  XXX.XXXX",
+"XX..X  XXX..XXX ",
+"X..X  XXX..XXXX ",
+"..XX XXX..XXXX  "
+};

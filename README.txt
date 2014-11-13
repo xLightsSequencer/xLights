@@ -6,8 +6,20 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.4	Nov 12, 2014
+	-bug (frankr) Fixed playback issue. If you play a sequence in the PREVIEW tab, stop, go and edit some effects in the NUYTCRACKER tab,
+			press save and then go back to the PREVIEW tab, xlights would freeze up. This should be fixed now
+	-enh (frankr) improvements to audio scrubbing and better handling of stop now button on
+	-bug (frankr) When first entering teh PREVIEW tab , if you right click and select model xlights crashed. Fixed.
+	-enh (sean) New effect "Off". This effect is teh equivalent of "Colorwash, 1color=BLACK"
+	-enh (sean) When saving a sequence the elapsed time for the save is now shown in the bottom status line.
+	-enh (sean) New favicons have been added to the left most corner of Effects. The purpose of these is to have a graphical
+			representation of effects. This is pre work for the new xlights 4.0 coming early next year. In xlights 4, effects will
+			be dropped onto horizontal timelines, for for each model.
     -bug (dkulp) OSX - selecting cells on the Nutcracker grid was not updating the colors on the palette buttons
     -bug (dkulp) On OSX Yosemite, the Font dialog for the text effect would cause a crash.
+	-bug (dkulp) sometimes xlights would crash when you selected multiple objects and then right clicked to the alignment menu. Fixed
+	
 3.6.3	Nov 11, 2014
     -bug (dkulp) Fix problem of stars using a single RGB node per concentric layer not displaying correctly.
 	-enh (sean) Moved "Create Whole House Model" button to be higher on the screen. This helps people with lower
