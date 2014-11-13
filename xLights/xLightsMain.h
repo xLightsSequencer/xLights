@@ -429,10 +429,11 @@ private:
     void OnButtonSetPreviewSizeClick(wxCommandEvent& event);
     void OnButtonSetBackgroundImageClick(wxCommandEvent& event);
     void OnScrolledWindowPreviewRightDown(wxMouseEvent& event);
-	void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
+    void OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event);
     void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
+    void OnGrid1CellLeftClick1(wxGridEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

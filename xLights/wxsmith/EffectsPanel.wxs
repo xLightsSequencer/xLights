@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="EffectsPanel">
+		<size>21,21</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
@@ -13,7 +14,6 @@
 								<cols>3</cols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton25" member="yes">
-										<bitmap code="None" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 										<handler function="OnBitmapButton25Click" entry="EVT_BUTTON" />
@@ -54,7 +54,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON43" variable="BitmapButton23" member="yes">
-										<bitmap code="Off" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -91,7 +90,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON27" variable="BitmapButton6" member="yes">
-										<bitmap code="bars" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 									</object>
@@ -241,16 +239,15 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON28" variable="BitmapButton7" member="yes">
-										<bitmap code="butterfly" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -415,7 +412,6 @@
 								<cols>2</cols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON29" variable="BitmapButton9" member="yes">
-										<bitmap code="circles" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -720,7 +716,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON30" variable="BitmapButton10" member="yes">
-										<bitmap code="ColorWash" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -921,7 +916,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON22" variable="BitmapButton1" member="yes">
-										<bitmap code="curtain" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 										<handler function="OnBitmapButton1Click2" entry="EVT_BUTTON" />
@@ -1110,7 +1104,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON23" variable="BitmapButton2" member="yes">
-										<bitmap code="fire" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -1225,7 +1218,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton3" member="yes">
-										<bitmap code="fireworks" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -1376,7 +1368,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON25" variable="BitmapButton4" member="yes">
-										<bitmap code="garlands" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -1461,7 +1452,6 @@
 								<cols>2</cols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON26" variable="BitmapButton5" member="yes">
-										<bitmap code="glediator" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -1532,11 +1522,10 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON32" variable="BitmapButton12" member="yes">
-										<bitmap code="life" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -1619,7 +1608,6 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" variable="BitmapButton11" member="yes">
-										<bitmap code="meteors" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
@@ -2272,7 +2260,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton13" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\pinwheel.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -2570,7 +2559,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON34" variable="BitmapButton14" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\ripple.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -2882,7 +2872,8 @@
 											<cols>3</cols>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON35" variable="BitmapButton15" member="yes">
-													<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\singleStrand.ico</bitmap>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 												</object>
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -3117,7 +3108,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON36" variable="BitmapButton16" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\snowflakes.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -3203,7 +3195,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON37" variable="BitmapButton17" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\snowstorm.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -3281,12 +3274,16 @@
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
+							<size>21,21</size>
+							<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON38" variable="BitmapButton18" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\spirals.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
+										<handler function="OnBitmapButton18Click" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -3324,7 +3321,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Count" variable="BitmapButton_SpiralsCount" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsCountClick" entry="EVT_BUTTON" />
 									</object>
@@ -3354,7 +3352,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Rotation" variable="BitmapButton_SpiralsRotation" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsRotationClick" entry="EVT_BUTTON" />
 									</object>
@@ -3382,7 +3381,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Thickness" variable="BitmapButton_SpiralsThickness" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsThicknessClick" entry="EVT_BUTTON" />
 									</object>
@@ -3412,7 +3412,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Spirals_Direction" variable="BitmapButton_SpiralsDirection" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsDirectionClick" entry="EVT_BUTTON" />
 									</object>
@@ -3435,7 +3436,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Blend" variable="BitmapButton_SpiralsBlend" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_SpiralsBlendClick" entry="EVT_BUTTON" />
 											</object>
@@ -3465,7 +3467,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_3D" variable="BitmapButton_Spirals3D" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_Spirals3DClick" entry="EVT_BUTTON" />
 									</object>
@@ -3488,7 +3491,8 @@
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Grow" variable="BitmapButton_SpiralsGrow" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<default>1</default>
-												<size>22,21</size>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnBitmapButton_SpiralsGrowClick" entry="EVT_BUTTON" />
 											</object>
@@ -3518,7 +3522,8 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Spirals_Shrink" variable="BitmapButton_SpiralsShrink" member="yes">
 										<bitmap code="padlock16x16_blue_xpm" />
 										<default>1</default>
-										<size>22,21</size>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnBitmapButton_SpiralsShrinkClick" entry="EVT_BUTTON" />
 									</object>
@@ -3537,7 +3542,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON39" variable="BitmapButton19" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\spirograph.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4554,7 +4560,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON40" variable="BitmapButton20" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\tree.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4611,7 +4618,8 @@
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON41" variable="BitmapButton21" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\twinkle.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -4727,7 +4735,8 @@
 								<cols>3</cols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON42" variable="BitmapButton22" member="yes">
-										<bitmap>C:\Users\sean\Documents\.xlights_3.6.x\xLights\include\wave.ico</bitmap>
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>

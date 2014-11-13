@@ -1090,7 +1090,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectsPanel2 = new EffectsPanel(Panel5, ID_PANEL_EFFECTS2, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
     Notebook2->AddPage(Panel4, _("Effect1"), false);
     Notebook2->AddPage(Panel5, _("Effect2"), false);
-    BoxSizer5->Add(Notebook2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BoxSizer5->Add(Notebook2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer4->Add(BoxSizer5, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SeqPanelRight->SetSizer(BoxSizer4);
     BoxSizer4->Fit(SeqPanelRight);
@@ -1526,6 +1526,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_CHOICE_VIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_ViewsSelect);
     Connect(ID_BT_EDIT_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtEditViewsClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ChannelMapClick);
+    Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick1);
     Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
     Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
@@ -2728,5 +2729,9 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
 
 
 void xLightsFrame::OnChoicebook1PageChanged(wxChoicebookEvent& event)
+{
+}
+
+void xLightsFrame::OnGrid1CellLeftClick1(wxGridEvent& event)
 {
 }

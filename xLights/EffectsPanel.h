@@ -1229,6 +1229,7 @@ private:
     void OnBitmapButton_Pinwheel_ArmSizeClick(wxCommandEvent& event);
     void OnBitmapButton1Click2(wxCommandEvent& event);
     void OnBitmapButton25Click(wxCommandEvent& event);
+    void OnBitmapButton18Click(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);
