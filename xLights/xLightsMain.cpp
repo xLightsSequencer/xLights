@@ -2457,6 +2457,18 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
             case 'S':
                 uc = WXK_CONTROL_S;
                 break;
+            case 'c':
+            case 'C':
+                uc = WXK_CONTROL_C;
+                break;
+            case 'v':
+            case 'V':
+                uc = WXK_CONTROL_V;
+                break;
+            case 'x':
+            case 'X':
+                uc = WXK_CONTROL_X;
+                break;
             }
         }
         switch (uc)
