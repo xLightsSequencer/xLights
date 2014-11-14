@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="EffectsPanel">
-		<size>21,21</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
@@ -47,10 +46,8 @@
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL19" variable="Panel1_Off" member="yes">
-							<size>21,21</size>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
 								<cols>3</cols>
-								<rows>5</rows>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON43" variable="BitmapButton23" member="yes">
@@ -3274,7 +3271,6 @@
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
-							<size>21,21</size>
 							<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
 								<cols>3</cols>

@@ -615,7 +615,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
-    Create(parent, wxID_ANY, wxDefaultPosition, wxSize(21,21), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
     Panel1_None = new wxPanel(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
@@ -630,8 +630,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_None->SetSizer(FlexGridSizer78);
     FlexGridSizer78->Fit(Panel1_None);
     FlexGridSizer78->SetSizeHints(Panel1_None);
-    Panel1_Off = new wxPanel(Choicebook1, ID_PANEL19, wxDefaultPosition, wxSize(21,21), wxTAB_TRAVERSAL, _T("ID_PANEL19"));
-    FlexGridSizer77 = new wxFlexGridSizer(5, 3, 0, 0);
+    Panel1_Off = new wxPanel(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL19"));
+    FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer77->AddGrowableCol(1);
     BitmapButton23 = new wxBitmapButton(Panel1_Off, ID_BITMAPBUTTON43, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON43"));
     BitmapButton23->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -641,8 +641,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText97 = new wxStaticText(Panel1_Off, ID_STATICTEXT100, _("This Effect simply turns every pixel off on this model."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT100"));
     FlexGridSizer77->Add(StaticText97, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Off->SetSizer(FlexGridSizer77);
-    SetSizer(FlexGridSizer77);
-    Layout();
+    FlexGridSizer77->Fit(Panel1_Off);
+    FlexGridSizer77->SetSizeHints(Panel1_Off);
     Panel1_Bars = new wxPanel(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer35->AddGrowableCol(1);
@@ -1612,7 +1612,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Snowstorm->SetSizer(FlexGridSizer44);
     FlexGridSizer44->Fit(Panel1_Snowstorm);
     FlexGridSizer44->SetSizeHints(Panel1_Snowstorm);
-    Panel1_Spirals = new wxPanel(Choicebook1, ID_PANEL26, wxDefaultPosition, wxSize(21,21), wxTAB_TRAVERSAL, _T("ID_PANEL26"));
+    Panel1_Spirals = new wxPanel(Choicebook1, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL26"));
     Panel1_Spirals->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
     FlexGridSizer45 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer45->AddGrowableCol(1);
@@ -1688,8 +1688,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_SpiralsShrink->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer45->Add(BitmapButton_SpiralsShrink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     Panel1_Spirals->SetSizer(FlexGridSizer45);
-    SetSizer(FlexGridSizer45);
-    Layout();
+    FlexGridSizer45->Fit(Panel1_Spirals);
+    FlexGridSizer45->SetSizeHints(Panel1_Spirals);
     Panel1_Spirograph = new wxPanel(Choicebook1, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL35"));
     FlexGridSizer72 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer72->AddGrowableCol(1);
@@ -2283,8 +2283,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
     SetSizer(FlexGridSizer1);
-    SetSizer(FlexGridSizer1);
-    Layout();
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BITMAPBUTTON45,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton25Click);
     Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PaletteRepClick);
