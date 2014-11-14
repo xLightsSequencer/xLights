@@ -24,7 +24,6 @@
 #include "RgbEffects.h"
 #include <wx/utils.h>
 #include "djdebug.cpp"
-
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG  -99 //unbuffered in case app crashes
 

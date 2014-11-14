@@ -37,8 +37,8 @@ Source: "C:\Users\sean\Documents\c++\songs/*.*"; DestDir: "{app}/songs"    ; Fla
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 
 ;Source: "include/*.xpm"; DestDir: "{app}/include" 
-Source: "bin/*.ico"; DestDir: "{app}" 
-Source: "bin/*.xpm"; DestDir: "{app}/bin" 
+
+
 
 ;Source: "c:\wxWidgets\lib\gcc_dll\wxmsw294u_gcc_custom.dll"; DestDir: "{app}"
 ;Source: "C:\wxWidgets-3.0.0\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
