@@ -433,7 +433,6 @@ private:
     void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
-    void OnGrid1CellLeftClick1(wxGridEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
