@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+
+        -bug (dkulp)  If the preview is too large for the viewport such that part of the preview was cut off 
+                at the top, clicking wasn't adjusting the Y coordinate to compensate when determining what 
+                was being clicked on.
 3.6.4	Nov 12, 2014
 	-bug (frankr) Fixed playback issue. If you play a sequence in the PREVIEW tab, stop, go and edit some effects in the NUYTCRACKER tab,
 			press save and then go back to the PREVIEW tab, xlights would freeze up. This should be fixed now

@@ -88,6 +88,7 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
+		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
@@ -391,6 +392,7 @@
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
+				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				67E7087717B51AB400A22034 /* Supporting Files */,
 				67C7969017B5791700CEE775 /* TabConvert.cpp */,
 				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
@@ -411,7 +413,6 @@
 			isa = PBXGroup;
 			children = (
 				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
-				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
 				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
 				67A619EE17B51C0F008E95BB /* resource.rc */,
@@ -528,6 +529,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,
 				675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */,
