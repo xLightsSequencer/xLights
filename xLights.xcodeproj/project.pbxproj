@@ -88,8 +88,6 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
-		67B4C91A17B536D60006B951 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67B4C91917B536D60006B951 /* icon.icns */; };
-		67BAE6E31A08252700CB7041 /* spxml-0.5 in Resources */ = {isa = PBXBuildFile; fileRef = 67BAE6E21A08252700CB7041 /* spxml-0.5 */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
@@ -500,7 +498,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				67A61A4817B51C0F008E95BB /* resource.rc in Resources */,
-				67BAE6E31A08252700CB7041 /* spxml-0.5 in Resources */,
 				67A61A5A17B51C0F008E95BB /* AddShowDialog.wxs in Resources */,
 				67A61A5B17B51C0F008E95BB /* ChannelLayoutDialog.wxs in Resources */,
 				67A61A5C17B51C0F008E95BB /* ChannelMapDialog.wxs in Resources */,
@@ -520,7 +517,6 @@
 				67A61A6A17B51C0F008E95BB /* SerialPortWithRate.wxs in Resources */,
 				67A61A6B17B51C0F008E95BB /* ShowDatesDialog.wxs in Resources */,
 				67A61A6C17B51C0F008E95BB /* xLightsframe.wxs in Resources */,
-				67B4C91A17B536D60006B951 /* icon.icns in Resources */,
 				67C7968F17B578B100CEE775 /* icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
