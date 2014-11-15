@@ -1,4 +1,6 @@
+#include "xLightsMain.h"
 #include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
+#include "heartbeat.h"
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -207,18 +209,26 @@ void xLightsFrame::SelectModel(wxString name)
 
 void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
 {
+    int y = event.GetY();
+    wxSize s1 = ScrolledWindowPreview->GetSize();
+    wxSize s2 = modelPreview->GetSize();
+    if (s2.y > s1.y) {
+        //part of top of preview is cut off, adjust
+        y += s2.y - s1.y;
+    }
+    
     if (event.ControlDown())
     {
-        SelectMultipleModels(event.GetX(),event.GetY());
+        SelectMultipleModels(event.GetX(),y);
         m_dragging = true;
         m_previous_mouse_x = event.GetPosition().x;
-        m_previous_mouse_y = event.GetPosition().y;
+        m_previous_mouse_y = y;
     }
     else if (event.ShiftDown())
     {
         m_creating_bound_rect = true;
         m_bound_start_x = event.GetPosition().x;
-        m_bound_start_y = modelPreview->getHeight() - event.GetPosition().y;
+        m_bound_start_y = modelPreview->getHeight() - y;
     }
     else if (m_over_handle == OVER_ROTATE_HANDLE)
     {
@@ -239,11 +249,11 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if(SelectSingleModel(event.GetX(),event.GetY()))
+        if(SelectSingleModel(event.GetX(),y))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetPosition().x;
-            m_previous_mouse_y = event.GetPosition().y;
+            m_previous_mouse_y = y;
             StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         }
     }

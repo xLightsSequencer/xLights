@@ -2963,6 +2963,7 @@ void xLightsFrame::RenderGridToSeqData()
 //       if (!buffer.MyDisplay) continue;
         NodeCnt=buffer.GetNodeCount();
         ChannelLimit=buffer.GetLastChannel() + 1;
+        bool bufferClear = false;
 
         if (ChannelLimit > SeqNumChannels)
         {
@@ -2984,11 +2985,17 @@ void xLightsFrame::RenderGridToSeqData()
 //            buffer.Clear();
 //            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
 
-            if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
-                buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
-            if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
-                buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-
+            if (!bufferClear) {
+                if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg()) {
+                    bufferClear = true;
+                    buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+                }
+                if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg()) {
+                    buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
+                } else {
+                    bufferClear = false;
+                }
+            }
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
@@ -3037,6 +3044,7 @@ void xLightsFrame::RenderGridToSeqData()
 
             if (effectsToUpdate)
             {
+                bufferClear = false;
                 //TextCtrlLog->AppendText(wxString::Format("  period %d\n",p));
                 buffer.CalcOutput(p);
                 // update SeqData with contents of buffer
