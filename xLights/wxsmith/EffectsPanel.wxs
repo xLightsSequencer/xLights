@@ -12,7 +12,7 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
 								<cols>3</cols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton25" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton_None" member="yes">
 										<bitmap code="None" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
@@ -1222,7 +1222,7 @@
 								<cols>3</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton3" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton_fireworks" member="yes">
 										<bitmap code="fireworks" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
@@ -1619,7 +1619,7 @@
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" variable="BitmapButton11" member="yes">
 										<bitmap code="meteors" />
 										<size>21,21</size>
-										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
+										<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -2269,7 +2269,7 @@
 								<cols>2</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton13" member="yes">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton_pinwheel" member="yes">
 										<bitmap code="pinwheel" />
 										<size>21,21</size>
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
@@ -3289,7 +3289,6 @@
 					</object>
 					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
-							<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>

@@ -1,30 +1,32 @@
 /* XPM */
 static const char *butterfly[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 8 1 ",
-"  c #FF0008",
-". c #FF7B00",
-"X c #00FF44",
-"o c #EEFF00",
-"O c #6A00FF",
-"+ c #0077FF",
-"@ c #E100FF",
-"# c #00FFC3",
+/* width height num_colors chars_per_pixel */
+"16 16 8 1",
+/* colors */
+"  c #00ff44",
+". c #00ffc3",
+"X c #0077ff",
+"o c #6a00ff",
+"O c #e100ff",
+"+ c #ff0008",
+"@ c #eeff00",
+"# c #ff7b00",
 /* pixels */
-"X#+O@@O+#X      ",
-"oX#+O@O+#XXo    ",
-" oX#+OO+#Xoo    ",
-"o oX#++#Xoo.    ",
-"Xo oX##Xoo. .oo ",
-"#Xo oXXoo. .oXX ",
-"+#Xo ooo. .oX###",
-"O+#Xo .. .oX##++",
-"@+#Xo.  .oX#++OO",
-"O+#Xo.  oX#++O@@",
-"+#Xo. .o oX#+O@@",
-"#Xo. .oXo oX#+O@",
-"Xo. .oX#Xo oX#+O",
-"o. .oX#+#Xo oX#+",
-". .oX#+O+#Xo oX#",
-" .oX#+O@O+#Xo oX"
+" .XoOOoX. ++++++",
+"@ .XoOoX.  @++++",
+"+@ .XooX. @@++++",
+"@+@ .XX. @@#++++",
+" @+@ .. @@#+#@@+",
+". @+@  @@#+#@  +",
+"X. @+@@@#+#@ ...",
+"oX. @+##+#@ ..XX",
+"OX. @#++#@ .XXoo",
+"oX. @#++@ .XXoOO",
+"X. @#+#@+@ .XoOO",
+". @#+#@ @+@ .XoO",
+" @#+#@ . @+@ .Xo",
+"@#+#@ .X. @+@ .X",
+"#+#@ .XoX. @+@ .",
+"+#@ .XoOoX. @+@ "
 };
+

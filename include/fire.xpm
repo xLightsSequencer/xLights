@@ -1,29 +1,32 @@
 /* XPM */
 static const char *fire[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 7 1 ",
-"  c #FFFF03030303",
-". c #FFFF6A6A0000",
-"X c #FFFFAAAA0000",
-"o c #FFFFBBBB0000",
-"O c #EEEEFFFF0000",
-"+ c #FFFFF2F20000",
-"@ c None",
+/* width height num_colors chars_per_pixel */
+"16 16 8 1",
+/* colors */
+"  c #000000",
+". c #fe8787",
+"X c #ff0303",
+"o c #ff6a00",
+"O c #ffbb00",
+"+ c #ffaa00",
+"@ c #eeff00",
+"# c #fff200",
 /* pixels */
-"@@@@@@@@@@@@@@@@",
-"@@@@@@@@@@@@@@@@",
-"@@@@@@@@@@@@@@@@",
-"@@@@@@@@@@@@@@@@",
-"@@@@ @@@@@@@@@@@",
-"@@@  @@@@@@@@@@@",
-"@@    @@@ @@@ @@",
-"      @@      @@",
-"  .      .    @@",
-" ...     .    @@",
-" .o.   ..X.X   .",
-"..oX..OXoooX.X  ",
-".XoOX..XOoOXXX..",
-"XXooXXOooooooOoX",
-"..X.O..X.X.X.XX.",
-"oo++oo+oo+ooo+oo"
+"                ",
+"                ",
+"    ..          ",
+"   ...   ..     ",
+"  ..X.   .. ..  ",
+" ..XX.. ... ... ",
+"..XXXX...X...X. ",
+"XXXXXX..XXXXXX. ",
+"XXoXXXXXXoXXXX..",
+"XoooXXXXXoXXXX..",
+"XoOoXXXoo+o+XXXo",
+"ooO+oo@+OOO+o+XX",
+"o+O@+oo+@O@+++oo",
+"++OO++@OOOOOO@O+",
+"oo+o@oo+o+o+o++o",
+"OO##OO#OO#OOO#OO"
 };
+

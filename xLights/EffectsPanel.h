@@ -134,6 +134,7 @@ public:
     wxStaticText* StaticText87;
     wxTextCtrl* TextCtrl_Text_Line3;
     wxCheckBox* CheckBox_Circles_Bounce;
+    wxBitmapButton* BitmapButton_pinwheel;
     wxStaticText* StaticText92;
     wxTextCtrl* TextCtrl_Speed;
     wxBitmapButton* BitmapButton18;
@@ -167,6 +168,7 @@ public:
     wxBitmapButton* BitmapButton_TextToCenter1;
     wxSlider* Slider_Number_Waves;
     wxStaticText* StaticText13;
+    wxBitmapButton* BitmapButton_None;
     wxSlider* Slider_Meteors_Length;
     wxBitmapButton* BitmapButton_Piano_KeyPlacement;
     wxStaticText* StaticText_Piano_NumRows;
@@ -229,7 +231,6 @@ public:
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxSlider* Slider_Spirograph_R;
     wxStaticText* StaticText39;
-    wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButton_LayerEffect;
     wxStaticText* StaticText67;
@@ -263,7 +264,6 @@ public:
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
-    wxBitmapButton* BitmapButton13;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -448,6 +448,7 @@ public:
     wxStaticText* StaticText80;
     wxStaticText* StaticText2;
     wxStaticText* StaticText12;
+    wxBitmapButton* BitmapButton_fireworks;
     wxChoice* Choice_Pictures_Direction;
     wxStaticText* StaticText31;
     wxChoice* Choice_Bars_Direction;
@@ -457,7 +458,6 @@ public:
     wxBitmapButton* BitmapButton_SpirographR;
     wxChoice* Choice_Text_Count3;
     wxPanel* Panel1_Piano;
-    wxBitmapButton* BitmapButton25;
     wxBitmapButton* BitmapButton16;
     wxCheckBox* CheckBox_Palette1;
     wxCheckBox* CheckBox_Shimmer_Use_All_Colors;

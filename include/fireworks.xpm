@@ -1,25 +1,36 @@
 /* XPM */
 static const char *fireworks[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 3 1 ",
-"  c #FFFF00003737",
-". c #10102C2CE3E3",
-"X c None",
+/* width height num_colors chars_per_pixel */
+"16 16 12 1",
+/* colors */
+"  c #000000",
+". c #ffe7ec",
+"X c #fea7ba",
+"o c #ff6c8c",
+"O c #ff3662",
+"+ c #ff0037",
+"@ c #ff1447",
+"# c #e7eafc",
+"$ c #b6bff6",
+"% c #7c8bef",
+"& c #455be9",
+"* c #102ce3",
 /* pixels */
-"XXXXXXXXXXXXXXXX",
-"XXXXXXXXXXXXXXXX",
-"XXXXXXXXXXXXXXXX",
-"XXXXXXXXXXXXXXXX",
-"XX XX X XXXXXXXX",
-"XXXX XXXXXXXXXXX",
-"XXXXX  XXXXXXXXX",
-"XXXXX  XXX XXXXX",
-"XXXX XXXX.XXXX.X",
-"XXXXXXXXXX.XX.XX",
-"XXXXXXXXXXX..XXX",
-"XXXXXXXXXXX..X.X",
-"XXXXXXXXXXXXXXXX",
-"XXXXXXXXX.XX.XXX",
-"XXXXXXX.XXXXX.XX",
-"XXXXXXXXXXXXXXXX"
+"                ",
+"     .  .       ",
+"                ",
+"  .   XX   .    ",
+"  o  o o        ",
+"    O           ",
+"     +@     #   ",
+" X   @@ # o    $",
+"    O  X %  $ % ",
+"       X  &  &  ",
+" .         **   ",
+"    .   .  ** %#",
+"                ",
+"         &  &   ",
+"       %     %  ",
+"      #       $ "
 };
+

@@ -270,6 +270,21 @@ protected:
     typedef std::list<MeteorRadialClass> MeteorRadialList;
 
 
+//  User by RenderStrobe
+    class StrobeHasExpired;
+    class StrobeClass
+    {
+    public:
+
+        int x,y;
+        wxImage::HSVValue hsv;
+        int duration; // How frames strobe light stays on. Will be decremented each frame
+    };
+    typedef std::list<StrobeClass> StrobeList;
+
+
+
+
     class SnowstormClass
     {
     public:
@@ -521,6 +536,8 @@ protected:
     std::vector<int> WaveBuffer2;
     MeteorList meteors;
     MeteorRadialList meteorsRadial;
+    StrobeList strobe;
+
     SnowstormList SnowstormItems;
     PaletteClass palette;
 

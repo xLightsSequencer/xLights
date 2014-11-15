@@ -1,26 +1,35 @@
 /* XPM */
 static const char *circles[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 4 1 ",
-"  c #FFFF00001A1A",
-". c #0000FFFF2F2F",
-"X c #00008484FFFF",
-"o c None",
+/* width height num_colors chars_per_pixel */
+"16 16 11 1",
+/* colors */
+"  c #000000",
+". c #ffb1b8",
+"X c #ff707f",
+"o c #ff001a",
+"O c #c9e4ff",
+"+ c #72bbff",
+"@ c #3da1ff",
+"# c #0084ff",
+"$ c #c0ffcb",
+"% c #68ff84",
+"& c #00ff2f",
 /* pixels */
-"oooooooooooooooo",
-"ooooooooooo oooo",
-"oooooooooo   ooo",
-"ooooooooo     oo",
-"oooXooooo    ooo",
-"ooXXXoooooo oooo",
-"oXXXXXoooooooooo",
-"ooXXXooooooooooo",
-"oooXoooooooooooo",
-"oooooooooooooooo",
-"ooooooooooo.oooo",
-"ooXooooooo...ooo",
-"oXXXooooo.....oo",
-"XXXXXooooo...ooo",
-"oXXXooooooo.oooo",
-"ooXooooooooooooo"
+"                ",
+"          .X.   ",
+"         .XoX.  ",
+"         XoooX  ",
+"  O+O    XXoX.  ",
+" O@#@O    .X.   ",
+" +###+          ",
+" O@#@O          ",
+"  O+O           ",
+"                ",
+"          $%$   ",
+" O+O     $%&%$  ",
+"O@#@O    %&&&%  ",
+"+###+    $%&%$  ",
+"O@#@O     $%$   ",
+" O+O            "
 };
+

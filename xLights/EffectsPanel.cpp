@@ -620,9 +620,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
     Panel1_None = new wxPanel(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer78 = new wxFlexGridSizer(0, 3, 0, 0);
-    BitmapButton25 = new wxBitmapButton(Panel1_None, ID_BITMAPBUTTON45, None, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON45"));
-    BitmapButton25->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer78->Add(BitmapButton25, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_None = new wxBitmapButton(Panel1_None, ID_BITMAPBUTTON45, None, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON45"));
+    BitmapButton_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
+    FlexGridSizer78->Add(BitmapButton_None, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer78->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer78->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText99 = new wxStaticText(Panel1_None, ID_STATICTEXT102, _("The \"None\" effect tells xLights NOT to create anything in this cell. \nIt wont blank out the cell, it wont change the contents of the cell.\n \"None,None\" Is used when you want to let imported data come \nthrough without having Nutcracker effects step on them.\n The icon for this effect is indicating that Nutcracker is \nunplugged from generating anything."), wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER, _T("ID_STATICTEXT102"));
@@ -999,9 +999,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fireworks = new wxPanel(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL36"));
     FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer73->AddGrowableCol(1);
-    BitmapButton3 = new wxBitmapButton(Panel1_Fireworks, ID_BITMAPBUTTON24, fireworks, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
-    BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer73->Add(BitmapButton3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_fireworks = new wxBitmapButton(Panel1_Fireworks, ID_BITMAPBUTTON24, fireworks, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
+    BitmapButton_fireworks->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
+    FlexGridSizer73->Add(BitmapButton_fireworks, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText94 = new wxStaticText(Panel1_Fireworks, ID_STATICTEXT95, _("Number of Explosions"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT95"));
@@ -1117,7 +1117,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41->AddGrowableCol(1);
     BitmapButton11 = new wxBitmapButton(Panel1_Meteors, ID_BITMAPBUTTON31, meteors, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
-    BitmapButton11->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
+    BitmapButton11->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     FlexGridSizer41->Add(BitmapButton11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1321,9 +1321,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pinwheel = new wxPanel(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pinwheel"));
     FlexGridSizer55 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer55->AddGrowableCol(1);
-    BitmapButton13 = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON33, pinwheel, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
-    BitmapButton13->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer55->Add(BitmapButton13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_pinwheel = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON33, pinwheel, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
+    BitmapButton_pinwheel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
+    FlexGridSizer55->Add(BitmapButton_pinwheel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer55->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer63 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText63 = new wxStaticText(Panel1_Pinwheel, ID_STATICTEXT65, _("#Arms"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT65"));
@@ -1613,7 +1613,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer44->Fit(Panel1_Snowstorm);
     FlexGridSizer44->SetSizeHints(Panel1_Snowstorm);
     Panel1_Spirals = new wxPanel(Choicebook1, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL26"));
-    Panel1_Spirals->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
     FlexGridSizer45 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer45->AddGrowableCol(1);
     BitmapButton18 = new wxBitmapButton(Panel1_Spirals, ID_BITMAPBUTTON38, spirals, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));

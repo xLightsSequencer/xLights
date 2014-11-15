@@ -1,25 +1,27 @@
 /* XPM */
-static const char *snowflakes[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 3 1 ",
-"  c #0084FF",
-". c white",
-"X c None",
+static char *snowflakes[] = {
+/* width height num_colors chars_per_pixel */
+"16 16 3 1",
+/* colors */
+"  c #000000",
+". c #4484ff",
+"X c #ffffff",
 /* pixels */
-"XX XXXXXXXXX XXX",
-"XX XXXXXXX  .  X",
-"  .  XXXX XX XXX",
-"XX XXXXXX XX XXX",
-"XX XXXX  .  X XX",
-"XXXXXXXXX XXX XX",
-"X XXXXX X X  .  ",
-"X XXXXX XXXXX XX",
-" .  X  .  XXX XX",
-"X XXXXX XXXXXXXX",
-"X XXXXX XXXXXXXX",
-"XXXX XXXXXXX XXX",
-"XXXX XXXXXXX XXX",
-"XX  .  XXX  .  X",
-"XXXX XXXXXXX XXX",
-"XXXX XXXXXXX XXX"
+"  .         .   ",
+"  .       ..X.. ",
+"..X..    .  .   ",
+"  .      .  .   ",
+"  .    ..X.. .  ",
+"         .   .  ",
+" .     . . ..X..",
+" .     .     .  ",
+".X.. ..X..   .  ",
+" .     .        ",
+" .     .        ",
+"    .       .   ",
+"    .       .   ",
+"  ..X..   ..X.. ",
+"    .       .   ",
+"    .       .   "
 };
+

@@ -24,6 +24,9 @@ void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVVal
 
 void RenderRipple(int Object_To_Draw, int Movement);
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
+void RenderStrobe(int Count, int StrobeDuration);
+
+
 void SetP(int x, int y, wxImage::HSVValue hsv);
 void Drawcircle(int xc,int yc,double radius, wxImage::HSVValue hsv);
 

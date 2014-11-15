@@ -1,8 +1,9 @@
 /***************************************************************
  * Name:      RenderRipple.cpp
- * Purpose:  Sean Meighan (sean@meighan.net)
- * Created:   2012-12-23
- * Copyright: 2012 by Sean Meighan
+ * Purpose:  Create radiating waves of circles or square
+ *  Created by: Sean Meighan (sean@meighan.net)
+ * Created:   2014-09-01
+ * Copyright: 2014 by Sean Meighan
  * License:
      This file is part of xLights.
 
