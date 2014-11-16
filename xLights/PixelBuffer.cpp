@@ -547,6 +547,10 @@ void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
 {
     Effect[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
 }
+void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration)
+{
+    Effect[CurrentLayer].RenderStrobe(Number_Strobes,StrobeDuration);
+}
 
 void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
                                   int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,

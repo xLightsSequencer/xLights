@@ -420,34 +420,40 @@ wxString xLightsFrame::CreateEffectStringRandom()
     s.clear();
 
     /*
-    enum RGB_EFFECTS_e
-        {
-            eff_NONE,
-            eff_BARS,
-            eff_BUTTERFLY,
-            eff_CIRCLES,
-            eff_COLORWASH,
-            eff_CURTAIN,
-            eff_FIRE,
-            eff_FIREWORKS,
-            eff_GARLANDS,
-            eff_LIFE,
-            eff_METEORS,
-            eff_PIANO,
-            eff_PICTURES,
-            eff_SNOWFLAKES,
-            eff_SNOWSTORM,
-            eff_SPIRALS,
-            eff_SPIROGRAPH,
-            eff_TEXT,
-            eff_TREE,
-            eff_TWINKLE,
-            eff_SINGLESTRAND,
-            eff_FACES,
-            eff_WAVE,
-            eff_GLEDIATOR,
-            eff_LASTEFFECT //Always the last entry
-        };
+     enum RGB_EFFECTS_e
+    {
+        eff_NONE,
+        eff_OFF,
+        eff_BARS,
+        eff_BUTTERFLY,
+        eff_CIRCLES,
+        eff_COLORWASH,
+        eff_COROFACES,
+        eff_CURTAIN,
+        eff_FACES,
+        eff_FIRE,
+        eff_FIREWORKS,
+        eff_GARLANDS,
+        eff_GLEDIATOR,
+        eff_LIFE,
+        eff_METEORS,
+        eff_PIANO,
+        eff_PICTURES,
+        eff_PINWHEEL,
+        eff_RIPPLE,
+        eff_SHIMMER,
+        eff_SINGLESTRAND,
+        eff_SNOWFLAKES,
+        eff_SNOWSTORM,
+        eff_SPIRALS,
+        eff_SPIROGRAPH,
+        eff_STROBE,
+        eff_TEXT,
+        eff_TREE,
+        eff_TWINKLE,
+        eff_WAVE,
+        eff_LASTEFFECT //Always the last entry
+    };
     */
 //encapsulation is poor here
 //    djdebug("CreateEffectStringRandom: %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d", (const char*)EffectsPanel1->Choicebook1->GetName().c_str(), isRandom(EffectsPanel1->Choicebook1), (const char*)EffectsPanel2->Choicebook1->GetName().c_str(), isRandom(EffectsPanel2->Choicebook1), (const char*)Slider_EffectLayerMix->GetName().c_str(), isRandom(Slider_EffectLayerMix), (const char*)Slider_SparkleFrequency->GetName().c_str(), isRandom(Slider_SparkleFrequency), (const char*)Slider_Brightness->GetName().c_str(), isRandom(Slider_Brightness), (const char*)Slider_Contrast->GetName().c_str(), isRandom(Slider_Contrast));
@@ -1358,6 +1364,11 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_d"]),
                                 wxAtoi(SettingsMap[LayerStr+"SLIDER_Spirograph_Animate"]));
     }
+    else if (effect == "Strobe")
+    {
+        buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"Slider_Number_Strobes"]),
+                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Duration"]));
+    }
     else if (effect == "Text")
     {
         buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
@@ -1610,6 +1621,10 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                 panel->Slider_Spirograph_r->GetValue(),
                                 panel->Slider_Spirograph_d->GetValue(),
                                 panel->CheckBox_Spirograph_Animate->GetValue());
+        break;
+    case eff_STROBE:
+        buffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
+                            panel->Slider_Strobe_Duration->GetValue());
         break;
     case eff_TEXT:
         buffer.RenderText(panel->Slider_Text_Position1->GetValue(),

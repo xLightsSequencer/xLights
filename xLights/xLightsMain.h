@@ -250,6 +250,7 @@ public:
         eff_SNOWSTORM,
         eff_SPIRALS,
         eff_SPIROGRAPH,
+        eff_STROBE,
         eff_TEXT,
         eff_TREE,
         eff_TWINKLE,
