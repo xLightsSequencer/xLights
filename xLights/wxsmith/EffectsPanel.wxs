@@ -3108,7 +3108,166 @@
 											</object>
 										</object>
 									</object>
-									<label>Chase1</label>
+									<label>Chase</label>
+								</object>
+								<object class="notebookpage">
+									<object class="wxPanel" name="ID_PANEL21" variable="Panel2" member="yes">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer79" member="no">
+											<cols>1</cols>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer81" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText101" member="yes">
+															<label>Band size</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Skips_BandSize" variable="Slider_Skips_BandSize" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>20</max>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON44" variable="BitmapButton_Skips_BandSize" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>21,21</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_Skips_BandSizeClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer82" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT107" variable="StaticText105" member="yes">
+															<label>Skip size</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Skips_SkipSize" variable="Slider_Skips_SkipSize" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>20</max>
+															<handler function="OnSlider_Skips_SkipSizeCmdScroll" entry="EVT_COMMAND_SCROLL" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON46" variable="BitmapButton_Skips_SkipSize" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>21,21</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_Skips_SkipSizeClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer83" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT110" variable="StaticText106" member="yes">
+															<label>Starting Position</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Skips_StartPos" variable="Slider_Skips_StartPos" member="yes">
+															<value>1</value>
+															<min>1</min>
+															<max>20</max>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON47" variable="BitmapButton_Skips_StartingPosition" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>21,21</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_Skips_StartingPositionClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer84" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT111" variable="StaticText109" member="yes">
+															<label>Direction</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_Skips_Direction" variable="Choice_Skips_Direction" member="yes">
+															<content>
+																<item>Left</item>
+																<item>Right</item>
+																<item>From Middle</item>
+															</content>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON48" variable="BitmapButton_Skips_Direction" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>21,21</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_Skips_DirectionClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+									</object>
+									<label>Skips</label>
 								</object>
 							</object>
 						</object>

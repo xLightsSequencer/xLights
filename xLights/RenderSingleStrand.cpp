@@ -23,7 +23,9 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
+void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,
+                                    int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All,
+                                    int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
 {
 
     int x,x1,x0,y,i,ColorIdx,chases,width,slow_state;
@@ -189,12 +191,12 @@ void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color
             for(y=0; y<BufferHt; y++)
             {
                 draw_chase(x,y,hsv,ColorScheme,Number_Chases,width,R_TO_L1,Color_Mix1,Chase_Fade3d1,ChaseDirection); // Turn pixel on
-            if(Dual_Chases)
+                if(Dual_Chases)
                 {
-                     if(R_TO_L1) // 1 = L-R, 0=R-L
+                    if(R_TO_L1) // 1 = L-R, 0=R-L
                         x2=width-x-1;
                     else
-                          x2=width-x-1;
+                        x2=width-x-1;
                     draw_chase(x2,y,hsv,ColorScheme,Number_Chases,width,R_TO_L1,Color_Mix1,Chase_Fade3d1,ChaseDirection); //
                 }
             }

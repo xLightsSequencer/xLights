@@ -1323,7 +1323,11 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
             wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
             SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
             SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
-            SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
+            SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1",
+            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_BandSize"]),
+            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_SkipSize"]),
+            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_StartPos"]),
+            SingleStrandTypes.Index(SettingsMap[LayerStr+"Choice_Skips_Direction"]));
     }
     else if (effect == "Snowflakes")
     {
@@ -1577,7 +1581,11 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                   panel->Slider_Chase_Spacing1->GetValue(),
                                   panel->Choice_Chase_Type1->GetSelection(),
                                   panel->CheckBox_Chase_3dFade1->GetValue(),
-                                  panel->CheckBox_Chase_Group_All->GetValue());
+                                  panel->CheckBox_Chase_Group_All->GetValue(),
+                                  panel->Slider_Skips_BandSize->GetValue(),
+                                  panel->Slider_Skips_SkipSize->GetValue(),
+                                  panel->Slider_Skips_StartPos->GetValue(),
+                                  panel->Choice_Skips_Direction->GetSelection());
         break;
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
@@ -2985,14 +2993,19 @@ void xLightsFrame::RenderGridToSeqData()
 //            buffer.Clear();
 //            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
 
-            if (!bufferClear) {
-                if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg()) {
+            if (!bufferClear)
+            {
+                if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+                {
                     bufferClear = true;
                     buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
-                if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg()) {
+                if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+                {
                     buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-                } else {
+                }
+                else
+                {
                     bufferClear = false;
                 }
             }

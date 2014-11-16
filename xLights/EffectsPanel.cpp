@@ -309,6 +309,19 @@ const long EffectsPanel::ID_STATICTEXT12 = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Chase_Group_All = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_Chase_Group_All = wxNewId();
 const long EffectsPanel::ID_PANEL3 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT106 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Skips_BandSize = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON44 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT107 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Skips_SkipSize = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON46 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT110 = wxNewId();
+const long EffectsPanel::ID_SLIDER_Skips_StartPos = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON47 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT111 = wxNewId();
+const long EffectsPanel::ID_CHOICE_Skips_Direction = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON48 = wxNewId();
+const long EffectsPanel::ID_PANEL21 = wxNewId();
 const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
 const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON36 = wxNewId();
@@ -581,9 +594,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer81;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer20;
+    wxFlexGridSizer* FlexGridSizer82;
     wxFlexGridSizer* FlexGridSizer50;
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer12;
@@ -597,9 +612,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer33;
     wxFlexGridSizer* FlexGridSizer43;
     wxFlexGridSizer* FlexGridSizer11;
+    wxFlexGridSizer* FlexGridSizer84;
     wxFlexGridSizer* FlexGridSizer17;
     wxFlexGridSizer* FlexGridSizer32;
     wxFlexGridSizer* FlexGridSizer65;
+    wxFlexGridSizer* FlexGridSizer79;
     wxFlexGridSizer* FlexGridSizer42;
     wxFlexGridSizer* FlexGridSizer64;
     wxFlexGridSizer* FlexGridSizer58;
@@ -612,6 +629,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer28;
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer60;
+    wxFlexGridSizer* FlexGridSizer83;
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
 
@@ -1561,7 +1579,52 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1->SetSizer(FlexGridSizer24);
     FlexGridSizer24->Fit(Panel1);
     FlexGridSizer24->SetSizeHints(Panel1);
-    Notebook1->AddPage(Panel1, _("Chase1"), false);
+    Panel2 = new wxPanel(Notebook1, ID_PANEL21, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
+    FlexGridSizer79 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer81 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText101 = new wxStaticText(Panel2, ID_STATICTEXT106, _("Band size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT106"));
+    FlexGridSizer81->Add(StaticText101, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Skips_BandSize = new wxSlider(Panel2, ID_SLIDER_Skips_BandSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_BandSize"));
+    FlexGridSizer81->Add(Slider_Skips_BandSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Skips_BandSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON44, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON44"));
+    BitmapButton_Skips_BandSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer81->Add(BitmapButton_Skips_BandSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer79->Add(FlexGridSizer81, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer82 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText105 = new wxStaticText(Panel2, ID_STATICTEXT107, _("Skip size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT107"));
+    FlexGridSizer82->Add(StaticText105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Skips_SkipSize = new wxSlider(Panel2, ID_SLIDER_Skips_SkipSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_SkipSize"));
+    FlexGridSizer82->Add(Slider_Skips_SkipSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Skips_SkipSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON46, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON46"));
+    BitmapButton_Skips_SkipSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer82->Add(BitmapButton_Skips_SkipSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer79->Add(FlexGridSizer82, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer83 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText106 = new wxStaticText(Panel2, ID_STATICTEXT110, _("Starting Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT110"));
+    FlexGridSizer83->Add(StaticText106, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_Skips_StartPos = new wxSlider(Panel2, ID_SLIDER_Skips_StartPos, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_StartPos"));
+    FlexGridSizer83->Add(Slider_Skips_StartPos, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Skips_StartingPosition = new wxBitmapButton(Panel2, ID_BITMAPBUTTON47, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON47"));
+    BitmapButton_Skips_StartingPosition->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer83->Add(BitmapButton_Skips_StartingPosition, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer79->Add(FlexGridSizer83, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer84 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText109 = new wxStaticText(Panel2, ID_STATICTEXT111, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT111"));
+    FlexGridSizer84->Add(StaticText109, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Skips_Direction = new wxChoice(Panel2, ID_CHOICE_Skips_Direction, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Skips_Direction"));
+    Choice_Skips_Direction->Append(_("Left"));
+    Choice_Skips_Direction->Append(_("Right"));
+    Choice_Skips_Direction->Append(_("From Middle"));
+    FlexGridSizer84->Add(Choice_Skips_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Skips_Direction = new wxBitmapButton(Panel2, ID_BITMAPBUTTON48, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON48"));
+    BitmapButton_Skips_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer84->Add(BitmapButton_Skips_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer79->Add(FlexGridSizer84, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Panel2->SetSizer(FlexGridSizer79);
+    FlexGridSizer79->Fit(Panel2);
+    FlexGridSizer79->SetSizeHints(Panel2);
+    Notebook1->AddPage(Panel1, _("Chase"), false);
+    Notebook1->AddPage(Panel2, _("Skips"), false);
     Panel1_Snowflakes = new wxPanel(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL22"));
     FlexGridSizer43 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer43->AddGrowableCol(1);
@@ -2370,6 +2433,11 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_CHOICE_Chase_Type1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Type1Click);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Chase_3dFade1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_3dFade1Click);
     Connect(ID_BITMAPBUTTON_Chase_Group_All,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Chase_Group_AllClick);
+    Connect(ID_BITMAPBUTTON44,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_BandSizeClick);
+    Connect(ID_SLIDER_Skips_SkipSize,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Skips_SkipSizeCmdScroll);
+    Connect(ID_BITMAPBUTTON46,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_SkipSizeClick);
+    Connect(ID_BITMAPBUTTON47,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_StartingPositionClick);
+    Connect(ID_BITMAPBUTTON48,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Skips_DirectionClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowflakesCountClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Snowflakes_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowflakesTypeClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Snowstorm_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SnowstormCountClick);
@@ -3122,6 +3190,8 @@ showlock(TreeBranches)
 showlock(TwinkleCount)
 showlock(TwinkleSteps)
 showlock(TwinkleStrobe)
+
+
 //lock buttons for Single Strand:
 showlock(SingleStrand_Colors)
 showlock(Number_Chases)
@@ -3130,6 +3200,14 @@ showlock(Chase_Spacing1)
 showlock(Chase_Type1)
 showlock(Chase_3dFade1)
 showlock(Chase_Group_All)
+
+showlock(Skips_BandSize)
+showlock(Skips_SkipSize)
+showlock(Skips_StartingPosition)
+showlock(Skips_Direction)
+
+
+// ----------------
 
 showlock(WaveType)
 showlock(Wave_FillColors)
@@ -3180,5 +3258,10 @@ void EffectsPanel::OnBitmapButton25Click(wxCommandEvent& event)
 }
 
 void EffectsPanel::OnBitmapButton18Click(wxCommandEvent& event)
+{
+}
+
+
+void EffectsPanel::OnSlider_Skips_SkipSizeCmdScroll(wxScrollEvent& event)
 {
 }

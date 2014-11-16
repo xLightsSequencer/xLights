@@ -31,7 +31,8 @@ void SetP(int x, int y, wxImage::HSVValue hsv);
 void Drawcircle(int xc,int yc,double radius, wxImage::HSVValue hsv);
 
 void RenderSingleStrand(int ColorScheme,int Number_Chases,int Color_Mix1,int Chase_Spacing1,int Chase_Type1,
-                        bool Chase_3dFade1, bool Chase_Group_All);
+                        bool Chase_3dFade1, bool Chase_Group_All,
+                        int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction);
 void draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,int Number_Chases,int width,bool R_TO_L1,
                 int Color_Mix1,bool Chase_Fade3d1,int ChaseDirection);
 void pulse(int x,int y,wxImage::HSVValue hsv,float adjust_brightness);
