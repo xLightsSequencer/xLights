@@ -74,12 +74,16 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
     int total = curEffEndPer - curEffStartPer;
     total /= speed;
 
+    size_t colorcnt = GetColorCount();
+
     if (total > 0) {
         int cur = (curPeriod - curEffStartPer) / total;
         x += cur * Skips_BandSize;
+        while (x > max) {
+            x -= (Skips_BandSize +  Skips_SkipSize) * colorcnt;
+        }
     }
-
-    size_t colorcnt = GetColorCount();
+    int firstX = x;
     int colorIdx = 0;
     
     while (x < max) {
@@ -110,7 +114,7 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         }
     }
     colorIdx = GetColorCount() - 1;
-    x = Skips_StartPos - 2;
+    x = firstX - 1;
     while (x >= 0) {
         for (int cnt = 0; cnt < Skips_SkipSize && x >= 0; cnt++) {
             int mappedX = mapX(x, max, direction, second);
