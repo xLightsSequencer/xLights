@@ -59,7 +59,6 @@ public:
     wxBitmapButton* BitmapButton_TextCount4;
     wxPanel* Panel1_Fireworks;
     wxSlider* Slider_Number_Chases;
-    wxNotebook* Notebook1;
     wxPanel* Panel1_Shimmer;
     wxBitmapButton* BitmapButton_SpiralsGrow;
     wxChoice* Choice_SingleStrand_Colors;
@@ -297,6 +296,7 @@ public:
     wxPanel* Panel4;
     wxChoice* Choice_Text_Count4;
     wxBitmapButton* BitmapButton_ButterflyStyle;
+    wxNotebook* SingleStrandEffectType;
     wxSlider* Slider_Text_Position4;
     wxBitmapButton* BitmapButton_TextEffect4;
     wxCheckBox* CheckBox_Chase_Group_All;
@@ -838,7 +838,7 @@ protected:
     static const long ID_CHOICE_Skips_Direction;
     static const long ID_BITMAPBUTTON48;
     static const long ID_PANEL21;
-    static const long ID_NOTEBOOK1;
+    static const long ID_NOTEBOOK_SSEFFECT_TYPE;
     static const long ID_PANEL2;
     static const long ID_BITMAPBUTTON36;
     static const long ID_STATICTEXT80;

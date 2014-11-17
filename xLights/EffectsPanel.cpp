@@ -322,7 +322,7 @@ const long EffectsPanel::ID_STATICTEXT111 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Skips_Direction = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON48 = wxNewId();
 const long EffectsPanel::ID_PANEL21 = wxNewId();
-const long EffectsPanel::ID_NOTEBOOK1 = wxNewId();
+const long EffectsPanel::ID_NOTEBOOK_SSEFFECT_TYPE = wxNewId();
 const long EffectsPanel::ID_PANEL2 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON36 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT80 = wxNewId();
@@ -619,6 +619,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer78;
+    wxFlexGridSizer* FlexGridSizer89;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer48;
     wxFlexGridSizer* FlexGridSizer1;
@@ -1524,8 +1525,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer56->Fit(Panel1_Shimmer);
     FlexGridSizer56->SetSizeHints(Panel1_Shimmer);
     Panel1_SingleStrand = new wxPanel(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    Notebook1 = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK1, wxPoint(0,0), wxSize(288,280), 0, _T("ID_NOTEBOOK1"));
-    Panel1 = new wxPanel(Notebook1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+    FlexGridSizer89 = new wxFlexGridSizer(0, 3, 0, 0);
+    SingleStrandEffectType = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK_SSEFFECT_TYPE, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_SSEFFECT_TYPE"));
+    Panel1 = new wxPanel(SingleStrandEffectType, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer24 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton15 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON35, singleStrand, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON35"));
     BitmapButton15->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -1592,7 +1594,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1->SetSizer(FlexGridSizer24);
     FlexGridSizer24->Fit(Panel1);
     FlexGridSizer24->SetSizeHints(Panel1);
-    Panel2 = new wxPanel(Notebook1, ID_PANEL21, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
+    Panel2 = new wxPanel(SingleStrandEffectType, ID_PANEL21, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL21"));
     FlexGridSizer79 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer81 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText101 = new wxStaticText(Panel2, ID_STATICTEXT106, _("Band size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT106"));
@@ -1628,6 +1630,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choice_Skips_Direction->Append(_("Left"));
     Choice_Skips_Direction->Append(_("Right"));
     Choice_Skips_Direction->Append(_("From Middle"));
+    Choice_Skips_Direction->Append(_("To Middle"));
     FlexGridSizer84->Add(Choice_Skips_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Skips_Direction = new wxBitmapButton(Panel2, ID_BITMAPBUTTON48, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON48"));
     BitmapButton_Skips_Direction->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -1636,8 +1639,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel2->SetSizer(FlexGridSizer79);
     FlexGridSizer79->Fit(Panel2);
     FlexGridSizer79->SetSizeHints(Panel2);
-    Notebook1->AddPage(Panel1, _("Chase"), false);
-    Notebook1->AddPage(Panel2, _("Skips"), false);
+    SingleStrandEffectType->AddPage(Panel1, _("Chase"), false);
+    SingleStrandEffectType->AddPage(Panel2, _("Skips"), false);
+    FlexGridSizer89->Add(SingleStrandEffectType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel1_SingleStrand->SetSizer(FlexGridSizer89);
+    FlexGridSizer89->Fit(Panel1_SingleStrand);
+    FlexGridSizer89->SetSizeHints(Panel1_SingleStrand);
     Panel1_Snowflakes = new wxPanel(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL22"));
     FlexGridSizer43 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer43->AddGrowableCol(1);
@@ -2764,6 +2771,8 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_NOTEBOOK"))
         {
             wxNotebook* ctrl=(wxNotebook*)ChildWin;
+            s+=AttrName;
+            s+=ctrl->GetPageText(ctrl->GetSelection());
             for(i=0; i<ctrl->GetPageCount(); i++)
             {
                 s+=GetEffectStringFromWindow(ctrl->GetPage(i));

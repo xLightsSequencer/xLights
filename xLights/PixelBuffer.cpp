@@ -518,13 +518,15 @@ void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Bl
 {
     Effect[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
 }
-void PixelBufferClass::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,
-        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All,
-        int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
+        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
 {
-    Effect[CurrentLayer].RenderSingleStrand( ColorScheme,Number_Chases, Color_Mix1,
-            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All,
-            Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction);
+    Effect[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
+            Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
+}
+void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+{
+    Effect[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction);
 }
 
 void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)

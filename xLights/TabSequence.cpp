@@ -330,6 +330,15 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                     wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
                     if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
                 }
+                else if (name.StartsWith("ID_NOTEBOOK"))
+                {
+                    wxNotebook* ctrl=(wxNotebook*)CtrlWin;
+                    for (int z = 0 ; z < ctrl->GetPageCount() ; z++) {
+                        if (value == ctrl->GetPageText(z)) {
+                            ctrl->SetSelection(z);
+                        }
+                    }
+                }
 #if 0 //obsolete
                 else if (name.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
                 {
@@ -1322,18 +1331,23 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "SingleStrand")
     {
-        buffer.RenderSingleStrand(
-            SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
-            wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
-            wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
-            wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
-            SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
-            SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
-            SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1",
-            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_BandSize"]),
-            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_SkipSize"]),
-            wxAtoi(SettingsMap[LayerStr+"Slider_Skips_StartPos"]),
-            SingleStrandTypes.Index(SettingsMap[LayerStr+"Choice_Skips_Direction"]));
+        if ("Chase" == SettingsMap[LayerStr+"NOTEBOOK_SSEFFECT_TYPE"]) {
+            buffer.RenderSingleStrandChase(
+                                      SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
+                                      SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
+                                      SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
+                                      SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
+        } else {
+            buffer.RenderSingleStrandSkips(
+                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_BandSize"]),
+                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_SkipSize"]),
+                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_StartPos"]),
+                                      SingleStrandTypes.Index(SettingsMap[LayerStr+"Choice_Skips_Direction"]));
+            
+        }
     }
     else if (effect == "Snowflakes")
     {
@@ -1586,17 +1600,20 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
-        buffer.RenderSingleStrand(panel->Choice_SingleStrand_Colors->GetSelection(),
-                                  panel->Slider_Number_Chases->GetValue(),
-                                  panel->Slider_Color_Mix1->GetValue(),
-                                  panel->Slider_Chase_Spacing1->GetValue(),
-                                  panel->Choice_Chase_Type1->GetSelection(),
-                                  panel->CheckBox_Chase_3dFade1->GetValue(),
-                                  panel->CheckBox_Chase_Group_All->GetValue(),
-                                  panel->Slider_Skips_BandSize->GetValue(),
-                                  panel->Slider_Skips_SkipSize->GetValue(),
-                                  panel->Slider_Skips_StartPos->GetValue(),
-                                  panel->Choice_Skips_Direction->GetSelection());
+            if ("Chase" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection())) {
+                buffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
+                                          panel->Slider_Number_Chases->GetValue(),
+                                          panel->Slider_Color_Mix1->GetValue(),
+                                          panel->Slider_Chase_Spacing1->GetValue(),
+                                          panel->Choice_Chase_Type1->GetSelection(),
+                                          panel->CheckBox_Chase_3dFade1->GetValue(),
+                                          panel->CheckBox_Chase_Group_All->GetValue());
+            } else {
+                buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
+                                          panel->Slider_Skips_SkipSize->GetValue(),
+                                          panel->Slider_Skips_StartPos->GetValue(),
+                                          panel->Choice_Skips_Direction->GetSelection());
+            }
         break;
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),

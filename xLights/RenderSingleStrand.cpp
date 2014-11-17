@@ -23,9 +23,65 @@
 #include <cmath>
 #include "RgbEffects.h"
 
-void RgbEffects::RenderSingleStrand(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,
-                                    int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All,
-                                    int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+
+int mapX(int x, int max, int direction, int &second) {
+    second = -1;
+    switch (direction) {
+        case 0: //
+            return x;
+        case 1:
+            return max - x - 1;
+        case 2:
+            second = max + x;
+            return max - x - 1;
+        case 3:
+            second = max * 2 - x;
+            return x;
+    }
+    return -1;
+}
+
+void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+{
+    int x = Skips_StartPos;
+    wxColour color, black(0,0,0);
+    int second = 0;
+    int max = BufferWi;
+    if (Skips_Direction > 1) {
+        max /= 2;
+    }
+    size_t colorcnt=GetColorCount();
+    int colorIdx = 0;
+    while (x < max) {
+        palette.GetColor(colorIdx, color);
+        colorIdx++;
+        if (colorIdx >= colorcnt) {
+            colorIdx = 0;
+        }
+        for (int cnt = 0; cnt < Skips_BandSize && x < max; cnt++) {
+            int mappedX = mapX(x, max, Skips_Direction, second);
+            if (mappedX > 0 && mappedX < BufferWi) {
+                SetPixel(mappedX, 0, color);
+            }
+            if (second > 0 && second < BufferWi) {
+                SetPixel(second, 0, color);
+            }
+            x++;
+        }
+        for (int cnt = 0; cnt < Skips_SkipSize && x < max; cnt++) {
+            int mappedX = mapX(x, max, Skips_Direction, second);
+            if (mappedX > 0 && mappedX < BufferWi) {
+                SetPixel(mappedX, 0, black);
+            }
+            if (second > 0 && second < BufferWi) {
+                SetPixel(second, 0, black);
+            }
+            x++;
+        }
+    }
+}
+void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,int Chase_Spacing1,
+                                    int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
     int x,x1,x0,y,i,ColorIdx,chases,width,slow_state;
