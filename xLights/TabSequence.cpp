@@ -1342,10 +1342,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                                       SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
         } else {
             buffer.RenderSingleStrandSkips(
-                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_BandSize"]),
-                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_SkipSize"]),
-                                      wxAtoi(SettingsMap[LayerStr+"Slider_Skips_StartPos"]),
-                                      SingleStrandTypes.Index(SettingsMap[LayerStr+"Choice_Skips_Direction"]));
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_BandSize"]),
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_SkipSize"]),
+                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_StartPos"]),
+                                      SettingsMap[LayerStr+"CHOICE_Skips_Direction"]);
             
         }
     }
@@ -1612,7 +1612,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                 buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
                                           panel->Slider_Skips_SkipSize->GetValue(),
                                           panel->Slider_Skips_StartPos->GetValue(),
-                                          panel->Choice_Skips_Direction->GetSelection());
+                                          panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
             }
         break;
     case eff_SNOWFLAKES:

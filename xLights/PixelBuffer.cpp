@@ -524,7 +524,7 @@ void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases
     Effect[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
             Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
 }
-void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction)
 {
     Effect[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction);
 }

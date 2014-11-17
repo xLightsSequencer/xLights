@@ -41,17 +41,43 @@ int mapX(int x, int max, int direction, int &second) {
     return -1;
 }
 
-void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, int Skips_Direction)
+int mapDirection(const wxString & d) {
+    if ("Left" == d) {
+        return 0;
+    }
+    if ("Right" == d) {
+        return 1;
+    }
+    if ("From Middle" == d) {
+        return 2;
+    }
+    if ("To Middle" == d) {
+        return 3;
+    }
+    
+    return 0;
+}
+
+void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString & Skips_Direction)
 {
     int x = Skips_StartPos;
     wxColour color, black(0,0,0);
     int second = 0;
     int max = BufferWi;
-    if (Skips_Direction > 1) {
+    int direction = mapDirection(Skips_Direction);
+    if (direction > 1) {
         max /= 2;
     }
     size_t colorcnt=GetColorCount();
     int colorIdx = 0;
+    
+    int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
+    
+    GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
+    double rtval = GetEffectTimeIntervalPosition();
+
+    
+    
     while (x < max) {
         palette.GetColor(colorIdx, color);
         colorIdx++;
@@ -59,7 +85,7 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
             colorIdx = 0;
         }
         for (int cnt = 0; cnt < Skips_BandSize && x < max; cnt++) {
-            int mappedX = mapX(x, max, Skips_Direction, second);
+            int mappedX = mapX(x, max, direction, second);
             if (mappedX > 0 && mappedX < BufferWi) {
                 SetPixel(mappedX, 0, color);
             }
@@ -69,7 +95,7 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
             x++;
         }
         for (int cnt = 0; cnt < Skips_SkipSize && x < max; cnt++) {
-            int mappedX = mapX(x, max, Skips_Direction, second);
+            int mappedX = mapX(x, max, direction, second);
             if (mappedX > 0 && mappedX < BufferWi) {
                 SetPixel(mappedX, 0, black);
             }
