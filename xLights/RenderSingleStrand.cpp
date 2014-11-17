@@ -68,15 +68,14 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
     if (direction > 1) {
         max /= 2;
     }
-    size_t colorcnt=GetColorCount();
-    int colorIdx = 0;
+    
     
     int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
-    
     GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
     double rtval = GetEffectTimeIntervalPosition();
 
-    
+    size_t colorcnt=GetColorCount();
+    int colorIdx = 0;
     
     while (x < max) {
         palette.GetColor(colorIdx, color);

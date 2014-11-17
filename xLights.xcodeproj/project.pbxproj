@@ -94,6 +94,8 @@
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67C7968F17B578B100CEE775 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67C7968E17B578B100CEE775 /* icon.icns */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
+		67D8F4591A1A584400522413 /* TabTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425A17F0D23E00F4BC76 /* TabTest.cpp */; };
+		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
 		67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */; };
@@ -532,6 +534,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67D8F4591A1A584400522413 /* TabTest.cpp in Sources */,
+				67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */,

@@ -21,6 +21,7 @@
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
 
+#include "wx/artprov.h"
 
 
 void xLightsFrame::BasicPrompt(char* prompt, char* buff, int size)

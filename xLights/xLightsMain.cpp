@@ -2313,9 +2313,7 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 }
 
 
-#include "TabTest.cpp"
 #include "TabSchedule.cpp"
-#include "TabSequence.cpp"
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {

@@ -1,3 +1,6 @@
+
+#include "xLightsMain.h"
+
 // Process Test Panel Events
 
 void xLightsFrame::SetTestCheckboxes(bool NewValue)

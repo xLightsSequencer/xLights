@@ -1,5 +1,9 @@
 #include <wx/utils.h> //check keyboard state -DJ
 #include <wx/tokenzr.h>
+#include <wx/clipbrd.h>
+#include "xLightsMain.h"
+#include "heartbeat.h"
+
 
 void xLightsFrame::CreateDefaultEffectsXml()
 {
