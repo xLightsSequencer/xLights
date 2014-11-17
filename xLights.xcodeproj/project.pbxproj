@@ -96,6 +96,7 @@
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
+		67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
 		67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6131A097A35003E978F /* Image_Loader.cpp */; };
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
@@ -231,6 +232,7 @@
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
 		67E491B117C459B800FE40EA /* RenderCurtain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCurtain.cpp; sourceTree = "<group>"; };
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
+		67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStrobe.cpp; sourceTree = "<group>"; };
 		67E7086D17B51AB400A22034 /* xLights.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xLights.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67E7087017B51AB400A22034 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		67E7087317B51AB400A22034 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -330,6 +332,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
 				676F58771A1556210045FA22 /* RenderOff.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
@@ -587,6 +590,7 @@
 				67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
+				67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */,
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
