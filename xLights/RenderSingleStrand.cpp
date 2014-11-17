@@ -69,11 +69,17 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         max /= 2;
     }
     
-    
     int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
     GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
+    int total = curEffEndPer - curEffStartPer;
+    total /= speed;
 
-    size_t colorcnt=GetColorCount();
+    if (total > 0) {
+        int cur = (curPeriod - curEffStartPer) / total;
+        x += cur * Skips_BandSize;
+    }
+
+    size_t colorcnt = GetColorCount();
     int colorIdx = 0;
     
     while (x < max) {
