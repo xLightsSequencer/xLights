@@ -60,7 +60,7 @@ int mapDirection(const wxString & d) {
 
 void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString & Skips_Direction)
 {
-    int x = Skips_StartPos;
+    int x = Skips_StartPos - 1;
     wxColour color, black(0,0,0);
     int second = 0;
     int max = BufferWi;
@@ -72,7 +72,6 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
     
     int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
     GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
-    double rtval = GetEffectTimeIntervalPosition();
 
     size_t colorcnt=GetColorCount();
     int colorIdx = 0;
@@ -85,23 +84,52 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         }
         for (int cnt = 0; cnt < Skips_BandSize && x < max; cnt++) {
             int mappedX = mapX(x, max, direction, second);
-            if (mappedX > 0 && mappedX < BufferWi) {
+            if (mappedX >= 0 && mappedX < BufferWi) {
                 SetPixel(mappedX, 0, color);
             }
-            if (second > 0 && second < BufferWi) {
+            if (second >= 0 && second < BufferWi) {
                 SetPixel(second, 0, color);
             }
             x++;
         }
         for (int cnt = 0; cnt < Skips_SkipSize && x < max; cnt++) {
             int mappedX = mapX(x, max, direction, second);
-            if (mappedX > 0 && mappedX < BufferWi) {
+            if (mappedX >= 0 && mappedX < BufferWi) {
                 SetPixel(mappedX, 0, black);
             }
-            if (second > 0 && second < BufferWi) {
+            if (second >= 0 && second < BufferWi) {
                 SetPixel(second, 0, black);
             }
             x++;
+        }
+    }
+    colorIdx = GetColorCount() - 1;
+    x = Skips_StartPos - 2;
+    while (x >= 0) {
+        for (int cnt = 0; cnt < Skips_SkipSize && x >= 0; cnt++) {
+            int mappedX = mapX(x, max, direction, second);
+            if (mappedX >= 0 && mappedX < BufferWi) {
+                SetPixel(mappedX, 0, black);
+            }
+            if (second >= 0 && second < BufferWi) {
+                SetPixel(second, 0, black);
+            }
+            x--;
+        }
+        palette.GetColor(colorIdx, color);
+        colorIdx--;
+        if (colorIdx < 0) {
+            colorIdx = GetColorCount() - 1;
+        }
+        for (int cnt = 0; cnt < Skips_BandSize && x >= 0; cnt++) {
+            int mappedX = mapX(x, max, direction, second);
+            if (mappedX >= 0 && mappedX < BufferWi) {
+                SetPixel(mappedX, 0, color);
+            }
+            if (second >= 0 && second < BufferWi) {
+                SetPixel(second, 0, color);
+            }
+            x--;
         }
     }
 }
