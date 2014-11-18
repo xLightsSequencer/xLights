@@ -95,20 +95,28 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         for (int cnt = 0; cnt < Skips_BandSize && x < max; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < BufferWi) {
-                SetPixel(mappedX, 0, color);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(mappedX, y, color);
+                }
             }
             if (second >= 0 && second < BufferWi) {
-                SetPixel(second, 0, color);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(second, y, color);
+                }
             }
             x++;
         }
         for (int cnt = 0; cnt < Skips_SkipSize && x < max; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < BufferWi) {
-                SetPixel(mappedX, 0, black);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(mappedX, y, black);
+                }
             }
             if (second >= 0 && second < BufferWi) {
-                SetPixel(second, 0, black);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(second, y, black);
+                }
             }
             x++;
         }
@@ -119,10 +127,14 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         for (int cnt = 0; cnt < Skips_SkipSize && x >= 0; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < BufferWi) {
-                SetPixel(mappedX, 0, black);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(mappedX, y, black);
+                }
             }
             if (second >= 0 && second < BufferWi) {
-                SetPixel(second, 0, black);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(second, y, black);
+                }
             }
             x--;
         }
@@ -134,10 +146,14 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
         for (int cnt = 0; cnt < Skips_BandSize && x >= 0; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < BufferWi) {
-                SetPixel(mappedX, 0, color);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(mappedX, y, color);
+                }
             }
             if (second >= 0 && second < BufferWi) {
-                SetPixel(second, 0, color);
+                for (int y = 0; y < BufferHt; y++) {
+                    SetPixel(second, y, color);
+                }
             }
             x--;
         }
