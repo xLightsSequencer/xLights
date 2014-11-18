@@ -2104,6 +2104,7 @@
 																					</collabels>
 																					<style>wxVSCROLL|wxFULL_REPAINT_ON_RESIZE</style>
 																					<handler function="OnGrid1CellRightClick" entry="EVT_CMD_GRID_CELL_RIGHT_CLICK" />
+																					<handler function="OnGrid1LabelRightClick" entry="EVT_CMD_GRID_LABEL_RIGHT_CLICK" />
 																					<handler function="OnGrid1CellChange" entry="EVT_CMD_GRID_CELL_CHANGE" />
 																					<handler function="OnGrid1CellLeftClick" entry="EVT_CMD_GRID_SELECT_CELL" />
 																					<handler function="OnGrid1SetFocus" entry="EVT_SET_FOCUS" />

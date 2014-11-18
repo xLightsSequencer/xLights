@@ -434,6 +434,7 @@ private:
     void OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event);
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
+    void OnGrid1LabelRightClick(wxGridEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1157,6 +1158,7 @@ private:
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
     // Functions for update state of sequence grid
     void AllRowsAreUpdated();
+    void SwapCols(int a, int b);
 
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);

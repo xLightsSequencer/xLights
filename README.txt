@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+        -enh (dkulp) Added pixel level "Skips" effect to SingleStrand effects.
+        -enh (dkulp) Add ability to shift columns in the grid left or right to reorder them.
         -enh (dkulp) If the effect is NONE and the buffer is already clear, skip clearing it.  For large Whole House models, clearing the 
                 buffer can take time so skip it if we can.
         -bug (dkulp)  If the preview is too large for the viewport such that part of the preview was cut off 

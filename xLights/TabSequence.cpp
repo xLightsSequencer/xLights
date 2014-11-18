@@ -3806,6 +3806,28 @@ void xLightsFrame::OnGrid1CellRightClick(wxGridEvent& event)
     PopupMenu(&mnu);
 }
 
+
+static const long ID_SHIFT_COL_LEFT = wxNewId();
+static const long ID_SHIFT_COL_RIGHT = wxNewId();
+
+void xLightsFrame::OnGrid1LabelRightClick(wxGridEvent& event)
+{
+    if (event.GetCol() > 1) {
+        wxMenu mnu;
+        curCell->Set(event.GetRow(), event.GetCol());
+        if (event.GetCol() > 2) {
+            mnu.Append(ID_SHIFT_COL_LEFT, "Shift Left");
+        }
+        if (event.GetCol() != Grid1->GetNumberCols() - 1) {
+            mnu.Append(ID_SHIFT_COL_RIGHT, "Shift Right");
+        }
+        Grid1->SelectCol(event.GetCol());;
+
+        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnPopupClick, NULL, this);
+        PopupMenu(&mnu);
+    }
+}
+
 void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 {
     if(event.GetId() == ID_DELETE_EFFECT)
@@ -3828,6 +3850,24 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
         CopyEffectAcrossRow(event); //-DJ
     if (event.GetId() == ID_CLEARROW_EFFECT)
         ClearEffectRow(event); //-DJ
+    
+    if (event.GetId() == ID_SHIFT_COL_LEFT) {
+        SwapCols(curCell->GetCol() - 1, curCell->GetCol());
+    }
+    if (event.GetId() == ID_SHIFT_COL_RIGHT) {
+        SwapCols(curCell->GetCol(), curCell->GetCol() + 1);
+    }
+}
+
+void xLightsFrame::SwapCols(int col1, int col2) {
+    for (int x = 0; x < Grid1->GetNumberRows(); x++) {
+        wxString tmp = Grid1->GetCellValue(x, col1);
+        Grid1->SetCellValue(x, col1, Grid1->GetCellValue(x, col2));
+        Grid1->SetCellValue(x, col2, tmp);
+    }
+    wxString tmp = Grid1->GetColLabelValue(col1);
+    Grid1->SetColLabelValue(col1, Grid1->GetColLabelValue(col2));
+    Grid1->SetColLabelValue(col2, tmp);
 }
 
 //void djdebug(const char* fmt, ...); //_DJ
