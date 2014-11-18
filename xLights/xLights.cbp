@@ -310,6 +310,7 @@
 		<Unit filename="RenderSnowstorm.cpp" />
 		<Unit filename="RenderSpirals.cpp" />
 		<Unit filename="RenderSpirograph.cpp" />
+		<Unit filename="RenderStrobe.cpp" />
 		<Unit filename="RenderText.cpp" />
 		<Unit filename="RenderTree.cpp" />
 		<Unit filename="RenderTwinkle.cpp" />
