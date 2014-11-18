@@ -1721,13 +1721,20 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
     preview->EndDrawing();
 }
 
+static inline void TranslatePointDoubles(double radians,wxCoord x,wxCoord y,double &x1, double &y1) {
+    x1 = cos(radians)*((double)x)-(sin(radians)*(double)y);
+    y1 = sin(radians)*((double)x)+(cos(radians)*(double)y);
+}
+
 void ModelClass::SetModelCoord( int degrees)
 {
     PreviewRotation=degrees;
 
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
-    wxCoord sx1,sy1;
+    double x1, y1;
+    wxCoord lastX = -9999;
+    wxCoord lastY = -9999;
     double radians=toRadians(PreviewRotation);
 
     for(size_t nn=0; nn<NodeCount; nn++)
@@ -1742,17 +1749,40 @@ void ModelClass::SetModelCoord( int degrees)
             sx=Nodes[nn]->OrigCoords[cc].screenX;
             sy=Nodes[nn]->OrigCoords[cc].screenY;
 
-            TranslatePoint(radians,sx,sy,&sx1,&sy1);
+            TranslatePointDoubles(radians,sx,sy,x1,y1);
+            int sx1 = round(x1);
+            int sy1 = round(y1);
+            if (sx1 == lastX && sy1 == lastY) {
+                //going to display in the same place as the last light, let's try moving around a little
+                if (rint(x1) != lastX) {
+                    sx1 = rint(x1);
+                } else if (rint(y1) != lastY) {
+                    sy1 = rint(y1);
+                } else if (floor(x1) != lastX) {
+                    sx1 = floor(x1);
+                } else if (floor(y1) != lastY) {
+                    sy1 = floor(y1);
+                } else if (ceil(x1) != lastX) {
+                    sx1 = ceil(x1);
+                } else if (ceil(y1) != lastY) {
+                    sy1 = ceil(y1);
+                }
+            }
             Nodes[nn]->Coords[cc].screenX = sx1;
             Nodes[nn]->Coords[cc].screenY = sy1;
+            lastX = sx1;
+            lastY = sy1;
         }
     }
 }
 
 void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1)
 {
-    *x1 = round(cos(radians)*((double)x)-(sin(radians)*(double)y));
-    *y1 = round(sin(radians)*((double)x)+(cos(radians)*(double)y));
+    double xd,yd;
+    TranslatePointDoubles(radians, x, y, xd, yd);
+    
+    *x1 = round(xd);
+    *y1 = round(yd);
 }
 
 void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview)
