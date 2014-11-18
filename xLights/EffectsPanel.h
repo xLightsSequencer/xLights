@@ -238,7 +238,6 @@ public:
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxSlider* Slider_Spirograph_R;
     wxStaticText* StaticText39;
-    wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButton_LayerEffect;
     wxStaticText* StaticText67;
@@ -893,7 +892,6 @@ protected:
     static const long ID_BITMAPBUTTON_CHECKBOX_Spirograph_Animate;
     static const long ID_STATICTEXT91;
     static const long ID_PANEL35;
-    static const long ID_BITMAPBUTTON50;
     static const long ID_BITMAPBUTTON52;
     static const long ID_STATICTEXT112;
     static const long ID_SLIDER_Number_Strobes;

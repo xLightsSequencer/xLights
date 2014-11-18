@@ -65,7 +65,7 @@ CurrentPreviewModels::~CurrentPreviewModels()
 void CurrentPreviewModels::OnCheckListBoxCurrentGroupsToggled(wxCommandEvent& event)
 {
     wxString sChecked;
-    for(int i=0;i<CheckListBoxCurrentGroups->GetCount();i++)
+    for(unsigned int i=0;i<CheckListBoxCurrentGroups->GetCount();i++)
     {
         wxXmlNode* e = (wxXmlNode*)CheckListBoxCurrentGroups->GetClientData(i);
         e->DeleteAttribute("selected");

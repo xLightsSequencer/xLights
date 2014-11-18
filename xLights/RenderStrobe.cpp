@@ -60,19 +60,13 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration)
 
     // create new strobe, randomly place a strobe
 
-    for(int i=0; i<BufferHt; i++)
+    for(int i=0; i<Number_Strobes; i++)
     {
-        if (rand() % 200 < Number_Strobes)
-        {
-            m.x=BufferWi - 1;
-            m.y=i;
-
-            // Now store how many frames this lights will stay on for
-            m.duration = StrobeDuration;
-            palette.GetHSV(0, m.hsv); // take first checked color as color of flash
-
-            strobe.push_back(m); // Store this strobe into the list
-        }
+        m.x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
+        m.y =rand() % BufferHt;
+        m.duration = StrobeDuration;
+        palette.GetHSV(0, m.hsv); // take first checked color as color of flash
+        strobe.push_back(m); // Store this strobe into the list
     }
 
     // render strobe, we go through all storbes and decide if they should be turned on
@@ -81,18 +75,32 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration)
     for (StrobeList::iterator it=strobe.begin(); it!=strobe.end(); ++it)
     {
         n++;
-
         hsv=it->hsv;
-       // x=it->x+ph;
-//y=it->y+dy;
+        x=it->x;
+        y=it->y;
         if(it->duration>0)
             SetPixel(x,y,hsv);
+            if(it->duration==2)
+            {
+                SetPixel(x,y-1,hsv);
+                SetPixel(x,y+1,hsv);
+                SetPixel(x-1,y,hsv);
+                SetPixel(x+1,y,hsv);
+            }
+            else if(it->duration==1)
+            {
+                hsv.value /=2;
+                SetPixel(x,y-1,hsv);
+                SetPixel(x,y+1,hsv);
+                SetPixel(x-1,y,hsv);
+                SetPixel(x+1,y,hsv);
+            }
 
-        it->duration--;  // decreas the frame counter on this strobe, when it gets to zero we no longer will turn it on
+        it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
 
 
         // delete old strobe
-        if(it->duration<1)
-            strobe.remove_if(StrobeHasExpired(it->duration));
+        //if(it->duration<1)
+    //        strobe.remove_if(1);
     }
 }

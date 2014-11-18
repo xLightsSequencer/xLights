@@ -3878,18 +3878,6 @@
 								<cols>1</cols>
 								<growablecols>0</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON50" variable="BitmapButton_NumberStrobes" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<default>1</default>
-										<size>22,21</size>
-										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-										<handler function="OnBitmapButton_TreeBranchesClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>1</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer86" member="no">
 										<cols>3</cols>
 										<object class="sizeritem">
@@ -3921,14 +3909,13 @@
 											<object class="wxSlider" name="ID_SLIDER_Number_Strobes" variable="Slider_Number_Strobes" member="yes">
 												<value>3</value>
 												<min>1</min>
-												<max>10</max>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON49" variable="BitmapButton3" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON49" variable="BitmapButton_NumberStrobes" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
@@ -3954,7 +3941,10 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Strobe_Duration" variable="Slider_Strobe_Duration" member="yes" />
+											<object class="wxSlider" name="ID_SLIDER_Strobe_Duration" variable="Slider_Strobe_Duration" member="yes">
+												<value>10</value>
+												<min>1</min>
+											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
