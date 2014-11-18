@@ -106,38 +106,13 @@ void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize,
             }
             x++;
         }
-        for (int cnt = 0; cnt < Skips_SkipSize && x < max; cnt++) {
-            int mappedX = mapX(x, max, direction, second);
-            if (mappedX >= 0 && mappedX < BufferWi) {
-                for (int y = 0; y < BufferHt; y++) {
-                    SetPixel(mappedX, y, black);
-                }
-            }
-            if (second >= 0 && second < BufferWi) {
-                for (int y = 0; y < BufferHt; y++) {
-                    SetPixel(second, y, black);
-                }
-            }
-            x++;
-        }
+        x += Skips_SkipSize;
     }
     colorIdx = GetColorCount() - 1;
     x = firstX - 1;
     while (x >= 0) {
-        for (int cnt = 0; cnt < Skips_SkipSize && x >= 0; cnt++) {
-            int mappedX = mapX(x, max, direction, second);
-            if (mappedX >= 0 && mappedX < BufferWi) {
-                for (int y = 0; y < BufferHt; y++) {
-                    SetPixel(mappedX, y, black);
-                }
-            }
-            if (second >= 0 && second < BufferWi) {
-                for (int y = 0; y < BufferHt; y++) {
-                    SetPixel(second, y, black);
-                }
-            }
-            x--;
-        }
+        x -= Skips_SkipSize;
+
         palette.GetColor(colorIdx, color);
         colorIdx--;
         if (colorIdx < 0) {
