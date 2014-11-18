@@ -333,23 +333,14 @@
 		<Unit filename="ShowDatesDialog.h" />
 		<Unit filename="TabConvert.cpp" />
 		<Unit filename="TabPapagayo.cpp" />
-		<Unit filename="TabPreview.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="TabPreview.cpp" />
 		<Unit filename="TabSchedule.cpp">
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
-		<Unit filename="TabSequence.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="TabSequence.cpp" />
 		<Unit filename="TabSetup.cpp" />
-		<Unit filename="TabTest.cpp">
-			<Option compile="0" />
-			<Option link="0" />
-		</Unit>
+		<Unit filename="TabTest.cpp" />
 		<Unit filename="ViewsDialog.cpp" />
 		<Unit filename="ViewsDialog.h" />
 		<Unit filename="WholeHouseModelNameDialog.cpp" />
