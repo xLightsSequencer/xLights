@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+        -bug (dkulp) SingleLine models with multiple string bug one node per string were displayed as a single light
+        -bug (dkulp) Rotating single lines would cause the number of lights to display to drop by 2. (lose the ends)
         -enh (dkulp) Added pixel level "Skips" effect to SingleStrand effects.
         -enh (dkulp) Add ability to shift columns in the grid left or right to reorder them.
         -enh (dkulp) If the effect is NONE and the buffer is already clear, skip clearing it.  For large Whole House models, clearing the 

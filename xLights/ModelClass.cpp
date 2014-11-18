@@ -595,26 +595,28 @@ void ModelClass::SetTreeCoord(long degrees)
 // parm2=Pixels Per String/Arch
 void ModelClass::InitLine()
 {
+    int numLights = parm1 * parm2;
     SetNodeCount(parm1,parm2);
-    SetBufferSize(1,parm2);
+    SetBufferSize(1,numLights);
     int LastStringNum=-1;
     int chan,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
+    
+    idx = 0;
     for(size_t n=0; n<NodeCount; n++)
     {
         if (Nodes[n]->StringNum != LastStringNum)
         {
             LastStringNum=Nodes[n]->StringNum;
             chan=stringStartChan[LastStringNum];
-            idx=0;
         }
         Nodes[n]->ActChan=chan;
         chan+=ChanIncr;
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++)
         {
-            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : parm2-idx-1;
+            Nodes[n]->Coords[c].bufX=IsLtoR ? idx : numLights-idx-1;
             Nodes[n]->Coords[c].bufY=0;
             idx++;
         }
@@ -1749,8 +1751,8 @@ void ModelClass::SetModelCoord( int degrees)
 
 void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,wxCoord* y1)
 {
-    *x1 = cos(radians)*(x)-(sin(radians)*y);
-    *y1 = sin(radians)*(x)+(cos(radians)*y);
+    *x1 = round(cos(radians)*((double)x)-(sin(radians)*(double)y));
+    *y1 = round(sin(radians)*((double)x)+(cos(radians)*(double)y));
 }
 
 void ModelClass::SetMinMaxModelScreenCoordinates(ModelPreview* preview)
