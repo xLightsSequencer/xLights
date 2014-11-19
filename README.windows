@@ -56,7 +56,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
           $(#wx)\lib\gcc_gll\libwxmsw30u_gl.a
      4) Under Other linker options sub-tab should be:
           -lopengl32
-          -lglut32
+          -lglut32          --this one might not be needed, depending on your configuration
      5) click Search Directories tab
      6) Under Compiler sub-tab should be:
           $(#wx)\include
