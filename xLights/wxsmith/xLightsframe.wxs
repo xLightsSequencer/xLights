@@ -2732,6 +2732,7 @@
 																				<item>Eyes - Down</item>
 																			</rowlabels>
 																			<minsize>-1,200</minsize>
+																			<handler function="OnGridCoroFacesLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
 																			<handler function="OnGridCoroFacesCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2847,6 +2848,24 @@
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>2</border>
+																	</object>
+																	<object class="spacer">
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="spacer">
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxCheckBox" name="ID_CHECKBOX_CoroPictureScaled" variable="CheckBox_CoroPictureScaled" member="yes">
+																			<label>Scaled pictures</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>2</border>
+																		<option>1</option>
 																	</object>
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

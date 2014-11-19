@@ -307,6 +307,7 @@ const long xLightsFrame::ID_CHECKBOX_PgoAutoFade = wxNewId();
 const long xLightsFrame::ID_TEXTCTRL_PgoAutoFade = wxNewId();
 const long xLightsFrame::ID_STATICTEXT35 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_CoroEyesRandomLR = wxNewId();
+const long xLightsFrame::ID_CHECKBOX_CoroPictureScaled = wxNewId();
 const long xLightsFrame::ID_STATICTEXT70 = wxNewId();
 const long xLightsFrame::ID_BUTTON6 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
@@ -1342,6 +1343,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBox_CoroEyesRandomLR = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_CoroEyesRandomLR, _("Eyes random left/right"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroEyesRandomLR"));
     CheckBox_CoroEyesRandomLR->SetValue(false);
     FlexGridSizer55->Add(CheckBox_CoroEyesRandomLR, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer55->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer55->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_CoroPictureScaled = new wxCheckBox(PanelPapagayo, ID_CHECKBOX_CoroPictureScaled, _("Scaled pictures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CoroPictureScaled"));
+    CheckBox_CoroPictureScaled->SetValue(false);
+    FlexGridSizer55->Add(CheckBox_CoroPictureScaled, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer56->Add(FlexGridSizer55, 0, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText67 = new wxStaticText(PanelPapagayo, ID_STATICTEXT70, _("5)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT70"));
     wxFont StaticText67Font(14,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
@@ -1550,6 +1556,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_CoroGroupDelete,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupDeleteClick);
     Connect(ID_BUTTON_CoroGroupClear,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_CoroGroupClearClick);
     Connect(ID_BUTTON_PgoCopyVoices,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PgoCopyVoicesClick);
+    Connect(ID_GRID_COROFACES,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesLabelLeftClick);
     Connect(ID_GRID_COROFACES,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGridCoroFacesCellSelect);
     Connect(ID_TEXTCTRL_PgoMinRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMinRestText);
     Connect(ID_TEXTCTRL_PgoMaxRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMaxRestText);
@@ -1966,6 +1973,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
 
 }
+
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {

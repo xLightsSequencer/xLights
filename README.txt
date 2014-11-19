@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+	  -enh (djulien) Add Papagayo option for scaled vs. fixed picture mode
+	  -enh (djulien) Allow Papagayo grid row labels to be aliased (click on row label to change it); cosmetic only - does not change xml file
+	  -bug (djulien) Avoid "error 0" after writing new Papagayo file
         -bug (dkulp) SingleLine models with multiple string bug one node per string were displayed as a single light
         -bug (dkulp) Rotating single lines would cause the number of lights to display to drop by 2. (lose the ends)
         -enh (dkulp) Added pixel level "Skips" effect to SingleStrand effects.

@@ -60,6 +60,7 @@ static const wxString DelayMaxRest = wxT("delay_max_rest");
 static const wxString DelayFade = wxT("delay_fade");
 static const wxString EyesBlink = wxT("eyes_blink");
 static const wxString EyesLR = wxT("eyes_lr");
+static const wxString PictureScaled = wxT("picture_scaled");
 static const wxString Yes = wxT("Y");
 static const wxString No = wxT("N");
 static const wxString Name = wxT("name");
@@ -176,6 +177,25 @@ static char outmode = 'c';
 #define Eyes_right_Row  15
 #define Eyes_up_Row  16
 #define Eyes_down_Row  17
+
+//default grid row labels:
+#define Outline_RowLabel  "Face Outline"
+#define AI_RowLabel  "Mouth - AI"
+#define E_RowLabel  "Mouth - E"
+#define etc_RowLabel  "Mouth - etc"
+#define FV_RowLabel  "Mouth -FV"
+#define L_RowLabel  "Mouth - L"
+#define MBP_RowLabel  "Mouth - MBP"
+#define O_RowLabel  "Mouth - O"
+#define rest_RowLabel  "Mouth - rest"
+#define U_RowLabel  "Mouth - U"
+#define WQ_RowLabel  "Mouth - WQ"
+#define Eyes_open_RowLabel  "Eyes - Open"
+#define Eyes_closed_RowLabel  "Eyes - Closed"
+#define Eyes_left_RowLabel  "Eyes - Left"
+#define Eyes_right_RowLabel  "Eyes - Right"
+#define Eyes_up_RowLabel  "Eyes - Up"
+#define Eyes_down_RowLabel  "Eyes - Down"
 
 
 #ifndef GRID_EDIT_KLUDGE
@@ -972,6 +992,7 @@ public:
 std::vector<std::pair<int, InfoChain>> phonemes_by_start_frame;
 
 static int fade_delay, rest_min_delay, rest_max_delay, eyes_delay; //auto-fade, auto-rest or eye movement frame counts
+static bool pic_scaled;
 
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
@@ -983,7 +1004,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
     TextCtrlConversionStatus->Clear();
     ButtonStartPapagayo->Enable(true);
     debug(10, "out fmt = '%c'", outmode); //(const char*)OutputFormat.c_str());
-    if (!voices.size()) retmsg(wxT("No Papagayo voice info found."));
+    if (!voices.size()) retmsg(wxString("No Papagayo voice info found."));
 
     fade_delay = 0;
     rest_min_delay = 0;
@@ -1009,6 +1030,7 @@ void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
         if (fade_delay && (rest_max_delay >= fade_delay))
             retmsg(wxString::Format("Auto-rest max must be less than auto-fade delay value: '%s' vs. '%s'", TextCtrl_PgoMaxRest->GetValue(), TextCtrl_PgoAutoFade->GetValue()));
     }
+    pic_scaled = CheckBox_CoroPictureScaled->GetValue();
     if (CheckBox_CoroEyesRandomBlink->GetValue() || CheckBox_CoroEyesRandomLR->GetValue()) eyes_delay = 100; //rand() % 30; //TODO: adjust value?
     debug(20, "auto-fade: %d, auto-rest: %d..%d, eyes move? %d", fade_delay, rest_min_delay, rest_max_delay, eyes_delay);
 
@@ -1330,7 +1352,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
             break;
         case 'i': //images
             fxname = "Pictures";
-            fxparams = "E1_TEXTCTRL_Pictures_Filename=%s,E1_CHOICE_Pictures_Direction=none,E1_SLIDER_Pictures_GifSpeed=1"; //1 value
+            fxparams = "E1_TEXTCTRL_Pictures_Filename=%s,E1_CHOICE_Pictures_Direction=%s,E1_SLIDER_Pictures_GifSpeed=1"; //2 values
             break;
 //TODO        case 'm': //movies
 //TODO            fxname = "TBD";
@@ -1398,7 +1420,7 @@ void xLightsFrame::write_pgo_footer(wxFile& f) //, int MaxVoices)
                                     fxstr = wxString::Format(fxstr, frame_phonemes[voice], frame_eyes[voice], "1");
                                     break;
                                 case 'i':
-                                    fxstr = wxString::Format(fxstr, img_lkup[voice][(const char*)frame_phonemes[voice].c_str()]); //, frame_eyes[voice], "1")
+                                    fxstr = wxString::Format(fxstr, img_lkup[voice][(const char*)frame_phonemes[voice].c_str()], pic_scaled? "scaled": "none"); //, frame_eyes[voice], "1")
                                     break;
                                 case 'm':
 //TODO                                    fxstr = wxString::Format(fxstr, frame_phonemes[voice]); //, frame_eyes[voice], "1")
@@ -2054,6 +2076,7 @@ bool xLightsFrame::LoadPgoSettings(void)
     TextCtrl_PgoAutoFade->SetValue(pgoXml.GetRoot()->GetAttribute(DelayFade));
     CheckBox_CoroEyesRandomBlink->SetValue(pgoXml.GetRoot()->GetAttribute(EyesBlink) == Yes);
     CheckBox_CoroEyesRandomLR->SetValue(pgoXml.GetRoot()->GetAttribute(EyesLR) == Yes);
+    CheckBox_CoroPictureScaled->SetValue(pgoXml.GetRoot()->GetAttribute(PictureScaled) == Yes);
     for (int i = 0; i < Choice_PgoOutputType->GetCount(); ++i)
         if (Choice_PgoOutputType->GetString(i) == pgoXml.GetRoot()->GetAttribute(LastMode))
         {
@@ -2201,6 +2224,21 @@ bool xLightsFrame::GetGroupName(wxString& grpname)
 }
 
 static wxString Save_warnings;
+
+//replace default value with empty string (cuts down on verbosity):
+static const wxString& NonDefault(const wxString& val, const wxString& defaultval)
+{
+    static wxString my_wxEmptyString; //kludge: wxEmptyString doesn't cast to wxString
+    return (val != defaultval)? val: my_wxEmptyString;
+}
+
+//return last word of a phrase (cuts down on verbosity and avoids spaces within value):
+static const wxString& LastWordOf(const wxString& str)
+{
+    static wxString retval;
+    retval = str.AfterLast(L' ');
+    return retval;
+}
 
 bool xLightsFrame::SavePgoSettings(void)
 {
@@ -2659,6 +2697,28 @@ void xLightsFrame::OnBitmapButton_SaveCoroGroupClick(wxCommandEvent& event)
         AddNonDupAttr(group, DelayFade, TextCtrl_PgoAutoFade->GetValue());
         AddNonDupAttr(group, EyesBlink, CheckBox_CoroEyesRandomBlink->GetValue()? Yes: No);
         AddNonDupAttr(group, EyesLR, CheckBox_CoroEyesRandomLR->GetValue()? Yes: No);
+        AddNonDupAttr(group, PictureScaled, CheckBox_CoroPictureScaled->GetValue()? Yes: No);
+
+#if 1 //aliased row labels
+        AddNonDupAttr(group, LastWordOf(Outline_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Outline_Row), Outline_RowLabel));
+        AddNonDupAttr(group, LastWordOf(AI_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(AI_Row), AI_RowLabel));
+        AddNonDupAttr(group, LastWordOf(E_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(E_Row), E_RowLabel));
+        AddNonDupAttr(group, LastWordOf(etc_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(etc_Row), etc_RowLabel));
+        AddNonDupAttr(group, LastWordOf(FV_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(FV_Row), FV_RowLabel));
+        AddNonDupAttr(group, LastWordOf(L_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(L_Row), L_RowLabel));
+        AddNonDupAttr(group, LastWordOf(MBP_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(MBP_Row), MBP_RowLabel));
+        AddNonDupAttr(group, LastWordOf(O_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(O_Row), O_RowLabel));
+        AddNonDupAttr(group, LastWordOf(rest_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(rest_Row), rest_RowLabel));
+        AddNonDupAttr(group, LastWordOf(U_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(U_Row), U_RowLabel));
+        AddNonDupAttr(group, LastWordOf(WQ_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(WQ_Row), WQ_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_open_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_open_Row), Eyes_open_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_closed_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_closed_Row), Eyes_closed_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_left_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_left_Row), Eyes_left_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_right_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_right_Row), Eyes_right_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_up_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_up_Row), Eyes_up_RowLabel));
+        AddNonDupAttr(group, LastWordOf(Eyes_down_RowLabel), NonDefault(GridCoroFaces->GetRowLabelValue(Eyes_down_Row), Eyes_down_RowLabel));
+#endif // 1
+
         compat = 99; //break out of compat loop
     }
 //    if (num_deleted) warnings += wxString::Format(wxT("\n%d deleted."), num_deleted);
@@ -2733,6 +2793,27 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
                 break;
             }
         debug(10, "found group: mode '%c', compat? %d", wantmode, compat);
+#if 1 //aliased row labels
+        debug(10, "got outline label '%s' for group '%s'", (const char*)group->GetAttribute(LastWordOf(Outline_RowLabel), Outline_RowLabel).c_str(), (const char*)grpname.c_str());
+        GridCoroFaces->SetRowLabelValue(Outline_Row, group->GetAttribute(LastWordOf(Outline_RowLabel), Outline_RowLabel));
+        GridCoroFaces->SetRowLabelValue(AI_Row, group->GetAttribute(LastWordOf(AI_RowLabel), AI_RowLabel));
+        GridCoroFaces->SetRowLabelValue(E_Row, group->GetAttribute(LastWordOf(E_RowLabel), E_RowLabel));
+        GridCoroFaces->SetRowLabelValue(etc_Row, group->GetAttribute(LastWordOf(etc_RowLabel), etc_RowLabel));
+        GridCoroFaces->SetRowLabelValue(FV_Row, group->GetAttribute(LastWordOf(FV_RowLabel), FV_RowLabel));
+        GridCoroFaces->SetRowLabelValue(L_Row, group->GetAttribute(LastWordOf(L_RowLabel), L_RowLabel));
+        GridCoroFaces->SetRowLabelValue(MBP_Row, group->GetAttribute(LastWordOf(MBP_RowLabel), MBP_RowLabel));
+        GridCoroFaces->SetRowLabelValue(O_Row, group->GetAttribute(LastWordOf(O_RowLabel), O_RowLabel));
+        GridCoroFaces->SetRowLabelValue(rest_Row, group->GetAttribute(LastWordOf(rest_RowLabel), rest_RowLabel));
+        GridCoroFaces->SetRowLabelValue(U_Row, group->GetAttribute(LastWordOf(U_RowLabel), U_RowLabel));
+        GridCoroFaces->SetRowLabelValue(WQ_Row, group->GetAttribute(LastWordOf(WQ_RowLabel), WQ_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_open_Row, group->GetAttribute(LastWordOf(Eyes_open_RowLabel), Eyes_open_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_closed_Row, group->GetAttribute(LastWordOf(Eyes_closed_RowLabel), Eyes_closed_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_left_Row, group->GetAttribute(LastWordOf(Eyes_left_RowLabel), Eyes_left_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_right_Row, group->GetAttribute(LastWordOf(Eyes_right_RowLabel), Eyes_right_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_up_Row, group->GetAttribute(LastWordOf(Eyes_up_RowLabel), Eyes_up_RowLabel));
+        GridCoroFaces->SetRowLabelValue(Eyes_down_Row, group->GetAttribute(LastWordOf(Eyes_down_RowLabel), Eyes_down_RowLabel));
+//TODO    panel->Choice_CoroFaces_Phoneme->Set(CoroFacesPhoneme);
+#endif // 1
 
         for (wxXmlNode* voice = group->GetChildren(); voice != NULL; voice = voice->GetNext())
         {
@@ -2776,6 +2857,7 @@ void xLightsFrame::OnChoice_PgoGroupNameSelect(wxCommandEvent& event)
             TextCtrl_PgoAutoFade->SetValue(options->GetAttribute(DelayFade));
             CheckBox_CoroEyesRandomBlink->SetValue(options->GetAttribute(EyesBlink) == Yes);
             CheckBox_CoroEyesRandomLR->SetValue(options->GetAttribute(EyesLR) == Yes);
+            CheckBox_CoroPictureScaled->SetValue(options->GetAttribute(PictureScaled) == Yes);
 
             wxString prefix, msg = "not found";
             /*if (voice_name.empty())*/ GridCoroFaces->SetCellValue(Model_Row, destcol, SelectionHint); //in case not found
@@ -2901,6 +2983,25 @@ void xLightsFrame::OnButton_CoroGroupClearClick(wxCommandEvent& event)
         for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
             GridCoroFaces->SetCellValue(r, c, (r == Model_Row)? SelectionHint: empty);
     }
+//reset row labels back to default values:
+    GridCoroFaces->SetRowLabelValue(Outline_Row, Outline_RowLabel);
+    GridCoroFaces->SetRowLabelValue(AI_Row, AI_RowLabel);
+    GridCoroFaces->SetRowLabelValue(E_Row, E_RowLabel);
+    GridCoroFaces->SetRowLabelValue(etc_Row, etc_RowLabel);
+    GridCoroFaces->SetRowLabelValue(FV_Row, FV_RowLabel);
+    GridCoroFaces->SetRowLabelValue(L_Row, L_RowLabel);
+    GridCoroFaces->SetRowLabelValue(MBP_Row, MBP_RowLabel);
+    GridCoroFaces->SetRowLabelValue(O_Row, O_RowLabel);
+    GridCoroFaces->SetRowLabelValue(rest_Row, rest_RowLabel);
+    GridCoroFaces->SetRowLabelValue(U_Row, U_RowLabel);
+    GridCoroFaces->SetRowLabelValue(WQ_Row, WQ_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_open_Row, Eyes_open_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_closed_Row, Eyes_closed_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_left_Row, Eyes_left_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_right_Row, Eyes_right_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_up_Row, Eyes_up_RowLabel);
+    GridCoroFaces->SetRowLabelValue(Eyes_down_Row, Eyes_down_RowLabel);
+
     GridCoroFaces->EndBatch();
 //TODO: reset fade + blink?
 }
@@ -3138,4 +3239,36 @@ void xLightsFrame::OnTextCtrl_PgoMaxRestText(wxCommandEvent& event)
 void xLightsFrame::OnTextCtrl_PgoAutoFadeText(wxCommandEvent& event)
 {
     CheckBox_PgoAutoFade->SetValue(!TextCtrl_PgoAutoFade->GetValue().IsEmpty());
+}
+
+void xLightsFrame::OnGridCoroFacesLabelLeftClick(wxGridEvent& event)
+{
+    wxString row_alias;
+#if 1 //aliased row labels
+    if (!EffectTreeDialog::PromptForName(this, &row_alias, wxString::Format(_("Enter alias for row '%s'"), GridCoroFaces->GetRowLabelValue(event.GetRow())), wxEmptyString)) return;
+    if (row_alias.IsEmpty()) //restore to default name
+        switch (event.GetRow())
+        {
+            case Model_Row: return; //row_alias = "Model Name"; break;
+            case Outline_Row: row_alias = Outline_RowLabel; break;
+            case AI_Row: row_alias = AI_RowLabel; break;
+            case E_Row: row_alias = E_RowLabel; break;
+            case etc_Row: row_alias = etc_RowLabel; break;
+            case FV_Row: row_alias = FV_RowLabel; break;
+            case L_Row: row_alias = L_RowLabel; break;
+            case MBP_Row: row_alias = MBP_RowLabel; break;
+            case O_Row: row_alias = O_RowLabel; break;
+            case rest_Row: row_alias = rest_RowLabel; break;
+            case U_Row: row_alias = U_RowLabel; break;
+            case WQ_Row: row_alias = WQ_RowLabel; break;
+            case Eyes_open_Row: row_alias = Eyes_open_RowLabel; break;
+            case Eyes_closed_Row: row_alias = Eyes_closed_RowLabel; break;
+            case Eyes_left_Row: row_alias = Eyes_left_RowLabel; break;
+            case Eyes_right_Row: row_alias = Eyes_right_RowLabel; break;
+            case Eyes_up_Row: row_alias = Eyes_up_RowLabel; break;
+            case Eyes_down_Row: row_alias = Eyes_down_RowLabel; break;
+            default: return;
+        }
+    GridCoroFaces->SetRowLabelValue(event.GetRow(), row_alias);
+#endif // 1
 }

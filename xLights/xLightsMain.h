@@ -435,6 +435,7 @@ private:
     void OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& event);
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     void OnGrid1LabelRightClick(wxGridEvent& event);
+    void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -672,6 +673,7 @@ private:
     static const long ID_TEXTCTRL_PgoAutoFade;
     static const long ID_STATICTEXT35;
     static const long ID_CHECKBOX_CoroEyesRandomLR;
+    static const long ID_CHECKBOX_CoroPictureScaled;
     static const long ID_STATICTEXT70;
     static const long ID_BUTTON6;
     static const long ID_PANEL4;
@@ -772,6 +774,7 @@ private:
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
+    wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
     wxBitmapButton* BitmapButton_locked;
     wxPanel* PanelPreview;
