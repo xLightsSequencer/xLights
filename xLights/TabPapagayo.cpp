@@ -975,6 +975,7 @@ static int fade_delay, rest_min_delay, rest_max_delay, eyes_delay; //auto-fade, 
 
 void xLightsFrame::OnButtonStartPapagayoClick(wxCommandEvent& event)
 {
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after file is written
     if (Notebook1->GetSelection() != PAPAGAYOTAB) return; //kludge: avoid getting called from other tabs (event handle is messed up!)
 
     ButtonStartPapagayo->Enable(false);
