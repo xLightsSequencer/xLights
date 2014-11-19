@@ -2121,6 +2121,12 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
             StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
             ResetTimer(PAUSE_SEQ);
         }
+        else if (SeqDataLen > 0)
+        {
+            StopPreviewPlayback();
+            ResetTimer(PAUSE_SEQ_ANIM,0);
+
+        }
     }
     if (pagenum == PAPAGAYOTAB)
     {
@@ -2740,10 +2746,6 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
     }
     return defaultValue;
 }
-
-
-
-
 
 void xLightsFrame::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {

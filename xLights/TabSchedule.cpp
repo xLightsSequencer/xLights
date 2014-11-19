@@ -546,6 +546,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
 //            break; //keep going; might catch up -DJ
         }
         period = msec / XTIMER_INTERVAL;
+        PlaybackPeriod = period;
         if (period < SeqNumPeriods)
         {
             TimerOutput(period);

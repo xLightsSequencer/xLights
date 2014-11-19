@@ -216,7 +216,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
         //part of top of preview is cut off, adjust
         y += s2.y - s1.y;
     }
-    
+
     if (event.ControlDown())
     {
         SelectMultipleModels(event.GetX(),y);
@@ -752,7 +752,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         PlayerDlg->MediaCtrl->Play();
         break;
     case PAUSE_SEQ_ANIM:
-        //ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        break;
+    case PLAYING_SEQ_ANIM:
+        ResetTimer(PAUSE_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
         break;
     default:
         wxString details; //show details to help user -DJ
@@ -785,7 +788,12 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
 {
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PAUSE_SEQ_ANIM);
+        ResetTimer(PAUSE_SEQ_ANIM,0);
+        PlaybackPeriod = 0;
+        previewPlaying = false;
+        SliderPreviewTime->SetValue(0);
+        ShowPreviewTime(0);
+        bbPlayPause->SetBitmap(playIcon);
     }
     else
     {
@@ -849,7 +857,9 @@ void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PLAYING_SEQ_ANIM, msec);
+        ResetTimer(PAUSE_SEQ_ANIM, msec);
+        ShowPreviewTime(msec);
+        PlaybackPeriod = newperiod;
     }
     else
     {
@@ -867,7 +877,10 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PLAYING_SEQ_ANIM, msec);
+        ResetTimer(PAUSE_SEQ_ANIM, msec);
+        ShowPreviewTime(msec);
+        PreviewOutput(newperiod);
+        PlaybackPeriod = newperiod;
     }
     else
     {
@@ -889,14 +902,14 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PLAYING_SEQ_ANIM, msec);
+        ResetTimer(PAUSE_SEQ_ANIM, msec);
+        ShowPreviewTime(msec);
+        bbPlayPause->SetBitmap(playIcon);
+        previewPlaying = false;
+        PlaybackPeriod=newperiod;
     }
     else if(SeqPlayerState != PLAYING_SEQ_ANIM)
     {
-        if( msec > seekPoint)
-        {
-            msec = seekPoint;
-        }
         ShowPreviewTime(msec);
         PlayerDlg->MediaCtrl->Seek(msec);
 

@@ -1298,6 +1298,7 @@ private:
     wxArrayString CurtainEffect;
     wxGridCellCoords *curCell;
     EffectTreeDialog *EffectTreeDlg;
+    int PlaybackPeriod; //used to be able to record the frame being played in an animation preview
 
     bool m_dragging;
     bool m_resizing;
