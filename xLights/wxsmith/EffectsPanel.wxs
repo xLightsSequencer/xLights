@@ -3885,6 +3885,7 @@
 										<cols>3</cols>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON52" variable="BitmapButton24" member="yes">
+												<bitmap code="strobe" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 											</object>
@@ -3912,6 +3913,7 @@
 											<object class="wxSlider" name="ID_SLIDER_Number_Strobes" variable="Slider_Number_Strobes" member="yes">
 												<value>3</value>
 												<min>1</min>
+												<max>300</max>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -3922,6 +3924,7 @@
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_NumberStrobesClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -3953,10 +3956,48 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON51" variable="BitmapButton13" member="yes">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON51" variable="BitmapButton_StrobeDuration" member="yes">
 												<bitmap code="padlock16x16_blue_xpm" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_StrobeDurationClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer90" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT114" variable="StaticText112" member="yes">
+												<label>Strobe Type</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Strobe_Type" variable="Slider_Strobe_Type" member="yes">
+												<value>1</value>
+												<min>1</min>
+												<max>4</max>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON50" variable="BitmapButton_Strobe_Type" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<handler function="OnBitmapButton_Strobe_TypeClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>

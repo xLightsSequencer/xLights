@@ -1350,7 +1350,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Strobe")
     {
         buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"Slider_Number_Strobes"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Duration"]));
+                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Duration"]),
+                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Type"]));
     }
     else if (effect == "Text")
     {
@@ -1613,7 +1614,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_STROBE:
         buffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
-                            panel->Slider_Strobe_Duration->GetValue());
+                            panel->Slider_Strobe_Duration->GetValue(),
+                            panel->Slider_Strobe_Type->GetValue());
         break;
     case eff_TEXT:
         buffer.RenderText(panel->Slider_Text_Position1->GetValue(),

@@ -45,13 +45,13 @@ public:
     }
 };
 
-void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration)
+void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type)
 {
     if (state == 0) strobe.clear();
     int mspeed=state/4;
     state-=mspeed*4;
 
-
+    int ColorIdx;
     StrobeClass m;
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
@@ -65,13 +65,19 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration)
         m.x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
         m.y =rand() % BufferHt;
         m.duration = StrobeDuration;
-        palette.GetHSV(0, m.hsv); // take first checked color as color of flash
+
+        ColorIdx=rand()%colorcnt;
+//       palette.GetHSV(ColorIdx, hsv);
+
+        palette.GetHSV(ColorIdx, m.hsv); // take first checked color as color of flash
+
         strobe.push_back(m); // Store this strobe into the list
     }
 
     // render strobe, we go through all storbes and decide if they should be turned on
 
     int x,y,dy,n=0;
+
     for (StrobeList::iterator it=strobe.begin(); it!=strobe.end(); ++it)
     {
         n++;
@@ -79,28 +85,70 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration)
         x=it->x;
         y=it->y;
         if(it->duration>0)
+        {
             SetPixel(x,y,hsv);
-            if(it->duration==2)
+        }
+
+        int r = rand()%2;
+        if(it->duration==1)
+        {
+            if(it->duration==1)
             {
-                SetPixel(x,y-1,hsv);
-                SetPixel(x,y+1,hsv);
-                SetPixel(x-1,y,hsv);
-                SetPixel(x+1,y,hsv);
+                hsv.value /=3;
             }
-            else if(it->duration==1)
+            else if(it->duration==2)
             {
                 hsv.value /=2;
+            }
+
+
+            if(Strobe_Type==2)
+            {
+
+                if(r==0)
+                {
+                    SetPixel(x,y-1,hsv);
+                    SetPixel(x,y+1,hsv);
+                }
+                else
+                {
+                    SetPixel(x-1,y,hsv);
+                    SetPixel(x+1,y,hsv);
+                }
+
+            }
+            if(Strobe_Type==3)
+            {
                 SetPixel(x,y-1,hsv);
                 SetPixel(x,y+1,hsv);
                 SetPixel(x-1,y,hsv);
                 SetPixel(x+1,y,hsv);
             }
+            if(Strobe_Type==4)
+            {
+
+                if(r==0)
+                {
+                    SetPixel(x,y-1,hsv);
+                    SetPixel(x,y+1,hsv);
+                    SetPixel(x-1,y,hsv);
+                    SetPixel(x+1,y,hsv);
+                }
+                else
+                {
+                    SetPixel(x+1,y-1,hsv);
+                    SetPixel(x+1,y+1,hsv);
+                    SetPixel(x-1,y-1,hsv);
+                    SetPixel(x-1,y+1,hsv);
+                }
+            }
+        }
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
 
 
         // delete old strobe
         //if(it->duration<1)
-    //        strobe.remove_if(1);
+        //        strobe.remove_if(1);
     }
 }

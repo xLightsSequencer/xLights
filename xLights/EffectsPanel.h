@@ -40,6 +40,7 @@ public:
 
     //(*Declarations(EffectsPanel)
     wxStaticText* StaticText6;
+    wxBitmapButton* BitmapButton_StrobeDuration;
     wxBitmapButton* BitmapButton_RandomMotion;
     wxBitmapButton* BitmapButton_Wave_FillColors;
     wxBitmapButton* BitmapButton_TwinkleSteps;
@@ -158,6 +159,7 @@ public:
     wxBitmapButton* BitmapButton_TextPosition1;
     wxChoice* Choice_Text_Effect4;
     wxBitmapButton* BitmapButton_LifeSpeed;
+    wxBitmapButton* BitmapButton_Strobe_Type;
     wxSlider* Slider_Garlands_Spacing;
     wxBitmapButton* BitmapButton_CirclesCount;
     wxCheckBox* CheckBox_Mirror_Wave;
@@ -207,6 +209,7 @@ public:
     wxStaticText* StaticText8;
     wxButton* Button_Text_Font2;
     wxStaticText* StaticText25;
+    wxSlider* Slider_Strobe_Type;
     wxStaticText* StaticText15_layout_kludge_1;
     wxBitmapButton* BitmapButton_CirclesCollide;
     wxStaticText* StaticText28;
@@ -272,7 +275,6 @@ public:
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
-    wxBitmapButton* BitmapButton13;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -315,6 +317,7 @@ public:
     wxCheckBox* CheckBox_OverlayBkg;
     wxStaticText* StaticText57;
     wxBitmapButton* BitmapButton_FireGrow;
+    wxStaticText* StaticText112;
     wxStaticText* StaticText84;
     wxStaticText* StaticText90;
     wxStaticText* StaticText93;
@@ -899,6 +902,9 @@ protected:
     static const long ID_STATICTEXT113;
     static const long ID_SLIDER_Strobe_Duration;
     static const long ID_BITMAPBUTTON51;
+    static const long ID_STATICTEXT114;
+    static const long ID_SLIDER_Strobe_Type;
+    static const long ID_BITMAPBUTTON50;
     static const long ID_PANEL23;
     static const long ID_STATICTEXT53;
     static const long ID_TEXTCTRL_Text_Line1;
@@ -1277,6 +1283,9 @@ private:
     void OnBitmapButton_Skips_StartingPositionClick(wxCommandEvent& event);
     void OnBitmapButton_Skips_DirectionClick(wxCommandEvent& event);
     void OnSlider_Skips_SkipSizeCmdScroll(wxScrollEvent& event);
+    void OnBitmapButton_Strobe_TypeClick(wxCommandEvent& event);
+    void OnBitmapButton_StrobeDurationClick(wxCommandEvent& event);
+    void OnBitmapButton_NumberStrobesClick(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);
