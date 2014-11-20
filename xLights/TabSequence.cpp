@@ -218,7 +218,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
     EffectsPanel2->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel2->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
-    
+
 
     while (!settings.IsEmpty())
     {
@@ -297,8 +297,10 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                 else if (name.StartsWith("ID_NOTEBOOK"))
                 {
                     wxNotebook* ctrl=(wxNotebook*)CtrlWin;
-                    for (int z = 0 ; z < ctrl->GetPageCount() ; z++) {
-                        if (value == ctrl->GetPageText(z)) {
+                    for (int z = 0 ; z < ctrl->GetPageCount() ; z++)
+                    {
+                        if (value == ctrl->GetPageText(z))
+                        {
                             ctrl->SetSelection(z);
                         }
                     }
@@ -434,23 +436,18 @@ wxString xLightsFrame::CreateEffectStringRandom()
     eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
     {
+
         eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1 ||eff_PINWHEEL == eff1)? eff1+1:eff1;
-        //          eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-        //        || eff_CIRCLES == eff1 || eff_FACES == eff1 || eff_GLEDIATOR == eff1)? eff1+1:eff1;
-        eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1 ||eff_PINWHEEL == eff1)? eff_NONE:eff1;
+                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1
+                || eff_OFF == eff1)? eff_NONE:eff1;
         if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
-        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
-                ||  eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2 ||eff_PINWHEEL == eff2)? eff2+1:eff2;
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
-                ||  eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2 ||eff_PINWHEEL == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
+                || eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2
+                || eff_OFF == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
         if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
-        //       eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2
-        //     || eff_CIRCLES == eff2 || eff_FACES == eff2 || eff_GLEDIATOR == eff2)? eff2+1:eff2;
 
     }
 
@@ -462,7 +459,13 @@ wxString xLightsFrame::CreateEffectStringRandom()
     s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
 #endif // 1
     s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
-    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
+
+    //  first calculate it the old way
+    int newbrightness = isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue();
+    newbrightness=100; // but instead overwrite it. no matter what we are creating, lets not mess with brightness
+  //  s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
+    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", newbrightness);
+
     s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
     s += EffectsPanel1->GetRandomEffectString(eff1);
     s += EffectsPanel2->GetRandomEffectString(eff2);
@@ -501,7 +504,7 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
                                                              E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
 #endif // 0
 
-wxString xLightsFrame::CreateEffectString()
+                                                                     wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -1295,21 +1298,24 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "SingleStrand")
     {
-        if ("Skips" == SettingsMap[LayerStr+"NOTEBOOK_SSEFFECT_TYPE"]) {
+        if ("Skips" == SettingsMap[LayerStr+"NOTEBOOK_SSEFFECT_TYPE"])
+        {
             buffer.RenderSingleStrandSkips(
-                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_BandSize"]),
-                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_SkipSize"]),
-                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_StartPos"]),
-                                           SettingsMap[LayerStr+"CHOICE_Skips_Direction"]);
-        } else {
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_BandSize"]),
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_SkipSize"]),
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_StartPos"]),
+                SettingsMap[LayerStr+"CHOICE_Skips_Direction"]);
+        }
+        else
+        {
             buffer.RenderSingleStrandChase(
-                                      SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
-                                      SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
-                                      SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
-                                      SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
+                SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Color_Mix1"]),
+                wxAtoi(SettingsMap[LayerStr+"SLIDER_Chase_Spacing1"]),
+                SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
+                SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
+                SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
         }
     }
     else if (effect == "Snowflakes")
@@ -1563,20 +1569,23 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
-            if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection())) {
-                buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
-                                               panel->Slider_Skips_SkipSize->GetValue(),
-                                               panel->Slider_Skips_StartPos->GetValue(),
-                                               panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
-            } else {
-                buffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
-                                          panel->Slider_Number_Chases->GetValue(),
-                                          panel->Slider_Color_Mix1->GetValue(),
-                                          panel->Slider_Chase_Spacing1->GetValue(),
-                                          panel->Choice_Chase_Type1->GetSelection(),
-                                          panel->CheckBox_Chase_3dFade1->GetValue(),
-                                          panel->CheckBox_Chase_Group_All->GetValue());
-            }
+        if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection()))
+        {
+            buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
+                                           panel->Slider_Skips_SkipSize->GetValue(),
+                                           panel->Slider_Skips_StartPos->GetValue(),
+                                           panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
+        }
+        else
+        {
+            buffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
+                                           panel->Slider_Number_Chases->GetValue(),
+                                           panel->Slider_Color_Mix1->GetValue(),
+                                           panel->Slider_Chase_Spacing1->GetValue(),
+                                           panel->Choice_Chase_Type1->GetSelection(),
+                                           panel->CheckBox_Chase_3dFade1->GetValue(),
+                                           panel->CheckBox_Chase_Group_All->GetValue());
+        }
         break;
     case eff_SNOWFLAKES:
         buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
@@ -3771,13 +3780,16 @@ static const long ID_SHIFT_COL_RIGHT = wxNewId();
 
 void xLightsFrame::OnGrid1LabelRightClick(wxGridEvent& event)
 {
-    if (event.GetCol() > 1) {
+    if (event.GetCol() > 1)
+    {
         wxMenu mnu;
         curCell->Set(event.GetRow(), event.GetCol());
-        if (event.GetCol() > 2) {
+        if (event.GetCol() > 2)
+        {
             mnu.Append(ID_SHIFT_COL_LEFT, "Shift Left");
         }
-        if (event.GetCol() != Grid1->GetNumberCols() - 1) {
+        if (event.GetCol() != Grid1->GetNumberCols() - 1)
+        {
             mnu.Append(ID_SHIFT_COL_RIGHT, "Shift Right");
         }
         Grid1->SelectCol(event.GetCol());;
@@ -3809,17 +3821,21 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
         CopyEffectAcrossRow(event); //-DJ
     if (event.GetId() == ID_CLEARROW_EFFECT)
         ClearEffectRow(event); //-DJ
-    
-    if (event.GetId() == ID_SHIFT_COL_LEFT) {
+
+    if (event.GetId() == ID_SHIFT_COL_LEFT)
+    {
         SwapCols(curCell->GetCol() - 1, curCell->GetCol());
     }
-    if (event.GetId() == ID_SHIFT_COL_RIGHT) {
+    if (event.GetId() == ID_SHIFT_COL_RIGHT)
+    {
         SwapCols(curCell->GetCol(), curCell->GetCol() + 1);
     }
 }
 
-void xLightsFrame::SwapCols(int col1, int col2) {
-    for (int x = 0; x < Grid1->GetNumberRows(); x++) {
+void xLightsFrame::SwapCols(int col1, int col2)
+{
+    for (int x = 0; x < Grid1->GetNumberRows(); x++)
+    {
         wxString tmp = Grid1->GetCellValue(x, col1);
         Grid1->SetCellValue(x, col1, Grid1->GetCellValue(x, col2));
         Grid1->SetCellValue(x, col2, tmp);

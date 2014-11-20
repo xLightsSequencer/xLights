@@ -6,16 +6,21 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
-	  -enh (djulien) Add Papagayo option for scaled vs. fixed picture mode
-	  -enh (djulien) Allow Papagayo grid row labels to be aliased (click on row label to change it); cosmetic only - does not change xml file
-	  -bug (djulien) Avoid "error 0" after writing new Papagayo file
-        -bug (dkulp) SingleLine models with multiple string bug one node per string were displayed as a single light
-        -bug (dkulp) Rotating single lines would cause the number of lights to display to drop by 2. (lose the ends)
-        -enh (dkulp) Added pixel level "Skips" effect to SingleStrand effects.
-        -enh (dkulp) Add ability to shift columns in the grid left or right to reorder them.
-        -enh (dkulp) If the effect is NONE and the buffer is already clear, skip clearing it.  For large Whole House models, clearing the 
+3.6.5	Nov 20, 2014
+	-enh (sean) New effect class , Strobe.
+	-enh (sean) Icons on top of each effect improved. This icons will be what you drag and drop effects in xLights 4.0. This early introduction
+		is to help familiarize users with the icons to an effect.
+	-bug (frankr) Non music sequences would freeze preview play. fixed
+	-enh (djulien) Add Papagayo option for scaled vs. fixed picture mode
+	-enh (djulien) Allow Papagayo grid row labels to be aliased (click on row label to change it); cosmetic only - does not change xml file
+	-bug (djulien) Avoid "error 0" after writing new Papagayo file
+    -bug (dkulp) SingleLine models with multiple string bug one node per string were displayed as a single light
+    -bug (dkulp) Rotating single lines would cause the number of lights to display to drop by 2. (lose the ends)
+    -enh (dkulp) Added pixel level "Skips" effect to SingleStrand effects.
+    -enh (dkulp) Add ability to shift columns in the grid left or right to reorder them.
+    -enh (dkulp) If the effect is NONE and the buffer is already clear, skip clearing it.  For large Whole House models, clearing the 
                 buffer can take time so skip it if we can.
-        -bug (dkulp)  If the preview is too large for the viewport such that part of the preview was cut off 
+    -bug (dkulp)  If the preview is too large for the viewport such that part of the preview was cut off 
                 at the top, clicking wasn't adjusting the Y coordinate to compensate when determining what 
                 was being clicked on.
 3.6.4	Nov 12, 2014
@@ -23,7 +28,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 			press save and then go back to the PREVIEW tab, xlights would freeze up. This should be fixed now
 	-enh (frankr) improvements to audio scrubbing and better handling of stop now button on
 	-bug (frankr) When first entering teh PREVIEW tab , if you right click and select model xlights crashed. Fixed.
-	-enh (sean) New effect "Off". This effect is teh equivalent of "Colorwash, 1color=BLACK"
+	-enh (sean) New effect "Off". This effect is the equivalent of "Colorwash, 1color=BLACK"
 	-enh (sean) When saving a sequence the elapsed time for the save is now shown in the bottom status line.
 	-enh (sean) New favicons have been added to the left most corner of Effects. The purpose of these is to have a graphical
 			representation of effects. This is pre work for the new xlights 4.0 coming early next year. In xlights 4, effects will
