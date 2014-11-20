@@ -208,7 +208,6 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
 //A loop needs to be added to initialize the wx controls to a predictable value.
 //For now, a few recently added controls are explicitly initialized here:
 //(not sure if there will be side effects to using a full loop) -DJ
-#if 1
     CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
@@ -218,47 +217,8 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
     EffectsPanel2->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel2->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel2->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
-#else
-    wxString prefix=GetAttrPrefix();
-    wxWindowList &ChildList = ParentWin->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
-    {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
-        ChildName=ChildWin->GetName();
-        AttrName=prefix+ChildName.Mid(3)+"=";
-        if (ChildName.StartsWith("ID_SLIDER"))
-        {
-            wxSlider* ctrl=(wxSlider*)ChildWin;
-            s+=AttrName+wxString::Format("%d",ctrl->GetValue());
-        }
-        else if (ChildName.StartsWith("ID_TEXTCTRL"))
-        {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            wxString v = ctrl->GetValue();
-            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
-            s += AttrName + v;
-        }
-        else if (ChildName.StartsWith("ID_CHOICE"))
-        {
-            wxChoice* ctrl=(wxChoice*)ChildWin;
-            s+=AttrName+ctrl->GetStringSelection();
-        }
-        else if (ChildName.StartsWith("ID_CHECKBOX"))
-        {
-            wxCheckBox* ctrl=(wxCheckBox*)ChildWin;
-            wxString v=(ctrl->IsChecked()) ? "1" : "0";
-            s+=AttrName+v;
-        }
-        else if (ChildName.StartsWith("ID_NOTEBOOK"))
-        {
-            wxNotebook* ctrl=(wxNotebook*)ChildWin;
-            for(i=0; i<ctrl->GetPageCount(); i++)
-            {
-                s+=GetEffectStringFromWindow(ctrl->GetPage(i));
-            }
-        }
-    }
-#endif // 1
+    EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
+    
 
     while (!settings.IsEmpty())
     {
@@ -1335,7 +1295,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "SingleStrand")
     {
-        if ("Chase" == SettingsMap[LayerStr+"NOTEBOOK_SSEFFECT_TYPE"]) {
+        if ("Skips" == SettingsMap[LayerStr+"NOTEBOOK_SSEFFECT_TYPE"]) {
+            buffer.RenderSingleStrandSkips(
+                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_BandSize"]),
+                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_SkipSize"]),
+                                           wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_StartPos"]),
+                                           SettingsMap[LayerStr+"CHOICE_Skips_Direction"]);
+        } else {
             buffer.RenderSingleStrandChase(
                                       SingleStrandColors.Index(SettingsMap[LayerStr+"CHOICE_SingleStrand_Colors"]),
                                       wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Chases"]),
@@ -1344,13 +1310,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                                       SingleStrandTypes.Index(SettingsMap[LayerStr+"CHOICE_Chase_Type1"]),
                                       SettingsMap[LayerStr+"CHECKBOX_Chase_3dFade1"]=="1",
                                       SettingsMap[LayerStr+"CHECKBOX_Chase_Group_All"]=="1");
-        } else {
-            buffer.RenderSingleStrandSkips(
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_BandSize"]),
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_SkipSize"]),
-                                      wxAtoi(SettingsMap[LayerStr+"SLIDER_Skips_StartPos"]),
-                                      SettingsMap[LayerStr+"CHOICE_Skips_Direction"]);
-            
         }
     }
     else if (effect == "Snowflakes")
@@ -1604,7 +1563,12 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
-            if ("Chase" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection())) {
+            if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection())) {
+                buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
+                                               panel->Slider_Skips_SkipSize->GetValue(),
+                                               panel->Slider_Skips_StartPos->GetValue(),
+                                               panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
+            } else {
                 buffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
                                           panel->Slider_Number_Chases->GetValue(),
                                           panel->Slider_Color_Mix1->GetValue(),
@@ -1612,11 +1576,6 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                           panel->Choice_Chase_Type1->GetSelection(),
                                           panel->CheckBox_Chase_3dFade1->GetValue(),
                                           panel->CheckBox_Chase_Group_All->GetValue());
-            } else {
-                buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
-                                          panel->Slider_Skips_SkipSize->GetValue(),
-                                          panel->Slider_Skips_StartPos->GetValue(),
-                                          panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
             }
         break;
     case eff_SNOWFLAKES:
