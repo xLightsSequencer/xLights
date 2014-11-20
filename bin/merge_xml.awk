@@ -3,7 +3,7 @@
 #	Description: This program will take multiple xml files and join them
 #			together.
 #
-#	Command:	gawk -f merge_xml.awk voice11.xml
+#	Command:	gawk -f merge_xml.awk voice11.xml lights.xml > all.xml
 #
 BEGIN {
 	line=0;
