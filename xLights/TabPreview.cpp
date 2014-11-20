@@ -788,7 +788,7 @@ void xLightsFrame::OnButtonStopPreviewClick(wxCommandEvent& event)
 {
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PAUSE_SEQ_ANIM,0);
+        ResetTimer(PAUSE_SEQ_ANIM);
         PlaybackPeriod = 0;
         previewPlaying = false;
         SliderPreviewTime->SetValue(0);
@@ -877,7 +877,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
-        ResetTimer(PAUSE_SEQ_ANIM, msec);
+        //ResetTimer(PAUSE_SEQ_ANIM, msec);
         ShowPreviewTime(msec);
         PreviewOutput(newperiod);
         PlaybackPeriod = newperiod;
@@ -924,8 +924,8 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
 
         bbPlayPause->SetBitmap(playIcon);
         previewPlaying = false;
-        Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
     }
+    Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
 }
 
 
