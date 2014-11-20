@@ -164,7 +164,9 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-mthreads" />
+					<Add option="-lopengl32" />
 					<Add library="libwxmsw30ud.a" />
+					<Add library="libwxmsw30ud_gl.a" />
 				</Linker>
 			</Target>
 			<Target title="MinGW_Release">
@@ -193,7 +195,9 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="-mthreads" />
+					<Add option="-lopengl32" />
 					<Add library="libwxmsw30u.a" />
+					<Add library="libwxmsw30u_gl.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Debug">

@@ -50,25 +50,17 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
 
   c) In Code::Blocks:
      1) select Settings > Compiler
-     2) click Linker Settings tab
-     3) Under Link libraries sub-tab should be:
-          $(#codeblocks)\MinGW\lib\libglu32.a
-          $(#wx)\lib\gcc_gll\libwxmsw30u_gl.a
-     4) Under Other linker options sub-tab should be:
-          -lopengl32
-          -lglut32          --this one might not be needed, depending on your configuration
-     5) click Search Directories tab
-     6) Under Compiler sub-tab should be:
+     2) click Search Directories tab
+     3) Under Compiler sub-tab should be:
           $(#wx)\include
           $(#wx)\contrib\include
-     7) Under Linker sub-tab should be:
+     4) Under Linker sub-tab should be:
           $(#wx)\lib\gcc_dll
-     8) Make sure "wx" & "codeblocks" are defined under Settings > Global Variables
+     5) Make sure "wx" is defined under Settings > Global Variables
         as described in the Code::Blocks documentation. wx should be
         set to your wxWidgets base directory. Just the "Base" field
         needs to be filled in - to something like "C:\wxWidgets-3.0.0",
         assuming that is where your copy of wxWidgets is located.
-        codeblocks should be something like "C:\Program Files (x86)\CodeBlocks"
 
   d) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the xLights directory.

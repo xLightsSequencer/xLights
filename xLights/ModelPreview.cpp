@@ -148,7 +148,7 @@ void ModelPreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrig
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y);
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
     glMatrixMode(GL_MODELVIEW);
 }
 
