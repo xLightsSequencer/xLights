@@ -1283,6 +1283,7 @@ private:
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetAttrPrefix();
     wxString GetEffectStringFromWindow(wxWindow *ParentWin);
+    wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
 
 //add lock/unlock/random state flags -DJ
 //these could be used to make fields read-only, but initially they are just used for partially random effects

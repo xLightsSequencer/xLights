@@ -2707,11 +2707,6 @@ void EffectsPanel::SetDefaultPalette()
     SetButtonColor(Button_Palette6,wxBLACK);
 }
 
-int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
-{
-    return isRandom(slider)? rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin(): slider->GetValue(); //want random? -DJ
-}
-
 // returns ",E1_" or ",E2_"
 wxString EffectsPanel::GetAttrPrefix()
 {
@@ -2802,6 +2797,58 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
     return s;
 }
 
+int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
+{
+    return isRandom(slider)? rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin(): slider->GetValue(); //want random? -DJ
+}
+
+wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxString &prefix) {
+    wxWindowList &ChildList = w->GetChildren();
+    wxString s;
+    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
+    {
+        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        wxString ChildName = ChildWin->GetName();
+        wxString AttrName = prefix + ChildName.Mid(3) + "=";
+        
+        if (ChildName.StartsWith("ID_SLIDER")) {
+            wxSlider* ctrl=(wxSlider*)ChildWin;
+            if (ChildName.Contains("Spirograph_r"))
+            {
+                // always set little radius, r, to its minimum value
+                s += AttrName + wxString::Format("%d", 0);
+            }
+            else
+            {
+                s += AttrName + wxString::Format("%d", GetRandomSliderValue(ctrl));
+            }
+        } else if (ChildName.StartsWith("ID_TEXTCTRL")) {
+            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
+            wxString v = ctrl->GetValue();
+            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
+            s += AttrName + v;
+        } else if (ChildName.StartsWith("ID_CHOICE")) {
+            wxChoice* ctrl=(wxChoice*)ChildWin;
+            s += AttrName + ctrl->GetString(isRandom(ctrl)? rand()%ctrl->GetCount(): ctrl->GetSelection()); //-DJ
+        } else if (ChildName.StartsWith("ID_CHECKBOX")) {
+            if(ChildName.Contains("Spirograph_Animate")) {
+                // always animate spirograph
+                s+=AttrName+wxString::Format("%d", 1 );
+            } else {
+                wxCheckBox* ctrl = (wxCheckBox*)ChildWin;
+                wxString v = (isRandom(ctrl)? (rand()%2): ctrl->GetValue())? "1" : "0"; //want random? -DJ
+                s += AttrName + v;
+            }
+        } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
+            wxNotebook *notebook = (wxNotebook*)ChildWin;
+            int i = rand() % notebook->GetPageCount();
+            s += AttrName+notebook->GetPageText(i);
+            s += GetRandomEffectStringFromWindow(notebook->GetPage(i), prefix);
+        }
+    }
+    return s;
+}
+
 // assumes effidx does not refer to Text effect
 //modifed for partially random, allow random colors also -DJ
 //void djdebug(const char* fmt, ...); //_DJ
@@ -2816,54 +2863,9 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
-    wxWindowList &ChildList = Choicebook1->GetPage(effidx)->GetChildren();
-    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext() )
-    {
-        wxWindow *ChildWin = (wxWindow *)node->GetData();
-        ChildName = ChildWin->GetName();
-        AttrName = prefix + ChildName.Mid(3) + "=";
-
-        if (ChildName.StartsWith("ID_SLIDER"))
-        {
-            wxSlider* ctrl=(wxSlider*)ChildWin;
-            if (ChildName.Contains("Spirograph_r"))
-            {
-                // always set little radius, r, to its minimum value
-                s += AttrName + wxString::Format("%d", 0);
-            }
-            else
-            {
-                s += AttrName + wxString::Format("%d", GetRandomSliderValue(ctrl));
-            }
-        }
-        else if (ChildName.StartsWith("ID_TEXTCTRL"))
-        {
-            wxTextCtrl* ctrl=(wxTextCtrl*)ChildWin;
-            wxString v = ctrl->GetValue();
-            v.Replace(",", "&comma;", true); //kludge: need to escape commas; parser doesn't handle them -DJ
-            s += AttrName + v;
-        }
-        else if (ChildName.StartsWith("ID_CHOICE"))
-        {
-            wxChoice* ctrl=(wxChoice*)ChildWin;
-            s += AttrName + ctrl->GetString(isRandom(ctrl)? rand()%ctrl->GetCount(): ctrl->GetSelection()); //-DJ
-        }
-        else if (ChildName.StartsWith("ID_CHECKBOX"))
-        {
-            if(ChildName.Contains("Spirograph_Animate"))
-            {
-                // always animate spirograph
-                s+=AttrName+wxString::Format("%d", 1 );
-            }
-            else
-            {
-                wxCheckBox* ctrl = (wxCheckBox*)ChildWin;
-                wxString v = (isRandom(ctrl)? (rand()%2): ctrl->GetValue())? "1" : "0"; //want random? -DJ
-                s += AttrName + v;
-            }
-        }
-    }
-
+    wxWindow *window = Choicebook1->GetPage(effidx);
+    s += GetRandomEffectStringFromWindow(window, prefix);
+    
     // get palette
     wxColour color;
     for (int i=1; i<=PALETTE_SIZE; i++)
