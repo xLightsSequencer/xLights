@@ -629,6 +629,7 @@ public:
 
 
 
+// DIYLightAnimation.com Lynx USB dongle with Pixenet firmware
 // Should be called with: 0 <= chindex <= 4095
 class xNetwork_Pixelnet: public xNetwork_Serial
 {
@@ -664,6 +665,49 @@ public:
     };
 };
 
+
+// Generic FTDI-based USB to RS485 dongle transmitting Pixelnet
+class xNetwork_PixelnetOpen: public xNetwork_Serial
+{
+protected:
+    wxByte data[4096];
+    wxByte SerialBuffer[4104];
+
+    void SetIntensity (size_t chindex, wxByte intensity)
+    {
+        data[chindex]=intensity==170 ? 171 : intensity;
+    };
+
+public:
+    void SetChannelCount(size_t numchannels)
+    {
+        if (numchannels > 4096)
+        {
+            throw "max channels on a Pixelnet network is 4096";
+        }
+        datalen=numchannels;
+        num_channels=numchannels;
+        memset(data,0,sizeof(data));
+
+        SerialConfig[2]='2';
+
+        SerialBuffer[0] = 0xAA;
+        SerialBuffer[1] = 0x55;
+        SerialBuffer[2] = 0x55;
+        SerialBuffer[3] = 0xAA;
+        SerialBuffer[4] = 0x15;
+        SerialBuffer[5] = 0x5D;
+    };
+
+    void TimerEnd()
+    {
+        if (serptr && serptr->WaitingToWrite()==0)
+        {
+            memcpy(&SerialBuffer[6],data,sizeof(data));
+            serptr->Write((char *)SerialBuffer,sizeof(SerialBuffer));
+        }
+    };
+};
 
 
 // Should be called with: 0 <= chindex <= 3839 (max channels=240*16)
@@ -790,7 +834,10 @@ size_t xOutput::addnetwork (const wxString& NetworkType, int chcount, const wxSt
     }
     else if (nettype3 == "PIX")
     {
-        netobj = new xNetwork_Pixelnet();
+        if (NetworkType == "Pixelnet-Open")
+            netobj = new xNetwork_PixelnetOpen();
+        else
+            netobj = new xNetwork_Pixelnet();
     }
     else if (nettype3 == "E13")
     {
