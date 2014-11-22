@@ -35,8 +35,21 @@
 void FRAMECLASS AppendConvertLog(const wxString& msg) {
     TextCtrlLog->AppendText(msg);
 }
-void FRAMECLASS AppendConvertStatus(const wxString &msg) {
-    TextCtrlConversionStatus->AppendText(msg);
+static wxString msgBuffer;
+void FRAMECLASS AppendConvertStatus(const wxString &msg, bool flushBuffer) {
+    if (flushBuffer && !msgBuffer.IsEmpty()) {
+        msgBuffer.append(msg);
+        TextCtrlConversionStatus->AppendText(msgBuffer);
+        msgBuffer.Clear();
+    } else if (flushBuffer) {
+        TextCtrlConversionStatus->AppendText(msg);
+    } else {
+        msgBuffer.append(msg);
+        if (msgBuffer.size() > 10000) {
+            TextCtrlConversionStatus->AppendText(msgBuffer);
+            msgBuffer.Clear();
+        }
+    }
 }
 void FRAMECLASS ConversionError(const wxString& msg)
 {
@@ -1586,20 +1599,20 @@ void FRAMECLASS ReadVixFile(const wxString& filename)
     {
         SeqNumChannels = 0;
     }
-    AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity));
-    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),SeqNumChannels));
-    AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod));
-    AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen));
+    AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
+    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),SeqNumChannels), false);
+    AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
+    AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
     if (SeqNumChannels == 0)
     {
         return;
     }
     long VixNumPeriods = VixDataLen / VixChannels.size();
-    AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods));
-    AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"));
+    AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
+    AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"), false);
     SeqNumPeriods = VixNumPeriods * VixEventPeriod / XTIMER_INTERVAL;
     SeqDataLen = SeqNumPeriods * SeqNumChannels;
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods));
+    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
     AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
     if (SeqDataLen == 0)
     {
@@ -1771,13 +1784,13 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
         int i = map[tmp + 1];
         int orig = NetInfo.GetNumChannels(tmp / 2);
         if (i < orig) {
-            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
             i = orig;
         } else if (i > orig) {
-            AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]));
-            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig));
+            AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
+            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
         } else {
-            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig));
+            AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
         }
         
         
@@ -1785,9 +1798,9 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
         channels += i;
     }
 
-    AppendConvertStatus (string_format(wxString("TimeCells = %d\n"), timeCells));
-    AppendConvertStatus (string_format(wxString("msPerCell = %d ms\n"), msPerCell));
-    AppendConvertStatus (string_format(wxString("Channels = %d\n"), channels));
+    AppendConvertStatus (string_format(wxString("TimeCells = %d\n"), timeCells), false);
+    AppendConvertStatus (string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
+    AppendConvertStatus (string_format(wxString("Channels = %d\n"), channels), false);
     SeqNumChannels = channels;
     if (SeqNumChannels == 0)
     {
@@ -1795,7 +1808,7 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
     }
     SeqNumPeriods = timeCells * msPerCell / XTIMER_INTERVAL;
     SeqDataLen = SeqNumPeriods * SeqNumChannels;
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods));
+    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
     AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
     if (SeqDataLen == 0)
     {
@@ -1926,7 +1939,7 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
                         AppendConvertStatus (string_format("Map %s -> %s (%s)\n",
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
-                                                           o2.c_str()));
+                                                           o2.c_str()), false);
                         for (long newper = 0; newper < SeqNumPeriods; newper++)
                         {
                             int hlsper = newper * timeCells / SeqNumPeriods;
@@ -2168,7 +2181,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
         }
     }
     delete parser;
-    AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec));
+    AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
 
     if (centisec > 0)
     {
@@ -2193,7 +2206,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
         {
             cnt += lorUnitSizes[network][u];
         }
-        AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels\n"),network,cnt));
+        AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels\n"),network,cnt), false);
     }
     for (network = 1; network < dmxUnitSizes.size(); network++)
     {
@@ -2204,7 +2217,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                 cnt = dmxUnitSizes[network][u];
             }
         }
-        AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels\n"),network,cnt));
+        AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels\n"),network,cnt), false);
     }
     AppendConvertStatus (string_format(wxString("Total channels = %d\n"),channelCount));
 
@@ -2475,10 +2488,10 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     file.Close();
 
 
-    AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt));
-    AppendConvertStatus (string_format(wxString("# of effects=%d\n"),EffectCnt));
-    AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"));
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods));
+    AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
+    AppendConvertStatus (string_format(wxString("# of effects=%d\n"),EffectCnt), false);
+    AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"), false);
+    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
     AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
     SetStatusText(wxString("LOR sequence loaded successfully"));
 }
@@ -2672,6 +2685,7 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
     {
         AppendConvertStatus (wxString("Nothing to write - invalid output format\n"));
     }
+    AppendConvertStatus("", true);
 }
 
 #ifndef FPP

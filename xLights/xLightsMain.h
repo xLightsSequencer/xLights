@@ -1065,7 +1065,7 @@ private:
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
     void ConversionError(const wxString& msg);
     void AppendConvertLog(const wxString& msg);
-    void AppendConvertStatus(const wxString &msg);
+    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
     void SetStatusText(const wxString &msg);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
