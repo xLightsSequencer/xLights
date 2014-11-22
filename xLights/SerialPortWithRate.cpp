@@ -43,6 +43,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     ChoiceProtocol = new wxChoice(this, ID_CHOICE_PROTOCOL, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PROTOCOL"));
     ChoiceProtocol->SetSelection( ChoiceProtocol->Append(_("DMX")) );
     ChoiceProtocol->Append(_("Pixelnet"));
+    ChoiceProtocol->Append(_("Pixelnet-Open"));
     ChoiceProtocol->Append(_("LOR"));
     ChoiceProtocol->Append(_("D-Light"));
     ChoiceProtocol->Append(_("Renard"));
@@ -113,6 +114,10 @@ wxString SerialPortWithRate::GetRateString()
     {
         return "250000";
     }
+    else if (NetName == _("Pixelnet-Open"))
+    {
+        return "1000000";
+    }
     else if (ChoiceBaudRate->IsEnabled())
     {
         return ChoiceBaudRate->GetStringSelection();
@@ -154,7 +159,12 @@ void SerialPortWithRate::ProtocolChange()
     }
     else if (NetName == _("Pixelnet"))
     {
-        SetLabel(_("Pixelnet hub attached to a\nLynx Pixelnet dongle"));
+        SetLabel(_("Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle"));
+        EnableRate=false;
+    }
+    else if (NetName == _("Pixelnet-Open"))
+    {
+        SetLabel(_("Pixelnet controllers attached to a generic USB\nto RS485 dongle with FTDI chipset and virtual comm port."));
         EnableRate=false;
     }
     ChoiceBaudRate->Enable(EnableRate);
