@@ -1349,9 +1349,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Strobe")
     {
-        buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"Slider_Number_Strobes"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Duration"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Type"]));
+        buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Strobes"]),
+                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Strobe_Duration"]),
+                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Strobe_Type"]));
     }
     else if (effect == "Text")
     {
