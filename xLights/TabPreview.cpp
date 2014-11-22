@@ -221,13 +221,13 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
     {
         SelectMultipleModels(event.GetX(),y);
         m_dragging = true;
-        m_previous_mouse_x = event.GetPosition().x;
-        m_previous_mouse_y = y;
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
     }
     else if (event.ShiftDown())
     {
         m_creating_bound_rect = true;
-        m_bound_start_x = event.GetPosition().x;
+        m_bound_start_x = event.GetX();
         m_bound_start_y = modelPreview->getHeight() - y;
     }
     else if (m_over_handle == OVER_ROTATE_HANDLE)
@@ -252,8 +252,8 @@ void xLightsFrame::OnScrolledWindowPreviewLeftDown(wxMouseEvent& event)
         if(SelectSingleModel(event.GetX(),y))
         {
             m_dragging = true;
-            m_previous_mouse_x = event.GetPosition().x;
-            m_previous_mouse_y = y;
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
             StatusBar1->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
         }
     }
@@ -585,13 +585,21 @@ void xLightsFrame::SetSelectedModelToGroupSelected()
 
 void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
 {
+    int y = event.GetY();
+    wxSize s1 = ScrolledWindowPreview->GetSize();
+    wxSize s2 = modelPreview->GetSize();
+    if (s2.y > s1.y) {
+        //part of top of preview is cut off, adjust
+        y += s2.y - s1.y;
+    }
+    
     m_rotating = false;
     m_dragging = false;
     m_resizing = false;
     if(m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->getHeight() - event.GetPosition().y;
+        m_bound_end_y = modelPreview->getHeight() - y;
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
@@ -617,12 +625,20 @@ void xLightsFrame::OnScrolledWindowPreviewMouseLeave(wxMouseEvent& event)
 
 void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 {
+    int y = event.GetY();
+    wxSize s1 = ScrolledWindowPreview->GetSize();
+    wxSize s2 = modelPreview->GetSize();
+    if (s2.y > s1.y) {
+        //part of top of preview is cut off, adjust
+        y += s2.y - s1.y;
+    }
+    
     int wi,ht;
 
     if (m_creating_bound_rect)
     {
         m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->getHeight() - event.GetPosition().y;
+        m_bound_end_y = modelPreview->getHeight() - y;
         UpdatePreview();
         return;
     }
@@ -633,13 +649,13 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
 
     if(m_rotating)
     {
-        m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,event.GetPosition().y);
+        m->RotateWithHandles(modelPreview,event.ShiftDown(), event.GetPosition().x,y);
         TextCtrlModelRotationDegrees->SetValue(wxString::Format( "%d",(int)(m->GetPreviewRotation())));
         UpdatePreview();
     }
     else if(m_resizing)
     {
-        m->ResizeWithHandles(modelPreview,event.GetPosition().x,event.GetPosition().y);
+        m->ResizeWithHandles(modelPreview,event.GetPosition().x,y);
         TextCtrlPreviewElementSize->SetValue(wxString::Format( "%d",(int)(m->GetScale()*100)));
         UpdatePreview();
     }
@@ -667,7 +683,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - event.GetPosition().y);
+            m_over_handle = m->CheckIfOverHandles(modelPreview,event.GetPosition().x,modelPreview->getHeight() - y);
         }
     }
 }
