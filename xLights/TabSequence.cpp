@@ -1807,7 +1807,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 }
                 playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty(), playBuffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer);
                 NextGridRowToPlay++;
 
 
@@ -1863,7 +1863,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 }
                 playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty(), playBuffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer);
                 NextGridRowToPlay++;
 
             }
@@ -1881,29 +1881,29 @@ void xLightsFrame::ResetEffectDuration(PixelBufferClass &buffer)
     buffer.SetTimes(0, 0, 0, 0, true);
     buffer.SetTimes(1, 0, 0, 0, true);
 }
-void xLightsFrame::UpdateEffectDuration(bool new_effect_starts, PixelBufferClass &buffer)
+void xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer)
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
     double val;
     int rowcnt=Grid1->GetNumberRows();
     wxString tmpStr;
 
-    tmpStr = Grid1->GetCellValue(NextGridRowToPlay,0);
+    tmpStr = Grid1->GetCellValue(startRow,0);
     curEffMsec =tmpStr.ToDouble(&val )?(int)(val*1000):0;
     ii = 1;
-    if (NextGridRowToPlay+ii < rowcnt)
+    if (startRow+ii < rowcnt)
     {
-        tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
+        tmpStr = Grid1->GetCellValue(startRow+ii,0);
         nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
-            tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
+            tmpStr = Grid1->GetCellValue(startRow+ii,SeqPlayColumn);
         }
-        while (tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+        while (tmpStr.IsEmpty() && ++ii && startRow+ii < rowcnt);
         //Really taking advantage of short circuit evluation here
         if (!tmpStr.IsEmpty())
         {
-            tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
+            tmpStr = Grid1->GetCellValue(startRow+ii,0);
             nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         }
         else
@@ -2979,7 +2979,6 @@ public:
     }
     
     ExitCode Entry () {
-        //       if (!buffer.MyDisplay) continue;
         bool bufferClear = false;
         MapStringString SettingsMap;
         xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
@@ -2989,8 +2988,6 @@ public:
         for (int p=0; p<seqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-            //            buffer.Clear();
-            //            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
             
             if (!bufferClear)
             {
@@ -3057,7 +3054,7 @@ public:
                     //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
                 
-                xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),buffer);
+                xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer);
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
@@ -3122,7 +3119,7 @@ void xLightsFrame::RenderGridToSeqData()
     wxXmlNode *ModelNode;
     
     xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt];
-    for (int x = 0 ; x < XLIGHTS_SEQ_STATIC_COLUMNS; x++) {
+    for (int x = 0 ; x < colcnt; x++) {
         threads[x] = NULL;
     }
 
@@ -3162,6 +3159,20 @@ void xLightsFrame::RenderGridToSeqData()
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
+         
+        //thread->Entry();
+        //threads[c] = NULL;
+        /*
+        while (threads[c]) {
+            msgMutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++) {
+                SetStatusText(renderMessages[y]);
+            }
+            renderMessages.clear();
+            msgMutex.Unlock();
+            wxYield();
+        }
+        */
     }
     for (int x = 0; x < colcnt; x++) {
         while (threads[x] != NULL) {
@@ -3174,6 +3185,13 @@ void xLightsFrame::RenderGridToSeqData()
             wxYield();
         }
     }
+
+    msgMutex.Lock();
+    for (int y = 0; y < renderMessages.size(); y++) {
+        SetStatusText(renderMessages[y]);
+    }
+    renderMessages.clear();
+    msgMutex.Unlock();
     delete [] threads;
 }
 
@@ -3275,7 +3293,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                     UpdateFitToTimeFromMap(2, SettingsMap, buffer);
                 }
 
-                UpdateEffectDuration(!EffectStr.IsEmpty(), buffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, buffer);
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap, buffer, ResetEffectState);
