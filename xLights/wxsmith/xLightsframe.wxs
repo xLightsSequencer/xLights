@@ -29,7 +29,7 @@
 										<handler function="OnBitmapButtonTabInfoClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -38,7 +38,7 @@
 										<handler function="OnButtonStopNowClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -47,7 +47,7 @@
 										<handler function="OnButtonGracefulStopClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -56,7 +56,7 @@
 										<handler function="OnButtonLightsOffClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -1513,7 +1513,7 @@
 															<object class="sizeritem">
 																<object class="wxBoxSizer" variable="BoxSizerSequencePreview" member="no" />
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -1530,7 +1530,7 @@
 																					<handler function="OnButton_PlayEffectClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1540,7 +1540,7 @@
 																					<handler function="OnButton_UpdateGridClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="spacer">
@@ -1560,7 +1560,7 @@
 																					<handler function="OnButton_ModelsClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1569,7 +1569,7 @@
 																					<style>wxCB_SORT</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="spacer">
@@ -1589,8 +1589,8 @@
 																					<tooltip>Click here to load previously saved effects</tooltip>
 																					<handler function="OnButton_PresetsClick" entry="EVT_BUTTON" />
 																				</object>
-																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1601,7 +1601,7 @@
 																					<handler function="OnButton_PaletteClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1610,7 +1610,7 @@
 																					<tooltip>Gradual cross-fade from Effect1 to Effect2</tooltip>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1624,7 +1624,7 @@
 																					<handler function="OnBitmapButton_CheckBox_LayerMorphClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1649,7 +1649,7 @@
 																					<handler function="OnChoice_LayerMethodSelect" entry="EVT_CHOICE" />
 																				</object>
 																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1658,7 +1658,7 @@
 																					<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1668,7 +1668,7 @@
 																					<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1703,7 +1703,7 @@
 																					<handler function="OnSlider_SparkleFrequencyCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1747,7 +1747,7 @@
 																					<handler function="OnSlider_BrightnessCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1786,7 +1786,7 @@
 																					<handler function="OnSlider_ContrastCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1821,7 +1821,6 @@
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1834,7 +1833,6 @@
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -1847,17 +1845,16 @@
 																					<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
 																				<option>1</option>
 																			</object>
 																		</object>
 																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 															</object>
 														</object>
 													</object>
@@ -2158,7 +2155,7 @@
 													</object>
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 										</object>
@@ -2412,7 +2409,7 @@
 													<cols>1</cols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT26" variable="StaticText24" member="yes">
-															<label>Convert Papagayo file into an xLights Sequence&#x0A;&#x0A;Download v1.3.5.3 from nutcracker123.com/nutcracker/releases/papagayoMOD__1.3.5.3__win32.rar</label>
+															<label> Convert Papagayo file into an xLights Sequence&#x0A;&#x0A; Download v1.3.5.3 from nutcracker123.com/nutcracker/releases/papagayoMOD__1.3.5.3__win32.rar</label>
 															<font>
 																<size>10</size>
 																<style>normal</style>
@@ -2423,7 +2420,7 @@
 															</font>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2432,7 +2429,7 @@
 															<minsize>10,10</minsize>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2463,7 +2460,7 @@
 																			<handler function="OnButton_pgo_filenameClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2516,7 +2513,7 @@
 																			<handler function="OnButton_papagayo_output_sequenceClick1" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2572,7 +2569,7 @@
 																			<handler function="OnChoice_PgoOutputTypeSelect" entry="EVT_CHOICE" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2585,7 +2582,7 @@
 																	</object>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
@@ -2615,7 +2612,7 @@
 																	</font>
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="spacer">
@@ -2641,7 +2638,7 @@
 																			<handler function="OnChoice_PgoGroupNameSelect" entry="EVT_CHOICE" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2663,7 +2660,7 @@
 																			<handler function="OnButton_CoroGroupDeleteClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2673,7 +2670,7 @@
 																			<handler function="OnButton_CoroGroupClearClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2683,12 +2680,12 @@
 																			<handler function="OnButton_PgoCopyVoicesClick" entry="EVT_BUTTON" />
 																		</object>
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="spacer">
@@ -2736,12 +2733,12 @@
 																			<handler function="OnGridCoroFacesCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																		</object>
 																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 															<object class="spacer">
@@ -2788,7 +2785,7 @@
 																					<handler function="OnTextCtrl_PgoMaxRestText" entry="EVT_TEXT" />
 																				</object>
 																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																				<border>5</border>
+																				<border>2</border>
 																				<option>1</option>
 																			</object>
 																			<object class="sizeritem">
@@ -2851,12 +2848,12 @@
 																	</object>
 																	<object class="spacer">
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="spacer">
 																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
@@ -2899,12 +2896,12 @@
 																	<handler function="OnButtonStartPapagayoClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																<border>5</border>
+																<border>2</border>
 																<option>1</option>
 															</object>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -2918,7 +2915,7 @@
 								</object>
 							</object>
 							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-							<border>5</border>
+							<border>2</border>
 							<option>1</option>
 						</object>
 					</object>

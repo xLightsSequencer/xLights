@@ -1285,8 +1285,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
-                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
+        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
+                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
@@ -1349,9 +1349,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Strobe")
     {
-        buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"Slider_Number_Strobes"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Duration"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Strobe_Type"]));
+        buffer.RenderStrobe(wxAtoi(SettingsMap[LayerStr+"SLIDER_Number_Strobes"]),
+                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Strobe_Duration"]),
+                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Strobe_Type"]));
     }
     else if (effect == "Text")
     {
@@ -1749,7 +1749,7 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPer
     int minutes=seconds / 60;
 
     //  TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d",minutes,seconds,msec));
-    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03d   %d.%03d ",minutes,s,msec,seconds,msec));
+    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03ld   %d.%03ld ",minutes,s,msec,seconds,msec));
 //  old way     StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
 }
 
@@ -3019,7 +3019,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
+                wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
                 StatusBar1->SetStatusText(msg);
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
