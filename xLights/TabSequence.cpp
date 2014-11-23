@@ -1285,8 +1285,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
-                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
+        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
+                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
