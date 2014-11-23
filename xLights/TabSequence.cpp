@@ -2957,85 +2957,49 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
+wxMutex msgMutex;
+std::vector<wxString> renderMessages;
 
 class xLightsRenderThread : public wxThread {
 public:
-    xLightsRenderThread(int col, wxXmlNode *node) {
+    xLightsRenderThread(int col, const wxString &name, wxXmlNode *node, int numPeriods,
+                        xLightsFrame *f, xLightsRenderThread ** thr) {
         myCol = col;
         completed = -1;
         ModelNode = node;
+        buffer.InitBuffer(ModelNode);
+        seqNumPeriods = numPeriods;
+        xLights = f;
+        threads = thr;
+        ColName = name;
+    }
+    void AddEffectString(long time, const wxString &ef) {
+        startTimes.push_back(time);
+        effects.push_back(ef);
     }
     
     ExitCode Entry () {
-        
-        
-        return NULL;
-    }
-    
-    int GetRowCompleted() {
-        return completed;
-    }
-private:
-    int myCol;
-    xLightsRenderThread *previous;
-    int completed;
-    wxXmlNode *ModelNode;
-    
-};
-
-void xLightsFrame::RenderGridToSeqData()
-{
-    MapStringString SettingsMap;
-    wxString ColName,msg, EffectStr;
-    long msec;
-    bool effectsToUpdate;
-    size_t ChannelLimit, NodeCnt;
-    int rowcnt=Grid1->GetNumberRows();
-    int colcnt=Grid1->GetNumberCols();
-    wxXmlNode *ModelNode;
-    PixelBufferClass buffer;
-    bool ResetEffectState[2];
-
-    LoadSettingsMap("None,None,Effect 1", SettingsMap);
-    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
-    {
-        ColName=Grid1->GetColLabelValue(c);
-        ModelNode=GetModelNode(ColName);
-        if (!ModelNode) continue;
-        buffer.InitBuffer(ModelNode);
-//       if (!buffer.MyDisplay) continue;
-        NodeCnt=buffer.GetNodeCount();
-        ChannelLimit=buffer.GetLastChannel() + 1;
+        //       if (!buffer.MyDisplay) continue;
         bool bufferClear = false;
-
-        if (ChannelLimit > SeqNumChannels)
-        {
-            // need to add more channels to existing sequence
-            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
-            if (ChannelLimit > NetInfo.GetTotChannels())
-            {
-                msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
-            }
-            wxMessageBox(msg);
-            SeqNumChannels=ChannelLimit;
-            SeqDataLen=SeqNumChannels*SeqNumPeriods;
-            SeqData.resize(SeqDataLen,0);
-        }
-        NextGridRowToPlay=0;
-        for (int p=0; p<SeqNumPeriods; p++)
+        MapStringString SettingsMap;
+        xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
+        
+        int NextGridRowToPlay=0;
+        long msec = 0;
+        for (int p=0; p<seqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-//            buffer.Clear();
-//            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
-
+            //            buffer.Clear();
+            //            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
+            
             if (!bufferClear)
             {
-                if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+                if ((xLights->EffectsPanel1->Choicebook1->GetSelection() == xLights->eff_NONE) || !xLights->EffectsPanel1->WantOverlayBkg())
                 {
                     bufferClear = true;
                     buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
-                if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+                if ((xLights->EffectsPanel2->Choicebook1->GetSelection() == xLights->eff_NONE) || !xLights->EffectsPanel2->WantOverlayBkg())
                 {
                     buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
@@ -3044,52 +3008,61 @@ void xLightsFrame::RenderGridToSeqData()
                     bufferClear = false;
                 }
             }
-            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
+                while (threads[myCol - 1] != NULL && NextGridRowToPlay > threads[myCol - 1]->GetRowCompleted()) {
+                    //spin until we can continue, should replace with a semaphore or something
+                    Yield();
+                }
+                if (NextGridRowToPlay > (completed + 1)) {
+                    completed++;
+                }
                 // start next effect
-                wxYield();
-                wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
-                StatusBar1->SetStatusText(msg);
-
-                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                
+                wxString EffectStr=effects[NextGridRowToPlay];
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
                 {
+                    wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
+                    msgMutex.Lock();
+                    renderMessages.push_back(msg);
+                    msgMutex.Unlock();
+                    
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
-                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
                     //StatusBar1->SetStatusText(msg);
                     //wxString effect=SettingsMap["E1_Effect"]+","+SettingsMap["E2_Effect"];
                     //TextCtrlLog->AppendText(msg+" "+effect+"\n");
-                    UpdateBufferPaletteFromMap(1,SettingsMap,buffer);
-                    UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
+                    xLights->UpdateBufferPaletteFromMap(1,SettingsMap,buffer);
+                    xLights->UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
-                    ResetEffectStates(ResetEffectState);
+                    xLights->ResetEffectStates(ResetEffectState);
                     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    if (freq == xLights->Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
-
+                    
                     int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
                     buffer.SetBrightness(brightness);
-//                    int b = ModelBrightness;
-
+                    //                    int b = ModelBrightness;
+                    
                     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                     buffer.SetContrast(contrast);
-                    UpdateBufferFadesFromMap(1, SettingsMap,buffer);
-                    UpdateBufferFadesFromMap(2, SettingsMap,buffer);
-                    UpdateFitToTimeFromMap(1, SettingsMap,buffer);
-                    UpdateFitToTimeFromMap(2, SettingsMap,buffer);
-
+                    xLights->UpdateBufferFadesFromMap(1, SettingsMap,buffer);
+                    xLights->UpdateBufferFadesFromMap(2, SettingsMap,buffer);
+                    xLights->UpdateFitToTimeFromMap(1, SettingsMap,buffer);
+                    xLights->UpdateFitToTimeFromMap(2, SettingsMap,buffer);
+                    
                     int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
                     buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
-//                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
+                    //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
-
-                UpdateEffectDuration(!EffectStr.IsEmpty(),buffer);
+                
+                xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),buffer);
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
-            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
-
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
+            
             if (effectsToUpdate)
             {
                 bufferClear = false;
@@ -3105,12 +3078,103 @@ void xLightsFrame::RenderGridToSeqData()
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
-                        SeqData[chnum*SeqNumPeriods+p]=intensity;
+                        xLights->SeqData[chnum*xLights->SeqNumPeriods+p]=intensity;
                     }
                 }
             }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
+
+        completed = effects.size() + 1;
+        threads[myCol] = NULL;
+        return NULL;
     }
+    
+    PixelBufferClass &GetBuffer() {
+        return buffer;
+    }
+    int GetRowCompleted() {
+        return completed;
+    }
+private:
+    int seqNumPeriods;
+    int myCol;
+    wxString ColName;
+    xLightsRenderThread *previous;
+    volatile int completed;
+    wxXmlNode *ModelNode;
+
+    PixelBufferClass buffer;
+    bool ResetEffectState[2];
+    std::vector<wxString> effects;
+    std::vector<long> startTimes;
+    xLightsFrame *xLights;
+    xLightsRenderThread ** threads;
+};
+
+void xLightsFrame::RenderGridToSeqData()
+{
+    wxString ColName,msg, EffectStr;
+    long msec;
+    bool effectsToUpdate;
+    size_t ChannelLimit, NodeCnt;
+    int rowcnt=Grid1->GetNumberRows();
+    int colcnt=Grid1->GetNumberCols();
+    wxXmlNode *ModelNode;
+    
+    xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt];
+    for (int x = 0 ; x < XLIGHTS_SEQ_STATIC_COLUMNS; x++) {
+        threads[x] = NULL;
+    }
+
+    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    {
+        threads[c] = NULL;
+        ColName=Grid1->GetColLabelValue(c);
+        ModelNode=GetModelNode(ColName);
+        if (!ModelNode) {
+            continue;
+        }
+        
+        xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
+        threads[c] = thread;
+
+        NodeCnt=thread->GetBuffer().GetNodeCount();
+        ChannelLimit=thread->GetBuffer().GetLastChannel() + 1;
+
+
+        if (ChannelLimit > SeqNumChannels)
+        {
+            // need to add more channels to existing sequence
+            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
+            if (ChannelLimit > NetInfo.GetTotChannels())
+            {
+                msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
+            }
+            wxMessageBox(msg);
+            SeqNumChannels=ChannelLimit;
+            SeqDataLen=SeqNumChannels*SeqNumPeriods;
+            SeqData.resize(SeqDataLen,0);
+        }
+        for (int x = 0; x < rowcnt; x++) {
+            thread->AddEffectString(GetGridStartTimeMSec(x), Grid1->GetCellValue(x,c));
+        }
+        if (thread->Run() != wxTHREAD_NO_ERROR ) {
+            wxMessageBox("Could not create a render thread");
+            delete thread;
+        }
+    }
+    for (int x = 0; x < colcnt; x++) {
+        while (threads[x] != NULL) {
+            msgMutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++) {
+                SetStatusText(renderMessages[y]);
+            }
+            renderMessages.clear();
+            msgMutex.Unlock();
+            wxYield();
+        }
+    }
+    delete [] threads;
 }
 
 //FR Caller is responsible for deleting the returned data object
