@@ -1749,7 +1749,7 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPer
     int minutes=seconds / 60;
 
     //  TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d",minutes,seconds,msec));
-    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03d   %d.%03d ",minutes,s,msec,seconds,msec));
+    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03ld   %d.%03ld ",minutes,s,msec,seconds,msec));
 //  old way     StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
 }
 
@@ -3019,7 +3019,7 @@ void xLightsFrame::RenderGridToSeqData()
             {
                 // start next effect
                 wxYield();
-                wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
+                wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
                 StatusBar1->SetStatusText(msg);
 
                 EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
