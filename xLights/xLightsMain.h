@@ -1072,7 +1072,7 @@ private:
 
     wxString base64_encode();
 
-    SeqDataType* RenderModelToData(wxXmlNode *modelNode);
+    SeqDataType* RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer);
     wxXmlNode* SelectModelToExport();
 
 
@@ -1177,17 +1177,18 @@ private:
     void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
     void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
-    void UpdateBufferFadesFromCtrl();
-    void UpdateEffectDuration(bool new_effect_starts);
-    void ResetEffectDuration();
-    void UpdateBufferPalette(EffectsPanel* panel, int layer);
-    void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
-    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
-    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap);
+    void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
+    void UpdateEffectDuration(bool new_effect_starts, PixelBufferClass &buffer);
+    void ResetEffectDuration(PixelBufferClass &buffer);
+    void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
+    void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
+    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+                             PixelBufferClass &buffer, bool *ResetEffectState);
+    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
+    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
-    void ResetEffectStates();
+    void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
@@ -1262,14 +1263,14 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
-    PixelBufferClass buffer;
+    PixelBufferClass playBuffer;
+    bool playResetEffectState[2];
     double mPointSize = 2.0;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
     int SeqPlayColumn;
-    bool ResetEffectState[2];
 
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
