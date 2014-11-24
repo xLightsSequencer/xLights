@@ -2966,6 +2966,7 @@ public:
                         xLightsFrame *f, xLightsRenderThread ** thr) {
         myCol = col;
         completed = -1;
+        prevCompleted = -1;
         ModelNode = node;
         buffer.InitBuffer(ModelNode);
         seqNumPeriods = numPeriods;
@@ -2978,6 +2979,9 @@ public:
         effects.push_back(ef);
     }
     
+    void SetPreviousColCompleted(int i) {
+        prevCompleted = i;
+    }
     ExitCode Entry () {
         bool bufferClear = false;
         MapStringString SettingsMap;
@@ -3007,12 +3011,15 @@ public:
             }
             if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
-                while (threads[myCol - 1] != NULL && NextGridRowToPlay > threads[myCol - 1]->GetRowCompleted()) {
+                while (NextGridRowToPlay > prevCompleted) {
                     //spin until we can continue, should replace with a semaphore or something
-                    Yield();
+                    Sleep(10);
                 }
                 if (NextGridRowToPlay > (completed + 1)) {
                     completed++;
+                    if (threads[myCol + 1] != NULL) {
+                        threads[myCol + 1]->SetPreviousColCompleted(completed);
+                    }
                 }
                 // start next effect
                 
@@ -3082,6 +3089,9 @@ public:
         } //for (int p=0; p<SeqNumPeriods; p++)
 
         completed = effects.size() + 1;
+        if (threads[myCol + 1] != NULL) {
+            threads[myCol + 1]->SetPreviousColCompleted(completed);
+        }
         threads[myCol] = NULL;
         return NULL;
     }
@@ -3096,8 +3106,9 @@ private:
     int seqNumPeriods;
     int myCol;
     wxString ColName;
-    xLightsRenderThread *previous;
-    volatile int completed;
+    volatile int prevCompleted;
+    int completed;
+    
     wxXmlNode *ModelNode;
 
     PixelBufferClass buffer;
@@ -3118,8 +3129,8 @@ void xLightsFrame::RenderGridToSeqData()
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
     
-    xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt];
-    for (int x = 0 ; x < colcnt; x++) {
+    xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt + 1];
+    for (int x = 0 ; x < colcnt + 1; x++) {
         threads[x] = NULL;
     }
 
@@ -3134,6 +3145,9 @@ void xLightsFrame::RenderGridToSeqData()
         
         xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
         threads[c] = thread;
+        if (c == XLIGHTS_SEQ_STATIC_COLUMNS) {
+            thread->SetPreviousColCompleted(rowcnt);
+        }
 
         NodeCnt=thread->GetBuffer().GetNodeCount();
         ChannelLimit=thread->GetBuffer().GetLastChannel() + 1;
