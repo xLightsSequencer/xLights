@@ -2136,15 +2136,6 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-										<label>*** STILL UNDER DEVELOPMENT *** &#x0A;              Please do not use yet</label>
-										<hidden>1</hidden>
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
 							</object>
 						</object>
 						<label>Piano</label>
@@ -2275,12 +2266,12 @@
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="spacer">
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2320,7 +2311,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2357,7 +2348,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2394,7 +2385,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2429,7 +2420,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2465,7 +2456,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2505,7 +2496,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -2556,7 +2547,7 @@
 										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -2890,24 +2881,24 @@
 															<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="spacer">
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="spacer">
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT63" variable="StaticText61" member="yes">
-															<label>Colors</label>
+															<label>Colors  </label>
 														</object>
-														<flag>wxALIGN_RIGHT|wxALIGN_TOP</flag>
+														<flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2927,7 +2918,7 @@
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2947,7 +2938,7 @@
 															<selmax>20</selmax>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2958,7 +2949,7 @@
 															<handler function="OnBitmapButton_Number_ChasesClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2975,7 +2966,7 @@
 															<min>1</min>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -2988,7 +2979,7 @@
 															<handler function="OnBitmapButton_Color_Mix1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3006,7 +2997,7 @@
 															<max>20</max>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3019,7 +3010,7 @@
 															<handler function="OnBitmapButton_Chase_Spacing1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3035,7 +3026,7 @@
 															<size>95,21</size>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3048,7 +3039,7 @@
 															<handler function="OnBitmapButton_Chase_Type1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3077,7 +3068,7 @@
 															<handler function="OnBitmapButton_Chase_3dFade1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3104,7 +3095,7 @@
 															<handler function="OnBitmapButton_Chase_Group_AllClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -3150,7 +3141,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3189,7 +3180,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3227,7 +3218,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -3267,7 +3258,7 @@
 															</object>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 												</object>
@@ -4239,7 +4230,7 @@
 															<handler function="OnBitmapButton_TextToCenter1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-														<border>5</border>
+														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
@@ -5067,17 +5058,17 @@
 										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="spacer">
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="spacer">
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5091,7 +5082,7 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Wave_Type" variable="Choice_Wave_Type" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5102,7 +5093,7 @@
 										<handler function="OnBitmapButton_WaveTypeClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5116,7 +5107,7 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Fill_Colors" variable="Choice_Fill_Colors" member="yes" />
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5127,7 +5118,7 @@
 										<handler function="OnBitmapButton_Wave_FillColorsClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5152,7 +5143,7 @@
 										<handler function="OnBitmapButton_Wave_MirrorWaveClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5170,7 +5161,7 @@
 										<max>3600</max>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5181,7 +5172,7 @@
 										<handler function="OnBitmapButton_NumberWavesClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5197,7 +5188,7 @@
 										<value>5</value>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5208,7 +5199,7 @@
 										<handler function="OnBitmapButton_Wave_ThicknessClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5224,7 +5215,7 @@
 										<value>50</value>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5235,7 +5226,7 @@
 										<handler function="OnBitmapButton_Wave_HeightClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5249,7 +5240,7 @@
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Wave_Direction" variable="Choice_Wave_Direction" member="yes" />
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
@@ -5260,7 +5251,7 @@
 										<handler function="OnBitmapButton_Wave_DirectionClick" entry="EVT_BUTTON" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 							</object>
@@ -5269,7 +5260,7 @@
 					</object>
 				</object>
 				<flag>wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -5311,7 +5302,7 @@
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
+								<border>1</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -5699,7 +5690,7 @@
 									</object>
 									<object class="spacer">
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -5712,7 +5703,7 @@
 											<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<border>1</border>
 										<option>1</option>
 									</object>
 								</object>
@@ -5727,7 +5718,7 @@
 					</object>
 				</object>
 				<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 		</object>

@@ -1286,8 +1286,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
-                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
+        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
+                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
@@ -1750,7 +1750,7 @@ void xLightsFrame::UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPer
     int minutes=seconds / 60;
 
     //  TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d",minutes,seconds,msec));
-    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03d   %d.%03d ",minutes,s,msec,seconds,msec));
+    StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d.%03ld   %d.%03ld ",minutes,s,msec,seconds,msec));
 //  old way     StatusBar1->SetStatusText(wxString::Format("Playback: RGB "+seqtype+" sequence %d:%02d",m,s));
 }
 
@@ -3941,10 +3941,12 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     if (event.GetId() == ID_SHIFT_COL_LEFT)
     {
         SwapCols(curCell->GetCol() - 1, curCell->GetCol());
+        Grid1->SelectCol(curCell->GetCol() - 1);
     }
     if (event.GetId() == ID_SHIFT_COL_RIGHT)
     {
         SwapCols(curCell->GetCol(), curCell->GetCol() + 1);
+        Grid1->SelectCol(curCell->GetCol() + 1);
     }
 }
 
@@ -3953,8 +3955,11 @@ void xLightsFrame::SwapCols(int col1, int col2)
     for (int x = 0; x < Grid1->GetNumberRows(); x++)
     {
         wxString tmp = Grid1->GetCellValue(x, col1);
+        wxColor tmpColor = Grid1->GetCellTextColour(x, col1);
         Grid1->SetCellValue(x, col1, Grid1->GetCellValue(x, col2));
+        Grid1->SetCellTextColour(x, col1, Grid1->GetCellTextColour(x, col2));
         Grid1->SetCellValue(x, col2, tmp);
+        Grid1->SetCellTextColour(x, col2, tmpColor);
     }
     wxString tmp = Grid1->GetColLabelValue(col1);
     Grid1->SetColLabelValue(col1, Grid1->GetColLabelValue(col2));

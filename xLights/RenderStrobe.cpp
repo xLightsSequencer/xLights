@@ -94,11 +94,11 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
         {
             if(it->duration==1)
             {
-                hsv.value /=3;
+                hsv.value /=2;
             }
             else if(it->duration==2)
             {
-                hsv.value /=2;
+                hsv.value /=1.5;
             }
 
 
@@ -148,7 +148,7 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
 
 
         // delete old strobe
-        //if(it->duration<1)
-        //        strobe.remove_if(1);
+    //   if(it->duration<1)
+    //         strobe.remove_if(StrobeHasExpired(it->duration));
     }
 }

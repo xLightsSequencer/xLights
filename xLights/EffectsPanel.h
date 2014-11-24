@@ -67,7 +67,6 @@ public:
     wxBitmapButton* BitmapButton_TextLine1;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
-    wxStaticText* StaticText4;
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
     wxTextCtrl* TextCtrl_Text_Font4;
@@ -737,7 +736,6 @@ protected:
     static const long ID_TEXTCTRL_Piano_ShapeFilename;
     static const long ID_PANEL13;
     static const long ID_NOTEBOOK2;
-    static const long ID_STATICTEXT4;
     static const long ID_PANEL39;
     static const long ID_BUTTON_PICTURES_FILENAME;
     static const long ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME;

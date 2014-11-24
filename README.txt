@@ -6,8 +6,15 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 =================================
+3.6.7	Nov 23, 2014
+	-bug (djulien) scrunch UI so it will fit on a laptop (needs to be < 760 px high)
+    -bug (dkulp) Fix Rendering of Ripple effect during save, now shows up in PREVIEW and lights
+    -bug (dkulp) Fix Rendering of Strobe effect during save, now shows up in PREVIEW and lights
+3.6.6	Nov 22, 2014
+	-bug (dkulp) Size of picture and setting size of display window in PREVIEW could cause a condition where you 
+			could not select items. fixed.
 	-enh (cpinkham) Add 'Pixelnet-Open' Network Type for Pixelnet output using Generic FTDI chipset USB to RS485 dongles.
-	-enh (dkulp) During convertions, buffer non-critical updates to the messages list and append to the list box in blocks of about 10K.   Significantly speeds up conversions for HLS and LOR with very large files that display a lot of messages.
+	-enh (dkulp) During conversions, buffer non-critical updates to the messages list and append to the list box in blocks of about 10K.   Significantly speeds up conversions for HLS and LOR with very large files that display a lot of messages.
 3.6.5	Nov 20, 2014
 	-enh (sean) New effect class , Strobe.
 	-enh (sean) Icons on top of each effect improved. This icons will be what you drag and drop effects in xLights 4.0. This early introduction
