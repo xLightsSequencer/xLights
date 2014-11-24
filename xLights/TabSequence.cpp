@@ -3827,10 +3827,12 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
     if (event.GetId() == ID_SHIFT_COL_LEFT)
     {
         SwapCols(curCell->GetCol() - 1, curCell->GetCol());
+        Grid1->SelectCol(curCell->GetCol() - 1);
     }
     if (event.GetId() == ID_SHIFT_COL_RIGHT)
     {
         SwapCols(curCell->GetCol(), curCell->GetCol() + 1);
+        Grid1->SelectCol(curCell->GetCol() + 1);
     }
 }
 
@@ -3839,8 +3841,11 @@ void xLightsFrame::SwapCols(int col1, int col2)
     for (int x = 0; x < Grid1->GetNumberRows(); x++)
     {
         wxString tmp = Grid1->GetCellValue(x, col1);
+        wxColor tmpColor = Grid1->GetCellTextColour(x, col1);
         Grid1->SetCellValue(x, col1, Grid1->GetCellValue(x, col2));
+        Grid1->SetCellTextColour(x, col1, Grid1->GetCellTextColour(x, col2));
         Grid1->SetCellValue(x, col2, tmp);
+        Grid1->SetCellTextColour(x, col2, tmpColor);
     }
     wxString tmp = Grid1->GetColLabelValue(col1);
     Grid1->SetColLabelValue(col1, Grid1->GetColLabelValue(col2));
