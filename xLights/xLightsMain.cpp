@@ -237,6 +237,7 @@ const long xLightsFrame::ID_BUTTON_CREATE_RANDOM = wxNewId();
 const long xLightsFrame::ID_STATICLINE1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
+const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_GRID_CUT = wxNewId();
@@ -1039,6 +1040,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButtonSaveSeq->SetDefault();
     BitmapButtonSaveSeq->SetToolTip(_("Save Sequence. The save will be done for every model you have. The save will start with the leftmost model and finish with the rightmost"));
     FlexGridSizer38->Add(BitmapButtonSaveSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FastSave_CheckBox = new wxCheckBox(SeqPanelRight, ID_CHECKBOX1, _("Fast Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    FastSave_CheckBox->SetValue(false);
+    FlexGridSizer38->Add(FastSave_CheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButtonInsertRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON3, insertrow_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
     BitmapButtonInsertRow->SetDefault();
     BitmapButtonInsertRow->SetToolTip(_("Insert Row"));

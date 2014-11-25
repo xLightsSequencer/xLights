@@ -603,6 +603,7 @@ private:
     static const long ID_STATICLINE1;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
+    static const long ID_CHECKBOX1;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
     static const long ID_BITMAPBUTTON_GRID_CUT;
@@ -838,8 +839,8 @@ private:
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
-    wxButton* ButtonChangeDir;
     wxGrid* Grid1;
+    wxButton* ButtonChangeDir;
     wxStaticLine* StaticLine1;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
@@ -890,6 +891,7 @@ private:
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxCheckBox* FastSave_CheckBox;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
@@ -1176,6 +1178,7 @@ private:
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
+    void GridCellChanged(int row, int col);
     void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
     void UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer);
@@ -1266,6 +1269,10 @@ private:
     PixelBufferClass playBuffer;
     bool playResetEffectState[2];
     double mPointSize = 2.0;
+    
+    // fast save support
+    int changedColumn;
+    int changedRow;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;

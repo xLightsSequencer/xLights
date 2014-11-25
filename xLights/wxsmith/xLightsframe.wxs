@@ -1986,6 +1986,14 @@
 																								<option>1</option>
 																							</object>
 																							<object class="sizeritem">
+																								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="FastSave_CheckBox" member="yes">
+																									<label>Fast Save</label>
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
 																								<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButtonInsertRow" member="yes">
 																									<bitmap code="insertrow_xpm" />
 																									<default>1</default>

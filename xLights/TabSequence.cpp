@@ -526,11 +526,20 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     s+=EffectsPanel2->GetEffectString();
     return s;
 }
+void xLightsFrame::GridCellChanged(int row, int col) {
+    if (row < changedRow) {
+        changedRow = row;
+    }
+    if (col < changedColumn) {
+        changedColumn = col;
+    }
+    UnsavedChanges = true;
+}
+
 
 void xLightsFrame::UpdateGrid()
 {
     int r,c;
-    bool changed = false;
     wxString v=CreateEffectString();
     if ( Grid1->IsSelection() )
     {
@@ -544,7 +553,7 @@ void xLightsFrame::UpdateGrid()
                 if (Grid1->IsInSelection(r,c))
                 {
                     Grid1->SetCellValue(r,c,v);
-                    changed = true;
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -558,10 +567,9 @@ void xLightsFrame::UpdateGrid()
         if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
-            changed = true;
+            GridCellChanged(r, c);
         }
     }
-    UnsavedChanges = changed;
 }
 void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
 {
@@ -585,6 +593,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
                 {
                     v = CreateEffectStringRandom();
                     Grid1->SetCellValue(r,c,v);
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -598,6 +607,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         {
             v = CreateEffectStringRandom();
             Grid1->SetCellValue(r,c,v);
+            GridCellChanged(r, c);
         }
     }
 }
@@ -622,8 +632,11 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
                     break;
                 }
             if (c < nCols) //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                    //copy it to other cells in this row
                     Grid1->SetCellValue(r, c, v);
+                    GridCellChanged(r, c);
+                }
         }
     }
     else
@@ -634,8 +647,11 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         {
             v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
 //wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
-            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                //copy it to other cells in this row
                 Grid1->SetCellValue(r, c, v);
+                GridCellChanged(r, c);
+            }
         }
     }
 }
@@ -655,16 +671,21 @@ void xLightsFrame::ClearEffectRow(wxCommandEvent& event)
         {
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
                 if (Grid1->IsInSelection(r,c)) break;
-            if (c < nCols) //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+            if (c < nCols) { //found a selected cell
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
                     Grid1->SetCellValue(r, c, "");
+                    GridCellChanged(r, c);
+                }
+            }
         }
     }
     else
     {
         r = curCell->GetRow();
-        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
             Grid1->SetCellValue(r, c, "");
+            GridCellChanged(r, c);
+        }
     }
 }
 
@@ -687,7 +708,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
                 {
                     Grid1->SetCellValue(r,c,v);
                     Grid1->SetCellTextColour(r,c,*wxBLACK);
-                    UnsavedChanges=true;
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -701,7 +722,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         {
             Grid1->SetCellValue(r,c,v);
             Grid1->SetCellTextColour(r,c,*wxBLACK);
-            UnsavedChanges=true;
+            GridCellChanged(r, c);
         }
     }
 }
@@ -2027,6 +2048,7 @@ void xLightsFrame::ChooseModelsForSequence()
                 Grid1->AppendCols();
                 int colnum=Grid1->GetNumberCols()-1;
                 Grid1->SetColLabelValue(colnum,name);
+                GridCellChanged(0, colnum);
 
                 for(int j = 0; j < Grid1->GetNumberRows(); j++)
                 {
@@ -2048,6 +2070,7 @@ void xLightsFrame::ChooseModelsForSequence()
         if (!labels[idx].IsEmpty())
         {
             Grid1->DeleteCols(idx+XLIGHTS_SEQ_STATIC_COLUMNS);
+            GridCellChanged(0, idx+XLIGHTS_SEQ_STATIC_COLUMNS - 1);
         }
     }
     EnableSequenceControls(true);
@@ -2745,6 +2768,8 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     }
     EnableSequenceControls(true);
     //Grid1->HideCol(Grid1->GetNumberCols()-1);
+    changedRow = 99999;
+    changedColumn = 99999;
     return true;
 }
 
@@ -2837,6 +2862,8 @@ void xLightsFrame::OpenSequence()
 
     mediaFilename.Clear();
     ResetSequenceGrid();
+    changedRow = 99999;
+    changedColumn = 99999;
 
     long duration;
     if (dialog.RadioButtonXlights->GetValue())
@@ -2973,12 +3000,16 @@ public:
         xLights = f;
         threads = thr;
         ColName = name;
+        firstRow = 0;
     }
     void AddEffectString(long time, const wxString &ef) {
         startTimes.push_back(time);
         effects.push_back(ef);
     }
-    
+    void setFirstRowToRender(int i)
+    {
+        firstRow = i;
+    }
     void SetPreviousColCompleted(int i) {
         prevCompleted = i;
     }
@@ -2987,7 +3018,7 @@ public:
         MapStringString SettingsMap;
         xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
         
-        int NextGridRowToPlay=0;
+        int NextGridRowToPlay=firstRow;
         long msec = 0;
         for (int p=0; p<seqNumPeriods; p++)
         {
@@ -3103,6 +3134,7 @@ public:
         return completed;
     }
 private:
+    int firstRow;
     int seqNumPeriods;
     int myCol;
     wxString ColName;
@@ -3122,8 +3154,6 @@ private:
 void xLightsFrame::RenderGridToSeqData()
 {
     wxString ColName,msg, EffectStr;
-    long msec;
-    bool effectsToUpdate;
     size_t ChannelLimit, NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
@@ -3133,8 +3163,17 @@ void xLightsFrame::RenderGridToSeqData()
     for (int x = 0 ; x < colcnt + 1; x++) {
         threads[x] = NULL;
     }
+    int firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
+    int firstRowToRender = 0;
+    if (FastSave_CheckBox->IsChecked()) {
+        firstColToRender = changedColumn;
+        firstRowToRender = changedRow;
+        if (firstColToRender < XLIGHTS_SEQ_STATIC_COLUMNS) {
+            firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
+        }
+    }
 
-    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    for (int c=firstColToRender; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
         threads[c] = NULL;
         ColName=Grid1->GetColLabelValue(c);
@@ -3145,9 +3184,10 @@ void xLightsFrame::RenderGridToSeqData()
         
         xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
         threads[c] = thread;
-        if (c == XLIGHTS_SEQ_STATIC_COLUMNS) {
+        if (c == firstColToRender) {
             thread->SetPreviousColCompleted(rowcnt);
         }
+        thread->setFirstRowToRender(firstRowToRender);
 
         NodeCnt=thread->GetBuffer().GetNodeCount();
         ChannelLimit=thread->GetBuffer().GetLastChannel() + 1;
@@ -3207,6 +3247,8 @@ void xLightsFrame::RenderGridToSeqData()
     renderMessages.clear();
     msgMutex.Unlock();
     delete [] threads;
+    changedColumn = 99999;
+    changedRow = 99999;
 }
 
 //FR Caller is responsible for deleting the returned data object
@@ -3485,7 +3527,8 @@ void xLightsFrame::InsertRow()
         return;
     }
     int r=Grid1->GetGridCursorRow();
-    Grid1->InsertRows( r, 1 );
+    GridCellChanged(r, 0);
+    Grid1->InsertRows( r, 2);
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
@@ -3507,10 +3550,12 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
         wxGridUpdateLocker locker(Grid1);
         for ( int n = 0; n < Grid1->GetNumberRows(); )
         {
-            if ( Grid1->IsInSelection( n , 0 ) )
+            if ( Grid1->IsInSelection( n , 0 ) ) {
                 Grid1->DeleteRows( n, 1 );
-            else
+                GridCellChanged(n, 0);
+            } else {
                 n++;
+            }
         }
     }
     UnsavedChanges = true;
@@ -3535,6 +3580,8 @@ void xLightsFrame::CopyRow(int row1, int row2)
     {
         Grid1->SetCellValue(row1,i,Grid1->GetCellValue(row2,i));
     }
+    GridCellChanged(row1, 0);
+    GridCellChanged(row2, 0);
 }
 
 // returns time in milliseconds
@@ -3579,6 +3626,7 @@ void xLightsFrame::NumericSort()
     Grid1->DeleteRows(rowcnt,1);
     Grid1->EndBatch();
     Grid1->ForceRefresh();
+    GridCellChanged(0, 0);
 }
 
 void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
@@ -3966,6 +4014,8 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 
 void xLightsFrame::SwapCols(int col1, int col2)
 {
+    GridCellChanged(0, col1);
+    GridCellChanged(0, col2);
     for (int x = 0; x < Grid1->GetNumberRows(); x++)
     {
         wxString tmp = Grid1->GetCellValue(x, col1);
@@ -4014,6 +4064,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
             {
                 if (!apply_horiz || v.empty()) v = CreateEffectStringRandom();
                 Grid1->SetCellValue(r,c,v);
+                GridCellChanged(r,c);
             }
         }
     }
@@ -4080,6 +4131,7 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
                     if (IsCut)
                     {
                         Grid1->SetCellValue(i,k,wxEmptyString);
+                        GridCellChanged(i,k);
                         UnsavedChanges=true;
                     }
                 }
@@ -4095,6 +4147,7 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
         if (IsCut)
         {
             Grid1->SetCellValue(i,k,wxEmptyString);
+            GridCellChanged(i,k);
             UnsavedChanges=true;
         }
     }
@@ -4187,6 +4240,7 @@ void xLightsFrame::PasteFromClipboard()
                 if (fields[fieldnum].IsEmpty() || IsValidEffectString(fields[fieldnum]))
                 {
                     Grid1->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+                    GridCellChanged(i,k+fieldnum);
                     UnsavedChanges=true;
                 }
                 else
