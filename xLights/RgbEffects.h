@@ -99,6 +99,12 @@ public:
         blue = rgb.blue;
         green = rgb.green;
     }
+    xlColor(const wxImage::HSVValue &hsv) {
+        wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
+        red = rgb.red;
+        blue = rgb.blue;
+        green = rgb.green;
+    }
     int Red() const { return red; }
     int Blue() const { return blue; };
     int Green() const { return green; };
@@ -547,11 +553,11 @@ protected:
     void SetWaveBuffer2(int x, int y, int value);
     int GetWaveBuffer2(int x, int y);
 
-    void DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv);
-    void CirclePlot(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
+    void DrawCircle(int xc, int yc, int r, const xlColor& hsv);
+    void CirclePlot(int xc, int xy, int x, int y, const xlColor& hsv);
+    void CirclePlotClipped(int xc, int xy, int x, int y, const xlColor& hsv);
 
     void DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv);
-    void CirclePlotClipped(int xc, int xy, int x, int y, const wxImage::HSVValue& hsv);
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
