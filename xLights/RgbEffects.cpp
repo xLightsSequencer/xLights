@@ -199,12 +199,12 @@ void RgbEffects::CopyPixel(int srcx, int srcy, int destx, int desty)
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
 }
 
-void RgbEffects::DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv)
+void RgbEffects::DrawCircle(int xc, int yc, int r, const xlColor& rgb)
 {
     int x, y, p;
     x=0;y=r;
     p=1-r;
-    CirclePlot(xc,yc,x,y, hsv);
+    CirclePlot(xc,yc,x,y, rgb);
     while(x<y)
     {
         x++;
@@ -215,27 +215,28 @@ void RgbEffects::DrawCircle(int xc, int yc, int r, const wxImage::HSVValue& hsv)
             y--;
             p+=2*(x-y)+1;
         }
-        CirclePlot(xc,yc,x,y, hsv);
+        CirclePlot(xc,yc,x,y, rgb);
     }
 }
 
-void RgbEffects::CirclePlot(int xc, int yc, int x, int y, const wxImage::HSVValue& hsv)
+void RgbEffects::CirclePlot(int xc, int yc, int x, int y, const xlColor& rgb)
 {
-    SetPixel((xc+x)%BufferWi,(yc+y)%BufferHt,hsv);
-    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc+y)%BufferHt,hsv);
-    SetPixel((xc+x)%BufferWi,(yc-y)<0?BufferHt+(yc-y):(yc-y),hsv);
-    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc-y)<0?BufferHt+(yc-y):(yc-y),hsv);
-    SetPixel((xc+y)%BufferWi,(yc+x)%BufferHt,hsv);
-    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc+x)%BufferHt,hsv);
-    SetPixel((xc+y)%BufferWi,(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
-    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc-x)<0?BufferHt+(yc-x):(yc-x),hsv);
+    SetPixel((xc+x)%BufferWi,(yc+y)%BufferHt,rgb);
+    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc+y)%BufferHt,rgb);
+    SetPixel((xc+x)%BufferWi,(yc-y)<0?BufferHt+(yc-y):(yc-y),rgb);
+    SetPixel((xc-x)<0?BufferWi+(xc-x):xc-x,(yc-y)<0?BufferHt+(yc-y):(yc-y),rgb);
+    SetPixel((xc+y)%BufferWi,(yc+x)%BufferHt,rgb);
+    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc+x)%BufferHt,rgb);
+    SetPixel((xc+y)%BufferWi,(yc-x)<0?BufferHt+(yc-x):(yc-x),rgb);
+    SetPixel((xc-y)<0?BufferWi+(xc-y):(xc-y),(yc-x)<0?BufferHt+(yc-x):(yc-x),rgb);
 }
 void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv)
 {
     int x, y, p;
+    xlColor rgb(hsv);
     x=0;y=r;
     p=1-r;
-    CirclePlotClipped(xc,yc,x,y, hsv);
+    CirclePlotClipped(xc,yc,x,y, rgb);
     while(x<y)
     {
         x++;
@@ -246,19 +247,19 @@ void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValu
             y--;
             p+=2*(x-y)+1;
         }
-        CirclePlotClipped(xc,yc,x,y, hsv);
+        CirclePlotClipped(xc,yc,x,y, rgb);
     }
 }
-void RgbEffects::CirclePlotClipped(int xc, int yc, int x, int y, const wxImage::HSVValue& hsv)
+void RgbEffects::CirclePlotClipped(int xc, int yc, int x, int y, const xlColor& rgb)
 {
-    SetPixel(xc+x,yc+y,hsv);
-    SetPixel(xc-x,yc+y,hsv);
-    SetPixel(xc+x,yc-y,hsv);
-    SetPixel(xc-x,yc-y,hsv);
-    SetPixel(xc+y,yc+x,hsv);
-    SetPixel(xc-y,yc+x,hsv);
-    SetPixel(xc+y,yc-x,hsv);
-    SetPixel(xc-y,yc-x,hsv);
+    SetPixel(xc+x,yc+y,rgb);
+    SetPixel(xc-x,yc+y,rgb);
+    SetPixel(xc+x,yc-y,rgb);
+    SetPixel(xc-x,yc-y,rgb);
+    SetPixel(xc+y,yc+x,rgb);
+    SetPixel(xc-y,yc+x,rgb);
+    SetPixel(xc+y,yc-x,rgb);
+    SetPixel(xc-y,yc-x,rgb);
 }
 
 // 0,0 is lower left
