@@ -50,7 +50,8 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 {
     xlColour c;
     wxBitmap bitmap(BufferWi,BufferHt);
-    wxMemoryDC dc(bitmap);
+    wxMemoryDC dc;
+    dc.SelectObject(bitmap);
 
     long DefaultPixelHt=BufferHt/2;
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height

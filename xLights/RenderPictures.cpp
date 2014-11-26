@@ -319,7 +319,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         if (!image.LoadFile(NewPictureName,wxBITMAP_TYPE_ANY,0))
         {
             //wxMessageBox("Error loading image file: "+NewPictureName);
-            image.Clear();
+            image.Create(5, 5, true);
         }
         PictureName=NewPictureName;
         if (!image.IsOk())
