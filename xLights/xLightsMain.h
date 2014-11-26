@@ -25,7 +25,6 @@
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/listbox.h>
-#include <wx/statline.h>
 #include <wx/radiobut.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
@@ -600,7 +599,6 @@ private:
     static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON4;
     static const long ID_BUTTON_CREATE_RANDOM;
-    static const long ID_STATICLINE1;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
     static const long ID_CHECKBOX1;
@@ -612,7 +610,6 @@ private:
     static const long ID_STATICTEXT31;
     static const long ID_CHOICE_VIEWS;
     static const long ID_BT_EDIT_VIEWS;
-    static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL5;
@@ -821,7 +818,6 @@ private:
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
     wxTextCtrl* txtCtlEffectMix;
-    wxButton* Button_ChannelMap;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
     wxButton* Button_PgoCopyVoices;
@@ -839,9 +835,8 @@ private:
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
-    wxGrid* Grid1;
     wxButton* ButtonChangeDir;
-    wxStaticLine* StaticLine1;
+    wxGrid* Grid1;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
