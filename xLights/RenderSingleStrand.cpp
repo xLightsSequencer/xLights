@@ -61,7 +61,7 @@ int mapDirection(const wxString & d) {
 void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString & Skips_Direction)
 {
     int x = Skips_StartPos - 1;
-    wxColour color, black(0,0,0);
+    xlColour color, black(0,0,0);
     int second = 0;
     int max = BufferWi;
     int direction = mapDirection(Skips_Direction);

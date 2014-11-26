@@ -109,7 +109,7 @@ void RgbEffects::RenderCurtain(int edge, int effect, int swag, bool repeat)
 void RgbEffects::DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagArray)
 {
     int i,x,y;
-    wxColour color;
+    xlColour color;
     for (i=0; i<xlimit; i++)
     {
         GetMultiColorBlend(double(i) / double(BufferWi), true, color);
@@ -136,7 +136,7 @@ void RgbEffects::DrawCurtain(bool LeftEdge, int xlimit, const wxArrayInt &SwagAr
 void RgbEffects::DrawCurtainVertical(bool topEdge, int ylimit, const wxArrayInt &SwagArray)
 {
     int i,x,y;
-    wxColour color;
+    xlColour color;
     for (i=0; i<ylimit; i++)
     {
         GetMultiColorBlend(double(i) / double(BufferHt), true, color);

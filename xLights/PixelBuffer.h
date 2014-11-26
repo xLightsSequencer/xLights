@@ -64,7 +64,7 @@ private:
     bool effectMixVaries; //allow varying mix threshold -DJ
     MixTypes MixType;
     RgbEffects Effect[2];
-    void GetMixedColor(wxCoord x, wxCoord y, wxColour& c);
+    void GetMixedColor(wxCoord x, wxCoord y, xlColour& c);
     double fadeFactor[2];
 
 public:

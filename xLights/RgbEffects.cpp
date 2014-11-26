@@ -40,8 +40,7 @@ RgbEffects::RgbEffects()
     {
         hsv.value=double(i)/100.0;
         rgb = wxImage::HSVtoRGB(hsv);
-        color.Set(rgb.red,rgb.green,rgb.blue);
-        FirePalette.push_back(color);
+        FirePalette.push_back(xlColor(rgb));
     }
 
     // gives 100 hues red to yellow
@@ -49,8 +48,7 @@ RgbEffects::RgbEffects()
     for (i=0; i<100; i++)
     {
         rgb = wxImage::HSVtoRGB(hsv);
-        color.Set(rgb.red,rgb.green,rgb.blue);
-        FirePalette.push_back(color);
+        FirePalette.push_back(xlColor(rgb));
         hsv.hue+=0.00166666;
     }
 }
@@ -75,7 +73,7 @@ void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)
     state=0;
 }
 
-void RgbEffects::Clear(const wxColour& bgColor)
+void RgbEffects::Clear(const xlColour& bgColor)
 {
     if (InhibitClear) { InhibitClear = false; return; } //allow canvas to be persistent for piano fx (self-reseting for safety) -DJ
     for(size_t i=0; i<pixels.size(); i++)
@@ -84,7 +82,7 @@ void RgbEffects::Clear(const wxColour& bgColor)
     }
 }
 
-void RgbEffects::SetPalette(wxColourVector& newcolors)
+void RgbEffects::SetPalette(xlColourVector& newcolors)
 {
     palette.Set(newcolors);
 }
@@ -117,7 +115,7 @@ double RgbEffects::RandomRange(double num1, double num2)
     return rand01()*(hi-lo)+ lo;
 }
 
-void RgbEffects::Color2HSV(const wxColour& color, wxImage::HSVValue& hsv)
+void RgbEffects::Color2HSV(const xlColour& color, wxImage::HSVValue& hsv)
 {
     wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
     hsv=wxImage::RGBtoHSV(rgb);
@@ -137,9 +135,9 @@ wxByte RgbEffects::ChannelBlend(wxByte c1, wxByte c2, double ratio)
     return c1 + floor(ratio*(c2-c1)+0.5);
 }
 
-void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, wxColour &color)
+void RgbEffects::Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColour &color)
 {
-    wxColour c1,c2;
+    xlColour c1,c2;
     palette.GetColor(coloridx1,c1);
     palette.GetColor(coloridx2,c2);
     color.Set(ChannelBlend(c1.Red(),c2.Red(),ratio), ChannelBlend(c1.Green(),c2.Green(),ratio), ChannelBlend(c1.Blue(),c2.Blue(),ratio));
@@ -156,7 +154,7 @@ HSVValue RgbEffects::Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2)
     return wxImage::RGBtoHSV(rgb);
 }
 // 0 <= n < 1
-void RgbEffects::GetMultiColorBlend(double n, bool circular, wxColour &color)
+void RgbEffects::GetMultiColorBlend(double n, bool circular, xlColour &color)
 {
     size_t colorcnt=GetColorCount();
     if (colorcnt <= 1)
@@ -175,20 +173,21 @@ void RgbEffects::GetMultiColorBlend(double n, bool circular, wxColour &color)
 
 
 // 0,0 is lower left
-void RgbEffects::SetPixel(int x, int y, const wxColour &color)
+void RgbEffects::SetPixel(int x, int y, const xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
-        pixels[y*BufferWi+x]=color;
+        pixels[y*BufferWi+x] = color;
     }
 }
 
 // 0,0 is lower left
 void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv)
 {
-    wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
-    wxColour color(rgb.red,rgb.green,rgb.blue);
-    SetPixel(x,y,color);
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    {
+        pixels[y*BufferWi+x] = hsv;
+    }
 }
 
 //copy src to dest: -DJ
@@ -263,7 +262,7 @@ void RgbEffects::CirclePlotClipped(int xc, int yc, int x, int y, const wxImage::
 }
 
 // 0,0 is lower left
-void RgbEffects::GetPixel(int x, int y, wxColour &color)
+void RgbEffects::GetPixel(int x, int y, xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -273,7 +272,7 @@ void RgbEffects::GetPixel(int x, int y, wxColour &color)
 
 
 // 0,0 is lower left
-void RgbEffects::SetTempPixel(int x, int y, const wxColour &color)
+void RgbEffects::SetTempPixel(int x, int y, const xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
@@ -282,7 +281,7 @@ void RgbEffects::SetTempPixel(int x, int y, const wxColour &color)
 }
 
 // 0,0 is lower left
-void RgbEffects::GetTempPixel(int x, int y, wxColour &color)
+void RgbEffects::GetTempPixel(int x, int y, xlColour &color)
 {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {

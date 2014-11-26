@@ -3237,6 +3237,7 @@ void xLightsFrame::RenderGridToSeqData()
             renderMessages.clear();
             msgMutex.Unlock();
             wxYield();
+            wxMilliSleep(25);
         }
     }
 

@@ -73,7 +73,68 @@ typedef enum
     E_CURTAIN_CLOSE_OPEN
 } CURTAIN_EFFECT_e;
 
-typedef std::vector<wxColour> wxColourVector;
+
+class xlColor : public wxImage::RGBValue {
+public:
+    xlColor() {
+        red = green = blue = 0;
+    }
+    xlColor(int r, int g, int b) {
+        red = r;
+        green = g;
+        blue = b;
+    }
+    xlColor(const xlColor &rgb) {
+        red = rgb.red;
+        blue = rgb.blue;
+        green = rgb.green;
+    }
+    xlColor(const wxColour &rgb) {
+        red = rgb.Red();
+        blue = rgb.Blue();
+        green = rgb.Green();
+    }
+    xlColor(const wxImage::RGBValue &rgb) {
+        red = rgb.red;
+        blue = rgb.blue;
+        green = rgb.green;
+    }
+    int Red() const { return red; }
+    int Blue() const { return blue; };
+    int Green() const { return green; };
+    
+    void Set(int r, int g, int b) {
+        red = r;
+        green = g;
+        blue = b;
+    }
+    xlColor&operator=(const wxColor&c) {
+        red = c.Red();
+        blue = c.Blue();
+        green = c.Green();
+        return *this;
+    }
+    xlColor&operator=(const wxImage::HSVValue& hsv) {
+        wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
+        red = rgb.red;
+        blue = rgb.blue;
+        green = rgb.green;
+        return *this;
+    }
+    xlColor&operator=(const wxImage::RGBValue& rgb) {
+        return operator=(rgb);
+    }
+    operator wxColor() const {
+        return wxColor(red, green, blue);
+    }
+    wxUint32 GetRGB() const
+    { return Red() | (Green() << 8) | (Blue() << 16); }
+};
+
+typedef xlColor xlColour;
+typedef std::vector<xlColor> xlColorVector;
+typedef std::vector<xlColor> xlColourVector;
+typedef std::vector<wxColor> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 typedef wxImage::HSVValue HSVValue;
@@ -104,10 +165,10 @@ public:
     RgbEffects();
     ~RgbEffects();
     void InitBuffer(int newBufferHt, int newBufferWi);
-    void Clear(const wxColour& bgColor);
-    void SetPalette(wxColourVector& newcolors);
+    void Clear(const xlColor& bgColor);
+    void SetPalette(xlColourVector& newcolors);
     void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
-    void GetPixel(int x, int y, wxColour &color);
+    void GetPixel(int x, int y, xlColor &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec, int nextMsec, bool new_effect_starts);
@@ -317,7 +378,7 @@ protected:
         //	int repeat; //0 => one-shot, > 0 => loop count, < 0 => loop count with random delay
         wxSize wh; //size in src image; might be scaled up/down when rendered onto canvas
         wxPoint destxy; //where to place it on canvas
-        wxColor on, off; //first visible pixel color (from bottom left); used for on/off redraw (scrolling fx)
+        xlColor on, off; //first visible pixel color (from bottom left); used for on/off redraw (scrolling fx)
         int destz; //controls draw order for overlapping sprites
     public:
 //copy sprite image to canvas:
@@ -394,14 +455,14 @@ protected:
     void Piano_update_bkg(int Style, wxSize& canvas, int rowh);
     void Piano_map_colors(void);
     bool Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& drawn, int style, wxSize& canvas, wxSize& keywh, int placement, bool clip);
-    wxColor cached_rgb; //cached mapped pixel color
+    xlColor cached_rgb; //cached mapped pixel color
     wxPoint cached_xy;
 //end of piano support stuff -DJ
 
 //cached list of pixels to turn on, indexed by frame (timestamp):
 //this is the required output after applying the effect in Nutcracker
 //xLights will then remap these pixels thru the custom or built-in model back to xLights channels
-    typedef std::vector<std::pair<wxPoint, wxColor>> PixelVector;
+    typedef std::vector<std::pair<wxPoint, xlColor>> PixelVector;
     std::vector<PixelVector> PixelsByFrame; //list of pixels and their associated values, indexed by frame#
 //remapped Vixen channels for Picture effect: -DJ
     void LoadPixelsFromTextFile(wxFile& debug, const wxString& filename);
@@ -410,11 +471,11 @@ protected:
     class PaletteClass
     {
     private:
-        wxColourVector color;
+        xlColorVector color;
         hsvVector hsv;
     public:
 
-        void Set(wxColourVector& newcolors)
+        void Set(xlColorVector& newcolors)
         {
             color=newcolors;
             hsv.clear();
@@ -437,11 +498,11 @@ protected:
             return colorcnt;
         }
 
-        void GetColor(size_t idx, wxColour& c)
+        void GetColor(size_t idx, xlColor& c)
         {
             if (idx >= color.size())
             {
-                c.Set(255,255,255);
+                c.Set(255, 255, 255);
             }
             else
             {
@@ -472,11 +533,12 @@ protected:
 
 
 
-    void SetPixel(int x, int y, const wxColour &color);
+    void SetPixel(int x, int y, const xlColor &color);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
     void CopyPixel(int srcx, int srcy, int destx, int desty); //-DJ
-    void SetTempPixel(int x, int y, const wxColour &color);
-    void GetTempPixel(int x, int y, wxColour &color);
+    void SetTempPixel(int x, int y, const xlColor &color);
+    void GetTempPixel(int x, int y, xlColor &color);
+    
     wxUint32 GetTempPixelRGB(int x, int y);
     void SetFireBuffer(int x, int y, int PaletteIdx);
     int GetFireBuffer(int x, int y);
@@ -493,11 +555,11 @@ protected:
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);
-    void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, wxColour &color);
-    void GetMultiColorBlend(double n, bool circular, wxColour &color);
+    void Get2ColorBlend(int coloridx1, int coloridx2, double ratio, xlColor &color);
+    void GetMultiColorBlend(double n, bool circular, xlColor &color);
     void SetRangeColor(const wxImage::HSVValue& hsv1, const wxImage::HSVValue& hsv2, wxImage::HSVValue& newhsv);
     double RandomRange(double num1, double num2);
-    void Color2HSV(const wxColour& color, wxImage::HSVValue& hsv);
+    void Color2HSV(const xlColor& color, wxImage::HSVValue& hsv);
     wxPoint SnowstormVector(int idx);
     void SnowstormAdvance(SnowstormClass& ssItem);
     void ClearTempBuf();
@@ -527,9 +589,9 @@ protected:
     int DiagLen;  // length of the diagonal
     int NumPixels;
     bool InhibitClear; //allow canvas to be persistent for piano fx -DJ
-    wxColourVector pixels; // this is the calculation buffer
-    wxColourVector tempbuf;
-    wxColourVector FirePalette;
+    xlColorVector pixels; // this is the calculation buffer
+    xlColorVector tempbuf;
+    xlColorVector FirePalette;
     std::vector<int> FireBuffer;
     std::vector<int> WaveBuffer0;
     std::vector<int> WaveBuffer1;

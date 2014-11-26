@@ -35,7 +35,7 @@ void RgbEffects::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, i
     long SpiralState;
     long ThicknessState = state/10;
     wxImage::HSVValue hsv;
-    wxColour color;
+    xlColour color;
 
 
     if (fitToTime)

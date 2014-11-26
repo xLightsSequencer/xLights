@@ -45,7 +45,7 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, bool zeroBased)
 
 void PixelBufferClass::Clear(int which)
 {
-    wxColour bgColor=*wxBLACK;
+    xlColour bgColor=*wxBLACK;
     if (which != -1) Effect[which].Clear(bgColor); //just clear this one
     else //clear them all
         for(size_t i=0; i<2; i++) //why does this clear canvas twice? isn't it the same set of pixels for each2? -DJ
@@ -108,9 +108,9 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
 
 }
 
-void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
+void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, xlColour& c)
 {
-    wxColour c0,c1;
+    xlColour c0,c1;
     wxImage::HSVValue hsv,hsv0,hsv1;
     wxImage::RGBValue rgbVal;
     double emt, emtNot;
@@ -170,7 +170,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         }
         else
         {
-            c.Set(0);
+            c.Set(0, 0, 0);
         }
         break;
     case Mix_Mask2:
@@ -181,7 +181,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         }
         else
         {
-            c.Set(0);
+            c.Set(0, 0, 0);
         }
         break;
     case Mix_Unmask1:
@@ -195,7 +195,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         }
         else
         {
-            c.Set(0);
+            c.Set(0, 0, 0);
         }
         break;
     case Mix_Unmask2:
@@ -208,7 +208,7 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
         }
         else
         {
-            c.Set(0);
+            c.Set(0, 0, 0);
         }
         break;
     case Mix_Layered:
@@ -254,7 +254,11 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, wxColour& c)
 
 void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
 {
-    Effect[layer].SetPalette(newcolors);
+    xlColorVector p2;
+    for (int x = 0; x < newcolors.size(); x++) {
+        p2.push_back(xlColor(newcolors[x]));
+    }
+    Effect[layer].SetPalette(p2);
 }
 
 // Not currently used...
@@ -310,7 +314,7 @@ void PixelBufferClass::SetFitToTime(int layer, bool fit)
 
 void PixelBufferClass::CalcOutput(int EffectPeriod)
 {
-    wxColour color;
+    xlColor color;
     wxImage::HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;
 
@@ -374,14 +378,14 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
                     break;
                 case 2:
                 case 6:
-                    color.Set("#888888");
+                    color.Set(0x88, 0x88, 0x88);
                     break;
                 case 3:
                 case 5:
-                    color.Set("#BBBBBB");
+                        color.Set(0xbb, 0xbb, 0xbb);
                     break;
                 case 4:
-                    color.Set("#FFFFFF");
+                    color.Set(255, 255, 255);
                     break;
                 }
                 Nodes[i]->sparkle++;
@@ -413,10 +417,9 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
 
 
             rgb = wxImage::HSVtoRGB(hsv);
-            color = wxColor(rgb.red,rgb.green,rgb.blue);
 
             // set color for physical output
-            Nodes[i]->SetColor(color);
+            Nodes[i]->SetColor(rgb.red,rgb.green,rgb.blue);
         }
     }
 }

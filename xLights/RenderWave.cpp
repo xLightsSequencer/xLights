@@ -42,7 +42,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     double degree,radian,degree_per_x,h=0.0;
     static const double pi2=6.283185307;
     static const double pi_180 = 0.01745329;
-    wxColour color;
+    xlColour color;
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
