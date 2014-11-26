@@ -8,12 +8,13 @@
 #include <wx/button.h>
 #include <wx/dialog.h>
 //*)
+#include <wx/xml/xml.h>
 
 class CurrentPreviewModels: public wxDialog
 {
 	public:
 
-		CurrentPreviewModels(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		CurrentPreviewModels(wxWindow* parent, wxXmlNode* ModelGroups,wxXmlNode* Models, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~CurrentPreviewModels();
 
 		//(*Declarations(CurrentPreviewModels)
@@ -31,9 +32,13 @@ class CurrentPreviewModels: public wxDialog
 		//*)
 
 	private:
+        wxXmlNode* mModelGroups;
+        wxXmlNode* mModels;
 
+        void PopulateModelGroups();
 		//(*Handlers(CurrentPreviewModels)
 		void OnCheckListBoxCurrentGroupsToggled(wxCommandEvent& event);
+		void OnButtonEditGroupsClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

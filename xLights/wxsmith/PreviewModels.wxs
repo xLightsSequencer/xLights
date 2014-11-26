@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="PreviewModels">
-		<size>525,450</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -20,6 +19,7 @@
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BT_ADD_MODEL_GROUP" variable="ButtonAddModelGroup" member="yes">
 													<label>Add Group</label>
+													<handler function="OnButtonAddModelGroupClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -28,6 +28,7 @@
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BUTTON_REMOVE_MODEL_GROUP" variable="ButtonRemoveModelGroup" member="yes">
 													<label>Remove Group</label>
+													<handler function="OnButtonRemoveModelGroupClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -45,6 +46,7 @@
 												<object class="wxListBox" name="ID_LISTBOX_MODEL_GROUPS" variable="ListBoxModelGroups" member="yes">
 													<default>-1</default>
 													<minsize>120,100</minsize>
+													<handler function="OnListBoxModelGroupsSelect" entry="EVT_LISTBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -140,6 +142,7 @@
 														<object class="wxButton" name="ID_BUTTON_ADD_TO_MODEL_GROUP" variable="ButtonAddToModelGroup" member="yes">
 															<label>-&gt;</label>
 															<size>44,23</size>
+															<handler function="OnButtonAddToModelGroupClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -149,6 +152,7 @@
 														<object class="wxButton" name="ID_BUTTON_REMOVE_FROM_MODEL_GROUP" variable="ButtonRemoveFromModelGroup" member="yes">
 															<label>&lt;-</label>
 															<size>36,23</size>
+															<handler function="OnButtonRemoveFromModelGroupClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -196,6 +200,7 @@
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BUTTON_UPDATE_GROUP" variable="ButtonUpdateGroup" member="yes">
 													<label>Update Group</label>
+													<handler function="OnButtonUpdateGroupClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -225,7 +230,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 			</object>
 		</object>
 	</object>

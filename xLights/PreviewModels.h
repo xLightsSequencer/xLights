@@ -10,21 +10,23 @@
 #include <wx/dialog.h>
 //*)
 
+#include <wx/xml/xml.h>
+
 class PreviewModels: public wxDialog
 {
 	public:
 
-		PreviewModels(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode* Models, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PreviewModels();
 
 		//(*Declarations(PreviewModels)
 		wxTextCtrl* TextModelGroupName;
-		wxStaticText* StaticText2;
+		wxButton* ButtonUpdateGroup;
 		wxButton* ButtonClose;
+		wxStaticText* StaticText2;
 		wxListBox* ListBoxModelGroups;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText3;
-		wxButton* ButtonUpdateGroup;
 		wxButton* ButtonAddToModelGroup;
 		wxButton* ButtonRemoveModelGroup;
 		wxButton* ButtonRemoveFromModelGroup;
@@ -52,8 +54,17 @@ class PreviewModels: public wxDialog
 		//*)
 
 	private:
-
+        wxXmlNode* mModelGroups;
+        wxXmlNode* mModels;
+        void PopulateModelGroups();
+        void PopulateUnusedModels(wxArrayString ModelsInGroup);
 		//(*Handlers(PreviewModels)
+		void OnListBoxModelGroupsSelect(wxCommandEvent& event);
+		void OnButtonAddToModelGroupClick(wxCommandEvent& event);
+		void OnButtonRemoveFromModelGroupClick(wxCommandEvent& event);
+		void OnButtonUpdateGroupClick(wxCommandEvent& event);
+		void OnButtonRemoveModelGroupClick(wxCommandEvent& event);
+		void OnButtonAddModelGroupClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

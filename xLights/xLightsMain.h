@@ -1250,6 +1250,9 @@ private:
     void PreviewModelAlignVCenter();
     void ShowModelProperties();
     int GetSelectedModelIndex();
+    void ShowSelectedModelGroups();
+    void SetModelAsPartOfDisplay(wxString& model);
+
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
@@ -1269,7 +1272,7 @@ private:
     PixelBufferClass playBuffer;
     bool playResetEffectState[2];
     double mPointSize = 2.0;
-    
+
     // fast save support
     int changedColumn;
     int changedRow;

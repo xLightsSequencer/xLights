@@ -26,7 +26,7 @@ BEGIN_EVENT_TABLE(PreviewModels,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-PreviewModels::PreviewModels(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode* Models, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(PreviewModels)
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -46,7 +46,6 @@ PreviewModels::PreviewModels(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	wxFlexGridSizer* FlexGridSizer11;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
-	SetClientSize(wxSize(525,450));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Model Groups:"));
@@ -104,11 +103,21 @@ PreviewModels::PreviewModels(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer13->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1->Add(FlexGridSizer13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(StaticBoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer3, 0, wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer1->Add(FlexGridSizer3, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_BT_ADD_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonAddModelGroupClick);
+	Connect(ID_BUTTON_REMOVE_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonRemoveModelGroupClick);
+	Connect(ID_LISTBOX_MODEL_GROUPS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&PreviewModels::OnListBoxModelGroupsSelect);
+	Connect(ID_BUTTON_ADD_TO_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonAddToModelGroupClick);
+	Connect(ID_BUTTON_REMOVE_FROM_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonRemoveFromModelGroupClick);
+	Connect(ID_BUTTON_UPDATE_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonUpdateGroupClick);
 	//*)
+	mModelGroups = ModelGroups;
+	mModels = Models;
+	PopulateModelGroups();
 }
 
 PreviewModels::~PreviewModels()
@@ -117,3 +126,141 @@ PreviewModels::~PreviewModels()
 	//*)
 }
 
+void PreviewModels::PopulateModelGroups()
+{
+    wxString name;
+    bool checked;
+    wxXmlNode* e;
+	for(e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                ListBoxModelGroups->Append(name,e);
+            }
+        }
+    }
+}
+
+
+
+void PreviewModels::OnListBoxModelGroupsSelect(wxCommandEvent& event)
+{
+    wxString groupModels;
+    wxXmlNode* e;
+    e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
+    groupModels = e->GetAttribute("models");
+    ListBoxModelsInGroup->Clear();
+    wxArrayString ModelsInGroup=wxSplit(groupModels,',');
+    for(int i=0;i<ModelsInGroup.size();i++)
+    {
+        ListBoxModelsInGroup->Append(ModelsInGroup[i]);
+    }
+    TextModelGroupName->SetValue(ListBoxModelGroups->GetString(ListBoxModelGroups->GetSelection()));
+    PopulateUnusedModels(ModelsInGroup);
+}
+
+void PreviewModels::PopulateUnusedModels(wxArrayString ModelsInGroup)
+{
+    wxString name;
+    wxXmlNode* e;
+    ListBoxAddToModelGroup->Clear();
+    for(e=mModels->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            name=e->GetAttribute("name");
+            if(ModelsInGroup.Index(name,false,false)==wxNOT_FOUND)
+            {
+                ListBoxAddToModelGroup->Append(name);
+            }
+        }
+    }
+}
+
+void PreviewModels::OnButtonAddToModelGroupClick(wxCommandEvent& event)
+{
+    int selectedIndex = ListBoxAddToModelGroup->GetSelection();
+    if(selectedIndex !=  wxNOT_FOUND)
+    {
+        ListBoxModelsInGroup->Append(ListBoxAddToModelGroup->GetString(selectedIndex));
+        ListBoxAddToModelGroup->Delete(selectedIndex);
+    }
+    if(selectedIndex<ListBoxAddToModelGroup->GetCount())
+    {
+        ListBoxAddToModelGroup->SetSelection(selectedIndex,TRUE);
+    }
+    else
+    {
+        ListBoxAddToModelGroup->SetSelection(ListBoxAddToModelGroup->GetCount()-1,TRUE);
+    }
+}
+
+void PreviewModels::OnButtonRemoveFromModelGroupClick(wxCommandEvent& event)
+{
+    int selectedIndex = ListBoxModelsInGroup->GetSelection();
+    if(selectedIndex !=  wxNOT_FOUND)
+    {
+        ListBoxAddToModelGroup->Append(ListBoxModelsInGroup->GetString(selectedIndex));
+        ListBoxModelsInGroup->Delete(selectedIndex);
+    }
+    if(selectedIndex<ListBoxModelsInGroup->GetCount())
+    {
+        ListBoxModelsInGroup->SetSelection(selectedIndex,TRUE);
+    }
+    else
+    {
+        ListBoxModelsInGroup->SetSelection(ListBoxModelsInGroup->GetCount()-1,TRUE);
+    }
+}
+
+void PreviewModels::OnButtonUpdateGroupClick(wxCommandEvent& event)
+{
+    wxXmlNode* e;
+    if(ListBoxModelGroups->GetSelection() != wxNOT_FOUND)
+    {
+        wxString ModelsInGroup="";
+        for(int i=0;i<ListBoxModelsInGroup->GetCount();i++)
+        {
+            if (i<ListBoxModelsInGroup->GetCount()-1)
+            {
+                ModelsInGroup += ListBoxModelsInGroup->GetString(i) + ",";
+            }
+            else
+            {
+                ModelsInGroup += ListBoxModelsInGroup->GetString(i);
+            }
+        }
+        ListBoxModelGroups->SetString(ListBoxModelGroups->GetSelection(),TextModelGroupName->GetValue());
+        e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
+        e->DeleteAttribute("name");
+        e->AddAttribute("name",TextModelGroupName->GetValue());
+        e->DeleteAttribute("models");
+        e->AddAttribute("models",ModelsInGroup);
+    }
+
+}
+
+void PreviewModels::OnButtonRemoveModelGroupClick(wxCommandEvent& event)
+{    if(ListBoxModelGroups->GetSelection() != wxNOT_FOUND)
+    {
+        wxXmlNode* e=(wxXmlNode*)(ListBoxModelGroups->GetClientData(ListBoxModelGroups->GetSelection()));
+        mModelGroups->RemoveChild(e);
+        ListBoxModelGroups->Delete(ListBoxModelGroups->GetSelection());
+    }
+}
+
+void PreviewModels::OnButtonAddModelGroupClick(wxCommandEvent& event)
+{
+    wxArrayString arrModelsInGroup;
+    wxXmlNode* e=new wxXmlNode(wxXML_ELEMENT_NODE, "modelGroup");
+    e->AddAttribute("name", "New Model Group");
+    e->AddAttribute("models", "");
+    mModelGroups->AddChild(e);
+    ListBoxModelGroups->Append("New Model Group",e);
+    ListBoxModelGroups->SetSelection(ListBoxModelGroups->GetCount()-1);
+    TextModelGroupName->SetValue("New Model Group");
+    PopulateUnusedModels(arrModelsInGroup);
+}
