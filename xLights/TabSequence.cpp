@@ -1828,7 +1828,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 }
                 playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
 
 
@@ -1884,7 +1884,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 }
                 playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
                 playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
 
             }
@@ -1902,7 +1902,8 @@ void xLightsFrame::ResetEffectDuration(PixelBufferClass &buffer)
     buffer.SetTimes(0, 0, 0, 0, true);
     buffer.SetTimes(1, 0, 0, 0, true);
 }
-void xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer)
+int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
+                                       PixelBufferClass &buffer, int playCol)
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
     double val;
@@ -1918,7 +1919,7 @@ void xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow, Pi
         nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
-            tmpStr = Grid1->GetCellValue(startRow+ii,SeqPlayColumn);
+            tmpStr = Grid1->GetCellValue(startRow+ii, playCol);
         }
         while (tmpStr.IsEmpty() && ++ii && startRow+ii < rowcnt);
         //Really taking advantage of short circuit evluation here
@@ -1938,6 +1939,7 @@ void xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow, Pi
     }
     buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
     buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
+    return startRow + ii;
 }
 
 void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
@@ -3026,17 +3028,18 @@ public:
             
             if (!bufferClear)
             {
-                if ((xLights->EffectsPanel1->Choicebook1->GetSelection() == xLights->eff_NONE) || !xLights->EffectsPanel1->WantOverlayBkg())
-                {
+                wxString effect1=SettingsMap["E1_Effect"];
+                wxString effect2=SettingsMap["E1_Effect"];
+                int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
+                int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
+
+                if (!persist1 || "None" == effect1) {
                     bufferClear = true;
                     buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
-                if ((xLights->EffectsPanel2->Choicebook1->GetSelection() == xLights->eff_NONE) || !xLights->EffectsPanel2->WantOverlayBkg())
-                {
+                if (!persist2 || "None" == effect2) {
                     buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-                }
-                else
-                {
+                } else {
                     bufferClear = false;
                 }
             }
@@ -3046,7 +3049,7 @@ public:
                     //spin until we can continue, should replace with a semaphore or something
                     Sleep(10);
                 }
-                if (NextGridRowToPlay > (completed + 1)) {
+                while (NextGridRowToPlay > (completed + 1)) {
                     completed++;
                     if (threads[myCol + 1] != NULL) {
                         threads[myCol + 1]->SetPreviousColCompleted(completed);
@@ -3092,8 +3095,12 @@ public:
                     //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
                 
-                xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer);
-                NextGridRowToPlay++;
+                int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
+                while (calcedNextRow > prevCompleted) {
+                    //spin until we can continue, should replace with a semaphore or something
+                    Sleep(10);
+                }
+                NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
             effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
@@ -3350,7 +3357,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                     UpdateFitToTimeFromMap(2, SettingsMap, buffer);
                 }
 
-                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, buffer);
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, buffer, c);
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap, buffer, ResetEffectState);

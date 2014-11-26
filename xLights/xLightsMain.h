@@ -1181,7 +1181,7 @@ private:
     void GridCellChanged(int row, int col);
     void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
-    void UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer);
+    int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
     void ResetEffectDuration(PixelBufferClass &buffer);
     void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);

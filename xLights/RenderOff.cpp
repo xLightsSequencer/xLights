@@ -25,20 +25,16 @@
 
 void RgbEffects::RenderOff(void)
 {
-    int x,y,d,xc,yc,x0,y0;
+    int x,y;
 
-
-    wxImage::HSVValue hsv;
+    xlColor black(0, 0, 0); //BLACK
 
 //  Every Node, every frame set to BLACK
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)
         {
-            hsv.saturation=0.0; // Setup BLACK
-            hsv.value=0.0;
-            hsv.hue=0.0;
-            SetPixel(x,y,hsv);
+            SetPixel(x,y,black);
         }
     }
 }
