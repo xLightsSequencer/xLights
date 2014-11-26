@@ -114,6 +114,7 @@ PreviewModels::PreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode*
 	Connect(ID_BUTTON_ADD_TO_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonAddToModelGroupClick);
 	Connect(ID_BUTTON_REMOVE_FROM_MODEL_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonRemoveFromModelGroupClick);
 	Connect(ID_BUTTON_UPDATE_GROUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonUpdateGroupClick);
+	Connect(ID_BUTTON_CLOSE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PreviewModels::OnButtonCloseClick);
 	//*)
 	mModelGroups = ModelGroups;
 	mModels = Models;
@@ -263,4 +264,9 @@ void PreviewModels::OnButtonAddModelGroupClick(wxCommandEvent& event)
     ListBoxModelGroups->SetSelection(ListBoxModelGroups->GetCount()-1);
     TextModelGroupName->SetValue("New Model Group");
     PopulateUnusedModels(arrModelsInGroup);
+}
+
+void PreviewModels::OnButtonCloseClick(wxCommandEvent& event)
+{
+    this->EndModal(wxID_OK);
 }

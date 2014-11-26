@@ -65,6 +65,7 @@ class PreviewModels: public wxDialog
 		void OnButtonUpdateGroupClick(wxCommandEvent& event);
 		void OnButtonRemoveModelGroupClick(wxCommandEvent& event);
 		void OnButtonAddModelGroupClick(wxCommandEvent& event);
+		void OnButtonCloseClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

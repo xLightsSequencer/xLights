@@ -209,6 +209,7 @@
 											<object class="sizeritem">
 												<object class="wxButton" name="ID_BUTTON_CLOSE" variable="ButtonClose" member="yes">
 													<label>Close</label>
+													<handler function="OnButtonCloseClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
