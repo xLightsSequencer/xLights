@@ -168,27 +168,14 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
 
     if(Chase_Spacing1<1) Chase_Spacing1=1;
     int ymax=BufferHt;
-    int chase_buffer[1000];
-    float brightness[1000];
-    for(x=0; x<1000; x++) // fill up chase buffer with invalid ColorIndex value. Or in other words, intialize array
-    {
-        chase_buffer[x]=-1;
-        brightness[x] =1;
-    }
     if(Chase_Group_All || Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
     else MaxNodes=BufferWi;
 
     int MaxChase=MaxNodes*(Color_Mix1/100.0);
     if(MaxChase<1) MaxChase=1;
-
+    
     int nodes_per_color = int(MaxChase/colorcnt);
     if(nodes_per_color<1)  nodes_per_color=1;    //  fill chase buffer
-    for (x1=0; x1<MaxChase; x1++) // fill up chase buffer with pattern we will be using to scroll across arches
-    {
-        color_index = int(x1/nodes_per_color);
-        chase_buffer[x1]=color_index;
-        brightness[x1] = 1.0-(x1%nodes_per_color)/(nodes_per_color*1.0);
-    }
 
     hsv.value=0.0;
     hsv.saturation=1.0;
