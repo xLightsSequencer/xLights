@@ -876,6 +876,8 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     bool errflag=false;
     wxString errdetails; //-DJ
 
+    copy_data.Replace("\r\r", "\n");
+    
     do
     {
         cur_line = copy_data.BeforeFirst('\n');
@@ -885,7 +887,8 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
         {
             if (i < numrows && k+fieldnum < numcols)
             {
-                if (fields[fieldnum].IsEmpty() || fields[fieldnum].ToLong(&val))
+                wxString field = fields[fieldnum].Trim(true).Trim(false);
+                if (field.IsEmpty() || field.ToLong(&val))
                 {
                     GridCustom->SetCellValue(i, k+fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
                 }
