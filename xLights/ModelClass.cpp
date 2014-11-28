@@ -328,7 +328,7 @@ int ModelClass::GetLastChannel()
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++)
     {
-        LastChan=std::max(LastChan,Nodes[idx]->ActChan+2);
+        LastChan=std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
     }
     return LastChan;
 }
