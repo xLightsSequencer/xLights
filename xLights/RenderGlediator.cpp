@@ -74,7 +74,7 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
     int frame,maxframes;
     wxFileOffset fileLength;
-    wxColour color;
+    xlColor color;
     wxImage::HSVValue hsv;
     int x,y,p,bytes_per_period,i,j,period; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     unsigned int ch,byte,byte1,byte2;

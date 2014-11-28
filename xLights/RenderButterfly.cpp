@@ -39,7 +39,7 @@ void RgbEffects::RenderButterfly(int ColorScheme, int Style, int Chunks, int Ski
     double h=0.0;
     double  fractpart, intpart;
     static const double pi2=6.283185307;
-    wxColour color;
+    xlColour color;
     wxImage::HSVValue hsv;
     int maxframe=BufferHt*2;
     int frame=(BufferHt * state / 200)%maxframe;

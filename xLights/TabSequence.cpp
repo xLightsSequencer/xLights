@@ -54,7 +54,7 @@ void xLightsFrame::PlayRgbSequence()
         return;
     }
     wxXmlNode* ModelXml=(wxXmlNode*)Choice_Models->GetClientData(sel);
-    buffer.InitBuffer(ModelXml);
+    playBuffer.InitBuffer(ModelXml);
     ClearEffectWindow();
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
@@ -62,7 +62,7 @@ void xLightsFrame::PlayRgbSequence()
     heartbeat("playback seq", true); //tell fido to start watching -DJ
 }
 
-void xLightsFrame::ResetEffectStates()
+void xLightsFrame::ResetEffectStates(bool *ResetEffectState)
 {
     ResetEffectState[0]=true;
     ResetEffectState[1]=true;
@@ -87,10 +87,10 @@ void xLightsFrame::PlayEffect()
         EffectTreeDlg->Show(false);
     }
     wxXmlNode* ModelXml=(wxXmlNode*)Choice_Models->GetClientData(sel);
-    buffer.InitBuffer(ModelXml);
-    ResetEffectStates();
+    playBuffer.InitBuffer(ModelXml);
+    ResetEffectStates(playResetEffectState);
     ClearEffectWindow();
-    buffer.SetMixType(Choice_LayerMethod->GetStringSelection());
+    playBuffer.SetMixType(Choice_LayerMethod->GetStringSelection());
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
     ResetTimer(PLAYING_EFFECT);
@@ -375,7 +375,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
     FadesChanged=true;
     EffectsPanel1->PaletteChanged=true;
     EffectsPanel2->PaletteChanged=true;
-    ResetEffectStates();
+    ResetEffectStates(playResetEffectState);
 }
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
@@ -526,11 +526,20 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     s+=EffectsPanel2->GetEffectString();
     return s;
 }
+void xLightsFrame::GridCellChanged(int row, int col) {
+    if (row < changedRow) {
+        changedRow = row;
+    }
+    if (col < changedColumn) {
+        changedColumn = col;
+    }
+    UnsavedChanges = true;
+}
+
 
 void xLightsFrame::UpdateGrid()
 {
     int r,c;
-    bool changed = false;
     wxString v=CreateEffectString();
     if ( Grid1->IsSelection() )
     {
@@ -544,7 +553,7 @@ void xLightsFrame::UpdateGrid()
                 if (Grid1->IsInSelection(r,c))
                 {
                     Grid1->SetCellValue(r,c,v);
-                    changed = true;
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -558,10 +567,9 @@ void xLightsFrame::UpdateGrid()
         if (c >=XLIGHTS_SEQ_STATIC_COLUMNS)
         {
             Grid1->SetCellValue(r,c,v);
-            changed = true;
+            GridCellChanged(r, c);
         }
     }
-    UnsavedChanges = changed;
 }
 void xLightsFrame::OnButton_UpdateGridClick(wxCommandEvent& event)
 {
@@ -585,6 +593,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
                 {
                     v = CreateEffectStringRandom();
                     Grid1->SetCellValue(r,c,v);
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -598,6 +607,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
         {
             v = CreateEffectStringRandom();
             Grid1->SetCellValue(r,c,v);
+            GridCellChanged(r, c);
         }
     }
 }
@@ -622,8 +632,11 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
                     break;
                 }
             if (c < nCols) //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                    //copy it to other cells in this row
                     Grid1->SetCellValue(r, c, v);
+                    GridCellChanged(r, c);
+                }
         }
     }
     else
@@ -634,8 +647,11 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         {
             v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
 //wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
-            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //copy it to other cells in this row
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                //copy it to other cells in this row
                 Grid1->SetCellValue(r, c, v);
+                GridCellChanged(r, c);
+            }
         }
     }
 }
@@ -655,16 +671,21 @@ void xLightsFrame::ClearEffectRow(wxCommandEvent& event)
         {
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
                 if (Grid1->IsInSelection(r,c)) break;
-            if (c < nCols) //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+            if (c < nCols) { //found a selected cell
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
                     Grid1->SetCellValue(r, c, "");
+                    GridCellChanged(r, c);
+                }
+            }
         }
     }
     else
     {
         r = curCell->GetRow();
-        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
             Grid1->SetCellValue(r, c, "");
+            GridCellChanged(r, c);
+        }
     }
 }
 
@@ -687,7 +708,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
                 {
                     Grid1->SetCellValue(r,c,v);
                     Grid1->SetCellTextColour(r,c,*wxBLACK);
-                    UnsavedChanges=true;
+                    GridCellChanged(r, c);
                 }
             }
         }
@@ -701,7 +722,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
         {
             Grid1->SetCellValue(r,c,v);
             Grid1->SetCellTextColour(r,c,*wxBLACK);
-            UnsavedChanges=true;
+            GridCellChanged(r, c);
         }
     }
 }
@@ -1081,7 +1102,7 @@ bool xLightsFrame::SaveEffectsFile()
 }
 
 // PaletteNum should be 1 or 2
-void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap)
+void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer)
 {
     wxColourVector newcolors;
     for (int i=1; i<=6; i++)
@@ -1095,7 +1116,7 @@ void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& S
 }
 
 // effectNum is 1 or 2
-void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap)
+void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer)
 {
     wxString tmpStr;
     double fadeIn, fadeOut;
@@ -1108,7 +1129,7 @@ void xLightsFrame::UpdateBufferFadesFromMap(int effectNum, MapStringString& Sett
     buffer.SetFadeTimes(effectNum-1, fadeIn, fadeOut);
 }
 
-void xLightsFrame::UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap)
+void xLightsFrame::UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer)
 {
     bool fitToTime;
 
@@ -1116,7 +1137,7 @@ void xLightsFrame::UpdateFitToTimeFromMap(int effectNum, MapStringString& Settin
 
     buffer.SetFitToTime(effectNum-1, fitToTime);
 }
-void xLightsFrame::UpdateBufferFadesFromCtrl()
+void xLightsFrame::UpdateBufferFadesFromCtrl(PixelBufferClass &buffer)
 {
     wxString tmpStr;
     double fadeIn, fadeOut;
@@ -1135,7 +1156,7 @@ void xLightsFrame::UpdateBufferFadesFromCtrl()
 }
 
 // layer is 0 or 1
-void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
+void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer)
 {
     wxColourVector newcolors;
 
@@ -1149,7 +1170,8 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer)
 }
 
 // layer is 0 or 1
-bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap)
+bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+                                       PixelBufferClass &buffer, bool *ResetEffectState)
 {
     bool retval=true;
 
@@ -1425,68 +1447,68 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     bool fitToTime;
     if (panel->EffectChanged)
     {
-        ResetEffectState[layer]=true;
+        playResetEffectState[layer]=true;
         panel->EffectChanged=false;
     }
     if (panel->PaletteChanged)
     {
-        UpdateBufferPalette(panel,layer);
-        ResetEffectState[layer]=true;
+        UpdateBufferPalette(panel,layer, playBuffer);
+        playResetEffectState[layer]=true;
         panel->PaletteChanged=false;
     }
     fitToTime = panel->CheckBox_FitToTime->GetValue();
-    buffer.SetFitToTime(layer, fitToTime);
+    playBuffer.SetFitToTime(layer, fitToTime);
 
 //    debug(10, "PlayRgbEffect1(p*, layer %d, eff per %d)", layer, EffectPeriod);
-    buffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),ResetEffectState[layer]);
-    ResetEffectState[layer]=false;
+    playBuffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),playResetEffectState[layer]);
+    playResetEffectState[layer]=false;
     switch (panel->Choicebook1->GetSelection())
     {
     case eff_NONE:
         retval = false;
         break;   // none
     case eff_OFF:
-        buffer.RenderOff();
+        playBuffer.RenderOff();
         break;   // none
     case eff_BARS:
-        buffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
+        playBuffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
                           panel->Choice_Bars_Direction->GetSelection(),
                           panel->CheckBox_Bars_Highlight->GetValue(),
                           panel->CheckBox_Bars_3D->GetValue());
         break;
     case eff_BUTTERFLY:
-        buffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
+        playBuffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
                                panel->Slider_Butterfly_Style->GetValue(),
                                panel->Slider_Butterfly_Chunks->GetValue(),
                                panel->Slider_Butterfly_Skip->GetValue(),
                                panel->Choice_Butterfly_Direction->GetSelection());
         break;
     case eff_CIRCLES:
-        buffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
+        playBuffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
                              panel->Slider_Circles_Size->GetValue(),
                              panel->CheckBox_Circles_Bounce->GetValue(),
                              panel->CheckBox_Circles_Collide->GetValue(),
                              panel->CheckBox_Circles_Random_m->GetValue(),
                              panel->CheckBox_Circles_Radial->GetValue(),
                              panel->CheckBox_Circles_Radial_3D->GetValue(),
-                             buffer.BufferWi/2, buffer.BufferHt/2, //temp hard coding.
+                             playBuffer.BufferWi/2, playBuffer.BufferHt/2, //temp hard coding.
                              panel->CheckBox_Circles_Plasma->GetValue()
                             );
 
         break;
     case eff_COLORWASH:
-        buffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
+        playBuffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
                                panel->CheckBox_ColorWash_VFade->GetValue(),
                                panel->Slider_ColorWash_Count->GetValue());
         break;
     case eff_CURTAIN:
-        buffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
+        playBuffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
                              panel->Choice_Curtain_Effect->GetSelection(),
                              panel->Slider_Curtain_Swag->GetValue(),
                              panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FACES:
-        buffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
+        playBuffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
         break;
     case eff_COROFACES:
 #if 0
@@ -1499,42 +1521,42 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
             parsed += panel->CheckListBox_CoroFaceElements->GetString(i);
         }
 #endif // 0
-        buffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
+        playBuffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
                                panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
                                panel->CheckBox_CoroFaces_Outline->GetValue());
         break;
 
     case eff_FIRE:
-        buffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
+        playBuffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
                           panel->Slider_Fire_HueShift->GetValue(),
                           panel->CheckBox_Fire_GrowFire->GetValue());
         break;
     case eff_FIREWORKS:
-        buffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
+        playBuffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
                                panel->Slider_Fireworks_Count->GetValue(),
                                panel->Slider_Fireworks_Velocity->GetValue(),
                                panel->Slider_Fireworks_Fade->GetValue());
         break;
     case eff_GARLANDS:
-        buffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
+        playBuffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
                               panel->Slider_Garlands_Spacing->GetValue());
         break;
     case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
-        buffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
+        playBuffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
         break;
     case eff_LIFE:
-        buffer.RenderLife(panel->Slider_Life_Count->GetValue(),
+        playBuffer.RenderLife(panel->Slider_Life_Count->GetValue(),
                           panel->Slider_Life_Seed->GetValue());
         break;
     case eff_METEORS:
-        buffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
+        playBuffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
                              panel->Slider_Meteors_Count->GetValue(),
                              panel->Slider_Meteors_Length->GetValue(),
                              panel->Choice_Meteors_Effect->GetSelection(),
                              panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;
     case eff_PIANO: //changed slider to choice list, added other controls -DJ
-        buffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
+        playBuffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
                            panel->Slider_Piano_NumKeys->GetValue(),
                            panel->Slider_Piano_NumRows->GetValue(),
                            panel->Choice_Piano_KeyPlacement->GetSelection(),
@@ -1544,12 +1566,12 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                            panel->TextCtrl_Piano_ShapeFilename->GetValue());
         break;
     case eff_PICTURES:
-        buffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
+        playBuffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
                               panel->TextCtrl_Pictures_Filename->GetValue(),
                               panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_PINWHEEL:
-        buffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
+        playBuffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
                               panel->Slider_Pinwheel_Twist->GetValue(),
                               panel->Slider_Pinwheel_Thickness->GetValue(),
                               panel->CheckBox_Pinwheel_Rotation->GetValue(),
@@ -1560,11 +1582,11 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              );
         break;
     case eff_RIPPLE:
-        buffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
+        playBuffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
                             panel->Choice_Ripple_Movement->GetSelection());
         break;
     case eff_SHIMMER:
-        buffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
+        playBuffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
                              panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
                              panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
                              panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
@@ -1572,14 +1594,14 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_SINGLESTRAND:
         if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection()))
         {
-            buffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
+            playBuffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
                                            panel->Slider_Skips_SkipSize->GetValue(),
                                            panel->Slider_Skips_StartPos->GetValue(),
                                            panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
         }
         else
         {
-            buffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
+            playBuffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
                                            panel->Slider_Number_Chases->GetValue(),
                                            panel->Slider_Color_Mix1->GetValue(),
                                            panel->Slider_Chase_Spacing1->GetValue(),
@@ -1589,15 +1611,15 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         }
         break;
     case eff_SNOWFLAKES:
-        buffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
+        playBuffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
                                 panel->Slider_Snowflakes_Type->GetValue());
         break;
     case eff_SNOWSTORM:
-        buffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
+        playBuffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
                                panel->Slider_Snowstorm_Length->GetValue());
         break;
     case eff_SPIRALS:
-        buffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
+        playBuffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
                              panel->Slider_Spirals_Direction->GetValue(),
                              panel->Slider_Spirals_Rotation->GetValue(),
                              panel->Slider_Spirals_Thickness->GetValue(),
@@ -1607,18 +1629,18 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                              panel->CheckBox_Spirlas_Shrink->GetValue());
         break;
     case eff_SPIROGRAPH:
-        buffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
+        playBuffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
                                 panel->Slider_Spirograph_r->GetValue(),
                                 panel->Slider_Spirograph_d->GetValue(),
                                 panel->CheckBox_Spirograph_Animate->GetValue());
         break;
     case eff_STROBE:
-        buffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
+        playBuffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
                             panel->Slider_Strobe_Duration->GetValue(),
                             panel->Slider_Strobe_Type->GetValue());
         break;
     case eff_TEXT:
-        buffer.RenderText(panel->Slider_Text_Position1->GetValue(),
+        playBuffer.RenderText(panel->Slider_Text_Position1->GetValue(),
                           panel->TextCtrl_Text_Line1->GetValue(),
                           panel->TextCtrl_Text_Font1->GetValue(),
                           panel->Choice_Text_Dir1->GetSelection(),
@@ -1652,15 +1674,15 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
 
         break;
     case eff_TREE:
-        buffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
+        playBuffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
         break;
     case eff_TWINKLE:
-        buffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
+        playBuffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
                              panel->Slider_Twinkle_Steps->GetValue(),
                              panel->CheckBox_Twinkle_Strobe->GetValue());
         break;
     case eff_WAVE:
-        buffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
+        playBuffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
                           panel->Choice_Fill_Colors->GetSelection(),
                           panel->CheckBox_Mirror_Wave->GetValue(),
                           panel->Slider_Number_Waves->GetValue(),
@@ -1684,34 +1706,34 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 //    if (!EffectsPanel1->WantOverlayBkg() && !EffectsPanel2->WantOverlayBkg()) //allow effects to overlay onto other effects (useful for composite models) -DJ
 //        buffer.Clear();
     if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
-        buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+        playBuffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
     if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
-        buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
+        playBuffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
 
     // update SparkleFrequency
     int freq=Slider_SparkleFrequency->GetValue();
     if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
-    buffer.SetSparkle(freq);
+    playBuffer.SetSparkle(freq);
 
     int brightness=Slider_Brightness->GetValue();
-    buffer.SetBrightness(brightness);
+    playBuffer.SetBrightness(brightness);
 
     int contrast=Slider_Contrast->GetValue();
-    buffer.SetContrast(contrast);
+    playBuffer.SetContrast(contrast);
 
     int effectMixThreshold=Slider_EffectLayerMix->GetValue();
-    buffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
+    playBuffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
 //    debug(1, "play rgb effect[%d]: set mix thresh %d, varies? %d", EffectPeriod, effectMixThreshold, CheckBox_LayerMorph->GetValue());
 
     if (MixTypeChanged)
     {
         s=Choice_LayerMethod->GetStringSelection();
-        buffer.SetMixType(s);
+        playBuffer.SetMixType(s);
         MixTypeChanged=false;
     }
     if(FadesChanged)
     {
-        UpdateBufferFadesFromCtrl();
+        UpdateBufferFadesFromCtrl(playBuffer);
         FadesChanged=false;
     }
 
@@ -1719,19 +1741,19 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod)
 //    ResetEffectDuration();
     PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
     PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
-    buffer.CalcOutput(EffectPeriod);
-    buffer.DisplayEffectOnWindow(seqPreview,mPointSize);
+    playBuffer.CalcOutput(EffectPeriod);
+    playBuffer.DisplayEffectOnWindow(seqPreview,mPointSize);
     size_t chnum;
     wxByte intensity;
     if (CheckBoxLightOutput->IsChecked() && xout)
     {
-        size_t NodeCnt=buffer.GetNodeCount();
-        size_t cn=buffer.ChannelsPerNode();
+        size_t NodeCnt=playBuffer.GetNodeCount();
+        size_t cn=playBuffer.ChannelsPerNode();
         for(size_t n=0; n<NodeCnt; n++)
         {
             for(size_t c=0; c<cn; c++)
             {
-                buffer.GetChanIntensity(n,c,&chnum,&intensity);
+                playBuffer.GetChanIntensity(n,c,&chnum,&intensity);
                 xout->SetIntensity(chnum,intensity);
             }
         }
@@ -1764,14 +1786,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
     {
     case PLAYING_EFFECT:
         PlayRgbEffect(s_period);
-        buffer.SetFadeTimes(0,0.0,0.0);
-        buffer.SetFadeTimes(1,0.0,0.0);
+        playBuffer.SetFadeTimes(0,0.0,0.0);
+        playBuffer.SetFadeTimes(1,0.0,0.0);
         s_period++;
         break;
     case STARTING_SEQ_ANIM:
         ResetTimer(PLAYING_SEQ_ANIM, GetGridStartTimeMSec(NextGridRowToPlay));
-        buffer.SetFadeTimes(0,0.0,0.0);
-        buffer.SetFadeTimes(1,0.0,0.0);
+        playBuffer.SetFadeTimes(0,0.0,0.0);
+        playBuffer.SetFadeTimes(1,0.0,0.0);
         xLightsFrame::PlaybackMarker = "0,0"; //keep track of where we are within grid -DJ
         break;
     case PLAYING_SEQ_ANIM:
@@ -1804,9 +1826,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
                     SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                     xLightsFrame::PlaybackMarker = wxString::Format("%d,%d", SeqPlayColumn, NextGridRowToPlay); //keep track of where we are within grid -DJ
                 }
-                buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
-                buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty());
+                playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
+                playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
 
 
@@ -1821,8 +1843,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
         if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
         {
             ResetTimer(PLAYING_SEQ, StartTime);
-            buffer.SetFadeTimes(0,0.0,0.0);
-            buffer.SetFadeTimes(1,0.0,0.0);
+            playBuffer.SetFadeTimes(0,0.0,0.0);
+            playBuffer.SetFadeTimes(1,0.0,0.0);
         }
         else
         {
@@ -1860,9 +1882,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 {
                     SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                 }
-                buffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
-                buffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
-                UpdateEffectDuration(!EffectStr.IsEmpty());
+                playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
+                playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
 
             }
@@ -1875,34 +1897,35 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 }
 
-void xLightsFrame::ResetEffectDuration()
+void xLightsFrame::ResetEffectDuration(PixelBufferClass &buffer)
 {
     buffer.SetTimes(0, 0, 0, 0, true);
     buffer.SetTimes(1, 0, 0, 0, true);
 }
-void xLightsFrame::UpdateEffectDuration(bool new_effect_starts)
+int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
+                                       PixelBufferClass &buffer, int playCol)
 {
     int ii, curEffMsec, nextEffMsec, nextTimePeriodMsec;
     double val;
     int rowcnt=Grid1->GetNumberRows();
     wxString tmpStr;
 
-    tmpStr = Grid1->GetCellValue(NextGridRowToPlay,0);
+    tmpStr = Grid1->GetCellValue(startRow,0);
     curEffMsec =tmpStr.ToDouble(&val )?(int)(val*1000):0;
     ii = 1;
-    if (NextGridRowToPlay+ii < rowcnt)
+    if (startRow+ii < rowcnt)
     {
-        tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
+        tmpStr = Grid1->GetCellValue(startRow+ii,0);
         nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         do
         {
-            tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,SeqPlayColumn);
+            tmpStr = Grid1->GetCellValue(startRow+ii, playCol);
         }
-        while (tmpStr.IsEmpty() && ++ii && NextGridRowToPlay+ii < rowcnt);
+        while (tmpStr.IsEmpty() && ++ii && startRow+ii < rowcnt);
         //Really taking advantage of short circuit evluation here
         if (!tmpStr.IsEmpty())
         {
-            tmpStr = Grid1->GetCellValue(NextGridRowToPlay+ii,0);
+            tmpStr = Grid1->GetCellValue(startRow+ii,0);
             nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
         }
         else
@@ -1916,6 +1939,7 @@ void xLightsFrame::UpdateEffectDuration(bool new_effect_starts)
     }
     buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
     buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
+    return startRow + ii;
 }
 
 void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
@@ -2026,6 +2050,7 @@ void xLightsFrame::ChooseModelsForSequence()
                 Grid1->AppendCols();
                 int colnum=Grid1->GetNumberCols()-1;
                 Grid1->SetColLabelValue(colnum,name);
+                GridCellChanged(0, colnum);
 
                 for(int j = 0; j < Grid1->GetNumberRows(); j++)
                 {
@@ -2047,6 +2072,7 @@ void xLightsFrame::ChooseModelsForSequence()
         if (!labels[idx].IsEmpty())
         {
             Grid1->DeleteCols(idx+XLIGHTS_SEQ_STATIC_COLUMNS);
+            GridCellChanged(0, idx+XLIGHTS_SEQ_STATIC_COLUMNS - 1);
         }
     }
     EnableSequenceControls(true);
@@ -2744,6 +2770,8 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     }
     EnableSequenceControls(true);
     //Grid1->HideCol(Grid1->GetNumberCols()-1);
+    changedRow = 99999;
+    changedColumn = 99999;
     return true;
 }
 
@@ -2836,6 +2864,8 @@ void xLightsFrame::OpenSequence()
 
     mediaFilename.Clear();
     ResetSequenceGrid();
+    changedRow = 99999;
+    changedColumn = 99999;
 
     long duration;
     if (dialog.RadioButtonXlights->GetValue())
@@ -2956,111 +2986,125 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
-void xLightsFrame::RenderGridToSeqData()
-{
-    MapStringString SettingsMap;
-    wxString ColName,msg, EffectStr;
-    long msec;
-    bool effectsToUpdate;
-    size_t ChannelLimit, NodeCnt;
-    int rowcnt=Grid1->GetNumberRows();
-    int colcnt=Grid1->GetNumberCols();
-    wxXmlNode *ModelNode;
+wxMutex msgMutex;
+std::vector<wxString> renderMessages;
 
-    LoadSettingsMap("None,None,Effect 1", SettingsMap);
-    for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
-    {
-        ColName=Grid1->GetColLabelValue(c);
-        ModelNode=GetModelNode(ColName);
-        if (!ModelNode) continue;
+class xLightsRenderThread : public wxThread {
+public:
+    xLightsRenderThread(int col, const wxString &name, wxXmlNode *node, int numPeriods,
+                        xLightsFrame *f, xLightsRenderThread ** thr) {
+        myCol = col;
+        completed = -1;
+        prevCompleted = -1;
+        ModelNode = node;
         buffer.InitBuffer(ModelNode);
-//       if (!buffer.MyDisplay) continue;
-        NodeCnt=buffer.GetNodeCount();
-        ChannelLimit=buffer.GetLastChannel() + 1;
+        seqNumPeriods = numPeriods;
+        xLights = f;
+        threads = thr;
+        ColName = name;
+        firstRow = 0;
+    }
+    void AddEffectString(long time, const wxString &ef) {
+        startTimes.push_back(time);
+        effects.push_back(ef);
+    }
+    void setFirstRowToRender(int i)
+    {
+        firstRow = i;
+    }
+    void SetPreviousColCompleted(int i) {
+        prevCompleted = i;
+    }
+    ExitCode Entry () {
         bool bufferClear = false;
-
-        if (ChannelLimit > SeqNumChannels)
-        {
-            // need to add more channels to existing sequence
-            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
-            if (ChannelLimit > NetInfo.GetTotChannels())
-            {
-                msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
-            }
-            wxMessageBox(msg);
-            SeqNumChannels=ChannelLimit;
-            SeqDataLen=SeqNumChannels*SeqNumPeriods;
-            SeqData.resize(SeqDataLen,0);
-        }
-        NextGridRowToPlay=0;
-        for (int p=0; p<SeqNumPeriods; p++)
+        MapStringString SettingsMap;
+        xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
+        
+        int NextGridRowToPlay=firstRow;
+        long msec = 0;
+        for (int p=0; p<seqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-//            buffer.Clear();
-//            debug(1, "render grid: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
-
+            
             if (!bufferClear)
             {
-                if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
-                {
+                wxString effect1=SettingsMap["E1_Effect"];
+                wxString effect2=SettingsMap["E1_Effect"];
+                int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
+                int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
+
+                if (!persist1 || "None" == effect1) {
                     bufferClear = true;
                     buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
-                if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
-                {
+                if (!persist2 || "None" == effect2) {
                     buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-                }
-                else
-                {
+                } else {
                     bufferClear = false;
                 }
             }
-            if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+            if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
+                while (NextGridRowToPlay > prevCompleted) {
+                    //spin until we can continue, should replace with a semaphore or something
+                    Sleep(10);
+                }
+                while (NextGridRowToPlay > (completed + 1)) {
+                    completed++;
+                    if (threads[myCol + 1] != NULL) {
+                        threads[myCol + 1]->SetPreviousColCompleted(completed);
+                    }
+                }
                 // start next effect
-                wxYield();
-                wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,Grid1->GetRows()));
-                StatusBar1->SetStatusText(msg);
-
-                EffectStr=Grid1->GetCellValue(NextGridRowToPlay,c);
+                
+                wxString EffectStr=effects[NextGridRowToPlay];
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
                 {
+                    wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
+                    msgMutex.Lock();
+                    renderMessages.push_back(msg);
+                    msgMutex.Unlock();
+                    
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
-                    LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
+                    xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
                     //StatusBar1->SetStatusText(msg);
                     //wxString effect=SettingsMap["E1_Effect"]+","+SettingsMap["E2_Effect"];
                     //TextCtrlLog->AppendText(msg+" "+effect+"\n");
-                    UpdateBufferPaletteFromMap(1,SettingsMap);
-                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    xLights->UpdateBufferPaletteFromMap(1,SettingsMap,buffer);
+                    xLights->UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
-                    ResetEffectStates();
+                    xLights->ResetEffectStates(ResetEffectState);
                     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+                    if (freq == xLights->Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
-
+                    
                     int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
                     buffer.SetBrightness(brightness);
-//                    int b = ModelBrightness;
-
+                    //                    int b = ModelBrightness;
+                    
                     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                     buffer.SetContrast(contrast);
-                    UpdateBufferFadesFromMap(1, SettingsMap);
-                    UpdateBufferFadesFromMap(2, SettingsMap);
-                    UpdateFitToTimeFromMap(1, SettingsMap);
-                    UpdateFitToTimeFromMap(2, SettingsMap);
-
+                    xLights->UpdateBufferFadesFromMap(1, SettingsMap,buffer);
+                    xLights->UpdateBufferFadesFromMap(2, SettingsMap,buffer);
+                    xLights->UpdateFitToTimeFromMap(1, SettingsMap,buffer);
+                    xLights->UpdateFitToTimeFromMap(2, SettingsMap,buffer);
+                    
                     int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
                     buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
-//                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
+                    //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
-
-                UpdateEffectDuration(!EffectStr.IsEmpty());
-                NextGridRowToPlay++;
+                
+                int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
+                while (calcedNextRow > prevCompleted) {
+                    //spin until we can continue, should replace with a semaphore or something
+                    Sleep(10);
+                }
+                NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
-            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
-
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
+            
             if (effectsToUpdate)
             {
                 bufferClear = false;
@@ -3076,16 +3120,147 @@ void xLightsFrame::RenderGridToSeqData()
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
-                        SeqData[chnum*SeqNumPeriods+p]=intensity;
+                        xLights->SeqData[chnum*xLights->SeqNumPeriods+p]=intensity;
                     }
                 }
             }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
+
+        completed = effects.size() + 1;
+        if (threads[myCol + 1] != NULL) {
+            threads[myCol + 1]->SetPreviousColCompleted(completed);
+        }
+        threads[myCol] = NULL;
+        return NULL;
     }
+    
+    PixelBufferClass &GetBuffer() {
+        return buffer;
+    }
+    int GetRowCompleted() {
+        return completed;
+    }
+private:
+    int firstRow;
+    int seqNumPeriods;
+    int myCol;
+    wxString ColName;
+    volatile int prevCompleted;
+    int completed;
+    
+    wxXmlNode *ModelNode;
+
+    PixelBufferClass buffer;
+    bool ResetEffectState[2];
+    std::vector<wxString> effects;
+    std::vector<long> startTimes;
+    xLightsFrame *xLights;
+    xLightsRenderThread ** threads;
+};
+
+void xLightsFrame::RenderGridToSeqData()
+{
+    wxString ColName,msg, EffectStr;
+    size_t ChannelLimit, NodeCnt;
+    int rowcnt=Grid1->GetNumberRows();
+    int colcnt=Grid1->GetNumberCols();
+    wxXmlNode *ModelNode;
+    
+    xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt + 1];
+    for (int x = 0 ; x < colcnt + 1; x++) {
+        threads[x] = NULL;
+    }
+    int firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
+    int firstRowToRender = 0;
+    if (FastSave_CheckBox->IsChecked()) {
+        firstColToRender = changedColumn;
+        firstRowToRender = changedRow;
+        if (firstColToRender < XLIGHTS_SEQ_STATIC_COLUMNS) {
+            firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
+        }
+    }
+
+    for (int c=firstColToRender; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
+    {
+        threads[c] = NULL;
+        ColName=Grid1->GetColLabelValue(c);
+        ModelNode=GetModelNode(ColName);
+        if (!ModelNode) {
+            continue;
+        }
+        
+        xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
+        threads[c] = thread;
+        if (c == firstColToRender) {
+            thread->SetPreviousColCompleted(rowcnt);
+        }
+        thread->setFirstRowToRender(firstRowToRender);
+
+        NodeCnt=thread->GetBuffer().GetNodeCount();
+        ChannelLimit=thread->GetBuffer().GetLastChannel() + 1;
+
+
+        if (ChannelLimit > SeqNumChannels)
+        {
+            // need to add more channels to existing sequence
+            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
+            if (ChannelLimit > NetInfo.GetTotChannels())
+            {
+                msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
+            }
+            wxMessageBox(msg);
+            SeqNumChannels=ChannelLimit;
+            SeqDataLen=SeqNumChannels*SeqNumPeriods;
+            SeqData.resize(SeqDataLen,0);
+        }
+        for (int x = 0; x < rowcnt; x++) {
+            thread->AddEffectString(GetGridStartTimeMSec(x), Grid1->GetCellValue(x,c));
+        }
+        if (thread->Run() != wxTHREAD_NO_ERROR ) {
+            wxMessageBox("Could not create a render thread");
+            delete thread;
+        }
+         
+        //thread->Entry();
+        //threads[c] = NULL;
+        /*
+        while (threads[c]) {
+            msgMutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++) {
+                SetStatusText(renderMessages[y]);
+            }
+            renderMessages.clear();
+            msgMutex.Unlock();
+            wxYield();
+        }
+        */
+    }
+    for (int x = 0; x < colcnt; x++) {
+        while (threads[x] != NULL) {
+            msgMutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++) {
+                SetStatusText(renderMessages[y]);
+            }
+            renderMessages.clear();
+            msgMutex.Unlock();
+            wxYield();
+            wxMilliSleep(25);
+        }
+    }
+
+    msgMutex.Lock();
+    for (int y = 0; y < renderMessages.size(); y++) {
+        SetStatusText(renderMessages[y]);
+    }
+    renderMessages.clear();
+    msgMutex.Unlock();
+    delete [] threads;
+    changedColumn = 99999;
+    changedRow = 99999;
 }
 
 //FR Caller is responsible for deleting the returned data object
-SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
+SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer)
 {
     MapStringString SettingsMap;
     wxString ColName,msg, EffectStr;
@@ -3132,6 +3307,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
     }
 
 
+    bool ResetEffectState[2];
+    ResetEffectStates(ResetEffectState);
     LoadSettingsMap("None,None,Effect 1", SettingsMap);
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c<colcnt; c++) //c iterates through the columns of Grid1 retriving the effects for each model in the sequence.
     {
@@ -3161,10 +3338,10 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     LoadSettingsMap(Grid1->GetCellValue(NextGridRowToPlay,c), SettingsMap);
                     // TextCtrlLog->AppendText("effect"+LayerStr+"="+effect+", speed="+SpeedStr+"\n");
-                    UpdateBufferPaletteFromMap(1,SettingsMap);
-                    UpdateBufferPaletteFromMap(2,SettingsMap);
+                    UpdateBufferPaletteFromMap(1,SettingsMap, buffer);
+                    UpdateBufferPaletteFromMap(2,SettingsMap, buffer);
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
-                    ResetEffectStates();
+                    ResetEffectStates(ResetEffectState);
                     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
                     if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
@@ -3174,17 +3351,17 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode)
 
                     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                     buffer.SetContrast(contrast);
-                    UpdateBufferFadesFromMap(1, SettingsMap);
-                    UpdateBufferFadesFromMap(2, SettingsMap);
-                    UpdateFitToTimeFromMap(1, SettingsMap);
-                    UpdateFitToTimeFromMap(2, SettingsMap);
+                    UpdateBufferFadesFromMap(1, SettingsMap, buffer);
+                    UpdateBufferFadesFromMap(2, SettingsMap, buffer);
+                    UpdateFitToTimeFromMap(1, SettingsMap, buffer);
+                    UpdateFitToTimeFromMap(2, SettingsMap, buffer);
                 }
 
-                UpdateEffectDuration(!EffectStr.IsEmpty());
+                UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, buffer, c);
                 NextGridRowToPlay++;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap);
-            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap);
+            effectsToUpdate = RenderEffectFromMap(0, p, SettingsMap, buffer, ResetEffectState);
+            effectsToUpdate |= RenderEffectFromMap(1, p, SettingsMap, buffer, ResetEffectState);
 
             if (effectsToUpdate)
             {
@@ -3358,7 +3535,8 @@ void xLightsFrame::InsertRow()
         return;
     }
     int r=Grid1->GetGridCursorRow();
-    Grid1->InsertRows( r, 1 );
+    GridCellChanged(r, 0);
+    Grid1->InsertRows( r, 2);
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
@@ -3380,10 +3558,12 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
         wxGridUpdateLocker locker(Grid1);
         for ( int n = 0; n < Grid1->GetNumberRows(); )
         {
-            if ( Grid1->IsInSelection( n , 0 ) )
+            if ( Grid1->IsInSelection( n , 0 ) ) {
                 Grid1->DeleteRows( n, 1 );
-            else
+                GridCellChanged(n, 0);
+            } else {
                 n++;
+            }
         }
     }
     UnsavedChanges = true;
@@ -3408,6 +3588,8 @@ void xLightsFrame::CopyRow(int row1, int row2)
     {
         Grid1->SetCellValue(row1,i,Grid1->GetCellValue(row2,i));
     }
+    GridCellChanged(row1, 0);
+    GridCellChanged(row2, 0);
 }
 
 // returns time in milliseconds
@@ -3452,6 +3634,7 @@ void xLightsFrame::NumericSort()
     Grid1->DeleteRows(rowcnt,1);
     Grid1->EndBatch();
     Grid1->ForceRefresh();
+    GridCellChanged(0, 0);
 }
 
 void xLightsFrame::OnGrid1CellChange(wxGridEvent& event)
@@ -3696,12 +3879,13 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 
     if(!modelNode) return;
 
+    PixelBufferClass buffer;
     buffer.InitBuffer(modelNode,true);
     numChan = buffer.GetChanCount();
     int numNodes = buffer.GetNodeCount();
     if(numNodes>0)  cpn = numChan/numNodes;
     else cpn=0;
-    dataBuf = RenderModelToData(modelNode);
+    dataBuf = RenderModelToData(modelNode, buffer);
 
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
@@ -3838,6 +4022,8 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 
 void xLightsFrame::SwapCols(int col1, int col2)
 {
+    GridCellChanged(0, col1);
+    GridCellChanged(0, col2);
     for (int x = 0; x < Grid1->GetNumberRows(); x++)
     {
         wxString tmp = Grid1->GetCellValue(x, col1);
@@ -3886,6 +4072,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
             {
                 if (!apply_horiz || v.empty()) v = CreateEffectStringRandom();
                 Grid1->SetCellValue(r,c,v);
+                GridCellChanged(r,c);
             }
         }
     }
@@ -3952,6 +4139,7 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
                     if (IsCut)
                     {
                         Grid1->SetCellValue(i,k,wxEmptyString);
+                        GridCellChanged(i,k);
                         UnsavedChanges=true;
                     }
                 }
@@ -3967,6 +4155,7 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
         if (IsCut)
         {
             Grid1->SetCellValue(i,k,wxEmptyString);
+            GridCellChanged(i,k);
             UnsavedChanges=true;
         }
     }
@@ -4059,6 +4248,7 @@ void xLightsFrame::PasteFromClipboard()
                 if (fields[fieldnum].IsEmpty() || IsValidEffectString(fields[fieldnum]))
                 {
                     Grid1->SetCellValue(i,k+fieldnum,fields[fieldnum]);
+                    GridCellChanged(i,k+fieldnum);
                     UnsavedChanges=true;
                 }
                 else

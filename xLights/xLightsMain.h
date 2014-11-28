@@ -25,7 +25,6 @@
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/listbox.h>
-#include <wx/statline.h>
 #include <wx/radiobut.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
@@ -600,9 +599,9 @@ private:
     static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON4;
     static const long ID_BUTTON_CREATE_RANDOM;
-    static const long ID_STATICLINE1;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
+    static const long ID_CHECKBOX1;
     static const long ID_BITMAPBUTTON3;
     static const long ID_BITMAPBUTTON4;
     static const long ID_BITMAPBUTTON_GRID_CUT;
@@ -611,7 +610,6 @@ private:
     static const long ID_STATICTEXT31;
     static const long ID_CHOICE_VIEWS;
     static const long ID_BT_EDIT_VIEWS;
-    static const long ID_BUTTON1;
     static const long ID_GRID1;
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL5;
@@ -820,7 +818,6 @@ private:
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
     wxTextCtrl* txtCtlEffectMix;
-    wxButton* Button_ChannelMap;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
     wxButton* Button_PgoCopyVoices;
@@ -840,7 +837,6 @@ private:
     wxStaticText* StaticText_PgoOutputType;
     wxButton* ButtonChangeDir;
     wxGrid* Grid1;
-    wxStaticLine* StaticLine1;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
@@ -890,6 +886,7 @@ private:
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxCheckBox* FastSave_CheckBox;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
@@ -1072,7 +1069,7 @@ private:
 
     wxString base64_encode();
 
-    SeqDataType* RenderModelToData(wxXmlNode *modelNode);
+    SeqDataType* RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer);
     wxXmlNode* SelectModelToExport();
 
 
@@ -1176,18 +1173,20 @@ private:
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
     void SetTextColor(wxWindow* w);
+    void GridCellChanged(int row, int col);
     void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
-    void UpdateBufferFadesFromCtrl();
-    void UpdateEffectDuration(bool new_effect_starts);
-    void ResetEffectDuration();
-    void UpdateBufferPalette(EffectsPanel* panel, int layer);
-    void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap);
-    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap);
-    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap);
-    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap);
+    void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
+    int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
+    void ResetEffectDuration(PixelBufferClass &buffer);
+    void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
+    void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
+    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+                             PixelBufferClass &buffer, bool *ResetEffectState);
+    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
+    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();
     void EnableSequenceControls(bool enable);
-    void ResetEffectStates();
+    void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
@@ -1246,6 +1245,9 @@ private:
     void PreviewModelAlignVCenter();
     void ShowModelProperties();
     int GetSelectedModelIndex();
+    void ShowSelectedModelGroups();
+    void SetModelAsPartOfDisplay(wxString& model);
+
 
     wxXmlDocument pgoXml; //Papagayo settings from xlights_papagayo.xml
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
@@ -1262,14 +1264,18 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
-    PixelBufferClass buffer;
+    PixelBufferClass playBuffer;
+    bool playResetEffectState[2];
     double mPointSize = 2.0;
+
+    // fast save support
+    int changedColumn;
+    int changedRow;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
     int NextGridRowToPlay;
     int SeqPlayColumn;
-    bool ResetEffectState[2];
 
     wxArrayString BarEffectDirections;
     wxArrayString ButterflyEffectColors;
@@ -1324,6 +1330,7 @@ private:
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
+    friend class xLightsRenderThread;
 public:
     static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);

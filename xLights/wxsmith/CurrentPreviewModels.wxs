@@ -64,6 +64,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_EDIT_GROUPS" variable="ButtonEditGroups" member="yes">
 							<label>Edit Groups</label>
+							<handler function="OnButtonEditGroupsClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

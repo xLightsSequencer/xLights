@@ -1,4 +1,5 @@
 #include "CurrentPreviewModels.h"
+#include "PreviewModels.h"
 #include <wx/xml/xml.h>
 
 //(*InternalHeaders(CurrentPreviewModels)
@@ -17,7 +18,7 @@ BEGIN_EVENT_TABLE(CurrentPreviewModels,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGroups, wxXmlNode* Models, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(CurrentPreviewModels)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -52,8 +53,14 @@ CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKLISTBOX_CURRENT_GROUPS,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&CurrentPreviewModels::OnCheckListBoxCurrentGroupsToggled);
+	Connect(ID_BUTTON_EDIT_GROUPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CurrentPreviewModels::OnButtonEditGroupsClick);
 	//*)
+	mModelGroups = ModelGroups;
+    mModels = Models;
+
+    PopulateModelGroups();
 }
+
 
 CurrentPreviewModels::~CurrentPreviewModels()
 {
@@ -72,4 +79,32 @@ void CurrentPreviewModels::OnCheckListBoxCurrentGroupsToggled(wxCommandEvent& ev
         sChecked = CheckListBoxCurrentGroups->IsChecked(i)?"1":"0";
         e->AddAttribute("selected",sChecked);
     }
+}
+
+void CurrentPreviewModels::PopulateModelGroups()
+{
+    wxString name;
+    bool checked;
+    wxXmlNode* e;
+    CheckListBoxCurrentGroups->Clear();
+	for(e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "modelGroup")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                CheckListBoxCurrentGroups->Append(name,e);
+                bool isChecked = e->GetAttribute("selected")=="1"?true:false;
+                CheckListBoxCurrentGroups->Check(CheckListBoxCurrentGroups->GetCount()-1,isChecked);
+            }
+        }
+    }
+}
+
+void CurrentPreviewModels::OnButtonEditGroupsClick(wxCommandEvent& event)
+{
+    PreviewModels dialog(this,mModelGroups,mModels);
+    dialog.ShowModal();
+    PopulateModelGroups();
 }

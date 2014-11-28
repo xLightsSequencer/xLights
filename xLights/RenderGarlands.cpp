@@ -27,7 +27,7 @@ void RgbEffects::RenderGarlands(int GarlandType, int Spacing)
 {
     int x,y,yadj,ylimit,ring;
     double ratio;
-    wxColour color;
+    xlColour color;
     int PixelSpacing=Spacing*BufferHt/100+3;
     if(PixelSpacing<1) PixelSpacing=1;
     int limit=BufferHt*PixelSpacing*4;

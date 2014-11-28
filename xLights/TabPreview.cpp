@@ -592,7 +592,7 @@ void xLightsFrame::OnScrolledWindowPreviewLeftUp(wxMouseEvent& event)
         //part of top of preview is cut off, adjust
         y += s2.y - s1.y;
     }
-    
+
     m_rotating = false;
     m_dragging = false;
     m_resizing = false;
@@ -632,7 +632,7 @@ void xLightsFrame::OnScrolledWindowPreviewMouseMove(wxMouseEvent& event)
         //part of top of preview is cut off, adjust
         y += s2.y - s1.y;
     }
-    
+
     int wi,ht;
 
     if (m_creating_bound_rect)
@@ -961,25 +961,56 @@ void xLightsFrame::OnTextCtrlPreviewElementSizeText(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonSelectModelGroupsClick(wxCommandEvent& event)
 {
-    wxString name;
-    bool checked;
-    wxXmlNode* e;
-    CurrentPreviewModels dialog(this);
-    for(e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    CurrentPreviewModels dialog(this,ModelGroupsNode,ModelsNode);
+    dialog.ShowModal();
+    SaveEffectsFile();
+    ShowSelectedModelGroups();
+}
+
+void xLightsFrame::ShowSelectedModelGroups()
+{
+    // Remove all models from display
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            e->DeleteAttribute("MyDisplay");
+            e->AddAttribute("MyDisplay","0");
+        }
+    }
+    // Set models in selected modelgroups as part of display.
+    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "modelGroup")
         {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
+            if(e->GetAttribute("selected") == "1")
             {
-                dialog.CheckListBoxCurrentGroups->Append(name,e);
-                bool isChecked = e->GetAttribute("selected")=="1"?true:false;
-                dialog.CheckListBoxCurrentGroups->Check(dialog.CheckListBoxCurrentGroups->GetCount()-1,isChecked);
+                wxArrayString ModelsInGroup=wxSplit(e->GetAttribute("models"),',');
+                for(int i=0;i<ModelsInGroup.size();i++)
+                {
+                    SetModelAsPartOfDisplay(ModelsInGroup[i]);
+                }
             }
         }
     }
-    dialog.ShowModal();
-    SaveEffectsFile();
+    UpdateModelsList();
+    UpdatePreview();
+
+}
+
+void xLightsFrame::SetModelAsPartOfDisplay(wxString& model)
+{
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            if(e->GetAttribute("name")== model)
+            {
+                e->DeleteAttribute("MyDisplay");
+                e->AddAttribute("MyDisplay","1");
+            }
+        }
+    }
 }
 
 void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)

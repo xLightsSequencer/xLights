@@ -26,7 +26,7 @@
 void RgbEffects::RenderSnowflakes(int Count, int SnowflakeType)
 {
     int i,n,x,y0,y,check,delta_y;
-    wxColour color1,color2;
+    xlColour color1,color2;
     if (state == 0 || Count != LastSnowflakeCount || SnowflakeType != LastSnowflakeType)
     {
         // initialize

@@ -32,7 +32,7 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
 {
     static int SpeedFactor=200;
     int x,y;
-    wxColour color;
+    xlColour color;
     wxImage::HSVValue hsv,hsv2;
     size_t colorcnt=GetColorCount();
 

@@ -328,7 +328,7 @@ int ModelClass::GetLastChannel()
     size_t NodeCount=GetNodeCount();
     for(size_t idx=0; idx<NodeCount; idx++)
     {
-        LastChan=std::max(LastChan,Nodes[idx]->ActChan+2);
+        LastChan=std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
     }
     return LastChan;
 }
@@ -632,11 +632,16 @@ void ModelClass::InitStar()
 
     int maxLights = 0;
     int numlights=parm1*parm2;
+    int cnt = 0;
     if (starSizes.size() == 0) {
         starSizes.resize(1);
         starSizes[0] = numlights;
     }
     for (int x = 0; x < starSizes.size(); x++) {
+        if ((cnt + starSizes[x]) > numlights) {
+            starSizes[x] = numlights - cnt;
+        }
+        cnt += starSizes[x];
         if (starSizes[x] > maxLights) {
             maxLights = starSizes[x];
         }
@@ -650,6 +655,9 @@ void ModelClass::InitStar()
 
     for (int cur = 0; cur < starSizes.size(); cur++) {
         numlights = starSizes[cur];
+        if (numlights == 0) {
+            continue;
+        }
 
         int offset=numlights/2;
 
