@@ -688,10 +688,6 @@ void ModelClass::InitStar()
                 n = start + cnt;
             }
 
-           // sean temp fix
-            if(n>=numlights) n=numlights-1;
-
-
             if (Nodes[n]->StringNum != LastStringNum)
             {
                 LastStringNum=Nodes[n]->StringNum;
