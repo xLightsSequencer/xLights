@@ -3900,6 +3900,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     wxString fullpath;
 
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+    wxYield();
 
     if (Out3 == "Lcb")
     {
