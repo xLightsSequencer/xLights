@@ -5,9 +5,11 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
-=================================
-        -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes
-        -bug (dkulp) On Mac, could not paste stuff into custom model due to using \r instead of \n for line delimiter
+3.6.8	Nov 27, 2014
+	-enh (dpitts) Added Model Groups into PREVIEW tab, Create a group, when you select that group the 
+			"Part of My Display" will be set automatically for you.
+     -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes
+     -bug (dkulp) On Mac, could not paste stuff into custom model due to using \r instead of \n for line delimiter
 3.6.7	Nov 23, 2014
 	-bug (djulien) scrunch UI so it will fit on a laptop (needs to be < 760 px high)
     -bug (dkulp) Fix Rendering of Ripple effect during save, now shows up in PREVIEW and lights
