@@ -10,6 +10,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 			"Part of My Display" will be set automatically for you.
      -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes
      -bug (dkulp) On Mac, could not paste stuff into custom model due to using \r instead of \n for line delimiter
+     -enh (dkulp) Multi-thread the Nutcracker tab saving to speed up the rendering/saving
+     -enh (dkulp) Change the internal representation of a color to avoid some unnecessary OS calls.  Results in 
+                  significantly faster rendering of effects.
+     -enh (dkulp) Add "Fast Save" option on Nutcracker tab to allow the save command to only render the cells below 
+                  and to the right of the cells that have changed.  Placing the models you are working on to the 
+                  right on the grid can significantly speed up turn around time if you flip between Preview and
+                  Nutcracker often.
+     -bug (dkulp) Fix bug in SingelStrand chase effect that could cause a crash/memory corruption if used on
+                  models with more than 1000 nodes.  (like whole house)
+     -bug (dkulp) Fix a crash that would occur if the image effect was used, but no image was available.
+     -bug (dkulp) Column  Shift left/right now copies cell protection.
 3.6.7	Nov 23, 2014
 	-bug (djulien) scrunch UI so it will fit on a laptop (needs to be < 760 px high)
     -bug (dkulp) Fix Rendering of Ripple effect during save, now shows up in PREVIEW and lights
