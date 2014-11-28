@@ -445,7 +445,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 3.6.6)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 3.6.7)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -1578,13 +1578,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
-	int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
+    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
     seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
     BoxSizerSequencePreview->Add(seqPreview, 1, wxEXPAND);
     modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
-	playIcon = wxBitmap(control_play_blue_icon);
+    playIcon = wxBitmap(control_play_blue_icon);
     pauseIcon = wxBitmap(control_pause_blue_icon);
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
@@ -1844,11 +1844,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     // Check if schedule should be running
     xout=0;
     long RunFlag=0;
+
+#if 0
     config->Read(_("RunSchedule"), &RunFlag);
     //delete config;  // close config before calling SetDir, which will open config
     if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
         if (wxMessageBox("Auto-run schedule?", "Confirm", wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
-
+#endif
     SetPlayMode(play_off);
     ResetEffectsXml();
     EnableSequenceControls(true);

@@ -14,7 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-bug (dkulp) Size of picture and setting size of display window in PREVIEW could cause a condition where you 
 			could not select items. fixed.
 	-enh (cpinkham) Add 'Pixelnet-Open' Network Type for Pixelnet output using Generic FTDI chipset USB to RS485 dongles.
-	-enh (dkulp) During conversions, buffer non-critical updates to the messages list and append to the list box in blocks of about 10K.   Significantly speeds up conversions for HLS and LOR with very large files that display a lot of messages.
+	-enh (dkulp) During conversions, buffer non-critical updates to the messages list and append 
+		to the list box in blocks of about 10K.   Significantly speeds up conversions for HLS and LOR 
+		with very large files that display a lot of messages.
 3.6.5	Nov 20, 2014
 	-enh (sean) New effect class , Strobe.
 	-enh (sean) Icons on top of each effect improved. This icons will be what you drag and drop effects in xLights 4.0. This early introduction

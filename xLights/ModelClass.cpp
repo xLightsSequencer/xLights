@@ -602,7 +602,7 @@ void ModelClass::InitLine()
     int chan,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
-    
+
     idx = 0;
     for(size_t n=0; n<NodeCount; n++)
     {
@@ -679,6 +679,11 @@ void ModelClass::InitStar()
             if (!SingleNode) {
                 n = start + cnt;
             }
+
+           // sean temp fix
+            if(n>=numlights) n=numlights-1;
+
+
             if (Nodes[n]->StringNum != LastStringNum)
             {
                 LastStringNum=Nodes[n]->StringNum;
@@ -1780,7 +1785,7 @@ void ModelClass::TranslatePoint(double radians,wxCoord x,wxCoord y,wxCoord* x1,w
 {
     double xd,yd;
     TranslatePointDoubles(radians, x, y, xd, yd);
-    
+
     *x1 = round(xd);
     *y1 = round(yd);
 }
