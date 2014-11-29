@@ -36,8 +36,72 @@
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
+#if wxUSE_GRAPHICS_CONTEXT
+class DrawingContext {
+public:
+    DrawingContext(wxImage &image) {
+        dc = wxGraphicsContext::Create(image);
+        dc->SetAntialiasMode(wxANTIALIAS_NONE);
+    }
+    ~DrawingContext() {
+        dc->Flush();
+        delete dc;
+    }
+    
+    void SetFont(wxFont &font, const xlColor &color) {
+        dc->SetFont(font, color);
+    }
+    
+    void DrawText(const wxString &msg, int x, int y, double rotation) {
+        dc->DrawText(msg, x, y, rotation);
+    }
+    void DrawText(const wxString &msg, int x, int y) {
+        dc->DrawText(msg, x, y);
+    }
+    
+    void GetTextExtent(const wxString &msg, double *width, double *height) {
+        dc->GetTextExtent(msg, width, height);
+    }
+private:
+    wxGraphicsContext *dc;
+};
+#else 
+class DrawingContext {
+public:
+    DrawingContext(wxImage *image) : bitmap(image->GetWidth(), image->GetHeight()) {
+        dc = new wxMemoryDC(bitmap);
+        img = image;
+    }
+    ~DrawingContext() {
+        delete dc;
+        *img = bitmap.ConvertToImage();
+    }
+    
+    void SetFont(wxFont &font, const xlColor &color) {
+        dc->SetFont(font);
+        dc->SetTextForeground(color);
+    }
+    
+    void DrawText(const wxString &msg, int x, int y, double rotation) {
+        dc->DrawRotatedText(msg, x, y, rotation);
+    }
+    void DrawText(const wxString &msg, int x, int y) {
+        dc->DrawText(msg, x, y);
+    }
+    
+    void GetTextExtent(const wxString &msg, double *width, double *height) {
+        wxSize size = dc->GetTextExtent(msg);
+        *width = size.GetWidth();
+        *height = size.GetHeight();
+    }
+private:
+    wxImage *img;
+    wxBitmap bitmap;
+    wxMemoryDC *dc;
+};
 
-static wxMutex lock;
+#endif
+
 
 // Render 4 independent strings of text
 // FontString is a value that can be fed to SetNativeFontInfoUserDesc
@@ -53,8 +117,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     xlColour c;
 
     wxImage image(BufferWi,BufferHt);
-    wxGraphicsContext *dc = wxGraphicsContext::Create(image);
-    dc->SetAntialiasMode(wxANTIALIAS_NONE);
+    DrawingContext *dc = new DrawingContext(&image);
 
     long DefaultPixelHt=BufferHt/2;
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
@@ -151,7 +214,6 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass);
     }
 
-    dc->Flush();
     delete dc;
     
     //convert to image to get the pixel data
@@ -169,7 +231,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
 }
 
 
-wxSize GetMultiLineTextExtent(wxGraphicsContext *dc,
+wxSize GetMultiLineTextExtent(DrawingContext *dc,
                             const wxString& text,
                             wxCoord *widthText,
                               wxCoord *heightText,
@@ -232,14 +294,14 @@ wxSize GetMultiLineTextExtent(wxGraphicsContext *dc,
      return wxSize(widthTextMax, heightTextTotal);
 }
 
-wxSize GetMultiLineTextExtent(wxGraphicsContext *dc,
+wxSize GetMultiLineTextExtent(DrawingContext *dc,
                                const wxString& text)
 {
      wxCoord x,y,z;
      return GetMultiLineTextExtent(dc, text, &x, &y, &z);
 }
 
-void DrawLabel(wxGraphicsContext *dc,
+void DrawLabel(DrawingContext *dc,
                 const wxString& text,
                 const wxRect& rect,
                 int alignment)
@@ -391,7 +453,7 @@ static wxString StripRight(wxString str, wxString pattern)
     return str;
 }
 
-void RgbEffects::RenderTextLine(wxGraphicsContext* dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
+void RgbEffects::RenderTextLine(DrawingContext* dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
 {
     long tempLong,longsecs;
     wxString msg,tempmsg;
