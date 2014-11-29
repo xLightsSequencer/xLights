@@ -1185,7 +1185,7 @@ private:
     void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
-                             PixelBufferClass &buffer, bool *ResetEffectState);
+                             PixelBufferClass &buffer, bool *ResetEffectState, bool bgThread = false);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();

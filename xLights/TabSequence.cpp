@@ -1169,9 +1169,34 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBuff
     buffer.SetPalette(layer,newcolors);
 }
 
+
+class EffectEvent {
+public:
+    EffectEvent(int l, int p, MapStringString& sm,
+                PixelBufferClass &b, bool *res) : mutex(), condition(mutex) {
+        layer = l;
+        period = p;
+        SettingsMap = &sm;
+        buffer = &b;
+        ResetEffectState = res;
+    }
+    wxMutex mutex;
+    wxCondition condition;
+    int layer;
+    int period;
+    MapStringString *SettingsMap;
+    PixelBufferClass *buffer;
+    bool *ResetEffectState;
+    bool returnVal = false;
+};
+wxMutex effectsMutex;
+std::vector<EffectEvent*>effectsToRender;
+
+
 // layer is 0 or 1
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
-                                       PixelBufferClass &buffer, bool *ResetEffectState)
+                                       PixelBufferClass &buffer, bool *ResetEffectState,
+                                       bool bgThread)
 {
     bool retval=true;
 
@@ -1377,7 +1402,18 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Text")
     {
-        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
+        // this needs to be on the primary thread due to GDI calls
+        if (bgThread) {
+            EffectEvent ev(layer, period, SettingsMap, buffer, ResetEffectState);
+            ev.mutex.Lock();
+            effectsMutex.Lock();
+            effectsToRender.push_back(&ev);
+            effectsMutex.Unlock();
+            ev.condition.Wait();
+            ev.mutex.Unlock();
+        } else {
+        
+            buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
                           SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
                           TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
@@ -1408,6 +1444,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                           wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter4"]) != 0,
                           TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect4"]),
                           TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count4"]));
+        }
     }
     else if (effect == "Tree")
     {
@@ -2986,8 +3023,10 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
+
 wxMutex msgMutex;
 std::vector<wxString> renderMessages;
+
 
 class xLightsRenderThread : public wxThread {
 public:
@@ -3102,8 +3141,8 @@ public:
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
-            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, true);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, true);
             
             if (effectsToUpdate)
             {
@@ -3243,8 +3282,20 @@ void xLightsFrame::RenderGridToSeqData()
             }
             renderMessages.clear();
             msgMutex.Unlock();
+            
+            effectsMutex.Lock();
+            for (int y = 0; y < effectsToRender.size(); y++) {
+                EffectEvent *ev = effectsToRender[y];
+                ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+                                                    *ev->SettingsMap,
+                                                    *ev->buffer, ev->ResetEffectState);
+
+                ev->condition.Broadcast();
+            }
+            effectsToRender.clear();
+            effectsMutex.Unlock();
             wxYield();
-            wxMilliSleep(25);
+            wxMilliSleep(10);
         }
     }
 

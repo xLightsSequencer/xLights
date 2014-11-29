@@ -26,7 +26,7 @@
 #include <wx/log.h>
 #include <wx/font.h>
 #include <wx/fontutil.h>
-
+#include <wx/graphics.h>
 
 //formatting notes:
 //countdown == seconds: put a non-0 value in text line 1 to count down
@@ -36,6 +36,8 @@
 
 #define WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
 
+
+static wxMutex lock;
 
 // Render 4 independent strings of text
 // FontString is a value that can be fed to SetNativeFontInfoUserDesc
@@ -49,9 +51,10 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
                             int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)
 {
     xlColour c;
-    wxBitmap bitmap(BufferWi,BufferHt);
-    wxMemoryDC dc;
-    dc.SelectObject(bitmap);
+
+    wxImage image(BufferWi,BufferHt);
+    wxGraphicsContext *dc = wxGraphicsContext::Create(image);
+    dc->SetAntialiasMode(wxANTIALIAS_NONE);
 
     long DefaultPixelHt=BufferHt/2;
 //    if (DefaultPixelHt < 10) DefaultPixelHt=10; // min height
@@ -77,12 +80,6 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     {
         Font4.SetNativeFontInfoUserDesc(FontString4);
     }
-
-#ifndef __WXMSW__
-    // wxMemoryDC is not cleared on creation
-    dc.SetBackground(*wxBLACK_BRUSH);
-    dc.Clear();
-#endif
 
 #ifdef __WXMSW__
     /*
@@ -127,40 +124,38 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         if (!pass) continue; //don't need 2 passes
 #endif // WANT_TEXT_LINES_SYNCED
 
-        dc.SetFont(Font1);
         size_t colorcnt=GetColorCount();
         palette.GetColor(0,c);
-        dc.SetTextForeground(c);
+        dc->SetFont(Font1, c);
         RenderTextLine(dc,0,Position1,Line1,dir1,center1,Effect1,Countdown1,pass);
 
-        dc.SetFont(Font2);
         if(colorcnt>1)
         {
             palette.GetColor(1,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
-            dc.SetTextForeground(c);
         }
+        dc->SetFont(Font2,c);
         RenderTextLine(dc,1,Position2,Line2,dir2,center2,Effect2,Countdown2,pass);
 
-        dc.SetFont(Font3);
         if(colorcnt>2)
         {
             palette.GetColor(2,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
-            dc.SetTextForeground(c);
         }
+        dc->SetFont(Font3, c);
         RenderTextLine(dc,2,Position3,Line3,dir3,center3,Effect3,Countdown3,pass);
 
-        dc.SetFont(Font4);
         if(colorcnt>3)
         {
             palette.GetColor(3,c); // scm 7-18-13. added if,. only pull color if we have at least two colors checked in palette
-            dc.SetTextForeground(c);
         }
+        dc->SetFont(Font4, c);
         RenderTextLine(dc,3,Position4,Line4,dir4,center4,Effect4,Countdown4,pass);
     }
 
-
+    dc->Flush();
+    delete dc;
+    
     //convert to image to get the pixel data
-    wxImage image(bitmap.ConvertToImage());
+    //wxImage image(bitmap.ConvertToImage());
     for(wxCoord x=0; x<BufferWi; x++)
     {
         for(wxCoord y=0; y<BufferHt; y++)
@@ -172,6 +167,174 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
         }
     }
 }
+
+
+wxSize GetMultiLineTextExtent(wxGraphicsContext *dc,
+                            const wxString& text,
+                            wxCoord *widthText,
+                              wxCoord *heightText,
+                              wxCoord *hl)
+{
+     double widthTextMax = 0, widthLine;
+     double heightTextTotal = 0;
+     double heightLineDefault = 0, heightLine = 0;
+
+     wxString curLine;
+     for ( wxString::const_iterator pc = text.begin(); ; ++pc )
+     {
+         if ( pc == text.end() || *pc == wxS('\n') )
+         {
+             if ( curLine.empty() )
+             {
+                 // we can't use GetTextExtent - it will return 0 for both width
+                 // and height and an empty line should count in height
+                 // calculation
+
+                 // assume that this line has the same height as the previous
+                 // one
+                 if ( !heightLineDefault )
+                     heightLineDefault = heightLine;
+
+                 if ( !heightLineDefault )
+                 {
+                     // but we don't know it yet - choose something reasonable
+                     double dummy;
+                     dc->GetTextExtent(wxS("W"), &dummy, &heightLineDefault);
+                 }
+
+                 heightTextTotal += heightLineDefault;
+             }
+             else
+             {
+                 dc->GetTextExtent(curLine, &widthLine, &heightLine);
+                 if ( widthLine > widthTextMax )
+                     widthTextMax = widthLine;
+                 heightTextTotal += heightLine;
+             }
+
+             if ( pc == text.end() )
+             {
+                 break;
+             }
+             else // '\n'
+             {
+                 curLine.clear();
+             }
+         }
+         else
+         {
+             curLine += *pc;
+         }
+     }
+     *widthText = widthTextMax;
+     *heightText = heightTextTotal;
+     *hl = heightLine;
+     return wxSize(widthTextMax, heightTextTotal);
+}
+
+wxSize GetMultiLineTextExtent(wxGraphicsContext *dc,
+                               const wxString& text)
+{
+     wxCoord x,y,z;
+     return GetMultiLineTextExtent(dc, text, &x, &y, &z);
+}
+
+void DrawLabel(wxGraphicsContext *dc,
+                const wxString& text,
+                const wxRect& rect,
+                int alignment)
+{
+     // find the text position
+     wxCoord widthText, heightText, heightLine;
+     GetMultiLineTextExtent(dc, text, &widthText, &heightText, &heightLine);
+
+     wxCoord width, height;
+     width = widthText;
+     height = heightText;
+
+     wxCoord x, y;
+     if ( alignment & wxALIGN_RIGHT )
+     {
+         x = rect.GetRight() - width;
+     }
+     else if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+     {
+         x = (rect.GetLeft() + rect.GetRight() + 1 - width) / 2;
+     }
+     else // alignment & wxALIGN_LEFT
+     {
+         x = rect.GetLeft();
+     }
+
+     if ( alignment & wxALIGN_BOTTOM )
+     {
+         y = rect.GetBottom() - height;
+     }
+     else if ( alignment & wxALIGN_CENTRE_VERTICAL )
+     {
+         y = (rect.GetTop() + rect.GetBottom() + 1 - height) / 2;
+     }
+     else // alignment & wxALIGN_TOP
+     {
+         y = rect.GetTop();
+     }
+
+     // draw the bitmap first
+     wxCoord x0 = x,
+     y0 = y,
+     width0 = width;
+
+     // split the string into lines and draw each of them separately
+     //
+     // NB: while wxDC::DrawText() on some platforms supports drawing multi-line
+     //     strings natively, this is not the case for all of them, notably not
+     //     wxMSW which uses this function for multi-line texts, so we may only
+     //     call DrawText() for single-line strings from here to avoid infinite
+     //     recursion.
+     wxString curLine;
+     for ( wxString::const_iterator pc = text.begin(); ; ++pc )
+     {
+         if ( pc == text.end() || *pc == '\n' )
+         {
+             int xRealStart = x; // init it here to avoid compielr warnings
+             if ( !curLine.empty() )
+             {
+                 // NB: can't test for !(alignment & wxALIGN_LEFT) because
+                 //     wxALIGN_LEFT is 0
+                 if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
+                 {
+                     wxCoord widthLine = GetMultiLineTextExtent(dc, curLine).x;
+
+                     if ( alignment & wxALIGN_RIGHT )
+                     {
+                         xRealStart += width - widthLine;
+                     }
+                     else // if ( alignment & wxALIGN_CENTRE_HORIZONTAL )
+                     {
+                         xRealStart += (width - widthLine) / 2;
+                     }
+                 }
+                 //else: left aligned, nothing to do
+
+                 dc->DrawText(curLine, xRealStart, y);
+             }
+
+             y += heightLine;
+
+             if ( pc == text.end() )
+                 break;
+
+             curLine.clear();
+         }
+         else // not end of line
+         {
+             curLine += *pc;
+         }
+     }
+ }
+
+
+
 
 
 // dir is 0: move left, 1: move right, 2: up, 3: down, 4: no movement
@@ -228,7 +391,7 @@ static wxString StripRight(wxString str, wxString pattern)
     return str;
 }
 
-void RgbEffects::RenderTextLine(wxMemoryDC& dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
+void RgbEffects::RenderTextLine(wxGraphicsContext* dc, int idx, int Position, const wxString& Line_orig, int dir, bool center, int Effect, int Countdown, bool WantRender)
 {
     long tempLong,longsecs;
     wxString msg,tempmsg;
@@ -408,13 +571,13 @@ TIME FORMAT CHARACTERS:
         break;
     }
 
-    wxSize textsize = dc.GetMultiLineTextExtent(msg);
-    int extra_left = IsGoingLeft(dir)? textsize.x - dc.GetMultiLineTextExtent(wxString(msg).Trim(false)).x: 0; //CAUTION: trim() alters object, so make a copy first
-    int extra_right = IsGoingRight(dir)? textsize.x - dc.GetMultiLineTextExtent(wxString(msg).Trim(true)).x: 0;
-    int extra_down = IsGoingDown(dir)? textsize.y - dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y: 0;
-    int extra_up = IsGoingUp(dir)? textsize.y - dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y: 0;
+    wxSize textsize = GetMultiLineTextExtent(dc, msg);
+    int extra_left = IsGoingLeft(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(false)).x: 0; //CAUTION: trim() alters object, so make a copy first
+    int extra_right = IsGoingRight(dir)? textsize.x - GetMultiLineTextExtent(dc, wxString(msg).Trim(true)).x: 0;
+    int extra_down = IsGoingDown(dir)? textsize.y - GetMultiLineTextExtent(dc, StripRight(msg, "\n")).y: 0;
+    int extra_up = IsGoingUp(dir)? textsize.y - GetMultiLineTextExtent(dc, StripLeft(msg, "\n")).y: 0;
 //    debug(1, "size %d lstrip %d, rstrip %d, = %d, %d, text %s", dc.GetMultiLineTextExtent(msg).y, dc.GetMultiLineTextExtent(StripLeft(msg, "\n")).y, dc.GetMultiLineTextExtent(StripRight(msg, "\n")).y, extra_down, extra_up, (const char*)StripLeft(msg, "\n"));
-    int lineh = dc.GetMultiLineTextExtent("X").y;
+    int lineh = GetMultiLineTextExtent(dc, "X").y;
 //    wxString debmsg = msg; debmsg.Replace("\n","\\n", true);
     int xoffset=0;
     int yoffset=0;
@@ -524,38 +687,38 @@ TIME FORMAT CHARACTERS:
             rect.Offset(0, OffsetTop);
             break; // static
         }
-        dc.DrawLabel(msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+        DrawLabel(dc, msg,rect,wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
     }
     else
     {
         switch (dir)
         {
         case 0:
-            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
+            dc->DrawText(msg, BufferWi - state % xlimit/8 + xoffset, OffsetTop, TextRotation);
             break; // left
         case 1:
-            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation);
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, OffsetTop, TextRotation);
             break; // right
         case 2:
-            dc.DrawRotatedText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, OffsetLeft, totheight - state % ylimit/8 - yoffset, TextRotation);
             break; // up
         case 3:
-            dc.DrawRotatedText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, OffsetLeft, state % ylimit/8 - yoffset, TextRotation);
             break; // down
         case 5:
-            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, BufferWi - state % xlimit/8 + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
             break; // up-left
         case 6:
-            dc.DrawRotatedText(msg, BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, BufferWi - state % xlimit/8 + xoffset, state % ylimit/8 - yoffset, TextRotation);
             break; // down-left
         case 7:
-            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, totheight - state % ylimit/8 - yoffset, TextRotation);
             break; // up-right
         case 8:
-            dc.DrawRotatedText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation);
+            dc->DrawText(msg, state % xlimit/8 - txtwidth + xoffset, state % ylimit/8 - yoffset, TextRotation);
             break; // down-right
         default:
-            dc.DrawRotatedText(msg, 0, OffsetTop, TextRotation);
+            dc->DrawText(msg, 0, OffsetTop, TextRotation);
             break; // static
         }
     }
