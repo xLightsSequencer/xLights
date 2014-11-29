@@ -1097,6 +1097,22 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
+																		<object class="wxStaticText" name="ID_STATICTEXT33" variable="StaticText31" member="yes">
+																			<label>Map LMS Channels with no network</label>
+																		</object>
+																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxCheckBox" name="ID_CHECKBOX_LOR_WITH_NO_CHANNELS" variable="MapLORChannelsWithNoNetwork" member="yes">
+																			<checked>1</checked>
+																		</object>
+																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																		<border>5</border>
+																		<option>1</option>
+																	</object>
+																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT17" variable="StaticText17" member="yes">
 																			<label>All channels off at end:</label>
 																		</object>

@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 3.6.8	Nov 27, 2014
+     -enh (dkulp) Add ability to ignore LOR channels that do not have a deviceType and network defined. (common
+                  for beat tracks and unused channels.
 	-enh (dpitts) Added Model Groups into PREVIEW tab, Create a group, when you select that group the 
 			"Part of My Display" will be set automatically for you.
      -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes

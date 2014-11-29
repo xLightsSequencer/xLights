@@ -534,6 +534,8 @@ private:
     static const long ID_CHOICE_OUTPUT_FORMAT;
     static const long ID_STATICTEXT20;
     static const long ID_CHECKBOX_MAP_EMPTY_CHANNELS;
+    static const long ID_STATICTEXT33;
+    static const long ID_CHECKBOX_LOR_WITH_NO_CHANNELS;
     static const long ID_STATICTEXT17;
     static const long ID_CHECKBOX_OFF_AT_END;
     static const long ID_BUTTON_START_CONVERSION;
@@ -774,6 +776,7 @@ private:
     wxStaticText* StaticText5;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
+    wxCheckBox* MapLORChannelsWithNoNetwork;
     wxBitmapButton* BitmapButton_locked;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
@@ -835,8 +838,8 @@ private:
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
-    wxButton* ButtonChangeDir;
     wxGrid* Grid1;
+    wxButton* ButtonChangeDir;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
@@ -874,6 +877,7 @@ private:
     wxTextCtrl* TextCtrl_pgo_filename;
     wxCheckBox* CheckBox_CoroEyesRandomBlink;
     wxRadioButton* RadioButtonRgbCycle4;
+    wxStaticText* StaticText31;
     wxBitmapButton* BitmapButton_Contrast;
     wxChoice* Choice_PgoGroupName;
     wxRadioButton* RadioButtonRgbTwinkle05;

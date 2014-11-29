@@ -2033,7 +2033,7 @@ void mapLORInfo(const LORInfo &info, std::vector<std::vector<int>> *unitSizes)
 
 void FRAMECLASS ReadLorFile(const wxString& filename)
 {
-    wxString NodeName,msg,EffectType,ChannelName,deviceType;
+    wxString NodeName,msg,EffectType,ChannelName,deviceType,networkAsString;
     wxArrayString context;
     int unit,circuit,startcsec,endcsec,intensity,startIntensity,endIntensity,rampdiff,ChannelColor;
     int i,startper,endper,perdiff,twinklestate,nexttwinkle;
@@ -2044,6 +2044,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     int EffectCnt = 0;
     int network,chindex = -1;
     long cnt = 0;
+    std::vector<std::vector<int>> noNetworkUnitSizes;
     std::vector<std::vector<int>> lorUnitSizes;
     std::vector<std::vector<int>> dmxUnitSizes;
     LORInfoMap rgbChannels;
@@ -2119,6 +2120,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
 
                     deviceType = FromAscii( stagEvent->getAttrValue("deviceType") );
                     network = getAttributeValueAsInt(stagEvent, "network");
+                    networkAsString = FromAscii( stagEvent->getAttrValue("network") );
                     unit = getAttributeValueAsInt(stagEvent, "unit");
                     circuit = getAttributeValueAsInt(stagEvent, "circuit");
                     savedIndex = getAttributeValueAsInt(stagEvent, "savedIndex");
@@ -2140,6 +2142,8 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                         if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
                         {
                             unitSizes = &dmxUnitSizes;
+                        } else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
+                            unitSizes = &noNetworkUnitSizes;
                         }
                         else
                         {
@@ -2155,12 +2159,11 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                 if (cnt == 3 && context[1] == wxString("channels") && context[2] == wxString("channel") && !rgbChannels[savedIndex].empty)
                 {
                     std::vector<std::vector<int>> *unitSizes;
-                    if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX")
-                    {
+                    if (Left(rgbChannels[savedIndex].deviceType, 3) == "DMX") {
                         unitSizes = &dmxUnitSizes;
-                    }
-                    else
-                    {
+                    } else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
+                        unitSizes = &noNetworkUnitSizes;
+                    } else {
                         unitSizes = &lorUnitSizes;
                     }
                     mapLORInfo(rgbChannels[savedIndex], unitSizes);
@@ -2303,6 +2306,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                     }
 
                     deviceType = getAttributeValueSafe(stagEvent, "deviceType");
+                    networkAsString = getAttributeValueSafe(stagEvent, "network");
                     network = getAttributeValueAsInt(stagEvent, "network");
 
                     unit = getAttributeValueAsInt(stagEvent, "unit");
@@ -2335,9 +2339,9 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                         }
                         chindex += circuit-1;
                         curchannel = NetInfo.CalcAbsChannel(network,chindex);
-                    }
-                    else
-                    {
+                    } else if ("" == deviceType && "" == networkAsString && !MapLORChannelsWithNoNetwork->IsChecked()) {
+                        curchannel = -1;
+                    } else {
                         chindex++;
                         if (chindex < NetInfo.GetTotChannels())
                         {
