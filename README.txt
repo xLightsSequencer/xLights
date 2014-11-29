@@ -5,25 +5,28 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
+3.6.8	Nov 28, 2014
+	-enh (sean) Modified install program so that it has an auto launch button for Windows installs
     -enh (mbrown) Removed check that number of Renard channels is a multiple of 8.
-3.6.8	Nov 27, 2014
-     -enh (dkulp) Add ability to ignore LOR channels that do not have a deviceType and network defined. (common
+    -enh (dkulp) Add ability to ignore LOR channels that do not have a deviceType and network defined. (common
                   for beat tracks and unused channels.
-	-enh (dpitts) Added Model Groups into PREVIEW tab, Create a group, when you select that group the 
-			"Part of My Display" will be set automatically for you.
-     -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes
-     -bug (dkulp) On Mac, could not paste stuff into custom model due to using \r instead of \n for line delimiter
-     -enh (dkulp) Multi-thread the Nutcracker tab saving to speed up the rendering/saving
-     -enh (dkulp) Change the internal representation of a color to avoid some unnecessary OS calls.  Results in 
+	-bug (sean) Fixed label creation of SETUP and convert so export of lms file now creates the RGB data
+	-enh (dpitts) Added Preview Groups into PREVIEW tab, Create a group, when you select that group the 
+			"Part of My Display" will be set automatically for you. This allows you to set groups of models and be
+			able to turn on the "Part of My Display"
+    -bug (dkulp) Fix a bug where the LastChannelCount always assumed RGB nodes
+    -bug (dkulp) On Mac, could not paste stuff into custom model due to using \r instead of \n for line delimiter
+    -enh (dkulp) SPEED: Multi-thread the Nutcracker tab saving to speed up the rendering/saving
+    -enh (dkulp) SPEED: Change the internal representation of a color to avoid some unnecessary OS calls.  Results in 
                   significantly faster rendering of effects.
-     -enh (dkulp) Add "Fast Save" option on Nutcracker tab to allow the save command to only render the cells below 
+    -enh (dkulp) SPEED: Add "Fast Save" option on Nutcracker tab to allow the save command to only render the cells below 
                   and to the right of the cells that have changed.  Placing the models you are working on to the 
                   right on the grid can significantly speed up turn around time if you flip between Preview and
                   Nutcracker often.
-     -bug (dkulp) Fix bug in SingelStrand chase effect that could cause a crash/memory corruption if used on
+    -bug (dkulp) Fix bug in SingelStrand chase effect that could cause a crash/memory corruption if used on
                   models with more than 1000 nodes.  (like whole house)
-     -bug (dkulp) Fix a crash that would occur if the image effect was used, but no image was available.
-     -bug (dkulp) Column  Shift left/right now copies cell protection.
+    -bug (dkulp) Fix a crash that would occur if the image effect was used, but no image was available.
+    -bug (dkulp) Column  Shift left/right now copies cell protection.
 3.6.7	Nov 23, 2014
 	-bug (djulien) scrunch UI so it will fit on a laptop (needs to be < 760 px high)
     -bug (dkulp) Fix Rendering of Ripple effect during save, now shows up in PREVIEW and lights

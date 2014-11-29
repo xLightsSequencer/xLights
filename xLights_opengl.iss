@@ -1,4 +1,4 @@
-; -- xLights_ffmpeg.iss --
+; -- xLights_opengl.iss --
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
@@ -46,6 +46,10 @@ Source: "piano/*.*"; DestDir: "{app}/piano"
 Source: "License.txt"; DestDir: "{app}";
 Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
+
+[Run]
+
+Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
 
 
 
