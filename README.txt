@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
+    -enh (mbrown) Removed check that number of Renard channels is a multiple of 8.
 3.6.8	Nov 27, 2014
      -enh (dkulp) Add ability to ignore LOR channels that do not have a deviceType and network defined. (common
                   for beat tracks and unused channels.

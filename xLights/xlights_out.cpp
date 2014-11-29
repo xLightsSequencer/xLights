@@ -589,10 +589,13 @@ public:
         {
             throw wxString::Format("max channels on a Renard network is %d", data.size());
         }
+        /*
+        // commented out by Matt - per request from lboucher on DIYC, 11/28/2014
         if (!HasPlugin() && ((numchannels % 8) != 0)) //restraint does not apply to plug-ins -DJ
         {
             throw "Number of Renard channels must be a multiple of 8";
         }
+        */
         if (HasPlugin()) data.resize(numchannels * 2 + 2); //allow more channels, 2 copies for delta analysis
         datalen=numchannels+2;
         data[0]=0x7E;               // start of message
