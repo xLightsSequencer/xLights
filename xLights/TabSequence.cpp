@@ -3366,16 +3366,24 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
         ColName=Grid1->GetColLabelValue(c);
         if (ColName != buffer.name) continue;
 
-        NextGridRowToPlay=0;
+        int NextGridRowToPlay=0;
         for (int p=0; p<SeqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-//            buffer.Clear();
-            if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
-                buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
-            if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
-                buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
 
+            wxString effect1=SettingsMap["E1_Effect"];
+            wxString effect2=SettingsMap["E1_Effect"];
+            int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
+            int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
+            
+            if (!persist1 || "None" == effect1) {
+                buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
+            }
+            if (!persist2 || "None" == effect2) {
+                buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
+            }
+            
+            
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
