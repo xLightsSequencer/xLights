@@ -39,8 +39,8 @@
 #if wxUSE_GRAPHICS_CONTEXT
 class DrawingContext {
 public:
-    DrawingContext(wxImage &image) {
-        dc = wxGraphicsContext::Create(image);
+    DrawingContext(wxImage *image) {
+        dc = wxGraphicsContext::Create(*image);
         dc->SetAntialiasMode(wxANTIALIAS_NONE);
     }
     ~DrawingContext() {
