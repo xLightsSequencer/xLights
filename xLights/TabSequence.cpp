@@ -3326,7 +3326,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
-    retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
+    int max = buffer.GetChanCount() * SeqNumPeriods;
+    retData = new SeqDataType(max);
 
     size_t firstChannel = 0;
     if (modelNode->GetAttribute("exportFirstStrand") != "")
@@ -3443,7 +3444,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                         {
                             chnum = cn * NodeCnt - firstChannel + chnum;
                         }
-                        (*retData)[chnum*SeqNumPeriods+p]=intensity;
+                        unsigned long idx = chnum * SeqNumPeriods + p;
+                        (*retData)[idx]=intensity;
                     }
                 }
             }//if (effectsToUpdate)
@@ -3938,13 +3940,10 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 
     if(!modelNode) return;
 
-    PixelBufferClass buffer;
-    buffer.InitBuffer(modelNode,true);
-    numChan = buffer.GetChanCount();
-    int numNodes = buffer.GetNodeCount();
-    if(numNodes>0)  cpn = numChan/numNodes;
-    else cpn=0;
-    dataBuf = RenderModelToData(modelNode, buffer);
+    PixelBufferClass *buffer = new PixelBufferClass();
+    buffer->InitBuffer(modelNode,true);
+    dataBuf = RenderModelToData(modelNode, *buffer);
+    delete buffer;
 
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;

@@ -1017,7 +1017,23 @@ size_t ModelClass::GetNodeCount()
 int ModelClass::GetChanCount()
 {
     size_t NodeCnt=GetNodeCount();
-    return NodeCnt==0 ? 0 : NodeCnt * Nodes[0]->GetChanCount();
+    if (NodeCnt == 0) {
+        return 0;
+    }
+    int min = 999999999;
+    int max = 0;
+    
+    for (int x = 0; x < NodeCnt; x++) {
+        int i = Nodes[x]->ActChan;
+        if (i < min) {
+            min = i;
+        }
+        i += Nodes[x]->GetChanCount();
+        if (i > max) {
+            max = i;
+        }
+    }
+    return max - min;
 }
 size_t ModelClass::GetCoordCount(size_t nodenum)
 {
