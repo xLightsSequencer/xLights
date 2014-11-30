@@ -5,11 +5,12 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
+3.6.8	Nov 29, 2014
     -bug (dkulp) Move Text effect rendering back to main thread due GDI calls it makes (to get Font info and to render the text) which is required to be done on the main thread.
     -bug (dkulp) Custom models that don't have an element in the grid for all channels in the range would cause buffer overruns on ModelExport
     -bug (dkulp) ModelExport was not using the SettingsMap to determine the state of the "Persistent" checkbox and isntead looked at the actual checkbox on the page.
     -enh (dkulp) MAC - turn off anti-aliased text rendering to make it match Windows (and look better)
-    
+    -bug (dkulp) Model Export was crashing, now fixed.
 3.6.8	Nov 28, 2014
 	-enh (sean) Modified install program so that it has an auto launch button for Windows installs
     -enh (mbrown) Removed check that number of Renard channels is a multiple of 8.
