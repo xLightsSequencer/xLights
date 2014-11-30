@@ -1189,8 +1189,10 @@ public:
     bool *ResetEffectState;
     bool returnVal = false;
 };
-wxMutex effectsMutex;
+wxMutex thread1Mutex;
+wxCondition thread1Condition(thread1Mutex);
 std::vector<EffectEvent*>effectsToRender;
+std::vector<wxString> renderMessages;
 
 
 // layer is 0 or 1
@@ -1406,9 +1408,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         if (bgThread) {
             EffectEvent ev(layer, period, SettingsMap, buffer, ResetEffectState);
             ev.mutex.Lock();
-            effectsMutex.Lock();
+            thread1Mutex.Lock();
             effectsToRender.push_back(&ev);
-            effectsMutex.Unlock();
+            thread1Condition.Broadcast();
+            thread1Mutex.Unlock();
             ev.condition.Wait();
             ev.mutex.Unlock();
         } else {
@@ -3023,11 +3026,6 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
-
-wxMutex msgMutex;
-std::vector<wxString> renderMessages;
-
-
 class xLightsRenderThread : public wxThread {
 public:
     xLightsRenderThread(int col, const wxString &name, wxXmlNode *node, int numPeriods,
@@ -3101,9 +3099,10 @@ public:
                 if (!EffectStr.IsEmpty())
                 {
                     wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
-                    msgMutex.Lock();
+                    thread1Mutex.Lock();
                     renderMessages.push_back(msg);
-                    msgMutex.Unlock();
+                    thread1Condition.Broadcast();
+                    thread1Mutex.Unlock();
                     
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
@@ -3276,14 +3275,15 @@ void xLightsFrame::RenderGridToSeqData()
     }
     for (int x = 0; x < colcnt; x++) {
         while (threads[x] != NULL) {
-            msgMutex.Lock();
+            thread1Mutex.Lock();
             for (int y = 0; y < renderMessages.size(); y++) {
                 SetStatusText(renderMessages[y]);
             }
             renderMessages.clear();
-            msgMutex.Unlock();
+            thread1Mutex.Unlock();
+            wxYield(); //yield now to get the status out
             
-            effectsMutex.Lock();
+            thread1Mutex.Lock();
             for (int y = 0; y < effectsToRender.size(); y++) {
                 EffectEvent *ev = effectsToRender[y];
                 ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
@@ -3293,18 +3293,17 @@ void xLightsFrame::RenderGridToSeqData()
                 ev->condition.Broadcast();
             }
             effectsToRender.clear();
-            effectsMutex.Unlock();
-            wxYield();
-            wxMilliSleep(10);
+            thread1Condition.WaitTimeout(10);
+            thread1Mutex.Unlock();
         }
     }
 
-    msgMutex.Lock();
+    thread1Mutex.Lock();
     for (int y = 0; y < renderMessages.size(); y++) {
         SetStatusText(renderMessages[y]);
     }
     renderMessages.clear();
-    msgMutex.Unlock();
+    thread1Mutex.Unlock();
     delete [] threads;
     changedColumn = 99999;
     changedRow = 99999;
@@ -3793,6 +3792,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxStopWatch sw;
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+    wxYield();
 
     if (Out3 == "LSP")
     {
