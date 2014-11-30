@@ -3164,11 +3164,16 @@ public:
             }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
 
-        completed = effects.size() + 1;
+        wxString msg=_(wxString::Format("Finished saving %s",ColName));
+        completed = effects.size() + 100;
+        thread1Mutex.Lock();
         if (threads[myCol + 1] != NULL) {
             threads[myCol + 1]->SetPreviousColCompleted(completed);
         }
         threads[myCol] = NULL;
+        renderMessages.push_back(msg);
+        thread1Condition.Broadcast();
+        thread1Mutex.Unlock();
         return NULL;
     }
     
