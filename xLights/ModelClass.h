@@ -282,6 +282,7 @@ public:
     void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
     size_t GetNodeCount();
     int GetChanCount();
+    int GetChanCountPerNode();
     size_t GetCoordCount(size_t nodenum);
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);

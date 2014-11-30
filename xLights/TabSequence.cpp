@@ -3909,7 +3909,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         wxMessageBox("No grid rows to save!", "Error");
         return;
     }
-    int DlgResult,cpn;
+    int DlgResult;
     bool ok;
     wxString filename;
     wxXmlNode* modelNode;
@@ -3942,6 +3942,8 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 
     PixelBufferClass *buffer = new PixelBufferClass();
     buffer->InitBuffer(modelNode,true);
+    numChan = buffer->GetChanCount();
+    int cpn = buffer->GetChanCountPerNode();
     dataBuf = RenderModelToData(modelNode, *buffer);
     delete buffer;
 

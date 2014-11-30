@@ -1035,6 +1035,13 @@ int ModelClass::GetChanCount()
     }
     return max - min;
 }
+int ModelClass::GetChanCountPerNode() {
+    size_t NodeCnt=GetNodeCount();
+    if (NodeCnt == 0) {
+        return 0;
+    }
+    return Nodes[0]->GetChanCount();
+}
 size_t ModelClass::GetCoordCount(size_t nodenum)
 {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
