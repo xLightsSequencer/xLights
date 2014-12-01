@@ -110,6 +110,10 @@ using Code::Blocks, proceed to step 'e'.:
      Make sure you set the target to "Release Linux" before you build.
 
 That should be all you need to build xLights/Nutcracker.
+If you get missing decoder messages related to gstreamer, a couple of things to try are:
+- sudo apt-get install ubuntu-restricted-extras  (substitute as appropriate for other *nices)
+- install "Play it slowly"  - this app includes some gstreamer dependencies
+
 
 ==============================================================================
 
