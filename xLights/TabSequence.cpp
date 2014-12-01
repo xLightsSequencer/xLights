@@ -3601,7 +3601,7 @@ void xLightsFrame::InsertRow()
     }
     int r=Grid1->GetGridCursorRow();
     GridCellChanged(r, 0);
-    Grid1->InsertRows( r, 2);
+    Grid1->InsertRows(r, 1);
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
