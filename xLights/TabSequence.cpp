@@ -3098,7 +3098,7 @@ public:
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
                 {
-                    wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
+                    wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,effects.size()));
                     thread1Mutex.Lock();
                     renderMessages.push_back(msg);
                     thread1Condition.Broadcast();
