@@ -3201,6 +3201,8 @@ private:
     xLightsRenderThread ** threads;
 };
 
+
+
 void xLightsFrame::RenderGridToSeqData()
 {
     wxString ColName,msg, EffectStr;
@@ -3462,8 +3464,15 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
     SaveSequence();
 }
 
+
+static volatile bool isSaving = false;
+
 void xLightsFrame::SaveSequence()
 {
+    if (isSaving) {
+        return;
+    }
+    isSaving = true;
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -3554,6 +3563,7 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     StatusBar1->SetStatusText(displayBuff);
     //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
+    isSaving = true;
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
