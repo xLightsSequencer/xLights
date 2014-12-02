@@ -3600,8 +3600,8 @@ void xLightsFrame::InsertRow()
         return;
     }
     int r=Grid1->GetGridCursorRow();
-    GridCellChanged(r, 0);
-    Grid1->InsertRows(r, 1);
+    GridCellChanged(r + 1, 0);
+    Grid1->InsertRows(r + 1, 1);
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
@@ -3621,17 +3621,20 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
     if ( Grid1->IsSelection() )
     {
         wxGridUpdateLocker locker(Grid1);
-        for ( int n = 0; n < Grid1->GetNumberRows(); )
-        {
-            if ( Grid1->IsInSelection( n , 0 ) ) {
+        int c=Grid1->GetGridCursorCol();
+        for (int n = Grid1->GetNumberRows() - 1; n >= 0; n--) {
+            if ( Grid1->IsInSelection( n , c ) ) {
                 Grid1->DeleteRows( n, 1 );
                 GridCellChanged(n, 0);
-            } else {
-                n++;
+                UnsavedChanges = true;
             }
         }
+    } else {
+        int r=Grid1->GetGridCursorRow();
+        Grid1->DeleteRows( r, 1 );
+        GridCellChanged(r, 0);
+        UnsavedChanges = true;
     }
-    UnsavedChanges = true;
 }
 
 void xLightsFrame::OnButtonDisplayElementsClick(wxCommandEvent& event)
@@ -4301,7 +4304,9 @@ void xLightsFrame::PasteFromClipboard()
     int numrows=Grid1->GetNumberRows();
     int numcols=Grid1->GetNumberCols();
     bool errflag=false;
-
+#ifdef __WXOSX__
+    copy_data.Replace("\r", "\n");
+#endif
     do
     {
         cur_line = copy_data.BeforeFirst('\n');
