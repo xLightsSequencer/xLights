@@ -1898,6 +1898,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (xout) xout->alloff();
             ResetTimer(NO_SEQ);
             EnableSequenceControls(true);
+            Button_PlayEffect->SetLabel("Play Effect (F3)");
+            Button_PlayRgbSeq->SetLabel("Play (F4)");
         }
         else
         {
@@ -1956,6 +1958,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (xout) xout->alloff();
             ResetTimer(NO_SEQ);
             EnableSequenceControls(true);
+            Button_PlayEffect->SetLabel("Play Effect (F3)");
+            Button_PlayRgbSeq->SetLabel("Play (F4)");
         }
         else
         {
