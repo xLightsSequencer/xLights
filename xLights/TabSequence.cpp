@@ -3163,10 +3163,15 @@ public:
                 if (!EffectStr.IsEmpty())
                 {
                     wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,effects.size()));
-                    thread1Mutex.Lock();
-                    renderMessages.push_back(msg);
-                    thread1Condition.Broadcast();
-                    thread1Mutex.Unlock();
+                    if (onMainThread) {
+                        xLights->SetStatusText(msg);
+                        wxYield();
+                    } else {
+                        thread1Mutex.Lock();
+                        renderMessages.push_back(msg);
+                        thread1Condition.Broadcast();
+                        thread1Mutex.Unlock();
+                    }
 
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
@@ -3205,8 +3210,8 @@ public:
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, true);
-            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, true);
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
 
             if (effectsToUpdate)
             {
@@ -3251,6 +3256,9 @@ public:
     {
         return completed;
     }
+    void SetOnMainThread() {
+        onMainThread = true;
+    }
 private:
     int firstRow;
     int seqNumPeriods;
@@ -3258,6 +3266,7 @@ private:
     wxString ColName;
     volatile int prevCompleted;
     int completed;
+    bool onMainThread = false;
 
     wxXmlNode *ModelNode;
 
@@ -3335,25 +3344,15 @@ void xLightsFrame::RenderGridToSeqData()
         {
             thread->AddEffectString(GetGridStartTimeMSec(x), Grid1->GetCellValue(x,c));
         }
-        if (thread->Run() != wxTHREAD_NO_ERROR )
-        {
+        if (!threadedSave) {
+            thread->SetOnMainThread();
+            thread->SetPreviousColCompleted(rowcnt);
+            thread->Entry();
+            delete thread;
+        } else if (thread->Run() != wxTHREAD_NO_ERROR ) {
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
-
-        //thread->Entry();
-        //threads[c] = NULL;
-        /*
-        while (threads[c]) {
-            msgMutex.Lock();
-            for (int y = 0; y < renderMessages.size(); y++) {
-                SetStatusText(renderMessages[y]);
-            }
-            renderMessages.clear();
-            msgMutex.Unlock();
-            wxYield();
-        }
-        */
     }
     for (int x = 0; x < colcnt; x++)
     {

@@ -435,6 +435,7 @@ private:
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     void OnGrid1LabelRightClick(wxGridEvent& event);
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
+    void ToggleThreadedSave(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -688,6 +689,7 @@ private:
     static const long idMenuDelList;
     static const long ID_MENUITEM1;
     static const long idCustomScript;
+    static const long ID_NO_THREADED_SAVE;
     static const long idMenuHelpContent;
     static const long idMenuAbout;
     static const long ID_STATUSBAR1;
@@ -865,6 +867,7 @@ private:
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
+    wxMenuItem* ThreadedSaveMenuItem;
     wxStaticText* StaticTextPreviewRotation;
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
@@ -890,6 +893,7 @@ private:
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
+    wxMenu* Menu1;
     wxCheckBox* FastSave_CheckBox;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
@@ -1277,6 +1281,7 @@ private:
     // fast save support
     int changedColumn;
     int changedRow;
+    bool threadedSave = true;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;

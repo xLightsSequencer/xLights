@@ -2971,6 +2971,14 @@
 					<handler function="OnMenuItemCustomScriptSelected" entry="EVT_MENU" />
 				</object>
 			</object>
+			<object class="wxMenu" variable="Menu1" member="yes">
+				<label>&amp;Settings</label>
+				<object class="wxMenuItem" name="ID_NO_THREADED_SAVE" variable="ThreadedSaveMenuItem" member="yes">
+					<label>Disable Threaded Save</label>
+					<handler function="ToggleThreadedSave" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
+			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
 				<object class="wxMenuItem" name="idMenuHelpContent" variable="MenuItem4" member="no">

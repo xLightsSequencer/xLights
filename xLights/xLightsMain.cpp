@@ -323,6 +323,7 @@ const long xLightsFrame::idMenuRenameList = wxNewId();
 const long xLightsFrame::idMenuDelList = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::idCustomScript = wxNewId();
+const long xLightsFrame::ID_NO_THREADED_SAVE = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
@@ -1399,6 +1400,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItemCustomScript = new wxMenuItem(MenuPlaylist, idCustomScript, _("Custom Script"), wxEmptyString, wxITEM_NORMAL);
     MenuPlaylist->Append(MenuItemCustomScript);
     MenuBar1->Append(MenuPlaylist, _("&Playlist"));
+    Menu1 = new wxMenu();
+    ThreadedSaveMenuItem = new wxMenuItem(Menu1, ID_NO_THREADED_SAVE, _("Disable Threaded Save"), wxEmptyString, wxITEM_CHECK);
+    Menu1->Append(ThreadedSaveMenuItem);
+    MenuBar1->Append(Menu1, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem4);
@@ -1572,6 +1577,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuDelList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemDelListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRefreshSelected);
     Connect(idCustomScript,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCustomScriptSelected);
+    Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
@@ -1654,6 +1660,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         ConvertDir=dir;
     }
     FileDialogConvert->SetDirectory(ConvertDir);
+
+    threadedSave = config->ReadBool("ThreadedSave", true);
+    ThreadedSaveMenuItem->Check(!threadedSave);
 
     // initialize all effect wxChoice lists
 
@@ -2754,3 +2763,11 @@ void xLightsFrame::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
 }
 
+
+void xLightsFrame::ToggleThreadedSave(wxCommandEvent& event)
+{
+    threadedSave = !threadedSave;
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("ThreadedSave", threadedSave);
+    ThreadedSaveMenuItem->Check(!threadedSave);
+}
