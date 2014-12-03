@@ -4,7 +4,9 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
-XLIGHTS/NUTCRACKER RELEASE NOTES: 
+XLIGHTS/NUTCRACKER RELEASE NOTES:
+        -enh (dkulp) Add a "Settings" menu.  First setting: ability to disable the multi-threaded saves.  When disable, all is rendered on the main thread.  Slower, but maybe safer.
+        -bug (dkulp) When "Play" hits the bottom of the grid, the "Stop" button wasn't changed back to "Play"
 3.6.10	Dec 3, 2014
 	-bug (sean) Added missing xLights.ico file. You should see icon in tray now
 	-bug (sean) "Create Random Effects"Would create None,None about 20% of time. This is now fixed. 
