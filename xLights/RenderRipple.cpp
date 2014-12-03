@@ -54,7 +54,7 @@
 void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
 {
 
-    int x,y,i,i7,ColorIdx;
+    int x,y,i,ColorIdx;
     int xc,yc;
 
 #if 0
@@ -64,31 +64,26 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
 #endif
 
     wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-    srand (time(NULL));
     size_t colorcnt=GetColorCount();
 
     i=0;
     double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
+    int slices=200;
+    if (position > 1) {
+        position =(state%slices)/(slices*1.0);
+    }
     float rx;
     xc = BufferWi/2;
     yc=BufferHt/2;
-    int on_off=0;
 
-    int slices=200;
-    int istate=state/slices; // istate will be a counter every slices units of state. each istate is a square wave
-    int imod=(state/(slices/10))%10; // divide this square
-    int icolor=istate%colorcnt;
-    wxString TimeNow =wxNow();
-    rx=(state%slices)/(slices*1.0);
+    if (fitToTime) {
+        rx=position;
+    } else {
+        rx=(state%slices)/(slices*1.0);
+    }
+    ColorIdx=rx * colorcnt;
 
-    int x1 = xc - (xc*rx);
-    int x2 = xc + (xc*rx);
-    int y1 = yc - (yc*rx);
-    int y2 = yc + (yc*rx);
-    enum {Square, Circle, Triangle} shape = Circle;
     double radius;
-    //  debug(10, "%s:%6d istate=%4d imod=%4d icolor=%1d", (const char*)TimeNow,state,istate,imod,icolor);
-    ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
     int explode;
     switch (Object_To_Draw)
