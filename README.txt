@@ -8,10 +8,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 3.6.10	Dec 3, 2014
 	-bug (sean) "Create Random Effects"Would create None,None about 20% of time. This is now fixed. 
 	-bug (sean) Ripple was not rendering to PREVIEW screen or to actual lights. fixed
+	-bug (dkulp) If "Save" is clicked multiple times real quick, it could hang/crash as it tries to save/render things at the same time. 
+			Fixed by disabling the Save buttons while saving.
+	-bug (dkulp) Insert row inserting two rows, not one
+	-bug (dkulp) On the MAC, the clipboard sometimes used \r instead of \n.  
+		(From Numbers for example) Update the paste to the grid to accommodate that.
+	-enh (dkulp) Change the "Play (F4)" button in the NUTCRACKER tab to be a Play/Stop toggle.
 3.6.9	Nov 29, 2014
-    -bug (dkulp) Move Text effect rendering back to main thread due GDI calls it makes (to get Font info and to render the text) which is required to be done on the main thread.
-    -bug (dkulp) Custom models that don't have an element in the grid for all channels in the range would cause buffer overruns on ModelExport
-    -bug (dkulp) ModelExport was not using the SettingsMap to determine the state of the "Persistent" checkbox and isntead looked at the actual checkbox on the page.
+    -bug (dkulp) Move Text effect rendering back to main thread due GDI calls it makes (to get Font info and to 
+		render the text) which is required to be done on the main thread.
+    -bug (dkulp) Custom models that don't have an element in the grid for all channels in the range would cause 
+		buffer overruns on ModelExport
+    -bug (dkulp) ModelExport was not using the SettingsMap to determine the state of the "Persistent" checkbox 
+		and instead looked at the actual checkbox on the page.
     -enh (dkulp) MAC - turn off anti-aliased text rendering to make it match Windows (and look better)
     -bug (dkulp) Model Export was crashing, now fixed.
 3.6.8	Nov 28, 2014
