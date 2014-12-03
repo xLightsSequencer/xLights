@@ -32,6 +32,15 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 
 void xLightsFrame::PlayRgbSequence()
 {
+    if (SeqPlayerState == PLAYING_SEQ
+            || SeqPlayerState == PLAYING_SEQ_ANIM)
+    {
+        StopNow();
+        Button_PlayRgbSeq->SetLabel("Play (F4)");
+        Button_PlayRgbSeq->Enable();
+        return;
+    }
+
     if (SeqData.size() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
@@ -59,6 +68,9 @@ void xLightsFrame::PlayRgbSequence()
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
     PlayCurrentXlightsFile();
+    Button_PlayRgbSeq->SetLabel("Stop (F4)");
+    Button_PlayRgbSeq->Enable();
+    Button_PlayEffect->Disable();
     heartbeat("playback seq", true); //tell fido to start watching -DJ
 }
 
@@ -125,6 +137,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
     EffectsPanel2->TextCtrl_Glediator_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
+    ButtonModelExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
     BitmapButtonInsertRow->Enable(enable);
@@ -430,9 +443,6 @@ wxString xLightsFrame::CreateEffectStringRandom()
         eff_LASTEFFECT //Always the last entry
     };
     */
-//encapsulation is poor here
-//    djdebug("CreateEffectStringRandom: %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d", (const char*)EffectsPanel1->Choicebook1->GetName().c_str(), isRandom(EffectsPanel1->Choicebook1), (const char*)EffectsPanel2->Choicebook1->GetName().c_str(), isRandom(EffectsPanel2->Choicebook1), (const char*)Slider_EffectLayerMix->GetName().c_str(), isRandom(Slider_EffectLayerMix), (const char*)Slider_SparkleFrequency->GetName().c_str(), isRandom(Slider_SparkleFrequency), (const char*)Slider_Brightness->GetName().c_str(), isRandom(Slider_Brightness), (const char*)Slider_Contrast->GetName().c_str(), isRandom(Slider_Contrast));
-
     //   Old way
     eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
     eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
@@ -509,17 +519,27 @@ wxString xLightsFrame::CreateEffectStringRandom()
     return s;
 
 }
-#if 0 //example: //-DJ
-Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=100,
-                            E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                            E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
 
-                                    Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
-                                                             E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                                                             E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
-#endif // 0
+int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
+{
+    bool BAD_CHOICE=1;
+    int eff,count=0;
+    int MAX_TRIES=10;
 
-                                                                     wxString xLightsFrame::CreateEffectString()
+    //    srand (time(NULL));
+    while (BAD_CHOICE && count<MAX_TRIES)
+    {
+        count++;
+        eff=rand() % eff_LASTEFFECT;
+        BAD_CHOICE = (eff_NONE == eff || eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
+                      || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
+                      || eff_OFF == eff);
+    }
+    if(count==MAX_TRIES) eff=eff_NONE; // we failed to find a good effect after MAX_TRIES attempts
+    return eff;
+}
+
+wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -540,27 +560,6 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
     return s;
-}
-
-int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
-{
-    bool BAD_CHOICE=1;
-    int eff,count=0;
-    int MAX_TRIES=10;
-
-    /* initialize random seed: */
-    srand (time(NULL));
-    while (BAD_CHOICE && count<MAX_TRIES)
-    {
-        count++;
-
-        eff=rand() % eff_LASTEFFECT;
-        BAD_CHOICE = (eff_NONE == eff || eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
-                      || eff_FACES == eff || eff_COROFACES == eff ||eff_GLEDIATOR == eff
-                      || eff_OFF == eff);
-    }
-    if(count==MAX_TRIES) eff=eff_NONE; // we failed to find a good effect after MAX_TRIES attempts
-    return eff;
 }
 void xLightsFrame::GridCellChanged(int row, int col)
 {
@@ -1380,8 +1379,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Ripple")
     {
-        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Object_To_Draw"]),
-                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"Choice_Ripple_Movement"])
+        buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
+                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
@@ -3544,15 +3543,8 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 }
 
 
-static volatile bool isSaving = false;
-
 void xLightsFrame::SaveSequence()
 {
-    if (isSaving)
-    {
-        return;
-    }
-    
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -3560,8 +3552,6 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
-
-    isSaving = true;
 
     // save Grid1 to xml
     int rowcnt=Grid1->GetNumberRows();
@@ -3577,9 +3567,10 @@ void xLightsFrame::SaveSequence()
     if (xlightsFilename.IsEmpty())
     {
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-        do {
-            if (dialog.ShowModal() != wxID_OK) {
-                isSaving = false;
+        do
+        {
+            if (dialog.ShowModal() != wxID_OK)
+            {
                 return;
             }
             // validate inputs
@@ -3591,7 +3582,8 @@ void xLightsFrame::SaveSequence()
                 ok=false;
                 wxMessageBox(_("File name cannot be empty"), _("ERROR"));
             }
-        } while (!ok);
+        }
+        while (!ok);
         wxFileName oName(NewFilename);
         oName.SetPath( CurrentDir );
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
@@ -3601,6 +3593,7 @@ void xLightsFrame::SaveSequence()
         SeqXmlFileName=oName.GetFullPath();
     }
 
+    EnableSequenceControls(false);
 
     wxStopWatch sw; // start a stopwatch timer
 
@@ -3646,7 +3639,8 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     StatusBar1->SetStatusText(displayBuff);
     //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
-    isSaving = false;
+
+    EnableSequenceControls(true);
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)

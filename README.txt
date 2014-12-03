@@ -5,6 +5,9 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
+3.6.10	Dec 3, 2014
+	-bug (sean) "Create Random Effects"Would create None,None about 20% of time. This is now fixed. 
+	-bug (sean) Ripple was not rendering to PREVIEW screen or to actual lights. fixed
 3.6.9	Nov 29, 2014
     -bug (dkulp) Move Text effect rendering back to main thread due GDI calls it makes (to get Font info and to render the text) which is required to be done on the main thread.
     -bug (dkulp) Custom models that don't have an element in the grid for all channels in the range would cause buffer overruns on ModelExport
