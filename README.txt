@@ -5,6 +5,10 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
+   -bug (dkulp) If "Save" is clicked multiple times real quick, it could hang/crash as it tries to save/render things at the same time. Fixed by disabling the Save buttons while saving.
+   -bug (dkulp) Insert row inserting two rows, not one
+   -bug (dkulp) On the MAC, the clipboard sometimes used \r instead of \n.  (From Numbers for example) Update the paste to the grid to accomodate that.
+   -enh (dkulp) Change the "Play (F4)" button to be a Play/Stop toggle.
 3.6.9	Nov 29, 2014
     -bug (dkulp) Move Text effect rendering back to main thread due GDI calls it makes (to get Font info and to render the text) which is required to be done on the main thread.
     -bug (dkulp) Custom models that don't have an element in the grid for all channels in the range would cause buffer overruns on ModelExport
