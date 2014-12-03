@@ -3552,7 +3552,7 @@ void xLightsFrame::SaveSequence()
     {
         return;
     }
-    isSaving = true;
+    
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -3560,6 +3560,8 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
+
+    isSaving = true;
 
     // save Grid1 to xml
     int rowcnt=Grid1->GetNumberRows();
@@ -3575,9 +3577,11 @@ void xLightsFrame::SaveSequence()
     if (xlightsFilename.IsEmpty())
     {
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
-        do
-        {
-            if (dialog.ShowModal() != wxID_OK) return;
+        do {
+            if (dialog.ShowModal() != wxID_OK) {
+                isSaving = false;
+                return;
+            }
             // validate inputs
             NewFilename=dialog.GetValue();
             NewFilename.Trim();
@@ -3587,8 +3591,7 @@ void xLightsFrame::SaveSequence()
                 ok=false;
                 wxMessageBox(_("File name cannot be empty"), _("ERROR"));
             }
-        }
-        while (!ok);
+        } while (!ok);
         wxFileName oName(NewFilename);
         oName.SetPath( CurrentDir );
         oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
@@ -3643,7 +3646,7 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     StatusBar1->SetStatusText(displayBuff);
     //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
-    isSaving = true;
+    isSaving = false;
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
