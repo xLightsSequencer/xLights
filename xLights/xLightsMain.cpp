@@ -2287,6 +2287,7 @@ void xLightsFrame::StopNow(void)
         break;
     }
     Button_PlayEffect->SetLabel(_("Play Effect (F3)")); //toggle label -DJ
+    Button_PlayRgbSeq->SetLabel("Play (F4)");
 }
 
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
