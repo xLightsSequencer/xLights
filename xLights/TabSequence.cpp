@@ -32,6 +32,14 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 
 void xLightsFrame::PlayRgbSequence()
 {
+    if (SeqPlayerState == PLAYING_SEQ
+        || SeqPlayerState == PLAYING_SEQ_ANIM) {
+        StopNow();
+        Button_PlayRgbSeq->SetLabel("Play (F4)");
+        Button_PlayRgbSeq->Enable();
+        return;
+    }
+
     if (SeqData.size() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
@@ -59,6 +67,9 @@ void xLightsFrame::PlayRgbSequence()
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
     PlayCurrentXlightsFile();
+    Button_PlayRgbSeq->SetLabel("Stop (F4)");
+    Button_PlayRgbSeq->Enable();
+    Button_PlayEffect->Disable();
     heartbeat("playback seq", true); //tell fido to start watching -DJ
 }
 
@@ -125,6 +136,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
     EffectsPanel2->TextCtrl_Glediator_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
+    ButtonModelExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
     BitmapButtonInsertRow->Enable(enable);
@@ -3465,14 +3477,8 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 }
 
 
-static volatile bool isSaving = false;
-
 void xLightsFrame::SaveSequence()
 {
-    if (isSaving) {
-        return;
-    }
-    
     wxString NewFilename;
     bool ok;
     if (SeqData.size() == 0)
@@ -3480,8 +3486,6 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
-
-    isSaving = true;
 
     // save Grid1 to xml
     int rowcnt=Grid1->GetNumberRows();
@@ -3499,7 +3503,6 @@ void xLightsFrame::SaveSequence()
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         do {
             if (dialog.ShowModal() != wxID_OK) {
-                isSaving = false;
                 return;
             }
             // validate inputs
@@ -3521,7 +3524,8 @@ void xLightsFrame::SaveSequence()
         SeqXmlFileName=oName.GetFullPath();
     }
 
-
+    EnableSequenceControls(false);
+    
     wxStopWatch sw; // start a stopwatch timer
 
 
@@ -3566,7 +3570,8 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     StatusBar1->SetStatusText(displayBuff);
     //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
-    isSaving = false;
+    
+    EnableSequenceControls(true);
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
