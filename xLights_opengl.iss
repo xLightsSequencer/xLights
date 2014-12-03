@@ -33,6 +33,7 @@ Source: "bin/modelxls.awk"; DestDir: "{app}"
 Source: "bin/modelxls.bat"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
+Source: "include\xLights.ico"; DestDir: "{app}"
 Source: "C:\Users\sean\Documents\c++\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 

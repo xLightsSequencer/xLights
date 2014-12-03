@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES: 
 3.6.10	Dec 3, 2014
+	-bug (sean) Added missing xLights.ico file. You should see icon in tray now
 	-bug (sean) "Create Random Effects"Would create None,None about 20% of time. This is now fixed. 
 	-bug (sean) Ripple was not rendering to PREVIEW screen or to actual lights. fixed
 	-bug (dkulp) If "Save" is clicked multiple times real quick, it could hang/crash as it tries to save/render things at the same time. 
