@@ -32,6 +32,15 @@ void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 
 void xLightsFrame::PlayRgbSequence()
 {
+    if (SeqPlayerState == PLAYING_SEQ
+            || SeqPlayerState == PLAYING_SEQ_ANIM)
+    {
+        StopNow();
+        Button_PlayRgbSeq->SetLabel("Play (F4)");
+        Button_PlayRgbSeq->Enable();
+        return;
+    }
+
     if (SeqData.size() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
@@ -59,6 +68,9 @@ void xLightsFrame::PlayRgbSequence()
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
     EnableSequenceControls(false);
     PlayCurrentXlightsFile();
+    Button_PlayRgbSeq->SetLabel("Stop (F4)");
+    Button_PlayRgbSeq->Enable();
+    Button_PlayEffect->Disable();
     heartbeat("playback seq", true); //tell fido to start watching -DJ
 }
 
@@ -125,6 +137,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
     EffectsPanel2->TextCtrl_Glediator_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
+    ButtonModelExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
     BitmapButtonSaveSeq->Enable(enable);
     BitmapButtonInsertRow->Enable(enable);
@@ -430,25 +443,37 @@ wxString xLightsFrame::CreateEffectStringRandom()
         eff_LASTEFFECT //Always the last entry
     };
     */
-//encapsulation is poor here
-//    djdebug("CreateEffectStringRandom: %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d, %s rnd? %d", (const char*)EffectsPanel1->Choicebook1->GetName().c_str(), isRandom(EffectsPanel1->Choicebook1), (const char*)EffectsPanel2->Choicebook1->GetName().c_str(), isRandom(EffectsPanel2->Choicebook1), (const char*)Slider_EffectLayerMix->GetName().c_str(), isRandom(Slider_EffectLayerMix), (const char*)Slider_SparkleFrequency->GetName().c_str(), isRandom(Slider_SparkleFrequency), (const char*)Slider_Brightness->GetName().c_str(), isRandom(Slider_Brightness), (const char*)Slider_Contrast->GetName().c_str(), isRandom(Slider_Contrast));
+    //   Old way
     eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
     eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
+
+    //  new way
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
     {
-
-        eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1
-                || eff_OFF == eff1)? eff_NONE:eff1;
-        if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
+        eff1 = CreateRandomEffect(eff_LASTEFFECT);
+        /* eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
+                 || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1
+                 || eff_OFF == eff1)? eff_NONE:eff1;
+         if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
+             */
+    }
+    else
+    {
+        eff1 = EffectsPanel1->Choicebook1->GetSelection();
     }
     if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
     {
+        eff2 = CreateRandomEffect(eff_LASTEFFECT);
+        /*
         eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
                 || eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2
                 || eff_OFF == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
         if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
-
+            */
+    }
+    else
+    {
+        eff2 = EffectsPanel2->Choicebook1->GetSelection();
     }
 
     layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
@@ -463,7 +488,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
     //  first calculate it the old way
     int newbrightness = isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue();
     newbrightness=100; // but instead overwrite it. no matter what we are creating, lets not mess with brightness
-  //  s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
+    //  s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
     s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", newbrightness);
 
     s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
@@ -494,17 +519,27 @@ wxString xLightsFrame::CreateEffectStringRandom()
     return s;
 
 }
-#if 0 //example: //-DJ
-Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=100,
-                            E1_SLIDER_Speed=20,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=5,E1_CHECKBOX_ColorWash_HFade=1,E1_CHECKBOX_ColorWash_VFade=1,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=0,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                            E2_SLIDER_Speed=4,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_SLIDER_Spirals_Count=2,E2_SLIDER_Spirals_Rotation=313,E2_SLIDER_Spirals_Thickness=1,E2_SLIDER_Spirals_Direction=0,E2_CHECKBOX_Spirals_Blend=1,E2_CHECKBOX_Spirals_3D=1,E2_CHECKBOX_Spirals_Grow=0,E2_CHECKBOX_Spirals_Shrink=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=1,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=1,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=1
 
-                                    Color Wash,None,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=109,ID_SLIDER_Contrast=69,ID_SLIDER_EffectLayerMix=0,
-                                                             E1_SLIDER_Speed=18,E1_TEXTCTRL_Fadein=0.00,E1_TEXTCTRL_Fadeout=0.00,E1_CHECKBOX_FitToTime=0,E1_SLIDER_ColorWash_Count=8,E1_CHECKBOX_ColorWash_HFade=0,E1_CHECKBOX_ColorWash_VFade=0,E1_BUTTON_Palette1=#FF0000,E1_CHECKBOX_Palette1=1,E1_BUTTON_Palette2=#00FF00,E1_CHECKBOX_Palette2=1,E1_BUTTON_Palette3=#0000FF,E1_CHECKBOX_Palette3=1,E1_BUTTON_Palette4=#FFFF00,E1_CHECKBOX_Palette4=1,E1_BUTTON_Palette5=#FFFFFF,E1_CHECKBOX_Palette5=1,E1_BUTTON_Palette6=#000000,E1_CHECKBOX_Palette6=0,
-                                                             E2_SLIDER_Speed=10,E2_TEXTCTRL_Fadein=0.00,E2_TEXTCTRL_Fadeout=0.00,E2_CHECKBOX_FitToTime=0,E2_BUTTON_Palette1=#FF0000,E2_CHECKBOX_Palette1=0,E2_BUTTON_Palette2=#00FF00,E2_CHECKBOX_Palette2=0,E2_BUTTON_Palette3=#0000FF,E2_CHECKBOX_Palette3=0,E2_BUTTON_Palette4=#FFFF00,E2_CHECKBOX_Palette4=0,E2_BUTTON_Palette5=#FFFFFF,E2_CHECKBOX_Palette5=0,E2_BUTTON_Palette6=#000000,E2_CHECKBOX_Palette6=0</td>
-#endif // 0
+int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
+{
+    bool BAD_CHOICE=1;
+    int eff,count=0;
+    int MAX_TRIES=10;
 
-                                                                     wxString xLightsFrame::CreateEffectString()
+    //    srand (time(NULL));
+    while (BAD_CHOICE && count<MAX_TRIES)
+    {
+        count++;
+        eff=rand() % eff_LASTEFFECT;
+        BAD_CHOICE = (eff_NONE == eff || eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
+                      || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
+                      || eff_OFF == eff);
+    }
+    if(count==MAX_TRIES) eff=eff_NONE; // we failed to find a good effect after MAX_TRIES attempts
+    return eff;
+}
+
+wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -526,11 +561,14 @@ Color Wash,Spirals,Effect 1,ID_SLIDER_SparkleFrequency=200,ID_SLIDER_Brightness=
     s+=EffectsPanel2->GetEffectString();
     return s;
 }
-void xLightsFrame::GridCellChanged(int row, int col) {
-    if (row < changedRow) {
+void xLightsFrame::GridCellChanged(int row, int col)
+{
+    if (row < changedRow)
+    {
         changedRow = row;
     }
-    if (col < changedColumn) {
+    if (col < changedColumn)
+    {
         changedColumn = col;
     }
     UnsavedChanges = true;
@@ -632,6 +670,14 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
                     v = Grid1->GetCellValue(r, c);
                     break;
                 }
+<<<<<<< HEAD
+            if (c < nCols) //found a selected cell
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+                {
+                    //copy it to other cells in this row
+                    Grid1->SetCellValue(r, c, v);
+                    GridCellChanged(r, c);
+=======
 
                 if (c < nCols) //found a selected cell
                 {
@@ -643,6 +689,7 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
                             GridCellChanged(r, c);
                         }
                     }
+>>>>>>> threaded
                 }
             }
         }
@@ -655,6 +702,13 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         {
             v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
 //wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
+<<<<<<< HEAD
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+            {
+                //copy it to other cells in this row
+                Grid1->SetCellValue(r, c, v);
+                GridCellChanged(r, c);
+=======
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
                 //copy it to other cells in this row if column visible
                 if(Grid1->IsColShown(c))
@@ -662,6 +716,7 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
                     Grid1->SetCellValue(r, c, v);
                     GridCellChanged(r, c);
                 }
+>>>>>>> threaded
             }
         }
     }
@@ -682,8 +737,10 @@ void xLightsFrame::ClearEffectRow(wxCommandEvent& event)
         {
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
                 if (Grid1->IsInSelection(r,c)) break;
-            if (c < nCols) { //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+            if (c < nCols)   //found a selected cell
+            {
+                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+                {
                     Grid1->SetCellValue(r, c, "");
                     GridCellChanged(r, c);
                 }
@@ -693,7 +750,8 @@ void xLightsFrame::ClearEffectRow(wxCommandEvent& event)
     else
     {
         r = curCell->GetRow();
-        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+        for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+        {
             Grid1->SetCellValue(r, c, "");
             GridCellChanged(r, c);
         }
@@ -1180,9 +1238,38 @@ void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBuff
     buffer.SetPalette(layer,newcolors);
 }
 
+
+class EffectEvent
+{
+public:
+    EffectEvent(int l, int p, MapStringString& sm,
+                PixelBufferClass &b, bool *res) : mutex(), condition(mutex)
+    {
+        layer = l;
+        period = p;
+        SettingsMap = &sm;
+        buffer = &b;
+        ResetEffectState = res;
+    }
+    wxMutex mutex;
+    wxCondition condition;
+    int layer;
+    int period;
+    MapStringString *SettingsMap;
+    PixelBufferClass *buffer;
+    bool *ResetEffectState;
+    bool returnVal = false;
+};
+wxMutex thread1Mutex;
+wxCondition thread1Condition(thread1Mutex);
+std::vector<EffectEvent*>effectsToRender;
+std::vector<wxString> renderMessages;
+
+
 // layer is 0 or 1
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
-                                       PixelBufferClass &buffer, bool *ResetEffectState)
+                                       PixelBufferClass &buffer, bool *ResetEffectState,
+                                       bool bgThread)
 {
     bool retval=true;
 
@@ -1319,7 +1406,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Ripple")
     {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
-                            RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
+                            RippleMovement.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
                            );
     }
     else if (effect == "Shimmer")
@@ -1388,37 +1475,53 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "Text")
     {
-        buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
-                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter1"]) != 0,
-                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect1"]),
-                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count1"]),
-                          //
-                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position2"]),
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line2"],
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font2"],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir2"]),
-                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter2"]) != 0,
-                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect2"]),
-                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]),
-                          //
-                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position3"]),
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line3"],
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font3"],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir3"]),
-                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter3"]) != 0,
-                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect3"]),
-                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count3"]),
-                          //
-                          wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position4"]),
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Line4"],
-                          SettingsMap[LayerStr+"TEXTCTRL_Text_Font4"],
-                          TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir4"]),
-                          wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter4"]) != 0,
-                          TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect4"]),
-                          TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count4"]));
+        // this needs to be on the primary thread due to GDI calls
+        if (bgThread)
+        {
+            EffectEvent ev(layer, period, SettingsMap, buffer, ResetEffectState);
+            ev.mutex.Lock();
+            thread1Mutex.Lock();
+            effectsToRender.push_back(&ev);
+            thread1Condition.Broadcast();
+            thread1Mutex.Unlock();
+            ev.condition.Wait();
+            ev.mutex.Unlock();
+        }
+        else
+        {
+
+            buffer.RenderText(wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position1"]),
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Line1"],
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Font1"],
+                              TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir1"]),
+                              wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter1"]) != 0,
+                              TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect1"]),
+                              TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count1"]),
+                              //
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position2"]),
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Line2"],
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Font2"],
+                              TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir2"]),
+                              wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter2"]) != 0,
+                              TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect2"]),
+                              TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count2"]),
+                              //
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position3"]),
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Line3"],
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Font3"],
+                              TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir3"]),
+                              wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter3"]) != 0,
+                              TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect3"]),
+                              TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count3"]),
+                              //
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Text_Position4"]),
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Line4"],
+                              SettingsMap[LayerStr+"TEXTCTRL_Text_Font4"],
+                              TextEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Text_Dir4"]),
+                              wxAtoi(SettingsMap[LayerStr+"CHECKBOX_TextToCenter4"]) != 0,
+                              TextEffects.Index(SettingsMap[LayerStr+"CHOICE_Text_Effect4"]),
+                              TextCountDown.Index(SettingsMap[LayerStr+"CHOICE_Text_Count4"]));
+        }
     }
     else if (effect == "Tree")
     {
@@ -1483,40 +1586,40 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;   // none
     case eff_BARS:
         playBuffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
-                          panel->Choice_Bars_Direction->GetSelection(),
-                          panel->CheckBox_Bars_Highlight->GetValue(),
-                          panel->CheckBox_Bars_3D->GetValue());
+                              panel->Choice_Bars_Direction->GetSelection(),
+                              panel->CheckBox_Bars_Highlight->GetValue(),
+                              panel->CheckBox_Bars_3D->GetValue());
         break;
     case eff_BUTTERFLY:
         playBuffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
-                               panel->Slider_Butterfly_Style->GetValue(),
-                               panel->Slider_Butterfly_Chunks->GetValue(),
-                               panel->Slider_Butterfly_Skip->GetValue(),
-                               panel->Choice_Butterfly_Direction->GetSelection());
+                                   panel->Slider_Butterfly_Style->GetValue(),
+                                   panel->Slider_Butterfly_Chunks->GetValue(),
+                                   panel->Slider_Butterfly_Skip->GetValue(),
+                                   panel->Choice_Butterfly_Direction->GetSelection());
         break;
     case eff_CIRCLES:
         playBuffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
-                             panel->Slider_Circles_Size->GetValue(),
-                             panel->CheckBox_Circles_Bounce->GetValue(),
-                             panel->CheckBox_Circles_Collide->GetValue(),
-                             panel->CheckBox_Circles_Random_m->GetValue(),
-                             panel->CheckBox_Circles_Radial->GetValue(),
-                             panel->CheckBox_Circles_Radial_3D->GetValue(),
-                             playBuffer.BufferWi/2, playBuffer.BufferHt/2, //temp hard coding.
-                             panel->CheckBox_Circles_Plasma->GetValue()
-                            );
+                                 panel->Slider_Circles_Size->GetValue(),
+                                 panel->CheckBox_Circles_Bounce->GetValue(),
+                                 panel->CheckBox_Circles_Collide->GetValue(),
+                                 panel->CheckBox_Circles_Random_m->GetValue(),
+                                 panel->CheckBox_Circles_Radial->GetValue(),
+                                 panel->CheckBox_Circles_Radial_3D->GetValue(),
+                                 playBuffer.BufferWi/2, playBuffer.BufferHt/2, //temp hard coding.
+                                 panel->CheckBox_Circles_Plasma->GetValue()
+                                );
 
         break;
     case eff_COLORWASH:
         playBuffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
-                               panel->CheckBox_ColorWash_VFade->GetValue(),
-                               panel->Slider_ColorWash_Count->GetValue());
+                                   panel->CheckBox_ColorWash_VFade->GetValue(),
+                                   panel->Slider_ColorWash_Count->GetValue());
         break;
     case eff_CURTAIN:
         playBuffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
-                             panel->Choice_Curtain_Effect->GetSelection(),
-                             panel->Slider_Curtain_Swag->GetValue(),
-                             panel->CheckBox_Curtain_Repeat->GetValue());
+                                 panel->Choice_Curtain_Effect->GetSelection(),
+                                 panel->Slider_Curtain_Swag->GetValue(),
+                                 panel->CheckBox_Curtain_Repeat->GetValue());
         break;
     case eff_FACES:
         playBuffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
@@ -1533,155 +1636,155 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         }
 #endif // 0
         playBuffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
-                               panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
-                               panel->CheckBox_CoroFaces_Outline->GetValue());
+                                   panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
+                                   panel->CheckBox_CoroFaces_Outline->GetValue());
         break;
 
     case eff_FIRE:
         playBuffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
-                          panel->Slider_Fire_HueShift->GetValue(),
-                          panel->CheckBox_Fire_GrowFire->GetValue());
+                              panel->Slider_Fire_HueShift->GetValue(),
+                              panel->CheckBox_Fire_GrowFire->GetValue());
         break;
     case eff_FIREWORKS:
         playBuffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
-                               panel->Slider_Fireworks_Count->GetValue(),
-                               panel->Slider_Fireworks_Velocity->GetValue(),
-                               panel->Slider_Fireworks_Fade->GetValue());
+                                   panel->Slider_Fireworks_Count->GetValue(),
+                                   panel->Slider_Fireworks_Velocity->GetValue(),
+                                   panel->Slider_Fireworks_Fade->GetValue());
         break;
     case eff_GARLANDS:
         playBuffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
-                              panel->Slider_Garlands_Spacing->GetValue());
+                                  panel->Slider_Garlands_Spacing->GetValue());
         break;
     case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
         playBuffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
         break;
     case eff_LIFE:
         playBuffer.RenderLife(panel->Slider_Life_Count->GetValue(),
-                          panel->Slider_Life_Seed->GetValue());
+                              panel->Slider_Life_Seed->GetValue());
         break;
     case eff_METEORS:
         playBuffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
-                             panel->Slider_Meteors_Count->GetValue(),
-                             panel->Slider_Meteors_Length->GetValue(),
-                             panel->Choice_Meteors_Effect->GetSelection(),
-                             panel->Slider_Meteors_Swirl_Intensity->GetValue());
+                                 panel->Slider_Meteors_Count->GetValue(),
+                                 panel->Slider_Meteors_Length->GetValue(),
+                                 panel->Choice_Meteors_Effect->GetSelection(),
+                                 panel->Slider_Meteors_Swirl_Intensity->GetValue());
         break;
     case eff_PIANO: //changed slider to choice list, added other controls -DJ
         playBuffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
-                           panel->Slider_Piano_NumKeys->GetValue(),
-                           panel->Slider_Piano_NumRows->GetValue(),
-                           panel->Choice_Piano_KeyPlacement->GetSelection(),
-                           panel->CheckBox_Piano_Clipping->GetValue(),
-                           panel->TextCtrl_Piano_CueFilename->GetValue(),
-                           panel->TextCtrl_Piano_MapFilename->GetValue(),
-                           panel->TextCtrl_Piano_ShapeFilename->GetValue());
+                               panel->Slider_Piano_NumKeys->GetValue(),
+                               panel->Slider_Piano_NumRows->GetValue(),
+                               panel->Choice_Piano_KeyPlacement->GetSelection(),
+                               panel->CheckBox_Piano_Clipping->GetValue(),
+                               panel->TextCtrl_Piano_CueFilename->GetValue(),
+                               panel->TextCtrl_Piano_MapFilename->GetValue(),
+                               panel->TextCtrl_Piano_ShapeFilename->GetValue());
         break;
     case eff_PICTURES:
         playBuffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
-                              panel->TextCtrl_Pictures_Filename->GetValue(),
-                              panel->Slider_Pictures_GifSpeed->GetValue());
+                                  panel->TextCtrl_Pictures_Filename->GetValue(),
+                                  panel->Slider_Pictures_GifSpeed->GetValue());
         break;
     case eff_PINWHEEL:
         playBuffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
-                              panel->Slider_Pinwheel_Twist->GetValue(),
-                              panel->Slider_Pinwheel_Thickness->GetValue(),
-                              panel->CheckBox_Pinwheel_Rotation->GetValue(),
-                              panel->Choice_Pinwheel_3D->GetSelection(),
-                              panel->Slider_PinwheelXC->GetValue(),
-                              panel->Slider_PinwheelYC->GetValue(),
-                              panel->Slider_Pinwheel_ArmSize->GetValue()
-                             );
+                                  panel->Slider_Pinwheel_Twist->GetValue(),
+                                  panel->Slider_Pinwheel_Thickness->GetValue(),
+                                  panel->CheckBox_Pinwheel_Rotation->GetValue(),
+                                  panel->Choice_Pinwheel_3D->GetSelection(),
+                                  panel->Slider_PinwheelXC->GetValue(),
+                                  panel->Slider_PinwheelYC->GetValue(),
+                                  panel->Slider_Pinwheel_ArmSize->GetValue()
+                                 );
         break;
     case eff_RIPPLE:
         playBuffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
-                            panel->Choice_Ripple_Movement->GetSelection());
+                                panel->Choice_Ripple_Movement->GetSelection());
         break;
     case eff_SHIMMER:
         playBuffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
-                             panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
-                             panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
-                             panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
+                                 panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
+                                 panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
+                                 panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
         break;
     case eff_SINGLESTRAND:
         if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection()))
         {
             playBuffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
-                                           panel->Slider_Skips_SkipSize->GetValue(),
-                                           panel->Slider_Skips_StartPos->GetValue(),
-                                           panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
+                                               panel->Slider_Skips_SkipSize->GetValue(),
+                                               panel->Slider_Skips_StartPos->GetValue(),
+                                               panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
         }
         else
         {
             playBuffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
-                                           panel->Slider_Number_Chases->GetValue(),
-                                           panel->Slider_Color_Mix1->GetValue(),
-                                           panel->Slider_Chase_Spacing1->GetValue(),
-                                           panel->Choice_Chase_Type1->GetSelection(),
-                                           panel->CheckBox_Chase_3dFade1->GetValue(),
-                                           panel->CheckBox_Chase_Group_All->GetValue());
+                                               panel->Slider_Number_Chases->GetValue(),
+                                               panel->Slider_Color_Mix1->GetValue(),
+                                               panel->Slider_Chase_Spacing1->GetValue(),
+                                               panel->Choice_Chase_Type1->GetSelection(),
+                                               panel->CheckBox_Chase_3dFade1->GetValue(),
+                                               panel->CheckBox_Chase_Group_All->GetValue());
         }
         break;
     case eff_SNOWFLAKES:
         playBuffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
-                                panel->Slider_Snowflakes_Type->GetValue());
+                                    panel->Slider_Snowflakes_Type->GetValue());
         break;
     case eff_SNOWSTORM:
         playBuffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
-                               panel->Slider_Snowstorm_Length->GetValue());
+                                   panel->Slider_Snowstorm_Length->GetValue());
         break;
     case eff_SPIRALS:
         playBuffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
-                             panel->Slider_Spirals_Direction->GetValue(),
-                             panel->Slider_Spirals_Rotation->GetValue(),
-                             panel->Slider_Spirals_Thickness->GetValue(),
-                             panel->CheckBox_Spirals_Blend->GetValue(),
-                             panel->CheckBox_Spirals_3D->GetValue(),
-                             panel->CheckBox_Spirals_Grow->GetValue(),
-                             panel->CheckBox_Spirlas_Shrink->GetValue());
+                                 panel->Slider_Spirals_Direction->GetValue(),
+                                 panel->Slider_Spirals_Rotation->GetValue(),
+                                 panel->Slider_Spirals_Thickness->GetValue(),
+                                 panel->CheckBox_Spirals_Blend->GetValue(),
+                                 panel->CheckBox_Spirals_3D->GetValue(),
+                                 panel->CheckBox_Spirals_Grow->GetValue(),
+                                 panel->CheckBox_Spirlas_Shrink->GetValue());
         break;
     case eff_SPIROGRAPH:
         playBuffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
-                                panel->Slider_Spirograph_r->GetValue(),
-                                panel->Slider_Spirograph_d->GetValue(),
-                                panel->CheckBox_Spirograph_Animate->GetValue());
+                                    panel->Slider_Spirograph_r->GetValue(),
+                                    panel->Slider_Spirograph_d->GetValue(),
+                                    panel->CheckBox_Spirograph_Animate->GetValue());
         break;
     case eff_STROBE:
         playBuffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
-                            panel->Slider_Strobe_Duration->GetValue(),
-                            panel->Slider_Strobe_Type->GetValue());
+                                panel->Slider_Strobe_Duration->GetValue(),
+                                panel->Slider_Strobe_Type->GetValue());
         break;
     case eff_TEXT:
         playBuffer.RenderText(panel->Slider_Text_Position1->GetValue(),
-                          panel->TextCtrl_Text_Line1->GetValue(),
-                          panel->TextCtrl_Text_Font1->GetValue(),
-                          panel->Choice_Text_Dir1->GetSelection(),
-                          panel->CheckBox_TextToCenter1->GetValue(),
-                          panel->Choice_Text_Effect1->GetSelection(),
-                          panel->Choice_Text_Count1->GetSelection(),
-                          //
-                          panel->Slider_Text_Position2->GetValue(),
-                          panel->TextCtrl_Text_Line2->GetValue(),
-                          panel->TextCtrl_Text_Font2->GetValue(),
-                          panel->Choice_Text_Dir2->GetSelection(),
-                          panel->CheckBox_TextToCenter2->GetValue(),
-                          panel->Choice_Text_Effect2->GetSelection(),
-                          panel->Choice_Text_Count2->GetSelection(),
-                          //
-                          panel->Slider_Text_Position3->GetValue(),
-                          panel->TextCtrl_Text_Line3->GetValue(),
-                          panel->TextCtrl_Text_Font3->GetValue(),
-                          panel->Choice_Text_Dir3->GetSelection(),
-                          panel->CheckBox_TextToCenter3->GetValue(),
-                          panel->Choice_Text_Effect3->GetSelection(),
-                          panel->Choice_Text_Count3->GetSelection(),
-                          //
-                          panel->Slider_Text_Position4->GetValue(),
-                          panel->TextCtrl_Text_Line4->GetValue(),
-                          panel->TextCtrl_Text_Font4->GetValue(),
-                          panel->Choice_Text_Dir4->GetSelection(),
-                          panel->CheckBox_TextToCenter4->GetValue(),
-                          panel->Choice_Text_Effect4->GetSelection(),
-                          panel->Choice_Text_Count4->GetSelection());
+                              panel->TextCtrl_Text_Line1->GetValue(),
+                              panel->TextCtrl_Text_Font1->GetValue(),
+                              panel->Choice_Text_Dir1->GetSelection(),
+                              panel->CheckBox_TextToCenter1->GetValue(),
+                              panel->Choice_Text_Effect1->GetSelection(),
+                              panel->Choice_Text_Count1->GetSelection(),
+                              //
+                              panel->Slider_Text_Position2->GetValue(),
+                              panel->TextCtrl_Text_Line2->GetValue(),
+                              panel->TextCtrl_Text_Font2->GetValue(),
+                              panel->Choice_Text_Dir2->GetSelection(),
+                              panel->CheckBox_TextToCenter2->GetValue(),
+                              panel->Choice_Text_Effect2->GetSelection(),
+                              panel->Choice_Text_Count2->GetSelection(),
+                              //
+                              panel->Slider_Text_Position3->GetValue(),
+                              panel->TextCtrl_Text_Line3->GetValue(),
+                              panel->TextCtrl_Text_Font3->GetValue(),
+                              panel->Choice_Text_Dir3->GetSelection(),
+                              panel->CheckBox_TextToCenter3->GetValue(),
+                              panel->Choice_Text_Effect3->GetSelection(),
+                              panel->Choice_Text_Count3->GetSelection(),
+                              //
+                              panel->Slider_Text_Position4->GetValue(),
+                              panel->TextCtrl_Text_Line4->GetValue(),
+                              panel->TextCtrl_Text_Font4->GetValue(),
+                              panel->Choice_Text_Dir4->GetSelection(),
+                              panel->CheckBox_TextToCenter4->GetValue(),
+                              panel->Choice_Text_Effect4->GetSelection(),
+                              panel->Choice_Text_Count4->GetSelection());
 
         break;
     case eff_TREE:
@@ -1689,17 +1792,17 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_TWINKLE:
         playBuffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
-                             panel->Slider_Twinkle_Steps->GetValue(),
-                             panel->CheckBox_Twinkle_Strobe->GetValue());
+                                 panel->Slider_Twinkle_Steps->GetValue(),
+                                 panel->CheckBox_Twinkle_Strobe->GetValue());
         break;
     case eff_WAVE:
         playBuffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
-                          panel->Choice_Fill_Colors->GetSelection(),
-                          panel->CheckBox_Mirror_Wave->GetValue(),
-                          panel->Slider_Number_Waves->GetValue(),
-                          panel->Slider_Thickness_Percentage->GetValue(),
-                          panel->Slider_Wave_Height->GetValue(),
-                          panel->Choice_Wave_Direction->GetSelection());
+                              panel->Choice_Fill_Colors->GetSelection(),
+                              panel->CheckBox_Mirror_Wave->GetValue(),
+                              panel->Slider_Number_Waves->GetValue(),
+                              panel->Slider_Thickness_Percentage->GetValue(),
+                              panel->Slider_Wave_Height->GetValue(),
+                              panel->Choice_Wave_Direction->GetSelection());
         break;
 
     }
@@ -1821,6 +1924,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (xout) xout->alloff();
             ResetTimer(NO_SEQ);
             EnableSequenceControls(true);
+            Button_PlayEffect->SetLabel("Play Effect (F3)");
+            Button_PlayRgbSeq->SetLabel("Play (F4)");
         }
         else
         {
@@ -1879,6 +1984,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (xout) xout->alloff();
             ResetTimer(NO_SEQ);
             EnableSequenceControls(true);
+            Button_PlayEffect->SetLabel("Play Effect (F3)");
+            Button_PlayRgbSeq->SetLabel("Play (F4)");
         }
         else
         {
@@ -2997,13 +3104,12 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
-wxMutex msgMutex;
-std::vector<wxString> renderMessages;
-
-class xLightsRenderThread : public wxThread {
+class xLightsRenderThread : public wxThread
+{
 public:
     xLightsRenderThread(int col, const wxString &name, wxXmlNode *node, int numPeriods,
-                        xLightsFrame *f, xLightsRenderThread ** thr) {
+                        xLightsFrame *f, xLightsRenderThread ** thr)
+    {
         myCol = col;
         completed = -1;
         prevCompleted = -1;
@@ -3015,7 +3121,8 @@ public:
         ColName = name;
         firstRow = 0;
     }
-    void AddEffectString(long time, const wxString &ef) {
+    void AddEffectString(long time, const wxString &ef)
+    {
         startTimes.push_back(time);
         effects.push_back(ef);
     }
@@ -3023,10 +3130,12 @@ public:
     {
         firstRow = i;
     }
-    void SetPreviousColCompleted(int i) {
+    void SetPreviousColCompleted(int i)
+    {
         prevCompleted = i;
     }
-    ExitCode Entry () {
+    ExitCode Entry ()
+    {
         bool bufferClear = false;
         MapStringString SettingsMap;
         xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
@@ -3044,25 +3153,32 @@ public:
                 int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
                 int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
 
-                if (!persist1 || "None" == effect1) {
+                if (!persist1 || "None" == effect1)
+                {
                     bufferClear = true;
                     buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
                 }
-                if (!persist2 || "None" == effect2) {
+                if (!persist2 || "None" == effect2)
+                {
                     buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-                } else {
+                }
+                else
+                {
                     bufferClear = false;
                 }
             }
             if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
-                while (NextGridRowToPlay > prevCompleted) {
+                while (NextGridRowToPlay > prevCompleted)
+                {
                     //spin until we can continue, should replace with a semaphore or something
                     Sleep(10);
                 }
-                while (NextGridRowToPlay > (completed + 1)) {
+                while (NextGridRowToPlay > (completed + 1))
+                {
                     completed++;
-                    if (threads[myCol + 1] != NULL) {
+                    if (threads[myCol + 1] != NULL)
+                    {
                         threads[myCol + 1]->SetPreviousColCompleted(completed);
                     }
                 }
@@ -3072,10 +3188,23 @@ public:
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
                 {
+<<<<<<< HEAD
+                    wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,effects.size()));
+                    if (onMainThread) {
+                        xLights->SetStatusText(msg);
+                        wxYield();
+                    } else {
+                        thread1Mutex.Lock();
+                        renderMessages.push_back(msg);
+                        thread1Condition.Broadcast();
+                        thread1Mutex.Unlock();
+                    }
+=======
                     wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
                     msgMutex.Lock();
                     renderMessages.push_back(msg);
                     msgMutex.Unlock();
+>>>>>>> threaded
 
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
@@ -3107,14 +3236,20 @@ public:
                 }
 
                 int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
-                while (calcedNextRow > prevCompleted) {
+                while (calcedNextRow > prevCompleted)
+                {
                     //spin until we can continue, should replace with a semaphore or something
                     Sleep(10);
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+<<<<<<< HEAD
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
+=======
             bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
             effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
+>>>>>>> threaded
 
             if (effectsToUpdate)
             {
@@ -3137,19 +3272,34 @@ public:
             }//if (effectsToUpdate)
         } //for (int p=0; p<SeqNumPeriods; p++)
 
-        completed = effects.size() + 1;
-        if (threads[myCol + 1] != NULL) {
+        wxString msg=_(wxString::Format("Finished saving %s",ColName));
+        completed = effects.size() + 100;
+        thread1Mutex.Lock();
+        if (threads[myCol + 1] != NULL)
+        {
             threads[myCol + 1]->SetPreviousColCompleted(completed);
         }
         threads[myCol] = NULL;
+        renderMessages.push_back(msg);
+        thread1Condition.Broadcast();
+        thread1Mutex.Unlock();
         return NULL;
     }
 
+<<<<<<< HEAD
+    PixelBufferClass &GetBuffer()
+    {
+=======
     PixelBufferClass &GetBuffer() {
+>>>>>>> threaded
         return buffer;
     }
-    int GetRowCompleted() {
+    int GetRowCompleted()
+    {
         return completed;
+    }
+    void SetOnMainThread() {
+        onMainThread = true;
     }
 private:
     int firstRow;
@@ -3158,6 +3308,10 @@ private:
     wxString ColName;
     volatile int prevCompleted;
     int completed;
+<<<<<<< HEAD
+    bool onMainThread = false;
+=======
+>>>>>>> threaded
 
     wxXmlNode *ModelNode;
 
@@ -3169,6 +3323,8 @@ private:
     xLightsRenderThread ** threads;
 };
 
+
+
 void xLightsFrame::RenderGridToSeqData()
 {
     wxString ColName,msg, EffectStr;
@@ -3178,15 +3334,18 @@ void xLightsFrame::RenderGridToSeqData()
     wxXmlNode *ModelNode;
 
     xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt + 1];
-    for (int x = 0 ; x < colcnt + 1; x++) {
+    for (int x = 0 ; x < colcnt + 1; x++)
+    {
         threads[x] = NULL;
     }
     int firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
     int firstRowToRender = 0;
-    if (FastSave_CheckBox->IsChecked()) {
+    if (FastSave_CheckBox->IsChecked())
+    {
         firstColToRender = changedColumn;
         firstRowToRender = changedRow;
-        if (firstColToRender < XLIGHTS_SEQ_STATIC_COLUMNS) {
+        if (firstColToRender < XLIGHTS_SEQ_STATIC_COLUMNS)
+        {
             firstColToRender = XLIGHTS_SEQ_STATIC_COLUMNS;
         }
     }
@@ -3196,13 +3355,15 @@ void xLightsFrame::RenderGridToSeqData()
         threads[c] = NULL;
         ColName=Grid1->GetColLabelValue(c);
         ModelNode=GetModelNode(ColName);
-        if (!ModelNode) {
+        if (!ModelNode)
+        {
             continue;
         }
 
         xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
         threads[c] = thread;
-        if (c == firstColToRender) {
+        if (c == firstColToRender)
+        {
             thread->SetPreviousColCompleted(rowcnt);
         }
         thread->setFirstRowToRender(firstRowToRender);
@@ -3224,13 +3385,21 @@ void xLightsFrame::RenderGridToSeqData()
             SeqDataLen=SeqNumChannels*SeqNumPeriods;
             SeqData.resize(SeqDataLen,0);
         }
-        for (int x = 0; x < rowcnt; x++) {
+        for (int x = 0; x < rowcnt; x++)
+        {
             thread->AddEffectString(GetGridStartTimeMSec(x), Grid1->GetCellValue(x,c));
         }
-        if (thread->Run() != wxTHREAD_NO_ERROR ) {
+        if (!threadedSave) {
+            thread->SetOnMainThread();
+            thread->SetPreviousColCompleted(rowcnt);
+            thread->Entry();
+            delete thread;
+        } else if (thread->Run() != wxTHREAD_NO_ERROR ) {
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
+<<<<<<< HEAD
+=======
 
         //thread->Entry();
         //threads[c] = NULL;
@@ -3245,26 +3414,44 @@ void xLightsFrame::RenderGridToSeqData()
             wxYield();
         }
         */
+>>>>>>> threaded
     }
-    for (int x = 0; x < colcnt; x++) {
-        while (threads[x] != NULL) {
-            msgMutex.Lock();
-            for (int y = 0; y < renderMessages.size(); y++) {
+    for (int x = 0; x < colcnt; x++)
+    {
+        while (threads[x] != NULL)
+        {
+            thread1Mutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++)
+            {
                 SetStatusText(renderMessages[y]);
             }
             renderMessages.clear();
-            msgMutex.Unlock();
-            wxYield();
-            wxMilliSleep(25);
+            thread1Mutex.Unlock();
+            wxYield(); //yield now to get the status out
+
+            thread1Mutex.Lock();
+            for (int y = 0; y < effectsToRender.size(); y++)
+            {
+                EffectEvent *ev = effectsToRender[y];
+                ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+                                                    *ev->SettingsMap,
+                                                    *ev->buffer, ev->ResetEffectState);
+
+                ev->condition.Broadcast();
+            }
+            effectsToRender.clear();
+            thread1Condition.WaitTimeout(10);
+            thread1Mutex.Unlock();
         }
     }
 
-    msgMutex.Lock();
-    for (int y = 0; y < renderMessages.size(); y++) {
+    thread1Mutex.Lock();
+    for (int y = 0; y < renderMessages.size(); y++)
+    {
         SetStatusText(renderMessages[y]);
     }
     renderMessages.clear();
-    msgMutex.Unlock();
+    thread1Mutex.Unlock();
     delete [] threads;
     changedColumn = 99999;
     changedRow = 99999;
@@ -3286,7 +3473,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
-    retData = new SeqDataType(buffer.GetChanCount() * SeqNumPeriods);
+    int max = buffer.GetChanCount() * SeqNumPeriods;
+    retData = new SeqDataType(max);
 
     size_t firstChannel = 0;
     if (modelNode->GetAttribute("exportFirstStrand") != "")
@@ -3326,15 +3514,25 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
         ColName=Grid1->GetColLabelValue(c);
         if (ColName != buffer.name) continue;
 
-        NextGridRowToPlay=0;
+        int NextGridRowToPlay=0;
         for (int p=0; p<SeqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-//            buffer.Clear();
-            if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+
+            wxString effect1=SettingsMap["E1_Effect"];
+            wxString effect2=SettingsMap["E1_Effect"];
+            int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
+            int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
+
+            if (!persist1 || "None" == effect1)
+            {
                 buffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
-            if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+            }
+            if (!persist2 || "None" == effect2)
+            {
                 buffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
+            }
+
 
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
@@ -3395,7 +3593,8 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                         {
                             chnum = cn * NodeCnt - firstChannel + chnum;
                         }
-                        (*retData)[chnum*SeqNumPeriods+p]=intensity;
+                        unsigned long idx = chnum * SeqNumPeriods + p;
+                        (*retData)[idx]=intensity;
                     }
                 }
             }//if (effectsToUpdate)
@@ -3407,6 +3606,7 @@ void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
 }
+
 
 void xLightsFrame::SaveSequence()
 {
@@ -3434,7 +3634,10 @@ void xLightsFrame::SaveSequence()
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         do
         {
-            if (dialog.ShowModal() != wxID_OK) return;
+            if (dialog.ShowModal() != wxID_OK)
+            {
+                return;
+            }
             // validate inputs
             NewFilename=dialog.GetValue();
             NewFilename.Trim();
@@ -3455,6 +3658,7 @@ void xLightsFrame::SaveSequence()
         SeqXmlFileName=oName.GetFullPath();
     }
 
+    EnableSequenceControls(false);
 
     wxStopWatch sw; // start a stopwatch timer
 
@@ -3500,6 +3704,8 @@ void xLightsFrame::SaveSequence()
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
     StatusBar1->SetStatusText(displayBuff);
     //  StatusBar1->SetStatusText(_("Updated ")+xlightsFilename);
+
+    EnableSequenceControls(true);
 }
 
 void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
@@ -3546,8 +3752,8 @@ void xLightsFrame::InsertRow()
         return;
     }
     int r=Grid1->GetGridCursorRow();
-    GridCellChanged(r, 0);
-    Grid1->InsertRows( r, 2);
+    GridCellChanged(r + 1, 0);
+    Grid1->InsertRows(r + 1, 1);
     // only the first 2 columns are editable; set everything else to read-only
     int n=Grid1->GetNumberCols();
     for (int c=XLIGHTS_SEQ_STATIC_COLUMNS; c < n; c++)
@@ -3567,17 +3773,24 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
     if ( Grid1->IsSelection() )
     {
         wxGridUpdateLocker locker(Grid1);
-        for ( int n = 0; n < Grid1->GetNumberRows(); )
+        int c=Grid1->GetGridCursorCol();
+        for (int n = Grid1->GetNumberRows() - 1; n >= 0; n--)
         {
-            if ( Grid1->IsInSelection( n , 0 ) ) {
+            if ( Grid1->IsInSelection( n , c ) )
+            {
                 Grid1->DeleteRows( n, 1 );
                 GridCellChanged(n, 0);
-            } else {
-                n++;
+                UnsavedChanges = true;
             }
         }
     }
-    UnsavedChanges = true;
+    else
+    {
+        int r=Grid1->GetGridCursorRow();
+        Grid1->DeleteRows( r, 1 );
+        GridCellChanged(r, 0);
+        UnsavedChanges = true;
+    }
 }
 
 void xLightsFrame::OnButtonDisplayElementsClick(wxCommandEvent& event)
@@ -3743,6 +3956,7 @@ void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
     wxStopWatch sw;
     wxString Out3=format.Left(3);
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+    wxYield();
 
     if (Out3 == "LSP")
     {
@@ -3859,7 +4073,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         wxMessageBox("No grid rows to save!", "Error");
         return;
     }
-    int DlgResult,cpn;
+    int DlgResult;
     bool ok;
     wxString filename;
     wxXmlNode* modelNode;
@@ -3890,13 +4104,12 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 
     if(!modelNode) return;
 
-    PixelBufferClass buffer;
-    buffer.InitBuffer(modelNode,true);
-    numChan = buffer.GetChanCount();
-    int numNodes = buffer.GetNodeCount();
-    if(numNodes>0)  cpn = numChan/numNodes;
-    else cpn=0;
-    dataBuf = RenderModelToData(modelNode, buffer);
+    PixelBufferClass *buffer = new PixelBufferClass();
+    buffer->InitBuffer(modelNode,true);
+    numChan = buffer->GetChanCount();
+    int cpn = buffer->GetChanCountPerNode();
+    dataBuf = RenderModelToData(modelNode, *buffer);
+    delete buffer;
 
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
@@ -3911,6 +4124,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     wxString fullpath;
 
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+    wxYield();
 
     if (Out3 == "Lcb")
     {
@@ -4246,7 +4460,9 @@ void xLightsFrame::PasteFromClipboard()
     int numrows=Grid1->GetNumberRows();
     int numcols=Grid1->GetNumberCols();
     bool errflag=false;
-
+#ifdef __WXOSX__
+    copy_data.Replace("\r", "\n");
+#endif
     do
     {
         cur_line = copy_data.BeforeFirst('\n');
