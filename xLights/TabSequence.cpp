@@ -625,18 +625,26 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         int nRows = Grid1->GetNumberRows();
         for (r = 0; r < nRows; r++)
         {
-            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+            {//find first selected cell
                 if (Grid1->IsInSelection(r,c))
                 {
                     v = Grid1->GetCellValue(r, c);
                     break;
                 }
-            if (c < nCols) //found a selected cell
-                for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
-                    //copy it to other cells in this row
-                    Grid1->SetCellValue(r, c, v);
-                    GridCellChanged(r, c);
+
+                if (c < nCols) //found a selected cell
+                {
+                    for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                    //copy it to other cells in this row, only if colunm visible
+                        if(Grid1->IsColShown(c))
+                        {
+                            Grid1->SetCellValue(r, c, v);
+                            GridCellChanged(r, c);
+                        }
+                    }
                 }
+            }
         }
     }
     else
@@ -648,9 +656,12 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
             v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
 //wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
-                //copy it to other cells in this row
-                Grid1->SetCellValue(r, c, v);
-                GridCellChanged(r, c);
+                //copy it to other cells in this row if column visible
+                if(Grid1->IsColShown(c))
+                {
+                    Grid1->SetCellValue(r, c, v);
+                    GridCellChanged(r, c);
+                }
             }
         }
     }
@@ -3019,13 +3030,13 @@ public:
         bool bufferClear = false;
         MapStringString SettingsMap;
         xLights->LoadSettingsMap("None,None,Effect 1", SettingsMap);
-        
+
         int NextGridRowToPlay=firstRow;
         long msec = 0;
         for (int p=0; p<seqNumPeriods; p++)
         {
             msec=p * XTIMER_INTERVAL;
-            
+
             if (!bufferClear)
             {
                 wxString effect1=SettingsMap["E1_Effect"];
@@ -3056,7 +3067,7 @@ public:
                     }
                 }
                 // start next effect
-                
+
                 wxString EffectStr=effects[NextGridRowToPlay];
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
@@ -3065,7 +3076,7 @@ public:
                     msgMutex.Lock();
                     renderMessages.push_back(msg);
                     msgMutex.Unlock();
-                    
+
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
                     //StatusBar1->SetStatusText(msg);
@@ -3078,23 +3089,23 @@ public:
                     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
                     if (freq == xLights->Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
-                    
+
                     int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
                     buffer.SetBrightness(brightness);
                     //                    int b = ModelBrightness;
-                    
+
                     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
                     buffer.SetContrast(contrast);
                     xLights->UpdateBufferFadesFromMap(1, SettingsMap,buffer);
                     xLights->UpdateBufferFadesFromMap(2, SettingsMap,buffer);
                     xLights->UpdateFitToTimeFromMap(1, SettingsMap,buffer);
                     xLights->UpdateFitToTimeFromMap(2, SettingsMap,buffer);
-                    
+
                     int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
                     buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
                     //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
                 }
-                
+
                 int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
                 while (calcedNextRow > prevCompleted) {
                     //spin until we can continue, should replace with a semaphore or something
@@ -3104,7 +3115,7 @@ public:
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
             effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
-            
+
             if (effectsToUpdate)
             {
                 bufferClear = false;
@@ -3133,7 +3144,7 @@ public:
         threads[myCol] = NULL;
         return NULL;
     }
-    
+
     PixelBufferClass &GetBuffer() {
         return buffer;
     }
@@ -3147,7 +3158,7 @@ private:
     wxString ColName;
     volatile int prevCompleted;
     int completed;
-    
+
     wxXmlNode *ModelNode;
 
     PixelBufferClass buffer;
@@ -3165,7 +3176,7 @@ void xLightsFrame::RenderGridToSeqData()
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
     wxXmlNode *ModelNode;
-    
+
     xLightsRenderThread ** threads = new xLightsRenderThread*[colcnt + 1];
     for (int x = 0 ; x < colcnt + 1; x++) {
         threads[x] = NULL;
@@ -3188,7 +3199,7 @@ void xLightsFrame::RenderGridToSeqData()
         if (!ModelNode) {
             continue;
         }
-        
+
         xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
         threads[c] = thread;
         if (c == firstColToRender) {
@@ -3220,7 +3231,7 @@ void xLightsFrame::RenderGridToSeqData()
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
-         
+
         //thread->Entry();
         //threads[c] = NULL;
         /*
