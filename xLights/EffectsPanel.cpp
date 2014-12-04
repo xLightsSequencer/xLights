@@ -265,12 +265,7 @@ const long EffectsPanel::ID_BITMAPBUTTON13 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT74 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Ripple_Thickness = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON14 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
-const long EffectsPanel::ID_SLIDER5 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON15 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Ripple_Blend = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON21 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX3 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Ripple3D = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON17 = wxNewId();
 const long EffectsPanel::ID_PANELRipple = wxNewId();
 const long EffectsPanel::ID_STATICTEXT68 = wxNewId();
@@ -1456,30 +1451,16 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer57->Add(BitmapButton_Ripple_Movement, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     StaticText72 = new wxStaticText(Panel1_Ripple, ID_STATICTEXT74, _("Thickness"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT74"));
     FlexGridSizer57->Add(StaticText72, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Ripple_Thickness = new wxSlider(Panel1_Ripple, ID_SLIDER_Ripple_Thickness, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Thickness"));
+    Slider_Ripple_Thickness = new wxSlider(Panel1_Ripple, ID_SLIDER_Ripple_Thickness, 3, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Thickness"));
     FlexGridSizer57->Add(Slider_Ripple_Thickness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_RippleThickness = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON14, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
     BitmapButton_RippleThickness->SetDefault();
     BitmapButton_RippleThickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
     FlexGridSizer57->Add(BitmapButton_RippleThickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    StaticText73 = new wxStaticText(Panel1_Ripple, ID_STATICTEXT75, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT75"));
-    FlexGridSizer57->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Slider5 = new wxSlider(Panel1_Ripple, ID_SLIDER5, 1, -1, 1, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER5"));
-    FlexGridSizer57->Add(Slider5, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_RippleDirection = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON15, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
-    BitmapButton_RippleDirection->SetDefault();
-    BitmapButton_RippleDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer57->Add(BitmapButton_RippleDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer60 = new wxFlexGridSizer(0, 4, 0, 0);
-    CheckBox_Ripple_Blend = new wxCheckBox(Panel1_Ripple, ID_CHECKBOX_Ripple_Blend, _("Blend"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple_Blend"));
-    CheckBox_Ripple_Blend->SetValue(false);
-    FlexGridSizer60->Add(CheckBox_Ripple_Blend, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_RippleBlend = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON21, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
-    BitmapButton_RippleBlend->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer60->Add(BitmapButton_RippleBlend, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox2 = new wxCheckBox(Panel1_Ripple, ID_CHECKBOX3, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
-    CheckBox2->SetValue(false);
-    FlexGridSizer60->Add(CheckBox2, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+    CheckBox_Ripple3D = new wxCheckBox(Panel1_Ripple, ID_CHECKBOX_Ripple3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Ripple3D"));
+    CheckBox_Ripple3D->SetValue(false);
+    FlexGridSizer60->Add(CheckBox_Ripple3D, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton_Ripple3D = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON17, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
     BitmapButton_Ripple3D->SetDefault();
     BitmapButton_Ripple3D->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -2482,8 +2463,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON20,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_Object_To_DrawClick);
     Connect(ID_BITMAPBUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple_MovementClick);
     Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleThicknessClick);
-    Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleDirectionClick);
-    Connect(ID_BITMAPBUTTON21,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RippleBlendClick);
     Connect(ID_BITMAPBUTTON17,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Ripple3DClick);
     Connect(ID_BITMAPBUTTON_DutyFactor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Duty_FactorClick);
     Connect(ID_BITMAPBUTTON_ShimmerUseAllColors,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Shimmer_Use_All_ColorsClick);
@@ -3200,8 +3179,7 @@ showlock(Ripple3D)
 showlock(Ripple_Object_To_Draw)
 showlock(Ripple_Movement)
 showlock(RippleThickness)
-showlock(RippleDirection)
-showlock(RippleBlend)
+
 
 
 showlock(SnowflakesCount)

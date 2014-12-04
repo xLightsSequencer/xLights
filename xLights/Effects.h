@@ -22,12 +22,13 @@ void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness
 void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv,
               int xc_adj, int yc_adj);
 
-void RenderRipple(int Object_To_Draw, int Movement);
+void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D);
 void RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row);
 void RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type);
 
 
 void SetP(int x, int y, wxImage::HSVValue hsv);
+void Drawsquare(int x1, int x2, int y1,int y2,int steps,bool Ripple3D,wxImage::HSVValue hsv);
 void Drawcircle(int xc,int yc,double radius, wxImage::HSVValue hsv);
 
 void RenderSingleStrandChase(int ColorScheme,int Number_Chases,int Color_Mix1,int Chase_Spacing1,int Chase_Type1,

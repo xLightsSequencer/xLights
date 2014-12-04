@@ -255,7 +255,8 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, xlColour& c)
 void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
 {
     xlColorVector p2;
-    for (int x = 0; x < newcolors.size(); x++) {
+    for (int x = 0; x < newcolors.size(); x++)
+    {
         p2.push_back(xlColor(newcolors[x]));
     }
     Effect[layer].SetPalette(p2);
@@ -382,7 +383,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
                     break;
                 case 3:
                 case 5:
-                        color.Set(0xbb, 0xbb, 0xbb);
+                    color.Set(0xbb, 0xbb, 0xbb);
                     break;
                 case 4:
                     color.Set(255, 255, 255);
@@ -513,9 +514,9 @@ void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int p
     Effect[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
                                         pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement)
+void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
-    Effect[CurrentLayer].RenderRipple( Object_To_Draw,  Movement);
+    Effect[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D);
 }
 void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {

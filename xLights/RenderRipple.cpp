@@ -51,7 +51,7 @@
 
 
 
-void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
+void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
 
     int x,y,i,ColorIdx;
@@ -59,29 +59,39 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
 
 #if 0
     if(step<1) step=1;
+    1) Normal - threaded
+    2) Normal + Fast Save - threaded but only rendering the stuff that has changed
+    3) Threading disabled (settings menu) - all rendering is on the main thread, one column at a time.
+    4) Threading disabled + fast save - all rendering is on the main thread, one column at a time, but starting with the top left most changed cell.
+
     if(Use_All_Colors) srand (time(NULL)); // for Use_All_Colors effect, make lights be random
     else srand(1); // else always have the same random numbers for each frame (state)
 #endif
 
-    wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
-    size_t colorcnt=GetColorCount();
+        wxImage::HSVValue hsv; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
+        size_t colorcnt=GetColorCount();
 
-    i=0;
-    double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
-    int slices=200;
-    if (position > 1) {
-        position =(state%slices)/(slices*1.0);
-    }
+        i=0;
+        double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
+        int slices=200;
+        if (position > 1)
+        {
+            position =(state%slices)/(slices*1.0);
+            }
     float rx;
     xc = BufferWi/2;
     yc=BufferHt/2;
 
-    if (fitToTime) {
-        rx=position;
-    } else {
-        rx=(state%slices)/(slices*1.0);
+    if (fitToTime)
+{
+    rx=position;
+}
+else
+{
+    rx=(state%slices)/(slices*1.0);
     }
-    ColorIdx=rx * colorcnt;
+    ColorIdx=(int)(rx * colorcnt);
+    if(ColorIdx==colorcnt) ColorIdx--; // ColorIdx goes from 0-3 when colorcnt goes from 1-4. Make sure that is true
 
     double radius;
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
@@ -92,86 +102,90 @@ void RgbEffects::RenderRipple(int Object_To_Draw, int Movement)
     case RENDER_RIPPLE_SQUARE:
         explode=1;
         if(Movement==MOVEMENT_EXPLODE)
-        {
-            // This is the object expanding out, or explode looikng
-            int x1 = xc - (xc*rx);
-            int x2 = xc + (xc*rx);
-            int y1 = yc - (yc*rx);
-            int y2 = yc + (yc*rx);
-            for(y=y1; y<=y2; y++)
             {
-                SetP(x1,y,hsv); // Turn pixel
-                SetP(x2,y,hsv); // Turn pixel
+                // This is the object expanding out, or explode looikng
+                int x1 = xc - (xc*rx);
+                int x2 = xc + (xc*rx);
+                int y1 = yc - (yc*rx);
+                int y2 = yc + (yc*rx);
+                int steps=5;
+                bool Ripple3D=1;
+                Drawsquare( x1,  x2,  y1, y2, Ripple_Thickness, CheckBox_Ripple3D,hsv);
             }
-            for(x=x1; x<=x2; x++)
+            else if(Movement==MOVEMENT_IMPLODE)
             {
-                SetP(x,y1,hsv); // Turn pixel
-                SetP(x,y2,hsv); // Turn pixel
+                int x1 = (xc*rx);
+                int x2 = BufferWi - (xc*rx);
+                int y1 =  (yc*rx);
+                int y2 = BufferHt - (yc*rx);
+                for(y=y2; y>=y1; y--)
+                {
+                    SetP(x1,y,hsv); // Turn pixel
+                    SetP(x2,y,hsv); // Turn pixel
+                }
+                for(x=x2; x>=x1; x--)
+                {
+                    SetP(x,y1,hsv); // Turn pixel
+                    SetP(x,y2,hsv); // Turn pixel
+                }
             }
+            break;
+        case RENDER_RIPPLE_CIRCLE:
+            if(Movement==MOVEMENT_IMPLODE)
+                radius = xc-(xc*rx);
+            else
+                radius = (xc*rx);
 
-            hsv.value = (hsv.value /3)*2;
-            for(y=y1; y<=y2; y++)
-            {
-                SetP(x1+1,y,hsv); // Turn pixel
-                SetP(x2-1,y,hsv); // Turn pixel
-            }
-            for(x=x1; x<=x2; x++)
-            {
-                SetP(x,y1+1,hsv); // Turn pixel
-                SetP(x,y2-1,hsv); // Turn pixel
-            }
 
-            hsv.value = hsv.value /3;
-            for(y=y1; y<=y2; y++)
-            {
-                SetP(x1+2,y,hsv); // Turn pixel
-                SetP(x2-2,y,hsv); // Turn pixel
-            }
-            for(x=x1; x<=x2; x++)
-            {
-                SetP(x,y1+2,hsv); // Turn pixel
-                SetP(x,y2-2,hsv); // Turn pixel
-            }
-
+            Drawcircle( xc, yc, radius, hsv);
+            radius=radius/2;
+            Drawcircle( xc, yc, radius, hsv);
+            radius=radius/2;
+            Drawcircle( xc, yc, radius, hsv);
+            radius=radius/2;
+            Drawcircle( xc, yc, radius, hsv);
+            break;
+        case RENDER_RIPPLE_TRIANGLE:
+            break;
         }
-        else if(Movement==MOVEMENT_IMPLODE)
-        {
-            int x1 = (xc*rx);
-            int x2 = BufferWi - (xc*rx);
-            int y1 =  (yc*rx);
-            int y2 = BufferHt - (yc*rx);
-            for(y=y2; y>=y1; y--)
-            {
-                SetP(x1,y,hsv); // Turn pixel
-                SetP(x2,y,hsv); // Turn pixel
-            }
-            for(x=x2; x>=x1; x--)
-            {
-                SetP(x,y1,hsv); // Turn pixel
-                SetP(x,y2,hsv); // Turn pixel
-            }
-        }
-        break;
-    case RENDER_RIPPLE_CIRCLE:
-        if(Movement==MOVEMENT_IMPLODE)
-            radius = xc-(xc*rx);
-        else
-            radius = (xc*rx);
-
-
-        Drawcircle( xc, yc, radius, hsv);
-        radius=radius/2;
-        Drawcircle( xc, yc, radius, hsv);
-        radius=radius/2;
-        Drawcircle( xc, yc, radius, hsv);
-        radius=radius/2;
-        Drawcircle( xc, yc, radius, hsv);
-        break;
-    case RENDER_RIPPLE_TRIANGLE:
-        break;
-    }
 }
 
+void RgbEffects::Drawsquare(int x1, int x2, int y1,int y2,int steps,bool Ripple3D,wxImage::HSVValue hsv)
+{
+    int i,x,y;
+    int Movement=MOVEMENT_EXPLODE;
+    for (i=0; i<steps; i++)
+    {
+        if(Ripple3D)
+            hsv.value *= 1.0-(float(i)/float(steps)); // we multiply by 1.0 when steps=0
+        if(Movement==MOVEMENT_EXPLODE)
+        {
+            for(y=y1+i; y<=y2-i; y++)
+            {
+                SetP(x1+i,y,hsv); // Turn pixel
+                SetP(x2-i,y,hsv); // Turn pixel
+            }
+            for(x=x1+i; x<=x2-i; x++)
+            {
+                SetP(x,y1+i,hsv); // Turn pixel
+                SetP(x,y2-i,hsv); // Turn pixel
+            }
+        }
+        if(Movement==MOVEMENT_IMPLODE)
+        {
+            for(y=y2-i; y>=y1+i; y--)
+            {
+                SetP(x1,y,hsv); // Turn pixel
+                SetP(x2,y,hsv); // Turn pixel
+            }
+            for(x=x2-i; x>=x1+i; x--)
+            {
+                SetP(x,y1,hsv); // Turn pixel
+                SetP(x,y2,hsv); // Turn pixel
+            }
+        }
+    }
+}
 void RgbEffects::Drawcircle(int xc,int yc,double radius,wxImage::HSVValue hsv)
 {
     /*

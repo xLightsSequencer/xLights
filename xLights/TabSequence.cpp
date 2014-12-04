@@ -1381,8 +1381,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     else if (effect == "Ripple")
     {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
-                            RippleMovement.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"])
-                           );
+                            RippleMovement.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"]),
+                            wxAtoi(SettingsMap[LayerStr+"Slider_Ripple_Thickness"]),
+                            SettingsMap[LayerStr+"Checkbox_Ripple3D"] == "1" );
     }
     else if (effect == "Shimmer")
     {
@@ -1460,7 +1461,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
             thread1Condition.Broadcast();
             thread1Mutex.Unlock();
             int cnt = 0;
-            while (cnt < 10 && !ev.done) {
+            while (cnt < 10 && !ev.done)
+            {
                 ev.condition.WaitTimeout(25);
                 cnt++;
             }
@@ -1676,7 +1678,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;
     case eff_RIPPLE:
         playBuffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
-                                panel->Choice_Ripple_Movement->GetSelection());
+                                panel->Choice_Ripple_Movement->GetSelection(),
+                                panel->Slider_Ripple_Thickness->GetValue(),
+                                panel->CheckBox_Ripple3D->GetValue());
         break;
     case eff_SHIMMER:
         playBuffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
@@ -3168,10 +3172,13 @@ public:
                 if (!EffectStr.IsEmpty())
                 {
                     wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,effects.size()));
-                    if (onMainThread) {
+                    if (onMainThread)
+                    {
                         xLights->SetStatusText(msg);
                         wxYield();
-                    } else {
+                    }
+                    else
+                    {
                         thread1Mutex.Lock();
                         renderMessages.push_back(msg);
                         thread1Condition.Broadcast();
@@ -3266,7 +3273,8 @@ public:
     {
         return completed;
     }
-    void SetOnMainThread() {
+    void SetOnMainThread()
+    {
         onMainThread = true;
     }
 private:
@@ -3354,17 +3362,21 @@ void xLightsFrame::RenderGridToSeqData()
         {
             thread->AddEffectString(GetGridStartTimeMSec(x), Grid1->GetCellValue(x,c));
         }
-        if (!threadedSave) {
+        if (!threadedSave)
+        {
             thread->SetOnMainThread();
             thread->SetPreviousColCompleted(rowcnt);
             thread->Entry();
             delete thread;
-        } else if (thread->Run() != wxTHREAD_NO_ERROR ) {
+        }
+        else if (thread->Run() != wxTHREAD_NO_ERROR )
+        {
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
     }
-    if (threadedSave) {
+    if (threadedSave)
+    {
         thread1Mutex.Lock();
         for (int x = 0; x < colcnt; x++)
         {
