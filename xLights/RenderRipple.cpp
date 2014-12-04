@@ -180,8 +180,9 @@ void RgbEffects::Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripp
 void RgbEffects::Drawcircle(int Movement,int xc,int yc,double radius,wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
     double degrees,radian;
-    int i,x,y;
-    for (i=0; i<Ripple_Thickness; i++)
+    int x,y;
+    float i;
+    for (i=0; i<Ripple_Thickness; i+=.5)
     {
         if(CheckBox_Ripple3D)
             hsv.value *= 1.0-(float(i)/float(Ripple_Thickness)); // we multiply by 1.0 when steps=0

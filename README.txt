@@ -5,8 +5,18 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
-        -enh (dkulp) Add a "Settings" menu.  First setting: ability to disable the multi-threaded saves.  When disable, all is rendered on the main thread.  Slower, but maybe safer.
-        -bug (dkulp) When "Play" hits the bottom of the grid, the "Stop" button wasn't changed back to "Play"
+3.6.11 Dec 4, 2014
+    -enh (dkulp) Add a "Settings" menu.  First setting: ability to disable the multi-threaded saves.  
+			When disable, all is rendered on the main thread.  Slower, but maybe safer.
+			With this chnage, there are now four ways to save
+			1) Normal - threaded
+			2) Normal + Fast Save - threaded but only rendering the stuff that has changed
+			3) Threading disabled (settings menu) - all rendering is on the main thread, one column at a time.   
+			4) Threading disabled + fast save - all rendering is on the main thread, 
+				one column at a time, but starting with the top left most changed cell.
+    -bug (dkulp) When "Play" hits the bottom of the grid, the "Stop" button wasn't changed back to "Play"
+	-bug (sean) Ripple effect was not calculating corners correctly
+	-enh (sean) Added thickness slider and 3D button to Ripple.
 3.6.10	Dec 3, 2014
 	-bug (sean) Added missing xLights.ico file. You should see icon in tray now
 	-bug (sean) "Create Random Effects"Would create None,None about 20% of time. This is now fixed. 

@@ -1382,8 +1382,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderRipple(RippleObjectToDraw.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Object_To_Draw"]),
                             RippleMovement.Index(SettingsMap[LayerStr+"CHOICE_Ripple_Movement"]),
-                            wxAtoi(SettingsMap[LayerStr+"Slider_Ripple_Thickness"]),
-                            SettingsMap[LayerStr+"Checkbox_Ripple3D"] == "1" );
+                            wxAtoi(SettingsMap[LayerStr+"SLIDER_Ripple_Thickness"]),
+                            SettingsMap[LayerStr+"CHECKBOX_Ripple3D"] == "1" );
     }
     else if (effect == "Shimmer")
     {
