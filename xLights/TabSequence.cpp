@@ -1227,6 +1227,7 @@ public:
     }
     wxMutex mutex;
     wxCondition condition;
+    volatile bool done = false;
     int layer;
     int period;
     MapStringString *SettingsMap;
@@ -1458,7 +1459,11 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
             effectsToRender.push_back(&ev);
             thread1Condition.Broadcast();
             thread1Mutex.Unlock();
-            ev.condition.Wait();
+            int cnt = 0;
+            while (cnt < 10 && !ev.done) {
+                ev.condition.WaitTimeout(25);
+                cnt++;
+            }
             ev.mutex.Unlock();
         }
         else
@@ -3171,6 +3176,7 @@ public:
                         renderMessages.push_back(msg);
                         thread1Condition.Broadcast();
                         thread1Mutex.Unlock();
+                        thread1Condition.Signal();
                     }
 
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
@@ -3235,6 +3241,8 @@ public:
         } //for (int p=0; p<SeqNumPeriods; p++)
 
         wxString msg=_(wxString::Format("Finished saving %s",ColName));
+        wxCriticalSection crit;
+        crit.Enter();
         completed = effects.size() + 100;
         thread1Mutex.Lock();
         if (threads[myCol + 1] != NULL)
@@ -3245,6 +3253,8 @@ public:
         renderMessages.push_back(msg);
         thread1Condition.Broadcast();
         thread1Mutex.Unlock();
+        thread1Condition.Signal();
+        crit.Leave();
         return NULL;
     }
 
@@ -3354,33 +3364,39 @@ void xLightsFrame::RenderGridToSeqData()
             delete thread;
         }
     }
-    for (int x = 0; x < colcnt; x++)
-    {
-        while (threads[x] != NULL)
+    if (threadedSave) {
+        thread1Mutex.Lock();
+        for (int x = 0; x < colcnt; x++)
         {
-            thread1Mutex.Lock();
-            for (int y = 0; y < renderMessages.size(); y++)
+            while (threads[x] != NULL)
             {
-                SetStatusText(renderMessages[y]);
-            }
-            renderMessages.clear();
-            thread1Mutex.Unlock();
-            wxYield(); //yield now to get the status out
+                for (int y = 0; y < effectsToRender.size(); y++)
+                {
+                    EffectEvent *ev = effectsToRender[y];
+                    ev->mutex.Lock();
+                    ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+                                                        *ev->SettingsMap,
+                                                        *ev->buffer, ev->ResetEffectState);
+                    ev->done = true;
+                    ev->mutex.Unlock();
+                    ev->condition.Broadcast();
+                    ev->condition.Signal();
+                }
+                effectsToRender.clear();
 
-            thread1Mutex.Lock();
-            for (int y = 0; y < effectsToRender.size(); y++)
-            {
-                EffectEvent *ev = effectsToRender[y];
-                ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
-                                                    *ev->SettingsMap,
-                                                    *ev->buffer, ev->ResetEffectState);
+                for (int y = 0; y < renderMessages.size(); y++)
+                {
+                    SetStatusText(renderMessages[y]);
+                }
+                renderMessages.clear();
+                thread1Mutex.Unlock();
+                wxYield(); //yield now to get the status out
 
-                ev->condition.Broadcast();
+                thread1Mutex.Lock();
+                thread1Condition.WaitTimeout(10);
             }
-            effectsToRender.clear();
-            thread1Condition.WaitTimeout(10);
-            thread1Mutex.Unlock();
         }
+        thread1Mutex.Unlock();
     }
 
     thread1Mutex.Lock();
