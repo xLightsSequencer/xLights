@@ -1580,7 +1580,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer81 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText101 = new wxStaticText(Panel2, ID_STATICTEXT106, _("Band size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT106"));
     FlexGridSizer81->Add(StaticText101, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Skips_BandSize = new wxSlider(Panel2, ID_SLIDER_Skips_BandSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Skips_BandSize"));
+    Slider_Skips_BandSize = new wxSlider(Panel2, ID_SLIDER_Skips_BandSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_BandSize"));
     FlexGridSizer81->Add(Slider_Skips_BandSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Skips_BandSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON44, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON44"));
     BitmapButton_Skips_BandSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -1589,7 +1589,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer82 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText105 = new wxStaticText(Panel2, ID_STATICTEXT107, _("Skip size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT107"));
     FlexGridSizer82->Add(StaticText105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Skips_SkipSize = new wxSlider(Panel2, ID_SLIDER_Skips_SkipSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Skips_SkipSize"));
+    Slider_Skips_SkipSize = new wxSlider(Panel2, ID_SLIDER_Skips_SkipSize, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_SkipSize"));
     FlexGridSizer82->Add(Slider_Skips_SkipSize, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Skips_SkipSize = new wxBitmapButton(Panel2, ID_BITMAPBUTTON46, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON46"));
     BitmapButton_Skips_SkipSize->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -1598,7 +1598,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer83 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText106 = new wxStaticText(Panel2, ID_STATICTEXT110, _("Starting Position"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT110"));
     FlexGridSizer83->Add(StaticText106, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider_Skips_StartPos = new wxSlider(Panel2, ID_SLIDER_Skips_StartPos, 1, 1, 20, wxDefaultPosition, wxDefaultSize, wxSL_LABELS, wxDefaultValidator, _T("ID_SLIDER_Skips_StartPos"));
+    Slider_Skips_StartPos = new wxSlider(Panel2, ID_SLIDER_Skips_StartPos, 1, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Skips_StartPos"));
     FlexGridSizer83->Add(Slider_Skips_StartPos, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_Skips_StartingPosition = new wxBitmapButton(Panel2, ID_BITMAPBUTTON47, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON47"));
     BitmapButton_Skips_StartingPosition->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));

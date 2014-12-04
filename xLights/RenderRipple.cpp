@@ -108,9 +108,7 @@ else
                 int x2 = xc + (xc*rx);
                 int y1 = yc - (yc*rx);
                 int y2 = yc + (yc*rx);
-                int steps=5;
-                bool Ripple3D=1;
-                Drawsquare( x1,  x2,  y1, y2, Ripple_Thickness, CheckBox_Ripple3D,hsv);
+                Drawsquare(Movement,  x1,  x2,  y1, y2, Ripple_Thickness, CheckBox_Ripple3D,hsv);
             }
             else if(Movement==MOVEMENT_IMPLODE)
             {
@@ -118,16 +116,7 @@ else
                 int x2 = BufferWi - (xc*rx);
                 int y1 =  (yc*rx);
                 int y2 = BufferHt - (yc*rx);
-                for(y=y2; y>=y1; y--)
-                {
-                    SetP(x1,y,hsv); // Turn pixel
-                    SetP(x2,y,hsv); // Turn pixel
-                }
-                for(x=x2; x>=x1; x--)
-                {
-                    SetP(x,y1,hsv); // Turn pixel
-                    SetP(x,y2,hsv); // Turn pixel
-                }
+                Drawsquare(Movement,  x1,  x2,  y1, y2, Ripple_Thickness, CheckBox_Ripple3D,hsv);
             }
             break;
         case RENDER_RIPPLE_CIRCLE:
@@ -137,27 +126,29 @@ else
                 radius = (xc*rx);
 
 
-            Drawcircle( xc, yc, radius, hsv);
+            Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
             radius=radius/2;
-            Drawcircle( xc, yc, radius, hsv);
+            /*Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
             radius=radius/2;
-            Drawcircle( xc, yc, radius, hsv);
+            Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
             radius=radius/2;
-            Drawcircle( xc, yc, radius, hsv);
+            Drawcircle( Movement,xc, yc, radius, hsv, Ripple_Thickness, CheckBox_Ripple3D);
+            */
             break;
         case RENDER_RIPPLE_TRIANGLE:
             break;
         }
 }
 
-void RgbEffects::Drawsquare(int x1, int x2, int y1,int y2,int steps,bool Ripple3D,wxImage::HSVValue hsv)
+void RgbEffects::Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv)
 {
     int i,x,y;
-    int Movement=MOVEMENT_EXPLODE;
-    for (i=0; i<steps; i++)
+
+
+    for (i=0; i<Ripple_Thickness; i++)
     {
-        if(Ripple3D)
-            hsv.value *= 1.0-(float(i)/float(steps)); // we multiply by 1.0 when steps=0
+        if(CheckBox_Ripple3D)
+            hsv.value *= 1.0-((float(i)/2.0)/float(Ripple_Thickness)); // we multiply by 1.0 when Ripple_Thickness=0
         if(Movement==MOVEMENT_EXPLODE)
         {
             for(y=y1+i; y<=y2-i; y++)
@@ -173,53 +164,43 @@ void RgbEffects::Drawsquare(int x1, int x2, int y1,int y2,int steps,bool Ripple3
         }
         if(Movement==MOVEMENT_IMPLODE)
         {
-            for(y=y2-i; y>=y1+i; y--)
+            for(y=y2+i; y>=y1-i; y--)
             {
-                SetP(x1,y,hsv); // Turn pixel
-                SetP(x2,y,hsv); // Turn pixel
+                SetP(x1-i,y,hsv); // Turn pixel
+                SetP(x2+i,y,hsv); // Turn pixel
             }
-            for(x=x2-i; x>=x1+i; x--)
+            for(x=x2+i; x>=x1-i; x--)
             {
-                SetP(x,y1,hsv); // Turn pixel
-                SetP(x,y2,hsv); // Turn pixel
+                SetP(x,y1-i,hsv); // Turn pixel
+                SetP(x,y2+i,hsv); // Turn pixel
             }
         }
     }
 }
-void RgbEffects::Drawcircle(int xc,int yc,double radius,wxImage::HSVValue hsv)
+void RgbEffects::Drawcircle(int Movement,int xc,int yc,double radius,wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
-    /*
-    double 	wxDegToRad (double deg)
-    Convert degrees to radians.
-
-    double 	wxRadToDeg (double rad)
-    Convert radians to degrees.
-
-    Inside of #include <math.h> is this code, M_PI is wxwidgets definition of Pi
-
-    #ifndef M_PI
-    #define M_PI 3.1415926535897932384626433832795
-    #endif
-
-    t = (i+mod1440)*M_PI/180;
-    x = (R-r) * cos (t) + d*cos (((R-r)/r)*t) + xc;
-    y = (R-r) * sin (t) + d*sin (((R-r)/r)*t) + yc;
-
-    if(colorcnt>0) d_mod = (int) BufferWi/colorcnt;
-    else d_mod=1;
-
-    x2= pow ((double)(x-xc),2);
-    y2= pow ((double)(y-yc),2);
-    hyp = (sqrt(x2 + y2)/BufferWi) * 100.0;
-    */
     double degrees,radian;
-    int x,y;
-    for (degrees=0.0; degrees<360.0; degrees+=1.0)
+    int i,x,y;
+    for (i=0; i<Ripple_Thickness; i++)
     {
-        radian = 	degrees * (M_PI/180.0);
-        x = radius * cos(radian) + xc;
-        y = radius * sin(radian) + yc;
-        SetP(x,y,hsv); // Turn pixel
+        if(CheckBox_Ripple3D)
+            hsv.value *= 1.0-(float(i)/float(Ripple_Thickness)); // we multiply by 1.0 when steps=0
+
+        if(Movement==MOVEMENT_EXPLODE)
+        {
+            radius = radius - i;
+        }
+        else
+        {
+            radius = radius + i;
+        }
+        for (degrees=0.0; degrees<360.0; degrees+=1.0)
+        {
+            radian = 	degrees * (M_PI/180.0);
+            x = radius * cos(radian) + xc;
+            y = radius * sin(radian) + yc;
+            SetP(x,y,hsv); // Turn pixel
+        }
     }
 
 }

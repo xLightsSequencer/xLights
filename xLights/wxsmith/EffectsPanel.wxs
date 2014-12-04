@@ -3073,7 +3073,6 @@
 																	<value>1</value>
 																	<min>1</min>
 																	<max>20</max>
-																	<style>wxSL_LABELS</style>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -3111,7 +3110,6 @@
 																	<value>1</value>
 																	<min>1</min>
 																	<max>20</max>
-																	<style>wxSL_LABELS</style>
 																	<handler function="OnSlider_Skips_SkipSizeCmdScroll" entry="EVT_COMMAND_SCROLL" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -3150,7 +3148,6 @@
 																	<value>1</value>
 																	<min>1</min>
 																	<max>20</max>
-																	<style>wxSL_LABELS</style>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
