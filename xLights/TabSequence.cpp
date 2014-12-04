@@ -663,19 +663,35 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         int nRows = Grid1->GetNumberRows();
         for (r = 0; r < nRows; r++)
         {
-            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) //find first selected cell
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
+            {//find first selected cell
                 if (Grid1->IsInSelection(r,c))
                 {
                     v = Grid1->GetCellValue(r, c);
                     break;
                 }
+<<<<<<< HEAD
             if (c < nCols) //found a selected cell
                 for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
                 {
                     //copy it to other cells in this row
                     Grid1->SetCellValue(r, c, v);
                     GridCellChanged(r, c);
+=======
+
+                if (c < nCols) //found a selected cell
+                {
+                    for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                    //copy it to other cells in this row, only if colunm visible
+                        if(Grid1->IsColShown(c))
+                        {
+                            Grid1->SetCellValue(r, c, v);
+                            GridCellChanged(r, c);
+                        }
+                    }
+>>>>>>> threaded
                 }
+            }
         }
     }
     else
@@ -686,11 +702,21 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
         {
             v = Grid1->GetCellValue(r, c); //CreateEffectStringRandom(); //get selected cell text
 //wxMessageBox(wxString::Format("col# %d of %d = %s", c, nCols, v));
+<<<<<<< HEAD
             for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++)
             {
                 //copy it to other cells in this row
                 Grid1->SetCellValue(r, c, v);
                 GridCellChanged(r, c);
+=======
+            for (c = XLIGHTS_SEQ_STATIC_COLUMNS; c < nCols; c++) {
+                //copy it to other cells in this row if column visible
+                if(Grid1->IsColShown(c))
+                {
+                    Grid1->SetCellValue(r, c, v);
+                    GridCellChanged(r, c);
+                }
+>>>>>>> threaded
             }
         }
     }
@@ -3162,6 +3188,7 @@ public:
                 EffectStr.Trim();
                 if (!EffectStr.IsEmpty())
                 {
+<<<<<<< HEAD
                     wxString msg=_(wxString::Format("%s: Saving row %d/%d",ColName,NextGridRowToPlay+1,effects.size()));
                     if (onMainThread) {
                         xLights->SetStatusText(msg);
@@ -3172,6 +3199,12 @@ public:
                         thread1Condition.Broadcast();
                         thread1Mutex.Unlock();
                     }
+=======
+                    wxString msg=_(wxString::Format("%s: Saving row %ld/%ld",ColName,NextGridRowToPlay+1,effects.size()));
+                    msgMutex.Lock();
+                    renderMessages.push_back(msg);
+                    msgMutex.Unlock();
+>>>>>>> threaded
 
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
@@ -3210,8 +3243,13 @@ public:
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
+<<<<<<< HEAD
             bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
             effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
+=======
+            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState);
+            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState);
+>>>>>>> threaded
 
             if (effectsToUpdate)
             {
@@ -3248,8 +3286,12 @@ public:
         return NULL;
     }
 
+<<<<<<< HEAD
     PixelBufferClass &GetBuffer()
     {
+=======
+    PixelBufferClass &GetBuffer() {
+>>>>>>> threaded
         return buffer;
     }
     int GetRowCompleted()
@@ -3266,7 +3308,10 @@ private:
     wxString ColName;
     volatile int prevCompleted;
     int completed;
+<<<<<<< HEAD
     bool onMainThread = false;
+=======
+>>>>>>> threaded
 
     wxXmlNode *ModelNode;
 
@@ -3353,6 +3398,23 @@ void xLightsFrame::RenderGridToSeqData()
             wxMessageBox("Could not create a render thread");
             delete thread;
         }
+<<<<<<< HEAD
+=======
+
+        //thread->Entry();
+        //threads[c] = NULL;
+        /*
+        while (threads[c]) {
+            msgMutex.Lock();
+            for (int y = 0; y < renderMessages.size(); y++) {
+                SetStatusText(renderMessages[y]);
+            }
+            renderMessages.clear();
+            msgMutex.Unlock();
+            wxYield();
+        }
+        */
+>>>>>>> threaded
     }
     for (int x = 0; x < colcnt; x++)
     {
