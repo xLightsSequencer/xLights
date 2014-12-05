@@ -2506,6 +2506,20 @@ void xLightsFrame::FixVersionDifferences(wxString file)
 //  Single Strand
     replace_str = replace_str + "|E1_CHECKBOX_R_TO_L1|E1_CHOICE_Chase_Type1=Right-Left";
 
+//  RIPPLE
+ replace_str = replace_str + "|E1_SLIDER5|E1_SLIDER_Ripple_Thickness";
+ replace_str = replace_str + "|E2_SLIDER5|E2_SLIDER_Ripple_Thickness";
+ replace_str = replace_str + "|E1_CHECKBOX3|E1_CHECKBOX_Ripple3D";
+ replace_str = replace_str + "|E2_CHECKBOX3|E2_CHECKBOX_Ripple3D";
+
+
+/*
+E2_CHOICE_Ripple_Movement=Implode,
+E2_SLIDER_Ripple_Thickness=36,
+E2_SLIDER5=0, // ID_SLIDER_Ripple_Thickness
+E2_CHECKBOX_Ripple_Blend=1,
+E2_CHECKBOX3=1, // ID_CHECKBOX_Ripple3D
+*/
 
     //    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp";
 //    replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp";
