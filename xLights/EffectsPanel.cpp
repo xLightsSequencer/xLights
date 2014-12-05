@@ -230,6 +230,9 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHOICE_Pictures_Direction = wxNewId();
 const long EffectsPanel::ID_STATICTEXT97 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Pictures_GifSpeed = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed = wxNewId();
+const long EffectsPanel::ID_STATICTEXT4 = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_MovieIs20FPS = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS = wxNewId();
 const long EffectsPanel::ID_PANEL20 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON33 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT65 = wxNewId();
@@ -1341,6 +1344,14 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_PicturesSpeed = new wxBitmapButton(Panel1_Pictures, ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed"));
     BitmapButton_PicturesSpeed->SetDefault();
     FlexGridSizer31->Add(BitmapButton_PicturesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    StaticText4 = new wxStaticText(Panel1_Pictures, ID_STATICTEXT4, _("Movie is 20 FPS"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer31->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Pictures_Is20FPS = new wxCheckBox(Panel1_Pictures, ID_CHECKBOX_MovieIs20FPS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MovieIs20FPS"));
+    CheckBox_Pictures_Is20FPS->SetValue(false);
+    FlexGridSizer31->Add(CheckBox_Pictures_Is20FPS, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_MovieIs20FPS = new wxBitmapButton(Panel1_Pictures, ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS"));
+    BitmapButton_MovieIs20FPS->SetDefault();
+    FlexGridSizer31->Add(BitmapButton_MovieIs20FPS, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Panel1_Pictures->SetSizer(FlexGridSizer42);
     FlexGridSizer42->Fit(Panel1_Pictures);
@@ -2454,6 +2465,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_BUTTON_PICTURES_FILENAME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesFilenameClick);
     Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesDirectionClick);
     Connect(ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PicturesSpeedClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_MovieIs20FPSClick);
     Connect(ID_BITMAPBUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelNumberArmsClick);
     Connect(ID_BITMAPBUTTON16,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Pinwheel_ArmSizeClick);
     Connect(ID_BITMAPBUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PinwheelTwistClick);
@@ -3277,6 +3289,7 @@ showlock(Shimmer_Duty_Factor)
 showlock(Shimmer_Use_All_Colors)
 showlock(Shimmer_Blink_Timing)
 showlock(Shimmer_Blinks_Per_Row)
+showlock(MovieIs20FPS)
 
 void EffectsPanel::OnChoice_Bars_DirectionSelect(wxCommandEvent& event)
 {
@@ -3319,6 +3332,4 @@ void EffectsPanel::OnBitmapButton18Click(wxCommandEvent& event)
 void EffectsPanel::OnSlider_Skips_SkipSizeCmdScroll(wxScrollEvent& event)
 {
 }
-
-
 

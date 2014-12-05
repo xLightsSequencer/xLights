@@ -1364,7 +1364,8 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Pictures_Direction"]),
                               SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"],
-                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"])
+                              wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"]),
+                              SettingsMap[LayerStr+"CHECKBOX_MoveIs20FPS"] == "1"
                              );
     }
     else if (effect == "Pinwheel")
@@ -1663,7 +1664,8 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
     case eff_PICTURES:
         playBuffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
                                   panel->TextCtrl_Pictures_Filename->GetValue(),
-                                  panel->Slider_Pictures_GifSpeed->GetValue());
+                                  panel->Slider_Pictures_GifSpeed->GetValue(),
+                                  panel->CheckBox_Pictures_Is20FPS->GetValue());
         break;
     case eff_PINWHEEL:
         playBuffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),

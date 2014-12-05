@@ -67,6 +67,7 @@ public:
     wxBitmapButton* BitmapButton_TextLine1;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
+    wxStaticText* StaticText4;
     wxChoicebook* Choicebook1;
     wxStaticText* StaticText38;
     wxTextCtrl* TextCtrl_Text_Font4;
@@ -272,6 +273,7 @@ public:
     wxBitmapButton* BitmapButton_random;
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
+    wxBitmapButton* BitmapButton_MovieIs20FPS;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -382,6 +384,7 @@ public:
     wxTextCtrl* TextCtrl_Glediator_Filename;
     wxStaticText* StaticText97;
     wxBitmapButton* BitmapButton_Palette4;
+    wxCheckBox* CheckBox_Pictures_Is20FPS;
     wxStaticText* StaticText71;
     wxSlider* Slider_Curtain_Swag;
     wxStaticText* StaticText43;
@@ -402,8 +405,8 @@ public:
     wxBitmapButton* BitmapButton_FireworksFade;
     wxSlider* Slider_Tree_Branches;
     wxCheckBox* CheckBox_TextToCenter3;
-    wxBitmapButton* BitmapButton10;
     wxBitmapButton* BitmapButton_Spirographd;
+    wxBitmapButton* BitmapButton10;
     wxBitmapButton* BitmapButton_Ripple_Movement;
     wxPanel* Panel1_Meteors;
     wxSlider* Slider_Butterfly_Style;
@@ -741,6 +744,9 @@ protected:
     static const long ID_STATICTEXT97;
     static const long ID_SLIDER_Pictures_GifSpeed;
     static const long ID_BITMAPBUTTON_SLIDER_Pictures_GifSpeed;
+    static const long ID_STATICTEXT4;
+    static const long ID_CHECKBOX_MovieIs20FPS;
+    static const long ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS;
     static const long ID_PANEL20;
     static const long ID_BITMAPBUTTON33;
     static const long ID_STATICTEXT65;
@@ -1273,6 +1279,7 @@ private:
     void OnBitmapButton_Strobe_TypeClick(wxCommandEvent& event);
     void OnBitmapButton_StrobeDurationClick(wxCommandEvent& event);
     void OnBitmapButton_NumberStrobesClick(wxCommandEvent& event);
+    void OnBitmapButton_MovieIs20FPSClick(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);

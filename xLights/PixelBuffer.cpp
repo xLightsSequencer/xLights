@@ -504,9 +504,9 @@ void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int Draw
     Effect[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed)
+void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20FPS)
 {
-    Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed);
+    Effect[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed, is20FPS);
 }
 void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
                                       bool pinwheel_rotation,int pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize)

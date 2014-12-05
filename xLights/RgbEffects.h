@@ -615,6 +615,8 @@ protected:
     wxImage image;
     int imageCount;
     int imageIndex;
+    int frame;
+    int maxmovieframes; 
 
     wxString PictureName;
     int LastSnowflakeCount;
@@ -630,7 +632,7 @@ protected:
     int lastperiod, curPeriod;
     RgbFireworks fireworkBursts[20000];
     RgbBalls balls[rgb_MAX_BALLS];
-    int maxmovieframes;
+
     long timer_countdown[4]; // was  long timer_countdown[1];
     bool fitToTime;
 

@@ -2245,6 +2245,32 @@
 											<border>1</border>
 											<option>1</option>
 										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+												<label>Movie is 20 FPS</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_MovieIs20FPS" variable="CheckBox_Pictures_Is20FPS" member="yes" />
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS" variable="BitmapButton_MovieIs20FPS" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>22,21</size>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_MovieIs20FPSClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>

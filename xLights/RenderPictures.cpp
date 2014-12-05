@@ -224,11 +224,9 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 //#define WANT_DEBUG 100
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps)
 {
     const int speedfactor=4;
-    //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
-    static int frame,maxframes;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
     wxString filename = "RenderPictures.log";
 
@@ -252,11 +250,6 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //      ffmpeg -i XXXX.mov -s 16x50 XXXX-%d.jpg
 //      ffmpeg -i XXXX.mts -s 16x50 XXXX-%d.jpg
 
-
-    /*if(state==0 || maxmovieframes <= 0) maxmovieframes=10;
-    maxframes=maxmovieframes;
-    frame = state%maxframes;*/
-
     sPicture = NewPictureName2;
     suffix = NewPictureName2.substr (NewPictureName2.length()-6,2);
     extension = NewPictureName2.substr (NewPictureName2.length()-3,3);
@@ -274,28 +267,24 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
             for (frame=1; frame<=9999; frame++)
             {
                 sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
-                if(wxFileExists(sPicture))
-                {
-                    maxmovieframes=frame+1;
+                if(wxFileExists(sPicture)) {
+                    maxmovieframes=frame;
+                } else {
                     break;
                 }
             }
             frame=1;
-        } else
-        {
+        } else if (is20fps) {
             frame++;
+        } else {
+            frame = state % maxmovieframes;
+        }
+        if (frame > maxmovieframes) {
+            return;
         }
         sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
     }
 
-/*
-    NewPictureName=sPicture;
-    if(!wxFileExists(NewPictureName))
-    {
-        maxframes=frame-1;
-        return;
-    }
-*/
     NewPictureName=sPicture;
 
     if (dir == RENDER_PICTURE_VIXREMAP) //load pre-rendered pixels from file and apply to model -DJ
@@ -409,7 +398,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //    if (state < 4) wxMessageBox(xLightsApp::WantDebug? "DEBUG ON": "debug off");
 
 // copy image to buffer
-    wxColour c;
+    xlColour c;
     int debug_count = 0;
     for(int x=0; x<imgwidth; x++)
     {
