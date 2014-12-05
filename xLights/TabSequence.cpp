@@ -3116,7 +3116,10 @@ public:
     }
     void SetPreviousColCompleted(int i)
     {
+        wxCriticalSection crit;
+        crit.Enter();
         prevCompleted = i;
+        crit.Leave();
     }
     ExitCode Entry ()
     {
@@ -3153,10 +3156,18 @@ public:
             }
             if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
-                while (NextGridRowToPlay > prevCompleted)
+                wxCriticalSection crit;
+                crit.Enter();
+                int prev = prevCompleted;
+                crit.Leave();
+
+                while (NextGridRowToPlay > prev)
                 {
                     //spin until we can continue, should replace with a semaphore or something
-                    Sleep(10);
+                    wxMilliSleep(2);
+                    crit.Enter();
+                    prev = prevCompleted;
+                    crit.Leave();
                 }
                 while (NextGridRowToPlay > (completed + 1))
                 {
@@ -3217,10 +3228,17 @@ public:
                 }
 
                 int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
+                
+                crit.Enter();
+                prev = prevCompleted;
+                crit.Leave();
                 while (calcedNextRow > prevCompleted)
                 {
                     //spin until we can continue, should replace with a semaphore or something
-                    Sleep(10);
+                    wxMilliSleep(2);
+                    crit.Enter();
+                    prev = prevCompleted;
+                    crit.Leave();
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
@@ -3369,15 +3387,23 @@ void xLightsFrame::RenderGridToSeqData()
             thread->SetPreviousColCompleted(rowcnt);
             thread->Entry();
             delete thread;
-        }
-        else if (thread->Run() != wxTHREAD_NO_ERROR )
-        {
-            wxMessageBox("Could not create a render thread");
-            delete thread;
+            threads[c] = NULL;
         }
     }
     if (threadedSave)
     {
+        for (int x = 0; x < colcnt; x++)
+        {
+            if (threads[x] != NULL) {
+                if (threads[x]->Run() != wxTHREAD_NO_ERROR )
+                {
+                    wxMessageBox("Could not create a render thread");
+                    delete threads[x];
+                    threads[x] = NULL;
+                }
+            }
+        }
+        
         thread1Mutex.Lock();
         for (int x = 0; x < colcnt; x++)
         {
