@@ -1217,7 +1217,7 @@ class EffectEvent
 {
 public:
     EffectEvent(int l, int p, MapStringString& sm,
-                PixelBufferClass &b, bool *res) : mutex(), condition(mutex)
+                PixelBufferClass &b, bool *res) : mutex()
     {
         layer = l;
         period = p;
@@ -1226,7 +1226,6 @@ public:
         ResetEffectState = res;
     }
     wxMutex mutex;
-    wxCondition condition;
     volatile bool done = false;
     int layer;
     int period;
@@ -1461,13 +1460,13 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
             effectsToRender.push_back(&ev);
             thread1Condition.Broadcast();
             thread1Mutex.Unlock();
+            ev.mutex.Unlock();
             int cnt = 0;
-            while (cnt < 10 && !ev.done)
+            while (cnt < 50 && !ev.done)
             {
-                ev.condition.WaitTimeout(25);
+                wxMilliSleep(1);
                 cnt++;
             }
-            ev.mutex.Unlock();
         }
         else
         {
@@ -3393,8 +3392,6 @@ void xLightsFrame::RenderGridToSeqData()
                                                         *ev->buffer, ev->ResetEffectState);
                     ev->done = true;
                     ev->mutex.Unlock();
-                    ev->condition.Broadcast();
-                    ev->condition.Signal();
                 }
                 effectsToRender.clear();
 
@@ -3405,9 +3402,8 @@ void xLightsFrame::RenderGridToSeqData()
                 renderMessages.clear();
                 thread1Mutex.Unlock();
                 wxYield(); //yield now to get the status out
-
+                wxMilliSleep(1);
                 thread1Mutex.Lock();
-                thread1Condition.WaitTimeout(10);
             }
         }
         thread1Mutex.Unlock();
