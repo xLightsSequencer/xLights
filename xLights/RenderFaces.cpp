@@ -82,7 +82,6 @@ void RgbEffects::RenderFaces(int Phoneme)
         FacesPhoneme.Add("etc");    8
         FacesPhoneme.Add("rest");   9
     */
-    wxColour color;
     wxImage::HSVValue hsv;
     int maxframe=BufferHt*2;
     int frame=(BufferHt * state / 200)%maxframe;
@@ -252,7 +251,6 @@ void RgbEffects::mouth(int Phoneme,int BufferHt, int BufferWi)
 
 void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
 {
-    wxColour color;
     wxImage::HSVValue hsv;
     int ColorIdx,x=0,y=0;
     size_t colorcnt=GetColorCount();
@@ -282,7 +280,6 @@ void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
 
 void RgbEffects::drawline3 (int Phoneme, int x1,int x2,int y6,int y7)
 {
-    wxColour color;
     wxImage::HSVValue hsv;
 
     int ColorIdx,x,y;
@@ -337,7 +334,6 @@ void RgbEffects::facesCircle(int Phoneme, int xc,int yc,double radius,int start_
 
 void RgbEffects::drawoutline(int Phoneme,int BufferHt,int BufferWi)
 {
-    wxColour color;
     wxImage::HSVValue hsv;
     double radius;
     int ColorIdx,x,y,xc,yc;

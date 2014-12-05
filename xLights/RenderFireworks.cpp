@@ -36,7 +36,6 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
     int startY,ColorIdx;
     float v;
     wxImage::HSVValue hsv;
-    wxColour color,rgbcolor;
     size_t colorcnt=GetColorCount();
 
     if(state==0)
@@ -80,7 +79,6 @@ void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,
     }
 //    else if (mod100<10)
 //    {
-//        rgbcolor = wxColour(0,255,255);
 //        Color2HSV(color,hsv);
 //        y=(int)(startY-startY*(1.0/(mod100+1)));
 //        SetPixel(startX,y,hsv);

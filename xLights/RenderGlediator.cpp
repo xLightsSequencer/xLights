@@ -111,7 +111,7 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
     for(j=0; j<readcnt; j+=3)
     {
         // Loop thru all channels
-        color = wxColor(frameBuffer[j],frameBuffer[j+1],frameBuffer[j+2]);
+        color.Set(frameBuffer[j],frameBuffer[j+1],frameBuffer[j+2]);
         x=(j%(BufferWi*3))/3;
         y=(BufferHt-1) - (j/(BufferWi*3));
         if(x<BufferWi && y<BufferHt && y>= 0)

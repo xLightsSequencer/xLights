@@ -308,7 +308,6 @@ void RgbEffects::draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,in
 {
     float  orig_v,new_v;
     int new_x,i,max_chase_width,pixels_per_chase;
-    wxColour color;
     size_t colorcnt=GetColorCount();
     int ColorIdx;
 

@@ -31,7 +31,6 @@ RgbEffects::RgbEffects()
     // initialize FirePalette[]
     wxImage::HSVValue hsv;
     wxImage::RGBValue rgb;
-    wxColour color;
     int i;
     // calc 100 reds, black to bright red
     hsv.hue=0.0;

@@ -80,7 +80,7 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
-    wxColour color;
+    xlColour color;
     wxImage::HSVValue hsv;
 
 
@@ -170,7 +170,7 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
                 rgb = wxImage::HSVtoRGB(hsv);
-                color = wxColor(rgb.red,rgb.green,rgb.blue);
+                color = xlColor(rgb.red,rgb.green,rgb.blue);
             }
             SetPixel(x,y,color);
         }

@@ -313,8 +313,7 @@ void RgbEffects::RenderIcicleDrip(int ColorScheme, int Count, int Length, int Me
 //draw some dim icicles for bkg:
     if (want_bkg)
     {
-        wxColour c;
-        c.Set(100, 100, 255); //light blue
+        xlColour c(100, 100, 255); //light blue
         Color2HSV(c, m.hsv);
 //        m.hue = 240;
 //        m.hsv.saturation = 0.5;

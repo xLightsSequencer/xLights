@@ -36,7 +36,6 @@
  #define debug_more(level, ...)
  #define debug_function(level)
 
-#define wxColor  wxColour //kludge; American alias :)
 
 #define divup(num, den)  (((num) + (den) - 1)/(den)) //round up
 
@@ -183,9 +182,9 @@ void RgbEffects::Piano_load_shapes(const wxString& filename)
 
 
 //find first color in sprite:
-static wxColor& find_color(wxImage& Shapes, std::hash_map</*wxColor*/ wxUint32, wxColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
+static xlColor& find_color(wxImage& Shapes, std::hash_map</*xlColor*/ wxUint32, xlColor>& ColorMap, wxPoint xy, wxSize wh, const char* which)
 {
-    static wxColor color;
+    xlColor color;
     for (int y = xy.y; y < xy.y + wh.y; ++y) //bottom->top
         for (int x = xy.x; x < xy.x + wh.x; ++x) //left->right
         {
@@ -352,7 +351,7 @@ void RgbEffects::Piano_update_bkg(int Style, wxSize& canvas, int rowh)
 {
     debug_function(10);
     debug(1, "style %d", Style);
-    wxColor c;
+    xlColor c;
 //TODO: should use GDI+ functions on Windows
 //TODO: use GetData for better performance; probably doesn't matter since grid is fairly small (as compared to normal images or screen canvas)
 //TODO: speed
@@ -407,7 +406,7 @@ void RgbEffects::Piano_map_colors(void)
     if (GetColorCount() < 2) return; //use colors from shapes file if no user-selected colors
     for (auto /*std::vector<int>::iterator*/ it = ShapePalette.begin(); it != ShapePalette.end(); ++it)
     {
-        wxColor color;
+        xlColor color;
         palette.GetColor((it - ShapePalette.begin()) % GetColorCount(), color); //assign user-selected colors to shape palette sequentially, loop if run out of colors
         color_map[*it] = color; //.GetRGB();
         debug(10, "shape color[%d/%d] 0x%x => user-selected color [%d/%d] 0x%x", it - ShapePalette.begin(), ShapePalette.size(), *it, (it - ShapePalette.begin()) % GetColorCount(), GetColorCount(), color.GetRGB());
@@ -420,7 +419,7 @@ void RgbEffects::Piano_map_colors(void)
 void RgbEffects::RenderPiano(int Style, int NumKeys, int NumRows, int Placement, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename)
 {
 //    wxImage::HSVValue hsv;
-//    wxColor color;
+//    xlColor color;
 //    int ColorIdx;
 //    int keys_mod;
     debug_function(9);
@@ -603,7 +602,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
     for (int x = 0; x < keywh.x; ++x) //copying to it->w columns in dest
         for (int y = 0; y < keywh.y; ++y) //copying to it->h rows in dest; vert scaling is more likely, so make Y the inner loop for better pixel caching
         {
-//            static wxColor cached_rgb; //cached mapped pixel color
+//            static xlColor cached_rgb; //cached mapped pixel color
 //            static wxPoint cached_xy(-1, -1);
             wxPoint src_xy(sprite->xy[drawstate].x + x * xscale, sprite->xy[drawstate].y + y * yscale);
 //TODO: scale doesn't make sense for all cases
@@ -616,7 +615,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
                 if (Shapes.IsTransparent(src_xy.x, src_xy.y)) transparent = 1; //-1; //-1 matches white, so use + instead
                 else
                 {
-//                        wxColor c;
+//                        xlColor c;
 //TODO: tile, center, anti-aliasing
                     cached_rgb.Set(Shapes.GetRed(src_xy.x, src_xy.y), Shapes.GetGreen(src_xy.x, src_xy.y), Shapes.GetBlue(src_xy.x, src_xy.y)); //NOTE: need to do pixel merging if scale is not 1:1
                     if (!ColorMap.empty()) cached_rgb = ColorMap[cached_rgb.GetRGB()]; //map to user-selected colors
@@ -691,10 +690,10 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
             float xscale = (float)(*it)->wh.x / keyw, yscale = (float)(*it)->wh.y / rowh; //src -> dest scale factor
 //TODO: use wxImage.GetData for better performance?
             debug.Append("draw sprite '%s': copy from x/y[%d/%d] %d/%d + %d/%d => x/y %d/%d + %d/%d, x/y scale = %f/%f", (const char*)(*it)->name.c_str(), drawstate, (*it)->xy.size(), (*it)->xy[drawstate].x, (*it)->xy[drawstate].y, (*it)->wh.x, (*it)->wh.y, destxy.x, destxy.y, keyw, rowh, xscale, yscale); //.Flush(true);
+            xlColor rgb; //cached mapped pixel color
             for (int x = 0; x < keyw; ++x) //copying to it->w columns in dest
                 for (int y = 0; y < rowh; ++y) //copying to it->h rows in dest; vert scaling is more likely, so make Y the inner loop for better pixel caching
                 {
-                    static wxColor rgb; //cached mapped pixel color
                     static int prev_x = -1, prev_y = -1;
                     int srcx = (*it)->xy[drawstate].x + x * xscale, srcy = (*it)->xy[drawstate].y + y * yscale;
                     srcy = Shapes.GetHeight() - srcy - 1; //whoops, origin is top left but wanted bottom left
@@ -704,7 +703,7 @@ bool RgbEffects::Piano_RenderKey(Sprite* sprite, std::hash_map<wxPoint_, int>& d
                         if (Shapes.IsTransparent(srcx, srcy)) rgb = -1;
                         else
                         {
-//                            wxColor c;
+//                            xlColor c;
 //TODO: tile, center, anti-aliasing
                             rgb.Set(Shapes.GetRed(srcx, srcy), Shapes.GetGreen(srcx, srcy), Shapes.GetBlue(srcx, srcy)); //NOTE: need to do pixel merging if scale is not 1:1
                             if (!color_map.empty()) rgb = color_map[rgb.GetRGB()]; //map to user-selected colors

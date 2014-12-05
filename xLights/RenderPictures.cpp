@@ -115,7 +115,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
             wxByte chval = wxAtoi(tkz.GetNextToken());
             wrdebug(wxString::Format("got chval %d for ch %d, frame %d", (int)chval, chnum, PixelsByFrame.size()));
             if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
-            std::pair<wxPoint, wxColor> new_pixel;
+            std::pair<wxPoint, xlColor> new_pixel;
             switch (nodesize)
             {
                 case 1: //map each Vixen channel to a monochrome pixel
@@ -166,7 +166,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 //        imageCount = 0;
 //        imageIndex = 0;
     int maxcol = 0; //vix routine should be rectangular, but in case it isn't, pad out the shorter rows
-    std::vector<std::vector</*wxColor or WXCOLORREF*/ wxUint32>> pixels; //wxImage appears to have a static size, so we need to collect all the pixels first before creating the wxImage
+    std::vector<std::vector</*xlColor or WXCOLORREF*/ wxUint32>> pixels; //wxImage appears to have a static size, so we need to collect all the pixels first before creating the wxImage
     for (wxString linebuf = f.GetFirstLine(); !f.Eof(); linebuf = f.GetNextLine())
     {
         std::string::size_type ofs;
@@ -182,7 +182,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
         {
             if (col > maxcol) maxcol = col;
 //for now assume channels are in R, G, B order:
-//            wxColour c;
+//            xlColour c;
 //            c.Set(gray, gray, gray);
             byte r = wxAtoi(tkz.GetNextToken());
             byte g = wxAtoi(tkz.GetNextToken());
@@ -199,7 +199,7 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
         {
             if (col > maxcol) maxcol = col;
             byte gray = wxAtoi(tkz.GetNextToken());
-//            wxColour c;
+//            xlColour c;
 //            c.Set(gray, gray, gray);
             pixels.back().push_back(gray); //c.GetRGB()); //image.Set(x, y, c);
             pixels.back().push_back(gray);
@@ -293,7 +293,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         LoadPixelsFromTextFile(f, NewPictureName);
         wrdebug(wxString::Format("vix remap render: frame %d vs. %d", state, PixelsByFrame.size()));
         if (state < PixelsByFrame.size()) //TODO: wrap?
-            for (auto /*std::vector<std::pair<wxPoint, wxColour>>::iterator*/ it = PixelsByFrame[state].begin(); it != PixelsByFrame[state].end(); ++it)
+            for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[state].begin(); it != PixelsByFrame[state].end(); ++it)
             {
                 wrdebug(wxString::Format("set pixel (%d, %d) to color [%d. %d. %d]", it->first.x, it->first.y, it->second.Red(), it->second.Green(), it->second.Blue()));
                 SetPixel(it->first.x, it->first.y, it->second);
@@ -481,7 +481,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                     SetPixel(x - xoffset, yoffset - y + waveY - 1, c);
                     break;
                 default:
-                    if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: wxColor is BGR internally
+                    if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: xlColor is BGR internally
                     SetPixel(x-xoffset,yoffset-y - 1,c);
                     break; // no movement - centered
                 }
