@@ -5,6 +5,10 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -bug (dkulp) If Column 1 renders really fast, it could hang on save due to Thread 2 waiting for information from thread 1 which is already gone.
+    -bug (dkulp) Fix some thread safety issues in RenderCircle, RenderText, RenderPicture
+    -test (dkulp) Try flipping to a busy wait for TextEffect rendering to see if that prevents some crashes/hangs
+    -enh (dkulp) RenderPictures now has a 20FPS check box so rendering can just advance per frame if the movie is already in 20fps.   If unchecked, the "Speed" slider adjusts the speed (with 10 being "normal", <10 slower, >10 faster).
 3.6.11 Dec 4, 2014
     -enh (dkulp) Add a "Settings" menu.  First setting: ability to disable the multi-threaded saves.  
 			When disable, all is rendered on the main thread.  Slower, but maybe safer.
