@@ -5,14 +5,17 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
-    -bug (dkulp) If Column 1 renders really fast, it could hang on save due to Thread 2 waiting for information from thread 1 which is already gone.
-    -bug (dkulp) Fix some thread safety issues in RenderCircle, RenderText, RenderPicture
+3.6.12 Dec 5, 2014
+    -bug (dkulp) If Column 1 renders really fast, it could hang on save due to Thread 2 waiting for 
+		information from thread 1 which is already gone. This could cause hangs on save.
+    -bug (dkulp) Fix some thread safety issues in RenderCircle, RenderText, RenderPicture. This would have muged the effects.
     -test (dkulp) Try flipping to a busy wait for TextEffect rendering to see if that prevents some crashes/hangs
-    -enh (dkulp) RenderPictures now has a 20FPS check box so rendering can just advance per frame if the movie is already in 20fps.   If unchecked, the "Speed" slider adjusts the speed (with 10 being "normal", <10 slower, >10 faster).
+    -enh (dkulp) RenderPictures now has a 20FPS check box so rendering can just advance per frame if the movie is already in 20fps.   
+		If unchecked, the "Speed" slider adjusts the speed (with 10 being "normal", <10 slower, >10 faster). A speed of 10 = 20fps.
 3.6.11 Dec 4, 2014
     -enh (dkulp) Add a "Settings" menu.  First setting: ability to disable the multi-threaded saves.  
 			When disable, all is rendered on the main thread.  Slower, but maybe safer.
-			With this chnage, there are now four ways to save
+			With this change, there are now four ways to save
 			1) Normal - threaded
 			2) Normal + Fast Save - threaded but only rendering the stuff that has changed
 			3) Threading disabled (settings menu) - all rendering is on the main thread, one column at a time.   
@@ -100,8 +103,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-enh (sean) New favicons have been added to the left most corner of Effects. The purpose of these is to have a graphical
 			representation of effects. This is pre work for the new xlights 4.0 coming early next year. In xlights 4, effects will
 			be dropped onto horizontal timelines, for for each model.
-    -bug (dkulp) OSX - selecting cells on the Nutcracker grid was not updating the colors on the palette buttons
-    -bug (dkulp) On OSX Yosemite, the Font dialog for the text effect would cause a crash.
+    -bug (dkulp) OSX - selecting cells on the Nutcracker grid was not updating the colours on the palette buttons
+    -bug (dkulp) On OSX Yosemite, the Font dialogue for the text effect would cause a crash.
 	-bug (dkulp) sometimes xlights would crash when you selected multiple objects and then right clicked to the alignment menu. Fixed
 	
 3.6.3	Nov 11, 2014
