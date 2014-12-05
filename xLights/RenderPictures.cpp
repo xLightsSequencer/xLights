@@ -263,6 +263,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 
         if(state==0) // only once, try 10000 files to find how high is frame count
         {
+            maxmovieframes = 1;
             sPicture = wxString::Format("%s-%d.%s",BasePicture,frame,extension);
             for (frame=1; frame<=9999; frame++)
             {
@@ -277,7 +278,7 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
         } else if (is20fps) {
             frame++;
         } else {
-            frame = state % maxmovieframes;
+            frame = (state / 10) % maxmovieframes;  //10 is "normal" speed.  < 10 is slow.  > 10 is fast.
         }
         if (frame > maxmovieframes) {
             return;

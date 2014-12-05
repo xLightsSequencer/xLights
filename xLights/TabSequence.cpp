@@ -1364,7 +1364,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
         buffer.RenderPictures(PictureEffectDirections.Index(SettingsMap[LayerStr+"CHOICE_Pictures_Direction"]),
                               SettingsMap[LayerStr+"TEXTCTRL_Pictures_Filename"],
                               wxAtoi(SettingsMap[LayerStr+"SLIDER_Pictures_GifType"]),
-                              SettingsMap[LayerStr+"CHECKBOX_MoveIs20FPS"] == "1"
+                              SettingsMap[LayerStr+"CHECKBOX_MovieIs20FPS"] == "1"
                              );
     }
     else if (effect == "Pinwheel")
