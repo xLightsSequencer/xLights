@@ -677,7 +677,6 @@ TIME FORMAT CHARACTERS:
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
 
 #ifdef WANT_TEXT_LINES_SYNCED //sync text lines together (experimental) -DJ
-    static wxSize synced_textsize;
     if (!WantRender)   //for synced text lines, collect info first and then render after info is available
     {
         if (!idx) synced_textsize = textsize;

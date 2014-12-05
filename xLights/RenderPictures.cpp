@@ -70,6 +70,7 @@
 //this allows copy/paste from Vixen grid:
 void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 {
+    wxByte rgb[3];
     imageCount = 0;
     imageIndex = 0;
     if (image.GetWidth() && image.GetHeight()) image.Clear(); //CAUTION: image must be non-empty to clear it (memory error otherwise)
@@ -115,7 +116,6 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
             wrdebug(wxString::Format("got chval %d for ch %d, frame %d", (int)chval, chnum, PixelsByFrame.size()));
             if (!chval) continue; //only need to remember channels that are on (assume most channels are off)
             std::pair<wxPoint, wxColor> new_pixel;
-            static wxByte rgb[3];
             switch (nodesize)
             {
                 case 1: //map each Vixen channel to a monochrome pixel

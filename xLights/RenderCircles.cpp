@@ -34,9 +34,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     wxImage::HSVValue hsv;
     float spd;
     float angle;
-    static int numBalls = 0;
     RgbBalls *effectObjects;
-    static bool metaType=false;
 
     if(plasma)
     {

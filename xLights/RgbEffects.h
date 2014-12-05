@@ -631,6 +631,8 @@ protected:
     int speed;
     int lastperiod, curPeriod;
     RgbFireworks fireworkBursts[20000];
+    int numBalls = 0;
+    bool metaType=false;
     RgbBalls balls[rgb_MAX_BALLS];
 
     long timer_countdown[4]; // was  long timer_countdown[1];
@@ -641,6 +643,10 @@ protected:
 
     size_t GetNodeCount();
     //int face[52][52];
+    
+    //TextEffect
+    wxSize synced_textsize;
+
 
 public:
     double GetEffectPeriodPosition(); //made public -DJ
