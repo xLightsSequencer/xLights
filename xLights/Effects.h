@@ -2,7 +2,7 @@ void RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D);
 void RenderOff(void);
 void RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection);
 void RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                   bool radial, bool radial_3D,  int start_x, int start_y, bool plasma);
+                   bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma);
 void RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount);
 void RenderCurtain(int edge, int effect, int swag, bool repeat);
 void RenderFaces(int Phoneme);

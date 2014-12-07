@@ -25,7 +25,7 @@
 
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                               bool radial, bool radial_3D, int start_x, int start_y, bool plasma)
+                               bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma)
 {
 
     int ii=0;
@@ -63,6 +63,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
             spd = rand()%3 + 1;
             angle = rand()%2?rand()%90:-rand()%90;
             effectObjects[ii].Reset((float) start_x, (float) start_y, spd, angle, (float)radius, hsv);
+            if (bubbles && (effectObjects[ii]._dy < 0)) effectObjects[ii]._dy *= -1; //only float up
         }
         metaType=plasma;
     }
@@ -103,6 +104,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
                 {
                     DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
                 }
+                if (bubbles) break; //don't fill
             }
         }
     }

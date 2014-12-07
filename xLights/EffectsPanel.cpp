@@ -93,6 +93,8 @@ const long EffectsPanel::ID_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Circles_Random_m = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m = wxNewId();
+const long EffectsPanel::ID_CHECKBOX_Circles_Bubbles = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON15 = wxNewId();
 const long EffectsPanel::ID_PANEL37 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON30 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT21 = wxNewId();
@@ -557,6 +559,7 @@ END_EVENT_TABLE()
 EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
     //(*Initialize(EffectsPanel)
+    wxFlexGridSizer* FlexGridSizer91;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer71;
     wxFlexGridSizer* FlexGridSizer85;
@@ -860,6 +863,15 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer16->Add(BitmapButton_RandomMotion, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer16->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer80->Add(FlexGridSizer16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer91 = new wxFlexGridSizer(0, 3, 0, 0);
+    CheckBox_Circles_Bubbles = new wxCheckBox(Panel1_Circles, ID_CHECKBOX_Circles_Bubbles, _("Bubbles"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Circles_Bubbles"));
+    CheckBox_Circles_Bubbles->SetValue(false);
+    FlexGridSizer91->Add(CheckBox_Circles_Bubbles, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton3 = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON15, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
+    BitmapButton3->SetDefault();
+    BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer91->Add(BitmapButton3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer80->Add(FlexGridSizer91, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Circles->SetSizer(FlexGridSizer80);
     FlexGridSizer80->Fit(Panel1_Circles);
     FlexGridSizer80->SetSizeHints(Panel1_Circles);
@@ -2421,6 +2433,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesPlasmaClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesRadial3DClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_RandomMotionClick);
+    Connect(ID_BITMAPBUTTON15,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_CirclesRadial3DClick);
     Connect(ID_BITMAPBUTTON_SLIDER_ColorWash_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashCountClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashHFadeClick);
     Connect(ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_ColorWashVFadeClick);

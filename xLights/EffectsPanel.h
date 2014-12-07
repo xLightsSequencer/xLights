@@ -239,6 +239,7 @@ public:
     wxBitmapButton* BitmapButton_SpiralsShrink;
     wxSlider* Slider_Spirograph_R;
     wxStaticText* StaticText39;
+    wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText78;
     wxBitmapButton* BitmapButton_LayerEffect;
     wxStaticText* StaticText67;
@@ -530,6 +531,7 @@ public:
     wxStaticText* StaticText46;
     wxBitmapButton* BitmapButton_TextDir4;
     wxStaticText* StaticText77;
+    wxCheckBox* CheckBox_Circles_Bubbles;
     wxBitmapButton* BitmapButton_SpiralsRotation;
     wxStaticText* StaticText83;
     wxBitmapButton* BitmapButton_TextCount3;
@@ -607,6 +609,8 @@ protected:
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D;
     static const long ID_CHECKBOX_Circles_Random_m;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m;
+    static const long ID_CHECKBOX_Circles_Bubbles;
+    static const long ID_BITMAPBUTTON15;
     static const long ID_PANEL37;
     static const long ID_BITMAPBUTTON30;
     static const long ID_STATICTEXT21;

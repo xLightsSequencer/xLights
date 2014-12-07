@@ -1285,6 +1285,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Random_m"]=="1",
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Radial"]=="1",
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Radial_3D"]=="1",
+                             SettingsMap[LayerStr+"CHECKBOX_Circles_Bubbles"]=="1",
                              buffer.BufferWi/2, buffer.BufferHt/2,
                              SettingsMap[LayerStr+"CHECKBOX_Circles_Plasma"]=="1"
                             );
@@ -1586,6 +1587,7 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
                                  panel->CheckBox_Circles_Random_m->GetValue(),
                                  panel->CheckBox_Circles_Radial->GetValue(),
                                  panel->CheckBox_Circles_Radial_3D->GetValue(),
+                                 panel->CheckBox_Circles_Bubbles->GetValue(),
                                  playBuffer.BufferWi/2, playBuffer.BufferHt/2, //temp hard coding.
                                  panel->CheckBox_Circles_Plasma->GetValue()
                                 );
@@ -3242,7 +3244,7 @@ public:
                 }
 
                 int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
-                
+
                 crit.Enter();
                 prev = prevCompleted;
                 crit.Leave();
@@ -3417,7 +3419,7 @@ void xLightsFrame::RenderGridToSeqData()
                 }
             }
         }
-        
+
         thread1Mutex.Lock();
         for (int x = 0; x < colcnt; x++)
         {

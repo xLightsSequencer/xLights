@@ -707,6 +707,35 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer91" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Circles_Bubbles" variable="CheckBox_Circles_Bubbles" member="yes">
+												<label>Bubbles</label>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton3" member="yes">
+												<bitmap code="padlock16x16_blue_xpm" />
+												<default>1</default>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnBitmapButton_CirclesRadial3DClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>1</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Circles</label>
