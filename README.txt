@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -enh (djulien) Add decaying sine and ivy/fractal wave options.
     -bug (djulien) Remove extraneous leading "-" in FV attr in xlights_papagayo.xml
     -bug (djulien) Sort list of channel#s in drop-down list on Papagayo tab
 3.6.12 Dec 5, 2014

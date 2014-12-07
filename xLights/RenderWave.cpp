@@ -24,6 +24,12 @@
 #include "RgbEffects.h"
 
 
+//CAUTION: must match list box order
+#define WAVETYPE_SINE  0
+#define WAVETYPE_TRIANGLE  1
+#define WAVETYPE_SQUARE  2
+#define WAVETYPE_DECAYSINE  3
+#define WAVETYPE_IVYFRACTAL  4
 
 
 void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
@@ -32,6 +38,8 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     WaveType.Add("Sine");       // 0
     WaveType.Add("Triangle");   // 1
     WaveType.Add("Square");     //2
+    WaveType.Add("Decaying Sine"); //3
+    WaveType.Add("Ivy/fractal"); //4
     FillColors.Add("None");     // 0
     FillColors.Add("Rainbow");  // 1
     FillColors.Add("Palette");  // 2
@@ -47,21 +55,44 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
     size_t colorcnt=GetColorCount();
+    static std::vector<int> ybranch;
 
     yc = BufferHt/2.0;
     r=yc;
+    if (WaveType == WAVETYPE_DECAYSINE) {
+        r -= state/4;
+//        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
+        if (r < 0) r = 0; //turn into straight line; don't completely disappear
+    }
+    else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
+        if (!state || (ybranch.size() != BufferWi)) {
+            r = 0;
+            int delay = 0, delta; //next branch length, angle
+            ybranch.resize(BufferWi);
+            for (int x = 0; x < BufferWi; ++x) {
+//                if (delay < 1) angle = (rand() % 45) - 22.5;
+                ybranch[x] = (delay-- > 0)? ybranch[x - 1] + delta: 2 * yc;
+                if (ybranch[x] >= 2 * BufferHt) { ybranch[x] = 2 * BufferHt - 1; if (delay > 1) delay = 1; }
+                if (ybranch[x] < 0) { ybranch[x] = 0; if (delay > 1) delay = 1; }
+                if (delay < 1) {
+                    delta = (rand() % 7) - 4;
+                    delay = 2 + (rand() % 3);
+                }
+            }
+        }
     degree_per_x = NumberWaves/BufferWi;
     degree = 1+ state%NumberWaves;
     hsv.saturation=1.0;
     hsv.value=1.0;
     hsv.hue=1.0;
     for (x=0; x<BufferWi; x++) {
+        if ((WaveType == WAVETYPE_IVYFRACTAL) && (x > state/2)) break; //ivy "grows"
         if (WaveDirection==0)
             degree = x * degree_per_x + state; // state causes it to move
         else
             degree = x * degree_per_x - state; // state causes it to move
         radian = degree * pi_180;
-        if(WaveType==1) { // Triangle
+        if(WaveType==WAVETYPE_TRIANGLE) { // Triangle
             /*
             .
             .
@@ -96,6 +127,8 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
 
 
             //  if( sin(radian)<0.0) ystart=-ystart;
+        } else if (WaveType == WAVETYPE_IVYFRACTAL) {
+            ystart = ybranch[x] / 2;
         } else {
             ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
         }
@@ -130,12 +163,13 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
 
             y1=(int) (ystart - (r*(ThicknessWave/100.0)));
             y2=(int) (ystart + (r*(ThicknessWave/100.0)));
+            if (y2 <= y1) y2 = y1 + 1; //minimum height
             y1mirror= yc + (yc -y1);
             y2mirror= yc + (yc -y2);
             deltay = y2-y1;
 
 
-            if(WaveType==2) { // Square Wave
+            if(WaveType==WAVETYPE_SQUARE) { // Square Wave
                 if(sin(radian)>0.0) {
                     y1=yc+1;
                     y2=yc + yc*(WaveHeight/100.0);

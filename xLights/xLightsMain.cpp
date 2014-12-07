@@ -1712,6 +1712,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WaveType.Add("Sine");
     WaveType.Add("Triangle");
     WaveType.Add("Square");
+    WaveType.Add("Decaying Sine");
+    WaveType.Add("Fractal/ivy");
     FillColors.Add("None");
     FillColors.Add("Rainbow");
     FillColors.Add("Palette");
