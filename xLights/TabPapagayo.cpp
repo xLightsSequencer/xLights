@@ -183,7 +183,7 @@ static char outmode = 'c';
 #define AI_RowLabel  "Mouth - AI"
 #define E_RowLabel  "Mouth - E"
 #define etc_RowLabel  "Mouth - etc"
-#define FV_RowLabel  "Mouth -FV"
+#define FV_RowLabel  "Mouth - FV"
 #define L_RowLabel  "Mouth - L"
 #define MBP_RowLabel  "Mouth - MBP"
 #define O_RowLabel  "Mouth - O"
@@ -559,7 +559,7 @@ void myGridCellChoiceEditor::Create(wxWindow* parent,
 {
     int style = //wxTE_PROCESS_ENTER |
                 //wxTE_PROCESS_TAB |
-                wxLB_SORT | wxLB_ALWAYS_SB |
+                /*wxLB_SORT |*/ wxLB_ALWAYS_SB |
                 wxBORDER_DEFAULT; //wxBORDER_NONE;
 
 //    if ( !m_allowOthers )
@@ -2237,6 +2237,7 @@ static const wxString& LastWordOf(const wxString& str)
 {
     static wxString retval;
     retval = str.AfterLast(L' ');
+    debug(10, "lastword of: was '%s' is now '%s'", (const char*)str.c_str(), (const char*)retval.c_str());
     return retval;
 }
 
@@ -2478,6 +2479,27 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
             debug(10, "parse model '%s'", (const char*)(*it)->name.c_str());
             if (!(*it)->GetChannelCoords(choices)) choices.Add(NoneHint);
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+            else //put them in sorted order
+            {
+                std::vector<std::pair<int, int>> byvalue(choices.size());
+                for (int i = 0; i < choices.size(); ++i)
+                {
+                    long val;
+                    choices[i].ToLong(&val);
+                    byvalue[i].first = val;
+                    byvalue[i].second = i;
+                    debug(10, "pgo ch list[%d] was '%s' => %ld", i, (const char*)choices[i].c_str(), val);
+                }
+                std::sort(byvalue.begin(), byvalue.end());
+                debug(10, "sort %d entries", byvalue.size());
+                wxArrayString sorted;
+                for (int i = 0; i < byvalue.size(); ++i)
+                {
+                    sorted.Add(choices[byvalue[i].second]);
+                    debug(10, "pgo sorted ch list[%d] is '%s'", i, (const char*)choices[byvalue[i].second].c_str());
+                }
+                choices = sorted;
+            }
             debug(10, "got %d ents", choices.GetCount());
             return;
         }
@@ -2490,6 +2512,23 @@ void myGridCellChoiceEditor::GetChoices(wxArrayString& choices, int row, int col
     if (choices.size() < 1) choices.Add(NoneHint); //tell user there are none to choose from
 //        else choices.Insert(SelectionHint, 0); //not needed
 //    StatusBar1->SetStatusText(wxT("...get mouth nodes"));
+    std::vector<std::pair<std::string, int>> byname(choices.size());
+    for (int i = 0; i < choices.size(); ++i)
+    {
+        byname[i].first = choices[i].c_str();
+        byname[i].second = i;
+        debug(10, "pgo model list[%d] was '%s'", i, (const char*)choices[i].c_str());
+    }
+//listbox style is not sorted because it messes up numeric channel#s, so explicitly sort it here:
+    std::sort(byname.begin(), byname.end());
+    debug(10, "sort %d entries", byname.size());
+    wxArrayString sorted;
+    for (int i = 0; i < byname.size(); ++i)
+    {
+        sorted.Add(choices[byname[i].second]);
+        debug(10, "pgo sorted model list[%d] is '%s'", i, (const char*)choices[byname[i].second].c_str());
+    }
+    choices = sorted;
 }
 
 //kludge: delay a little before showing drop-down list on grid

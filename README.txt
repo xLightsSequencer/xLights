@@ -5,6 +5,8 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -bug (djulien) Remove extraneous leading "-" in FV attr in xlights_papagayo.xml
+    -bug (djulien) Sort list of channel#s in drop-down list on Papagayo tab
 3.6.12 Dec 5, 2014
     -bug (dkulp) If Column 1 renders really fast, it could hang on save due to Thread 2 waiting for 
 		information from thread 1 which is already gone. This could cause hangs on save.
