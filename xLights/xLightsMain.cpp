@@ -1773,6 +1773,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PictureEffectDirections.Add("peekaboo 270"); //15; etc -DJ
     PictureEffectDirections.Add("vix 2 routine"); //16; animated csv or sdv file of pixel values from Vixen 2.x -DJ
     PictureEffectDirections.Add("flag wave"); //17; flag waving in wind -DJ
+    PictureEffectDirections.Add("up once"); //18
+    PictureEffectDirections.Add("down once"); //19
 
 
 //  remember to godown to around line 1800 to active ate these add's

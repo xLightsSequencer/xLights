@@ -49,6 +49,8 @@
 #define RENDER_PICTURE_PEEKABOO_270  15
 #define RENDER_PICTURE_VIXREMAP  16
 #define RENDER_PICTURE_FLAGWAVE  17
+#define RENDER_PICTURE_UPONCE  18
+#define RENDER_PICTURE_DOWNONCE  19
 
 
 #define wrdebug(msg)  if (debug.IsOpened()) debug.Write(msg + "\n")
@@ -419,8 +421,14 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 case RENDER_PICTURE_UP: //2:
                     SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
                     break; // up
+                case RENDER_PICTURE_UPONCE: //18
+                    SetPixel(x - xoffset, state / speedfactor - y, c);
+                    break; // up
                 case RENDER_PICTURE_DOWN: //3:
                     SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    break; // down
+                case RENDER_PICTURE_DOWNONCE: //19
+                    SetPixel(x - xoffset, BufferHt + imght - y - state / speedfactor, c);
                     break; // down
                 case RENDER_PICTURE_UPLEFT: //5:
                     SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
