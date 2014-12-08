@@ -31,6 +31,16 @@
 #define WAVETYPE_DECAYSINE  3
 #define WAVETYPE_IVYFRACTAL  4
 
+//#define WANT_DEBUG_IMPL
+//#define WANT_DEBUG  -99 //unbuffered in case app crashes
+//#include "djdebug.cpp"
+#ifndef debug_function //dummy defs if debug cpp not included above
+ #define debug(level, ...)
+ #define debug_more(level, ...)
+ #define debug_function(level)
+#endif
+
+
 
 void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,int WaveHeight, int WaveDirection)
 {
@@ -65,17 +75,18 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
         if (r < 0) r = 0; //turn into straight line; don't completely disappear
     }
     else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
-        if (!state || (ybranch.size() != BufferWi)) {
+        if (!state || (ybranch.size() != NumberWaves * BufferWi)) {
             r = 0;
             int delay = 0, delta; //next branch length, angle
-            ybranch.resize(BufferWi);
-            for (int x = 0; x < BufferWi; ++x) {
+            ybranch.resize(NumberWaves * BufferWi);
+            for (int x = 0; x < NumberWaves * BufferWi; ++x) {
 //                if (delay < 1) angle = (rand() % 45) - 22.5;
+//                int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
                 ybranch[x] = (delay-- > 0)? ybranch[x - 1] + delta: 2 * yc;
-                if (ybranch[x] >= 2 * BufferHt) { ybranch[x] = 2 * BufferHt - 1; if (delay > 1) delay = 1; }
-                if (ybranch[x] < 0) { ybranch[x] = 0; if (delay > 1) delay = 1; }
+                if (ybranch[x] >= 2 * BufferHt) { delta = -2; ybranch[x] = 2 * BufferHt - 1; if (delay > 1) delay = 1; }
+                if (ybranch[x] < 0) { delta = 2; ybranch[x] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
-                    delta = (rand() % 7) - 4;
+                    delta = (rand() % 7) - 3;
                     delay = 2 + (rand() % 3);
                 }
             }
@@ -86,7 +97,6 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     hsv.value=1.0;
     hsv.hue=1.0;
     for (x=0; x<BufferWi; x++) {
-        if ((WaveType == WAVETYPE_IVYFRACTAL) && (x > state/2)) break; //ivy "grows"
         if (WaveDirection==0)
             degree = x * degree_per_x + state; // state causes it to move
         else
@@ -128,7 +138,14 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
 
             //  if( sin(radian)<0.0) ystart=-ystart;
         } else if (WaveType == WAVETYPE_IVYFRACTAL) {
-            ystart = ybranch[x] / 2;
+//            int xx = WaveDirection? NumberWaves * BufferWi - x - 1: x;
+            int eff_x = (WaveDirection? x: BufferWi - x - 1) + BufferWi * (state / 2 / BufferWi); //effective x before wrap
+            if (eff_x >= NumberWaves * BufferWi) break;
+            if (!WaveDirection) eff_x = NumberWaves * BufferWi - eff_x - 1;
+            bool ok = WaveDirection? (eff_x <= state/2): (eff_x >= NumberWaves * BufferWi - state/2 - 1); //ivy "grows"
+            debug(10, "x %d, eff_x %d, dir %d, bufw %d, #wav %d, state %d, keep? %d, ystart %d, bufh %d", x, eff_x, WaveDirection, BufferWi, NumberWaves, state, ok, ybranch[eff_x] / 2, BufferHt);
+            if (!ok) continue;
+            ystart = ybranch[eff_x] / 2;
         } else {
             ystart = (int) (r*(WaveHeight/100.0) * sin(radian) +yc);
         }
