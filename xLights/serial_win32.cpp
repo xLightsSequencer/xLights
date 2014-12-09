@@ -72,6 +72,7 @@ int SerialPort::Open(const wxString& devname, int baudrate, const char* protocol
                     FILE_FLAG_OVERLAPPED,           // asynchron handling
                     NULL);                          // no more handle flags
 
+    m_devname = devname; //do this even if not found (makes it easier to know which one it was) -DJ
     if(fd == INVALID_HANDLE_VALUE)
     {
         return -1;
