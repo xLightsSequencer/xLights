@@ -5,6 +5,8 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+3.6.13 Dec 9, 2014
+	-enh (dkulp) Allow a skip size of zero. This allow the skips effect to stand still
     -enh (djulien) Allow continue if port open fails (useful for diagnostics/debug)
     -enh (djulien) Add up-once and down-once options to Picture.
     -enh (djulien) Add Bubble option to Circles effect.
