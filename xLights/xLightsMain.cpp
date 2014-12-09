@@ -2204,7 +2204,7 @@ bool xLightsFrame::EnableOutputs()
                             vallen = sizeof(valname);
                             portlen = sizeof(portname);
                         }
-                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format("error %d (can't get serial comm ports from registry)", err);
+                    if (err && (err != /*ERROR_FILE_NOT_FOUND*/ ERROR_NO_MORE_ITEMS)) choices = wxString::Format(", error %d (can't get serial comm ports from registry)", err);
                     if (hkey) RegCloseKey(hkey);
 //                    if (err) SetLastError(err); //tell caller about last real error
                     if (!choices.empty()) choices = "\n(available ports: "+ choices.substr(2) + ")";
