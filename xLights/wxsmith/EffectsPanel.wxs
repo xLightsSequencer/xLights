@@ -3163,7 +3163,6 @@
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_Skips_SkipSize" variable="Slider_Skips_SkipSize" member="yes">
 																	<value>1</value>
-																	<min>1</min>
 																	<max>20</max>
 																	<handler function="OnSlider_Skips_SkipSizeCmdScroll" entry="EVT_COMMAND_SCROLL" />
 																</object>
