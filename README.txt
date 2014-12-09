@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -enh (djulien) Allow continue if port open fails (useful for diagnostics/debug)
     -enh (djulien) Add up-once and down-once options to Picture.
     -enh (djulien) Add Bubble option to Circles effect.
     -enh (djulien) Add Decaying Sine and Ivy/Fractal Wave options.
