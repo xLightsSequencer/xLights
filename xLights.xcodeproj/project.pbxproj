@@ -107,6 +107,7 @@
 
 /* Begin PBXFileReference section */
 		67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dlgPreviewSize.cpp; sourceTree = "<group>"; };
+		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
@@ -417,6 +418,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
 				673E425A17F0D23E00F4BC76 /* TabTest.cpp */,
