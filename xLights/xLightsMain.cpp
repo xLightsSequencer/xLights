@@ -1858,12 +1858,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     xout=0;
     long RunFlag=0;
 
-#if 0
     config->Read(_("RunSchedule"), &RunFlag);
     //delete config;  // close config before calling SetDir, which will open config
     if (RunFlag && xLightsApp::RunPrompt) //give user a chance to edit before running -DJ
         if (wxMessageBox("Auto-run schedule?", "Confirm", wxYES_DEFAULT | wxYES_NO) != wxYES) RunFlag = 0; //, main_frame);
-#endif
+
     SetPlayMode(play_off);
     ResetEffectsXml();
     EnableSequenceControls(true);
