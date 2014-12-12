@@ -335,8 +335,6 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
-				676F58771A1556210045FA22 /* RenderOff.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
@@ -374,6 +372,7 @@
 				675006771923EBBD00875D45 /* RenderGlediator.cpp */,
 				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
 				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
+				676F58771A1556210045FA22 /* RenderOff.cpp */,
 				67A619E517B51C0F008E95BB /* RenderPiano.cpp */,
 				67A619E617B51C0F008E95BB /* RenderPictures.cpp */,
 				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
@@ -384,6 +383,7 @@
 				67A619E817B51C0F008E95BB /* RenderSnowstorm.cpp */,
 				67A619E917B51C0F008E95BB /* RenderSpirals.cpp */,
 				67A619EA17B51C0F008E95BB /* RenderSpirograph.cpp */,
+				67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */,
 				67A619EB17B51C0F008E95BB /* RenderText.cpp */,
 				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
 				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
@@ -398,10 +398,10 @@
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
-				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				67E7087717B51AB400A22034 /* Supporting Files */,
 				67C7969017B5791700CEE775 /* TabConvert.cpp */,
 				6760BF121953BAD700704AEA /* TabPapagayo.cpp */,
+				673E425717F0D23E00F4BC76 /* TabPreview.cpp */,
 				67E491B317C45BAF00FE40EA /* TabSequence.cpp */,
 				673E425917F0D23E00F4BC76 /* TabSetup.cpp */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,

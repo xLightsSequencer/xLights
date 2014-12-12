@@ -2130,16 +2130,17 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     if (pagenum == PREVIEWTAB)
     {
         UpdatePreview();
-        if(!mediaFilename.IsEmpty())
-        {
-            StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
-            ResetTimer(PAUSE_SEQ);
-        }
-        else if (SeqDataLen > 0)
-        {
-            StopPreviewPlayback();
-            ResetTimer(PAUSE_SEQ_ANIM,0);
-
+        if (SeqPlayerState != NO_SEQ) {
+            if(!mediaFilename.IsEmpty())
+            {
+                StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
+                ResetTimer(PAUSE_SEQ);
+            }
+            else if (SeqDataLen > 0)
+            {
+                StopPreviewPlayback();
+                ResetTimer(PAUSE_SEQ_ANIM,0);
+            }
         }
     }
     if (pagenum == PAPAGAYOTAB)

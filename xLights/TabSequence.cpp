@@ -2982,6 +2982,9 @@ void xLightsFrame::OpenSequence()
 
     mediaFilename.Clear();
     ResetSequenceGrid();
+    ResetTimer(NO_SEQ);
+    previewLoaded = false;
+    previewPlaying = false;
     changedRow = 99999;
     changedColumn = 99999;
 
