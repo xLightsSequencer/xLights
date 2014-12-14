@@ -217,7 +217,19 @@ void RgbEffects::DrawCircle(int xc, int yc, int r, const xlColor& rgb)
         radian = degrees * (M_PI/180.0);
         x = round(r * cos(radian)) + xc;
         y = round(r * sin(radian)) + yc;
-        SetPixel(x%BufferWi,y%BufferHt,rgb);
+        while (x < 0) {
+            x += BufferWi;
+        }
+        while (y < 0) {
+            y += BufferHt;
+        }
+        while (x > BufferWi) {
+            x -= BufferWi;
+        }
+        while (y > BufferHt) {
+            y -= BufferHt;
+        }
+        SetPixel(x,y,rgb);
     }
 }
 
