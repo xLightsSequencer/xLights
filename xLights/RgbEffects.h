@@ -557,9 +557,6 @@ protected:
     int GetWaveBuffer2(int x, int y);
 
     void DrawCircle(int xc, int yc, int r, const xlColor& hsv);
-    void CirclePlot(int xc, int xy, int x, int y, const xlColor& hsv);
-    void CirclePlotClipped(int xc, int xy, int x, int y, const xlColor& hsv);
-
     void DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv);
 
     double rand01();

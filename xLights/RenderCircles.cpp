@@ -153,7 +153,7 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
             hsv.saturation=1.0;
             hsv.value=1.0;
         }
-        DrawCircle(x, y, ii, hsv);
+        DrawCircleClipped(x, y, ii, hsv);
     }
 }
 
