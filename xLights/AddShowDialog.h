@@ -21,6 +21,22 @@ public:
     bool IsPlaylistSelected();
     wxString PartialEventCode();
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //(*Declarations(AddShowDialog)
     wxStaticText* StaticText10;
     wxStaticText* StaticText9;

@@ -832,7 +832,8 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
     int seconds=ElapsedMSec / 1000;
     int minutes=seconds / 60;
     seconds=seconds % 60;
-    TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d",minutes,seconds,msec));
+    float ElaspedSeconds = ElapsedMSec/1000.0;
+    TextCtrlPreviewTime->SetValue(wxString::Format("%d:%02d.%03d  %7.3fs",minutes,seconds,msec,ElaspedSeconds));
 }
 
 void xLightsFrame::PreviewOutput(int period)
