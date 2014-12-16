@@ -430,6 +430,11 @@ void PixelBufferClass::RenderOff(void)
     Effect[CurrentLayer].RenderOff();
 }
 
+void PixelBufferClass::RenderOn(void)
+{
+    Effect[CurrentLayer].RenderOn();
+}
+
 void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
 {
     Effect[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);

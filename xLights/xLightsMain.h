@@ -226,6 +226,7 @@ public:
     {
         eff_NONE,
         eff_OFF,
+        eff_ON,
         eff_BARS,
         eff_BUTTERFLY,
         eff_CIRCLES,

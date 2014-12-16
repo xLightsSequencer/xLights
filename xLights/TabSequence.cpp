@@ -412,6 +412,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
     {
         eff_NONE,
         eff_OFF,
+        eff_ON,
         eff_BARS,
         eff_BUTTERFLY,
         eff_CIRCLES,
@@ -1260,6 +1261,10 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     {
         buffer.RenderOff();
     }
+    else if (effect == "On")
+    {
+        buffer.RenderOn();
+    }
     else if (effect == "Bars")
     {
         buffer.RenderBars(wxAtoi(SettingsMap[LayerStr+"SLIDER_Bars_BarCount"]),
@@ -1565,6 +1570,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         break;   // none
     case eff_OFF:
         playBuffer.RenderOff();
+        break;   // none
+    case eff_ON:
+        playBuffer.RenderOn();
         break;   // none
     case eff_BARS:
         playBuffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),

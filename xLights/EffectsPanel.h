@@ -275,6 +275,7 @@ public:
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
     wxBitmapButton* BitmapButton_MovieIs20FPS;
+    wxBitmapButton* BitmapButton13;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -343,6 +344,7 @@ public:
     wxStaticText* StaticText107;
     wxSlider* Slider_Spirograph_r;
     wxStaticText* StaticText7;
+    wxPanel* Panel1_On;
     wxBitmapButton* BitmapButton_CurtainEffect;
     wxPanel* Panel1_Ripple;
     wxBitmapButton* BitmapButton_Chase_Type1;
@@ -446,6 +448,7 @@ public:
     wxBitmapButton* BitmapButton_Palette1;
     wxChoice* Choice_Text_Count2;
     wxSlider* Slider_PinwheelYC;
+    wxStaticText* StaticText73;
     wxBitmapButton* BitmapButton5;
     wxBitmapButton* BitmapButton_ButterflyColors;
     wxBitmapButton* BitmapButton_MeteorsType;
@@ -561,6 +564,9 @@ protected:
     static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
     static const long ID_PANEL19;
+    static const long ID_BITMAPBUTTON21;
+    static const long ID_STATICTEXT75;
+    static const long ID_PANEL25;
     static const long ID_BITMAPBUTTON27;
     static const long ID_STATICTEXT25;
     static const long ID_SLIDER_Bars_BarCount;

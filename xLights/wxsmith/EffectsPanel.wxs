@@ -83,6 +83,41 @@
 						<label>Off</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxPanel" name="ID_PANEL25" variable="Panel1_On" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer92" member="no">
+								<cols>3</cols>
+								<object class="sizeritem">
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON21" variable="BitmapButton13" member="yes">
+										<size>21,21</size>
+										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="spacer">
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT75" variable="StaticText73" member="yes">
+										<label>This Effect simply turns every pixel on in this model.</label>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>On</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxPanel" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 								<cols>3</cols>

@@ -304,6 +304,7 @@
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
 		<Unit filename="RenderOff.cpp" />
+		<Unit filename="RenderOn.cpp" />
 		<Unit filename="RenderPiano.cpp" />
 		<Unit filename="RenderPictures.cpp" />
 		<Unit filename="RenderPinwheel.cpp" />
