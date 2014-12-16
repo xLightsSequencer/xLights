@@ -89,6 +89,7 @@
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
+		67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC91021A3FD22F00905A53 /* RenderOn.cpp */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
@@ -225,6 +226,7 @@
 		67B4C92B17B53DE70006B951 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		67B4C92C17B53DE70006B951 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
+		67BC91021A3FD22F00905A53 /* RenderOn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderOn.cpp; sourceTree = "<group>"; };
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
 		67C6488619E3396C006526CD /* RenderCoroFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCoroFaces.cpp; sourceTree = "<group>"; };
 		67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsDialog.cpp; sourceTree = "<group>"; };
@@ -373,6 +375,7 @@
 				67A619E317B51C0F008E95BB /* RenderLife.cpp */,
 				67A619E417B51C0F008E95BB /* RenderMeteors.cpp */,
 				676F58771A1556210045FA22 /* RenderOff.cpp */,
+				67BC91021A3FD22F00905A53 /* RenderOn.cpp */,
 				67A619E517B51C0F008E95BB /* RenderPiano.cpp */,
 				67A619E617B51C0F008E95BB /* RenderPictures.cpp */,
 				677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */,
@@ -586,6 +589,7 @@
 				67A61A4417B51C0F008E95BB /* RenderSpirograph.cpp in Sources */,
 				67A61A4517B51C0F008E95BB /* RenderText.cpp in Sources */,
 				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
+				67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */,
 				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
 				67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
