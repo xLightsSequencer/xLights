@@ -534,7 +534,7 @@ int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
         eff=rand() % eff_LASTEFFECT;
         BAD_CHOICE = (eff_NONE == eff || eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
                       || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
-                      || eff_OFF == eff);
+                      || eff_OFF == eff || eff_ON == eff);
     }
     if(count==MAX_TRIES) eff=eff_NONE; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
@@ -1263,7 +1263,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "On")
     {
-        buffer.RenderOn();
+        buffer.RenderOn(wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Red"]),
+                        wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Grn"]),
+                        wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Blu"]) );
     }
     else if (effect == "Bars")
     {
@@ -1572,7 +1574,9 @@ bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeri
         playBuffer.RenderOff();
         break;   // none
     case eff_ON:
-        playBuffer.RenderOn();
+        playBuffer.RenderOn(panel->Slider_Eff_On_Red->GetValue(),
+                            panel->Slider_Eff_On_Grn->GetValue(),
+                            panel->Slider_Eff_On_Blu->GetValue());
         break;   // none
     case eff_BARS:
         playBuffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),

@@ -23,12 +23,11 @@
 
 #include "RgbEffects.h"
 
-void RgbEffects::RenderOn(void)
+void RgbEffects::RenderOn(int red, int green, int blue)
 {
     int x,y;
 
-    xlColor color;
-    palette.GetColor(0,color);
+    xlColor color(red, green, blue);
 
 //  Every Node, every frame set to selected color
     for (x=0; x<BufferWi; x++)
