@@ -2963,26 +2963,38 @@ void EffectsPanel::OnButton_Pictures_FilenameClick(wxCommandEvent& event)
 
 void EffectsPanel::OnButton_Glediator_FilenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "", "Glediator files (*.gled)|*.gled", wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Glediator *.gled", *CurrentDir, "", "",
+                                       "Glediator files (*.gled)|*.gled", wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Glediator_Filename->SetValue(filename);
 }
 
+#if defined(__WXMAC__)
+//OSX doesn't allow wildcards in the "name" part
+static const wxString NOTES_WILDCARD("Notes cue files (*notes.txt;*.not)|*.txt;*.not");
+static const wxString CUEMAP_WILDCARD("Cue map files (*map.txt;*.map)|*.txt;*.map");
+#else
+static const wxString NOTES_WILDCARD("Notes cue files (*notes.txt;*.not)|*notes.txt;*.not");
+static const wxString CUEMAP_WILDCARD("Cue map files (*map.txt;*.map)|*map.txt;*.map");
+#endif
 
 void EffectsPanel::OnButton_Piano_CueFilenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Notes Cue File", *CurrentDir, "", "", "Notes cue files (*notes.txt;*.not)|*notes.txt;*.not", wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Notes Cue File", *CurrentDir, "", "",
+                                       NOTES_WILDCARD, wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_CueFilename->SetValue(filename);
 }
 
 void EffectsPanel::OnButton_Piano_MapFilenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Cue Map File", *CurrentDir, "", "", "Cue map files (*map.txt;*.map)|*map.txt;*.map", wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Cue Map File", *CurrentDir, "", "",
+                                        CUEMAP_WILDCARD, wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_MapFilename->SetValue(filename);
 }
 
 void EffectsPanel::OnButton_Piano_ShapeFilenameClick(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector( "Choose Shapes File", *CurrentDir, "", "", "Key shapes files " + wxImage::GetImageExtWildcard(), wxFD_OPEN );
+    wxString filename = wxFileSelector( "Choose Shapes File", *CurrentDir, "", "",
+                                       "Key shapes files " + wxImage::GetImageExtWildcard(), wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_ShapeFilename->SetValue(filename);
 }
 
