@@ -70,6 +70,7 @@ void SeqExportDialog::ModelExportTypes()
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
+    ChoiceFormat->Delete(ChoiceFormat->FindString(_("Falcon, *.fseq")));
     ChoiceFormat->Append(_("Falcon Pi Sub sequence. *.eseq"));
     ChoiceFormat->SetSelection(0);
 }
