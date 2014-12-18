@@ -1961,7 +1961,7 @@
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BUTTON_CollapseEffectsButton" variable="CollapseEffectsButton" member="yes">
 																									<label>v</label>
-																									<size>16,16</size>
+																									<style>wxBU_EXACTFIT</style>
 																									<handler function="OnCollapseEffectsButtonClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2085,7 +2085,6 @@
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BT_EDIT_VIEWS" variable="btEditViews" member="yes">
 																									<label>Edit View</label>
-																									<size>61,21</size>
 																									<handler function="OnbtEditViewsClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
