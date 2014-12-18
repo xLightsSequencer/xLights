@@ -437,6 +437,7 @@ private:
     void OnGrid1LabelRightClick(wxGridEvent& event);
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     void ToggleThreadedSave(wxCommandEvent& event);
+    void OnCollapseEffectsButtonClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -603,6 +604,7 @@ private:
     static const long ID_BUTTON_SeqExport;
     static const long ID_BUTTON4;
     static const long ID_BUTTON_CREATE_RANDOM;
+    static const long ID_BUTTON_CollapseEffectsButton;
     static const long ID_BITMAPBUTTON7;
     static const long ID_BITMAPBUTTON9;
     static const long ID_CHECKBOX1;
@@ -895,6 +897,7 @@ private:
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
+    wxButton* CollapseEffectsButton;
     wxCheckBox* FastSave_CheckBox;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
