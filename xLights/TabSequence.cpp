@@ -1292,9 +1292,9 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     }
     else if (effect == "On")
     {
-        buffer.RenderOn(wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Red"]),
-                        wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Grn"]),
-                        wxAtoi(SettingsMap[LayerStr+"Slider_Eff_On_Blu"]) );
+        buffer.RenderOn(wxAtoi(SettingsMap[LayerStr+"SLIDER_Eff_On_Red"]),
+                        wxAtoi(SettingsMap[LayerStr+"SLIDER_Eff_On_Grn"]),
+                        wxAtoi(SettingsMap[LayerStr+"SLIDER_Eff_On_Blu"]) );
     }
     else if (effect == "Bars")
     {
