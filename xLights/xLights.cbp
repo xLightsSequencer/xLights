@@ -168,6 +168,10 @@
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
+					<Mode after="always" />
+				</ExtraCommands>
 			</Target>
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
@@ -199,6 +203,10 @@
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
+					<Mode after="always" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
