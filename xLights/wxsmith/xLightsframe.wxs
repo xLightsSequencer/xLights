@@ -1901,7 +1901,7 @@
 																					<orient>wxVERTICAL</orient>
 																					<object class="sizeritem">
 																						<object class="wxFlexGridSizer" variable="FlexGridSizer68" member="no">
-																							<cols>5</cols>
+																							<cols>6</cols>
 																							<rows>1</rows>
 																							<object class="sizeritem">
 																								<object class="wxButton" name="ID_BUTTON_PLAY_RGB_SEQ" variable="Button_PlayRgbSeq" member="yes">
@@ -1953,6 +1953,16 @@
 																									<bg>wxSYS_COLOUR_BTNFACE</bg>
 																									<tooltip>Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking &quot;Create Random Effects&quot;, a random effect will be created and assigned to every model on a row.</tooltip>
 																									<handler function="OnbtRandomEffectClick" entry="EVT_BUTTON" />
+																								</object>
+																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																								<border>5</border>
+																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="ID_BUTTON_CollapseEffectsButton" variable="CollapseEffectsButton" member="yes">
+																									<label>v</label>
+																									<size>16,16</size>
+																									<handler function="OnCollapseEffectsButtonClick" entry="EVT_BUTTON" />
 																								</object>
 																								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																								<border>5</border>

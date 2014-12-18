@@ -236,6 +236,7 @@ const long xLightsFrame::ID_BUTTON2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
 const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_CREATE_RANDOM = wxNewId();
+const long xLightsFrame::ID_BUTTON_CollapseEffectsButton = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
@@ -1012,7 +1013,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StaticTextSequenceFileName = new wxStaticText(SeqPanelRight, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer32->Add(StaticTextSequenceFileName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
     BoxSizer7 = new wxBoxSizer(wxVERTICAL);
-    FlexGridSizer68 = new wxFlexGridSizer(1, 5, 0, 0);
+    FlexGridSizer68 = new wxFlexGridSizer(1, 6, 0, 0);
     Button_PlayRgbSeq = new wxButton(SeqPanelRight, ID_BUTTON_PLAY_RGB_SEQ, _("Play (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_RGB_SEQ"));
     Button_PlayRgbSeq->SetBackgroundColour(wxColour(0,255,0));
     Button_PlayRgbSeq->SetToolTip(_("Play your sequence. Before pressing Play, highlight a grid cell under a model. You will see that model show in the window. If you want to see all models switch over to the PREVIEW window."));
@@ -1033,6 +1034,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_CreateRandom->SetToolTip(_("Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking \"Create Random Effects\", a random effect will be created and assigned to every model on a row."));
     FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CollapseEffectsButton = new wxButton(SeqPanelRight, ID_BUTTON_CollapseEffectsButton, _("v"), wxDefaultPosition, wxSize(16,16), 0, wxDefaultValidator, _T("ID_BUTTON_CollapseEffectsButton"));
+    FlexGridSizer68->Add(CollapseEffectsButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer38 = new wxFlexGridSizer(1, 12, 0, 0);
     BitmapButtonOpenSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON7, open_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
@@ -1528,6 +1531,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelExportClick);
     Connect(ID_BUTTON_CREATE_RANDOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
+    Connect(ID_BUTTON_CollapseEffectsButton,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCollapseEffectsButtonClick);
     Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
     Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
@@ -2774,4 +2778,16 @@ void xLightsFrame::ToggleThreadedSave(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ThreadedSave", threadedSave);
     ThreadedSaveMenuItem->Check(!threadedSave);
+}
+
+void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
+{
+    bool is_expanded = (CollapseEffectsButton->GetLabel() == "v");
+    CollapseEffectsButton->SetLabel(is_expanded? "^": "v"); //TODO: make a nicer looking button
+    Notebook2->Show(!is_expanded);
+    wxSize size = Grid1->GetSize();
+    size.y = is_expanded? 470: 120; //TODO: use auto layout
+    Grid1->SetSize(size);
+    Grid1->GetSizer()->Layout();
+    Grid1->GetParent()->GetSizer()->Layout();
 }
