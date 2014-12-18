@@ -489,7 +489,6 @@ public:
     wxSlider* Slider_Spirals_Rotation;
     wxButton* Button_Palette5;
     wxStaticText* StaticText51;
-    wxBitmapButton* BitmapButton_Spirographr;
     wxCheckBox* CheckBox_Spirals_Blend;
     wxBitmapButton* BitmapButton7;
     wxStaticText* StaticText33;
