@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+3.6.14 Dec 16, 2014
     -enh (gjones) Add On effect.  This effect simply allows you to turn on all pixels in a model to the selected color.
     -bug (gjones) Remove extraneous whitespace from the LMS filetype in the drop-down on the file select dialog when
                   selecting a file to convert.
