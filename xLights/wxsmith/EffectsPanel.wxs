@@ -127,7 +127,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_EFF_ON_RED" variable="Slider_Eff_On_Red" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_Eff_On_Red" variable="Slider_Eff_On_Red" member="yes">
 														<value>255</value>
 														<max>255</max>
 														<size>150,24</size>
@@ -157,7 +157,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_EFF_ON_GRN" variable="Slider_Eff_On_Grn" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_Eff_On_Grn" variable="Slider_Eff_On_Grn" member="yes">
 														<value>255</value>
 														<max>255</max>
 														<size>150,24</size>
@@ -187,11 +187,10 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_EFF_ON_BLU" variable="Slider_Eff_On_Blu" member="yes">
+													<object class="wxSlider" name="ID_SLIDER_Eff_On_Blu" variable="Slider_Eff_On_Blu" member="yes">
 														<value>255</value>
 														<max>255</max>
 														<size>150,24</size>
-														<handler function="OnSlider_Eff_On_BluCmdScroll" entry="EVT_COMMAND_SCROLL" />
 														<handler function="OnSlider_Eff_On_BluCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

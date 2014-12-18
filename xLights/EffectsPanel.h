@@ -576,13 +576,13 @@ protected:
     static const long ID_STATICTEXT75;
     static const long ID_BITMAPBUTTON_EFF_ON_COLOR;
     static const long ID_STATICTEXT115;
-    static const long ID_SLIDER_EFF_ON_RED;
+    static const long ID_SLIDER_Eff_On_Red;
     static const long ID_TEXTCTRL_EFF_ON_RED;
     static const long ID_STATICTEXT116;
-    static const long ID_SLIDER_EFF_ON_GRN;
+    static const long ID_SLIDER_Eff_On_Grn;
     static const long ID_TEXTCTRL_EFF_ON_GRN;
     static const long ID_STATICTEXT117;
-    static const long ID_SLIDER_EFF_ON_BLU;
+    static const long ID_SLIDER_Eff_On_Blu;
     static const long ID_TEXTCTRL_EFF_ON_BLU;
     static const long ID_PANEL25;
     static const long ID_BITMAPBUTTON27;

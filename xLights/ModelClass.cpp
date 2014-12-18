@@ -923,7 +923,7 @@ int ModelClass::NodesPerString()
 
 int ModelClass::NodeStartChannel(size_t nodenum)
 {
-    return Nodes[nodenum]->ActChan;
+    return Nodes.size()? Nodes[nodenum]->ActChan: 0; //avoid memory access error if no nods -DJ
 }
 
 int ModelClass::ChannelsPerNode()
@@ -1022,7 +1022,7 @@ int ModelClass::GetChanCount()
     }
     int min = 999999999;
     int max = 0;
-    
+
     for (int x = 0; x < NodeCnt; x++) {
         int i = Nodes[x]->ActChan;
         if (i < min) {
