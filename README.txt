@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+3.6.14 Dec 17, 2014
     -enh (gjones) Update On effect to have 3 color sliders, associated text fields, and bitmap showing selected color.
                   The bitmap button can be used to select the color which will update the sliders and text fields.
     -bug (dkulp) Should not be able to select fseq for model export, only eseq
