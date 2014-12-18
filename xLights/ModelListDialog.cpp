@@ -286,14 +286,15 @@ type of strings
 start channel
 start node = (channel+2)/3;
 #endif // 0
-    wxString filename = wxFileSelector(wxT("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 //    if (filename.IsEmpty()) retmsg(wxString("Please choose an output file name."));
     if (filename.IsEmpty()) return;
 
     wxFile f(filename);
 //    bool isnew = !wxFile::Exists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-    f.Write(wxT("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node\n"));
+    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display\n"));
 
     int first = 0, last = ListBox1->GetCount();
     if (ListBox1->GetSelection() != wxNOT_FOUND) last = 1 + (first = ListBox1->GetSelection());
@@ -302,10 +303,11 @@ start node = (channel+2)/3;
         wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
         ModelClass model;
         model.SetFromXml(node);
-        f.Write(wxString::Format(wxT("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d\n"), model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1));
+        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay));
+//no worky        f.Flush(); //paranoid: write out data in case model loop crashes
     }
     f.Close();
-    retmsg(wxString::Format(wxT("Models exported: %d of %d"), last - first, ListBox1->GetCount()));
+    retmsg(wxString::Format(_("Models exported: %d of %d"), last - first, ListBox1->GetCount()));
 }
 
 void ModelListDialog::OnListBox_ListBox1(wxCommandEvent& event)

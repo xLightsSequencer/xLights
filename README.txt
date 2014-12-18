@@ -5,6 +5,8 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -enh (djulien) Add "My Display" column to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
+    -bug (djulien) Avoid "error 0" when exporting CSV of Preview models.
     -enh (gjones) Update On effect to have 3 color sliders, associated text fields, and bitmap showing selected color.
                   The bitmap button can be used to select the color which will update the sliders and text fields.
     -bug (dkulp) Should not be able to select fseq for model export, only eseq
