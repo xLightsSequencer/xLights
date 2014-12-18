@@ -5,6 +5,28 @@
 #include "heartbeat.h"
 
 
+//#define WANT_FASTER_GRID(grid)  MakeGridFaster grid##_faster(grid) //experimental; comment out this line for slower grid updates -DJ
+
+#ifdef WANT_FASTER_GRID
+ class MakeGridFaster //scoped wrapper to turn grid updates off+on
+ {
+ private:
+    wxGrid* grid_ptr;
+ public:
+    MakeGridFaster(wxGrid* grid): grid_ptr(grid)
+    {
+        if (grid_ptr) grid_ptr->BeginBatch(); //defer repaints until finished updating
+    }
+    ~MakeGridFaster(void)
+    {
+        if (grid_ptr) grid_ptr->EndBatch(); //resume updates when wrapper goes out of scope
+    }
+ };
+#else
+ #define WANT_FASTER_GRID(ignore) //works as before
+#endif // FASTER_GRID
+
+
 void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
@@ -580,6 +602,7 @@ void xLightsFrame::UpdateGrid()
 {
     int r,c;
     wxString v=CreateEffectString();
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -619,6 +642,7 @@ void xLightsFrame::InsertRandomEffects(wxCommandEvent& event)
     int r,c;
     wxString v;
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -658,6 +682,7 @@ void xLightsFrame::CopyEffectAcrossRow(wxCommandEvent& event)
     wxString v;
     int r, c;
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -704,6 +729,7 @@ void xLightsFrame::ClearEffectRow(wxCommandEvent& event)
     wxString v;
     int r, c;
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -739,6 +765,7 @@ void xLightsFrame::DeleteSelectedEffects(wxCommandEvent& event)
     wxString v;
     v.Clear();
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -777,6 +804,7 @@ void xLightsFrame::ProtectSelectedEffects(wxCommandEvent& event)
     wxString v;
     v.Clear();
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -813,6 +841,7 @@ void xLightsFrame::UnprotectSelectedEffects(wxCommandEvent& event)
     wxString v;
     v.Clear();
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if ( Grid1->IsSelection() )
     {
         // iterate over entire grid looking for selected cells
@@ -2154,6 +2183,7 @@ void xLightsFrame::ChooseModelsForSequence()
     // add checked models to grid
 
     size_t cnt = dialog.CheckListBox1->GetCount();
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     for (size_t i=0; i < cnt; i++)
     {
         if (dialog.CheckListBox1->IsChecked(i))
@@ -2710,6 +2740,7 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
         return;
     }
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
     {
         std::string::size_type ofs;
@@ -2842,6 +2873,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     dialog.ChoiceModels->Set(ModelNames);
     if (ModelNames.Count() > 0) dialog.ChoiceModels->SetSelection(0);
     int r,c; // row 0=heading, >=1 are data rows
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     for(tr=root->GetChildren(), r=0; tr!=NULL; tr=tr->GetNext(), r++ )
     {
         if (tr->GetName() != "tr") continue;
@@ -3829,6 +3861,7 @@ void xLightsFrame::CopyRow(int row1, int row2)
 {
     int i, iMax;
     iMax = Grid1->GetNumberCols();
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     for(i=0; i<iMax; i++)
     {
         Grid1->SetCellValue(row1,i,Grid1->GetCellValue(row2,i));
@@ -4268,6 +4301,7 @@ void xLightsFrame::OnPopupClick(wxCommandEvent &event)
 
 void xLightsFrame::SwapCols(int col1, int col2)
 {
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     GridCellChanged(0, col1);
     GridCellChanged(0, col2);
     for (int x = 0; x < Grid1->GetNumberRows(); x++)
@@ -4308,6 +4342,7 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 
 //    if (apply_horiz) wxMessageBox(_("Apply horiz."), _("DEBUG")); //-DJ
 //    for (c=XLIGHTS_SEQ_STATIC_COLUMNS; c<nCols; c++)
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     for (r=0; r<nRows; r++) //reversed order of loops -DJ
     {
         v.Empty(); //no random effect for this row yet -DJ
@@ -4359,6 +4394,7 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
     wxString copy_data;
     bool something_in_this_line;
 
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     if (Grid1->IsSelection())
     {
         // some cells are selected
@@ -4484,6 +4520,7 @@ void xLightsFrame::PasteFromClipboard()
 #ifdef __WXOSX__
     copy_data.Replace("\r", "\n");
 #endif
+    WANT_FASTER_GRID(Grid1); //defer repaints until finished updating -DJ
     do
     {
         cur_line = copy_data.BeforeFirst('\n');
