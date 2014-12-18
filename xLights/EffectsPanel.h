@@ -41,6 +41,7 @@ public:
     //(*Declarations(EffectsPanel)
     wxStaticText* StaticText6;
     wxBitmapButton* BitmapButton_StrobeDuration;
+    wxStaticText* StaticText114;
     wxBitmapButton* BitmapButton_RandomMotion;
     wxBitmapButton* BitmapButton_Wave_FillColors;
     wxBitmapButton* BitmapButton_TwinkleSteps;
@@ -60,8 +61,8 @@ public:
     wxBitmapButton* BitmapButton_TextCount4;
     wxPanel* Panel1_Fireworks;
     wxSlider* Slider_Number_Chases;
-    wxPanel* Panel1_Shimmer;
     wxBitmapButton* BitmapButton_SpiralsGrow;
+    wxPanel* Panel1_Shimmer;
     wxChoice* Choice_SingleStrand_Colors;
     wxButton* Button_Palette3;
     wxBitmapButton* BitmapButton_TextLine1;
@@ -134,6 +135,7 @@ public:
     wxBitmapButton* BitmapButton_TextPosition3;
     wxCheckBox* CheckBox_Circles_Radial;
     wxBitmapButton* BitmapButton_ButterflyChunks;
+    wxStaticText* StaticText115;
     wxStaticText* StaticText87;
     wxTextCtrl* TextCtrl_Text_Line3;
     wxCheckBox* CheckBox_Circles_Bounce;
@@ -173,6 +175,7 @@ public:
     wxSlider* Slider_Spirals_Thickness;
     wxBitmapButton* BitmapButton_TextToCenter1;
     wxSlider* Slider_Number_Waves;
+    wxSlider* Slider_Eff_On_Red;
     wxStaticText* StaticText13;
     wxBitmapButton* BitmapButton_None;
     wxSlider* Slider_Meteors_Length;
@@ -236,8 +239,8 @@ public:
     wxSlider* Slider_Butterfly_Skip;
     wxBitmapButton* BitmapButton_SnowstormCount;
     wxTextCtrl* TextCtrl_Text_Font3;
-    wxBitmapButton* BitmapButton_SpiralsShrink;
     wxSlider* Slider_Spirograph_R;
+    wxBitmapButton* BitmapButton_SpiralsShrink;
     wxStaticText* StaticText39;
     wxBitmapButton* BitmapButton3;
     wxStaticText* StaticText78;
@@ -275,7 +278,6 @@ public:
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
     wxBitmapButton* BitmapButton_MovieIs20FPS;
-    wxBitmapButton* BitmapButton13;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -299,6 +301,7 @@ public:
     wxChoice* Choice_Text_Count4;
     wxBitmapButton* BitmapButton_ButterflyStyle;
     wxNotebook* SingleStrandEffectType;
+    wxTextCtrl* TextCtrl_Eff_On_Red;
     wxSlider* Slider_Text_Position4;
     wxBitmapButton* BitmapButton_TextEffect4;
     wxCheckBox* CheckBox_Chase_Group_All;
@@ -324,6 +327,7 @@ public:
     wxStaticText* StaticText93;
     wxBitmapButton* BitmapButton_Color_Mix1;
     wxStaticText* StaticText61;
+    wxStaticText* StaticText113;
     wxButton* Button_Text_Font4;
     wxStaticText* StaticText62;
     wxBitmapButton* BitmapButton15;
@@ -363,6 +367,7 @@ public:
     wxCheckBox* CheckBox_Palette5;
     wxCheckBox* CheckBox_ColorWash_HFade;
     wxStaticText* StaticText132;
+    wxSlider* Slider_Eff_On_Grn;
     wxBitmapButton* BitmapButton_Direction;
     wxSlider* Slider_Skips_BandSize;
     wxStaticText* StaticText128;
@@ -476,8 +481,9 @@ public:
     wxStaticText* StaticText111;
     wxBitmapButton* BitmapButton_RippleThickness;
     wxChoice* Choice_Text_Effect1;
-    wxBitmapButton* BitmapButton_MeteorsEffect;
+    wxTextCtrl* TextCtrl_Eff_On_Blu;
     wxBitmapButton* BitmapButton_SpirographR;
+    wxBitmapButton* BitmapButton_MeteorsEffect;
     wxChoice* Choice_Text_Count3;
     wxPanel* Panel1_Piano;
     wxBitmapButton* BitmapButton16;
@@ -488,6 +494,7 @@ public:
     wxStaticText* StaticText82;
     wxSlider* Slider_Spirals_Rotation;
     wxButton* Button_Palette5;
+    wxBitmapButton* BitmapButton_Spirographr;
     wxStaticText* StaticText51;
     wxCheckBox* CheckBox_Spirals_Blend;
     wxBitmapButton* BitmapButton7;
@@ -499,6 +506,7 @@ public:
     wxBitmapButton* BitmapButton1;
     wxBitmapButton* BitmapButton_SnowflakesCount;
     wxTextCtrl* TextCtrl_Pictures_Filename;
+    wxSlider* Slider_Eff_On_Blu;
     wxBitmapButton* BitmapButton_TextFont3;
     wxSlider* Slider_Strobe_Duration;
     wxBitmapButton* BitmapButton_FadeOut;
@@ -521,9 +529,11 @@ public:
     wxSlider* Slider_Fireworks_Fade;
     wxBitmapButton* BitmapButton_Piano_ShapeFilename;
     wxCheckBox* CheckBox_Shimmer_Blink_Timing;
+    wxTextCtrl* TextCtrl_Eff_On_Grn;
     wxChoice* Choice_Text_Count1;
     wxBitmapButton* BitmapButton_FireworksVelocity;
     wxSlider* Slider_Piano_NumKeys;
+    wxBitmapButton* BitmapButton_Eff_On_Color;
     wxCheckBox* CheckBox_Twinkle_Strobe;
     wxStaticText* StaticText20;
     wxChoice* Choice_Ripple_Movement;
@@ -563,8 +573,17 @@ protected:
     static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
     static const long ID_PANEL19;
-    static const long ID_BITMAPBUTTON21;
     static const long ID_STATICTEXT75;
+    static const long ID_BITMAPBUTTON_EFF_ON_COLOR;
+    static const long ID_STATICTEXT115;
+    static const long ID_SLIDER_EFF_ON_RED;
+    static const long ID_TEXTCTRL_EFF_ON_RED;
+    static const long ID_STATICTEXT116;
+    static const long ID_SLIDER_EFF_ON_GRN;
+    static const long ID_TEXTCTRL_EFF_ON_GRN;
+    static const long ID_STATICTEXT117;
+    static const long ID_SLIDER_EFF_ON_BLU;
+    static const long ID_TEXTCTRL_EFF_ON_BLU;
     static const long ID_PANEL25;
     static const long ID_BITMAPBUTTON27;
     static const long ID_STATICTEXT25;
@@ -1289,6 +1308,15 @@ private:
     void OnBitmapButton_StrobeDurationClick(wxCommandEvent& event);
     void OnBitmapButton_NumberStrobesClick(wxCommandEvent& event);
     void OnBitmapButton_MovieIs20FPSClick(wxCommandEvent& event);
+    void OnTextCtrl_Eff_On_Red_ValueText(wxCommandEvent& event);
+    void OnSlider_Eff_On_RedCmdScroll(wxScrollEvent& event);
+    void OnSlider_Eff_On_GrnCmdScroll(wxScrollEvent& event);
+    void OnSlider_Eff_On_BluCmdScroll(wxScrollEvent& event);
+    void OnTextCtrl_Eff_On_RedText(wxCommandEvent& event);
+    void OnBitmapButton_Eff_On_ColorClick(wxCommandEvent& event);
+    void OnBitmapButton_Eff_On_ColorClick1(wxCommandEvent& event);
+    void OnTextCtrl_Eff_On_GrnText(wxCommandEvent& event);
+    void OnTextCtrl_Eff_On_BluText(wxCommandEvent& event);
     //*)
 
     void UpdateFont(wxTextCtrl* FontCtrl);
@@ -1314,6 +1342,8 @@ private:
 public:
     bool isRandom_(void);
     void UpdateSpeedText();
+    void UpdateEffOnColor();
+
     bool WantOverlayBkg(void); //selectable clear canvas before render -DJ
 };
 
