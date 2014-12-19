@@ -55,6 +55,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     FillColors.Add("Palette");  // 2
     */
 
+    debug(10, "wave: type %d, fill %d, #waves %d, height %d, state %d", WaveType, FillColor, NumberWaves, WaveHeight, state);
     int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
     double a,r,yc,deltay;
     double degree,radian,degree_per_x,h=0.0;
@@ -77,6 +78,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     else if (WaveType == WAVETYPE_IVYFRACTAL) //generate branches at start of effect
         if (!state || (ybranch.size() != NumberWaves * BufferWi)) {
             r = 0;
+            debug(10, "regen wave path, state %d", state);
             int delay = 0, delta; //next branch length, angle
             ybranch.resize(NumberWaves * BufferWi);
             for (int x = 0; x < NumberWaves * BufferWi; ++x) {
@@ -185,6 +187,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
             y2mirror= yc + (yc -y2);
             deltay = y2-y1;
 
+            if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if(WaveType==WAVETYPE_SQUARE) { // Square Wave
                 if(sin(radian)>0.0) {
@@ -196,7 +199,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
                 }
             }
             for (y=y1; y<y2; y++) {
-                if(FillColor==0) {
+                if(FillColor<=0) { //default to this if no selection -DJ
                     SetPixel(x,y,hsv0);  // fill with color 2
                     //       hsv.hue=(double)(BufferHt-y)/deltay;
                 } else if(FillColor==1) {
@@ -221,7 +224,7 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
                 }
 
                 for (y=y1; y<y2; y++) {
-                    if(FillColor==0) {
+                    if(FillColor<=0) { //default to this if no selection -DJ
                         SetPixel(x,y,hsv0);  // fill with color 2
                         //       hsv.hue=(double)(BufferHt-y)/deltay;
                     } else if(FillColor==1) {

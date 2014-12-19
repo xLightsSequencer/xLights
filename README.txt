@@ -5,6 +5,7 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+    -bug (djulien) Fixed Wave effect when rendered in a .xseq (FillColor was not selected, which resulted in no output)
     -enh (djulien) Add collapse/expand button (located next to "Create Random Effects")
 		to allow more grid space on laptops
     -enh (djulien) Add "My Display" column to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
