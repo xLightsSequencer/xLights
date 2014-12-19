@@ -8,7 +8,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -bug (djulien) Fixed Wave effect when rendered in a .xseq (FillColor was not selected, which resulted in no output)
     -enh (djulien) Add collapse/expand button (located next to "Create Random Effects")
 		to allow more grid space on laptops
-    -enh (djulien) Add "My Display" column to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
+    -enh (djulien) Add "My Display" and "Brightness" columns to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
     -bug (djulien) Avoid "error 0" when exporting CSV of Preview models.
     -enh (gjones) Update On effect to have 3 color sliders, associated text fields, and bitmap showing selected color.
                   The bitmap button can be used to select the color which will update the sliders and text fields.

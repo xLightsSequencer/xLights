@@ -285,6 +285,8 @@ type of strings
 #nodes
 start channel
 start node = (channel+2)/3;
+my display
+brightness
 #endif // 0
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, wxEmptyString, wxEmptyString, "Export files (*.csv)|*.csv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -294,7 +296,7 @@ start node = (channel+2)/3;
     wxFile f(filename);
 //    bool isnew = !wxFile::Exists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display\n"));
+    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display, Brightness\n"));
 
     int first = 0, last = ListBox1->GetCount();
     if (ListBox1->GetSelection() != wxNOT_FOUND) last = 1 + (first = ListBox1->GetSelection());
@@ -303,7 +305,7 @@ start node = (channel+2)/3;
         wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
         ModelClass model;
         model.SetFromXml(node);
-        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay));
+        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay, model.ModelBrightness));
 //no worky        f.Flush(); //paranoid: write out data in case model loop crashes
     }
     f.Close();
