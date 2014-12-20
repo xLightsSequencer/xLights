@@ -296,7 +296,7 @@ brightness
     wxFile f(filename);
 //    bool isnew = !wxFile::Exists(filename);
     if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display, Brightness%\n"));
+    f.Write(_("Model_name, Display_as, String_type, String_count, Node_count, Start_channel, Start_node, My_display, Brightness+-\n"));
 
     int first = 0, last = ListBox1->GetCount();
     if (ListBox1->GetSelection() != wxNOT_FOUND) last = 1 + (first = ListBox1->GetSelection());
@@ -305,7 +305,8 @@ brightness
         wxXmlNode* node = (wxXmlNode*)ListBox1->GetClientData(i);
         ModelClass model;
         model.SetFromXml(node);
-        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %d, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), model.NodeStartChannel(0) + 1, model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay, model.ModelBrightness));
+        wxString stch = node->GetAttribute("StartChannel", wxString::Format("%d?", model.NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
+        f.Write(wxString::Format("\"%s\", \"%s\", \"%s\", %d, %d, %s, %d, %d, %d\n", model.name, model.GetDisplayAs(), model.GetStringType(), model.GetNodeCount() / model.NodesPerString(), model.GetNodeCount(), stch, /*WRONG:*/ model.NodeStartChannel(0) / model.NodesPerString() + 1, model.MyDisplay, model.ModelBrightness));
 //no worky        f.Flush(); //paranoid: write out data in case model loop crashes
     }
     f.Close();
