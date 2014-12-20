@@ -1,14 +1,18 @@
-﻿xLights is a program that allows you to play the sequence files from Vixen and
+xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler.
 Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches.
 
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
-3.6.14 Dec 14, 2014
+3.6.15 Dec 20, 2014
+    -enh (djulien) Default Brightness to 100% if setting not present in XML file (only affects externally generated XML files)
+    -enh (djulien) show elapsed time on file loads
+    -bug (djulien) Fixed Wave effect when rendered in a .xseq (FillColor was not selected, which resulted in no output)
+3.6.14 Dec 17, 2014
     -enh (djulien) Add collapse/expand button (located next to "Create Random Effects")
 		to allow more grid space on laptops
-    -enh (djulien) Add "My Display" column to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
+    -enh (djulien) Add "My Display" and "Brightness" columns to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
     -bug (djulien) Avoid "error 0" when exporting CSV of Preview models.
     -enh (gjones) Update On effect to have 3 color sliders, associated text fields, and bitmap showing selected color.
                   The bitmap button can be used to select the color which will update the sliders and text fields.

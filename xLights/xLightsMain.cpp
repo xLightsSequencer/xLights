@@ -1034,7 +1034,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_CreateRandom->SetToolTip(_("Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking \"Create Random Effects\", a random effect will be created and assigned to every model on a row."));
     FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CollapseEffectsButton = new wxButton(SeqPanelRight, ID_BUTTON_CollapseEffectsButton, _("v"), wxDefaultPosition, wxSize(16,16), 0, wxDefaultValidator, _T("ID_BUTTON_CollapseEffectsButton"));
+    CollapseEffectsButton = new wxButton(SeqPanelRight, ID_BUTTON_CollapseEffectsButton, _("v"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_CollapseEffectsButton"));
     FlexGridSizer68->Add(CollapseEffectsButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer38 = new wxFlexGridSizer(1, 12, 0, 0);
@@ -1072,7 +1072,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer38->Add(StaticText28, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Views = new wxChoice(SeqPanelRight, ID_CHOICE_VIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEWS"));
     FlexGridSizer38->Add(Choice_Views, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit View"), wxDefaultPosition, wxSize(61,21), 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
+    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
     FlexGridSizer38->Add(btEditViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BoxSizer7->Add(FlexGridSizer38, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer32->Add(BoxSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -2788,6 +2788,9 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
     wxSize size = Grid1->GetSize();
     size.y = is_expanded? 470: 120; //TODO: use auto layout
     Grid1->SetSize(size);
-    Grid1->GetSizer()->Layout();
+    if (Grid1->GetSizer() != NULL) {
+        //No Sizer on the Mac
+        Grid1->GetSizer()->Layout();
+    }
     Grid1->GetParent()->GetSizer()->Layout();
 }
