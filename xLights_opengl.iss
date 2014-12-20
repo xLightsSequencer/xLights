@@ -20,10 +20,13 @@ OutputBaseFilename=xLights_Nutcracker_3_6_x
 
 [Files]
 Source: "bin/xLights.exe"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\wxWidgets-3.0.0vc\lib\gcc_dll\wxmsw30ud_gl_gcc_custom.dll"; DestDir: "{app}"
-Source: "C:\Users\sean\Documents\c++\sources\bin\glut32.dll"; DestDir: "{app}"
+Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
+Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30u_gl_gcc_custom.dll"; DestDir: "{app}"
+Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30ud_gl_gcc_custom.dll"; DestDir: "{app}"
+Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}"
+
+
+
 Source: "bin/ffmpeg.exe"; DestDir: "{app}"
 Source: "bin/gawk.exe"; DestDir: "{app}"
 Source: "bin/coroface.awk"; DestDir: "{app}"
@@ -34,7 +37,7 @@ Source: "bin/modelxls.bat"; DestDir: "{app}"
 Source: "bin/merge_xml.awk"; DestDir: "{app}"
 Source: "bin/PathEditor.exe"; DestDir: "{app}"
 Source: "include\xLights.ico"; DestDir: "{app}"
-Source: "C:\Users\sean\Documents\c++\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
+Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 
 ;Source: "include/*.xpm"; DestDir: "{app}/include" 
@@ -45,7 +48,7 @@ Source: "piano/*.*"; DestDir: "{app}/piano"
 ;Source: "C:\wxWidgets-3.0.0\lib\gcc_dll\wxmsw30u_gcc_custom.dll"; DestDir: "{app}"
 
 Source: "License.txt"; DestDir: "{app}";
-Source: "Readme.txt";  DestDir: "{app}"; Flags: isreadme
+Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
 [Run]
