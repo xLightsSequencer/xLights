@@ -108,6 +108,7 @@ void PixelBufferClass::SetMixType(const wxString& MixName)
 
 }
 
+static long mixes_wanted = 0, mixes_needed = 0;
 void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, xlColour& c)
 {
     xlColour c0,c1;
@@ -116,8 +117,32 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, xlColour& c)
     double emt, emtNot;
     int n =0; //increase to change the curve of the crossfade
 
+    ++mixes_wanted;
+#if 0 //experimental
+//short-circuit the most common cases here for better performance: -DJ
+    if (MixType == Mix_Effect1)
+        if (!effectMixVaries || (Effect[0].GetEffectTimeIntervalPosition(true) == 1.)) //result depends only on first color
+        {
+            if (fadeFactor[0] == 0.) { c.Set(0, 0, 0); return; }
+            if (fadeFactor[0] == 1.0) { Effect[0].GetPixel(x, y, c); return; }
+        }
+    if (MixType == Mix_Effect2)
+        if (!effectMixVaries || (Effect[0].GetEffectTimeIntervalPosition(true) == 0.)) //result depends only on second color
+        {
+            if (fadeFactor[1] == 0.) { c.Set(0, 0, 0); return; }
+            if (fadeFactor[1] == 1.0) { Effect[1].GetPixel(x, y, c); return; }
+        }
+//TODO: there are a couple of additional cases for cross-mixing when threshold is at the other end of the range
+    if ((fadeFactor[0] == 0.) && (fadeFactor[1] == 0.)) { c.Set(0, 0, 0); return; }
+//and 2 more cases below ...
+#endif
     Effect[0].GetPixel(x,y,c0);
     Effect[1].GetPixel(x,y,c1);
+#if 0 //goes with above
+    if (!c0.red && !c0.green && !c0.blue && !c1.red && !c1.green && !c1.blue) { c.Set(0, 0, 0); return; } //skip redundant calculations -DJ
+    if ((c0.red == c1.red) && (c0.green == c1.green) && (c0.blue == c1.blue) && (fadeFactor[0] == fadeFactor[1])) { c = c0; return; }
+#endif
+    ++mixes_needed; //useful info for assessing how useful it is to short circuit the common cases -DJ
     hsv0 = wxImage::RGBtoHSV( wxImage::RGBValue( c0.Red(), c0.Green(), c0.Blue()));
     hsv1 = wxImage::RGBtoHSV(wxImage::RGBValue( c1.Red(), c1.Green(), c1.Blue()));
 
@@ -393,9 +418,11 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             }
             // Apply brightness
             wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
+//TODO: bypass below hsv conversion if brightness == 100 && contrast == 100?
             hsv = wxImage::RGBtoHSV(rgb);
             //ModelBrightness=1.0;    // <SCM> we will use this until we figure how to pass in Model brightness
 
+//NOTE: ModelBrightness is additive (+/- adjustment), but brightness from effect settings is a multiplier (scaled)
             float fModelBrightness=((float)ModelBrightness/100) + 1.0;
             hsv.value = hsv.value * ((double)brightness/(double)100)*fModelBrightness;
 

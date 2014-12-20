@@ -1139,6 +1139,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
 void xLightsFrame::LoadEffectsFile()
 {
+    wxStopWatch sw; // start a stopwatch timer
     wxString filename=LoadEffectsFileNoCheck();
     // check version, do we need to convert?
     wxString version=EffectsNode->GetAttribute("version", "0000");
@@ -1157,6 +1158,8 @@ void xLightsFrame::LoadEffectsFile()
 
     UpdateModelsList();
     UpdateViewList();
+    float elapsedTime = sw.Time()/1000.0; //msec => sec
+    StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
 
 // returns true on success
@@ -3035,8 +3038,11 @@ void xLightsFrame::OpenSequence()
     long duration;
     if (dialog.RadioButtonXlights->GetValue())
     {
+        wxStopWatch sw; // start a stopwatch timer
         SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
         SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection(), true);
+        float elapsedTime = sw.Time()/1000.0; //msec => sec
+        StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), dialog.ChoiceSeqFiles->GetStringSelection(), elapsedTime));
         return;
     }
     else if (dialog.RadioButtonLor->GetValue())
@@ -3151,6 +3157,11 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
+const wxString& DefaultAs(const wxString& str, const wxString& defval)
+{
+    return !str.IsEmpty()? str: defval;
+}
+
 class xLightsRenderThread : public wxThread
 {
 public:
@@ -3170,6 +3181,7 @@ public:
     }
     void AddEffectString(long time, const wxString &ef)
     {
+//        debug(1, "aff eff str: time %ld, str '%s'", time, (const char*)ef.c_str());
         startTimes.push_back(time);
         effects.push_back(ef);
     }
@@ -3200,7 +3212,7 @@ public:
             {
                 wxString effect1=SettingsMap["E1_Effect"];
                 wxString effect2=SettingsMap["E1_Effect"];
-                int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]);
+                int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]); //NOTE: no SettingsMap for this value first time thru loop
                 int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
 
                 if (!persist1 || "None" == effect1)
@@ -3217,6 +3229,7 @@ public:
                     bufferClear = false;
                 }
             }
+//            debug(10, "render loop: next grid row %d, #effects, msec %ld, next start time %ld", NextGridRowToPlay, effects.size(), msec, startTimes[NextGridRowToPlay]);
             if (NextGridRowToPlay < effects.size() && msec >= startTimes[NextGridRowToPlay])
             {
                 wxCriticalSection crit;
@@ -3261,6 +3274,7 @@ public:
                         thread1Condition.Signal();
                     }
 
+//debug(1, "at %d msec load settings for next row %d from '%s'", msec, NextGridRowToPlay, (const char*)effects[NextGridRowToPlay].c_str());
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
                     //StatusBar1->SetStatusText(msg);
@@ -3274,7 +3288,7 @@ public:
                     if (freq == xLights->Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
 
-                    int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
+                    int brightness=wxAtoi(DefaultAs(SettingsMap["ID_SLIDER_Brightness"], wxString("100"))); //set to a safe value if missing -DJ
                     buffer.SetBrightness(brightness);
                     //                    int b = ModelBrightness;
 
