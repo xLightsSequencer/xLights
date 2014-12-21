@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 3.6.15 Dec 20, 2014
+    -enh (djulien) Allow option to continue Preview playback if channel data is missing from .xseq file (helps avoid the need to re-render everything if you've added props at the end)
     -enh (djulien) Default Brightness to 100% if setting not present in XML file (only affects externally generated XML files)
     -enh (djulien) show elapsed time on file loads
     -bug (djulien) Fixed Wave effect when rendered in a .xseq (FillColor was not selected, which resulted in no output)
@@ -13,7 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
     -enh (djulien) Add collapse/expand button (located next to "Create Random Effects")
 		to allow more grid space on laptops
     -enh (djulien) Add "My Display" and "Brightness" columns to Preview model CSV - makes it easier to see why a prop is not getting any data. 8/
-    -bug (djulien) Avoid "error 0" when exporting CSV of Preview models.
+    -bug (djulien) Avoid "error 0" when exporting CSV of Preview models.  Show correct value for "start channel#".
     -enh (gjones) Update On effect to have 3 color sliders, associated text fields, and bitmap showing selected color.
                   The bitmap button can be used to select the color which will update the sliders and text fields.
     -bug (dkulp) Should not be able to select fseq for model export, only eseq

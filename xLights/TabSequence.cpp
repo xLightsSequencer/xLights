@@ -3411,6 +3411,7 @@ void xLightsFrame::RenderGridToSeqData()
     int firstRowToRender = 0;
     if (FastSave_CheckBox->IsChecked())
     {
+//TODO: track first AND last row + column changed since latest render
         firstColToRender = changedColumn;
         firstRowToRender = changedRow;
         if (firstColToRender < XLIGHTS_SEQ_STATIC_COLUMNS)

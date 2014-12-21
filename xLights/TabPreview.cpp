@@ -777,13 +777,14 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         wxString details; //show details to help user -DJ
         for (int i=0; i<PreviewModels.size(); i++)
         {
-            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format("Last was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
+            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format("\nLast was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
             LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
         }
         if (LastPreviewChannel >= SeqNumChannels)
         {
-            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
-            return;
+//            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+            if (wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence." + details + "\nContinue?"),_("Error in Preview"),wxYES_NO | wxNO_DEFAULT | wxCENTRE | wxICON_ERROR) != wxYES)
+                return;
         }
         if (!previewLoaded)
         {
@@ -850,13 +851,13 @@ void xLightsFrame::PreviewOutput(int period)
         {
             if (cn==1) {
                 PreviewModels[m]->GetChanIntensity(n,0,&chnum,&intensity);
-                intensity=SeqData[chnum*SeqNumPeriods+period];
+                intensity=(chnum * SeqNumPeriods + period < SeqData.size())? SeqData[chnum*SeqNumPeriods+period]: 0; //allow missing channel data -DJ
                 PreviewModels[m]->SetChanIntensityAll(n,intensity);
             } else {
                 for(size_t c=0; c<cn; c++)
                 {
                     PreviewModels[m]->GetChanIntensity(n,c,&chnum,&intensity);
-                    intensity=SeqData[chnum*SeqNumPeriods+period];
+                    intensity=(chnum * SeqNumPeriods + period < SeqData.size())? SeqData[chnum*SeqNumPeriods+period]: 0; //allow missing channel data -DJ
                     PreviewModels[m]->SetChanIntensity(n,c,intensity);
                 }
             }
