@@ -1160,8 +1160,7 @@ private:
     void UpdateModelsList();
     void ChooseColor(wxTextCtrl* TextCtrl);
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
-    void PlayRgbEffect(int EffectPeriod);
-    bool PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod);
+    void PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap);
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, wxString& PageName);
     void UpdateGrid();
@@ -1194,8 +1193,14 @@ private:
     void ResetEffectDuration(PixelBufferClass &buffer);
     void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
+    
+    void UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer);
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState, bool bgThread = false);
+    bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
+                             PixelBufferClass &buffer, bool *ResetEffectState,
+                             bool &bufferClear,
+                             bool bgThread = false);
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();
@@ -1279,6 +1284,8 @@ private:
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
     PixelBufferClass playBuffer;
+    int playPeriod;
+    wxString lastPlayEffect;
     bool playResetEffectState[2];
     double mPointSize = 2.0;
 

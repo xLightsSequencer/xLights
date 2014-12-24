@@ -27,6 +27,12 @@
 #endif // FASTER_GRID
 
 
+const wxString& DefaultAs(const wxString& str, const wxString& defval)
+{
+    return !str.IsEmpty()? str: defval;
+}
+
+
 void xLightsFrame::CreateDefaultEffectsXml()
 {
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "xrgb" );
@@ -127,6 +133,15 @@ void xLightsFrame::PlayEffect()
     playBuffer.SetMixType(Choice_LayerMethod->GetStringSelection());
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
+    
+    lastPlayEffect = CreateEffectString();
+    MapStringString SettingsMap;
+    LoadSettingsMap(lastPlayEffect, SettingsMap);
+    ResetEffectStates(playResetEffectState);
+    UpdateBuffersForNewMap(SettingsMap, playBuffer);
+    UpdateEffectDuration(true, Grid1->GetCursorRow(), playBuffer, Grid1->GetCursorColumn());
+    playPeriod = 0;
+    
     ResetTimer(PLAYING_EFFECT);
     Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
     heartbeat("playback effect", true); //tell fido to start watching -DJ
@@ -1573,319 +1588,31 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     return retval;
 }
 
-
-// layer is 0 or 1
-bool xLightsFrame::PlayRgbEffect1(EffectsPanel* panel, int layer, int EffectPeriod)
-{
-//    wxString parsed;
-    bool retval = true;
-    bool fitToTime;
-    if (panel->EffectChanged)
-    {
-        playResetEffectState[layer]=true;
-        panel->EffectChanged=false;
-    }
-    if (panel->PaletteChanged)
-    {
-        UpdateBufferPalette(panel,layer, playBuffer);
-        playResetEffectState[layer]=true;
-        panel->PaletteChanged=false;
-    }
-    fitToTime = panel->CheckBox_FitToTime->GetValue();
-    playBuffer.SetFitToTime(layer, fitToTime);
-
-//    debug(10, "PlayRgbEffect1(p*, layer %d, eff per %d)", layer, EffectPeriod);
-    playBuffer.SetLayer(layer,EffectPeriod,panel->Slider_Speed->GetValue(),playResetEffectState[layer]);
-    playResetEffectState[layer]=false;
-    switch (panel->Choicebook1->GetSelection())
-    {
-    case eff_NONE:
-        retval = false;
-        break;   // none
-    case eff_OFF:
-        playBuffer.RenderOff();
-        break;   // none
-    case eff_ON:
-        playBuffer.RenderOn(panel->Slider_Eff_On_Red->GetValue(),
-                            panel->Slider_Eff_On_Grn->GetValue(),
-                            panel->Slider_Eff_On_Blu->GetValue());
-        break;   // none
-    case eff_BARS:
-        playBuffer.RenderBars(panel->Slider_Bars_BarCount->GetValue(),
-                              panel->Choice_Bars_Direction->GetSelection(),
-                              panel->CheckBox_Bars_Highlight->GetValue(),
-                              panel->CheckBox_Bars_3D->GetValue());
-        break;
-    case eff_BUTTERFLY:
-        playBuffer.RenderButterfly(panel->Choice_Butterfly_Colors->GetSelection(),
-                                   panel->Slider_Butterfly_Style->GetValue(),
-                                   panel->Slider_Butterfly_Chunks->GetValue(),
-                                   panel->Slider_Butterfly_Skip->GetValue(),
-                                   panel->Choice_Butterfly_Direction->GetSelection());
-        break;
-    case eff_CIRCLES:
-        playBuffer.RenderCircles(panel->Slider_Circles_Count->GetValue(),
-                                 panel->Slider_Circles_Size->GetValue(),
-                                 panel->CheckBox_Circles_Bounce->GetValue(),
-                                 panel->CheckBox_Circles_Collide->GetValue(),
-                                 panel->CheckBox_Circles_Random_m->GetValue(),
-                                 panel->CheckBox_Circles_Radial->GetValue(),
-                                 panel->CheckBox_Circles_Radial_3D->GetValue(),
-                                 panel->CheckBox_Circles_Bubbles->GetValue(),
-                                 playBuffer.BufferWi/2, playBuffer.BufferHt/2, //temp hard coding.
-                                 panel->CheckBox_Circles_Plasma->GetValue()
-                                );
-
-        break;
-    case eff_COLORWASH:
-        playBuffer.RenderColorWash(panel->CheckBox_ColorWash_HFade->GetValue(),
-                                   panel->CheckBox_ColorWash_VFade->GetValue(),
-                                   panel->Slider_ColorWash_Count->GetValue());
-        break;
-    case eff_CURTAIN:
-        playBuffer.RenderCurtain(panel->Choice_Curtain_Edge->GetSelection(),
-                                 panel->Choice_Curtain_Effect->GetSelection(),
-                                 panel->Slider_Curtain_Swag->GetValue(),
-                                 panel->CheckBox_Curtain_Repeat->GetValue());
-        break;
-    case eff_FACES:
-        playBuffer.RenderFaces(panel->Choice_Faces_Phoneme->GetSelection());
-        break;
-    case eff_COROFACES:
-#if 0
-//        wxString parsed;
-//kludge: can't change param list (awk script dependency) so pass parsed info in place of non-parsed info
-        for (size_t i = 0; i < panel->CheckListBox_CoroFaceElements->GetCount(); ++i)
-        {
-            if (!panel->CheckListBox_CoroFaceElements->IsChecked(i)) continue;
-            if (!parsed.empty()) parsed += wxT("+");
-            parsed += panel->CheckListBox_CoroFaceElements->GetString(i);
-        }
-#endif // 0
-        playBuffer.RenderCoroFaces(panel->Choice_CoroFaces_Phoneme->GetString(panel->Choice_CoroFaces_Phoneme->GetSelection()),
-                                   panel->Choice_CoroFaces_Eyes->GetString(panel->Choice_CoroFaces_Eyes->GetSelection()),
-                                   panel->CheckBox_CoroFaces_Outline->GetValue());
-        break;
-
-    case eff_FIRE:
-        playBuffer.RenderFire(panel->Slider_Fire_Height->GetValue(),
-                              panel->Slider_Fire_HueShift->GetValue(),
-                              panel->CheckBox_Fire_GrowFire->GetValue());
-        break;
-    case eff_FIREWORKS:
-        playBuffer.RenderFireworks(panel->Slider_Fireworks_Number_Explosions->GetValue(),
-                                   panel->Slider_Fireworks_Count->GetValue(),
-                                   panel->Slider_Fireworks_Velocity->GetValue(),
-                                   panel->Slider_Fireworks_Fade->GetValue());
-        break;
-    case eff_GARLANDS:
-        playBuffer.RenderGarlands(panel->Slider_Garlands_Type->GetValue(),
-                                  panel->Slider_Garlands_Spacing->GetValue());
-        break;
-    case eff_GLEDIATOR: //changed slider to choice list, added other controls -DJ
-        playBuffer.RenderGlediator(panel->TextCtrl_Glediator_Filename->GetValue());
-        break;
-    case eff_LIFE:
-        playBuffer.RenderLife(panel->Slider_Life_Count->GetValue(),
-                              panel->Slider_Life_Seed->GetValue());
-        break;
-    case eff_METEORS:
-        playBuffer.RenderMeteors(panel->Choice_Meteors_Type->GetSelection(),
-                                 panel->Slider_Meteors_Count->GetValue(),
-                                 panel->Slider_Meteors_Length->GetValue(),
-                                 panel->Choice_Meteors_Effect->GetSelection(),
-                                 panel->Slider_Meteors_Swirl_Intensity->GetValue());
-        break;
-    case eff_PIANO: //changed slider to choice list, added other controls -DJ
-        playBuffer.RenderPiano(panel->Choice_Piano_Style->GetSelection(),
-                               panel->Slider_Piano_NumKeys->GetValue(),
-                               panel->Slider_Piano_NumRows->GetValue(),
-                               panel->Choice_Piano_KeyPlacement->GetSelection(),
-                               panel->CheckBox_Piano_Clipping->GetValue(),
-                               panel->TextCtrl_Piano_CueFilename->GetValue(),
-                               panel->TextCtrl_Piano_MapFilename->GetValue(),
-                               panel->TextCtrl_Piano_ShapeFilename->GetValue());
-        break;
-    case eff_PICTURES:
-        playBuffer.RenderPictures(panel->Choice_Pictures_Direction->GetSelection(),
-                                  panel->TextCtrl_Pictures_Filename->GetValue(),
-                                  panel->Slider_Pictures_GifSpeed->GetValue(),
-                                  panel->CheckBox_Pictures_Is20FPS->GetValue());
-        break;
-    case eff_PINWHEEL:
-        playBuffer.RenderPinwheel(panel->Slider_Pinwheel_Arms->GetValue(),
-                                  panel->Slider_Pinwheel_Twist->GetValue(),
-                                  panel->Slider_Pinwheel_Thickness->GetValue(),
-                                  panel->CheckBox_Pinwheel_Rotation->GetValue(),
-                                  panel->Choice_Pinwheel_3D->GetSelection(),
-                                  panel->Slider_PinwheelXC->GetValue(),
-                                  panel->Slider_PinwheelYC->GetValue(),
-                                  panel->Slider_Pinwheel_ArmSize->GetValue()
-                                 );
-        break;
-    case eff_RIPPLE:
-        playBuffer.RenderRipple(panel->Choice_Ripple_Object_To_Draw->GetSelection(),
-                                panel->Choice_Ripple_Movement->GetSelection(),
-                                panel->Slider_Ripple_Thickness->GetValue(),
-                                panel->CheckBox_Ripple3D->GetValue());
-        break;
-    case eff_SHIMMER:
-        playBuffer.RenderShimmer(panel->Slider_Shimmer_Duty_Factor->GetValue(),
-                                 panel->CheckBox_Shimmer_Use_All_Colors->GetValue(),
-                                 panel->CheckBox_Shimmer_Blink_Timing->GetValue(),
-                                 panel->Slider_Shimmer_Blinks_Per_Row->GetValue());
-        break;
-    case eff_SINGLESTRAND:
-        if ("Skips" == panel->SingleStrandEffectType->GetPageText(panel->SingleStrandEffectType->GetSelection()))
-        {
-            playBuffer.RenderSingleStrandSkips(panel->Slider_Skips_BandSize->GetValue(),
-                                               panel->Slider_Skips_SkipSize->GetValue(),
-                                               panel->Slider_Skips_StartPos->GetValue(),
-                                               panel->Choice_Skips_Direction->GetString(panel->Choice_Skips_Direction->GetSelection()));
-        }
-        else
-        {
-            playBuffer.RenderSingleStrandChase(panel->Choice_SingleStrand_Colors->GetSelection(),
-                                               panel->Slider_Number_Chases->GetValue(),
-                                               panel->Slider_Color_Mix1->GetValue(),
-                                               panel->Slider_Chase_Spacing1->GetValue(),
-                                               panel->Choice_Chase_Type1->GetSelection(),
-                                               panel->CheckBox_Chase_3dFade1->GetValue(),
-                                               panel->CheckBox_Chase_Group_All->GetValue());
-        }
-        break;
-    case eff_SNOWFLAKES:
-        playBuffer.RenderSnowflakes(panel->Slider_Snowflakes_Count->GetValue(),
-                                    panel->Slider_Snowflakes_Type->GetValue());
-        break;
-    case eff_SNOWSTORM:
-        playBuffer.RenderSnowstorm(panel->Slider_Snowstorm_Count->GetValue(),
-                                   panel->Slider_Snowstorm_Length->GetValue());
-        break;
-    case eff_SPIRALS:
-        playBuffer.RenderSpirals(panel->Slider_Spirals_Count->GetValue(),
-                                 panel->Slider_Spirals_Direction->GetValue(),
-                                 panel->Slider_Spirals_Rotation->GetValue(),
-                                 panel->Slider_Spirals_Thickness->GetValue(),
-                                 panel->CheckBox_Spirals_Blend->GetValue(),
-                                 panel->CheckBox_Spirals_3D->GetValue(),
-                                 panel->CheckBox_Spirals_Grow->GetValue(),
-                                 panel->CheckBox_Spirlas_Shrink->GetValue());
-        break;
-    case eff_SPIROGRAPH:
-        playBuffer.RenderSpirograph(panel->Slider_Spirograph_R->GetValue(),
-                                    panel->Slider_Spirograph_r->GetValue(),
-                                    panel->Slider_Spirograph_d->GetValue(),
-                                    panel->CheckBox_Spirograph_Animate->GetValue());
-        break;
-    case eff_STROBE:
-        playBuffer.RenderStrobe(panel->Slider_Number_Strobes->GetValue(),
-                                panel->Slider_Strobe_Duration->GetValue(),
-                                panel->Slider_Strobe_Type->GetValue());
-        break;
-    case eff_TEXT:
-        playBuffer.RenderText(panel->Slider_Text_Position1->GetValue(),
-                              panel->TextCtrl_Text_Line1->GetValue(),
-                              panel->TextCtrl_Text_Font1->GetValue(),
-                              panel->Choice_Text_Dir1->GetSelection(),
-                              panel->CheckBox_TextToCenter1->GetValue(),
-                              panel->Choice_Text_Effect1->GetSelection(),
-                              panel->Choice_Text_Count1->GetSelection(),
-                              //
-                              panel->Slider_Text_Position2->GetValue(),
-                              panel->TextCtrl_Text_Line2->GetValue(),
-                              panel->TextCtrl_Text_Font2->GetValue(),
-                              panel->Choice_Text_Dir2->GetSelection(),
-                              panel->CheckBox_TextToCenter2->GetValue(),
-                              panel->Choice_Text_Effect2->GetSelection(),
-                              panel->Choice_Text_Count2->GetSelection(),
-                              //
-                              panel->Slider_Text_Position3->GetValue(),
-                              panel->TextCtrl_Text_Line3->GetValue(),
-                              panel->TextCtrl_Text_Font3->GetValue(),
-                              panel->Choice_Text_Dir3->GetSelection(),
-                              panel->CheckBox_TextToCenter3->GetValue(),
-                              panel->Choice_Text_Effect3->GetSelection(),
-                              panel->Choice_Text_Count3->GetSelection(),
-                              //
-                              panel->Slider_Text_Position4->GetValue(),
-                              panel->TextCtrl_Text_Line4->GetValue(),
-                              panel->TextCtrl_Text_Font4->GetValue(),
-                              panel->Choice_Text_Dir4->GetSelection(),
-                              panel->CheckBox_TextToCenter4->GetValue(),
-                              panel->Choice_Text_Effect4->GetSelection(),
-                              panel->Choice_Text_Count4->GetSelection());
-
-        break;
-    case eff_TREE:
-        playBuffer.RenderTree(panel->Slider_Tree_Branches->GetValue());
-        break;
-    case eff_TWINKLE:
-        playBuffer.RenderTwinkle(panel->Slider_Twinkle_Count->GetValue(),
-                                 panel->Slider_Twinkle_Steps->GetValue(),
-                                 panel->CheckBox_Twinkle_Strobe->GetValue());
-        break;
-    case eff_WAVE:
-        playBuffer.RenderWave(panel->Choice_Wave_Type->GetSelection(),
-                              panel->Choice_Fill_Colors->GetSelection(),
-                              panel->CheckBox_Mirror_Wave->GetValue(),
-                              panel->Slider_Number_Waves->GetValue(),
-                              panel->Slider_Thickness_Percentage->GetValue(),
-                              panel->Slider_Wave_Height->GetValue(),
-                              panel->Choice_Wave_Direction->GetSelection());
-        break;
-
-    }
-    return retval;
-}
-
 //#define WANT_DEBUG 99
 //#define WANT_DEBUG_IMPL
 //#include "djdebug.cpp"
 
-void xLightsFrame::PlayRgbEffect(int EffectPeriod)
+void xLightsFrame::PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap)
 {
-    wxString s;
-//    debug(1, "play rgb: ovl %d, %d", EffectsPanel1->WantOverlayBkg(), EffectsPanel2->WantOverlayBkg());
-//    if (!EffectsPanel1->WantOverlayBkg() && !EffectsPanel2->WantOverlayBkg()) //allow effects to overlay onto other effects (useful for composite models) -DJ
-//        buffer.Clear();
-    if ((EffectsPanel1->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel1->WantOverlayBkg())
+    wxString effect1=SettingsMap["E1_Effect"];
+    wxString effect2=SettingsMap["E1_Effect"];
+    int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]); //NOTE: no SettingsMap for this value first time thru loop
+    int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
+    
+    if (!persist1 || "None" == effect1)
+    {
         playBuffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
-    if ((EffectsPanel2->Choicebook1->GetSelection() == eff_NONE) || !EffectsPanel2->WantOverlayBkg())
+    }
+    if (!persist2 || "None" == effect2)
+    {
         playBuffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
-
-    // update SparkleFrequency
-    int freq=Slider_SparkleFrequency->GetValue();
-    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
-    playBuffer.SetSparkle(freq);
-
-    int brightness=Slider_Brightness->GetValue();
-    playBuffer.SetBrightness(brightness);
-
-    int contrast=Slider_Contrast->GetValue();
-    playBuffer.SetContrast(contrast);
-
-    int effectMixThreshold=Slider_EffectLayerMix->GetValue();
-    playBuffer.SetMixThreshold(effectMixThreshold, CheckBox_LayerMorph->GetValue()); //allow threshold to vary -DJ
-//    debug(1, "play rgb effect[%d]: set mix thresh %d, varies? %d", EffectPeriod, effectMixThreshold, CheckBox_LayerMorph->GetValue());
-
-    if (MixTypeChanged)
-    {
-        s=Choice_LayerMethod->GetStringSelection();
-        playBuffer.SetMixType(s);
-        MixTypeChanged=false;
     }
-    if(FadesChanged)
-    {
-        UpdateBufferFadesFromCtrl(playBuffer);
-        FadesChanged=false;
-    }
-
-    heartbeat("playback active", false); //tell fido we're still alive -DJ
-//    ResetEffectDuration();
-    PlayRgbEffect1(EffectsPanel1, 0, EffectPeriod);
-    PlayRgbEffect1(EffectsPanel2, 1, EffectPeriod);
-    playBuffer.CalcOutput(EffectPeriod);
+    
+    bool bufferClear = false;
+    RenderEffectFromMap(EffectPeriod, SettingsMap,
+                        playBuffer, playResetEffectState,
+                        bufferClear, false);
+    
     playBuffer.DisplayEffectOnWindow(seqPreview,mPointSize);
     size_t chnum;
     wxByte intensity;
@@ -1923,16 +1650,29 @@ void xLightsFrame::TimerRgbSeq(long msec)
 {
     long StartTime;
     int EffectPeriod;
-    static int s_period=0;
     int rowcnt=Grid1->GetNumberRows();
     wxString EffectStr;
     switch (SeqPlayerState)
     {
     case PLAYING_EFFECT:
-        PlayRgbEffect(s_period);
-        playBuffer.SetFadeTimes(0,0.0,0.0);
-        playBuffer.SetFadeTimes(1,0.0,0.0);
-        s_period++;
+        {
+            wxString v = CreateEffectString();
+            MapStringString SettingsMap;
+            LoadSettingsMap(v, SettingsMap);
+            
+            if (v != lastPlayEffect) {
+                lastPlayEffect = v;
+                ResetEffectStates(playResetEffectState);
+                playPeriod = 0;
+                EffectPeriod = 0;
+                UpdateBuffersForNewMap(SettingsMap, playBuffer);
+                UpdateEffectDuration(true, Grid1->GetCursorRow(), playBuffer, Grid1->GetCursorColumn());
+                playBuffer.SetFadeTimes(0,0.0,0.0);
+                playBuffer.SetFadeTimes(1,0.0,0.0);
+            }
+            PlayRgbEffect(playPeriod, SettingsMap);
+            playPeriod++;
+        }
         break;
     case STARTING_SEQ_ANIM:
         ResetTimer(PLAYING_SEQ_ANIM, GetGridStartTimeMSec(NextGridRowToPlay));
@@ -1959,6 +1699,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
         else
         {
+            MapStringString SettingsMap;
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
@@ -1971,15 +1712,17 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 {
                     SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                     xLightsFrame::PlaybackMarker = wxString::Format("%d,%d", SeqPlayColumn, NextGridRowToPlay); //keep track of where we are within grid -DJ
+                    LoadSettingsMap(EffectStr, SettingsMap);
+                    lastPlayEffect = EffectStr;
+                    ResetEffectStates(playResetEffectState);
+                    UpdateBuffersForNewMap(SettingsMap, playBuffer);
                 }
-                playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
-                playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
                 UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
-
-
+            } else {
+                LoadSettingsMap(lastPlayEffect, SettingsMap);
             }
-            PlayRgbEffect(EffectPeriod);
+            PlayRgbEffect(EffectPeriod, SettingsMap);
             UpdateRgbPlaybackStatus(EffectPeriod/20,msec,EffectPeriod,"animation");
 //            if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,msec,"animation");
         }
@@ -2019,6 +1762,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
         else
         {
+            MapStringString SettingsMap;
             if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
             {
                 // start next effect
@@ -2029,14 +1773,18 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 if(!EffectStr.IsEmpty())
                 {
                     SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
+                    
+                    LoadSettingsMap(EffectStr, SettingsMap);
+                    lastPlayEffect = EffectStr;
+                    ResetEffectStates(playResetEffectState);
+                    UpdateBuffersForNewMap(SettingsMap, playBuffer);
                 }
-                playBuffer.SetFitToTime(0, (EffectsPanel1->CheckBox_FitToTime->IsChecked()));
-                playBuffer.SetFitToTime(1, (EffectsPanel2->CheckBox_FitToTime->IsChecked()));
                 UpdateEffectDuration(!EffectStr.IsEmpty(), NextGridRowToPlay, playBuffer, SeqPlayColumn);
                 NextGridRowToPlay++;
-
+            } else {
+                LoadSettingsMap(lastPlayEffect, SettingsMap);
             }
-            PlayRgbEffect(EffectPeriod);
+            PlayRgbEffect(EffectPeriod, SettingsMap);
             //TextCtrlLog->AppendText(wxString::Format("msec=%ld, period=%d\n",msec,EffectPeriod));
             UpdateRgbPlaybackStatus(EffectPeriod/20,msec,EffectPeriod,"music");
             //   if (EffectPeriod % 20 == 0) UpdateRgbPlaybackStatus(EffectPeriod/20,msec,"music");
@@ -3157,10 +2905,48 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
     OpenSequence();
 }
 
-const wxString& DefaultAs(const wxString& str, const wxString& defval)
-{
-    return !str.IsEmpty()? str: defval;
+bool xLightsFrame::RenderEffectFromMap(int period, MapStringString& SettingsMap,
+                                       PixelBufferClass &buffer, bool *ResetEffectState,
+                                       bool &bufferClear, bool bgThread) {
+    
+    bool effectsToUpdate = RenderEffectFromMap(0, period, SettingsMap, buffer, ResetEffectState, bgThread);
+    effectsToUpdate |= RenderEffectFromMap(1, period, SettingsMap,buffer, ResetEffectState, bgThread);
+    
+    if (effectsToUpdate)
+    {
+        bufferClear = false;
+        //TextCtrlLog->AppendText(wxString::Format("  period %d\n",p));
+        buffer.CalcOutput(period);
+        // update SeqData with contents of buffer
+        return true;
+    }//if (effectsToUpdate)
+    return false;
 }
+
+
+void xLightsFrame::UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer) {
+    UpdateBufferPaletteFromMap(1,SettingsMap,buffer);
+    UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
+    buffer.SetMixType(SettingsMap["LayerMethod"]);
+    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
+    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+    buffer.SetSparkle(freq);
+    
+    int brightness=wxAtoi(DefaultAs(SettingsMap["ID_SLIDER_Brightness"], wxString("100"))); //set to a safe value if missing -DJ
+    buffer.SetBrightness(brightness);
+    //                    int b = ModelBrightness;
+    
+    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
+    buffer.SetContrast(contrast);
+    UpdateBufferFadesFromMap(1, SettingsMap,buffer);
+    UpdateBufferFadesFromMap(2, SettingsMap,buffer);
+    UpdateFitToTimeFromMap(1, SettingsMap,buffer);
+    UpdateFitToTimeFromMap(2, SettingsMap,buffer);
+    
+    int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
+    buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
+}
+
 
 class xLightsRenderThread : public wxThread
 {
@@ -3274,34 +3060,10 @@ public:
                         thread1Condition.Signal();
                     }
 
-//debug(1, "at %d msec load settings for next row %d from '%s'", msec, NextGridRowToPlay, (const char*)effects[NextGridRowToPlay].c_str());
                     //If the new cell is empty we will let the state variable keep ticking so that effects do not jump
                     xLights->LoadSettingsMap(effects[NextGridRowToPlay], SettingsMap);
-                    //StatusBar1->SetStatusText(msg);
-                    //wxString effect=SettingsMap["E1_Effect"]+","+SettingsMap["E2_Effect"];
-                    //TextCtrlLog->AppendText(msg+" "+effect+"\n");
-                    xLights->UpdateBufferPaletteFromMap(1,SettingsMap,buffer);
-                    xLights->UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
-                    buffer.SetMixType(SettingsMap["LayerMethod"]);
                     xLights->ResetEffectStates(ResetEffectState);
-                    int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                    if (freq == xLights->Slider_SparkleFrequency->GetMax()) freq=0;
-                    buffer.SetSparkle(freq);
-
-                    int brightness=wxAtoi(DefaultAs(SettingsMap["ID_SLIDER_Brightness"], wxString("100"))); //set to a safe value if missing -DJ
-                    buffer.SetBrightness(brightness);
-                    //                    int b = ModelBrightness;
-
-                    int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
-                    buffer.SetContrast(contrast);
-                    xLights->UpdateBufferFadesFromMap(1, SettingsMap,buffer);
-                    xLights->UpdateBufferFadesFromMap(2, SettingsMap,buffer);
-                    xLights->UpdateFitToTimeFromMap(1, SettingsMap,buffer);
-                    xLights->UpdateFitToTimeFromMap(2, SettingsMap,buffer);
-
-                    int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
-                    buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
-                    //                    debug(1, "render seq data[%d]: set mix thresh %d, varies? %d", NextGridRowToPlay, effectMixThreshold, CheckBox_LayerMorph->GetValue());
+                    xLights->UpdateBuffersForNewMap(SettingsMap, buffer);
                 }
 
                 int calcedNextRow = xLights->UpdateEffectDuration(!EffectStr.IsEmpty(),NextGridRowToPlay, buffer, myCol);
@@ -3319,15 +3081,9 @@ public:
                 }
                 NextGridRowToPlay = calcedNextRow;
             } //  if (NextGridRowToPlay < rowcnt && msec >= GetGridStartTimeMSec(NextGridRowToPlay))
-            bool effectsToUpdate = xLights->RenderEffectFromMap(0, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
-            effectsToUpdate |= xLights->RenderEffectFromMap(1, p, SettingsMap,buffer, ResetEffectState, !onMainThread);
-
-            if (effectsToUpdate)
-            {
-                bufferClear = false;
-                //TextCtrlLog->AppendText(wxString::Format("  period %d\n",p));
-                buffer.CalcOutput(p);
-                // update SeqData with contents of buffer
+            if (xLights->RenderEffectFromMap(p, SettingsMap,
+                                             buffer, ResetEffectState,
+                                             bufferClear, !onMainThread)) {
                 size_t chnum;
                 wxByte intensity;
                 size_t NodeCnt=buffer.GetNodeCount();
@@ -3340,7 +3096,7 @@ public:
                         xLights->SeqData[chnum*xLights->SeqNumPeriods+p]=intensity;
                     }
                 }
-            }//if (effectsToUpdate)
+            }
         } //for (int p=0; p<SeqNumPeriods; p++)
 
         wxString msg=_(wxString::Format("Finished saving %s",ColName));
