@@ -86,6 +86,7 @@ public:
     void SetMixThreshold(int value, bool varies);
     void CalcOutput(int EffectPeriod);
 
+    int StartingPeriod();
 #include "Effects.h"
 
 };

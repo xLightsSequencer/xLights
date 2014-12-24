@@ -140,7 +140,7 @@ void xLightsFrame::PlayEffect()
     ResetEffectStates(playResetEffectState);
     UpdateBuffersForNewMap(SettingsMap, playBuffer);
     UpdateEffectDuration(true, Grid1->GetCursorRow(), playBuffer, Grid1->GetCursorColumn());
-    playPeriod = 0;
+    playPeriod = playBuffer.StartingPeriod();
     
     ResetTimer(PLAYING_EFFECT);
     Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
@@ -1663,10 +1663,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (v != lastPlayEffect) {
                 lastPlayEffect = v;
                 ResetEffectStates(playResetEffectState);
-                playPeriod = 0;
                 EffectPeriod = 0;
                 UpdateBuffersForNewMap(SettingsMap, playBuffer);
                 UpdateEffectDuration(true, Grid1->GetCursorRow(), playBuffer, Grid1->GetCursorColumn());
+                playPeriod = playBuffer.StartingPeriod();
                 playBuffer.SetFadeTimes(0,0.0,0.0);
                 playBuffer.SetFadeTimes(1,0.0,0.0);
             }
