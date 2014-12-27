@@ -162,6 +162,10 @@ void PixelBufferClass::GetMixedColor(wxCoord x, wxCoord y, xlColour& c)
 //    debug(1, "get mixed color: varies? %d, mix thresh %f", effectMixVaries, effectMixThreshold);
 //    wxColour svc0 = c0, svc1 = c1;
 
+    if (effectMixThreshold < 0) {
+        effectMixThreshold = 0;
+    }
+    
     switch (MixType)
     {
     case Mix_Effect1:
@@ -336,6 +340,12 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime, int nextT
 void PixelBufferClass::SetFitToTime(int layer, bool fit)
 {
     Effect[layer].SetFitToTime(fit);
+}
+
+int PixelBufferClass::StartingPeriod() {
+    int effStartPer, effNextPer, effEndPer;
+    Effect[0].GetEffectPeriods( effStartPer, effNextPer, effEndPer);
+    return effStartPer;
 }
 
 void PixelBufferClass::CalcOutput(int EffectPeriod)
