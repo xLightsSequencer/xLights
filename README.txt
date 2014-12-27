@@ -5,7 +5,8 @@ Nutcracker is a program that generates animated effects on massive RGB devices s
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
-3.6.15 Dec 20, 2014
+3.6.15 Dec 25, 2014
+	-enh (dkulp) Modify F3 so that effects like morph can try to work.
     -enh (djulien) Allow option to continue Preview playback if channel data is missing from .xseq file (helps avoid the need to re-render everything if you've added props at the end)
     -enh (djulien) Default Brightness to 100% if setting not present in XML file (only affects externally generated XML files)
     -enh (djulien) show elapsed time on file loads
