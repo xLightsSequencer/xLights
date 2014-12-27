@@ -1061,6 +1061,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    wxString myString = "Hello";
     if (!effectsFile.FileExists())
     {
         // file does not exist, so create an empty xml doc

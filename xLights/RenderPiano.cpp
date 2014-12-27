@@ -194,8 +194,8 @@ static xlColor& find_color(wxImage& Shapes, std::hash_map</*xlColor*/ wxUint32, 
             debug_more(10, ", %s 0x%x", which, color.GetRGB());
             return color;
         }
-    if (!strcasecmp("on", which)) color.Set(255, 255, 255);
-    else color.Set(64, 64, 64); //dim, not still visible
+    //if (!strcasecmp("on", which)) color.Set(255, 255, 255);
+    //else color.Set(64, 64, 64); //dim, not still visible
     debug_more(10, ", %s (0x%x)", which, color.GetRGB());
     return color;
 }

@@ -43,7 +43,6 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent)
     ChoiceProtocol = new wxChoice(this, ID_CHOICE_PROTOCOL, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PROTOCOL"));
     ChoiceProtocol->SetSelection( ChoiceProtocol->Append(_("DMX")) );
     ChoiceProtocol->Append(_("Pixelnet"));
-    ChoiceProtocol->Append(_("Pixelnet-Open"));
     ChoiceProtocol->Append(_("LOR"));
     ChoiceProtocol->Append(_("D-Light"));
     ChoiceProtocol->Append(_("Renard"));

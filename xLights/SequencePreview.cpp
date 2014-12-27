@@ -35,6 +35,7 @@ void SequencePreview::mouseLeftWindow(wxMouseEvent& event) {}
 void SequencePreview::keyPressed(wxKeyEvent& event) {}
 void SequencePreview::keyReleased(wxKeyEvent& event) {}
 
+
 SequencePreview::SequencePreview(wxPanel* parent, int* args) :
     wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {

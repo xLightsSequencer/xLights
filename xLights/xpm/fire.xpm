@@ -1,0 +1,29 @@
+/* XPM */
+static const char *fire[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 7 1 ",
+"  c #FFFF03030303",
+". c #FFFF6A6A0000",
+"X c #FFFFAAAA0000",
+"o c #FFFFBBBB0000",
+"O c #EEEEFFFF0000",
+"+ c #FFFFF2F20000",
+"@ c None",
+/* pixels */
+"@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@",
+"@@@@@@@@@@@@@@@@",
+"@@@@ @@@@@@@@@@@",
+"@@@  @@@@@@@@@@@",
+"@@    @@@ @@@ @@",
+"      @@      @@",
+"  .      .    @@",
+" ...     .    @@",
+" .o.   ..X.X   .",
+"..oX..OXoooX.X  ",
+".XoOX..XOoOXXX..",
+"XXooXXOooooooOoX",
+"..X.O..X.X.X.XX.",
+"oo++oo+oo+ooo+oo"
+};

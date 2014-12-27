@@ -1,0 +1,26 @@
+/* XPM */
+static const char *circles[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 4 1 ",
+"  c #FFFF00001A1A",
+". c #0000FFFF2F2F",
+"X c #00008484FFFF",
+"o c None",
+/* pixels */
+"oooooooooooooooo",
+"ooooooooooo oooo",
+"oooooooooo   ooo",
+"ooooooooo     oo",
+"oooXooooo    ooo",
+"ooXXXoooooo oooo",
+"oXXXXXoooooooooo",
+"ooXXXooooooooooo",
+"oooXoooooooooooo",
+"oooooooooooooooo",
+"ooooooooooo.oooo",
+"ooXooooooo...ooo",
+"oXXXooooo.....oo",
+"XXXXXooooo...ooo",
+"oXXXooooooo.oooo",
+"ooXooooooooooooo"
+};

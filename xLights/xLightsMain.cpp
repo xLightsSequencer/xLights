@@ -313,6 +313,7 @@ const long xLightsFrame::ID_CHECKBOX_CoroPictureScaled = wxNewId();
 const long xLightsFrame::ID_STATICTEXT70 = wxNewId();
 const long xLightsFrame::ID_BUTTON6 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
+const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
@@ -353,9 +354,19 @@ const long xLightsFrame::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long xLightsFrame::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long xLightsFrame::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 
+
+wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
     //*)
+    EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, xLightsFrame::TimelineChanged)
+    EVT_COMMAND(wxID_ANY, EVT_ZOOM, xLightsFrame::Zoom)
+    EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, xLightsFrame::HorizontalScrollChanged)
+    EVT_COMMAND(wxID_ANY, EVT_TIME_SELECTED, xLightsFrame::TimeSelected)
+
 END_EVENT_TABLE()
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
@@ -1367,6 +1378,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PanelPapagayo->SetSizer(FlexGridSizerPapagayo);
     FlexGridSizerPapagayo->Fit(PanelPapagayo);
     FlexGridSizerPapagayo->SetSizeHints(PanelPapagayo);
+    PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
+    fgsSequencer = new wxFlexGridSizer(0, 1, 0, 0);
+    fgsSequencer->AddGrowableCol(0);
+    fgsSequencer->AddGrowableRow(0);
+    PanelSequencer->SetSizer(fgsSequencer);
+    fgsSequencer->Fit(PanelSequencer);
+    fgsSequencer->SetSizeHints(PanelSequencer);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelTest, _("Test"), false);
     Notebook1->AddPage(PanelConvert, _("Convert"), false);
@@ -1374,6 +1392,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PaneNutcracker, _("Nutcracker"), false);
     Notebook1->AddPage(PanelCal, _("Schedule"), false);
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"), false);
+    Notebook1->AddPage(PanelSequencer, _("Sequencer"), false);
     FlexGridSizer2->Add(Notebook1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Panel1->SetSizer(FlexGridSizer2);
     FlexGridSizer2->Fit(Panel1);
@@ -1571,6 +1590,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TEXTCTRL_PgoMaxRest,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoMaxRestText);
     Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
+    PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
@@ -2125,6 +2145,11 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     else if (pagenum == PREVIEWTAB)
     {
         modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
+    }
+    else if (pagenum == NEWSEQUENCER)
+    {
+        InitSequencer();
+        PanelSequencer->Refresh();
     }
     else
     {
@@ -2794,3 +2819,5 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
     }
     Grid1->GetParent()->GetSizer()->Layout();
 }
+
+

@@ -88,6 +88,40 @@
 #include "SequencePreview.h"
 #include "dlgPreviewSize.h"
 
+#include "sequencer/EffectsGrid.h"
+#include "sequencer/MainSequencer.h"
+#include "sequencer/RowHeading.h"
+#include "sequencer/TimeLine.h"
+#include "sequencer/Waveform.h"
+#include "wx/aui/aui.h"
+
+#include "bars.xpm"
+#include "butterfly.xpm"
+#include "circles.xpm"
+#include "ColorWash.xpm"
+#include "curtain.xpm"
+#include "fire.xpm"
+#include "fireworks.xpm"
+#include "garlands.xpm"
+#include "glediator.xpm"
+#include "life.xpm"
+#include "meteors.xpm"
+#include "None.xpm"
+
+#include "Off.xpm"
+#include "pinwheel.xpm"
+#include "ripple.xpm"
+#include "singleStrand.xpm"
+#include "snowflakes.xpm"
+#include "snowstorm.xpm"
+#include "spirals.xpm"
+#include "spirograph.xpm"
+#include "text.xpm"
+#include "tree.xpm"
+#include "twinkle.xpm"
+#include "wave.xpm"
+
+
 class EffectTreeDialog;
 
 // max number of most recently used show directories on the File menu
@@ -101,8 +135,9 @@ class EffectTreeDialog;
 #define SEQUENCETAB 4
 #define SCHEDULETAB 5
 #define PAPAGAYOTAB 6
+#define NEWSEQUENCER 7
 
-#define FixedPages 7
+#define FixedPages 8
 
 #define OVER_NO_HANDLE              0
 #define OVER_L_TOP_HANDLE           1
@@ -110,6 +145,14 @@ class EffectTreeDialog;
 #define OVER_L_BOTTOM_HANDLE        3
 #define OVER_R_BOTTOM_HANDLE        4
 #define OVER_ROTATE_HANDLE          5
+
+// New Sequencer Constants
+#define ZOOM_OUT        0
+#define ZOOM_IN         1
+wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 
 
 
@@ -438,6 +481,7 @@ private:
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     void ToggleThreadedSave(wxCommandEvent& event);
     void OnCollapseEffectsButtonClick(wxCommandEvent& event);
+    void OnPanelSequencerPaint(wxPaintEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -681,6 +725,7 @@ private:
     static const long ID_STATICTEXT70;
     static const long ID_BUTTON6;
     static const long ID_PANEL4;
+    static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
     static const long ID_PANEL1;
     static const long ID_MENUITEM2;
@@ -797,6 +842,7 @@ private:
     wxButton* ButtonStartConversion;
     wxBitmapButton* BitmapButtonInsertRow;
     wxStaticText* StaticText19;
+    wxPanel* PanelSequencer;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     wxStaticText* StaticTextSequenceFileName;
@@ -839,6 +885,7 @@ private:
     wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
+    wxFlexGridSizer* fgsSequencer;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
@@ -1272,6 +1319,7 @@ private:
     wxXmlNode* ViewsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* SettingsNode;
+
     bool MixTypeChanged;
     bool FadesChanged;
     long SeqBaseChannel;
@@ -1331,6 +1379,32 @@ private:
     int m_bound_end_y;
     int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
+
+    // New Sequencer variables and methods
+    wxXmlDocument mSequenceDocument;
+    wxXmlNode* mDisplayElements;
+    wxXmlNode* mElementEffects;
+    wxAuiManager m_mgr;
+    MainSequencer* mainSequencer;
+    TimeLine* timeLine;
+    Waveform* wave ;
+    EffectsGrid* effectsGrid ;
+    RowHeading* rowHeading;
+    SequencePreview * sPreview1;
+    SequencePreview * sPreview2;
+    int mMediaLengthMS;
+    bool mSequencerInitialize = false;
+    // Methods
+    bool LoadSequencerFile(wxString filename);
+    void InitSequencer();
+    void Zoom( wxCommandEvent& event);
+    void TimelineChanged( wxCommandEvent& event);
+    void HorizontalScrollChanged( wxCommandEvent& event);
+    void TimeSelected( wxCommandEvent& event);
+    void ZoomIn();
+    void ZoomOut();
+
+
     std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 

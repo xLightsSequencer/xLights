@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <vector>
+#include "SequencePreview.h"
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -36,7 +37,6 @@
 #include <wx/checklst.h>
 #include <wx/listbox.h>
 
-#include "SequencePreview.h"
 #include "ModelPreview.h"
 
 typedef std::vector<long> StartChannelVector_t;

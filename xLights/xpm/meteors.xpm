@@ -1,0 +1,26 @@
+/* XPM */
+static const char *meteors[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 4 1 ",
+"  c #FFFF00001A1A",
+". c #2A2AFFFF0000",
+"X c #00008484FFFF",
+"o c None",
+/* pixels */
+"oooooooooooooooo",
+"oooooooooooooooo",
+"Xooooooooooooooo",
+"Xooooooooooooooo",
+"Xooooooooooooooo",
+"Xooooooooooooooo",
+"Xoo ooooooo oooo",
+"ooo ooooooo oooo",
+"ooo ooo.ooo oooo",
+"ooo ooo.ooo oooo",
+"ooo ooo.ooo oooo",
+"ooooooo.ooooooXo",
+"ooooooo.ooooooXo",
+"ooooooooooooooXo",
+"ooooooooooooooXo",
+"oooooooooooooooo"
+};

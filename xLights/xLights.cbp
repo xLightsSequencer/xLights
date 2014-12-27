@@ -33,6 +33,7 @@
 					<Add option="/D__WXDEBUG__" />
 					<Add directory="$(#wxvc)/include" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -100,6 +101,7 @@
 					<Add option="/DNDEBUG" />
 					<Add directory="$(#wxvc)/include" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -157,6 +159,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -191,6 +194,7 @@
 					<Add option="-DNDEBUG" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -223,6 +227,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU " />
@@ -244,6 +249,7 @@
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
+					<Add directory="sequencer" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -274,6 +280,12 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="GL/freeglut.h" />
+		<Unit filename="GL/freeglut_ext.h" />
+		<Unit filename="GL/freeglut_std.h" />
+		<Unit filename="GL/glut.h" />
+		<Unit filename="GL/glxew.h" />
+		<Unit filename="GL/wglew.h" />
 		<Unit filename="Image.cpp" />
 		<Unit filename="Image.h" />
 		<Unit filename="Image_Loader.cpp" />
@@ -373,6 +385,23 @@
 			<Option target="MSVC_Debug" />
 			<Option target="MSVC_Release" />
 		</Unit>
+		<Unit filename="sequencer/EffectsGrid.cpp" />
+		<Unit filename="sequencer/EffectsGrid.h" />
+		<Unit filename="sequencer/Element.cpp" />
+		<Unit filename="sequencer/Element.h" />
+		<Unit filename="sequencer/ElementEffects.cpp" />
+		<Unit filename="sequencer/ElementEffects.h" />
+		<Unit filename="sequencer/MainSequencer.cpp" />
+		<Unit filename="sequencer/MainSequencer.h" />
+		<Unit filename="sequencer/RowHeading.cpp" />
+		<Unit filename="sequencer/RowHeading.h" />
+		<Unit filename="sequencer/SequenceElements.cpp" />
+		<Unit filename="sequencer/SequenceElements.h" />
+		<Unit filename="sequencer/TimeLine.cpp" />
+		<Unit filename="sequencer/TimeLine.h" />
+		<Unit filename="sequencer/Waveform.cpp" />
+		<Unit filename="sequencer/Waveform.h" />
+		<Unit filename="sequencer/tabSequencer.cpp" />
 		<Unit filename="serial.cpp" />
 		<Unit filename="serial.h" />
 		<Unit filename="serial_osx.cpp">
@@ -393,6 +422,7 @@
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
+		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
@@ -444,6 +474,7 @@
 					<wxDialog wxs="wxsmith/PreviewModels.wxs" src="PreviewModels.cpp" hdr="PreviewModels.h" fwddecl="0" i18n="1" name="PreviewModels" language="CPP" />
 					<wxDialog wxs="wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
 					<wxDialog wxs="wxsmith/dlgPreviewSize.wxs" src="dlgPreviewSize.cpp" hdr="dlgPreviewSize.h" fwddecl="0" i18n="1" name="dlgPreviewSize" language="CPP" />
+					<wxPanel wxs="wxsmith/MainSequencer.wxs" src="sequencer/MainSequencer.cpp" hdr="sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
