@@ -10,16 +10,15 @@ ElementEffects::~ElementEffects()
 {
 }
 
-void ElementEffects::AddEffect(wxString effectName,wxString effectText,float startTime,float endTime)
+void ElementEffects::AddEffect(wxString effect,double startTime,double endTime, bool Protected)
 {
     Effect_Struct es;
     srand(time(NULL));
     es.id = rand();                 // Random ID.
-    es.EffectName = effectName;
-    es.EffectText = effectText;
+    es.Effect = effect;
     es.StartTime = startTime;
     es.EndTime = endTime;
-    es.Protected = false;
+    es.Protected = Protected;
     es.Selected = false;
     Effects.push_back(es);
     Sort();

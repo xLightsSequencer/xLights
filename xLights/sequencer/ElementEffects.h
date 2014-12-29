@@ -33,10 +33,9 @@
 struct Effect_Struct
 {
     int id;
-    wxString EffectName;
-    wxString EffectText;
-    float StartTime;
-    float EndTime;
+    wxString Effect;
+    double StartTime;
+    double EndTime;
     bool Selected;
     bool Protected;
 };
@@ -46,7 +45,7 @@ class ElementEffects
     public:
     wxString ElementName;
 
-    void AddEffect(wxString effectName,wxString effectText,float startTime,float endTime);
+    void AddEffect(wxString effect,double startTime,double endTime, bool Protected);
     bool IsStartTimeLinked(int index);
     bool IsEndTimeLinked(int index);
 

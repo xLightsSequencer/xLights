@@ -6,20 +6,30 @@
 #include "wx/xml/xml.h"
 #include "ElementEffects.h"
 
+enum ElementType
+{
+    ELEMENT_TYPE_MODEL,
+    ELEMENT_TYPE_VIEW,
+    ELEMENT_TYPE_TIMING
+};
+
 class Element
 {
     public:
-        Element(wxString name, int type,bool visible);
+        Element(wxString &name, wxString &type,bool visible,bool collapsed);
         virtual ~Element();
 
         wxString GetName();
-        void SetName(wxString name);
+        void SetName(wxString &name);
 
         bool GetVisible();
         void SetVisible(bool visible);
 
-        int GetType();
-        void SetType(int type);
+        bool GetCollapsed();
+        void SetCollapsed(bool collapsed);
+
+        wxString GetType();
+        void SetType(wxString &type);
 
         ElementEffects* GetElementEffects();
         void SortElementEffects();
@@ -29,12 +39,16 @@ class Element
 
         int Index;
 
+        void AddEffect(wxString &effect, double startTime,double endTime, bool Protected);
+
+
     protected:
     private:
-        int mElementType;
         int mIndex;
         wxString mName;
+        wxString mElementType;
         bool mVisible;
+        bool mCollapsed;
         ElementEffects mElementEffects;
 
 };

@@ -153,6 +153,7 @@ wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 
 
 
@@ -1240,7 +1241,7 @@ private:
     void ResetEffectDuration(PixelBufferClass &buffer);
     void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
-    
+
     void UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer);
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState, bool bgThread = false);
@@ -1388,9 +1389,8 @@ private:
     int m_previous_mouse_x, m_previous_mouse_y;
 
     // New Sequencer variables and methods
-    wxXmlDocument mSequenceDocument;
-    wxXmlNode* mDisplayElements;
-    wxXmlNode* mElementEffects;
+    SequenceElements mSequenceElements;
+
     wxAuiManager m_mgr;
     MainSequencer* mainSequencer;
     TimeLine* timeLine;
@@ -1402,10 +1402,10 @@ private:
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     // Methods
-    bool LoadSequencerFile(wxString filename);
     void InitSequencer();
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);
+    void RowHeadingsChanged( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void ZoomIn();

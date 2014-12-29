@@ -4,6 +4,7 @@
 #include <wx/filename.h>
 #include "../xLightsMain.h"
 #include "../SequencePreview.h"
+#include "SequenceElements.h"
 
 
 /************************************* New Sequencer Code*****************************************/
@@ -13,7 +14,9 @@ void xLightsFrame::InitSequencer()
         {
             return;
         }
-        bool success = LoadSequencerFile("e:\\v4.xml");
+
+        mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+        bool success = mSequenceElements.LoadSequencerFile("e:\\v4.xml");
         mSequencerInitialize = true;
         m_mgr.SetManagedWindow(PanelSequencer);
 
@@ -27,8 +30,7 @@ void xLightsFrame::InitSequencer()
         fgsSequencer->Add(mainSequencer, 1, wxALL|wxALIGN_LEFT, 2);
 
         rowHeading = new RowHeading(mainSequencer->PanelRowHeadings);
-
-        rowHeading->SetElements(mDisplayElements);
+        rowHeading->SetSequenceElements(&mSequenceElements);
         rowHeading->SetCanvasSize(175,2200);
 //        mainSequencer->PanelRowHeadings->SetSize(wxSize(250,900));
 //        mainSequencer->PanelRowHeadings->SetMinSize(wxSize(250,900));
@@ -117,63 +119,15 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
 }
 
 
+void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
+{
+    mSequenceElements.PopulateRowInformation();
+    rowHeading->Refresh();
+    effectsGrid->Refresh();
+}
+
+
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
     mainSequencer->ScrollBarEffectGridHorz->Update();
-}
-
-bool xLightsFrame::LoadSequencerFile(wxString filename)
-{
-    wxString tmpStr;
-    // read xml sequence info
-    wxFileName FileObj(filename);
-    FileObj.SetExt("xml");
-    wxString SeqXmlFileName=FileObj.GetFullPath();
-    int gridCol;
-    if (!FileObj.FileExists())
-    {
-        //if (ChooseModels) ChooseModelsForSequence();
-        return false;
-    }
-    // read xml
-    //  first fix any version specific changes
-    //FixVersionDifferences(SeqXmlFileName);
-    if (!mSequenceDocument.Load(SeqXmlFileName))
-    {
-        wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return false;
-    }
-    wxXmlNode* root=mSequenceDocument.GetRoot();
-    wxString tempstr=root->GetAttribute("BaseChannel", "1");
-    tempstr.ToLong(&SeqBaseChannel);
-    tempstr=root->GetAttribute("ChanCtrlBasic", "0");
-    SeqChanCtrlBasic=tempstr!="0";
-    tempstr=root->GetAttribute("ChanCtrlColor", "0");
-    SeqChanCtrlColor=tempstr!="0";
-
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "DisplayElements")
-        {
-            mDisplayElements=e;
-            wxXmlNode* j=mDisplayElements->GetChildren();
-            if(j->GetName()=="Element")
-            {
-                int h=0;
-            }
-        }
-       if (e->GetName() == "ElementEffects")
-        {
-            mElementEffects=e;
-        }
-    }
-    if(mDisplayElements ==0)
-    {
-        int k=0;
-    }
-
-    if(mElementEffects==0)
-    {
-    }
-    return true;
 }

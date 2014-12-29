@@ -5,7 +5,7 @@
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 //EVT_MOTION(RowHeading::mouseMoved)
-//EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
+EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
 //EVT_LEFT_UP(RowHeading::mouseLeftUp)
 //EVT_LEAVE_WINDOW(RowHeading::mouseLeftWindow)
 //EVT_RIGHT_DOWN(RowHeading::rightClick)
@@ -30,6 +30,36 @@ RowHeading::~RowHeading()
 {
 }
 
+void RowHeading::mouseLeftDown( wxMouseEvent& event)
+{
+    int rowIndex = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    if(rowIndex < mSequenceElements->GetRowInformationSize())
+    {
+        bool isCollapsed;
+        if(HitTestCollapseExpand(rowIndex,event.GetX(),&isCollapsed))
+        {
+            Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+            e->SetCollapsed(!isCollapsed);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
+}
+
+bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
+{
+    if(mSequenceElements->GetRowInformation(row)->ElementType == "view" &&
+       x<DEFAULT_ROW_HEADING_MARGIN)
+    {
+        *IsCollapsed = mSequenceElements->GetRowInformation(row)->Collapsed;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void RowHeading::SetCanvasSize(int width,int height)
 {
     SetSize(width,height);
@@ -47,46 +77,65 @@ void RowHeading::render( wxPaintEvent& event )
     float t;
     int labelCount=0;
     wxPaintDC dc(this);
-    wxPen penOutline(wxColor(128,128,128), .1);
+    wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
     wxBrush brush(*mHeaderColorModel,wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
+    dc.SetPen(penOutline);
     int row=0;
     int startY,endY;
 
-    for(wxXmlNode*e=mElements->GetChildren(); e!=NULL; e=e->GetNext())
+    for(int i =0;i< mSequenceElements->GetRowInformationSize();i++)
     {
-        if (e->GetName() == "Element" && e->GetAttribute("visible")=="1")
+        wxBrush brush(*GetHeaderColor(mSequenceElements->GetRowInformation(i)),wxBRUSHSTYLE_SOLID);
+        dc.SetBrush(brush);
+        startY = DEFAULT_ROW_HEADING_HEIGHT*row;
+        endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
+        dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
+        if(mSequenceElements->GetRowInformation(i)->PartOfView)
         {
-            wxBrush brush(*GetHeaderColor(e->GetAttribute("type")),wxBRUSHSTYLE_SOLID);
-            dc.SetBrush(brush);
-            startY = DEFAULT_ROW_HEADING_HEIGHT*row;
-            endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
-            dc.DrawRectangle(0,startY,w,endY);
-            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-            dc.DrawLabel(e->GetAttribute("name"),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
-            if(e->GetAttribute("type")=="view")
-            {
-                dc.SetPen(*wxBLACK_PEN);
-                dc.DrawRectangle(2,startY+6,11,11);
-                dc.DrawLine(4,startY+11,11,startY+11);
-                dc.DrawLine(7,startY+8,7,startY+14);
-                dc.SetPen(penOutline);
-            }
-            row++;
+            wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
+            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->ElementName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
+        else
+        {
+            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->ElementName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+        }
+        if(mSequenceElements->GetRowInformation(i)->ElementType=="view")
+        {
+
+            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.SetPen(*wxBLACK_PEN);
+            dc.DrawRectangle(2,startY+7,9,9);
+            dc.DrawLine(4,startY+11,9,startY+11);
+            if(mSequenceElements->GetRowInformation(i)->Collapsed)
+            {
+                dc.DrawLine(6,startY+9,6,startY+14);
+            }
+            dc.SetPen(penOutline);
+            dc.SetBrush(brush);
+        }
+        row++;
     }
     dc.DrawRectangle(0,endY,w,h);
 
 }
 
-wxColour* RowHeading::GetHeaderColor(wxString headerType)
+wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
-    if (headerType == "model")
+    if (info->ElementType == "model")
     {
-        return mHeaderColorModel;
+        if(info->PartOfView)
+        {
+            return mHeaderColorView;
+        }
+        else
+        {
+            return mHeaderColorModel;
+        }
     }
-    else if (headerType == "view")
+    else if (info->ElementType == "view")
     {
         return mHeaderColorView;
     }
@@ -96,9 +145,9 @@ wxColour* RowHeading::GetHeaderColor(wxString headerType)
     }
 }
 
-void RowHeading::SetElements(wxXmlNode* displayElements)
+void RowHeading::SetSequenceElements(SequenceElements* elements)
 {
-    mElements = displayElements;
+    mSequenceElements = elements;
 }
 
 void RowHeading::DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row)

@@ -358,6 +358,7 @@ const long xLightsFrame::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -366,6 +367,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_ZOOM, xLightsFrame::Zoom)
     EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, xLightsFrame::HorizontalScrollChanged)
     EVT_COMMAND(wxID_ANY, EVT_TIME_SELECTED, xLightsFrame::TimeSelected)
+    EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
 
 END_EVENT_TABLE()
 

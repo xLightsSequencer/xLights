@@ -1,11 +1,12 @@
 #include "Element.h"
 
-Element::Element(wxString name, int type,bool visible)
+Element::Element(wxString &name, wxString &type,bool visible,bool collapsed)
 :mElementEffects()
 {
     mName = name;
     mElementType = type;
     mVisible = visible;
+    mCollapsed = collapsed;
 }
 
 Element::~Element()
@@ -18,7 +19,7 @@ wxString Element::GetName()
     return mName;
 }
 
-void Element::SetName(wxString name)
+void Element::SetName(wxString &name)
 {
     mName = name;
 }
@@ -33,12 +34,22 @@ void Element::SetVisible(bool visible)
     mVisible = visible;
 }
 
-int Element::GetType()
+bool Element::GetCollapsed()
+{
+    return mCollapsed;
+}
+
+void Element::SetCollapsed(bool collapsed)
+{
+    mCollapsed = collapsed;
+}
+
+wxString Element::GetType()
 {
     return mElementType;
 }
 
-void Element::SetType(int type)
+void Element::SetType(wxString &type)
 {
     mElementType = type;
 }
@@ -62,3 +73,9 @@ void Element::SortElementEffects()
 {
     mElementEffects.Sort();
 }
+
+void Element::AddEffect(wxString &effect, double startTime,double endTime, bool Protected)
+{
+    mElementEffects.AddEffect(effect,startTime,endTime,Protected);
+}
+
