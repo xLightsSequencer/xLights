@@ -30,6 +30,7 @@ class RowHeading : public wxWindow
         void mouseLeftDown( wxMouseEvent& event);
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
+        bool HitTestTimingActive(int row,int x, bool* IsActive);
         wxColour* GetHeaderColor(Row_Information_Struct* info);
         wxColour * mHeaderColorModel;
         wxColour * mHeaderColorView;

@@ -1,12 +1,13 @@
 #include "Element.h"
 
-Element::Element(wxString &name, wxString &type,bool visible,bool collapsed)
+Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active)
 :mElementEffects()
 {
     mName = name;
     mElementType = type;
     mVisible = visible;
     mCollapsed = collapsed;
+    mActive = active;
 }
 
 Element::~Element()
@@ -37,6 +38,16 @@ void Element::SetVisible(bool visible)
 bool Element::GetCollapsed()
 {
     return mCollapsed;
+}
+
+void Element::SetActive(bool active)
+{
+    mActive = active;
+}
+
+bool Element::GetActive()
+{
+    return mActive;
 }
 
 void Element::SetCollapsed(bool collapsed)

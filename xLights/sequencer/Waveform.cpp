@@ -266,7 +266,6 @@ int Waveform::GetTrackSize(mpg123_handle *mh)
     size_t done;
     int trackSize=0;
     int fileSize=0;
-    wxFile wavFile;
 
     if(mpg123_length(mh) > 0)
     {
@@ -276,28 +275,18 @@ int Waveform::GetTrackSize(mpg123_handle *mh)
     buffer_size = mpg123_outblock(mh);
     buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
 
-    // Debug code
-    wavFile.Create("e:\\mywave.wav",true);
-    if(!wavFile.IsOpened())
-    {
-        return -1;
-    }
-
     mpg123_seek(mh,0,SEEK_SET);
     for (fileSize = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
     {
-        wavFile.Write(buffer,done);
         fileSize += done;
     }
     // Get size of last read and add it to size
     if (done> 0)
     {
-        wavFile.Write(buffer,done);
         fileSize += done;
     }
     free(buffer);
     // Debug
-    wavFile.Close();
     trackSize = fileSize/(m_bits*m_channels);
     return trackSize;
 }

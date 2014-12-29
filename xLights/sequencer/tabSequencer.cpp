@@ -16,7 +16,7 @@ void xLightsFrame::InitSequencer()
         }
 
         mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-        bool success = mSequenceElements.LoadSequencerFile("e:\\v4.xml");
+        bool success = mSequenceElements.LoadSequencerFile("c:\\temp\\v4.xml");
         mSequencerInitialize = true;
         m_mgr.SetManagedWindow(PanelSequencer);
 
@@ -56,7 +56,7 @@ void xLightsFrame::InitSequencer()
         mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
         wave = new Waveform(mainSequencer->PanelWaveForm,PanelSequencer,args);
-        mMediaLengthMS = wave->OpenfileMediaFile("e:\\4.mp3");
+        mMediaLengthMS = wave->OpenfileMediaFile("c:\\temp\\4.mp3");
         wave->SetCanvasSize(1200,75);
 
         timeLine = new TimeLine(mainSequencer->PanelTimeLine);

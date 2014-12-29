@@ -16,9 +16,9 @@ SequenceElements::~SequenceElements()
 }
 
 
-void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed)
+void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active)
 {
-    Element e(name,type,visible,collapsed);
+    Element e(name,type,visible,collapsed,active);
     mElements.push_back(e);
 }
 
@@ -138,11 +138,16 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
        {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
+                bool active=false;
                 wxString name = element->GetAttribute("name");
                 wxString type = element->GetAttribute("type");
-                bool visible = element->GetAttribute("visible")=='1'?1:0;
-                bool collapsed = element->GetAttribute("collapsed")=='1'?1:0;
-                AddElement(name,type,visible,collapsed);
+                bool visible = element->GetAttribute("visible")=='1'?true:false;
+                bool collapsed = element->GetAttribute("collapsed")=='1'?true:false;
+                if (type=="timing")
+                {
+                    active = element->GetAttribute("active")=='1'?true:false;
+                }
+                AddElement(name,type,visible,collapsed,active);
             }
             PopulateRowInformation();
        }
@@ -186,8 +191,10 @@ void SequenceElements::PopulateRowInformation()
             ri.ElementName = mElements[i].GetName();
             ri.ElementType = mElements[i].GetType();
             ri.Collapsed = mElements[i].GetCollapsed();
+            ri.Active = mElements[i].GetActive();
             ri.PartOfView = false;
             ri.Index = rowIndex++;
+
             mRowInformation.push_back(ri);
             if(mElements[i].GetType()== "view" && !mElements[i].GetCollapsed())
             {
@@ -200,6 +207,7 @@ void SequenceElements::PopulateRowInformation()
                         ri.ElementName = model[m];
                         ri.ElementType = "model";
                         ri.Collapsed = false;
+                        ri.Active = false;              // Not used for models or
                         ri.PartOfView = true;
                         ri.Index = rowIndex++;
                         mRowInformation.push_back(ri);

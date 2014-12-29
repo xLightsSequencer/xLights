@@ -16,7 +16,7 @@ enum ElementType
 class Element
 {
     public:
-        Element(wxString &name, wxString &type,bool visible,bool collapsed);
+        Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active);
         virtual ~Element();
 
         wxString GetName();
@@ -27,6 +27,9 @@ class Element
 
         bool GetCollapsed();
         void SetCollapsed(bool collapsed);
+
+        bool GetActive();
+        void SetActive(bool active);
 
         wxString GetType();
         void SetType(wxString &type);
@@ -49,6 +52,7 @@ class Element
         wxString mElementType;
         bool mVisible;
         bool mCollapsed;
+        bool mActive;
         ElementEffects mElementEffects;
 
 };

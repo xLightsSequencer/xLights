@@ -15,6 +15,7 @@ struct Row_Information_Struct
     wxString ElementType;
     int RowNumber;
     bool Collapsed;
+    bool Active;
     bool PartOfView;
 };
 
@@ -26,7 +27,7 @@ class SequenceElements
         virtual ~SequenceElements();
         bool LoadSequencerFile(wxString filename);
         bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
-        void AddElement(wxString &name, wxString &type,bool visible,bool collapsed);
+        void AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active);
         Element* GetElement(const wxString &name);
         Row_Information_Struct* GetRowInformation(int index);
         int GetRowInformationSize();

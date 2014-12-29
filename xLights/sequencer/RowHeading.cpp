@@ -35,11 +35,18 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
     int rowIndex = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if(rowIndex < mSequenceElements->GetRowInformationSize())
     {
-        bool isCollapsed;
-        if(HitTestCollapseExpand(rowIndex,event.GetX(),&isCollapsed))
+        bool result;
+        if(HitTestCollapseExpand(rowIndex,event.GetX(),&result))
         {
             Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
-            e->SetCollapsed(!isCollapsed);
+            e->SetCollapsed(!result);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+        else if(HitTestTimingActive(rowIndex,event.GetX(),&result))
+        {
+            Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+            e->SetActive(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
@@ -52,6 +59,20 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsCollapsed = mSequenceElements->GetRowInformation(row)->Collapsed;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
+{
+    if(mSequenceElements->GetRowInformation(row)->ElementType == "timing" &&
+       x<DEFAULT_ROW_HEADING_MARGIN)
+    {
+        *IsActive = mSequenceElements->GetRowInformation(row)->Active;
         return true;
     }
     else
@@ -113,6 +134,21 @@ void RowHeading::render( wxPaintEvent& event )
             {
                 dc.DrawLine(6,startY+9,6,startY+14);
             }
+            dc.SetPen(penOutline);
+            dc.SetBrush(brush);
+        }
+        else if(mSequenceElements->GetRowInformation(i)->ElementType=="timing")
+        {
+            if(mSequenceElements->GetRowInformation(i)->Active)
+            {
+                dc.SetBrush(*wxGREEN_BRUSH);
+            }
+            else
+            {
+                dc.SetBrush(*wxWHITE_BRUSH);
+            }
+            dc.SetPen(*wxBLACK_PEN);
+            dc.DrawRectangle(2,startY+7,9,9);
             dc.SetPen(penOutline);
             dc.SetBrush(brush);
         }
