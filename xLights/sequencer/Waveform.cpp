@@ -2,10 +2,10 @@
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
 #else
- #define GLEW_STATIC
+// #define GLEW_STATIC
  #include <GL/glu.h>
  #include <GL/gl.h>
- #include <GL/glext.h>
+// #include <GL/glext.h>
 #endif
 
 #include "wx/wx.h"
@@ -28,7 +28,7 @@
 #include "Waveform.h"
 #include "TimeLine.h"
 #include <wx/file.h>
-#include "glut.h"
+//#include "glut.h"
 
 enum
 {
@@ -429,32 +429,6 @@ void Waveform::DrawWaveView(WaveView wv)
     SwapBuffers();
 }
 
-void Waveform::OutputText(GLfloat x, GLfloat y, char *text)
-{
-    char *p;
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-    glEnable(GL_LINE_SMOOTH);
-    glLineWidth(1);
-    glColor3ub(0,0,0);
-    glPushMatrix();
-    glScalef(.1,.1,0);
-    glTranslatef(x, y, 0);
-    for (p = text; *p; p++)
-        glutStrokeCharacter(GLUT_STROKE_ROMAN, *p);
-    glPopMatrix();
-}
-
-void Waveform::drawString (void * font, char *s, float x, float y, float z){
-    unsigned int i;
-    glPushMatrix();
-    glColor3ub(0,0,0);
-    glRasterPos3f(x, y, z);
-    for (i = 0; i < strlen (s); i++)
-        glutBitmapCharacter (font, s[i]);
-    glPopMatrix();
-}
-
 void Waveform::SetCanvasSize(int width,int height)
 {
     SetSize(width,height);
@@ -485,7 +459,7 @@ void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y);
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
     glMatrixMode(GL_MODELVIEW);
 }
 

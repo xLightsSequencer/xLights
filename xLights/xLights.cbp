@@ -280,12 +280,6 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
-		<Unit filename="GL/freeglut.h" />
-		<Unit filename="GL/freeglut_ext.h" />
-		<Unit filename="GL/freeglut_std.h" />
-		<Unit filename="GL/glut.h" />
-		<Unit filename="GL/glxew.h" />
-		<Unit filename="GL/wglew.h" />
 		<Unit filename="Image.cpp" />
 		<Unit filename="Image.h" />
 		<Unit filename="Image_Loader.cpp" />
