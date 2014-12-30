@@ -64,14 +64,14 @@ void xLightsFrame::InitSequencer()
         timeLine->SetTimeLength(mMediaLengthMS);
         timeLine->SetCanvasSize(1200,25);
 
-        sPreview1 = new SequencePreview(mainSequencer,args);
-        sPreview1->InitializePreview();
+        sPreview1 = new SequencePreview(PanelSequencer,args);
         sPreview1->SetSize(wxSize(200,200));
+        sPreview1->InitializePreview();
         m_mgr.AddPane(sPreview1, wxLEFT, wxT("Model Preview"));
 
-        sPreview2 = new SequencePreview(mainSequencer,args);
-        sPreview2->InitializePreview();
+        sPreview2 = new SequencePreview(PanelSequencer,args);
         sPreview2->SetSize(wxSize(200,200));
+        sPreview2->InitializePreview();
         m_mgr.AddPane(sPreview2, wxLEFT, wxT("Model Preview"));
 
         m_mgr.AddPane(mainSequencer,wxCENTER, wxT("Main Sequencer"));
