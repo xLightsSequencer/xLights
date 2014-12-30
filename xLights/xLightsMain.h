@@ -731,6 +731,10 @@ private:
     static const long ID_PANEL1;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
+    static const long ID_New_Music_Seq;
+    static const long ID_NEW_Non_Music_Seq;
+    static const long ID_OPEN_SEQUENCE;
+    static const long IS_SAVE_SEQ;
     static const long idMenuQuit;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
@@ -738,6 +742,8 @@ private:
     static const long idMenuDelList;
     static const long ID_MENUITEM1;
     static const long idCustomScript;
+    static const long ID_EXPORT_ALL;
+    static const long ID_EXPORT_MODEL;
     static const long ID_NO_THREADED_SAVE;
     static const long idMenuHelpContent;
     static const long idMenuAbout;
@@ -780,6 +786,7 @@ private:
     wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
     wxTextCtrl* TextCtrl_PgoAutoFade;
+    wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
     EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
@@ -855,6 +862,7 @@ private:
     wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
+    wxMenuItem* MenuItem7;
     wxTextCtrl* txtCtlBrightness;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
@@ -923,6 +931,7 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
+    wxMenu* Menu2;
     wxPanel* SeqPanelRight;
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
@@ -935,14 +944,17 @@ private:
     wxBitmapButton* BitmapButton_Contrast;
     wxChoice* Choice_PgoGroupName;
     wxRadioButton* RadioButtonRgbTwinkle05;
+    wxMenuItem* MenuItem6;
     wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
+    wxMenuItem* MenuItem3;
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
+    wxMenuItem* MenuItem10;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
     wxButton* CollapseEffectsButton;
@@ -950,6 +962,7 @@ private:
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
+    wxMenuItem* MenuItem9;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
     wxChoice* Choice_LayerMethod;
