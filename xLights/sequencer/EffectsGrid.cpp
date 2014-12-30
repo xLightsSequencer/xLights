@@ -52,6 +52,9 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     mParent = parent;
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    mEffectColor = new wxColour(192,192,192);
+    mGridlineColor = new wxColour(40,40,40);
+
 }
 
 EffectsGrid::~EffectsGrid()
@@ -63,7 +66,6 @@ void EffectsGrid::ClearBackground()
 {
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SwapBuffers();
     return;
@@ -89,7 +91,6 @@ void EffectsGrid::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigt
     glLoadIdentity();
 
     glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
-//    gluOrtho2D(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -110,6 +111,17 @@ void EffectsGrid::SetCanvasSize(int w, int h)
     SetMinSize(wxSize(w,h));
 
 }
+
+void EffectsGrid::SetSequenceElements(SequenceElements* elements)
+{
+    mSequenceElements = elements;
+}
+
+void EffectsGrid::SetStartPixelOffset(int offset)
+{
+    mStartPixelOffset = offset;
+}
+
 void EffectsGrid::InitializeGrid()
 {
     mIsInitialized = true;
@@ -146,6 +158,53 @@ void EffectsGrid::EndDrawing()
     mIsDrawing = false;
 }
 
+void EffectsGrid::DrawHorizontalLines()
+{
+    // Draw Horizontal lines
+    int x1=0;
+    int x2 = getWidth()-1;
+    int y1,y2;
+    for(int row=0;(row*22)< getHeight();row++)
+    {
+        y1 = row*DEFAULT_ROW_HEADING_HEIGHT;
+        DrawLine(*mGridlineColor,x1,y1,x2,y1,.2);
+    }
+}
+
+void EffectsGrid::DrawVerticalLines()
+{
+    int x1=0;
+    int x2 = getWidth()-1;
+    // Draw vertical lines
+    int y1 = 0;
+    int y2 = getHeight()-1;
+    for(int x1=0;x1<getWidth();x1++)
+    {
+        // Draw hash marks
+        if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
+        {
+            DrawLine(*mGridlineColor,x1,y1,x1,y2,.2);
+        }
+    }
+}
+
+void EffectsGrid::DrawEffects()
+{
+    for(int elementIndex=0;elementIndex<mSequenceElements->GetRowInformationSize();elementIndex++)
+    {
+
+    }
+    DrawLine(*mEffectColor,100,33,141,33,1);
+    DrawLine(*mEffectColor,158,33,200,33,1);
+    DrawRectangle(*mEffectColor,false,140,24,158,42);
+    DrawLine(*mEffectColor,100,24,100,42,1);
+    DrawLine(*mEffectColor,200,24,200,42,1);
+
+    glEnable(GL_TEXTURE_2D);
+    DrawEffectIcon(&m_EffectTextures[2],139,22);
+    glDisable(GL_TEXTURE_2D);
+}
+
 void EffectsGrid::render( wxPaintEvent& evt )
 {
     if(!mIsInitialized) return;
@@ -153,68 +212,10 @@ void EffectsGrid::render( wxPaintEvent& evt )
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int x1 = 0;
-    int x2 = getWidth()-1;
-    int y1,y2;
-    for(int row=0;(row*22)< getHeight();row++)
-    {
-        y1 = row*DEFAULT_ROW_HEADING_HEIGHT;
-        DrawLine(wxColor(24,24,24),x1,y1,x2,y1);
-    }
+    DrawHorizontalLines();
+    DrawVerticalLines();
+    DrawEffects();
 
-    y1 = 0;
-    y2 = getHeight()-1;
-    for(int col=0;(col*100)< getWidth();col++)
-    {
-        x1 = col*100;
-        DrawLine(wxColor(40,40,40),x1,y1,x1,y2);
-    }
-
-    DrawFillRectangle(wxColor(192,192,192),100,33,100,2);
-    DrawRectangle(wxColor(192,192,192),false,140,24,160,42);
-    DrawFillRectangle(wxColor(192,192,192),100,28,2,14);
-    DrawFillRectangle(wxColor(192,192,192),200,28,2,14);
-    //DrawRectangle(wxColor(0,0,0),false,100,22,200,44);
-
-    DrawFillRectangle(wxColor(192,192,192),200,33,100,2);
-    DrawRectangle(wxColor(192,192,192),false,240,24,260,42);
-    DrawFillRectangle(wxColor(192,192,192),200,24,2,18);
-    DrawFillRectangle(wxColor(192,192,192),300,24,2,18);
-    //DrawRectangle(wxColor(0,0,0),false,100,22,300,44);
-
-    DrawFillRectangle(wxColor(192,192,192),300,33,400,2);
-    DrawRectangle(wxColor(192,192,192),false,490,24,510,42);
-    DrawFillRectangle(wxColor(192,192,192),300,24,2,18);
-    DrawFillRectangle(wxColor(192,192,192),700,24,2,18);
-    //DrawRectangle(wxColor(0,0,0),false,300,22,300,44);
-
-
-
-
-
-
-    DrawFillRectangle(wxColor(192,192,192),100,55,100,2);
-    DrawRectangle(wxColor(192,192,192),false,140,46,160,64);
-    DrawFillRectangle(wxColor(192,192,192),100,50,2,14);
-    DrawFillRectangle(wxColor(192,192,192),200,50,2,14);
-    //DrawRectangle(wxColor(0,0,0),false,100,22,200,44);
-
-
-
-    glEnable(GL_TEXTURE_2D);
-    DrawEffectIcon(&m_EffectTextures[2],139,22);
-    DrawEffectIcon(&m_EffectTextures[3],239,22);
-    DrawEffectIcon(&m_EffectTextures[1],489,22);
-
-    DrawEffectIcon(&m_EffectTextures[7],139,44);
-
-    //for(int i=0;i<20;i++)
-    //{
-    //    DrawEffectIcon(&m_EffectTextures[i],51,i*22);
-    //}
-    glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
-    //glEnable(GL_BLEND);
     //glEnable(GL_BLEND);
     glFlush();
     SwapBuffers();
@@ -224,7 +225,6 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
 {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D,*texture);
-    //glDisable(GL_BLEND);
     glPushMatrix();
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
@@ -239,18 +239,17 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glTexCoord2f(0,1);
     glVertex2f(x+4,y+18);
     glEnd();
-
+    glPopMatrix();
 }
 
-void EffectsGrid::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2)
+void EffectsGrid::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2,float width)
 {
-    glLineWidth(.2);
+    glLineWidth(width);
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_LINES);
     glVertex2f(x1, y1);
     glVertex2f(x2, y2);
     glEnd();
-
 }
 
 void EffectsGrid::CreateEffectIconTextures()

@@ -85,8 +85,8 @@ void Element::SortElementEffects()
     mElementEffects.Sort();
 }
 
-void Element::AddEffect(wxString &effect, double startTime,double endTime, bool Protected)
+void Element::AddEffect(int id,wxString &effect, int effectIndex,double startTime,double endTime, bool Protected)
 {
-    mElementEffects.AddEffect(effect,startTime,endTime,Protected);
+    mElementEffects.AddEffect(id,effect,effectIndex,startTime,endTime,Protected);
 }
 

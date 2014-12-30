@@ -32,7 +32,8 @@
 
 struct Effect_Struct
 {
-    int id;
+    int ID;
+    int EffectIndex;
     wxString Effect;
     double StartTime;
     double EndTime;
@@ -45,12 +46,14 @@ class ElementEffects
     public:
     wxString ElementName;
 
-    void AddEffect(wxString effect,double startTime,double endTime, bool Protected);
+    void AddEffect(int id,wxString effect,int effectIndex,double startTime,double endTime, bool Protected);
     bool IsStartTimeLinked(int index);
     bool IsEndTimeLinked(int index);
 
     int GetMaximumEndTime(int index);
     int GetMinimumStartTime(int index);
+    static int GetEffectIndex(wxString effectName);
+    static wxString GetEffectNameFromEffectText(wxString effectText);
     std::vector<Effect_Struct> Effects;
 
     ElementEffects();

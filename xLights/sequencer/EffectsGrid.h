@@ -28,6 +28,8 @@ public:
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void EndDrawing();
     void SetCanvasSize(int w, int h);
+    void SetStartPixelOffset(int offset);
+    void SetSequenceElements(SequenceElements* elements);
 
 private:
 	void render(wxPaintEvent& evt);
@@ -40,17 +42,26 @@ private:
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
-    void DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2);
+    void DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2,float width);
     void DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2);
     void DrawFillRectangle(const wxColour &color, int x, int y,int width, int height);
     void DrawEffectIcon(GLuint* texture,int x, int y);
     void CreateOrUpdateTexture(char** p_XPM, GLuint *texture);
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
+    void DrawHorizontalLines();
+    void DrawVerticalLines();
+    void DrawEffects();
+
+    SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
     wxGLContext*	m_context;
     GLuint m_EffectTextures[NUMBER_OF_EFFECTS];
+    int mStartPixelOffset;
+    wxColour * mEffectColor;
+    wxColour * mGridlineColor;
+
     wxWindow* mParent;
 
 

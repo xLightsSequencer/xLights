@@ -42,7 +42,7 @@ class Element
 
         int Index;
 
-        void AddEffect(wxString &effect, double startTime,double endTime, bool Protected);
+        void AddEffect(int id,wxString &effect, int effectIndex, double startTime,double endTime, bool Protected);
 
 
     protected:

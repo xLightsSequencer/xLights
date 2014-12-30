@@ -139,13 +139,18 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
                 bool active=false;
+                bool collapsed=false;
                 wxString name = element->GetAttribute("name");
                 wxString type = element->GetAttribute("type");
                 bool visible = element->GetAttribute("visible")=='1'?true:false;
-                bool collapsed = element->GetAttribute("collapsed")=='1'?true:false;
+
                 if (type=="timing")
                 {
                     active = element->GetAttribute("active")=='1'?true:false;
+                }
+                else if (type=="view")
+                {
+                    collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
                 AddElement(name,type,visible,collapsed,active);
             }
@@ -164,11 +169,20 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                         {
                             if (effect->GetName() == "Effect")
                             {
-                                wxString effectText = effect->GetContent();
+                                int effectIndex=0;
+                                int id;
+                                wxString effectText = effect->GetNodeContent();
+                                int si = effectText.length();
+                                if(elementNode->GetAttribute("type") != "timing")
+                                {
+                                    wxString effectName = ElementEffects::GetEffectNameFromEffectText(effectText);
+                                    effectIndex = ElementEffects::GetEffectIndex(effectName);
+                                    id = wxAtoi(effect->GetAttribute("id"));
+                                }
                                 effect->GetAttribute("startTime").ToDouble(&startTime);
                                 effect->GetAttribute("endTime").ToDouble(&endTime);
-                                bool bProtected = effect->GetAttribute("protected")=='1'?1:0;
-                                element->AddEffect(effectText,startTime,endTime,bProtected);
+                                bool bProtected = effect->GetAttribute("protected")=='1'?true:false;
+                                element->AddEffect(id,effectText,effectIndex,startTime,endTime,bProtected);
                             }
                         }
                     }

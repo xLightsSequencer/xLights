@@ -40,6 +40,7 @@ void xLightsFrame::InitSequencer()
         mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
         effectsGrid = new EffectsGrid(mainSequencer->PanelEffectGrid,args);
         effectsGrid->SetCanvasSize(1200,2200);
+        effectsGrid->SetSequenceElements(&mSequenceElements);
         effectsGrid->InitializeGrid();
 
         mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,800));
@@ -77,7 +78,8 @@ void xLightsFrame::InitSequencer()
         m_mgr.GetPane("Main Sequencer");
 
         m_mgr.Update();
-        SequenceElements *sequenceElements = new SequenceElements();
+        sPreview1->Refresh();
+        sPreview2->Refresh();
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -114,6 +116,9 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     wave->Refresh();
     mainSequencer->ScrollBarEffectGridHorz->SetRange(((MAX_ZOOM_OUT_INDEX - tla->ZoomLevel)*5)+1);
     mainSequencer->ScrollBarEffectGridHorz->Refresh();
+
+    effectsGrid->SetStartPixelOffset(tla->StartPixelOffset);
+    effectsGrid->Refresh();
 
     this->SetLabel(wxString::Format("Zoom=%d, StartOffset=%d",tla->ZoomLevel,tla->StartPixelOffset));
 }
