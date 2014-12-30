@@ -1409,15 +1409,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
     MenuFile = new wxMenu();
-    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF12"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem5);
-    MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItemBackup);
     MenuItem3 = new wxMenuItem(MenuFile, ID_New_Music_Seq, _("New Music Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem3);
     MenuItem6 = new wxMenuItem(MenuFile, ID_NEW_Non_Music_Seq, _("New Non Music Sequence"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem6);
-    MenuItem10 = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTL-O"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem10 = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCtl-0"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem10);
     MenuItem7 = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTL-S"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem7);
