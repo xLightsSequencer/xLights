@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker (Ver 3.6.15)</title>
+		<title>xLights/Nutcracker (Ver 4.0.0)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -2957,6 +2957,15 @@
 					<label>Backup</label>
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_New_Music_Seq" variable="MenuItem3" member="yes">
+					<label>New Music Sequence</label>
+				</object>
+				<object class="wxMenuItem" name="ID_NEW_Non_Music_Seq" variable="MenuItem6" member="yes">
+					<label>New Non Music Sequence</label>
+				</object>
+				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem7" member="yes">
+					<label>Save Sequence</label>
+				</object>
 				<object class="wxMenuItem" name="idMenuQuit" variable="MenuItem1" member="no">
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
@@ -2989,6 +2998,15 @@
 				<object class="wxMenuItem" name="idCustomScript" variable="MenuItemCustomScript" member="no">
 					<label>Custom Script</label>
 					<handler function="OnMenuItemCustomScriptSelected" entry="EVT_MENU" />
+				</object>
+			</object>
+			<object class="wxMenu" variable="Menu2" member="yes">
+				<label>&amp;Export</label>
+				<object class="wxMenuItem" name="ID_EXPORT_ALL" variable="MenuItem8" member="yes">
+					<label>Export All</label>
+				</object>
+				<object class="wxMenuItem" name="ID_EXPORT_MODEL" variable="MenuItem9" member="yes">
+					<label>Export Model</label>
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
