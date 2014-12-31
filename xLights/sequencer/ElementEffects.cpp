@@ -60,7 +60,7 @@ void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double sta
     es.EndTime = endTime;
     es.Protected = Protected;
     es.Selected = false;
-    Effects.push_back(es);
+    mEffects.push_back(es);
     Sort();
 }
 
@@ -68,15 +68,15 @@ void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double sta
 
 void ElementEffects::Sort()
 {
-    if (Effects.size()>1)
-        std::sort(Effects.begin(),Effects.end(),SortByTime);
+    if (mEffects.size()>1)
+        std::sort(mEffects.begin(),mEffects.end(),SortByTime);
 }
 
 bool ElementEffects::IsStartTimeLinked(int index)
 {
-    if(index < Effects.size())
+    if(index < mEffects.size())
     {
-        return Effects[index-1].EndTime == Effects[index].StartTime;
+        return mEffects[index-1].EndTime == mEffects[index].StartTime;
     }
     else
     {
@@ -86,9 +86,9 @@ bool ElementEffects::IsStartTimeLinked(int index)
 
 bool ElementEffects::IsEndTimeLinked(int index)
 {
-    if(index < Effects.size())
+    if(index < mEffects.size())
     {
-        return Effects[index].EndTime == Effects[index+1].StartTime;
+        return mEffects[index].EndTime == mEffects[index+1].StartTime;
     }
     else
     {
@@ -98,13 +98,13 @@ bool ElementEffects::IsEndTimeLinked(int index)
 
 int ElementEffects::GetMaximumEndTime(int index)
 {
-    if(index == Effects.size()-1)
+    if(index == mEffects.size()-1)
     {
         return NO_MIN_MAX_TIME;
     }
     else
     {
-        return Effects[index+1].StartTime;
+        return mEffects[index+1].StartTime;
     }
 }
 
@@ -116,7 +116,32 @@ int ElementEffects::GetMinimumStartTime(int index)
     }
     else
     {
-        return Effects[index-1].EndTime;
+        return mEffects[index-1].EndTime;
     }
 }
+
+int ElementEffects::GetEffectCount()
+{
+    return mEffects.size();
+}
+
+bool ElementEffects::IsEffectStartTimeInRange(int index, float startTime,float endTime)
+{
+    return  (mEffects[index].StartTime >= startTime &&
+             mEffects[index].StartTime <= endTime)?true:false;
+}
+
+bool ElementEffects::IsEffectEndTimeInRange(int index, float startTime,float endTime)
+{
+    return  (mEffects[index].EndTime >= startTime &&
+             mEffects[index].EndTime <= endTime)?true:false;
+}
+
+
+Effect_Struct* ElementEffects::GetEffect(int index)
+{
+    return &mEffects[index];
+}
+
+
 

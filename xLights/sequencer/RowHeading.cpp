@@ -105,7 +105,6 @@ void RowHeading::render( wxPaintEvent& event )
     dc.SetPen(penOutline);
     int row=0;
     int startY,endY;
-
     for(int i =0;i< mSequenceElements->GetRowInformationSize();i++)
     {
         wxBrush brush(*GetHeaderColor(mSequenceElements->GetRowInformation(i)),wxBRUSHSTYLE_SOLID);
@@ -189,6 +188,17 @@ void RowHeading::SetSequenceElements(SequenceElements* elements)
 void RowHeading::DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row)
 {
 }
+
+int RowHeading::getWidth()
+{
+    return GetSize().x;
+}
+
+int RowHeading::getHeight()
+{
+    return GetSize().y;
+}
+
 
 
 

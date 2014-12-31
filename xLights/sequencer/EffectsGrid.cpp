@@ -19,6 +19,7 @@
 
 
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
+EVT_IDLE(EffectsGrid::OnIdle)
 //EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
@@ -54,12 +55,32 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     mEffectColor = new wxColour(192,192,192);
     mGridlineColor = new wxColour(40,40,40);
+    mPaintOnIdleCounter=0;
 
 }
 
 EffectsGrid::~EffectsGrid()
 {
 	delete m_context;
+}
+
+void EffectsGrid::OnIdle(wxIdleEvent &event)
+{
+    // This is a hack to get the grid to repaint after row header
+    // information has changed. The counter prevents grid from
+    // continuously repainting during idle causing excessive
+    // cpu usage. It will only repaint on idle for 5 times
+    // after grid size changes.
+    if(mPaintOnIdleCounter < 5)
+    {
+        Refresh(false);
+        mPaintOnIdleCounter++;
+    }
+};
+
+void EffectsGrid::SetTimeline(TimeLine* timeline)
+{
+        mTimeline = timeline;
 }
 
 void EffectsGrid::ClearBackground()
@@ -70,6 +91,7 @@ void EffectsGrid::ClearBackground()
     SwapBuffers();
     return;
 }
+
 
 void EffectsGrid::resized(wxSizeEvent& evt)
 {
@@ -109,7 +131,7 @@ void EffectsGrid::SetCanvasSize(int w, int h)
 {
     SetSize(wxSize(w,h));
     SetMinSize(wxSize(w,h));
-
+    mPaintOnIdleCounter= 0;
 }
 
 void EffectsGrid::SetSequenceElements(SequenceElements* elements)
@@ -192,8 +214,21 @@ void EffectsGrid::DrawEffects()
 {
     for(int elementIndex=0;elementIndex<mSequenceElements->GetRowInformationSize();elementIndex++)
     {
-
+        wxString type = mSequenceElements->GetRowInformation(elementIndex)->ElementType;
+        wxString name = mSequenceElements->GetRowInformation(elementIndex)->ElementName;
+        if(type=="view" || type == "model")
+        {
+            DrawModelOrViewEffects(mSequenceElements->GetElement(name));
+        }
+        else
+        {
+            DrawTimingEffects(mSequenceElements->GetElement(name));
+        }
     }
+}
+
+void EffectsGrid::DrawModelOrViewEffects(Element* element)
+{
     DrawLine(*mEffectColor,100,33,141,33,1);
     DrawLine(*mEffectColor,158,33,200,33,1);
     DrawRectangle(*mEffectColor,false,140,24,158,42);
@@ -203,6 +238,22 @@ void EffectsGrid::DrawEffects()
     glEnable(GL_TEXTURE_2D);
     DrawEffectIcon(&m_EffectTextures[2],139,22);
     glDisable(GL_TEXTURE_2D);
+
+    glEnable(GL_BLEND);
+    DrawFillRectangle(wxColor(255,255,255),128,400,33,100,100);
+    glDisable(GL_BLEND);
+}
+
+void EffectsGrid::DrawTimingEffects(Element* element)
+{
+    ElementEffects* effects = element->GetElementEffects();
+    for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
+    {
+        Effect_Struct* e = effects->GetEffect(effectIndex);
+        int startPos = mTimeline->GetPositionFromTime(e->StartTime);
+        int endPos = mTimeline->GetPositionFromTime(e->EndTime);
+
+    }
 }
 
 void EffectsGrid::render( wxPaintEvent& evt )
@@ -211,11 +262,10 @@ void EffectsGrid::render( wxPaintEvent& evt )
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    prepare2DViewport(0,0,getWidth(), getHeight());
     DrawHorizontalLines();
     DrawVerticalLines();
     DrawEffects();
-
     //glEnable(GL_BLEND);
     glFlush();
     SwapBuffers();
@@ -403,9 +453,10 @@ void EffectsGrid::DrawRectangle(const wxColour &color, bool dashed, int x1, int 
     }
 }
 
-void EffectsGrid::DrawFillRectangle(const wxColour &color, int x, int y,int width, int height)
+void EffectsGrid::DrawFillRectangle(const wxColour &color, byte alpha, int x, int y,int width, int height)
 {
-    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
+    //glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_QUADS);
     glVertex2f(x, y);
     glVertex2f(x+width, y);

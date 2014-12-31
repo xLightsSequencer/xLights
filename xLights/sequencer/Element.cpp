@@ -80,6 +80,8 @@ ElementEffects* Element::GetElementEffects()
     return &mElementEffects;
 }
 
+
+
 void Element::SortElementEffects()
 {
     mElementEffects.Sort();

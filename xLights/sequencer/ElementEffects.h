@@ -44,7 +44,9 @@ struct Effect_Struct
 class ElementEffects
 {
     public:
-    wxString ElementName;
+
+    ElementEffects();
+    virtual ~ElementEffects();
 
     void AddEffect(int id,wxString effect,int effectIndex,double startTime,double endTime, bool Protected);
     bool IsStartTimeLinked(int index);
@@ -52,18 +54,24 @@ class ElementEffects
 
     int GetMaximumEndTime(int index);
     int GetMinimumStartTime(int index);
+
+    int GetEffectCount();
+    Effect_Struct* GetEffect(int index);
+
     static int GetEffectIndex(wxString effectName);
     static wxString GetEffectNameFromEffectText(wxString effectText);
-    std::vector<Effect_Struct> Effects;
 
-    ElementEffects();
-    virtual ~ElementEffects();
+    bool IsEffectStartTimeInRange(int index, float startTime,float endTime);
+    bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
+
 
     void Sort();
     protected:
     private:
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);
+
+        std::vector<Effect_Struct> mEffects;
 
         static bool SortByTime(const Effect_Struct &effect1,const Effect_Struct &effect2)
         {

@@ -37,7 +37,11 @@ class TimeLine : public wxWindow
         int GetZoomLevelValue();
         void ZoomIn();
         void ZoomOut();
-        void PositionPercentageMoved(int percentage);
+
+        int TimePerMajorTickInMS();
+        void GetViewableTimeRange(double &StartTime, double &EndTime);
+
+        int GetPositionFromTime(double time);
 
         struct TIME_LINE_CHANGED_ARGS
         {
@@ -60,6 +64,10 @@ class TimeLine : public wxWindow
         void mouseLeftUp( wxMouseEvent& event);
         bool mIsInitialized;
         int mStartTimeMS;
+        int mEndTimeMS;
+        double mStartTime;
+        double mEndTime;
+
         int mSelectedTimeMS;
         int mSelectedPosition;
         int mStartPixelOffset;
@@ -73,7 +81,7 @@ class TimeLine : public wxWindow
         int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetPixelOffsetFromStartTime();
         int GetTimeMSfromPosition(int x);
-        int GetViewableTimeMS();
+        int GetMaxViewableTimeMS();
         wxPanel* mParent;
 };
 

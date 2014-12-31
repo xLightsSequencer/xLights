@@ -41,11 +41,16 @@ TimeLine::TimeLine(wxWindow* parent) :
     SetDoubleBuffered(true);
     SetCanvasSize(1000,25);
     mIsInitialized;
-    mStartTimeMS = 0;
+
     mStartPixelOffset = 100;
     mFrequency = 40;
     mZoomLevel = 10;
     mSequenceMaxSeconds = 300;
+
+    mStartTimeMS = 0;
+    mEndTimeMS = GetMaxViewableTimeMS();
+    mStartTime = 0;
+    mEndTime = (double)mEndTimeMS/(double)1000;
 }
 
 TimeLine::~TimeLine()
@@ -65,6 +70,9 @@ void TimeLine::RaiseChangeTimeline()
 void TimeLine::SetStartTime(float time)
 {
     mStartTimeMS = time;
+    mEndTimeMS = GetMaxViewableTimeMS();
+    mStartTime = (double)mStartTimeMS/(double)1000;
+    mEndTime = (double)mEndTimeMS/(double)1000;
 }
 
 float TimeLine::GetStartTime()
@@ -76,6 +84,11 @@ void TimeLine::SetStartPixelOffset(int offset)
 {
     mStartPixelOffset = offset;
     mStartTimeMS = GetFirstTimeLabelFromPixelOffset(mStartPixelOffset);
+    mEndTimeMS = GetMaxViewableTimeMS();
+    mStartTime = (double)mStartTimeMS/(double)1000;
+    mEndTime = (double)mEndTimeMS/(double)1000;
+
+
 }
 
 
@@ -121,8 +134,13 @@ void TimeLine::ZoomIn()
     if(mZoomLevel>0)
     {
         mZoomLevel--;
-        mViewableTimeMS = GetViewableTimeMS();
+        mViewableTimeMS = GetMaxViewableTimeMS();
         mStartTimeMS = GetStartTimeMSfromSelectedTimeAndPosition();
+        mEndTimeMS = GetMaxViewableTimeMS();
+
+        mStartTime = (double)mStartTimeMS/(double)1000;
+        mEndTime = (double)mEndTimeMS/(double)1000;
+
         mStartPixelOffset = GetPixelOffsetFromStartTime();
         RaiseChangeTimeline();
         Refresh();
@@ -132,8 +150,7 @@ void TimeLine::ZoomIn()
 int TimeLine::GetStartTimeMSfromSelectedTimeAndPosition()
 {
     float nMajorHashs = (float)mSelectedPosition/(float)PIXELS_PER_MAJOR_HASH;
-    float timePerMajorHash = ((float)ZoomLevelValues[mZoomLevel]/(float)mFrequency) * (float)1000;
-    int startTime = (int)(mSelectedTimeMS - (float)(nMajorHashs*timePerMajorHash));
+    int startTime = (int)(mSelectedTimeMS - (float)(nMajorHashs*TimePerMajorTickInMS()));
     if(startTime < 0)
     {
         startTime = 0;
@@ -143,20 +160,27 @@ int TimeLine::GetStartTimeMSfromSelectedTimeAndPosition()
 
 int TimeLine::GetPixelOffsetFromStartTime()
 {
-    float timePerMajorHash = (int)(((float)ZoomLevelValues[mZoomLevel]/(float)mFrequency) * (float)1000);
-    float nMajorHashs = (float)mStartTimeMS/(float)timePerMajorHash;
+    float nMajorHashs = (float)mStartTimeMS/(float)TimePerMajorTickInMS();
     int offset = nMajorHashs * PIXELS_PER_MAJOR_HASH;
     return offset;
+}
+
+int TimeLine::GetPositionFromTime(double time)
+{
+    if(time < mStartTime || time > mEndTime)
+    {
+        return -1;
+    }
+    else
+    {
+        double majorHashs = (double)((time*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        return (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+    }
 }
 
 void TimeLine::SetTimeLength(int ms)
 {
     mTimeLength = ms;
-}
-
-void TimeLine::PositionPercentageMoved(int percentage)
-{
-
 }
 
 void TimeLine::TimeSelected(int x)
@@ -170,8 +194,7 @@ void TimeLine::TimeSelected(int x)
 int TimeLine::GetTimeMSfromPosition(int position)
 {
     float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
-    float timePerTickMS = (float)((float)ZoomLevelValues[mZoomLevel] * ((float)1/(float)mFrequency) * (float)1000);
-    int time = (int)(nMajorHashs*timePerTickMS);
+    int time = (int)(nMajorHashs*TimePerMajorTickInMS());
     return time;
 }
 
@@ -182,26 +205,40 @@ void TimeLine::ZoomOut()
         if(mViewableTimeMS < mTimeLength)
         {
             mZoomLevel++;
-            mViewableTimeMS = GetViewableTimeMS();
+            mViewableTimeMS = GetMaxViewableTimeMS();
             mStartTimeMS = GetStartTimeMSfromSelectedTimeAndPosition();
+            mEndTimeMS = GetMaxViewableTimeMS();
+            mStartTime = (double)mStartTimeMS/(double)1000;
+            mEndTime = (double)mStartTimeMS/(double)1000;
             mStartPixelOffset = GetPixelOffsetFromStartTime();
+            //if (mStartTimeMS==0)
+            //{
+            //    float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
+            //    mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
+            //}
         }
         else
         {
+            int selectedTime = mStartTimeMS+GetTimeMSfromPosition(mSelectedPosition);
             mStartTimeMS = 0;
             mStartPixelOffset = 0;
+            mEndTimeMS = GetMaxViewableTimeMS();
+            mStartTime = 0;
+            mEndTime = (double)mEndTimeMS/(double)1000;
+
+            float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
+            mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
         }
         Refresh();
         RaiseChangeTimeline();
     }
 }
 
-int TimeLine::GetViewableTimeMS()
+int TimeLine::GetMaxViewableTimeMS()
 {
     wxSize s = GetSize();
     int majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
-    int timePerTickMS = (int)((float)ZoomLevelValues[mZoomLevel] * ((float)1/(float)mFrequency) * 1000);
-    return majorTicks * timePerTickMS;
+    return majorTicks * TimePerMajorTickInMS();
 }
 
 int TimeLine::GetZoomLevelValue()
@@ -293,6 +330,17 @@ void TimeLine::render( wxPaintEvent& event )
         }
         dc.DrawLine(mSelectedPosition,0,mSelectedPosition,h-1);
 
+}
+
+int TimeLine::TimePerMajorTickInMS()
+{
+    return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1/(double)mFrequency) * 1000);
+}
+
+void TimeLine::GetViewableTimeRange(double &StartTime, double &EndTime)
+{
+    StartTime = mStartTime;
+    EndTime = mEndTime;
 }
 
 TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOffset,int selectedPosition)

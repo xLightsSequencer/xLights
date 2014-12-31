@@ -37,6 +37,7 @@ class Element
         ElementEffects* GetElementEffects();
         void SortElementEffects();
 
+
         int GetIndex();
         void SetIndex(int index);
 
