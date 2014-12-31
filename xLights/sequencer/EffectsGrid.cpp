@@ -55,6 +55,9 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     mEffectColor = new wxColour(192,192,192);
     mGridlineColor = new wxColour(40,40,40);
+    mTimingColor = new wxColour(255,255,255);
+    mTimingVerticalLine = new wxColour(130,178,207);
+
     mPaintOnIdleCounter=0;
 
 }
@@ -189,7 +192,7 @@ void EffectsGrid::DrawHorizontalLines()
     for(int row=0;(row*22)< getHeight();row++)
     {
         y1 = row*DEFAULT_ROW_HEADING_HEIGHT;
-        DrawLine(*mGridlineColor,x1,y1,x2,y1,.2);
+        DrawLine(*mGridlineColor,255,x1,y1,x2,y1,.2);
     }
 }
 
@@ -205,54 +208,86 @@ void EffectsGrid::DrawVerticalLines()
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
         {
-            DrawLine(*mGridlineColor,x1,y1,x1,y2,.2);
+            DrawLine(*mGridlineColor,255,x1,y1,x1,y2,.2);
         }
     }
 }
 
 void EffectsGrid::DrawEffects()
 {
-    for(int elementIndex=0;elementIndex<mSequenceElements->GetRowInformationSize();elementIndex++)
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
-        wxString type = mSequenceElements->GetRowInformation(elementIndex)->ElementType;
-        wxString name = mSequenceElements->GetRowInformation(elementIndex)->ElementName;
+        wxString type = mSequenceElements->GetRowInformation(row)->ElementType;
+        wxString name = mSequenceElements->GetRowInformation(row)->ElementName;
         if(type=="view" || type == "model")
         {
             DrawModelOrViewEffects(mSequenceElements->GetElement(name));
         }
         else
         {
-            DrawTimingEffects(mSequenceElements->GetElement(name));
+            DrawTimingEffects(mSequenceElements->GetElement(name),row);
         }
     }
 }
 
 void EffectsGrid::DrawModelOrViewEffects(Element* element)
 {
-    DrawLine(*mEffectColor,100,33,141,33,1);
-    DrawLine(*mEffectColor,158,33,200,33,1);
-    DrawRectangle(*mEffectColor,false,140,24,158,42);
-    DrawLine(*mEffectColor,100,24,100,42,1);
-    DrawLine(*mEffectColor,200,24,200,42,1);
-
-    glEnable(GL_TEXTURE_2D);
-    DrawEffectIcon(&m_EffectTextures[2],139,22);
-    glDisable(GL_TEXTURE_2D);
-
-    glEnable(GL_BLEND);
-    DrawFillRectangle(wxColor(255,255,255),128,400,33,100,100);
-    glDisable(GL_BLEND);
+//    DrawLine(*mEffectColor,100,33,141,33,1);
+//    DrawLine(*mEffectColor,158,33,200,33,1);
+//    DrawRectangle(*mEffectColor,false,140,24,158,42);
+//    DrawLine(*mEffectColor,100,24,100,42,1);
+//    DrawLine(*mEffectColor,200,24,200,42,1);
+//
+//    glEnable(GL_TEXTURE_2D);
+//    DrawEffectIcon(&m_EffectTextures[2],139,22);
+//    glDisable(GL_TEXTURE_2D);
+//
+//    glEnable(GL_BLEND);
+//    DrawFillRectangle(wxColor(255,255,255),128,400,33,100,100);
+//    glDisable(GL_BLEND);
 }
 
-void EffectsGrid::DrawTimingEffects(Element* element)
+void EffectsGrid::DrawTimingEffects(Element* element,int row)
 {
     ElementEffects* effects = element->GetElementEffects();
     for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
     {
         Effect_Struct* e = effects->GetEffect(effectIndex);
-        int startPos = mTimeline->GetPositionFromTime(e->StartTime);
-        int endPos = mTimeline->GetPositionFromTime(e->EndTime);
+        EFFECT_SCREEN_MODE mode;
 
+        int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+4;
+        int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
+        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
+        int x1,x2;
+        mTimeline->GetPositionFromTime(effects->GetEffect(effectIndex)->StartTime,
+                                       effects->GetEffect(effectIndex)->EndTime,mode,x1,x2);
+        // Draw Left line
+        if(mode==SCREEN_L_R_ON || mode == SCREEN_R_OFF)
+        {
+            DrawLine(*mTimingColor,255,x1,y1,x1,y2,1);
+            if(element->GetActive())
+            {
+                glEnable(GL_BLEND);
+                DrawLine(*mTimingVerticalLine,128,x1,0,x1,GetSize().y,1);
+                glDisable(GL_BLEND);
+            }
+        }
+        // Draw Right line
+        if(mode==SCREEN_L_R_ON || mode == SCREEN_L_OFF)
+        {
+            DrawLine(*mTimingColor,255,x2,y1,x2,y2,1);
+            if(element->GetActive())
+            {
+                glEnable(GL_BLEND);
+                DrawLine(*mTimingVerticalLine,128,x2,0,x2,GetSize().y,1);
+                glDisable(GL_BLEND);
+            }
+        }
+        // Draw horizontal
+        if(mode!=SCREEN_L_R_OFF)
+        {
+            DrawLine(*mTimingColor,255,x1,y,x2,y,1);
+        }
     }
 }
 
@@ -292,13 +327,13 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glPopMatrix();
 }
 
-void EffectsGrid::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2,float width)
+void EffectsGrid::DrawLine(const wxColour &color, byte alpha,int x1, int y1,int x2, int y2,float width)
 {
     glLineWidth(width);
-    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
     glBegin(GL_LINES);
-    glVertex2f(x1, y1);
-    glVertex2f(x2, y2);
+    glVertex2i(x1, y1);
+    glVertex2i(x2, y2);
     glEnd();
 }
 

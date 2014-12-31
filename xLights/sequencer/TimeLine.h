@@ -8,6 +8,14 @@
 
 #define MAX_ZOOM_OUT_INDEX      12
 
+enum EFFECT_SCREEN_MODE{
+    SCREEN_L_R_OFF,
+    SCREEN_L_OFF,
+    SCREEN_R_OFF,
+    SCREEN_L_R_ON,
+    SCREEN_L_R_ACROSS,
+};
+
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 
 class TimeLine : public wxWindow
@@ -41,7 +49,7 @@ class TimeLine : public wxWindow
         int TimePerMajorTickInMS();
         void GetViewableTimeRange(double &StartTime, double &EndTime);
 
-        int GetPositionFromTime(double time);
+        void GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
 
         struct TIME_LINE_CHANGED_ARGS
         {

@@ -46,7 +46,7 @@ private:
 	void keyReleased(wxKeyEvent& event);
 	void OnIdle(wxIdleEvent &event);
 
-    void DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2,float width);
+    void DrawLine(const wxColour &color, byte alpha,int x1, int y1,int x2, int y2,float width);
     void DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2);
     void DrawFillRectangle(const wxColour &color, byte alpha, int x, int y,int width, int height);
     void DrawEffectIcon(GLuint* texture,int x, int y);
@@ -56,7 +56,7 @@ private:
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawModelOrViewEffects(Element* element);
-    void DrawTimingEffects(Element* element);
+    void DrawTimingEffects(Element* element,int row);
 
     void DrawEffects();
 
@@ -68,6 +68,8 @@ private:
     int mStartPixelOffset;
     wxColour * mEffectColor;
     wxColour * mGridlineColor;
+    wxColour * mTimingColor;
+    wxColour * mTimingVerticalLine;
 
     wxWindow* mParent;
     TimeLine* mTimeline;

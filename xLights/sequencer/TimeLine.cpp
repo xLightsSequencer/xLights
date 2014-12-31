@@ -165,18 +165,47 @@ int TimeLine::GetPixelOffsetFromStartTime()
     return offset;
 }
 
-int TimeLine::GetPositionFromTime(double time)
+void TimeLine::GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2)
 {
-    if(time < mStartTime || time > mEndTime)
+    if(startTime < mStartTime && endTime > mEndTime)
     {
-        return -1;
+        screenMode = SCREEN_L_R_ACROSS;
+        x1 = 0;
+        x2 = GetSize().x;
     }
-    else
+    else if(startTime < mStartTime && endTime <= mEndTime)
     {
-        double majorHashs = (double)((time*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
-        return (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        screenMode = SCREEN_L_OFF;
+        double majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x1=0;
+        x2=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
     }
+    else if(startTime >= mStartTime && endTime > mEndTime)
+    {
+        screenMode = SCREEN_R_OFF;
+        double majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x1=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        x2=GetSize().x;
+    }
+    else if(startTime >= mStartTime && endTime <= mEndTime)
+    {
+        screenMode = SCREEN_L_R_ON;
+        double majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x1=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x2=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+    }
+    else if((startTime < mStartTime && endTime < mStartTime) ||
+            (startTime > mStartTime && endTime > mStartTime))
+    {
+        screenMode = SCREEN_L_R_OFF;
+        x1=0;
+        x2=0;
+    }
+
 }
+
+
 
 void TimeLine::SetTimeLength(int ms)
 {
@@ -209,7 +238,7 @@ void TimeLine::ZoomOut()
             mStartTimeMS = GetStartTimeMSfromSelectedTimeAndPosition();
             mEndTimeMS = GetMaxViewableTimeMS();
             mStartTime = (double)mStartTimeMS/(double)1000;
-            mEndTime = (double)mStartTimeMS/(double)1000;
+            mEndTime = (double)mEndTimeMS/(double)1000;
             mStartPixelOffset = GetPixelOffsetFromStartTime();
             //if (mStartTimeMS==0)
             //{
@@ -238,7 +267,7 @@ int TimeLine::GetMaxViewableTimeMS()
 {
     wxSize s = GetSize();
     int majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
-    return majorTicks * TimePerMajorTickInMS();
+    return (majorTicks * TimePerMajorTickInMS()) + mStartTimeMS;
 }
 
 int TimeLine::GetZoomLevelValue()
