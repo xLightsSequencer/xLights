@@ -502,6 +502,9 @@ private:
     static const long ID_BITMAPBUTTON8;
     static const long ID_BITMAPBUTTON14;
     static const long ID_BITMAPBUTTON10;
+    static const long ID_BITMAPBUTTON18;
+    static const long ID_BITMAPBUTTON19;
+    static const long ID_BITMAPBUTTON20;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
@@ -835,6 +838,7 @@ private:
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
+    wxBitmapButton* BitmapButton9;
     wxPanel* PanelTest;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
@@ -886,6 +890,7 @@ private:
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
+    wxBitmapButton* BitmapButton7;
     wxStaticText* StaticText22;
     wxSlider* SliderPreviewRotate;
     wxTreeCtrl* ListBoxSched;
@@ -935,6 +940,7 @@ private:
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
     wxBitmapButton* BitmapButton_random;
+    wxBitmapButton* BitmapButton8;
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
