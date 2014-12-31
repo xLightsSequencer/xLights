@@ -20,49 +20,124 @@
 						<growablerows>1</growablerows>
 						<object class="sizeritem">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer19" member="no">
-								<cols>6</cols>
+								<cols>1</cols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
-										<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_BUTTON" />
-										<tooltip>Tips for using the current tab</tooltip>
-										<style>wxBU_AUTODRAW|wxRAISED_BORDER</style>
-										<handler function="OnBitmapButtonTabInfoClick" entry="EVT_BUTTON" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
+										<cols>8</cols>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON15" variable="BitmapButton4" member="yes">
+												<bitmap stock_id="wxART_FILE_OPEN" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON16" variable="BitmapButton5" member="yes">
+												<bitmap stock_id="wxART_FILE_SAVE" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON17" variable="BitmapButton6" member="yes">
+												<bitmap stock_id="wxART_FILE_SAVE_AS" />
+												<size>21,21</size>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" variable="BitmapButton1" member="yes">
+												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-play-blue-icon.png</bitmap>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton3" member="yes">
+												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-stop-icon.png</bitmap>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON10" variable="BitmapButton2" member="yes">
+												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-pause-blue-icon.png</bitmap>
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxButton" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
-										<label>Stop Now!</label>
-										<handler function="OnButtonStopNowClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxButton" name="ID_BUTTON_GRACEFUL_STOP" variable="ButtonGracefulStop" member="yes">
-										<label>Graceful Stop</label>
-										<handler function="OnButtonGracefulStopClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxButton" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
-										<label>Lights Off</label>
-										<handler function="OnButtonLightsOffClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-										<label>Output to Lights</label>
-										<handler function="OnCheckBoxLightOutputClick" entry="EVT_CHECKBOX" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
+										<cols>6</cols>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
+												<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_BUTTON" />
+												<tooltip>Tips for using the current tab</tooltip>
+												<style>wxBU_AUTODRAW|wxRAISED_BORDER</style>
+												<handler function="OnBitmapButtonTabInfoClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
+												<label>Stop Now!</label>
+												<handler function="OnButtonStopNowClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_GRACEFUL_STOP" variable="ButtonGracefulStop" member="yes">
+												<label>Graceful Stop</label>
+												<handler function="OnButtonGracefulStopClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
+												<label>Lights Off</label>
+												<handler function="OnButtonLightsOffClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
+												<label>Output to Lights</label>
+												<handler function="OnCheckBoxLightOutputClick" entry="EVT_CHECKBOX" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
@@ -2949,6 +3024,24 @@
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="MenuFile" member="yes">
 				<label>&amp;File</label>
+				<object class="wxMenu" name="ID_New_Music_Seq" variable="MenuItem3" member="yes">
+					<label>New Sequence</label>
+					<object class="wxMenuItem" name="ID_NEW_Non_Music_Seq" variable="MenuItem6" member="yes">
+						<label>Music Sequence</label>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem11" member="yes">
+						<label>Animation Sequence</label>
+					</object>
+				</object>
+				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem10" member="yes">
+					<label>Open Sequence</label>
+					<accel>Ctl-0</accel>
+				</object>
+				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem7" member="yes">
+					<label>Save Sequence</label>
+					<accel>CTL-S</accel>
+				</object>
+				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
 					<accel>F9</accel>
@@ -2958,20 +3051,6 @@
 					<label>Backup</label>
 					<accel>F10</accel>
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_New_Music_Seq" variable="MenuItem3" member="yes">
-					<label>New Music Sequence</label>
-				</object>
-				<object class="wxMenuItem" name="ID_NEW_Non_Music_Seq" variable="MenuItem6" member="yes">
-					<label>New Non Music Sequence</label>
-				</object>
-				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem10" member="yes">
-					<label>Open Sequence</label>
-					<accel>Ctl-0</accel>
-				</object>
-				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem7" member="yes">
-					<label>Save Sequence</label>
-					<accel>CTL-S</accel>
 				</object>
 				<object class="wxMenuItem" name="idMenuQuit" variable="MenuItem1" member="no">
 					<label>Quit</label>
@@ -3063,5 +3142,6 @@
 			<wildcard>jpeg image(*.jpg)|*.jpg|&#x0A;png image(*.png)|*.png</wildcard>
 			<style>wxFD_OPEN|wxFD_FILE_MUST_EXIST</style>
 		</object>
+		<object class="wxToolBar" name="ID_TOOLBAR1" variable="ToolBar1" member="yes" />
 	</object>
 </wxsmith>
