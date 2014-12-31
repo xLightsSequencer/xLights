@@ -99,6 +99,7 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 
 }
 
+
 bool SequenceElements::LoadSequencerFile(wxString filename)
 {
     wxString tmpStr;
@@ -193,9 +194,12 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
     return true;
 }
 
+
 void SequenceElements::PopulateRowInformation()
 {
     int rowIndex=0;
+    int timingColorIndex=0;
+
     Row_Information_Struct ri;
     mRowInformation.clear();
     for(int i=0;i<mElements.size();i++)
@@ -207,6 +211,15 @@ void SequenceElements::PopulateRowInformation()
             ri.Collapsed = mElements[i].GetCollapsed();
             ri.Active = mElements[i].GetActive();
             ri.PartOfView = false;
+            if(ri.ElementType=="timing")
+            {
+                ri.colorIndex = timingColorIndex;
+                timingColorIndex++;
+            }
+            else
+            {
+                ri.colorIndex = 0;
+            }
             ri.Index = rowIndex++;
 
             mRowInformation.push_back(ri);
@@ -224,6 +237,7 @@ void SequenceElements::PopulateRowInformation()
                         ri.Active = false;              // Not used for models or
                         ri.PartOfView = true;
                         ri.Index = rowIndex++;
+                        ri.colorIndex = 0;
                         mRowInformation.push_back(ri);
                     }
                 }
@@ -231,5 +245,6 @@ void SequenceElements::PopulateRowInformation()
         }
     }
 }
+
 
 

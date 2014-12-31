@@ -17,6 +17,7 @@ struct Row_Information_Struct
     bool Collapsed;
     bool Active;
     bool PartOfView;
+    int colorIndex;
 };
 
 

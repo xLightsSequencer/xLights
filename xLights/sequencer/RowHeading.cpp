@@ -138,16 +138,19 @@ void RowHeading::render( wxPaintEvent& event )
         }
         else if(mSequenceElements->GetRowInformation(i)->ElementType=="timing")
         {
+            dc.SetPen(*wxBLACK_PEN);
             if(mSequenceElements->GetRowInformation(i)->Active)
             {
-                dc.SetBrush(*wxGREEN_BRUSH);
+                dc.SetBrush(*wxWHITE_BRUSH);
+                dc.DrawRectangle(2,startY+7,9,9);
+                dc.SetBrush(*wxGREY_BRUSH);
+                dc.DrawRectangle(4,startY+9,5,5);
             }
             else
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
+                dc.DrawRectangle(2,startY+7,9,9);
             }
-            dc.SetPen(*wxBLACK_PEN);
-            dc.DrawRectangle(2,startY+7,9,9);
             dc.SetPen(penOutline);
             dc.SetBrush(brush);
         }
@@ -157,7 +160,7 @@ void RowHeading::render( wxPaintEvent& event )
 
 }
 
-wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
+const wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
     if (info->ElementType == "model")
     {
@@ -176,7 +179,7 @@ wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
     }
     else
     {
-        return mHeaderColorTiming;
+        return GetTimingColor(info->colorIndex);
     }
 }
 
@@ -199,8 +202,30 @@ int RowHeading::getHeight()
     return GetSize().y;
 }
 
-
-
+const wxColour* RowHeading::GetTimingColor(int colorIndex)
+{
+    const wxColour* value;
+    switch(colorIndex%5)
+    {
+        case 0:
+            //
+            value = wxCYAN;
+            break;
+        case 1:
+            value = wxRED;
+            break;
+        case 2:
+            value = wxGREEN;
+            break;
+        case 3:
+            value = wxBLUE;
+            break;
+        default:
+            value = wxYELLOW;
+            break;
+    }
+    return value;
+}
 
 
 

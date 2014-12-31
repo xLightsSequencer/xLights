@@ -268,7 +268,7 @@ void EffectsGrid::DrawTimingEffects(Element* element,int row)
             if(element->GetActive())
             {
                 glEnable(GL_BLEND);
-                DrawLine(*mTimingVerticalLine,128,x1,0,x1,GetSize().y,1);
+                DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x1,0,x1,GetSize().y,1);
                 glDisable(GL_BLEND);
             }
         }
@@ -279,7 +279,7 @@ void EffectsGrid::DrawTimingEffects(Element* element,int row)
             if(element->GetActive())
             {
                 glEnable(GL_BLEND);
-                DrawLine(*mTimingVerticalLine,128,x2,0,x2,GetSize().y,1);
+                DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x2,0,x2,GetSize().y,1);
                 glDisable(GL_BLEND);
             }
         }
