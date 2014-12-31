@@ -26,6 +26,7 @@
 #include <wx/splitter.h>
 #include <wx/listbox.h>
 #include <wx/radiobut.h>
+#include <wx/toolbar.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/grid.h>
@@ -495,6 +496,15 @@ private:
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
+    static const long ID_BITMAPBUTTON15;
+    static const long ID_BITMAPBUTTON16;
+    static const long ID_BITMAPBUTTON17;
+    static const long ID_BITMAPBUTTON8;
+    static const long ID_BITMAPBUTTON14;
+    static const long ID_BITMAPBUTTON10;
+    static const long ID_BITMAPBUTTON18;
+    static const long ID_BITMAPBUTTON19;
+    static const long ID_BITMAPBUTTON20;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
@@ -729,12 +739,13 @@ private:
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
     static const long ID_PANEL1;
-    static const long ID_MENUITEM2;
-    static const long ID_FILE_BACKUP;
-    static const long ID_New_Music_Seq;
     static const long ID_NEW_Non_Music_Seq;
+    static const long ID_MENUITEM3;
+    static const long ID_New_Music_Seq;
     static const long ID_OPEN_SEQUENCE;
     static const long IS_SAVE_SEQ;
+    static const long ID_MENUITEM2;
+    static const long ID_FILE_BACKUP;
     static const long idMenuQuit;
     static const long idMenuSaveSched;
     static const long idMenuAddList;
@@ -750,6 +761,7 @@ private:
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
+    static const long ID_TOOLBAR1;
     //*)
 
     static const long ID_PLAYER_DIALOG;
@@ -783,6 +795,7 @@ private:
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
+    wxBitmapButton* BitmapButton4;
     wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
     wxTextCtrl* TextCtrl_PgoAutoFade;
@@ -801,6 +814,7 @@ private:
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
+    wxBitmapButton* BitmapButton5;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxStaticText* StaticText27;
@@ -824,6 +838,7 @@ private:
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
+    wxBitmapButton* BitmapButton9;
     wxPanel* PanelTest;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
@@ -875,6 +890,7 @@ private:
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
+    wxBitmapButton* BitmapButton7;
     wxStaticText* StaticText22;
     wxSlider* SliderPreviewRotate;
     wxTreeCtrl* ListBoxSched;
@@ -889,6 +905,7 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxButton* Button_UpdateGrid;
+    wxToolBar* ToolBar1;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
     wxBitmapButton* BitmapButtonGridPaste;
@@ -908,9 +925,9 @@ private:
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
     wxButton* ButtonSetBackgroundImage;
+    wxChoice* Choice_Views;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
-    wxChoice* Choice_Views;
     wxMenuItem* MenuItemSavePlaylists;
     wxTextCtrl* txtCtrlSparkleFreq;
     wxStaticText* StaticText14;
@@ -923,6 +940,7 @@ private:
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
     wxBitmapButton* BitmapButton_random;
+    wxBitmapButton* BitmapButton8;
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
@@ -931,6 +949,7 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     wxButton* ButtonLightsOff;
+    wxMenuItem* MenuItem11;
     wxMenu* Menu2;
     wxPanel* SeqPanelRight;
     wxPanel* PanelTestStandard;
@@ -944,16 +963,18 @@ private:
     wxBitmapButton* BitmapButton_Contrast;
     wxChoice* Choice_PgoGroupName;
     wxRadioButton* RadioButtonRgbTwinkle05;
+    wxMenu* MenuItem3;
     wxMenuItem* MenuItem6;
+    wxBitmapButton* BitmapButton1;
     wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
-    wxMenuItem* MenuItem3;
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
+    wxBitmapButton* BitmapButton3;
     wxMenuItem* MenuItem10;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
@@ -979,6 +1000,7 @@ private:
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
     wxBitmapButton* BitmapButtonOpenSeq;
+    wxBitmapButton* BitmapButton2;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
     wxStaticText* StaticText8;
@@ -1032,6 +1054,7 @@ private:
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
     wxSplitterWindow* SplitterWindow2;
+    wxBitmapButton* BitmapButton6;
     //*)
 
     wxBitmap pauseIcon;
