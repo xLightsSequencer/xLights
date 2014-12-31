@@ -22,6 +22,8 @@ class RowHeading : public wxWindow
         void SetCanvasSize(int width,int height);
 
         void SetSequenceElements(SequenceElements* elements);
+        int getWidth();
+        int getHeight();
 
     protected:
     private:

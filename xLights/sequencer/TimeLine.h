@@ -37,7 +37,9 @@ class TimeLine : public wxWindow
         int GetZoomLevelValue();
         void ZoomIn();
         void ZoomOut();
-        void PositionPercentageMoved(int percentage);
+
+        int TimePerMajorTickInMS();
+        void GetViewableTimeRange(float &StartTime, float &EndTime);
 
         struct TIME_LINE_CHANGED_ARGS
         {
@@ -73,7 +75,7 @@ class TimeLine : public wxWindow
         int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetPixelOffsetFromStartTime();
         int GetTimeMSfromPosition(int x);
-        int GetViewableTimeMS();
+        int GetMaxViewableTimeMS();
         wxPanel* mParent;
 };
 

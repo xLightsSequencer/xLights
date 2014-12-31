@@ -19,6 +19,7 @@
 
 
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
+EVT_IDLE(EffectsGrid::OnIdle)
 //EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
@@ -62,6 +63,16 @@ EffectsGrid::~EffectsGrid()
 	delete m_context;
 }
 
+void EffectsGrid::OnIdle(wxIdleEvent &event)
+{
+        Refresh(false);
+};
+
+void EffectsGrid::SetTimeline(TimeLine* timeline)
+{
+        mTimeline = timeline;
+}
+
 void EffectsGrid::ClearBackground()
 {
     wxGLCanvas::SetCurrent(*m_context);
@@ -70,6 +81,7 @@ void EffectsGrid::ClearBackground()
     SwapBuffers();
     return;
 }
+
 
 void EffectsGrid::resized(wxSizeEvent& evt)
 {
@@ -109,7 +121,6 @@ void EffectsGrid::SetCanvasSize(int w, int h)
 {
     SetSize(wxSize(w,h));
     SetMinSize(wxSize(w,h));
-
 }
 
 void EffectsGrid::SetSequenceElements(SequenceElements* elements)
@@ -210,12 +221,16 @@ void EffectsGrid::render( wxPaintEvent& evt )
     if(!mIsInitialized) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Draw();
+}
 
+void EffectsGrid::Draw()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    prepare2DViewport(0,0,getWidth(), getHeight());
     DrawHorizontalLines();
     DrawVerticalLines();
     DrawEffects();
-
     //glEnable(GL_BLEND);
     glFlush();
     SwapBuffers();

@@ -8,6 +8,7 @@
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include "SequenceElements.h"
+#include "TimeLine.h"
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
@@ -30,6 +31,7 @@ public:
     void SetCanvasSize(int w, int h);
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
+    void SetTimeline(TimeLine* timeline);
 
 private:
 	void render(wxPaintEvent& evt);
@@ -42,6 +44,8 @@ private:
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
+	void OnIdle(wxIdleEvent &event);
+
     void DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2,float width);
     void DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2);
     void DrawFillRectangle(const wxColour &color, int x, int y,int width, int height);
@@ -49,6 +53,7 @@ private:
     void CreateOrUpdateTexture(char** p_XPM, GLuint *texture);
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
+    void Draw();
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawEffects();
@@ -63,6 +68,7 @@ private:
     wxColour * mGridlineColor;
 
     wxWindow* mParent;
+    TimeLine* mTimeline;
 
 
 

@@ -32,16 +32,12 @@ void xLightsFrame::InitSequencer()
         rowHeading = new RowHeading(mainSequencer->PanelRowHeadings);
         rowHeading->SetSequenceElements(&mSequenceElements);
         rowHeading->SetCanvasSize(175,2200);
-//        mainSequencer->PanelRowHeadings->SetSize(wxSize(250,900));
-//        mainSequencer->PanelRowHeadings->SetMinSize(wxSize(250,900));
-//        mainSequencer->PanelRowHeadings->SetBackgroundColour(*wxGREEN);
+
+        mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
+        mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,2200));
 
         mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
         mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
-        effectsGrid = new EffectsGrid(mainSequencer->PanelEffectGrid,args);
-        effectsGrid->SetCanvasSize(1200,2200);
-        effectsGrid->SetSequenceElements(&mSequenceElements);
-        effectsGrid->InitializeGrid();
 
         mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,800));
         mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,800));
@@ -63,6 +59,13 @@ void xLightsFrame::InitSequencer()
         timeLine = new TimeLine(mainSequencer->PanelTimeLine);
         timeLine->SetTimeLength(mMediaLengthMS);
         timeLine->SetCanvasSize(1200,25);
+
+
+        effectsGrid = new EffectsGrid(mainSequencer->PanelEffectGrid,args);
+        effectsGrid->SetCanvasSize(1200,2200);
+        effectsGrid->SetSequenceElements(&mSequenceElements);
+        effectsGrid->SetTimeline(timeLine);
+        effectsGrid->InitializeGrid();
 
         sPreview1 = new SequencePreview(PanelSequencer,args);
         sPreview1->SetSize(wxSize(200,200));
@@ -96,7 +99,6 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    timeLine->PositionPercentageMoved(event.GetInt());
 }
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
@@ -120,15 +122,28 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     effectsGrid->SetStartPixelOffset(tla->StartPixelOffset);
     effectsGrid->Refresh();
 
-    this->SetLabel(wxString::Format("Zoom=%d, StartOffset=%d",tla->ZoomLevel,tla->StartPixelOffset));
 }
 
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     mSequenceElements.PopulateRowInformation();
-    rowHeading->Refresh();
+    int height = DEFAULT_ROW_HEADING_HEIGHT * mSequenceElements.GetRowInformationSize();
+    // Effects Grid Height
+    effectsGrid->SetCanvasSize(1200,height);
     effectsGrid->Refresh();
+
+    mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,height));
+    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,height));
+    mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(1200,height));
+
+
+    // Row heading Height
+    rowHeading->SetCanvasSize(175,height);
+    rowHeading->Refresh();
+    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,height));
+    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,height));
+    m_mgr.Update();
 }
 
 

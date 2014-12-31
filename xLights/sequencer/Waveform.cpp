@@ -41,9 +41,9 @@ wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 
 
 BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
-EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
-EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
-EVT_MOTION(Waveform::mouseMoved)
+//EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
+//EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
+//EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
