@@ -3,7 +3,16 @@
 #	Description: This program will take multiple xml files and join them
 #			together.
 #
-#	Command:	gawk -f convert4.awk carol.xml > carol.xl4
+#	arguments
+#		pass in the awk command file "-f convert4.awk"
+#		pass in an additional two audacity timing file to add into converted file
+#			-v t1="file name with spaces.txt"
+#			-v t2="file name with space22s.txt"
+
+#	Command:	gawk -f convert4.awk wizards.xml > wixzards.xl4
+
+#	with one additional audacit label file
+#       	gawk -f convert4.awk  -v t1="04 - Wizards In Winter (Instrumental)_bars.txt" -v t2="04 - Wizards In Winter (Instrumental)_beats.txt"  w.xml > w4.xml
 #
 BEGIN {
 	line=0;
@@ -53,18 +62,20 @@ BEGIN {
 		else
 		{
 			tr++;
-			if(tr==1) 
+			if(tr==1) # Seconds row
 			{
 				seconds=parse_td($0);
 				if(index(seconds,".")>0)
 				{
-					n++;
-					file_array[n]=file;
+					n++; # counter of lines that have a seconds value
+					file_array[n]=tr-2;
 					seconds_array[n]=seconds " " n;
-					##	print "file " file " seconds_array[" n "]=" seconds;
+					#	print "file " file " seconds_array[" n "]=" seconds;
 				}
+				else
+					print "ERROR, no seconds. " $0;;
 			}
-			if(tr==2) 
+			if(tr==2) # Label row
 			{
 				if(index(seconds,".")>0)
 				{
@@ -82,8 +93,12 @@ BEGIN {
 					{
 						if(model>maxModel[file]) maxModel[file]=model;
 						effect[n]=parse_td($0);
+						effectarray[n,model]=parse_td($0);
 						file_tr[n]=file " " model;
-						#	print "effect[" n "]=" seconds_array[n] " " label_array[n] " " effect[n];
+						#	print $0;
+						#	print "effect[" n "]=" seconds_array[n] " " label_array[n] " " 
+						#	"file_tr[n] = " file_tr[n] " "
+						effect[n] " " substr($0,1,50);
 					}
 				}
 			}
@@ -102,8 +117,12 @@ END {
 
 
 	xml_header(models,model_array);
-	xml_body(maxN,seconds_array,label_array,effect,file_tr,maxModel,maxFile,models);
-	xml_footer();
+	for(m=1;m<=models;m++)
+	{
+		#	model = model_array[m];
+		xml_body(m,model,maxN,seconds_array,effect,file_tr,file_array,maxModel,maxFile,models);
+	}
+	xml_footer(maxN,seconds_array,t1,t2);
 
 }
 function xml_header(models,model_array)
@@ -112,8 +131,11 @@ function xml_header(models,model_array)
 	print "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 	print "<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\">";
 	print "<DisplayElements>";
+	print "\t<Element type =\"timing\" name=\"Song Timing\"  visible=\"1\" active=\"1\"/>";
+	if(length(t1)>0) print "\t<Element type =\"timing\" name=\"t1\"  visible=\"1\" active=\"0\"/>";
+	if(length(t2)>0) print "\t<Element type =\"timing\" name=\"t2\"  visible=\"1\" active=\"0\"/>";
 	for(m=1;m<=models;m++)
-		printf "\t<Element type =\"model\" name=\"%s\" collapsed=\"0\" visible=\"1\"/>\n",model_array[m];
+		printf "\t<Element type =\"model\" name=\"%s\"  visible=\"1\"/>\n",model_array[m];
 	print "</DisplayElements>";
 	print "\n<ElementEffects>";
 
@@ -163,21 +185,18 @@ function color_wash()
 
 }
 
-function xml_body(maxN,seconds_array,label_array,effect,file_tr,maxModel,maxFile,models)
+function xml_body(m,model,maxN,seconds_array,effect,file_tr,file_array,maxModel,maxFile,models)
 {
-	total_models=0;
-	for(f=1;f<=maxFile;f++)
-		total_models += 	maxModel[f];
 
-	for (m=1;m<=total_models;m++)
-	{
-		#	effect_array[m]=color_wash();
-		effect_array[m]="";
-	}
 
-	#	model_row has the sum of all teh models from the various files passed in.
+
+	printf "<Element type='model' name = \"%s\">\n",model_array[m];
+
 	for(i=1;i<=maxN;i++)
 	{
+		#	print "i,seconds_array[i] ",i,seconds_array[i];
+		#	print "file_tr[n] file_array[n]",file_tr[i],file_array[i];
+		#	print " effectarray[n][m]= " 	effectarray[n,m];
 		split(seconds_array[i],a," ");
 		seconds = a[1];
 		n=a[2];
@@ -188,28 +207,63 @@ function xml_body(maxN,seconds_array,label_array,effect,file_tr,maxModel,maxFile
 		effect_array[row]=effect[n];
 		if(seconds!=seconds_future)
 		{
-			printf "<tr>\n";
-
-			printf "\t<td Protected=\"0\">%s</td>\n", seconds;
-			printf "\t<td Protected=\"0\">%s|n=%d</td>\n", label_array[n],n;
-			for (m=1;m<=total_models;m++)
-			{
-				if((seconds_future-seconds)>1) gsub("ID_CHECKBOX_LayerMorph=0","ID_CHECKBOX_LayerMorph=1",effect_array[m]);
-				printf "\t<td Protected=\"0\">%s</td>\n",effect_array[m];
-				if((seconds_future-seconds)>3) # if next phoneme is 3 or more seconds, then blank
-				effect_array[m]=color_wash();
-				else
-					effect_array[m]="";
-			}
-			printf "</tr>\n";
+			if(seconds_future<seconds) seconds_future=seconds;
+			id = (m-1)*maxN + i;
+			printf "\t<Effect id=\"%d\" Protected=\"0\" startTime=\"%7.3f\" endTime=\"%7.3f\">%s</Effect>\n",
+			       id,seconds,seconds_future,	effectarray[n,m];
 		}
 
-	}	
+
+	}
+	print "</Element>";	
 }
 
-function xml_footer()
+function xml_footer(maxN,seconds_array,t1,t2)
 {
+
+	print "<Element type='timing' name=\"Song Timing\">";
+	for(i=1;i<=maxN;i++)
+	{
+		split(seconds_array[i],a," ");
+		seconds = a[1];
+		n=a[2];
+
+		split(seconds_array[i+1],a," ");
+		seconds_future = a[1];
+		if(seconds_future<seconds) seconds_future=seconds;
+
+		printf ("\t<Effect protected=\"0\" startTime=\"%7.3f\" endTime=\"%7.3f\"/>\n",seconds,seconds_future);
+	}
+	print "</Element>";
+
+
+	if(length(t1)>0)
+	{
+		print "<Element type='timing' name=\"t1\">";
+		while (getline<t1 > 0)
+		{
+			printf ("\t<Effect protected=\"0\" startTime=\"%7.3f\" endTime=\"%7.3f\"/>\n",$1,$2);
+		}
+
+		print "</Element>";
+	}
+
+		if(length(t2)>0)
+	{
+		print "<Element type='timing' name=\"t2\">";
+		while (getline<t2 > 0)
+		{
+			printf ("\t<Effect protected=\"0\" startTime=\"%7.3f\" endTime=\"%7.3f\"/>\n",$1,$2);
+		}
+
+		print "</Element>";
+	}
+
 	print "</ElementEffects>";
+
+	id++;
+	print "<nextid>" id "</nextid>";
+	print "</xsequence>";
 }
 
 function parse_td(buff)
