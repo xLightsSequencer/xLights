@@ -3062,11 +3062,13 @@
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem10" member="yes">
 					<label>Open Sequence</label>
-					<accel>Ctl-0</accel>
+					<accel>Ctl-o</accel>
+					<bitmap stock_id="wxART_FILE_OPEN" />
 				</object>
 				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem7" member="yes">
 					<label>Save Sequence</label>
 					<accel>CTL-S</accel>
+					<bitmap stock_id="wxART_FILE_SAVE" />
 				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
@@ -3083,6 +3085,7 @@
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
 					<help>Quit the application</help>
+					<bitmap stock_id="wxART_QUIT" />
 					<handler function="OnQuit" entry="EVT_MENU" />
 				</object>
 			</object>
