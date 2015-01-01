@@ -16,6 +16,7 @@ void xLightsFrame::InitSequencer()
         }
 
         mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+        mSequenceElements.SetFrequency(40);
         bool success = mSequenceElements.LoadSequencerFile("c:\\temp\\v4.xml");
         mSequencerInitialize = true;
         m_mgr.SetManagedWindow(PanelSequencer);
@@ -39,9 +40,9 @@ void xLightsFrame::InitSequencer()
         mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
         mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
 
-        mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,800));
-        mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,800));
-        mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,800));
+        mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,700));
+        mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,700));
+        mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,700));
         mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
 
         mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
@@ -129,7 +130,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     mSequenceElements.PopulateRowInformation();
     int height = DEFAULT_ROW_HEADING_HEIGHT * mSequenceElements.GetRowInformationSize();
-    // Effects Grid Height
+    //Effects Grid Height
     effectsGrid->SetCanvasSize(1200,height);
     effectsGrid->Refresh();
 

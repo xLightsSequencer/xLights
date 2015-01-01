@@ -40,12 +40,16 @@ class SequenceElements
         void MoveElement(int index,int destinationIndex);
         void PopulateRowInformation();
 
+        void DeactivateAllTimingElements();
+        void SetFrequency(double frequency);
+
     protected:
     private:
     std::vector<Element> mElements;
     std::vector<Row_Information_Struct> mRowInformation;
+    bool ElementExists(wxString elementName);
     wxXmlNode* mViewsNode;
-
+    double mFrequency;
 
     static bool SortElementsByIndex(const Element &element1,const Element &element2)
     {

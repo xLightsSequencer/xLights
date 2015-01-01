@@ -10,6 +10,9 @@
 #include "SequenceElements.h"
 #include "TimeLine.h"
 
+#define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
+#define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
+
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
 class EffectsGrid : public wxGLCanvas
@@ -55,7 +58,7 @@ private:
     void DeleteEffectIconTextures();
     void DrawHorizontalLines();
     void DrawVerticalLines();
-    void DrawModelOrViewEffects(Element* element);
+    void DrawModelOrViewEffects(Element* element,int row);
     void DrawTimingEffects(Element* element,int row);
 
     void DrawEffects();

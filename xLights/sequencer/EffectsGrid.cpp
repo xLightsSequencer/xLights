@@ -221,7 +221,7 @@ void EffectsGrid::DrawEffects()
         wxString name = mSequenceElements->GetRowInformation(row)->ElementName;
         if(type=="view" || type == "model")
         {
-            DrawModelOrViewEffects(mSequenceElements->GetElement(name));
+            DrawModelOrViewEffects(mSequenceElements->GetElement(name),row);
         }
         else
         {
@@ -230,22 +230,64 @@ void EffectsGrid::DrawEffects()
     }
 }
 
-void EffectsGrid::DrawModelOrViewEffects(Element* element)
+void EffectsGrid::DrawModelOrViewEffects(Element* element,int row)
 {
-//    DrawLine(*mEffectColor,100,33,141,33,1);
-//    DrawLine(*mEffectColor,158,33,200,33,1);
-//    DrawRectangle(*mEffectColor,false,140,24,158,42);
-//    DrawLine(*mEffectColor,100,24,100,42,1);
-//    DrawLine(*mEffectColor,200,24,200,42,1);
-//
-//    glEnable(GL_TEXTURE_2D);
-//    DrawEffectIcon(&m_EffectTextures[2],139,22);
-//    glDisable(GL_TEXTURE_2D);
+    ElementEffects* effects = element->GetElementEffects();
+    for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
+    {
+        Effect_Struct* e = effects->GetEffect(effectIndex);
+        EFFECT_SCREEN_MODE mode;
+
+        int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
+        int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
+        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
+        int x1,x2;
+        mTimeline->GetPositionFromTime(effects->GetEffect(effectIndex)->StartTime,
+                                       effects->GetEffect(effectIndex)->EndTime,mode,x1,x2);
+        int x = x2-x1;
+        // Draw Left line
+        if(mode==SCREEN_L_R_ON || mode == SCREEN_R_OFF)
+        {
+            DrawLine(*mEffectColor,255,x1,y1,x1,y2,1);
+        }
+        // Draw Right line
+        if(mode==SCREEN_L_R_ON || mode == SCREEN_L_OFF)
+        {
+            DrawLine(*mEffectColor,255,x2,y1,x2,y2,1);
+        }
+        // Draw horizontal
+        if(mode!=SCREEN_L_R_OFF)
+        {
+            if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
+            {
+                DrawLine(*mEffectColor,255,x1,y,x1+(x/2)-9,y,1);
+                DrawLine(*mEffectColor,255,x1+(x/2)+9,y,x2,y,1);
+                DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                glEnable(GL_TEXTURE_2D);
+                DrawEffectIcon(&m_EffectTextures[e->EffectIndex],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
+                glDisable(GL_TEXTURE_2D);
+
+            }
+            else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
+            {
+                DrawLine(*mEffectColor,255,x1,y,x1+(x/2)-1,y,1);
+                DrawLine(*mEffectColor,255,x1+(x/2)+1,y,x2,y,1);
+                DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
+            }
+            else
+            {
+                DrawLine(*mEffectColor,255,x1,y,x2,y,1);
+            }
+        }
+    }
+}
+
+
 //
 //    glEnable(GL_BLEND);
 //    DrawFillRectangle(wxColor(255,255,255),128,400,33,100,100);
 //    glDisable(GL_BLEND);
-}
+
 
 void EffectsGrid::DrawTimingEffects(Element* element,int row)
 {

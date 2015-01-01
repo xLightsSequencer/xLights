@@ -18,8 +18,23 @@ SequenceElements::~SequenceElements()
 
 void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active)
 {
-    Element e(name,type,visible,collapsed,active);
-    mElements.push_back(e);
+    if(!ElementExists(name))
+    {
+        Element e(name,type,visible,collapsed,active);
+        mElements.push_back(e);
+    }
+}
+
+bool SequenceElements::ElementExists(wxString elementName)
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(mElements[i].GetName() == elementName)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void SequenceElements::SetViewsNode(wxXmlNode* viewsNode)
@@ -154,6 +169,21 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
                 AddElement(name,type,visible,collapsed,active);
+                // Add models for each view
+                if(type=="view")
+                {
+                    wxString models = GetViewModels(name);
+                    if(models.length()> 0)
+                    {
+                        wxArrayString model=wxSplit(models,',');
+                        for(int m=0;m<model.size();m++)
+                        {
+                           wxString modelName =  model[m];
+                           wxString elementType = "model";
+                           AddElement(modelName,elementType,false,false,false);
+                        }
+                    }
+                }
             }
             PopulateRowInformation();
        }
@@ -181,7 +211,9 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                                     id = wxAtoi(effect->GetAttribute("id"));
                                 }
                                 effect->GetAttribute("startTime").ToDouble(&startTime);
+                                startTime = ElementEffects::RoundToMultipleOfPeriod(startTime,mFrequency);
                                 effect->GetAttribute("endTime").ToDouble(&endTime);
+                                endTime = ElementEffects::RoundToMultipleOfPeriod(endTime,mFrequency);
                                 bool bProtected = effect->GetAttribute("protected")=='1'?true:false;
                                 element->AddEffect(id,effectText,effectIndex,startTime,endTime,bProtected);
                             }
@@ -194,6 +226,10 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
     return true;
 }
 
+void SequenceElements::SetFrequency(double frequency)
+{
+    mFrequency = frequency;
+}
 
 void SequenceElements::PopulateRowInformation()
 {
@@ -246,5 +282,14 @@ void SequenceElements::PopulateRowInformation()
     }
 }
 
-
+void SequenceElements::DeactivateAllTimingElements()
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(mElements[i].GetType()=="timing")
+        {
+            mElements[i].SetActive(false);
+        }
+    }
+}
 

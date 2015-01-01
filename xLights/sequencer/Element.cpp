@@ -8,6 +8,7 @@ Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, boo
     mVisible = visible;
     mCollapsed = collapsed;
     mActive = active;
+
 }
 
 Element::~Element()

@@ -45,6 +45,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         }
         else if(HitTestTimingActive(rowIndex,event.GetX(),&result))
         {
+            mSequenceElements->DeactivateAllTimingElements();
             Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
             e->SetActive(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -142,14 +143,15 @@ void RowHeading::render( wxPaintEvent& event )
             if(mSequenceElements->GetRowInformation(i)->Active)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawRectangle(2,startY+7,9,9);
+                dc.DrawCircle(7,startY+11,5);
+
                 dc.SetBrush(*wxGREY_BRUSH);
-                dc.DrawRectangle(4,startY+9,5,5);
+                dc.DrawCircle(7,startY+11,2);
             }
             else
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
-                dc.DrawRectangle(2,startY+7,9,9);
+                dc.DrawCircle(7,startY+11,5);
             }
             dc.SetPen(penOutline);
             dc.SetBrush(brush);

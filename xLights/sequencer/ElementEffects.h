@@ -60,6 +60,7 @@ class ElementEffects
 
     static int GetEffectIndex(wxString effectName);
     static wxString GetEffectNameFromEffectText(wxString effectText);
+    static double RoundToMultipleOfPeriod(double number,double period);
 
     bool IsEffectStartTimeInRange(int index, float startTime,float endTime);
     bool IsEffectEndTimeInRange(int index, float startTime,float endTime);

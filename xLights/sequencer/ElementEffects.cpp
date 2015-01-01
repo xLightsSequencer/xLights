@@ -122,7 +122,10 @@ int ElementEffects::GetMinimumStartTime(int index)
 
 int ElementEffects::GetEffectCount()
 {
-    return mEffects.size();
+    if(mEffects.empty())
+        return 0;
+    else
+        return mEffects.size();
 }
 
 bool ElementEffects::IsEffectStartTimeInRange(int index, float startTime,float endTime)
@@ -142,6 +145,22 @@ Effect_Struct* ElementEffects::GetEffect(int index)
 {
     return &mEffects[index];
 }
+
+double ElementEffects::RoundToMultipleOfPeriod(double number,double frequency)
+{
+    double period = (double)1/frequency;
+    int i = (int)(number/period);
+    double d = number/period;
+    if(d-(double)i < .5)
+    {
+        return ((double)i * period);
+    }
+    else
+    {
+        return ((double)(i+1) * period);
+    }
+}
+
 
 
 
