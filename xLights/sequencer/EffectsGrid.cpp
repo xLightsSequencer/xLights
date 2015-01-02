@@ -52,7 +52,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        Element* element = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+        Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
         RunMouseOverHitTests(element,event.GetX(),event.GetY());
     }
 }
@@ -327,22 +327,22 @@ void EffectsGrid::DrawEffects()
 {
     for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
     {
-        wxString type = mSequenceElements->GetRowInformation(row)->ElementType;
-        wxString name = mSequenceElements->GetRowInformation(row)->ElementName;
+        wxString type = mSequenceElements->GetRowInformation(row)->element->GetType();
+        wxString name = mSequenceElements->GetRowInformation(row)->element->GetName();
         if(type=="view" || type == "model")
         {
-            DrawModelOrViewEffects(mSequenceElements->GetElement(name),row);
+            DrawModelOrViewEffects(row);
         }
         else
         {
-            DrawTimingEffects(mSequenceElements->GetElement(name),row);
+            DrawTimingEffects(row);
         }
     }
 }
 
-void EffectsGrid::DrawModelOrViewEffects(Element* element,int row)
+void EffectsGrid::DrawModelOrViewEffects(int row)
 {
-    ElementEffects* effects = element->GetElementEffects();
+    ElementEffects* effects =mSequenceElements->GetRowInformation(row)->element->GetElementEffects();
     for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
     {
         Effect_Struct* e = effects->GetEffect(effectIndex);
@@ -421,9 +421,10 @@ void EffectsGrid::DrawModelOrViewEffects(Element* element,int row)
 //    glDisable(GL_BLEND);
 
 
-void EffectsGrid::DrawTimingEffects(Element* element,int row)
+void EffectsGrid::DrawTimingEffects(int row)
 {
-    ElementEffects* effects = element->GetElementEffects();
+    Element* element =mSequenceElements->GetRowInformation(row)->element;
+    ElementEffects* effects =mSequenceElements->GetRowInformation(row)->element->GetElementEffects();
     for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
     {
         Effect_Struct* e = effects->GetEffect(effectIndex);

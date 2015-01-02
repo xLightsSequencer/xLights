@@ -63,8 +63,8 @@ private:
     void DeleteEffectIconTextures();
     void DrawHorizontalLines();
     void DrawVerticalLines();
-    void DrawModelOrViewEffects(Element* element,int row);
-    void DrawTimingEffects(Element* element,int row);
+    void DrawModelOrViewEffects(int row);
+    void DrawTimingEffects(int row);
     void DrawEffects();
     void Resize(int position);
     void RunMouseOverHitTests(Element * element,int x,int y);

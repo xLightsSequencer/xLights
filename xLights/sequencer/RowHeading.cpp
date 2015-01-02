@@ -38,7 +38,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         bool result;
         if(HitTestCollapseExpand(rowIndex,event.GetX(),&result))
         {
-            Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+            Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
             e->SetCollapsed(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -46,7 +46,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         else if(HitTestTimingActive(rowIndex,event.GetX(),&result))
         {
             mSequenceElements->DeactivateAllTimingElements();
-            Element* e = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+            Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
             e->SetActive(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -56,7 +56,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetRowInformation(row)->ElementType == "view" &&
+    if(mSequenceElements->GetRowInformation(row)->element->GetType() == "view" &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsCollapsed = mSequenceElements->GetRowInformation(row)->Collapsed;
@@ -70,7 +70,7 @@ bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 
 bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
 {
-    if(mSequenceElements->GetRowInformation(row)->ElementType == "timing" &&
+    if(mSequenceElements->GetRowInformation(row)->element->GetType() == "timing" &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsActive = mSequenceElements->GetRowInformation(row)->Active;
@@ -116,14 +116,14 @@ void RowHeading::render( wxPaintEvent& event )
         if(mSequenceElements->GetRowInformation(i)->PartOfView)
         {
             wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
-            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->ElementName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
         else
         {
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->ElementName,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
-        if(mSequenceElements->GetRowInformation(i)->ElementType=="view")
+        if(mSequenceElements->GetRowInformation(i)->element->GetType()=="view")
         {
 
             dc.SetBrush(*wxWHITE_BRUSH);
@@ -137,7 +137,7 @@ void RowHeading::render( wxPaintEvent& event )
             dc.SetPen(penOutline);
             dc.SetBrush(brush);
         }
-        else if(mSequenceElements->GetRowInformation(i)->ElementType=="timing")
+        else if(mSequenceElements->GetRowInformation(i)->element->GetType()=="timing")
         {
             dc.SetPen(*wxBLACK_PEN);
             if(mSequenceElements->GetRowInformation(i)->Active)
@@ -164,7 +164,7 @@ void RowHeading::render( wxPaintEvent& event )
 
 const wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
-    if (info->ElementType == "model")
+    if (info->element->GetType() == "model")
     {
         if(info->PartOfView)
         {
@@ -175,7 +175,7 @@ const wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
             return mHeaderColorModel;
         }
     }
-    else if (info->ElementType == "view")
+    else if (info->element->GetType() == "view")
     {
         return mHeaderColorView;
     }

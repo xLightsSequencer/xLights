@@ -1,18 +1,18 @@
 #ifndef SEQUENCEELEMENTS_H
 #define SEQUENCEELEMENTS_H
 
+#include "ElementEffects.h"
+#include "Element.h"
+
 #include "wx/wx.h"
 #include <vector>
 #include "wx/xml/xml.h"
-#include "ElementEffects.h"
-#include "Element.h"
 
 
 struct Row_Information_Struct
 {
+    Element *element;
     int Index;
-    wxString ElementName;
-    wxString ElementType;
     int RowNumber;
     bool Collapsed;
     bool Active;

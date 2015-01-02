@@ -242,12 +242,11 @@ void SequenceElements::PopulateRowInformation()
     {
         if(mElements[i].GetVisible())
         {
-            ri.ElementName = mElements[i].GetName();
-            ri.ElementType = mElements[i].GetType();
+            ri.element = &mElements[i];
             ri.Collapsed = mElements[i].GetCollapsed();
             ri.Active = mElements[i].GetActive();
             ri.PartOfView = false;
-            if(ri.ElementType=="timing")
+            if(mElements[i].GetType()=="timing")
             {
                 ri.colorIndex = timingColorIndex;
                 timingColorIndex++;
@@ -267,8 +266,8 @@ void SequenceElements::PopulateRowInformation()
                     wxArrayString model=wxSplit(models,',');
                     for(int m=0;m<model.size();m++)
                     {
-                        ri.ElementName = model[m];
-                        ri.ElementType = "model";
+                        Element* element = GetElement(model[m]);
+                        ri.element = element;
                         ri.Collapsed = false;
                         ri.Active = false;              // Not used for models or
                         ri.PartOfView = true;
