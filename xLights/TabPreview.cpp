@@ -780,13 +780,12 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
             if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format("\nLast was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
             LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
         }
-        if (previewPlaying) //don't need this message when stopping playback; NOTE: flag is reversed at this point in time
-            if (LastPreviewChannel >= SeqNumChannels)
-            {
-//                wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
-                if (wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence." + details + "\nContinue?"),_("Error in Preview"),wxYES_NO | wxNO_DEFAULT | wxCENTRE | wxICON_ERROR) != wxYES)
-                    return;
-            }
+        if (LastPreviewChannel >= SeqNumChannels)
+        {
+//            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
+            if (wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence." + details + "\nContinue?"),_("Error in Preview"),wxYES_NO | wxNO_DEFAULT | wxCENTRE | wxICON_ERROR) != wxYES)
+                return;
+        }
         if (!previewLoaded)
         {
             PlayCurrentXlightsFile();
