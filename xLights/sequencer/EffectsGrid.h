@@ -66,9 +66,9 @@ private:
     void DrawModelOrViewEffects(Element* element,int row);
     void DrawTimingEffects(Element* element,int row);
     void DrawEffects();
-
-    void RunMouseOverHitTests(Element * element,int x);
-
+    void Resize(int position);
+    void RunMouseOverHitTests(Element * element,int x,int y);
+    void UpdateTimePosition(int position);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
@@ -85,6 +85,11 @@ private:
 
     int mResizingMode;
     bool mResizing;
+    bool mDragging;
+    int mDragStartX;
+    int mDragStartY;
+    int mDragEndX;
+    int mDragEndY;
     ElementEffects* mElementEffects;
     int mResizeEffectIndex;
     int mSelectedRow;

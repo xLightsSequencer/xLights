@@ -42,36 +42,50 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     if(mResizing)
     {
-        if(mResizingMode==EFFECT_RESIZE_LEFT)
-        {
-            double time = mTimeline->GetAbsoluteTimefromPosition(event.GetX());
-            time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
-            if(mElementEffects->IsStartTimeLinked(mResizeEffectIndex))
-            {
-                mElementEffects->GetEffect(mResizeEffectIndex-1)->EndTime = time;
-            }
-            mElementEffects->GetEffect(mResizeEffectIndex)->StartTime = time;
-        }
-        else if(mResizingMode==EFFECT_RESIZE_RIGHT)
-        {
-            double time = mTimeline->GetAbsoluteTimefromPosition(event.GetX());;
-            time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
-            if(mElementEffects->IsEndTimeLinked(mResizeEffectIndex))
-            {
-                mElementEffects->GetEffect(mResizeEffectIndex+1)->StartTime = time;
-            }
-            mElementEffects->GetEffect(mResizeEffectIndex)->EndTime = time;
-        }
-        Refresh();
+        Resize(event.GetX());
+    }
+    else if (mDragging)
+    {
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
+        Refresh(false);
     }
     else
     {
         Element* element = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
-        RunMouseOverHitTests(element,event.GetX());
+        RunMouseOverHitTests(element,event.GetX(),event.GetY());
     }
 }
 
-void EffectsGrid::RunMouseOverHitTests(Element* element,int x)
+void EffectsGrid::Resize(int position)
+{
+    if(mResizingMode==EFFECT_RESIZE_LEFT)
+    {
+        double time = mTimeline->GetAbsoluteTimefromPosition(position);
+        time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+        if(mElementEffects->IsStartTimeLinked(mResizeEffectIndex))
+        {
+            mElementEffects->GetEffect(mResizeEffectIndex-1)->EndTime = time;
+        }
+        mElementEffects->GetEffect(mResizeEffectIndex)->StartTime = time;
+    }
+    else if(mResizingMode==EFFECT_RESIZE_RIGHT)
+    {
+        double time = mTimeline->GetAbsoluteTimefromPosition(position);;
+        time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+        if(mElementEffects->IsEndTimeLinked(mResizeEffectIndex))
+        {
+            mElementEffects->GetEffect(mResizeEffectIndex+1)->StartTime = time;
+        }
+        mElementEffects->GetEffect(mResizeEffectIndex)->EndTime = time;
+    }
+    Refresh();
+    mPaintOnIdleCounter=0;
+    // Move time line and waveform to new position
+    UpdateTimePosition(position);
+}
+
+void EffectsGrid::RunMouseOverHitTests(Element* element,int x,int y)
 {
     int effectIndex;
     int result;
@@ -111,15 +125,31 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     {
         mResizing = true;
     }
-
-    // Update time selection
-    wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
-    eventTimeSelected.SetInt(event.GetX());
-    wxPostEvent(mParent, eventTimeSelected);
+    else
+    {
+        mDragging = true;
+        mDragStartX = event.GetX();
+        mDragStartY = event.GetY();
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
+   }
+    UpdateTimePosition(event.GetX());
     event.Skip(true);
 }
+
+void EffectsGrid::UpdateTimePosition(int position)
+{
+    // Update time selection
+    wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
+    eventTimeSelected.SetInt(position);
+    wxPostEvent(mParent, eventTimeSelected);
+}
+
+
 void EffectsGrid::mouseReleased(wxMouseEvent& event) {
     mResizing = false;
+    mDragging = false;
+    mPaintOnIdleCounter = 0;
 }
 void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
@@ -130,6 +160,7 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mParent = parent;
+    mDragging = false;
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     mEffectColor = new wxColour(192,192,192);
@@ -153,7 +184,7 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // continuously repainting during idle causing excessive
     // cpu usage. It will only repaint on idle for 5 times
     // after grid size changes.
-    if(mPaintOnIdleCounter < 5)
+    if(mPaintOnIdleCounter < 25)
     {
         Refresh(false);
         mPaintOnIdleCounter++;
@@ -463,6 +494,10 @@ void EffectsGrid::render( wxPaintEvent& evt )
     DrawHorizontalLines();
     DrawVerticalLines();
     DrawEffects();
+    if(mDragging)
+    {
+        DrawRectangle(*wxYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
+    }
     //glEnable(GL_BLEND);
     glFlush();
     SwapBuffers();
