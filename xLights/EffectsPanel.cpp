@@ -7,7 +7,9 @@
 #include "../include/butterfly.xpm"
 #include "../include/circles.xpm"
 #include "../include/ColorWash.xpm"
+#include "../include/corofaces.xpm"
 #include "../include/curtain.xpm"
+#include "../include/faces.xpm"
 #include "../include/fire.xpm"
 #include "../include/fireworks.xpm"
 #include "../include/garlands.xpm"
@@ -17,6 +19,8 @@
 #include "../include/None.xpm"
 
 #include "../include/Off.xpm"
+#include "../include/On.xpm"
+#include "../include/piano.xpm"
 #include "../include/pinwheel.xpm"
 #include "../include/ripple.xpm"
 #include "../include/singleStrand.xpm"
@@ -29,6 +33,16 @@
 #include "../include/tree.xpm"
 #include "../include/twinkle.xpm"
 #include "../include/wave.xpm"
+
+#include "../include/control-play-blue-icon.xpm";
+#include "../include/control-play-icon.xpm";
+#include "../include/control-pause-blue-icon.xpm";
+#include "../include/control-pause-icon.xpm";
+
+#include "../include/control-stop-blue-icon.xpm";
+#include "../include/control-stop-icon.xpm";
+
+
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>
@@ -45,6 +59,7 @@ const long EffectsPanel::ID_PANEL4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON43 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT100 = wxNewId();
 const long EffectsPanel::ID_PANEL19 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON21 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_EFF_ON_COLOR = wxNewId();
 const long EffectsPanel::ID_STATICTEXT115 = wxNewId();
@@ -139,6 +154,8 @@ const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Curtain_Swag = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_Curtain_Repeat = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat = wxNewId();
 const long EffectsPanel::ID_PANEL1 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON53 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT118 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT15 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Faces_Phoneme = wxNewId();
 const long EffectsPanel::ID_PANEL6 = wxNewId();
@@ -400,18 +417,15 @@ const long EffectsPanel::ID_STATICTEXT114 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Strobe_Type = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON50 = wxNewId();
 const long EffectsPanel::ID_PANEL23 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON54 = wxNewId();
+const long EffectsPanel::ID_STATICTEXT119 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT53 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Line1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Line1 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT54 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Text_Line2 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Line2 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT22 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Line3 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Line3 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT23 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Line4 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Line4 = wxNewId();
 const long EffectsPanel::ID_BUTTON_TEXT_FONT1 = wxNewId();
 const long EffectsPanel::ID_TEXTCTRL_Text_Font1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Text_Font1 = wxNewId();
@@ -591,6 +605,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer23;
     wxFlexGridSizer* FlexGridSizer38;
     wxFlexGridSizer* FlexGridSizer41;
+    wxFlexGridSizer* FlexGridSizer103;
     wxFlexGridSizer* FlexGridSizer51;
     wxFlexGridSizer* FlexGridSizer77;
     wxFlexGridSizer* FlexGridSizer10;
@@ -598,6 +613,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer80;
     wxFlexGridSizer* FlexGridSizer27;
     wxFlexGridSizer* FlexGridSizer44;
+    wxFlexGridSizer* FlexGridSizer96;
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer25;
     wxFlexGridSizer* FlexGridSizer5;
@@ -610,9 +626,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer69;
     wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
+    wxFlexGridSizer* FlexGridSizer102;
+    wxFlexGridSizer* FlexGridSizer100;
     wxFlexGridSizer* FlexGridSizer88;
     wxFlexGridSizer* FlexGridSizer55;
     wxFlexGridSizer* FlexGridSizer86;
+    wxFlexGridSizer* FlexGridSizer97;
     wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer52;
@@ -625,6 +644,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer81;
+    wxFlexGridSizer* FlexGridSizer98;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer93;
     wxFlexGridSizer* FlexGridSizer14;
@@ -634,6 +654,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer13;
     wxFlexGridSizer* FlexGridSizer12;
     wxFlexGridSizer* FlexGridSizer35;
+    wxFlexGridSizer* FlexGridSizer99;
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer78;
@@ -665,6 +686,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer83;
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
+    wxFlexGridSizer* FlexGridSizer101;
     wxFlexGridSizer* FlexGridSizer94;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -697,8 +719,13 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer77->SetSizeHints(Panel1_Off);
     Panel1_On = new wxPanel(Choicebook1, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL25"));
     FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer96 = new wxFlexGridSizer(0, 3, 0, 0);
+    BitmapButton13 = new wxBitmapButton(Panel1_On, ID_BITMAPBUTTON21, On, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
+    BitmapButton13->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
+    FlexGridSizer96->Add(BitmapButton13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText73 = new wxStaticText(Panel1_On, ID_STATICTEXT75, _("This Effect simply turns every pixel on in this model."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT75"));
-    FlexGridSizer92->Add(StaticText73, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer96->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer92->Add(FlexGridSizer96, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer93 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer94 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton_Eff_On_Color = new wxBitmapButton(Panel1_On, ID_BITMAPBUTTON_EFF_ON_COLOR, wxNullBitmap, wxDefaultPosition, wxSize(34,35), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_EFF_ON_COLOR"));
@@ -1047,11 +1074,20 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer7->Fit(Panel1_Curtain);
     FlexGridSizer7->SetSizeHints(Panel1_Curtain);
     Panel1_Faces = new wxPanel(Choicebook1, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-    FlexGridSizer47 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer97 = new wxFlexGridSizer(0, 3, 0, 0);
+    BitmapButton25 = new wxBitmapButton(Panel1_Faces, ID_BITMAPBUTTON53, faces, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON53"));
+    BitmapButton25->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer97->Add(BitmapButton25, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText116 = new wxStaticText(Panel1_Faces, ID_STATICTEXT118, _("Draw a face on a Matrix or Megatree"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT118"));
+    FlexGridSizer97->Add(StaticText116, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(FlexGridSizer97, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText14 = new wxStaticText(Panel1_Faces, ID_STATICTEXT15, _("Phoneme"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
-    FlexGridSizer47->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice_Faces_Phoneme = new wxChoice(Panel1_Faces, ID_CHOICE_Faces_Phoneme, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_Phoneme"));
-    FlexGridSizer47->Add(Choice_Faces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer98->Add(Choice_Faces_Phoneme, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
@@ -1913,43 +1949,42 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Text = new wxPanel(Choicebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
     FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer46->AddGrowableCol(0);
-    FlexGridSizer65 = new wxFlexGridSizer(4, 0, 0, 0);
+    FlexGridSizer65 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer65->AddGrowableCol(0);
+    FlexGridSizer99 = new wxFlexGridSizer(0, 3, 0, 0);
+    BitmapButton26 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON54, text, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON54"));
+    BitmapButton26->SetMinSize(wxSize(21,21));
+    BitmapButton26->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+    FlexGridSizer99->Add(BitmapButton26, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText117 = new wxStaticText(Panel1_Text, ID_STATICTEXT119, _("Label"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT119"));
+    FlexGridSizer99->Add(StaticText117, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer99->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer65->Add(FlexGridSizer99, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer100 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText53 = new wxStaticText(Panel1_Text, ID_STATICTEXT53, _("Line 1"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT53"));
-    FlexGridSizer65->Add(StaticText53, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Line1 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line1, wxEmptyString, wxDefaultPosition, wxSize(216,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line1"));
+    FlexGridSizer100->Add(StaticText53, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl_Text_Line1 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line1"));
     TextCtrl_Text_Line1->SetMaxLength(256);
-    FlexGridSizer65->Add(TextCtrl_Text_Line1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextLine1 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line1"));
-    BitmapButton_TextLine1->SetDefault();
-    BitmapButton_TextLine1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer65->Add(BitmapButton_TextLine1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer100->Add(TextCtrl_Text_Line1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(FlexGridSizer100, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer101 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText54 = new wxStaticText(Panel1_Text, ID_STATICTEXT54, _("Line 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT54"));
-    FlexGridSizer65->Add(StaticText54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Line2 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line2"));
-    TextCtrl_Text_Line2->SetMaxLength(256);
-    FlexGridSizer65->Add(TextCtrl_Text_Line2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextLine2 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line2"));
-    BitmapButton_TextLine2->SetDefault();
-    BitmapButton_TextLine2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer65->Add(BitmapButton_TextLine2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer101->Add(StaticText54, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(FlexGridSizer101, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer102 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText19 = new wxStaticText(Panel1_Text, ID_STATICTEXT22, _("Line 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT22"));
-    FlexGridSizer65->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer102->Add(StaticText19, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     TextCtrl_Text_Line3 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line3"));
     TextCtrl_Text_Line3->SetMaxLength(256);
-    FlexGridSizer65->Add(TextCtrl_Text_Line3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextLine3 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line3"));
-    BitmapButton_TextLine3->SetDefault();
-    BitmapButton_TextLine3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer65->Add(BitmapButton_TextLine3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer102->Add(TextCtrl_Text_Line3, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(FlexGridSizer102, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer103 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText20 = new wxStaticText(Panel1_Text, ID_STATICTEXT23, _("Line 4"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT23"));
-    FlexGridSizer65->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Text_Line4 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line4, wxEmptyString, wxDefaultPosition, wxSize(174,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line4"));
+    FlexGridSizer103->Add(StaticText20, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl_Text_Line4 = new wxTextCtrl(Panel1_Text, ID_TEXTCTRL_Text_Line4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Text_Line4"));
     TextCtrl_Text_Line4->SetMaxLength(256);
-    FlexGridSizer65->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_TextLine4 = new wxBitmapButton(Panel1_Text, ID_BITMAPBUTTON_TEXTCTRL_Text_Line4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(20,20), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Text_Line4"));
-    BitmapButton_TextLine4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer65->Add(BitmapButton_TextLine4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+    FlexGridSizer103->Add(TextCtrl_Text_Line4, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer65->Add(FlexGridSizer103, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer46->Add(FlexGridSizer65, 1, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     Notebook_Text1 = new wxNotebook(Panel1_Text, ID_NOTEBOOK_Text1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Text1"));
     Notebook_Text1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
@@ -2583,10 +2618,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON49,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_NumberStrobesClick);
     Connect(ID_BITMAPBUTTON51,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_StrobeDurationClick);
     Connect(ID_BITMAPBUTTON50,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Strobe_TypeClick);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Line1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextLine1Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Line2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextLine2Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Line3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextLine3Click);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Line4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextLine4Click);
     Connect(ID_BUTTON_TEXT_FONT1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_Text_Font1Click);
     Connect(ID_BITMAPBUTTON_TEXTCTRL_Text_Font1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextFont1Click);
     Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_TextDir1Click);
@@ -3300,10 +3331,10 @@ showlock(StrobeDuration)
 showlock(Strobe_Type)
 
 //  Text
-showlock(TextLine1)
-showlock(TextLine2)
-showlock(TextLine3)
-showlock(TextLine4)
+//showlock(TextLine1)
+//showlock(TextLine2)
+//showlock(TextLine3)
+//showlock(TextLine4)
 
 
 showlock(TextFont1)

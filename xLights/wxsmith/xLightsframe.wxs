@@ -55,9 +55,10 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON8" variable="BitmapButton1" member="yes">
-												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-play-blue-icon.png</bitmap>
+												<bitmap code="control_play_blue_icon" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+												<handler function="OnBitmapButton1Click" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -65,9 +66,10 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON14" variable="BitmapButton3" member="yes">
-												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-stop-icon.png</bitmap>
+												<bitmap code="control_stop_icon" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
+												<handler function="OnBitmapButton3Click" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -75,7 +77,7 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxBitmapButton" name="ID_BITMAPBUTTON10" variable="BitmapButton2" member="yes">
-												<bitmap>C:\Users\Sean_Dell\Documents\xLights\images\control-pause-blue-icon.png</bitmap>
+												<bitmap code="control_pause_blue_icon" />
 												<size>21,21</size>
 												<bg>wxSYS_COLOUR_SCROLLBAR</bg>
 											</object>
@@ -3055,9 +3057,11 @@
 					<label>New Sequence</label>
 					<object class="wxMenuItem" name="ID_NEW_Non_Music_Seq" variable="MenuItem6" member="yes">
 						<label>Music Sequence</label>
+						<bitmap stock_id="wxART_NEW" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem11" member="yes">
 						<label>Animation Sequence</label>
+						<bitmap stock_id="wxART_NEW" />
 					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem10" member="yes">
@@ -3074,11 +3078,13 @@
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
 					<label>Select Show Folder</label>
 					<accel>F9</accel>
+					<bitmap stock_id="wxART_FOLDER" />
 					<handler function="OnMenuOpenFolderSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_FILE_BACKUP" variable="MenuItemBackup" member="yes">
 					<label>Backup</label>
 					<accel>F10</accel>
+					<bitmap stock_id="wxART_HARDDISK" />
 					<handler function="OnMenuItemBackupSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="idMenuQuit" variable="MenuItem1" member="no">

@@ -499,13 +499,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer44->Add(BitmapButton5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton6 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON17, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
     FlexGridSizer44->Add(BitmapButton6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON8, wxBitmap(wxImage(_T("C:\\Users\\Sean_Dell\\Documents\\xLights\\images\\control-play-blue-icon.png"))), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
+    BitmapButton1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON8, control_play_blue_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
     BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     FlexGridSizer44->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton3 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON14, wxBitmap(wxImage(_T("C:\\Users\\Sean_Dell\\Documents\\xLights\\images\\control-stop-icon.png"))), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
+    BitmapButton3 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON14, control_stop_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
     BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     FlexGridSizer44->Add(BitmapButton3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton2 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON10, wxBitmap(wxImage(_T("C:\\Users\\Sean_Dell\\Documents\\xLights\\images\\control-pause-blue-icon.png"))), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
+    BitmapButton2 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON10, control_pause_blue_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
     BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     FlexGridSizer44->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton7 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON18, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON18"));
@@ -1451,8 +1451,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuFile = new wxMenu();
     MenuItem3 = new wxMenu();
     MenuItem6 = new wxMenuItem(MenuItem3, ID_NEW_Non_Music_Seq, _("Music Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem6->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
     MenuItem3->Append(MenuItem6);
     MenuItem11 = new wxMenuItem(MenuItem3, ID_MENUITEM3, _("Animation Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem11->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
     MenuItem3->Append(MenuItem11);
     MenuFile->Append(ID_New_Music_Seq, _("New Sequence"), MenuItem3, wxEmptyString);
     MenuItem10 = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCtl-o"), wxEmptyString, wxITEM_NORMAL);
@@ -1463,8 +1465,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuFile->Append(MenuItem7);
     MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
     MenuFile->Append(MenuItem5);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemBackup->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HARDDISK")),wxART_OTHER));
     MenuFile->Append(MenuItemBackup);
     MenuItem1 = new wxMenuItem(MenuFile, idMenuQuit, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
     MenuItem1->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_QUIT")),wxART_OTHER));
@@ -1515,6 +1519,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
+    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton1Click);
+    Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton3Click);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
@@ -2889,3 +2895,11 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
 }
 
 
+
+void xLightsFrame::OnBitmapButton1Click(wxCommandEvent& event)
+{
+}
+
+void xLightsFrame::OnBitmapButton3Click(wxCommandEvent& event)
+{
+}

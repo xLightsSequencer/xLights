@@ -65,7 +65,6 @@ public:
     wxPanel* Panel1_Shimmer;
     wxChoice* Choice_SingleStrand_Colors;
     wxButton* Button_Palette3;
-    wxBitmapButton* BitmapButton_TextLine1;
     wxBitmapButton* BitmapButton_Piano_MapFilename;
     wxBitmapButton* BitmapButton_NumberStrobes;
     wxStaticText* StaticText4;
@@ -92,7 +91,6 @@ public:
     wxCheckBox* CheckBox_Circles_Radial_3D;
     wxCheckBox* CheckBox_Palette2;
     wxSlider* Slider_Fireworks_Number_Explosions;
-    wxBitmapButton* BitmapButton_TextLine4;
     wxBitmapButton* BitmapButton_CirclesPlasma;
     wxBitmapButton* BitmapButton_FadeIn;
     wxSlider* Slider_Shimmer_Duty_Factor;
@@ -119,6 +117,7 @@ public:
     wxBitmapButton* BitmapButton_CurtainSwag;
     wxButton* Button_Text_Font1;
     wxPanel* Panel1_Fire;
+    wxStaticText* StaticText116;
     wxStaticText* StaticText48;
     wxPanel* Panel1_Strobe;
     wxCheckBox* CheckBox_TextToCenter2;
@@ -278,6 +277,7 @@ public:
     wxBitmapButton* BitmapButton_PinwheelNumberArms;
     wxSlider* Slider_Bars_BarCount;
     wxBitmapButton* BitmapButton_MovieIs20FPS;
+    wxBitmapButton* BitmapButton13;
     wxBitmapButton* BitmapButton_Pinwheel3D;
     wxBitmapButton* BitmapButton_Ripple3D;
     wxBitmapButton* BitmapButton_TextFont1;
@@ -290,13 +290,13 @@ public:
     wxPanel* Panel1_Faces;
     wxCheckBox* CheckBox_Fire_GrowFire;
     wxBitmapButton* BitmapButton_TextEffect3;
-    wxTextCtrl* TextCtrl_Text_Line2;
     wxStaticText* StaticText72;
     wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
     wxBitmapButton* BitmapButton_TextDir2;
     wxChoice* Choice_Text_Dir2;
     wxStaticText* StaticText53;
+    wxBitmapButton* BitmapButton26;
     wxPanel* Panel4;
     wxChoice* Choice_Text_Count4;
     wxBitmapButton* BitmapButton_ButterflyStyle;
@@ -330,8 +330,8 @@ public:
     wxStaticText* StaticText113;
     wxButton* Button_Text_Font4;
     wxStaticText* StaticText62;
-    wxBitmapButton* BitmapButton15;
     wxCheckBox* CheckBox_Spirals_Grow;
+    wxBitmapButton* BitmapButton15;
     wxBitmapButton* BitmapButton_PaletteRep;
     wxCheckBox* CheckBox_Palette3;
     wxBitmapButton* BitmapButton_Palette3;
@@ -426,7 +426,6 @@ public:
     wxBitmapButton* BitmapButton_TextDir3;
     wxBitmapButton* BitmapButton_SpiralsThickness;
     wxCheckBox* CheckBox_Spirograph_Animate;
-    wxBitmapButton* BitmapButton_TextLine3;
     wxCheckBox* CheckBox_Ripple3D;
     wxBitmapButton* BitmapButton_ColorWashCount;
     wxBitmapButton* BitmapButton_CirclesRadial3D;
@@ -461,6 +460,7 @@ public:
     wxBitmapButton* BitmapButton_Palette2;
     wxPanel* Panel1_Snowstorm;
     wxPanel* Panel1_Wave;
+    wxStaticText* StaticText117;
     wxStaticText* StaticText47;
     wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
     wxCheckBox* CheckBox_Circles_Collide;
@@ -486,6 +486,7 @@ public:
     wxBitmapButton* BitmapButton_MeteorsEffect;
     wxChoice* Choice_Text_Count3;
     wxPanel* Panel1_Piano;
+    wxBitmapButton* BitmapButton25;
     wxBitmapButton* BitmapButton16;
     wxBitmapButton* BitmapButton_Skips_StartingPosition;
     wxCheckBox* CheckBox_Palette1;
@@ -525,7 +526,6 @@ public:
     wxChoice* Choice_Chase_Type1;
     wxStaticText* StaticText16;
     wxChoice* Choice_Skips_Direction;
-    wxBitmapButton* BitmapButton_TextLine2;
     wxSlider* Slider_Fireworks_Fade;
     wxBitmapButton* BitmapButton_Piano_ShapeFilename;
     wxCheckBox* CheckBox_Shimmer_Blink_Timing;
@@ -573,6 +573,7 @@ protected:
     static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
     static const long ID_PANEL19;
+    static const long ID_BITMAPBUTTON21;
     static const long ID_STATICTEXT75;
     static const long ID_BITMAPBUTTON_EFF_ON_COLOR;
     static const long ID_STATICTEXT115;
@@ -667,6 +668,8 @@ protected:
     static const long ID_CHECKBOX_Curtain_Repeat;
     static const long ID_BITMAPBUTTON_CHECKBOX_Curtain_Repeat;
     static const long ID_PANEL1;
+    static const long ID_BITMAPBUTTON53;
+    static const long ID_STATICTEXT118;
     static const long ID_STATICTEXT15;
     static const long ID_CHOICE_Faces_Phoneme;
     static const long ID_PANEL6;
@@ -928,18 +931,15 @@ protected:
     static const long ID_SLIDER_Strobe_Type;
     static const long ID_BITMAPBUTTON50;
     static const long ID_PANEL23;
+    static const long ID_BITMAPBUTTON54;
+    static const long ID_STATICTEXT119;
     static const long ID_STATICTEXT53;
     static const long ID_TEXTCTRL_Text_Line1;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Line1;
     static const long ID_STATICTEXT54;
-    static const long ID_TEXTCTRL_Text_Line2;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Line2;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_Text_Line3;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Line3;
     static const long ID_STATICTEXT23;
     static const long ID_TEXTCTRL_Text_Line4;
-    static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Line4;
     static const long ID_BUTTON_TEXT_FONT1;
     static const long ID_TEXTCTRL_Text_Font1;
     static const long ID_BITMAPBUTTON_TEXTCTRL_Text_Font1;
