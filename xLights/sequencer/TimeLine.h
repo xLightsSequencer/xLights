@@ -16,6 +16,7 @@ enum EFFECT_SCREEN_MODE{
     SCREEN_L_R_ACROSS,
 };
 
+
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 
 class TimeLine : public wxWindow
