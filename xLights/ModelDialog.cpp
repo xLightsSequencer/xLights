@@ -64,6 +64,7 @@ END_EVENT_TABLE()
 ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(ModelDialog)
+    wxStaticText* StaticText10;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
@@ -182,7 +183,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     FlexGridSizer7->Add(TreeFirstStringForExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StarSizes = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     FlexGridSizer7->Add(StarSizes, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText10 = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer7->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(FlexGridSizer7, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer3->AddGrowableRow(1);
@@ -413,7 +416,8 @@ void ModelDialog::UpdateLabels()
     wxString NodeLabel = ModelClass::HasSingleChannel(StringType) ? _("lights") : _("RGB Nodes");
     wxString s;
 
-    ExtraParameterLabel->Hide();
+    ExtraParameterLabel->Show();
+    ExtraParameterLabel->SetLabelText("");
     StarSizes->Hide();
     TreeFirstStringForExport->Hide();
 
@@ -511,6 +515,8 @@ void ModelDialog::UpdateLabels()
     RadioButton_BotLeft->Enable(!CustomFlag);
     RadioButton_TopLeft->Enable(!CustomFlag);
     if (CustomFlag && !HasCustomData) ResizeCustomGrid();
+    Layout();
+    Fit();
 }
 
 
