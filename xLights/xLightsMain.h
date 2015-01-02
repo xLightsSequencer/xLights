@@ -96,31 +96,31 @@
 #include "sequencer/Waveform.h"
 #include "wx/aui/aui.h"
 
-#include "bars.xpm"
-#include "butterfly.xpm"
-#include "circles.xpm"
-#include "ColorWash.xpm"
-#include "curtain.xpm"
-#include "fire.xpm"
-#include "fireworks.xpm"
-#include "garlands.xpm"
-#include "glediator.xpm"
-#include "life.xpm"
-#include "meteors.xpm"
-#include "None.xpm"
+#include "../include/bars.xpm"
+#include "../include/butterfly.xpm"
+#include "../include/circles.xpm"
+#include "../include/ColorWash.xpm"
+#include "../include/curtain.xpm"
+#include "../include/fire.xpm"
+#include "../include/fireworks.xpm"
+#include "../include/garlands.xpm"
+#include "../include/glediator.xpm"
+#include "../include/life.xpm"
+#include "../include/meteors.xpm"
+#include "../include/None.xpm"
 
-#include "Off.xpm"
-#include "pinwheel.xpm"
-#include "ripple.xpm"
-#include "singleStrand.xpm"
-#include "snowflakes.xpm"
-#include "snowstorm.xpm"
-#include "spirals.xpm"
-#include "spirograph.xpm"
-#include "text.xpm"
-#include "tree.xpm"
-#include "twinkle.xpm"
-#include "wave.xpm"
+#include "../include/Off.xpm"
+#include "../include/pinwheel.xpm"
+#include "../include/ripple.xpm"
+#include "../include/singleStrand.xpm"
+#include "../include/snowflakes.xpm"
+#include "../include/snowstorm.xpm"
+#include "../include/spirals.xpm"
+#include "../include/spirograph.xpm"
+#include "../include/text.xpm"
+#include "../include/tree.xpm"
+#include "../include/twinkle.xpm"
+#include "../include/wave.xpm"
 
 
 class EffectTreeDialog;
@@ -484,6 +484,8 @@ private:
     void ToggleThreadedSave(wxCommandEvent& event);
     void OnCollapseEffectsButtonClick(wxCommandEvent& event);
     void OnPanelSequencerPaint(wxPaintEvent& event);
+    void OnBitmapButton1Click(wxCommandEvent& event);
+    void OnBitmapButton3Click(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
