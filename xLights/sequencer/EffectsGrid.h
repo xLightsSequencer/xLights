@@ -9,9 +9,14 @@
 #include "wx/glcanvas.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
+#include "ElementEffects.h"
 
 #define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
+
+#define EFFECT_RESIZE_NO                    0
+#define EFFECT_RESIZE_LEFT                  1
+#define EFFECT_RESIZE_RIGHT                 2
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
@@ -60,9 +65,10 @@ private:
     void DrawVerticalLines();
     void DrawModelOrViewEffects(Element* element,int row);
     void DrawTimingEffects(Element* element,int row);
-
     void DrawEffects();
-    void RunHitTests(Element * element,int x);
+
+    void RunMouseOverHitTests(Element * element,int x);
+
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
@@ -77,7 +83,10 @@ private:
     wxWindow* mParent;
     TimeLine* mTimeline;
 
-    bool mDragging;
+    int mResizingMode;
+    bool mResizing;
+    ElementEffects* mElementEffects;
+    int mResizeEffectIndex;
     int mSelectedRow;
     int mPaintOnIdleCounter;
 

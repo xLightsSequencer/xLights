@@ -227,6 +227,15 @@ int TimeLine::GetTimeMSfromPosition(int position)
     return time;
 }
 
+double TimeLine::GetAbsoluteTimefromPosition(int position)
+{
+    double nMajorHashs = (double)position/(double)PIXELS_PER_MAJOR_HASH;
+    double time = mStartTime + (double)(nMajorHashs*TimePerMajorTickInMS()/(double)1000);
+    return time;
+}
+
+
+
 void TimeLine::ZoomOut()
 {
     if(mZoomLevel<MAX_ZOOM_OUT_INDEX)

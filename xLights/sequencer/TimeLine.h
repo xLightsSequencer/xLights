@@ -51,6 +51,9 @@ class TimeLine : public wxWindow
 
         void GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
 
+        int GetTimeMSfromPosition(int position);
+        double GetAbsoluteTimefromPosition(int position);
+
         struct TIME_LINE_CHANGED_ARGS
         {
             int zoomLevel;
@@ -88,7 +91,6 @@ class TimeLine : public wxWindow
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetPixelOffsetFromStartTime();
-        int GetTimeMSfromPosition(int x);
         int GetMaxViewableTimeMS();
         wxPanel* mParent;
 };

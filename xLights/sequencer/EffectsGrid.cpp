@@ -40,19 +40,38 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         SetCursor(wxCURSOR_DEFAULT);
         return;
     }
-    Element* element = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
-
-    if(mDragging)
+    if(mResizing)
     {
-
+        if(mResizingMode==EFFECT_RESIZE_LEFT)
+        {
+            double time = mTimeline->GetAbsoluteTimefromPosition(event.GetX());
+            time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+            if(mElementEffects->IsStartTimeLinked(mResizeEffectIndex))
+            {
+                mElementEffects->GetEffect(mResizeEffectIndex-1)->EndTime = time;
+            }
+            mElementEffects->GetEffect(mResizeEffectIndex)->StartTime = time;
+        }
+        else if(mResizingMode==EFFECT_RESIZE_RIGHT)
+        {
+            double time = mTimeline->GetAbsoluteTimefromPosition(event.GetX());;
+            time = ElementEffects::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+            if(mElementEffects->IsEndTimeLinked(mResizeEffectIndex))
+            {
+                mElementEffects->GetEffect(mResizeEffectIndex+1)->StartTime = time;
+            }
+            mElementEffects->GetEffect(mResizeEffectIndex)->EndTime = time;
+        }
+        Refresh();
     }
     else
     {
-        RunHitTests(element,event.GetX());
+        Element* element = mSequenceElements->GetElement(mSequenceElements->GetRowInformation(rowIndex)->ElementName);
+        RunMouseOverHitTests(element,event.GetX());
     }
 }
 
-void EffectsGrid::RunHitTests(Element* element,int x)
+void EffectsGrid::RunMouseOverHitTests(Element* element,int x)
 {
     int effectIndex;
     int result;
@@ -61,31 +80,46 @@ void EffectsGrid::RunHitTests(Element* element,int x)
     bool isHit = effects->HitTestEffect(x,effectIndex,result);
     if(isHit)
     {
-        if (result == HIT_TEST_EFFECT_LT || result == HIT_TEST_EFFECT_RT)
+        mElementEffects = effects;
+        mResizeEffectIndex = effectIndex;
+        if (result == HIT_TEST_EFFECT_LT)
         {
             SetCursor(wxCURSOR_SIZEWE);
+            mResizingMode = EFFECT_RESIZE_LEFT;
+        }
+        else if (result == HIT_TEST_EFFECT_RT)
+        {
+            SetCursor(wxCURSOR_SIZEWE);
+            mResizingMode = EFFECT_RESIZE_RIGHT;
         }
         else
         {
             SetCursor(wxCURSOR_DEFAULT);
+            mResizingMode = EFFECT_RESIZE_NO;
         }
     }
     else
     {
         SetCursor(wxCURSOR_DEFAULT);
+        mResizingMode = EFFECT_RESIZE_NO;
     }
 }
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
-    mDragging = true;
+    if(mResizingMode!=EFFECT_RESIZE_NO)
+    {
+        mResizing = true;
+    }
+
+    // Update time selection
     wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
     eventTimeSelected.SetInt(event.GetX());
     wxPostEvent(mParent, eventTimeSelected);
     event.Skip(true);
 }
 void EffectsGrid::mouseReleased(wxMouseEvent& event) {
-    mDragging = false;
+    mResizing = false;
 }
 void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
@@ -433,6 +467,8 @@ void EffectsGrid::render( wxPaintEvent& evt )
     glFlush();
     SwapBuffers();
 }
+
+
 
 void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
 {
