@@ -30,6 +30,11 @@
 
 #define NO_MIN_MAX_TIME      0
 
+#define HIT_TEST_EFFECT_LT      0
+#define HIT_TEST_EFFECT_RT      1
+#define HIT_TEST_EFFECT_CTR     2
+
+
 struct Effect_Struct
 {
     int ID;
@@ -39,6 +44,8 @@ struct Effect_Struct
     double EndTime;
     bool Selected;
     bool Protected;
+    int StartPosition;
+    int EndPosition;
 };
 
 class ElementEffects
@@ -65,6 +72,7 @@ class ElementEffects
     bool IsEffectStartTimeInRange(int index, float startTime,float endTime);
     bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
 
+    bool HitTestEffect(int position,int &index, int &result);
 
     void Sort();
     protected:

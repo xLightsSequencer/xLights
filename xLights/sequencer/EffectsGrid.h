@@ -62,7 +62,7 @@ private:
     void DrawTimingEffects(Element* element,int row);
 
     void DrawEffects();
-
+    void RunHitTests(Element * element,int x);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
@@ -77,6 +77,8 @@ private:
     wxWindow* mParent;
     TimeLine* mTimeline;
 
+    bool mDragging;
+    int mSelectedRow;
     int mPaintOnIdleCounter;
 
 

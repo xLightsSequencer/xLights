@@ -161,6 +161,38 @@ double ElementEffects::RoundToMultipleOfPeriod(double number,double frequency)
     }
 }
 
+bool ElementEffects::HitTestEffect(int position,int &index, int &result)
+{
+    bool isHit=false;
+    for(int i=0;i<mEffects.size();i++)
+    {
+        if(mEffects[i].EndPosition - mEffects[i].StartPosition > 10)
+        {
+            int s =  mEffects[i].StartPosition;
+            int e =  mEffects[i].EndPosition;
+            if (position >= mEffects[i].StartPosition &&
+                position <= mEffects[i].EndPosition)
+            {
+                isHit = true;
+                index = i;
+                if(position < mEffects[i].StartPosition + 5)
+                {
+                    result = HIT_TEST_EFFECT_LT;
+                }
+                else if(position > mEffects[i].EndPosition - 5)
+                {
+                    result = HIT_TEST_EFFECT_RT;
+                }
+                else
+                {
+                    result = HIT_TEST_EFFECT_CTR;
+                }
+                break;
+            }
+        }
+    }
+    return isHit;
+}
 
 
 

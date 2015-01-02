@@ -175,14 +175,14 @@ void TimeLine::GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN
     }
     else if(startTime < mStartTime && endTime <= mEndTime)
     {
-        screenMode = SCREEN_L_OFF;
+        screenMode = SCREEN_R_ON;
         double majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x1=0;
         x2=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
     }
     else if(startTime >= mStartTime && endTime > mEndTime)
     {
-        screenMode = SCREEN_R_OFF;
+        screenMode = SCREEN_L_ON;
         double majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x1=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         x2=GetSize().x;
