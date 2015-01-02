@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checklst.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 //*)
 
@@ -19,11 +20,13 @@ public:
     //(*Declarations(SeqParmsDialog)
     wxCheckListBox* CheckListBox1;
     wxStaticText* StaticText_Filename;
+    wxCheckBox* CheckBox_All;
     //*)
 
 protected:
 
     //(*Identifiers(SeqParmsDialog)
+    static const long ID_CHECKBOX_All;
     static const long ID_STATICTEXT_FILENAME;
     static const long ID_CHECKLISTBOX1;
     //*)
@@ -32,6 +35,7 @@ private:
 
     //(*Handlers(SeqParmsDialog)
     void OnSpinCtrlBaseChannelChange(wxSpinEvent& event);
+    void OnCheckBox_AllClick(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()
