@@ -576,9 +576,6 @@ const long EffectsPanel::ID_CHECKBOX_FitToTime = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_FitToTime = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
-const long EffectsPanel::ID_PROGRESSDIALOG1 = wxNewId();
-const long EffectsPanel::ID_PROGRESSDIALOG2 = wxNewId();
-const long EffectsPanel::ID_PROGRESSDIALOG3 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -3057,6 +3054,276 @@ void EffectsPanel::OnButton_Piano_CueFilenameClick(wxCommandEvent& event)
                                        NOTES_WILDCARD, wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_CueFilename->SetValue(filename);
 }
+<resource>
+    <object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+        <cols>1</cols>
+        <object class="sizeritem">
+            <object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
+                <cols>3</cols>
+                <object class="sizeritem">
+                    <object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+                        <label>Fade In</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
+                        <value>0.00</value>
+                        <maxlength>4</maxlength>
+                        <size>37,20</size>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+                        <label>Fade Out</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
+                        <value>0.00</value>
+                        <maxlength>4</maxlength>
+                        <size>37,20</size>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+            </object>
+            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+            <border>1</border>
+            <option>1</option>
+        </object>
+        <object class="sizeritem">
+            <object class="wxFlexGridSizer" variable="FlexGridSizer23" member="no">
+                <cols>3</cols>
+                <object class="sizeritem">
+                    <object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
+                        <label>Fit to time</label>
+                    </object>
+                    <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="spacer">
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,20</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
+                        <label>Persistent</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="spacer">
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+            </object>
+            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+            <border>1</border>
+            <option>1</option>
+        </object>
+    </object>
+</resource>
+<resource>
+    <object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+        <cols>1</cols>
+        <object class="sizeritem">
+            <object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
+                <cols>3</cols>
+                <object class="sizeritem">
+                    <object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+                        <label>Fade In</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
+                        <value>0.00</value>
+                        <maxlength>4</maxlength>
+                        <size>37,20</size>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+                        <label>Fade Out</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
+                        <value>0.00</value>
+                        <maxlength>4</maxlength>
+                        <size>37,20</size>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+            </object>
+            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+            <border>1</border>
+            <option>1</option>
+        </object>
+        <object class="sizeritem">
+            <object class="wxFlexGridSizer" variable="FlexGridSizer23" member="no">
+                <cols>3</cols>
+                <object class="sizeritem">
+                    <object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
+                        <label>Fit to time</label>
+                    </object>
+                    <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="spacer">
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,20</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
+                        <label>Persistent</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="spacer">
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>2</border>
+                    <option>1</option>
+                </object>
+                <object class="sizeritem">
+                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
+                        <bitmap code="padlock16x16_blue_xpm" />
+                        <default>1</default>
+                        <size>21,21</size>
+                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                        <handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                    <border>1</border>
+                    <option>1</option>
+                </object>
+            </object>
+            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+            <border>1</border>
+            <option>1</option>
+        </object>
+    </object>
+</resource>
 
 void EffectsPanel::OnButton_Piano_MapFilenameClick(wxCommandEvent& event)
 {
