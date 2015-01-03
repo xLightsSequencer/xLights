@@ -197,7 +197,7 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     mGridlineColor = new wxColour(40,40,40);
     mTimingColor = new wxColour(255,255,255);
     mTimingVerticalLine = new wxColour(130,178,207);
-    mSelectionColor = new wxColour(255,255,0);
+    mSelectionColor = new wxColour(244,0,255);
 
     mPaintOnIdleCounter=0;
 
@@ -445,7 +445,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 {
                     DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
                     DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
-                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                    DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
                     glEnable(GL_TEXTURE_2D);
                     DrawEffectIcon(&m_EffectTextures[e->EffectIndex],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
                     glDisable(GL_TEXTURE_2D);
@@ -455,7 +455,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 {
                     DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-1,y,1);
                     DrawLine(*mEffectColorRight,255,x1+(x/2)+1,y,x2,y,1);
-                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
+                    DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
                 }
                 else
                 {
