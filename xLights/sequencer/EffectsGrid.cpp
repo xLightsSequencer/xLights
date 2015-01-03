@@ -478,6 +478,10 @@ void EffectsGrid::DrawTimingEffects(int row)
 {
     Element* element =mSequenceElements->GetRowInformation(row)->element;
     ElementEffects* effects =mSequenceElements->GetRowInformation(row)->element->GetElementEffects();
+    wxColour* mEffectColorRight;
+    wxColour* mEffectColorLeft;
+    wxColour* mEffectColorCenter;
+
     for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
     {
         Effect_Struct* e = effects->GetEffect(effectIndex);
@@ -487,8 +491,15 @@ void EffectsGrid::DrawTimingEffects(int row)
         int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
         int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
         int x1,x2;
+
         mTimeline->GetPositionFromTime(effects->GetEffect(effectIndex)->StartTime,
                                        effects->GetEffect(effectIndex)->EndTime,mode,x1,x2);
+        mEffectColorLeft = effects->GetEffect(effectIndex)->Selected == EFFECT_NOT_SELECTED ||
+                           effects->GetEffect(effectIndex)->Selected == EFFECT_RT_SELECTED?mTimingColor:mSelectionColor;
+        mEffectColorRight = effects->GetEffect(effectIndex)->Selected == EFFECT_NOT_SELECTED ||
+                           effects->GetEffect(effectIndex)->Selected == EFFECT_LT_SELECTED?mTimingColor:mSelectionColor;
+        mEffectColorCenter = effects->GetEffect(effectIndex)->Selected == EFFECT_SELECTED?mSelectionColor:mTimingColor;
+
         if(mode==SCREEN_L_R_OFF)
         {
             effects->GetEffect(effectIndex)->StartPosition = -10;
@@ -499,7 +510,22 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw Left line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_L_ON)
             {
-                DrawLine(*mTimingColor,255,x1,y1,x1,y2,1);
+                if(effectIndex>0)
+                {
+                    // Draw left line if effect has different start time then previous effect or
+                    // previous effect was not selected, or only left was selected
+                    if(effects->GetEffect(effectIndex)->StartTime != effects->GetEffect(effectIndex-1)->EndTime ||
+                       effects->GetEffect(effectIndex-1)->Selected == EFFECT_NOT_SELECTED ||
+                        effects->GetEffect(effectIndex-1)->Selected == EFFECT_LT_SELECTED)
+                    {
+                        DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                    }
+                }
+                else
+                {
+                    DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                }
+
                 effects->GetEffect(effectIndex)->StartPosition = x1;
                 if(element->GetActive())
                 {
@@ -515,7 +541,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw Right line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
             {
-                DrawLine(*mTimingColor,255,x2,y1,x2,y2,1);
+                DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
                 effects->GetEffect(effectIndex)->EndPosition = x2;
                 if(element->GetActive())
                 {
@@ -531,7 +557,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
             {
-                DrawLine(*mTimingColor,255,x1,y,x2,y,1);
+                DrawLine(*mTimingColor,255,x1,y,x2,y,2);
             }
 
         }
