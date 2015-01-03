@@ -674,9 +674,9 @@ private:
     static const long ID_CHOICE_VIEWS;
     static const long ID_BT_EDIT_VIEWS;
     static const long ID_GRID1;
-    static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL_EFFECTS1_1;
     static const long ID_PANEL5;
-    static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL_EFFECTS2_1;
     static const long ID_PANEL6;
     static const long ID_NOTEBOOK2;
     static const long ID_PANEL32;
@@ -766,6 +766,11 @@ private:
     static const long ID_TOOLBAR1;
     //*)
 
+    static const long ID_PANEL_EFFECTS1;
+    static const long ID_PANEL_EFFECTS2;
+    static const long ID_PANEL_EFFECTS;
+    static const long ID_NOTEBOOK_EFFECTS;
+
     static const long ID_PLAYER_DIALOG;
     static const long ID_DELETE_EFFECT;
     static const long ID_IGNORE_CLICK;
@@ -803,7 +808,6 @@ private:
     wxTextCtrl* TextCtrl_PgoAutoFade;
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
-    EffectsPanel* EffectsPanel1;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
@@ -901,6 +905,7 @@ private:
     wxTextCtrl* txtCtlEffectMix;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
+    EffectsPanel* EffectsPanel2_1;
     wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
     wxPanel* PaneNutcracker;
@@ -913,6 +918,7 @@ private:
     wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
+    EffectsPanel* EffectsPanel1_1;
     wxFlexGridSizer* fgsSequencer;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
@@ -1051,7 +1057,6 @@ private:
     wxCheckBox* CheckBox_CoroEyesRandomLR;
     wxTextCtrl* TextCtrlPreviewTime;
     wxRadioButton* RadioButtonRgbCycle3;
-    EffectsPanel* EffectsPanel2;
     wxSlider* SliderBgColorA;
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
@@ -1448,8 +1453,12 @@ private:
     void TimeSelected( wxCommandEvent& event);
     void ZoomIn();
     void ZoomOut();
-
-
+    // Panels
+    wxPanel* effectsPnl;
+    wxNotebook* effectsNotebook;
+    EffectsPanel* EffectsPanel1;
+    EffectsPanel* EffectsPanel2;
+    wxFlexGridSizer* FlexGridEffects;
     std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 
