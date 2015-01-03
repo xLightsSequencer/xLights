@@ -1,4 +1,5 @@
 #include "ElementEffects.h"
+#include "EffectsGrid.h"
 #include <algorithm>
 #include <time.h>
 #include <wx/tokenzr.h>
@@ -59,7 +60,7 @@ void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double sta
     es.StartTime = startTime;
     es.EndTime = endTime;
     es.Protected = Protected;
-    es.Selected = false;
+    es.Selected = EFFECT_NOT_SELECTED;
     mEffects.push_back(es);
     Sort();
 }
@@ -194,5 +195,73 @@ bool ElementEffects::HitTestEffect(int position,int &index, int &result)
     return isHit;
 }
 
+void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
+{
+    for(int i=0;i<mEffects.size();i++)
+    {
+        if(mEffects[i].StartPosition < 0 &&
+           mEffects[i].EndPosition < 0)
+        {
+            continue;
+        }
+        int center = mEffects[i].StartPosition + ((mEffects[i].EndPosition - mEffects[i].StartPosition)/2);
+        int squareWidth =  center<MINIMUM_EFFECT_WIDTH_FOR_ICON?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:EFFECT_ICON_WIDTH;
+        int squareLeft = center - (squareWidth/2);
+        int squareRight = center + (squareWidth/2);
+        // If selection around icon/square
+        if (startX>squareLeft && endX < squareRight)
+        {
+            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            {
+                mEffects[i].Selected = EFFECT_SELECTED;
+            }
+            else
+            {
+                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+            }
+        }
+        else if (startX<squareLeft && endX > squareRight)
+        {
+            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            {
+                mEffects[i].Selected = EFFECT_SELECTED;
+            }
+            else
+            {
+                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+            }
+        }
+        // If selection on left side
+        else if (endX>mEffects[i].StartPosition && endX<squareLeft)
+        {
+            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            {
+                mEffects[i].Selected = EFFECT_LT_SELECTED;
+            }
+            else
+            {
+                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+            }
+        }
+        // If selection on right side
+        else if (startX > squareRight && startX < mEffects[i].EndPosition)
+        {
+            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            {
+                mEffects[i].Selected = EFFECT_RT_SELECTED;
+            }
+            else
+            {
+                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+            }
+        }
+    }
+}
 
-
+void ElementEffects::UnSelectAllEffects()
+{
+    for(int i=0;i<mEffects.size();i++)
+    {
+        mEffects[i].Selected = EFFECT_NOT_SELECTED;
+    }
+}

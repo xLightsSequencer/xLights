@@ -42,7 +42,8 @@ class SequenceElements
 
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
-
+        void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX);
+        void UnSelectAllEffects();
     protected:
     private:
     std::vector<Element> mElements;

@@ -34,6 +34,11 @@
 #define HIT_TEST_EFFECT_RT      1
 #define HIT_TEST_EFFECT_CTR     2
 
+#define EFFECT_NOT_SELECTED     0
+#define EFFECT_LT_SELECTED      1
+#define EFFECT_RT_SELECTED      2
+#define EFFECT_SELECTED         3
+
 
 struct Effect_Struct
 {
@@ -42,7 +47,7 @@ struct Effect_Struct
     wxString Effect;
     double StartTime;
     double EndTime;
-    bool Selected;
+    int Selected;
     bool Protected;
     int StartPosition;
     int EndPosition;
@@ -73,6 +78,8 @@ class ElementEffects
     bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
 
     bool HitTestEffect(int position,int &index, int &result);
+    void SelectEffectsInPositionRange(int startX,int endX);
+    void UnSelectAllEffects();
 
     void Sort();
     protected:

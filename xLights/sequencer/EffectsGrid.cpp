@@ -34,7 +34,7 @@ END_EVENT_TABLE()
 // some useful events to use
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
-    int rowIndex = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    int rowIndex = GetRow(event.GetY());
     if(rowIndex >= mSequenceElements->GetRowInformationSize())
     {
         SetCursor(wxCURSOR_DEFAULT);
@@ -48,6 +48,11 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     {
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
+        if (!(event.ControlDown() || event.ShiftDown()))
+        {
+            mSequenceElements->UnSelectAllEffects();
+        }
+        CheckForSelectionRectangle();
         Refresh(false);
     }
     else
@@ -121,6 +126,15 @@ void EffectsGrid::RunMouseOverHitTests(Element* element,int x,int y)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
+    if(!(event.ShiftDown() || event.ControlDown()))
+    {
+        mSequenceElements->UnSelectAllEffects();
+    }
+
+    int row = GetRow(event.GetY());
+    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX());
+    mPaintOnIdleCounter = 0;
+
     if(mResizingMode!=EFFECT_RESIZE_NO)
     {
         mResizing = true;
@@ -146,11 +160,27 @@ void EffectsGrid::UpdateTimePosition(int position)
 }
 
 
-void EffectsGrid::mouseReleased(wxMouseEvent& event) {
+void EffectsGrid::mouseReleased(wxMouseEvent& event)
+{
     mResizing = false;
     mDragging = false;
     mPaintOnIdleCounter = 0;
 }
+
+void EffectsGrid::CheckForSelectionRectangle()
+{
+    if(mDragStartX != mDragEndX || mDragStartY != mDragEndY)
+    {
+        int startRow = GetRow(mDragStartY);
+        int endRow = GetRow(mDragEndY);
+        int row1 =  startRow<=endRow?startRow:endRow;
+        int row2 =  startRow>endRow?startRow:endRow;
+        int x1 = mDragStartX<=mDragEndX?mDragStartX:mDragEndX;
+        int x2 = mDragStartX>mDragEndX?mDragStartX:mDragEndX;
+        mSequenceElements->SelectEffectsInRowAndPositionRange(row1,row2,x1,x2);
+    }
+}
+
 void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyPressed(wxKeyEvent& event) {}
@@ -167,6 +197,7 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     mGridlineColor = new wxColour(40,40,40);
     mTimingColor = new wxColour(255,255,255);
     mTimingVerticalLine = new wxColour(130,178,207);
+    mSelectionColor = new wxColour(255,255,0);
 
     mPaintOnIdleCounter=0;
 
@@ -343,6 +374,9 @@ void EffectsGrid::DrawEffects()
 void EffectsGrid::DrawModelOrViewEffects(int row)
 {
     ElementEffects* effects =mSequenceElements->GetRowInformation(row)->element->GetElementEffects();
+    wxColour* mEffectColorRight;
+    wxColour* mEffectColorLeft;
+    wxColour* mEffectColorCenter;
     for(int effectIndex=0;effectIndex < effects->GetEffectCount();effectIndex++)
     {
         Effect_Struct* e = effects->GetEffect(effectIndex);
@@ -356,33 +390,52 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                                        effects->GetEffect(effectIndex)->EndTime,mode,x1,x2);
         int x = x2-x1;
         // Draw Left line
+        mEffectColorLeft = effects->GetEffect(effectIndex)->Selected == EFFECT_NOT_SELECTED ||
+                           effects->GetEffect(effectIndex)->Selected == EFFECT_RT_SELECTED?mEffectColor:mSelectionColor;
+        mEffectColorRight = effects->GetEffect(effectIndex)->Selected == EFFECT_NOT_SELECTED ||
+                           effects->GetEffect(effectIndex)->Selected == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
+        mEffectColorCenter = effects->GetEffect(effectIndex)->Selected == EFFECT_SELECTED?mSelectionColor:mEffectColor;
 
         if (mode==SCREEN_L_R_OFF)
         {
-            effects->GetEffect(effectIndex)->StartPosition = -100;
-            effects->GetEffect(effectIndex)->EndPosition = -100;
+            effects->GetEffect(effectIndex)->StartPosition = -10;
+            effects->GetEffect(effectIndex)->EndPosition = -10;
         }
         else
         {
             if(mode==SCREEN_L_R_ON || mode == SCREEN_L_ON)
             {
-                DrawLine(*mEffectColor,255,x1,y1,x1,y2,2);
+                if(effectIndex>0)
+                {
+                    // Draw left line if effect has different start time then previous effect or
+                    // previous effect was not selected, or only left was selected
+                    if(effects->GetEffect(effectIndex)->StartTime != effects->GetEffect(effectIndex-1)->EndTime ||
+                       effects->GetEffect(effectIndex-1)->Selected == EFFECT_NOT_SELECTED ||
+                        effects->GetEffect(effectIndex-1)->Selected == EFFECT_LT_SELECTED)
+                    {
+                        DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                    }
+                }
+                else
+                {
+                    DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                }
                 effects->GetEffect(effectIndex)->StartPosition = x1;
             }
             else
             {
-                effects->GetEffect(effectIndex)->StartPosition = -100;
+                effects->GetEffect(effectIndex)->StartPosition = -10;
             }
 
             // Draw Right line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
             {
-                DrawLine(*mEffectColor,255,x2,y1,x2,y2,2);
+                DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
                 effects->GetEffect(effectIndex)->EndPosition = x2;
             }
             else
             {
-                effects->GetEffect(effectIndex)->EndPosition = getWidth()+100;
+                effects->GetEffect(effectIndex)->EndPosition = getWidth()+10;
             }
 
             // Draw horizontal
@@ -390,9 +443,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             {
                 if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
                 {
-                    DrawLine(*mEffectColor,255,x1,y,x1+(x/2)-9,y,1);
-                    DrawLine(*mEffectColor,255,x1+(x/2)+9,y,x2,y,1);
-                    DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                    DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
+                    DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
+                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
                     glEnable(GL_TEXTURE_2D);
                     DrawEffectIcon(&m_EffectTextures[e->EffectIndex],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
                     glDisable(GL_TEXTURE_2D);
@@ -400,13 +453,13 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 }
                 else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                 {
-                    DrawLine(*mEffectColor,255,x1,y,x1+(x/2)-1,y,1);
-                    DrawLine(*mEffectColor,255,x1+(x/2)+1,y,x2,y,1);
-                    DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
+                    DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-1,y,1);
+                    DrawLine(*mEffectColorRight,255,x1+(x/2)+1,y,x2,y,1);
+                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
                 }
                 else
                 {
-                    DrawLine(*mEffectColor,255,x1,y,x2,y,1);
+                    DrawLine(*mEffectColorCenter,255,x1,y,x2,y,1);
                 }
             }
 
@@ -438,8 +491,8 @@ void EffectsGrid::DrawTimingEffects(int row)
                                        effects->GetEffect(effectIndex)->EndTime,mode,x1,x2);
         if(mode==SCREEN_L_R_OFF)
         {
-            effects->GetEffect(effectIndex)->StartPosition = -100;
-            effects->GetEffect(effectIndex)->EndPosition = -100;
+            effects->GetEffect(effectIndex)->StartPosition = -10;
+            effects->GetEffect(effectIndex)->EndPosition = -10;
         }
         else
         {
@@ -457,7 +510,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             }
             else
             {
-                effects->GetEffect(effectIndex)->StartPosition = -100;
+                effects->GetEffect(effectIndex)->StartPosition = -10;
             }
             // Draw Right line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
@@ -473,7 +526,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             }
             else
             {
-                effects->GetEffect(effectIndex)->EndPosition = getWidth()+100;
+                effects->GetEffect(effectIndex)->EndPosition = getWidth()+10;
             }
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
@@ -758,6 +811,11 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
     {
         wxPostEvent(GetGrandParent()->GetEventHandler(), event);
     }
+}
+
+int EffectsGrid::GetRow(int y)
+{
+    return y/DEFAULT_ROW_HEADING_HEIGHT;
 }
 
 
