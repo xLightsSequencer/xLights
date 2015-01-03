@@ -578,6 +578,9 @@ const long EffectsPanel::ID_CHECKBOX_FitToTime = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_FitToTime = wxNewId();
 const long EffectsPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
+const long EffectsPanel::ID_PROGRESSDIALOG1 = wxNewId();
+const long EffectsPanel::ID_PROGRESSDIALOG2 = wxNewId();
+const long EffectsPanel::ID_PROGRESSDIALOG3 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)

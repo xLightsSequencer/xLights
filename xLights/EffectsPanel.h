@@ -9,6 +9,7 @@
 #include <wx/checkbox.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
+#include <wx/progdlg.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
@@ -81,6 +82,7 @@ public:
     wxButton* ButtonGledFile;
     wxBitmapButton* BitmapButton_TextPosition4;
     wxButton* Button_Piano_CueFilename;
+    wxProgressDialog* ProgressDialog3;
     wxBitmapButton* BitmapButton_TextCount1;
     wxPanel* Panel_Text2;
     wxChoice* Choice_Curtain_Edge;
@@ -333,6 +335,7 @@ public:
     wxStaticText* StaticText113;
     wxButton* Button_Text_Font4;
     wxStaticText* StaticText62;
+    wxProgressDialog* ProgressDialog2;
     wxCheckBox* CheckBox_Spirals_Grow;
     wxBitmapButton* BitmapButton15;
     wxBitmapButton* BitmapButton_PaletteRep;
@@ -356,6 +359,7 @@ public:
     wxPanel* Panel1_Ripple;
     wxBitmapButton* BitmapButton_Chase_Type1;
     wxSlider* Slider_Meteors_Swirl_Intensity;
+    wxProgressDialog* ProgressDialog1;
     wxStaticText* StaticText79;
     wxStaticText* StaticText99;
     wxSlider* Slider_Butterfly_Chunks;
@@ -1095,6 +1099,9 @@ protected:
     static const long ID_BITMAPBUTTON_CHECKBOX_FitToTime;
     static const long ID_CHECKBOX_OverlayBkg;
     static const long ID_BITMAPBUTTON_OverlayBkg;
+    static const long ID_PROGRESSDIALOG1;
+    static const long ID_PROGRESSDIALOG2;
+    static const long ID_PROGRESSDIALOG3;
     //*)
 
 private:
