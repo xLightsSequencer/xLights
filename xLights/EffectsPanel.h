@@ -141,6 +141,7 @@ public:
     wxTextCtrl* TextCtrl_Text_Line3;
     wxCheckBox* CheckBox_Circles_Bounce;
     wxBitmapButton* BitmapButton_pinwheel;
+    wxStaticText* StaticText118;
     wxStaticText* StaticText92;
     wxTextCtrl* TextCtrl_Speed;
     wxBitmapButton* BitmapButton18;
@@ -183,7 +184,6 @@ public:
     wxBitmapButton* BitmapButton_Piano_KeyPlacement;
     wxStaticText* StaticText_Piano_NumRows;
     wxButton* Button_Palette4;
-    wxBitmapButton* BitmapButton27;
     wxBitmapButton* BitmapButton_CirclesRadial;
     wxBitmapButton* BitmapButton_FireworksNumberExplosions;
     wxStaticText* StaticText65;
@@ -249,7 +249,6 @@ public:
     wxBitmapButton* BitmapButton_LayerEffect;
     wxStaticText* StaticText67;
     wxPanel* Panel1_ColorWash;
-    wxBitmapButton* BitmapButton28;
     wxBitmapButton* BitmapButton_Piano_NumRows;
     wxBitmapButton* BitmapButton23;
     wxBitmapButton* BitmapButton_ButterflySkip;
@@ -294,7 +293,6 @@ public:
     wxPanel* Panel1_Faces;
     wxCheckBox* CheckBox_Fire_GrowFire;
     wxBitmapButton* BitmapButton_TextEffect3;
-    wxTextCtrl* TextCtrl_Text_Line2;
     wxStaticText* StaticText72;
     wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
@@ -579,6 +577,7 @@ protected:
     static const long ID_PANEL4;
     static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
+    static const long ID_STATICTEXT120;
     static const long ID_PANEL19;
     static const long ID_BITMAPBUTTON21;
     static const long ID_STATICTEXT75;
@@ -655,7 +654,6 @@ protected:
     static const long ID_CHECKBOX_ColorWash_VFade;
     static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade;
     static const long ID_PANEL5;
-    static const long ID_BITMAPBUTTON55;
     static const long ID_STATICTEXT73;
     static const long ID_CHOICE_CoroFaces_Phoneme;
     static const long ID_STATICTEXT64;
@@ -744,7 +742,6 @@ protected:
     static const long ID_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_PANEL18;
-    static const long ID_BITMAPBUTTON56;
     static const long ID_STATICTEXT1;
     static const long ID_CHOICE_Piano_Style;
     static const long ID_BITMAPBUTTON_SLIDER_Piano_Style;
@@ -945,7 +942,6 @@ protected:
     static const long ID_STATICTEXT53;
     static const long ID_TEXTCTRL_Text_Line1;
     static const long ID_STATICTEXT54;
-    static const long ID_TEXTCTRL_Text_Line2;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_Text_Line3;
     static const long ID_STATICTEXT23;

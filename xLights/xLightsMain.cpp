@@ -257,9 +257,9 @@ const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
 const long xLightsFrame::ID_CHOICE_VIEWS = wxNewId();
 const long xLightsFrame::ID_BT_EDIT_VIEWS = wxNewId();
 const long xLightsFrame::ID_GRID1 = wxNewId();
-const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
+const long xLightsFrame::ID_PANEL_EFFECTS1_1 = wxNewId();
 const long xLightsFrame::ID_PANEL5 = wxNewId();
-const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
+const long xLightsFrame::ID_PANEL_EFFECTS2_1 = wxNewId();
 const long xLightsFrame::ID_PANEL6 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK2 = wxNewId();
 const long xLightsFrame::ID_PANEL32 = wxNewId();
@@ -348,6 +348,13 @@ const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 const long xLightsFrame::ID_TOOLBAR1 = wxNewId();
 //*)
+
+// For new sequencer
+const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
+const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
+const long xLightsFrame::ID_PANEL_EFFECTS = wxNewId();
+const long xLightsFrame::ID_NOTEBOOK_EFFECTS = wxNewId();
+// End
 
 const long xLightsFrame::ID_PLAYER_DIALOG = wxNewId();
 const long xLightsFrame::ID_DELETE_EFFECT = wxNewId();
@@ -479,7 +486,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("xLights/Nutcracker [ALPHA!!](Ver 4.0.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 4.0.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetToolTip(_("Export only Channels associated with one model"));
     FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -1149,9 +1156,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BoxSizer5 = new wxBoxSizer(wxHORIZONTAL);
     Notebook2 = new wxNotebook(SeqPanelRight, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
     Panel4 = new wxPanel(Notebook2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-    EffectsPanel1 = new EffectsPanel(Panel4, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
+    EffectsPanel1_1 = new EffectsPanel(Panel4, ID_PANEL_EFFECTS1_1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1_1"));
     Panel5 = new wxPanel(Notebook2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-    EffectsPanel2 = new EffectsPanel(Panel5, ID_PANEL_EFFECTS2, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
+    EffectsPanel2_1 = new EffectsPanel(Panel5, ID_PANEL_EFFECTS2_1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2_1"));
     Notebook2->AddPage(Panel4, _("Effect1"), false);
     Notebook2->AddPage(Panel5, _("Effect2"), false);
     BoxSizer5->Add(Notebook2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1456,10 +1463,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem11->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
     MenuItem3->Append(MenuItem11);
     MenuFile->Append(ID_New_Music_Seq, _("New Sequence"), MenuItem3, wxEmptyString);
-    MenuItem10 = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTRL-O"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem10 = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCtl-o"), wxEmptyString, wxITEM_NORMAL);
     MenuItem10->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem10);
-    MenuItem7 = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem7 = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTL-S"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem7);
     MenuFile->AppendSeparator();
@@ -1644,7 +1651,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
     Grid1->Connect(wxEVT_SET_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1SetFocus,0,this);
     Grid1->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1KillFocus,0,this);
-    EffectsPanel1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnEffectsPanel1Paint,0,this);
+    EffectsPanel1_1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnEffectsPanel1Paint,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1686,6 +1693,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
+
+    InitSequencer();
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
     seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);

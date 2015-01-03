@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>xLights/Nutcracker [ALPHA!!](Ver 4.0.0)</title>
+		<title>xLights/Nutcracker (Ver 4.0.0)</title>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -2241,7 +2241,7 @@
 																		<object class="wxNotebook" name="ID_NOTEBOOK2" variable="Notebook2" member="yes">
 																			<object class="notebookpage">
 																				<object class="wxPanel" name="ID_PANEL5" variable="Panel4" member="yes">
-																					<object class="wxPanel" name="ID_PANEL_EFFECTS1" subclass="EffectsPanel" variable="EffectsPanel1" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS1_1" subclass="EffectsPanel" variable="EffectsPanel1_1" member="yes">
 																						<pos>0,0</pos>
 																						<handler function="OnEffectsPanel1Paint" entry="EVT_PAINT" />
 																					</object>
@@ -2250,7 +2250,7 @@
 																			</object>
 																			<object class="notebookpage">
 																				<object class="wxPanel" name="ID_PANEL6" variable="Panel5" member="yes">
-																					<object class="wxPanel" name="ID_PANEL_EFFECTS2" subclass="EffectsPanel" variable="EffectsPanel2" member="yes">
+																					<object class="wxPanel" name="ID_PANEL_EFFECTS2_1" subclass="EffectsPanel" variable="EffectsPanel2_1" member="yes">
 																						<pos>0,0</pos>
 																					</object>
 																				</object>
@@ -3066,12 +3066,12 @@
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem10" member="yes">
 					<label>Open Sequence</label>
-					<accel>CTRL-O</accel>
+					<accel>Ctl-o</accel>
 					<bitmap stock_id="wxART_FILE_OPEN" />
 				</object>
 				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem7" member="yes">
 					<label>Save Sequence</label>
-					<accel>CTRL-S</accel>
+					<accel>CTL-S</accel>
 					<bitmap stock_id="wxART_FILE_SAVE" />
 				</object>
 				<object class="separator" />

@@ -81,6 +81,23 @@ void xLightsFrame::InitSequencer()
         m_mgr.AddPane(mainSequencer,wxCENTER, wxT("Main Sequencer"));
         m_mgr.GetPane("Main Sequencer");
 
+
+        effectsPnl = new wxPanel(PanelSequencer, ID_PANEL_EFFECTS, wxPoint(40,-11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS"));
+        FlexGridEffects = new wxFlexGridSizer(0, 1, 0, 0);
+        FlexGridEffects->AddGrowableCol(0);
+
+        effectsNotebook = new wxNotebook(effectsPnl, ID_NOTEBOOK_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_EFFECTS"));
+        EffectsPanel1 = new EffectsPanel(effectsNotebook, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
+        EffectsPanel2 = new EffectsPanel(effectsNotebook, ID_PANEL_EFFECTS2, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
+
+        effectsNotebook->AddPage(EffectsPanel1, _("Effect1"), false);
+        effectsNotebook->AddPage(EffectsPanel2, _("Effect2"), false);
+
+        FlexGridEffects->Add(effectsNotebook, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
+        effectsPnl->SetSizer(FlexGridEffects);
+
+        m_mgr.AddPane(effectsPnl, wxLEFT, wxT("Effects"));
+
         m_mgr.Update();
         sPreview1->Refresh();
         sPreview2->Refresh();
