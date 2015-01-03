@@ -20,6 +20,15 @@
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
 		676F58781A1556210045FA22 /* RenderOff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F58771A1556210045FA22 /* RenderOff.cpp */; };
 		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
+		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
+		6784F92A1A5653670018EC0C /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9211A5653670018EC0C /* Element.cpp */; };
+		6784F92B1A5653670018EC0C /* ElementEffects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9221A5653670018EC0C /* ElementEffects.cpp */; };
+		6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9231A5653670018EC0C /* MainSequencer.cpp */; };
+		6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9241A5653670018EC0C /* RowHeading.cpp */; };
+		6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9251A5653670018EC0C /* SequenceElements.cpp */; };
+		6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9261A5653670018EC0C /* tabSequencer.cpp */; };
+		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
+		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
@@ -88,6 +97,7 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
+		67B30CDD1A583F7A009E23FF /* libmpg123.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC91021A3FD22F00905A53 /* RenderOn.cpp */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
@@ -124,6 +134,15 @@
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
 		676F58771A1556210045FA22 /* RenderOff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderOff.cpp; sourceTree = "<group>"; };
 		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
+		6784F9201A5653670018EC0C /* EffectsGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectsGrid.cpp; path = sequencer/EffectsGrid.cpp; sourceTree = "<group>"; };
+		6784F9211A5653670018EC0C /* Element.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Element.cpp; path = sequencer/Element.cpp; sourceTree = "<group>"; };
+		6784F9221A5653670018EC0C /* ElementEffects.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ElementEffects.cpp; path = sequencer/ElementEffects.cpp; sourceTree = "<group>"; };
+		6784F9231A5653670018EC0C /* MainSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainSequencer.cpp; path = sequencer/MainSequencer.cpp; sourceTree = "<group>"; };
+		6784F9241A5653670018EC0C /* RowHeading.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RowHeading.cpp; path = sequencer/RowHeading.cpp; sourceTree = "<group>"; };
+		6784F9251A5653670018EC0C /* SequenceElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceElements.cpp; path = sequencer/SequenceElements.cpp; sourceTree = "<group>"; };
+		6784F9261A5653670018EC0C /* tabSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tabSequencer.cpp; path = sequencer/tabSequencer.cpp; sourceTree = "<group>"; };
+		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
+		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
 		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WholeHouseModelNameDialog.cpp; sourceTree = "<group>"; };
@@ -216,6 +235,7 @@
 		67A61A2217B51C0F008E95BB /* xLightsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsApp.h; sourceTree = "<group>"; };
 		67A61A2417B51C0F008E95BB /* xLightsMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsMain.cpp; sourceTree = "<group>"; };
 		67A61A2517B51C0F008E95BB /* xLightsMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsMain.h; sourceTree = "<group>"; };
+		67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpg123.0.dylib; path = lib/osx/libmpg123.0.dylib; sourceTree = "<group>"; };
 		67B4C91917B536D60006B951 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
@@ -254,6 +274,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B30CDD1A583F7A009E23FF /* libmpg123.0.dylib in Frameworks */,
 				679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */,
 				679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */,
 			);
@@ -318,6 +339,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */,
 				67E7087017B51AB400A22034 /* Cocoa.framework */,
 				67E7087217B51AB400A22034 /* Other Frameworks */,
 			);
@@ -337,6 +359,15 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6784F9201A5653670018EC0C /* EffectsGrid.cpp */,
+				6784F9211A5653670018EC0C /* Element.cpp */,
+				6784F9221A5653670018EC0C /* ElementEffects.cpp */,
+				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
+				6784F9241A5653670018EC0C /* RowHeading.cpp */,
+				6784F9251A5653670018EC0C /* SequenceElements.cpp */,
+				6784F9261A5653670018EC0C /* tabSequencer.cpp */,
+				6784F9271A5653670018EC0C /* TimeLine.cpp */,
+				6784F9281A5653670018EC0C /* Waveform.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
@@ -567,6 +598,7 @@
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */,
+				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
 				67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */,
@@ -581,6 +613,7 @@
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
 				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
+				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */,
 				67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
@@ -597,9 +630,16 @@
 				67A61A4C17B51C0F008E95BB /* SeqExportDialog.cpp in Sources */,
 				67A61A4D17B51C0F008E95BB /* SeqOpenDialog.cpp in Sources */,
 				67A61A4E17B51C0F008E95BB /* SeqParmsDialog.cpp in Sources */,
+				6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */,
+				6784F92A1A5653670018EC0C /* Element.cpp in Sources */,
 				67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */,
+				6784F92B1A5653670018EC0C /* ElementEffects.cpp in Sources */,
+				6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */,
 				67A61A5217B51C0F008E95BB /* serial.cpp in Sources */,
 				6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */,
+				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
+				6784F92D1A5653670018EC0C /* RowHeading.cpp in Sources */,
+				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */,
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
@@ -687,6 +727,10 @@
 				GCC_PREFIX_HEADER = "";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
@@ -762,6 +806,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (

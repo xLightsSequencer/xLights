@@ -74,7 +74,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
     for (i=0; i<MRU_LENGTH; i++)
     {
         mru_name=wxString::Format("mru%d",i);
-        if (MenuFile->FindItem(mru_MenuItem[i]->GetItemLabel()) != wxNOT_FOUND)
+        wxString item = mru_MenuItem[i]->GetItemLabel();
+        if (MenuFile->FindItem(item) != wxNOT_FOUND)
         {
             MenuFile->Remove(mru_MenuItem[i]);
         }

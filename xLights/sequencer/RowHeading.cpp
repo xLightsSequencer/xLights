@@ -2,6 +2,7 @@
 #include "Waveform.h"
 #include "wx/wx.h"
 #include "wx/brush.h"
+#include "../xLightsMain.h"
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 //EVT_MOTION(RowHeading::mouseMoved)
@@ -20,7 +21,7 @@ END_EVENT_TABLE()
 RowHeading::RowHeading(wxWindow* parent) :
     wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
-    SetDoubleBuffered(true);
+    DOUBLE_BUFFER(this);
     mHeaderColorModel = new wxColour(212,208,200);
     mHeaderColorView = new wxColour(159,157,152);
     mHeaderColorTiming = new wxColour(130,178,207);

@@ -606,7 +606,7 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glPopMatrix();
 }
 
-void EffectsGrid::DrawLine(const wxColour &color, byte alpha,int x1, int y1,int x2, int y2,float width)
+void EffectsGrid::DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,int x2, int y2,float width)
 {
     glLineWidth(width);
     glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
@@ -767,7 +767,7 @@ void EffectsGrid::DrawRectangle(const wxColour &color, bool dashed, int x1, int 
     }
 }
 
-void EffectsGrid::DrawFillRectangle(const wxColour &color, byte alpha, int x, int y,int width, int height)
+void EffectsGrid::DrawFillRectangle(const wxColour &color, wxByte alpha, int x, int y,int width, int height)
 {
     glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
     //glColor3ub(color.Red(), color.Green(),color.Blue());

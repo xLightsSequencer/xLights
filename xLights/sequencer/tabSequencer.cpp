@@ -25,7 +25,7 @@ void xLightsFrame::InitSequencer()
 
         mainSequencer = new MainSequencer(PanelSequencer);
 
-        mainSequencer->SetDoubleBuffered(true);
+        DOUBLE_BUFFER(mainSequencer);
         mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
         mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
         fgsSequencer->Add(mainSequencer, 1, wxALL|wxALIGN_LEFT, 2);
