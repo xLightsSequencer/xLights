@@ -197,7 +197,7 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     mGridlineColor = new wxColour(40,40,40);
     mTimingColor = new wxColour(255,255,255);
     mTimingVerticalLine = new wxColour(130,178,207);
-    mSelectionColor = new wxColour(0,0,255);
+    mSelectionColor = new wxColour(244,0,255);
 
     mPaintOnIdleCounter=0;
 
@@ -445,7 +445,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 {
                     DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
                     DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
-                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                    DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
                     glEnable(GL_TEXTURE_2D);
                     DrawEffectIcon(&m_EffectTextures[e->EffectIndex],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
                     glDisable(GL_TEXTURE_2D);
@@ -455,7 +455,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 {
                     DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-1,y,1);
                     DrawLine(*mEffectColorRight,255,x1+(x/2)+1,y,x2,y,1);
-                    DrawRectangle(*mEffectColorCenter,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
+                    DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
                 }
                 else
                 {
@@ -606,7 +606,7 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glPopMatrix();
 }
 
-void EffectsGrid::DrawLine(const wxColour &color, byte alpha,int x1, int y1,int x2, int y2,float width)
+void EffectsGrid::DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,int x2, int y2,float width)
 {
     glLineWidth(width);
     glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
@@ -767,7 +767,7 @@ void EffectsGrid::DrawRectangle(const wxColour &color, bool dashed, int x1, int 
     }
 }
 
-void EffectsGrid::DrawFillRectangle(const wxColour &color, byte alpha, int x, int y,int width, int height)
+void EffectsGrid::DrawFillRectangle(const wxColour &color, wxByte alpha, int x, int y,int width, int height)
 {
     glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
     //glColor3ub(color.Red(), color.Green(),color.Blue());

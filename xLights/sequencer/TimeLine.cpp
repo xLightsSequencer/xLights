@@ -2,6 +2,7 @@
 #include "Waveform.h"
 #include "wx/wx.h"
 #include "wx/brush.h"
+#include "../xLightsMain.h"
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 
@@ -38,7 +39,7 @@ TimeLine::TimeLine(wxWindow* parent) :
     wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mParent = (wxPanel*)parent;
-    SetDoubleBuffered(true);
+    DOUBLE_BUFFER(this);
     SetCanvasSize(1000,25);
     mIsInitialized;
 

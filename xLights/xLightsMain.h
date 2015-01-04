@@ -214,7 +214,11 @@ public:
     };
 };
 
-
+#ifdef __WXOSX__
+#define DOUBLE_BUFFER(a)
+#else
+#define DOUBLE_BUFFER(a) a->SetDoubleBuffered(true);
+#endif
 
 class xLightsFrame: public wxFrame
 {
