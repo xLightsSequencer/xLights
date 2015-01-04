@@ -544,38 +544,6 @@ const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON1 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON88 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette1 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette1 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette2 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette2 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette2 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette3 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette3 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette3 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette4 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette4 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette4 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette5 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette5 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette5 = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_Palette6 = wxNewId();
-const long EffectsPanel::ID_BUTTON_Palette6 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_BUTTON_Palette6 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT61 = wxNewId();
-const long EffectsPanel::ID_SLIDER_Speed = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Speed = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Speed = wxNewId();
-const long EffectsPanel::ID_STATICTEXT2 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Fadein = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadein = wxNewId();
-const long EffectsPanel::ID_STATICTEXT3 = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_Fadeout = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_TEXTCTRL_Fadeout = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_FitToTime = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_CHECKBOX_FitToTime = wxNewId();
-const long EffectsPanel::ID_CHECKBOX_OverlayBkg = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_OverlayBkg = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -603,14 +571,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer76;
     wxFlexGridSizer* FlexGridSizer70;
     wxFlexGridSizer* FlexGridSizer95;
-    wxFlexGridSizer* FlexGridSizer23;
     wxFlexGridSizer* FlexGridSizer38;
     wxFlexGridSizer* FlexGridSizer41;
     wxFlexGridSizer* FlexGridSizer103;
     wxFlexGridSizer* FlexGridSizer51;
     wxFlexGridSizer* FlexGridSizer77;
     wxFlexGridSizer* FlexGridSizer10;
-    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer80;
     wxFlexGridSizer* FlexGridSizer27;
     wxFlexGridSizer* FlexGridSizer44;
@@ -618,12 +584,9 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer25;
     wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer62;
-    wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer66;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
     wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
@@ -2380,121 +2343,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     BitmapButton_random->Hide();
     FlexGridSizer6->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer_Palette = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_Palette1 = new wxCheckBox(this, ID_CHECKBOX_Palette1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette1"));
-    CheckBox_Palette1->SetValue(true);
-    FlexGridSizer_Palette->Add(CheckBox_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette1 = new wxButton(this, ID_BUTTON_Palette1, _("1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
-    Button_Palette1->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette1 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette1"));
-    BitmapButton_Palette1->SetDefault();
-    BitmapButton_Palette1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_Palette2 = new wxCheckBox(this, ID_CHECKBOX_Palette2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette2"));
-    CheckBox_Palette2->SetValue(true);
-    FlexGridSizer_Palette->Add(CheckBox_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette2 = new wxButton(this, ID_BUTTON_Palette2, _("2"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette2"));
-    Button_Palette2->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette2 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette2, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette2"));
-    BitmapButton_Palette2->SetDefault();
-    BitmapButton_Palette2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_Palette3 = new wxCheckBox(this, ID_CHECKBOX_Palette3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette3"));
-    CheckBox_Palette3->SetValue(false);
-    FlexGridSizer_Palette->Add(CheckBox_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette3 = new wxButton(this, ID_BUTTON_Palette3, _("3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette3"));
-    Button_Palette3->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette3 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette3, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette3"));
-    BitmapButton_Palette3->SetDefault();
-    BitmapButton_Palette3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_Palette4 = new wxCheckBox(this, ID_CHECKBOX_Palette4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette4"));
-    CheckBox_Palette4->SetValue(false);
-    FlexGridSizer_Palette->Add(CheckBox_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette4 = new wxButton(this, ID_BUTTON_Palette4, _("4"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette4"));
-    Button_Palette4->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette4 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette4, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette4"));
-    BitmapButton_Palette4->SetDefault();
-    BitmapButton_Palette4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_Palette5 = new wxCheckBox(this, ID_CHECKBOX_Palette5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette5"));
-    CheckBox_Palette5->SetValue(false);
-    FlexGridSizer_Palette->Add(CheckBox_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette5 = new wxButton(this, ID_BUTTON_Palette5, _("5"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette5"));
-    Button_Palette5->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette5 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette5, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette5"));
-    BitmapButton_Palette5->SetDefault();
-    BitmapButton_Palette5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_Palette6 = new wxCheckBox(this, ID_CHECKBOX_Palette6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette6"));
-    CheckBox_Palette6->SetValue(false);
-    FlexGridSizer_Palette->Add(CheckBox_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette6 = new wxButton(this, ID_BUTTON_Palette6, _("6"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette6"));
-    Button_Palette6->SetMinSize(wxSize(30,21));
-    FlexGridSizer_Palette->Add(Button_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_Palette6 = new wxBitmapButton(this, ID_BITMAPBUTTON_BUTTON_Palette6, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette6"));
-    BitmapButton_Palette6->SetDefault();
-    BitmapButton_Palette6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer_Palette->Add(BitmapButton_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer9->Add(FlexGridSizer_Palette, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-    StaticText59 = new wxStaticText(this, ID_STATICTEXT61, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT61"));
-    FlexGridSizer3->Add(StaticText59, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Speed = new wxSlider(this, ID_SLIDER_Speed, 10, 1, 30, wxDefaultPosition, wxSize(30,100), wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_Speed"));
-    FlexGridSizer3->Add(Slider_Speed, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Speed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Speed"));
-    BitmapButton_Speed->SetDefault();
-    FlexGridSizer3->Add(BitmapButton_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    TextCtrl_Speed = new wxTextCtrl(this, ID_TEXTCTRL_Speed, _("10"), wxDefaultPosition, wxSize(30,20), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Speed"));
-    FlexGridSizer3->Add(TextCtrl_Speed, 1, wxBOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer9->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer22 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Fade In"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer22->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Fadein = new wxTextCtrl(this, ID_TEXTCTRL_Fadein, _("0.00"), wxDefaultPosition, wxSize(37,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadein"));
-    TextCtrl_Fadein->SetMaxLength(4);
-    FlexGridSizer22->Add(TextCtrl_Fadein, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_FadeOut = new wxBitmapButton(this, ID_BITMAPBUTTON_TEXTCTRL_Fadein, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadein"));
-    BitmapButton_FadeOut->SetDefault();
-    BitmapButton_FadeOut->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer22->Add(BitmapButton_FadeOut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Fade Out"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer22->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Fadeout = new wxTextCtrl(this, ID_TEXTCTRL_Fadeout, _("0.00"), wxDefaultPosition, wxSize(37,20), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fadeout"));
-    TextCtrl_Fadeout->SetMaxLength(4);
-    FlexGridSizer22->Add(TextCtrl_Fadeout, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_FadeIn = new wxBitmapButton(this, ID_BITMAPBUTTON_TEXTCTRL_Fadeout, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TEXTCTRL_Fadeout"));
-    BitmapButton_FadeIn->SetDefault();
-    BitmapButton_FadeIn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer22->Add(BitmapButton_FadeIn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer2->Add(FlexGridSizer22, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer23 = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_FitToTime = new wxCheckBox(this, ID_CHECKBOX_FitToTime, _("Fit to time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FitToTime"));
-    CheckBox_FitToTime->SetValue(false);
-    FlexGridSizer23->Add(CheckBox_FitToTime, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    BitmapButton_FitToTime = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_FitToTime, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,20), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_FitToTime"));
-    BitmapButton_FitToTime->SetDefault();
-    BitmapButton_FitToTime->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer23->Add(BitmapButton_FitToTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    CheckBox_OverlayBkg = new wxCheckBox(this, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
-    CheckBox_OverlayBkg->SetValue(false);
-    FlexGridSizer23->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer23->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_OverlayBkg = new wxBitmapButton(this, ID_BITMAPBUTTON_OverlayBkg, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
-    BitmapButton_OverlayBkg->SetDefault();
-    BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
-    FlexGridSizer23->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer2->Add(FlexGridSizer23, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
@@ -2658,31 +2506,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_DirectionClick);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnChoicebook1PageChanged);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LayerEffectClick);
-    Connect(ID_CHECKBOX_Palette1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette1Click);
-    Connect(ID_CHECKBOX_Palette2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette2Click);
-    Connect(ID_CHECKBOX_Palette3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette3Click);
-    Connect(ID_CHECKBOX_Palette4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette4Click);
-    Connect(ID_CHECKBOX_Palette5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette5Click);
-    Connect(ID_CHECKBOX_Palette6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnCheckBox_PaletteClick);
-    Connect(ID_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnButton_PaletteNumberClick);
-    Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Palette6Click);
-    Connect(ID_SLIDER_Speed,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnSlider_SpeedCmdScroll);
-    Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_SpeedCmdScroll);
-    Connect(ID_BITMAPBUTTON_SLIDER_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_SpeedClick);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FadeOutClick);
-    Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FadeInClick);
-    Connect(ID_BITMAPBUTTON_CHECKBOX_FitToTime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_FitToTimeClick);
-    Connect(ID_BITMAPBUTTON_OverlayBkg,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_OverlayBkgClick);
     //*)
 
     this->SetName(name);
@@ -2694,123 +2517,6 @@ EffectsPanel::~EffectsPanel()
     //*)
 }
 
-// idx is 1-6
-wxColour EffectsPanel::GetPaletteColor(int idx)
-{
-    switch (idx)
-    {
-    case 1:
-        return Button_Palette1->GetBackgroundColour();
-    case 2:
-        return Button_Palette2->GetBackgroundColour();
-    case 3:
-        return Button_Palette3->GetBackgroundColour();
-    case 4:
-        return Button_Palette4->GetBackgroundColour();
-    case 5:
-        return Button_Palette5->GetBackgroundColour();
-    case 6:
-        return Button_Palette6->GetBackgroundColour();
-    }
-    return *wxBLACK;
-}
-
-// idx is 1-6
-void EffectsPanel::SetPaletteColor(int idx, const wxColour* c)
-{
-    switch (idx)
-    {
-    case 1:
-        SetButtonColor(Button_Palette1,c);
-        break;
-    case 2:
-        SetButtonColor(Button_Palette2,c);
-        break;
-    case 3:
-        SetButtonColor(Button_Palette3,c);
-        break;
-    case 4:
-        SetButtonColor(Button_Palette4,c);
-        break;
-    case 5:
-        SetButtonColor(Button_Palette5,c);
-        break;
-    case 6:
-        SetButtonColor(Button_Palette6,c);
-        break;
-    }
-}
-
-//allow array-like access to checkboxes also -DJ
-wxCheckBox* EffectsPanel::GetPaletteCheckbox(int idx)
-{
-    switch (idx)   // idx is 1-6
-    {
-    case 1:
-        return CheckBox_Palette1;
-    case 2:
-        return CheckBox_Palette2;
-    case 3:
-        return CheckBox_Palette3;
-    case 4:
-        return CheckBox_Palette4;
-    case 5:
-        return CheckBox_Palette5;
-    case 6:
-        return CheckBox_Palette6;
-    }
-    return CheckBox_Palette1; //0;
-}
-
-//allow array-like access to buttons also -DJ
-wxButton* EffectsPanel::GetPaletteButton(int idx)
-{
-    switch (idx)   // idx is 1-6
-    {
-    case 1:
-        return Button_Palette1;
-    case 2:
-        return Button_Palette2;
-    case 3:
-        return Button_Palette3;
-    case 4:
-        return Button_Palette4;
-    case 5:
-        return Button_Palette5;
-    case 6:
-        return Button_Palette6;
-    }
-    return Button_Palette1; //0;
-}
-
-void EffectsPanel::SetButtonColor(wxButton* btn, const wxColour* c)
-{
-    btn->SetBackgroundColour(*c);
-    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
-    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
-
-#ifdef __WXOSX__
-    //OSX does NOT allow active buttons to have a color other than the default.
-    //We'll use an image of the appropriate color instead
-    wxImage image(15, 15);
-    image.SetRGB(wxRect(0, 0, 15, 15),
-                 c->Red(), c->Green(), c->Blue());
-    wxBitmap bmp(image);
-
-    btn->SetBitmap(bmp);
-    btn->SetLabelText("");
-#endif
-}
-
-void EffectsPanel::SetDefaultPalette()
-{
-    SetButtonColor(Button_Palette1,wxRED);
-    SetButtonColor(Button_Palette2,wxGREEN);
-    SetButtonColor(Button_Palette3,wxBLUE);
-    SetButtonColor(Button_Palette4,wxYELLOW);
-    SetButtonColor(Button_Palette5,wxWHITE);
-    SetButtonColor(Button_Palette6,wxBLACK);
-}
 
 // returns ",E1_" or ",E2_"
 wxString EffectsPanel::GetAttrPrefix()
@@ -2965,7 +2671,7 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
 //    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
 
     // get speed
-    s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
+   //~ s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
     wxWindow *window = Choicebook1->GetPage(effidx);
@@ -2975,12 +2681,12 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     wxColour color;
     for (int i=1; i<=PALETTE_SIZE; i++)
     {
-        color = GetPaletteColor(i);
-        AttrName.Printf("BUTTON_Palette%d=", i);
-        s += prefix+AttrName + color.GetAsString(wxC2S_HTML_SYNTAX);
-        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
-        AttrName.Printf("CHECKBOX_Palette%d=", i);
-        s += prefix + AttrName + v;
+//~        color = GetPaletteColor(i);
+//        AttrName.Printf("BUTTON_Palette%d=", i);
+//        s += prefix+AttrName + color.GetAsString(wxC2S_HTML_SYNTAX);
+//        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
+//        AttrName.Printf("CHECKBOX_Palette%d=", i);
+//        s += prefix + AttrName + v;
     }
     return s;
 }
@@ -2990,11 +2696,11 @@ wxString EffectsPanel::GetEffectString()
 {
     wxString s,ChildName,AttrName;
     wxString prefix=GetAttrPrefix();
-    s=prefix+wxString::Format("SLIDER_Speed=%d",Slider_Speed->GetValue());
-    s+=prefix+"TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue();
-    s+=prefix+"TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue();
-    s+=prefix+wxString::Format("CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0);
-    s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
+    //~s=prefix+wxString::Format("SLIDER_Speed=%d",Slider_Speed->GetValue());
+    //~s+=prefix+"TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue();
+    //~s+=prefix+"TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue();
+    //~s+=prefix+wxString::Format("CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0);
+    //~s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
 
     // get effect controls
     s+=GetEffectStringFromWindow(Choicebook1->GetCurrentPage());
@@ -3003,7 +2709,7 @@ wxString EffectsPanel::GetEffectString()
     wxColour color;
     for (int i=1; i<=PALETTE_SIZE; i++)
     {
-        color=GetPaletteColor(i);
+//~        color=GetPaletteColor(i);
         AttrName.Printf("BUTTON_Palette%d=",i);
         s+=prefix+AttrName+color.GetAsString(wxC2S_HTML_SYNTAX);
         AttrName.Printf("CHECKBOX_Palette%d",i);
@@ -3019,7 +2725,8 @@ wxString EffectsPanel::GetEffectString()
 //also provides useful "bread crumbs" for some effects such as Spirograph
 bool EffectsPanel::WantOverlayBkg(void)
 {
-    return CheckBox_OverlayBkg->GetValue();
+    //~return CheckBox_OverlayBkg->GetValue();
+    return false;
 }
 
 
@@ -3054,276 +2761,6 @@ void EffectsPanel::OnButton_Piano_CueFilenameClick(wxCommandEvent& event)
                                        NOTES_WILDCARD, wxFD_OPEN );
     if (!filename.IsEmpty()) TextCtrl_Piano_CueFilename->SetValue(filename);
 }
-<resource>
-    <object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-        <cols>1</cols>
-        <object class="sizeritem">
-            <object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
-                <cols>3</cols>
-                <object class="sizeritem">
-                    <object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-                        <label>Fade In</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
-                        <value>0.00</value>
-                        <maxlength>4</maxlength>
-                        <size>37,20</size>
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-                        <label>Fade Out</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
-                        <value>0.00</value>
-                        <maxlength>4</maxlength>
-                        <size>37,20</size>
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-            </object>
-            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-            <border>1</border>
-            <option>1</option>
-        </object>
-        <object class="sizeritem">
-            <object class="wxFlexGridSizer" variable="FlexGridSizer23" member="no">
-                <cols>3</cols>
-                <object class="sizeritem">
-                    <object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
-                        <label>Fit to time</label>
-                    </object>
-                    <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="spacer">
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,20</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
-                        <label>Persistent</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="spacer">
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-            </object>
-            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-            <border>1</border>
-            <option>1</option>
-        </object>
-    </object>
-</resource>
-<resource>
-    <object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-        <cols>1</cols>
-        <object class="sizeritem">
-            <object class="wxFlexGridSizer" variable="FlexGridSizer22" member="no">
-                <cols>3</cols>
-                <object class="sizeritem">
-                    <object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-                        <label>Fade In</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
-                        <value>0.00</value>
-                        <maxlength>4</maxlength>
-                        <size>37,20</size>
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-                        <label>Fade Out</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
-                        <value>0.00</value>
-                        <maxlength>4</maxlength>
-                        <size>37,20</size>
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-            </object>
-            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-            <border>1</border>
-            <option>1</option>
-        </object>
-        <object class="sizeritem">
-            <object class="wxFlexGridSizer" variable="FlexGridSizer23" member="no">
-                <cols>3</cols>
-                <object class="sizeritem">
-                    <object class="wxCheckBox" name="ID_CHECKBOX_FitToTime" variable="CheckBox_FitToTime" member="yes">
-                        <label>Fit to time</label>
-                    </object>
-                    <flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="spacer">
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,20</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxCheckBox" name="ID_CHECKBOX_OverlayBkg" variable="CheckBox_OverlayBkg" member="yes">
-                        <label>Persistent</label>
-                    </object>
-                    <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="spacer">
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>2</border>
-                    <option>1</option>
-                </object>
-                <object class="sizeritem">
-                    <object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
-                        <bitmap code="padlock16x16_blue_xpm" />
-                        <default>1</default>
-                        <size>21,21</size>
-                        <bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-                        <style>wxBU_AUTODRAW|wxNO_BORDER</style>
-                        <handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />
-                    </object>
-                    <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>1</border>
-                    <option>1</option>
-                </object>
-            </object>
-            <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-            <border>1</border>
-            <option>1</option>
-        </object>
-    </object>
-</resource>
 
 void EffectsPanel::OnButton_Piano_MapFilenameClick(wxCommandEvent& event)
 {
@@ -3389,7 +2826,7 @@ void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
-        SetButtonColor(w, &color);
+//~        SetButtonColor(w, &color);
         PaletteChanged=true;
     }
 }
@@ -3401,7 +2838,7 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 
 void EffectsPanel::UpdateSpeedText()
 {
-    TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
+    //~TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
 }
 
 void EffectsPanel::OnSlider_SpeedCmdScroll(wxScrollEvent& event)
@@ -3499,17 +2936,17 @@ void EffectsPanel::OnBitmapButton_##name##Click(wxCommandEvent& event) \
     setlock(BitmapButton_##name/*, isLockedFx_##name*/); \
 }
 showlock(LayerEffect)
-showlock(Palette1)
-showlock(Palette2)
-showlock(Palette3)
-showlock(Palette4)
-showlock(Palette5)
-showlock(Palette6)
-showlock(Speed)
-showlock(FadeOut)
-showlock(FadeIn)
-showlock(FitToTime)
-showlock(OverlayBkg)
+//~showlock(Palette1)
+//~showlock(Palette2)
+//~showlock(Palette3)
+//~showlock(Palette4)
+//~showlock(Palette5)
+//~showlock(Palette6)
+//~showlock(Speed)
+//~showlock(FadeOut)
+//~showlock(FadeIn)
+//~showlock(FitToTime)
+//~showlock(OverlayBkg)
 showlock(PaletteRep)
 showlock(Direction)
 showlock(Highlight)
@@ -3722,7 +3159,7 @@ void EffectsPanel::UpdateEffOnColor()
     int green =  wxAtoi(wxString::Format("%d",Slider_Eff_On_Grn->GetValue()));
     int blue =  wxAtoi(wxString::Format("%d",Slider_Eff_On_Blu->GetValue()));
     wxColour color(red, green, blue);
-    SetButtonColor( BitmapButton_Eff_On_Color, &color);
+//~    SetButtonColor( BitmapButton_Eff_On_Color, &color);
 }
 
 void EffectsPanel::OnSlider_Eff_On_RedCmdScroll(wxScrollEvent& event)
@@ -3798,7 +3235,7 @@ void EffectsPanel::OnBitmapButton_Eff_On_ColorClick(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
-        SetButtonColor(w, &color);
+//~        SetButtonColor(w, &color);
         TextCtrl_Eff_On_Red->SetValue(wxString::Format("%d",color.Red()));
         TextCtrl_Eff_On_Grn->SetValue(wxString::Format("%d",color.Green()));
         TextCtrl_Eff_On_Blu->SetValue(wxString::Format("%d",color.Blue()));

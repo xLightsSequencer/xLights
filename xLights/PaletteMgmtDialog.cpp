@@ -118,7 +118,7 @@ void PaletteMgmtDialog::LoadPalette(wxXmlNode* PaletteNode, EffectsPanel* panel)
     for (int i=1; i<=6; i++) {
         AttrName.Printf("color%d",i);
         color.Set(PaletteNode->GetAttribute(AttrName));
-        panel->SetPaletteColor(i,&color);
+//~        panel->SetPaletteColor(i,&color);
     }
 }
 
@@ -152,8 +152,8 @@ void PaletteMgmtDialog::OnButtonCopyClick(wxCommandEvent& event)
 {
     wxColour c;
     for (int i=1; i<=6; i++) {
-        c=panel1->GetPaletteColor(i);
-        panel2->SetPaletteColor(i,&c);
+//~        c=panel1->GetPaletteColor(i);
+//~        panel2->SetPaletteColor(i,&c);
     }
 }
 
@@ -178,7 +178,7 @@ void PaletteMgmtDialog::SavePalette(EffectsPanel* panel)
     wxXmlNode* NewPalette = new wxXmlNode(wxXML_ELEMENT_NODE, _("palette"));
     NewPalette->AddAttribute("name", name);
     for (int i=1; i<=6; i++) {
-        color=panel->GetPaletteColor(i);
+//~        color=panel->GetPaletteColor(i);
         AttrName.Printf("color%d",i);
         NewPalette->AddAttribute(AttrName, color.GetAsString(wxC2S_HTML_SYNTAX));
     }

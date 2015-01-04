@@ -133,7 +133,7 @@ void xLightsFrame::PlayEffect()
     playBuffer.SetMixType(Choice_LayerMethod->GetStringSelection());
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
-    
+
     lastPlayEffect = CreateEffectString();
     MapStringString SettingsMap;
     LoadSettingsMap(lastPlayEffect, SettingsMap);
@@ -141,7 +141,7 @@ void xLightsFrame::PlayEffect()
     UpdateBuffersForNewMap(SettingsMap, playBuffer);
     UpdateEffectDuration(true, Grid1->GetCursorRow(), playBuffer, Grid1->GetCursorColumn());
     playPeriod = playBuffer.StartingPeriod();
-    
+
     ResetTimer(PLAYING_EFFECT);
     Button_PlayEffect->SetLabel(_("Pause Effect (F3)")); //toggle label -DJ
     heartbeat("playback effect", true); //tell fido to start watching -DJ
@@ -330,7 +330,7 @@ void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_na
                     color.Set(value);
                     if (efPanel != NULL)
                     {
-                        efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
+//~                        efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
                     }
                     else
                     {
@@ -1234,15 +1234,15 @@ void xLightsFrame::UpdateBufferFadesFromCtrl(PixelBufferClass &buffer)
     wxString tmpStr;
     double fadeIn, fadeOut;
 
-    tmpStr = EffectsPanel1->TextCtrl_Fadein->GetValue();
+//~    tmpStr = EffectsPanel1->TextCtrl_Fadein->GetValue();
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = EffectsPanel1->TextCtrl_Fadeout->GetValue();
+//~    tmpStr = EffectsPanel1->TextCtrl_Fadeout->GetValue();
     tmpStr.ToDouble(&fadeOut);
     buffer.SetFadeTimes(0, fadeIn, fadeOut);
 
-    tmpStr = EffectsPanel2->TextCtrl_Fadein->GetValue();
+//~    tmpStr = EffectsPanel2->TextCtrl_Fadein->GetValue();
     tmpStr.ToDouble(&fadeIn);
-    tmpStr = EffectsPanel2->TextCtrl_Fadeout->GetValue();
+//~    tmpStr = EffectsPanel2->TextCtrl_Fadeout->GetValue();
     tmpStr.ToDouble(&fadeOut);
     buffer.SetFadeTimes(1, fadeIn, fadeOut);
 }
@@ -1251,14 +1251,14 @@ void xLightsFrame::UpdateBufferFadesFromCtrl(PixelBufferClass &buffer)
 void xLightsFrame::UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer)
 {
     wxColourVector newcolors;
-
-    if (panel->CheckBox_Palette1->IsChecked()) newcolors.push_back(panel->Button_Palette1->GetBackgroundColour());
-    if (panel->CheckBox_Palette2->IsChecked()) newcolors.push_back(panel->Button_Palette2->GetBackgroundColour());
-    if (panel->CheckBox_Palette3->IsChecked()) newcolors.push_back(panel->Button_Palette3->GetBackgroundColour());
-    if (panel->CheckBox_Palette4->IsChecked()) newcolors.push_back(panel->Button_Palette4->GetBackgroundColour());
-    if (panel->CheckBox_Palette5->IsChecked()) newcolors.push_back(panel->Button_Palette5->GetBackgroundColour());
-    if (panel->CheckBox_Palette6->IsChecked()) newcolors.push_back(panel->Button_Palette6->GetBackgroundColour());
-    buffer.SetPalette(layer,newcolors);
+//~
+//    if (panel->CheckBox_Palette1->IsChecked()) newcolors.push_back(panel->Button_Palette1->GetBackgroundColour());
+//    if (panel->CheckBox_Palette2->IsChecked()) newcolors.push_back(panel->Button_Palette2->GetBackgroundColour());
+//    if (panel->CheckBox_Palette3->IsChecked()) newcolors.push_back(panel->Button_Palette3->GetBackgroundColour());
+//    if (panel->CheckBox_Palette4->IsChecked()) newcolors.push_back(panel->Button_Palette4->GetBackgroundColour());
+//    if (panel->CheckBox_Palette5->IsChecked()) newcolors.push_back(panel->Button_Palette5->GetBackgroundColour());
+//    if (panel->CheckBox_Palette6->IsChecked()) newcolors.push_back(panel->Button_Palette6->GetBackgroundColour());
+//    buffer.SetPalette(layer,newcolors);
 }
 
 
@@ -1599,7 +1599,7 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap)
     wxString effect2=SettingsMap["E1_Effect"];
     int persist1=wxAtoi(SettingsMap["E1_CHECKBOX_OverlayBkg"]); //NOTE: no SettingsMap for this value first time thru loop
     int persist2=wxAtoi(SettingsMap["E2_CHECKBOX_OverlayBkg"]);
-    
+
     if (!persist1 || "None" == effect1)
     {
         playBuffer.Clear(0); //allow effects to overlay onto other effects (useful for composite models) -DJ
@@ -1608,12 +1608,12 @@ void xLightsFrame::PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap)
     {
         playBuffer.Clear(1); //allow effects to overlay onto other effects (useful for composite models) -DJ
     }
-    
+
     bool bufferClear = false;
     RenderEffectFromMap(EffectPeriod, SettingsMap,
                         playBuffer, playResetEffectState,
                         bufferClear, false);
-    
+
     playBuffer.DisplayEffectOnWindow(seqPreview,mPointSize);
     size_t chnum;
     wxByte intensity;
@@ -1660,7 +1660,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             wxString v = CreateEffectString();
             MapStringString SettingsMap;
             LoadSettingsMap(v, SettingsMap);
-            
+
             if (v != lastPlayEffect) {
                 lastPlayEffect = v;
                 ResetEffectStates(playResetEffectState);
@@ -1774,7 +1774,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 if(!EffectStr.IsEmpty())
                 {
                     SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
-                    
+
                     LoadSettingsMap(EffectStr, SettingsMap);
                     lastPlayEffect = EffectStr;
                     ResetEffectStates(playResetEffectState);
@@ -2909,10 +2909,10 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 bool xLightsFrame::RenderEffectFromMap(int period, MapStringString& SettingsMap,
                                        PixelBufferClass &buffer, bool *ResetEffectState,
                                        bool &bufferClear, bool bgThread) {
-    
+
     bool effectsToUpdate = RenderEffectFromMap(0, period, SettingsMap, buffer, ResetEffectState, bgThread);
     effectsToUpdate |= RenderEffectFromMap(1, period, SettingsMap,buffer, ResetEffectState, bgThread);
-    
+
     if (effectsToUpdate)
     {
         bufferClear = false;
@@ -2932,18 +2932,18 @@ void xLightsFrame::UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBuf
     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
     if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
     buffer.SetSparkle(freq);
-    
+
     int brightness=wxAtoi(DefaultAs(SettingsMap["ID_SLIDER_Brightness"], wxString("100"))); //set to a safe value if missing -DJ
     buffer.SetBrightness(brightness);
     //                    int b = ModelBrightness;
-    
+
     int contrast=wxAtoi(SettingsMap["ID_SLIDER_Contrast"]);
     buffer.SetContrast(contrast);
     UpdateBufferFadesFromMap(1, SettingsMap,buffer);
     UpdateBufferFadesFromMap(2, SettingsMap,buffer);
     UpdateFitToTimeFromMap(1, SettingsMap,buffer);
     UpdateFitToTimeFromMap(2, SettingsMap,buffer);
-    
+
     int effectMixThreshold=wxAtoi(SettingsMap["ID_SLIDER_EffectLayerMix"]);
     buffer.SetMixThreshold(effectMixThreshold, wxAtoi(SettingsMap["ID_CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
 }

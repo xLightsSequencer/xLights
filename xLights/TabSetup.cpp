@@ -158,8 +158,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
     DisplaySchedule();
 
     // load sequence effects
-    EffectsPanel1->SetDefaultPalette();
-    EffectsPanel2->SetDefaultPalette();
+//~    EffectsPanel1->SetDefaultPalette();
+//~    EffectsPanel2->SetDefaultPalette();
     LoadEffectsFile();
     EnableSequenceControls(true);
     UpdateNetworkList();
