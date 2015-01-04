@@ -876,6 +876,7 @@ private:
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
+    wxAuiManager* m_mgr;
     wxListBox* ListBoxElementList;
     wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
@@ -915,7 +916,6 @@ private:
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
     EffectsPanel* EffectsPanel1_1;
-    wxFlexGridSizer* fgsSequencer;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
@@ -1426,7 +1426,6 @@ private:
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
 
-    wxAuiManager m_mgr;
     MainSequencer* mainSequencer;
     TimeLine* timeLine;
     Waveform* wave ;

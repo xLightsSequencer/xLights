@@ -19,8 +19,7 @@ void xLightsFrame::InitSequencer()
         mSequenceElements.SetFrequency(40);
         bool success = mSequenceElements.LoadSequencerFile("c:\\temp\\v4.xml");
         mSequencerInitialize = true;
-        m_mgr.SetManagedWindow(PanelSequencer);
-
+        
         int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
         mainSequencer = new MainSequencer(PanelSequencer);
@@ -28,7 +27,6 @@ void xLightsFrame::InitSequencer()
         DOUBLE_BUFFER(mainSequencer);
         mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
         mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
-        fgsSequencer->Add(mainSequencer, 1, wxALL|wxALIGN_LEFT, 2);
 
         rowHeading = new RowHeading(mainSequencer->PanelRowHeadings);
         rowHeading->SetSequenceElements(&mSequenceElements);
@@ -61,7 +59,6 @@ void xLightsFrame::InitSequencer()
         timeLine->SetTimeLength(mMediaLengthMS);
         timeLine->SetCanvasSize(1200,25);
 
-
         effectsGrid = new EffectsGrid(mainSequencer->PanelEffectGrid,args);
         effectsGrid->SetCanvasSize(1200,2200);
         effectsGrid->SetSequenceElements(&mSequenceElements);
@@ -71,16 +68,12 @@ void xLightsFrame::InitSequencer()
         sPreview1 = new SequencePreview(PanelSequencer,args);
         sPreview1->SetSize(wxSize(200,200));
         sPreview1->InitializePreview();
-        m_mgr.AddPane(sPreview1, wxLEFT, wxT("Model Preview"));
+        m_mgr->AddPane(sPreview1, wxLEFT, wxT("Model Preview 1"));
 
         sPreview2 = new SequencePreview(PanelSequencer,args);
         sPreview2->SetSize(wxSize(200,200));
         sPreview2->InitializePreview();
-        m_mgr.AddPane(sPreview2, wxLEFT, wxT("Model Preview"));
-
-        m_mgr.AddPane(mainSequencer,wxCENTER, wxT("Main Sequencer"));
-        m_mgr.GetPane("Main Sequencer");
-
+        m_mgr->AddPane(sPreview2, wxLEFT, wxT("Model Preview 2"));
 
         effectsPnl = new wxPanel(PanelSequencer, ID_PANEL_EFFECTS, wxPoint(40,-11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS"));
         FlexGridEffects = new wxFlexGridSizer(0, 1, 0, 0);
@@ -96,9 +89,10 @@ void xLightsFrame::InitSequencer()
         FlexGridEffects->Add(effectsNotebook, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
         effectsPnl->SetSizer(FlexGridEffects);
 
-        m_mgr.AddPane(effectsPnl, wxLEFT, wxT("Effects"));
+        m_mgr->AddPane(effectsPnl, wxLEFT, wxT("Effects"));
 
-        m_mgr.Update();
+        m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
+        m_mgr->Update();
         sPreview1->Refresh();
         sPreview2->Refresh();
 }
@@ -161,7 +155,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
     rowHeading->Refresh();
     mainSequencer->PanelRowHeadings->SetSize(wxSize(175,height));
     mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,height));
-    m_mgr.Update();
+    m_mgr->Update();
 }
 
 

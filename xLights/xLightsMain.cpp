@@ -1430,12 +1430,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerPapagayo->Fit(PanelPapagayo);
     FlexGridSizerPapagayo->SetSizeHints(PanelPapagayo);
     PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
-    fgsSequencer = new wxFlexGridSizer(0, 1, 0, 0);
-    fgsSequencer->AddGrowableCol(0);
-    fgsSequencer->AddGrowableRow(0);
-    PanelSequencer->SetSizer(fgsSequencer);
-    fgsSequencer->Fit(PanelSequencer);
-    fgsSequencer->SetSizeHints(PanelSequencer);
+    m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelTest, _("Test"), false);
     Notebook1->AddPage(PanelConvert, _("Convert"), false);
@@ -2005,6 +2000,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 xLightsFrame::~xLightsFrame()
 {
+    //must call these or the app will crash on exit
+    m_mgr->UnInit();
+    MainAuiManager->UnInit();
+    
     //(*Destroy(xLightsFrame)
     //*)
 }

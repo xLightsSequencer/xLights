@@ -2979,11 +2979,10 @@
 								<object class="notebookpage">
 									<object class="wxPanel" name="ID_PANEL7" variable="PanelSequencer" member="yes">
 										<handler function="OnPanelSequencerPaint" entry="EVT_PAINT" />
-										<object class="wxFlexGridSizer" variable="fgsSequencer" member="yes">
-											<cols>1</cols>
-											<growablecols>0</growablecols>
-											<growablerows>0</growablerows>
-										</object>
+                                        <object class="wxAuiManager" variable="m_mgr" member="yes">
+                                            <style>wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT</style>
+
+</object>
 									</object>
 									<label>Sequencer</label>
 								</object>
