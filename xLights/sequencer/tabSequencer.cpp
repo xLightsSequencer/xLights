@@ -19,7 +19,7 @@ void xLightsFrame::InitSequencer()
         mSequenceElements.SetFrequency(40);
         bool success = mSequenceElements.LoadSequencerFile("c:\\temp\\v4.xml");
         mSequencerInitialize = true;
-        
+
         int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
         mainSequencer = new MainSequencer(PanelSequencer);
@@ -107,7 +107,7 @@ void xLightsFrame::InitSequencer()
             w->SetScrollRate(5, 5);
         }
 
-        m_mgr.AddPane(effectsPnl, wxLEFT, wxT("Effects"));
+        m_mgr->AddPane(effectsPnl, wxLEFT, wxT("Effects"));
 
         m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
         m_mgr->Update();
