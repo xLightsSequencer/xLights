@@ -1457,6 +1457,8 @@ private:
     void TimeSelected( wxCommandEvent& event);
     void ZoomIn();
     void ZoomOut();
+    void EffectsResize(wxSizeEvent& event);
+    void EffectsPaint(wxPaintEvent& event);
     // Panels
     wxPanel* effectsPnl;
     wxNotebook* effectsNotebook;

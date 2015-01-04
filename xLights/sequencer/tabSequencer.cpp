@@ -82,9 +82,10 @@ void xLightsFrame::InitSequencer()
         m_mgr.GetPane("Main Sequencer");
 
 
-        effectsPnl = new wxPanel(PanelSequencer, ID_PANEL_EFFECTS, wxPoint(40,-11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS"));
+//        effectsPnl = new wxPanel(PanelSequencer, ID_PANEL_EFFECTS, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS"));
+        effectsPnl = new wxPanel(PanelSequencer, 20012, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS"));
         FlexGridEffects = new wxFlexGridSizer(0, 1, 0, 0);
-        FlexGridEffects->AddGrowableCol(0);
+//        FlexGridEffects->AddGrowableCol(0);
 
         effectsNotebook = new wxNotebook(effectsPnl, ID_NOTEBOOK_EFFECTS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_EFFECTS"));
         EffectsPanel1 = new EffectsPanel(effectsNotebook, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
@@ -95,12 +96,51 @@ void xLightsFrame::InitSequencer()
 
         FlexGridEffects->Add(effectsNotebook, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
         effectsPnl->SetSizer(FlexGridEffects);
+        effectsPnl->SetBackgroundColour(*wxGREEN);
+
+
+        wxScrolledWindow* w;
+        for(int i =0;i<EffectsPanel1->Choicebook1->GetPageCount();i++)
+        {
+            w = (wxScrolledWindow*)EffectsPanel1->Choicebook1->GetPage(i);
+            w->FitInside();
+            w->SetScrollRate(5, 5);
+        }
+
+        for(int i =0;i<EffectsPanel2->Choicebook1->GetPageCount();i++)
+        {
+            w = (wxScrolledWindow*)EffectsPanel2->Choicebook1->GetPage(i);
+            w->FitInside();
+            w->SetScrollRate(5, 5);
+        }
 
         m_mgr.AddPane(effectsPnl, wxLEFT, wxT("Effects"));
 
         m_mgr.Update();
+
+        Connect(20012,wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::EffectsResize,0,this);
+        Connect(20012,wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::EffectsPaint,0,this);
+
+        //Connect(ID_PANEL_EFFECTS,wxEVT_SIZE,wxObjectEventFunction(xLightsFrame::EffectsResize));
+        //Connect(ID_PANEL_EFFECTS,wxEVT_PAINT,wxObjectEventFunction(xLightsFrame::EffectsPaint));
+
+
+        //EffectsPanel1->Choicebook1.Panel1_None->SetScrollRate(5, 5);
+
+//        EffectsPanel1->Choicebook1->Panel1_None->FitInside();
+//        EffectsPanel1->Choicebook1->Panel1_None->SetScrollRate(5, 5);
         sPreview1->Refresh();
         sPreview2->Refresh();
+}
+
+void xLightsFrame::EffectsResize(wxSizeEvent& event)
+{
+    int k=0;
+}
+
+void xLightsFrame::EffectsPaint(wxPaintEvent& event)
+{
+    int k=0;
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -163,7 +203,6 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
     mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,height));
     m_mgr.Update();
 }
-
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {

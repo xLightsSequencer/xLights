@@ -653,10 +653,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer101;
     wxFlexGridSizer* FlexGridSizer94;
 
-    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, wxDefaultPosition, wxSize(150,150), wxTAB_TRAVERSAL, _T("wxID_ANY"));
+    SetMinSize(wxSize(150,150));
+    SetMaxSize(wxSize(150,150));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-    Panel1_None = new wxPanel(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    Panel1_None = new wxScrolledWindow(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL4"));
     FlexGridSizer78 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButton_None = new wxBitmapButton(Panel1_None, ID_BITMAPBUTTON45, None, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON45"));
     BitmapButton_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -666,7 +668,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_None->SetSizer(FlexGridSizer78);
     FlexGridSizer78->Fit(Panel1_None);
     FlexGridSizer78->SetSizeHints(Panel1_None);
-    Panel1_Off = new wxPanel(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL19"));
+    Panel1_Off = new wxScrolledWindow(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL19"));
     FlexGridSizer77 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer77->AddGrowableCol(0);
     BitmapButton23 = new wxBitmapButton(Panel1_Off, ID_BITMAPBUTTON43, Off, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON43"));
@@ -679,7 +681,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Off->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel1_Off);
     FlexGridSizer77->SetSizeHints(Panel1_Off);
-    Panel1_On = new wxPanel(Choicebook1, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL25"));
+    Panel1_On = new wxScrolledWindow(Choicebook1, ID_PANEL25, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL25"));
     FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer96 = new wxFlexGridSizer(0, 1, 0, 0);
     BitmapButton13 = new wxBitmapButton(Panel1_On, ID_BITMAPBUTTON21, On, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON21"));
@@ -718,7 +720,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_On->SetSizer(FlexGridSizer92);
     FlexGridSizer92->Fit(Panel1_On);
     FlexGridSizer92->SetSizeHints(Panel1_On);
-    Panel1_Bars = new wxPanel(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL8"));
+    Panel1_Bars = new wxScrolledWindow(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(Panel1_Bars,wxSize(0,0)).GetWidth(), 0);
     FlexGridSizer35->AddGrowableCol(1);
     BitmapButton6 = new wxBitmapButton(Panel1_Bars, ID_BITMAPBUTTON27, bars, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON27"));
@@ -763,7 +765,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Bars->SetSizer(FlexGridSizer35);
     FlexGridSizer35->Fit(Panel1_Bars);
     FlexGridSizer35->SetSizeHints(Panel1_Bars);
-    Panel1_Butterfly = new wxPanel(Choicebook1, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL10"));
+    Panel1_Butterfly = new wxScrolledWindow(Choicebook1, ID_PANEL10, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL10"));
     FlexGridSizer36 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer36->AddGrowableCol(1);
     BitmapButton7 = new wxBitmapButton(Panel1_Butterfly, ID_BITMAPBUTTON28, butterfly, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON28"));
@@ -813,7 +815,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Butterfly->SetSizer(FlexGridSizer36);
     FlexGridSizer36->Fit(Panel1_Butterfly);
     FlexGridSizer36->SetSizeHints(Panel1_Butterfly);
-    Panel1_Circles = new wxPanel(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL37"));
+    Panel1_Circles = new wxScrolledWindow(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL37"));
     FlexGridSizer80 = new wxFlexGridSizer(0, 2, 0, 0);
     BitmapButton9 = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON29, circles, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON29"));
     BitmapButton9->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -914,7 +916,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Circles->SetSizer(FlexGridSizer80);
     FlexGridSizer80->Fit(Panel1_Circles);
     FlexGridSizer80->SetSizeHints(Panel1_Circles);
-    Panel1_ColorWash = new wxPanel(Choicebook1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+    Panel1_ColorWash = new wxScrolledWindow(Choicebook1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL5"));
     FlexGridSizer37 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer37->AddGrowableCol(1);
     BitmapButton10 = new wxBitmapButton(Panel1_ColorWash, ID_BITMAPBUTTON30, ColorWash, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON30"));
@@ -955,7 +957,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_ColorWash->SetSizer(FlexGridSizer37);
     FlexGridSizer37->Fit(Panel1_ColorWash);
     FlexGridSizer37->SetSizeHints(Panel1_ColorWash);
-    Panel1_CoroFaces = new wxPanel(Choicebook1, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL28"));
+    Panel1_CoroFaces = new wxScrolledWindow(Choicebook1, ID_PANEL28, wxPoint(202,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL28"));
     FlexGridSizer58 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText71 = new wxStaticText(Panel1_CoroFaces, ID_STATICTEXT73, _("Mouth"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT73"));
     FlexGridSizer58->Add(StaticText71, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -980,7 +982,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_CoroFaces->SetSizer(FlexGridSizer58);
     FlexGridSizer58->Fit(Panel1_CoroFaces);
     FlexGridSizer58->SetSizeHints(Panel1_CoroFaces);
-    Panel1_Curtain = new wxPanel(Choicebook1, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+    Panel1_Curtain = new wxScrolledWindow(Choicebook1, ID_PANEL1, wxPoint(150,14), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL1"));
     FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer7->AddGrowableCol(1);
     BitmapButton1 = new wxBitmapButton(Panel1_Curtain, ID_BITMAPBUTTON22, curtain, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON22"));
@@ -1035,7 +1037,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Curtain->SetSizer(FlexGridSizer7);
     FlexGridSizer7->Fit(Panel1_Curtain);
     FlexGridSizer7->SetSizeHints(Panel1_Curtain);
-    Panel1_Faces = new wxPanel(Choicebook1, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    Panel1_Faces = new wxScrolledWindow(Choicebook1, ID_PANEL6, wxPoint(141,8), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL6"));
     FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer97 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton25 = new wxBitmapButton(Panel1_Faces, ID_BITMAPBUTTON53, faces, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON53"));
@@ -1053,7 +1055,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Faces->SetSizer(FlexGridSizer47);
     FlexGridSizer47->Fit(Panel1_Faces);
     FlexGridSizer47->SetSizeHints(Panel1_Faces);
-    Panel1_Fire = new wxPanel(Choicebook1, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL12"));
+    Panel1_Fire = new wxScrolledWindow(Choicebook1, ID_PANEL12, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL12"));
     FlexGridSizer38 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer38->AddGrowableCol(1);
     BitmapButton2 = new wxBitmapButton(Panel1_Fire, ID_BITMAPBUTTON23, fire, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON23"));
@@ -1089,7 +1091,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fire->SetSizer(FlexGridSizer38);
     FlexGridSizer38->Fit(Panel1_Fire);
     FlexGridSizer38->SetSizeHints(Panel1_Fire);
-    Panel1_Fireworks = new wxPanel(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL36"));
+    Panel1_Fireworks = new wxScrolledWindow(Choicebook1, ID_PANEL36, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL36"));
     FlexGridSizer73 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer73->AddGrowableCol(1);
     BitmapButton_fireworks = new wxBitmapButton(Panel1_Fireworks, ID_BITMAPBUTTON24, fireworks, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON24"));
@@ -1132,7 +1134,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Fireworks->SetSizer(FlexGridSizer73);
     FlexGridSizer73->Fit(Panel1_Fireworks);
     FlexGridSizer73->SetSizeHints(Panel1_Fireworks);
-    Panel1_Garlands = new wxPanel(Choicebook1, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL14"));
+    Panel1_Garlands = new wxScrolledWindow(Choicebook1, ID_PANEL14, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL14"));
     FlexGridSizer39 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer39->AddGrowableCol(1);
     BitmapButton4 = new wxBitmapButton(Panel1_Garlands, ID_BITMAPBUTTON25, garlands, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON25"));
@@ -1159,7 +1161,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Garlands->SetSizer(FlexGridSizer39);
     FlexGridSizer39->Fit(Panel1_Garlands);
     FlexGridSizer39->SetSizeHints(Panel1_Garlands);
-    Panel1_Glediator = new wxPanel(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL17"));
+    Panel1_Glediator = new wxScrolledWindow(Choicebook1, ID_PANEL17, wxPoint(37,9), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL17"));
     FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
     BitmapButton5 = new wxBitmapButton(Panel1_Glediator, ID_BITMAPBUTTON26, glediator, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON26"));
     BitmapButton5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -1179,7 +1181,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Glediator->SetSizer(FlexGridSizer53);
     FlexGridSizer53->Fit(Panel1_Glediator);
     FlexGridSizer53->SetSizeHints(Panel1_Glediator);
-    Panel1_Life = new wxPanel(Choicebook1, ID_PANEL16, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL16"));
+    Panel1_Life = new wxScrolledWindow(Choicebook1, ID_PANEL16, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL16"));
     FlexGridSizer40 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer40->AddGrowableCol(1);
     BitmapButton12 = new wxBitmapButton(Panel1_Life, ID_BITMAPBUTTON32, life, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON32"));
@@ -1206,7 +1208,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Life->SetSizer(FlexGridSizer40);
     FlexGridSizer40->Fit(Panel1_Life);
     FlexGridSizer40->SetSizeHints(Panel1_Life);
-    Panel1_Meteors = new wxPanel(Choicebook1, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL18"));
+    Panel1_Meteors = new wxScrolledWindow(Choicebook1, ID_PANEL18, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL18"));
     FlexGridSizer41 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer41->AddGrowableCol(1);
     BitmapButton11 = new wxBitmapButton(Panel1_Meteors, ID_BITMAPBUTTON31, meteors, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON31"));
@@ -1257,7 +1259,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Meteors->SetSizer(FlexGridSizer41);
     FlexGridSizer41->Fit(Panel1_Meteors);
     FlexGridSizer41->SetSizeHints(Panel1_Meteors);
-    Panel1_Piano = new wxPanel(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL39"));
+    Panel1_Piano = new wxScrolledWindow(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL39"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer5->AddGrowableCol(0);
     FlexGridSizer27 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1375,7 +1377,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Piano->SetSizer(FlexGridSizer5);
     FlexGridSizer5->Fit(Panel1_Piano);
     FlexGridSizer5->SetSizeHints(Panel1_Piano);
-    Panel1_Pictures = new wxPanel(Choicebook1, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL20"));
+    Panel1_Pictures = new wxScrolledWindow(Choicebook1, ID_PANEL20, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL20"));
     FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer42->AddGrowableCol(0);
     FlexGridSizer19 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1416,7 +1418,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pictures->SetSizer(FlexGridSizer42);
     FlexGridSizer42->Fit(Panel1_Pictures);
     FlexGridSizer42->SetSizeHints(Panel1_Pictures);
-    Panel1_Pinwheel = new wxPanel(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pinwheel"));
+    Panel1_Pinwheel = new wxScrolledWindow(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Pinwheel"));
     FlexGridSizer55 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer55->AddGrowableCol(1);
     BitmapButton_pinwheel = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON33, pinwheel, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
@@ -1497,7 +1499,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Pinwheel->SetSizer(FlexGridSizer55);
     FlexGridSizer55->Fit(Panel1_Pinwheel);
     FlexGridSizer55->SetSizeHints(Panel1_Pinwheel);
-    Panel1_Ripple = new wxPanel(Choicebook1, ID_PANELRipple, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANELRipple"));
+    Panel1_Ripple = new wxScrolledWindow(Choicebook1, ID_PANELRipple, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELRipple"));
     FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer57->AddGrowableCol(1);
     BitmapButton14 = new wxBitmapButton(Panel1_Ripple, ID_BITMAPBUTTON34, ripple, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON34"));
@@ -1540,7 +1542,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Ripple->SetSizer(FlexGridSizer57);
     FlexGridSizer57->Fit(Panel1_Ripple);
     FlexGridSizer57->SetSizeHints(Panel1_Ripple);
-    Panel1_Shimmer = new wxPanel(Choicebook1, ID_PANELShimmer, wxPoint(39,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANELShimmer"));
+    Panel1_Shimmer = new wxScrolledWindow(Choicebook1, ID_PANELShimmer, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANELShimmer"));
     FlexGridSizer56 = new wxFlexGridSizer(0, 3, 0, 0);
     StaticText66 = new wxStaticText(Panel1_Shimmer, ID_STATICTEXT68, _("Duty Factor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT68"));
     FlexGridSizer56->Add(StaticText66, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -1576,7 +1578,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Shimmer->SetSizer(FlexGridSizer56);
     FlexGridSizer56->Fit(Panel1_Shimmer);
     FlexGridSizer56->SetSizeHints(Panel1_Shimmer);
-    Panel1_SingleStrand = new wxPanel(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    Panel1_SingleStrand = new wxScrolledWindow(Choicebook1, ID_PANEL2, wxPoint(39,6), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL2"));
     FlexGridSizer89 = new wxFlexGridSizer(0, 3, 0, 0);
     SingleStrandEffectType = new wxNotebook(Panel1_SingleStrand, ID_NOTEBOOK_SSEFFECT_TYPE, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_SSEFFECT_TYPE"));
     Panel1 = new wxPanel(SingleStrandEffectType, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
@@ -1697,7 +1699,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_SingleStrand->SetSizer(FlexGridSizer89);
     FlexGridSizer89->Fit(Panel1_SingleStrand);
     FlexGridSizer89->SetSizeHints(Panel1_SingleStrand);
-    Panel1_Snowflakes = new wxPanel(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL22"));
+    Panel1_Snowflakes = new wxScrolledWindow(Choicebook1, ID_PANEL22, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL22"));
     FlexGridSizer43 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer43->AddGrowableCol(1);
     BitmapButton16 = new wxBitmapButton(Panel1_Snowflakes, ID_BITMAPBUTTON36, snowflakes, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON36"));
@@ -1722,7 +1724,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Snowflakes->SetSizer(FlexGridSizer43);
     FlexGridSizer43->Fit(Panel1_Snowflakes);
     FlexGridSizer43->SetSizeHints(Panel1_Snowflakes);
-    Panel1_Snowstorm = new wxPanel(Choicebook1, ID_PANEL24, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL24"));
+    Panel1_Snowstorm = new wxScrolledWindow(Choicebook1, ID_PANEL24, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL24"));
     FlexGridSizer44 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer44->AddGrowableCol(1);
     BitmapButton17 = new wxBitmapButton(Panel1_Snowstorm, ID_BITMAPBUTTON37, snowstorm, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON37"));
@@ -1747,7 +1749,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Snowstorm->SetSizer(FlexGridSizer44);
     FlexGridSizer44->Fit(Panel1_Snowstorm);
     FlexGridSizer44->SetSizeHints(Panel1_Snowstorm);
-    Panel1_Spirals = new wxPanel(Choicebook1, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL26"));
+    Panel1_Spirals = new wxScrolledWindow(Choicebook1, ID_PANEL26, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL26"));
     FlexGridSizer45 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer45->AddGrowableCol(1);
     BitmapButton18 = new wxBitmapButton(Panel1_Spirals, ID_BITMAPBUTTON38, spirals, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON38"));
@@ -1824,7 +1826,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Spirals->SetSizer(FlexGridSizer45);
     FlexGridSizer45->Fit(Panel1_Spirals);
     FlexGridSizer45->SetSizeHints(Panel1_Spirals);
-    Panel1_Spirograph = new wxPanel(Choicebook1, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL35"));
+    Panel1_Spirograph = new wxScrolledWindow(Choicebook1, ID_PANEL35, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL35"));
     FlexGridSizer72 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer72->AddGrowableCol(1);
     BitmapButton19 = new wxBitmapButton(Panel1_Spirograph, ID_BITMAPBUTTON39, spirograph, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON39"));
@@ -1870,7 +1872,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Spirograph->SetSizer(FlexGridSizer72);
     FlexGridSizer72->Fit(Panel1_Spirograph);
     FlexGridSizer72->SetSizeHints(Panel1_Spirograph);
-    Panel1_Strobe = new wxPanel(Choicebook1, ID_PANEL23, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL23"));
+    Panel1_Strobe = new wxScrolledWindow(Choicebook1, ID_PANEL23, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL23"));
     FlexGridSizer85 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer85->AddGrowableCol(0);
     FlexGridSizer86 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1908,7 +1910,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Strobe->SetSizer(FlexGridSizer85);
     FlexGridSizer85->Fit(Panel1_Strobe);
     FlexGridSizer85->SetSizeHints(Panel1_Strobe);
-    Panel1_Text = new wxPanel(Choicebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
+    Panel1_Text = new wxScrolledWindow(Choicebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL7"));
     FlexGridSizer46 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer46->AddGrowableCol(0);
     FlexGridSizer65 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -2180,7 +2182,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Text->SetSizer(FlexGridSizer46);
     FlexGridSizer46->Fit(Panel1_Text);
     FlexGridSizer46->SetSizeHints(Panel1_Text);
-    Panel1_Tree = new wxPanel(Choicebook1, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL34"));
+    Panel1_Tree = new wxScrolledWindow(Choicebook1, ID_PANEL34, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL34"));
     FlexGridSizer71 = new wxFlexGridSizer(5, 3, 0, 0);
     FlexGridSizer71->AddGrowableCol(1);
     BitmapButton20 = new wxBitmapButton(Panel1_Tree, ID_BITMAPBUTTON40, tree, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON40"));
@@ -2198,7 +2200,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Tree->SetSizer(FlexGridSizer71);
     FlexGridSizer71->Fit(Panel1_Tree);
     FlexGridSizer71->SetSizeHints(Panel1_Tree);
-    Panel1_Twinkle = new wxPanel(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL33"));
+    Panel1_Twinkle = new wxScrolledWindow(Choicebook1, ID_PANEL33, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL33"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer4->AddGrowableCol(1);
     BitmapButton21 = new wxBitmapButton(Panel1_Twinkle, ID_BITMAPBUTTON41, twinkle, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON41"));
@@ -2233,7 +2235,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Twinkle->SetSizer(FlexGridSizer4);
     FlexGridSizer4->Fit(Panel1_Twinkle);
     FlexGridSizer4->SetSizeHints(Panel1_Twinkle);
-    Panel1_Wave = new wxPanel(Choicebook1, ID_PANEL15, wxPoint(184,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL15"));
+    Panel1_Wave = new wxScrolledWindow(Choicebook1, ID_PANEL15, wxPoint(184,10), wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL15"));
     FlexGridSizer51 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton22 = new wxBitmapButton(Panel1_Wave, ID_BITMAPBUTTON42, wave, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON42"));
     BitmapButton22->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
@@ -2324,7 +2326,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choicebook1->AddPage(Panel1_Tree, _("Tree"), false);
     Choicebook1->AddPage(Panel1_Twinkle, _("Twinkle"), false);
     Choicebook1->AddPage(Panel1_Wave, _("Wave"), false);
-    FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
+    FlexGridSizer1->Add(Choicebook1, 1, wxRIGHT|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
     BitmapButton_LayerEffect = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICEBOOK1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICEBOOK1"));
@@ -2345,8 +2347,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer1->Add(FlexGridSizer8, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 2);
     SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+    SetSizer(FlexGridSizer1);
+    Layout();
 
     Connect(ID_BITMAPBUTTON45,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton25Click);
     Connect(ID_BITMAPBUTTON_EFF_ON_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Eff_On_ColorClick);
@@ -2506,6 +2508,8 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Wave_DirectionClick);
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::OnChoicebook1PageChanged);
     Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_LayerEffectClick);
+    Connect(wxEVT_PAINT,(wxObjectEventFunction)&EffectsPanel::OnPaint1);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&EffectsPanel::OnResize);
     //*)
 
     this->SetName(name);
@@ -3246,3 +3250,12 @@ void EffectsPanel::OnBitmapButton_Eff_On_ColorClick(wxCommandEvent& event)
     }
 }
 
+
+void EffectsPanel::OnResize(wxSizeEvent& event)
+{
+}
+
+void EffectsPanel::OnPaint1(wxPaintEvent& event)
+{
+    int k=0;
+}

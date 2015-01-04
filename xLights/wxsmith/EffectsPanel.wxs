@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="EffectsPanel">
+		<size>150,150</size>
+		<minsize>150,150</minsize>
+		<maxsize>150,150</maxsize>
 		<id_arg>0</id_arg>
+		<handler function="OnPaint1" entry="EVT_PAINT" />
+		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<object class="sizeritem">
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
 					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL4" variable="Panel1_None" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL4" variable="Panel1_None" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
 								<cols>1</cols>
 								<object class="sizeritem">
@@ -36,7 +41,7 @@
 						<label>None</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL19" variable="Panel1_Off" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL19" variable="Panel1_Off" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -71,7 +76,7 @@
 						<label>Off</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL25" variable="Panel1_On" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL25" variable="Panel1_On" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer92" member="no">
 								<cols>1</cols>
 								<object class="sizeritem">
@@ -226,7 +231,7 @@
 						<label>On</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL8" variable="Panel1_Bars" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 								<cols>3</cols>
 								<vgap>0d</vgap>
@@ -377,7 +382,7 @@
 						<label>Bars</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL10" variable="Panel1_Butterfly" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL10" variable="Panel1_Butterfly" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer36" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -552,7 +557,7 @@
 						<label>Butterfly</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL37" variable="Panel1_Circles" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer80" member="no">
 								<cols>2</cols>
 								<object class="sizeritem">
@@ -885,7 +890,7 @@
 						<label>Circles</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL5" variable="Panel1_ColorWash" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL5" variable="Panel1_ColorWash" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer37" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1019,7 +1024,7 @@
 						<label>Color Wash</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL28" variable="Panel1_CoroFaces" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL28" variable="Panel1_CoroFaces" member="yes">
 							<pos>202,8</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer58" member="no">
 								<cols>2</cols>
@@ -1085,7 +1090,7 @@
 						<label>CoroFaces</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL1" variable="Panel1_Curtain" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL1" variable="Panel1_Curtain" member="yes">
 							<pos>150,14</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 								<cols>3</cols>
@@ -1252,7 +1257,7 @@
 						<label>Curtain</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL6" variable="Panel1_Faces" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL6" variable="Panel1_Faces" member="yes">
 							<pos>141,8</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer47" member="no">
 								<cols>1</cols>
@@ -1309,7 +1314,7 @@
 						<label>Faces</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL12" variable="Panel1_Fire" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer38" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1424,7 +1429,7 @@
 						<label>Fire</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL36" variable="Panel1_Fireworks" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer73" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1575,7 +1580,7 @@
 						<label>Fireworks</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL14" variable="Panel1_Garlands" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer39" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1660,7 +1665,7 @@
 						<label>Garlands</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL17" variable="Panel1_Glediator" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL17" variable="Panel1_Glediator" member="yes">
 							<pos>37,9</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer53" member="no">
 								<cols>2</cols>
@@ -1731,7 +1736,7 @@
 						<label>Glediator</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL16" variable="Panel1_Life" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL16" variable="Panel1_Life" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1818,7 +1823,7 @@
 						<label>Life</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL18" variable="Panel1_Meteors" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL18" variable="Panel1_Meteors" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -1992,7 +1997,7 @@
 						<label>Meteors</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -2348,7 +2353,7 @@
 						<label>Piano</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL20" variable="Panel1_Pictures" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL20" variable="Panel1_Pictures" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer42" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -2488,7 +2493,7 @@
 						<label>Pictures</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
 								<cols>2</cols>
 								<growablecols>1</growablecols>
@@ -2788,7 +2793,7 @@
 						<label>Pinwheel</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANELRipple" variable="Panel1_Ripple" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANELRipple" variable="Panel1_Ripple" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer57" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -2928,7 +2933,7 @@
 						<label>Ripple</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANELShimmer" variable="Panel1_Shimmer" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANELShimmer" variable="Panel1_Shimmer" member="yes">
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
 								<cols>3</cols>
@@ -3048,7 +3053,7 @@
 						<label>Shimmer</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL2" variable="Panel1_SingleStrand" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL2" variable="Panel1_SingleStrand" member="yes">
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer89" member="no">
 								<cols>3</cols>
@@ -3455,7 +3460,7 @@
 						<label>SingleStrand</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL22" variable="Panel1_Snowflakes" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL22" variable="Panel1_Snowflakes" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer43" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -3543,7 +3548,7 @@
 						<label>Snowflakes</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL24" variable="Panel1_Snowstorm" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL24" variable="Panel1_Snowstorm" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer44" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -3628,7 +3633,7 @@
 						<label>Snowstorm</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL26" variable="Panel1_Spirals" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer45" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -3890,7 +3895,7 @@
 						<label>Spirals</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL35" variable="Panel1_Spirograph" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer72" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -4047,7 +4052,7 @@
 						<label>Spirograph</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL23" variable="Panel1_Strobe" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL23" variable="Panel1_Strobe" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer85" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -4184,7 +4189,7 @@
 						<label>Strobe</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL7" variable="Panel1_Text" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL7" variable="Panel1_Text" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer46" member="no">
 								<cols>1</cols>
 								<growablecols>0</growablecols>
@@ -5053,7 +5058,7 @@
 						<label>Text</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL34" variable="Panel1_Tree" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer71" member="no">
 								<cols>3</cols>
 								<rows>5</rows>
@@ -5113,7 +5118,7 @@
 						<label>Tree</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL33" variable="Panel1_Twinkle" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
@@ -5231,7 +5236,7 @@
 						<label>Twinkle</label>
 					</object>
 					<object class="choicebookpage">
-						<object class="wxPanel" name="ID_PANEL15" variable="Panel1_Wave" member="yes">
+						<object class="wxScrolledWindow" name="ID_PANEL15" variable="Panel1_Wave" member="yes">
 							<pos>184,10</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
 								<cols>3</cols>
@@ -5443,7 +5448,7 @@
 						<label>Wave</label>
 					</object>
 				</object>
-				<flag>wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxRIGHT|wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
