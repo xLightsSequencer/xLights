@@ -81,20 +81,17 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 }
 
 //(*IdInit(xLightsFrame)
-const long xLightsFrame::ID_BITMAPBUTTON15 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON16 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON17 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON8 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON14 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON10 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON18 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON19 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON20 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_NOW = wxNewId();
 const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
 const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_SETUP1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_DIRNAME = wxNewId();
 const long xLightsFrame::ID_BUTTON_CHANGEDIR = wxNewId();
@@ -323,7 +320,6 @@ const long xLightsFrame::ID_BUTTON6 = wxNewId();
 const long xLightsFrame::ID_PANEL4 = wxNewId();
 const long xLightsFrame::ID_PANEL7 = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
-const long xLightsFrame::ID_PANEL1 = wxNewId();
 const long xLightsFrame::ID_NEW_Non_Music_Seq = wxNewId();
 const long xLightsFrame::ID_MENUITEM3 = wxNewId();
 const long xLightsFrame::ID_New_Music_Seq = wxNewId();
@@ -346,7 +342,6 @@ const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
-const long xLightsFrame::ID_TOOLBAR1 = wxNewId();
 //*)
 
 // For new sequencer
@@ -394,6 +389,29 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
 
 END_EVENT_TABLE()
 
+
+class xlAuiToolBar : public wxAuiToolBar {
+public:
+    xlAuiToolBar(wxWindow* parent,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 long style = wxAUI_TB_DEFAULT_STYLE) :
+    wxAuiToolBar(parent, id, pos, size, style)
+    {
+    }
+    virtual ~xlAuiToolBar() {
+
+    }
+
+    wxSize &GetAbsoluteMinSize() {
+        return m_absoluteMinSize;
+    }
+    wxSize GetMinSize() {
+        return m_absoluteMinSize;
+    }
+};
+
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 {
 
@@ -413,7 +431,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItemCustomScript;
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
     wxBoxSizer* BoxSizer5;
-    wxFlexGridSizer* FlexGridSizer19;
     wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer7;
     wxFlexGridSizer* FlexGridSizer70;
@@ -429,7 +446,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem1;
     wxMenuItem* MenuItem4;
-    wxFlexGridSizer* FlexGridSizer44;
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
@@ -437,7 +453,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxBoxSizer* BoxSizerSequencePreview;
-    wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizerCal;
@@ -466,7 +481,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuBar* MenuBar1;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer33;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
@@ -475,7 +489,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer17;
     wxFlexGridSizer* FlexGridSizerPapagayo;
     wxFlexGridSizer* FlexGridSizer32;
-    wxFlexGridSizer* FlexGridSizer42;
     wxFlexGridSizer* FlexGridSizer68;
     wxFlexGridSizer* FlexGridSizer31;
     wxFlexGridSizer* FlexGridSizer40;
@@ -487,57 +500,31 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer30;
 
     Create(parent, wxID_ANY, _("xLights/Nutcracker (Ver 4.0.0)"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    SetClientSize(wxSize(1100,800));
     SetToolTip(_("Export only Channels associated with one model"));
-    FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
-    FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableRow(0);
-    Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, _T("ID_PANEL1"));
-    FlexGridSizer2 = new wxFlexGridSizer(2, 1, 0, 0);
-    FlexGridSizer2->AddGrowableCol(0);
-    FlexGridSizer2->AddGrowableRow(1);
-    FlexGridSizer19 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer44 = new wxFlexGridSizer(0, 12, 0, 0);
-    BitmapButton4 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON15, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON15"));
-    BitmapButton4->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer44->Add(BitmapButton4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton5 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON16, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON16"));
-    BitmapButton5->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer44->Add(BitmapButton5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton6 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON17, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON17"));
-    FlexGridSizer44->Add(BitmapButton6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton1 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON8, control_play_blue_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON8"));
-    BitmapButton1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer44->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton3 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON14, control_stop_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON14"));
-    BitmapButton3->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer44->Add(BitmapButton3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton2 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON10, control_pause_blue_icon, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON10"));
-    BitmapButton2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    FlexGridSizer44->Add(BitmapButton2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton7 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON18, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON18"));
-    FlexGridSizer44->Add(BitmapButton7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton8 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON19, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON19"));
-    FlexGridSizer44->Add(BitmapButton8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton9 = new wxBitmapButton(Panel1, ID_BITMAPBUTTON20, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_HELP")),wxART_BUTTON), wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON20"));
-    FlexGridSizer44->Add(BitmapButton9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer19->Add(FlexGridSizer44, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer42 = new wxFlexGridSizer(0, 6, 0, 0);
-    BitmapButtonTabInfo = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
+    MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
+    MainToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_MAIN, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    BitmapButtonTabInfo = new wxBitmapButton(MainToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
     BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
-    FlexGridSizer42->Add(BitmapButtonTabInfo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    ButtonStopNow = new wxButton(Panel1, ID_BUTTON_STOP_NOW, _("Stop Now!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_NOW"));
-    FlexGridSizer42->Add(ButtonStopNow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    ButtonGracefulStop = new wxButton(Panel1, ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GRACEFUL_STOP"));
-    FlexGridSizer42->Add(ButtonGracefulStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    ButtonLightsOff = new wxButton(Panel1, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
-    FlexGridSizer42->Add(ButtonLightsOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    CheckBoxLightOutput = new wxCheckBox(Panel1, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
+    ButtonStopNow = new wxButton(MainToolBar, ID_BUTTON_STOP_NOW, _("Stop Now!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_NOW"));
+    ButtonGracefulStop = new wxButton(MainToolBar, ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GRACEFUL_STOP"));
+    ButtonLightsOff = new wxButton(MainToolBar, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
+    CheckBoxLightOutput = new wxCheckBox(MainToolBar, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
     CheckBoxLightOutput->SetValue(false);
-    FlexGridSizer42->Add(CheckBoxLightOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer19->Add(FlexGridSizer42, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer19, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Notebook1 = new wxNotebook(Panel1, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-    Notebook1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open Show Directory"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Open"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_PLAY, _("Play"), control_play_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), control_pause_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), control_stop_icon, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
+    MainToolBar->AddSeparator();
+    MainToolBar->AddControl(BitmapButtonTabInfo, wxEmptyString);
+    MainToolBar->AddControl(ButtonStopNow, wxEmptyString);
+    MainToolBar->AddControl(ButtonGracefulStop, wxEmptyString);
+    MainToolBar->AddControl(ButtonLightsOff, wxEmptyString);
+    MainToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
+    MainToolBar->Realize();
+    MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_DEFAULT_STYLE);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -1433,26 +1420,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerPapagayo->Fit(PanelPapagayo);
     FlexGridSizerPapagayo->SetSizeHints(PanelPapagayo);
     PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
-    fgsSequencer = new wxFlexGridSizer(0, 1, 0, 0);
-    fgsSequencer->AddGrowableCol(0);
-    fgsSequencer->AddGrowableRow(0);
-    PanelSequencer->SetSizer(fgsSequencer);
-    fgsSequencer->Fit(PanelSequencer);
-    fgsSequencer->SetSizeHints(PanelSequencer);
+    m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
-    Notebook1->AddPage(PanelTest, _("Test"), false);
-    Notebook1->AddPage(PanelConvert, _("Convert"), false);
-    Notebook1->AddPage(PanelPreview, _("Preview"), false);
-    Notebook1->AddPage(PaneNutcracker, _("Nutcracker"), false);
-    Notebook1->AddPage(PanelCal, _("Schedule"), false);
-    Notebook1->AddPage(PanelPapagayo, _("Papagayo"), false);
-    Notebook1->AddPage(PanelSequencer, _("Sequencer"), false);
-    FlexGridSizer2->Add(Notebook1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    Panel1->SetSizer(FlexGridSizer2);
-    FlexGridSizer2->Fit(Panel1);
-    FlexGridSizer2->SetSizeHints(Panel1);
-    FlexGridSizer1->Add(Panel1, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    SetSizer(FlexGridSizer1);
+    Notebook1->AddPage(PanelTest, _("Test"));
+    Notebook1->AddPage(PanelConvert, _("Convert"));
+    Notebook1->AddPage(PanelPreview, _("Preview"));
+    Notebook1->AddPage(PaneNutcracker, _("Nutcracker"));
+    Notebook1->AddPage(PanelCal, _("Schedule"));
+    Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
+    Notebook1->AddPage(PanelSequencer, _("Sequencer"));
+    MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")));
+    MainAuiManager->Update();
     MenuBar1 = new wxMenuBar();
     MenuFile = new wxMenu();
     MenuItem3 = new wxMenu();
@@ -1522,11 +1500,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_BITMAPBUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton1Click);
-    Connect(ID_BITMAPBUTTON14,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButton3Click);
+    Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
@@ -1671,7 +1646,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
-    Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
@@ -2012,6 +1986,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 xLightsFrame::~xLightsFrame()
 {
+    //must call these or the app will crash on exit
+    m_mgr->UnInit();
+    MainAuiManager->UnInit();
+
     //(*Destroy(xLightsFrame)
     //*)
 }
@@ -2900,14 +2878,4 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
         Grid1->GetSizer()->Layout();
     }
     Grid1->GetParent()->GetSizer()->Layout();
-}
-
-
-
-void xLightsFrame::OnBitmapButton1Click(wxCommandEvent& event)
-{
-}
-
-void xLightsFrame::OnBitmapButton3Click(wxCommandEvent& event)
-{
 }

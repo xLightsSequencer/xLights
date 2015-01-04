@@ -25,8 +25,8 @@
 #include <wx/checkbox.h>
 #include <wx/splitter.h>
 #include <wx/listbox.h>
+#include <wx/aui/aui.h>
 #include <wx/radiobut.h>
-#include <wx/toolbar.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/grid.h>
@@ -197,6 +197,7 @@ enum SeqPlayerStates
     DELAY_AFTER_PLAY,
     PLAYING_EFFECT
 };
+class xlAuiToolBar;
 
 class SchedTreeData : public wxTreeItemData
 {
@@ -502,20 +503,17 @@ private:
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
-    static const long ID_BITMAPBUTTON15;
-    static const long ID_BITMAPBUTTON16;
-    static const long ID_BITMAPBUTTON17;
-    static const long ID_BITMAPBUTTON8;
-    static const long ID_BITMAPBUTTON14;
-    static const long ID_BITMAPBUTTON10;
-    static const long ID_BITMAPBUTTON18;
-    static const long ID_BITMAPBUTTON19;
-    static const long ID_BITMAPBUTTON20;
+    static const long ID_AUITOOLBAR_OPENSHOW;
+    static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBAR_PLAY;
+    static const long ID_AUITOOLBAR_PAUSE;
+    static const long ID_AUITOOLBAR_STOP;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
     static const long ID_BUTTON_LIGHTS_OFF;
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
+    static const long ID_AUITOOLBAR_MAIN;
     static const long ID_STATICTEXT_SETUP1;
     static const long ID_STATICTEXT_DIRNAME;
     static const long ID_BUTTON_CHANGEDIR;
@@ -744,7 +742,6 @@ private:
     static const long ID_PANEL4;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
-    static const long ID_PANEL1;
     static const long ID_NEW_Non_Music_Seq;
     static const long ID_MENUITEM3;
     static const long ID_New_Music_Seq;
@@ -767,7 +764,6 @@ private:
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
     static const long ID_MESSAGEDIALOG1;
-    static const long ID_TOOLBAR1;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -806,7 +802,6 @@ private:
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxBitmapButton* BitmapButton_normal;
     wxButton* Button_Presets;
-    wxBitmapButton* BitmapButton4;
     wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
     wxTextCtrl* TextCtrl_PgoAutoFade;
@@ -824,7 +819,6 @@ private:
     wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
-    wxBitmapButton* BitmapButton5;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxStaticText* StaticText27;
@@ -834,7 +828,6 @@ private:
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxCheckBox* CheckBoxLightOutput;
-    wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxNotebook* Notebook2;
@@ -848,7 +841,6 @@ private:
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
-    wxBitmapButton* BitmapButton9;
     wxPanel* PanelTest;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
@@ -869,7 +861,6 @@ private:
     wxStaticText* StaticText126;
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
-    wxNotebook* Notebook1;
     wxStaticText* StaticText127;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonStartConversion;
@@ -883,6 +874,7 @@ private:
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
+    wxAuiManager* m_mgr;
     wxListBox* ListBoxElementList;
     wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
@@ -900,13 +892,13 @@ private:
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
-    wxBitmapButton* BitmapButton7;
     wxStaticText* StaticText22;
     wxSlider* SliderPreviewRotate;
     wxTreeCtrl* ListBoxSched;
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
     wxTextCtrl* txtCtlEffectMix;
+    wxAuiManager* MainAuiManager;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
     EffectsPanel* EffectsPanel2_1;
@@ -916,14 +908,12 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxButton* Button_UpdateGrid;
-    wxToolBar* ToolBar1;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
     wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
     EffectsPanel* EffectsPanel1_1;
-    wxFlexGridSizer* fgsSequencer;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxSlider* Slider_SparkleFrequency;
@@ -952,7 +942,6 @@ private:
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
     wxBitmapButton* BitmapButton_random;
-    wxBitmapButton* BitmapButton8;
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
@@ -960,6 +949,7 @@ private:
     wxStaticText* StaticTextPreviewRotation;
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
+    xlAuiToolBar* MainToolBar;
     wxButton* ButtonLightsOff;
     wxMenuItem* MenuItem11;
     wxMenu* Menu2;
@@ -977,7 +967,7 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxMenu* MenuItem3;
     wxMenuItem* MenuItem6;
-    wxBitmapButton* BitmapButton1;
+    wxAuiNotebook* Notebook1;
     wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
@@ -986,7 +976,6 @@ private:
     wxButton* Button_PgoStitch;
     wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
-    wxBitmapButton* BitmapButton3;
     wxMenuItem* MenuItem10;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
@@ -1012,7 +1001,6 @@ private:
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
     wxBitmapButton* BitmapButtonOpenSeq;
-    wxBitmapButton* BitmapButton2;
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
     wxStaticText* StaticText8;
@@ -1065,7 +1053,6 @@ private:
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
     wxSplitterWindow* SplitterWindow2;
-    wxBitmapButton* BitmapButton6;
     //*)
 
     wxBitmap pauseIcon;
@@ -1438,7 +1425,6 @@ private:
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
 
-    wxAuiManager m_mgr;
     MainSequencer* mainSequencer;
     TimeLine* timeLine;
     Waveform* wave ;
