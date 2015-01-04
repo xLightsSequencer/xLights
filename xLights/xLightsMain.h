@@ -503,16 +503,17 @@ private:
 //    void ConnectOnChar(wxWindow* pclComponent);
 
     //(*Identifiers(xLightsFrame)
-    static const long ID_AUITOOLBAR_OPEN;
+    static const long ID_AUITOOLBAR_OPENSHOW;
+    static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
-    static const long ID_AUITOOLBAR_MAIN;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
     static const long ID_BUTTON_LIGHTS_OFF;
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
+    static const long ID_AUITOOLBAR_MAIN;
     static const long ID_STATICTEXT_SETUP1;
     static const long ID_STATICTEXT_DIRNAME;
     static const long ID_BUTTON_CHANGEDIR;
@@ -741,7 +742,6 @@ private:
     static const long ID_PANEL4;
     static const long ID_PANEL7;
     static const long ID_NOTEBOOK1;
-    static const long ID_PANEL1;
     static const long ID_NEW_Non_Music_Seq;
     static const long ID_MENUITEM3;
     static const long ID_New_Music_Seq;
@@ -828,7 +828,6 @@ private:
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxCheckBox* CheckBoxLightOutput;
-    wxPanel* Panel1;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxNotebook* Notebook2;
@@ -862,7 +861,6 @@ private:
     wxStaticText* StaticText126;
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
-    wxNotebook* Notebook1;
     wxStaticText* StaticText127;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonStartConversion;
@@ -969,6 +967,7 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxMenu* MenuItem3;
     wxMenuItem* MenuItem6;
+    wxAuiNotebook* Notebook1;
     wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
