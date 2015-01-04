@@ -197,7 +197,7 @@ EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
     mGridlineColor = new wxColour(40,40,40);
     mTimingColor = new wxColour(255,255,255);
     mTimingVerticalLine = new wxColour(130,178,207);
-    mSelectionColor = new wxColour(255,255,0);
+    mSelectionColor = new wxColour(0,0,255);
 
     mPaintOnIdleCounter=0;
 
