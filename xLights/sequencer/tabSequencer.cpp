@@ -79,9 +79,7 @@ void xLightsFrame::InitSequencer()
 
         effectsPnl->EffectsNotebook->AddPage(EffectsPanel1, _("Effect1"), false);
         effectsPnl->EffectsNotebook->AddPage(EffectsPanel2, _("Effect2"), false);
-        effectsPnl->SetBackgroundColour(*wxGREEN);
         effectsPnl->Refresh();
-        effectsPnl->Update();
 
 
         wxScrolledWindow* w;

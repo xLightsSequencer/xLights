@@ -216,8 +216,8 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // This is a hack to get the grid to repaint after row header
     // information has changed. The counter prevents grid from
     // continuously repainting during idle causing excessive
-    // cpu usage. It will only repaint on idle for 5 times
-    // after grid size changes.
+    // cpu usage. It will only repaint on idle for 25 times
+    // mPaintOnIdleCounter is reset to "0".
     if(mPaintOnIdleCounter < 25)
     {
         Refresh(false);
