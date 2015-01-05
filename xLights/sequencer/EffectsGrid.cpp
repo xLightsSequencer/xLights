@@ -310,7 +310,6 @@ void EffectsGrid::StartDrawing(wxDouble pointSize)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
     glPointSize( pointSize );
-    glBegin(GL_POINTS);
 }
 
 void EffectsGrid::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)

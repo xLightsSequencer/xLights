@@ -75,15 +75,6 @@ void Waveform::OnWaveScrollRight(wxTimerEvent& event)
     Refresh();
 }
 
-
-void Waveform::render( wxPaintEvent& event )
-{
-    if (mIsInitialized)
-    {
-        DrawWaveView(views[mCurrentWaveView]); // continue the event
-    }
-}
-
 void Waveform::mouseLeftWindow( wxMouseEvent& event)
 {
     if (mIsInitialized)
@@ -291,19 +282,33 @@ int Waveform::GetTrackSize(mpg123_handle *mh)
     return trackSize;
 }
 
+void Waveform::render( wxPaintEvent& event )
+{
+
+    if(!mIsInitialized)
+        return;
+    wxGLCanvas::SetCurrent(*m_context);
+    wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    prepare2DViewport(0,0,getWidth(), getHeight());
+    DrawWaveView(views[mCurrentWaveView]); // continue the event
+    glFlush();
+    SwapBuffers();
+
+}
+
 void Waveform::DrawWaveView(WaveView wv)
 {
     int w,h;
+
     GetSize(&w,&h);
 
     if(getWidth() !=w || getHeight()!= h)
         SetCanvasSize(w,h);
-    if(!mIsInitialized)
-        return;
+
     int x,y1,y2,y1_2,y2_2;
     int index;
     int k = getHeight();
-    StartDrawing(3);
 //    glColor3ub(255,255,255);
     glColor3ub(212,208,200);
     glBegin(GL_QUADS);
@@ -412,9 +417,6 @@ void Waveform::DrawWaveView(WaveView wv)
     glVertex2f(mSelectedPosition+1, 1);
     glVertex2f(mSelectedPosition+1,getHeight()-1);
     glEnd();
-
-    glFlush();
-    SwapBuffers();
 }
 
 
@@ -450,19 +452,6 @@ void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x
     glLoadIdentity();
     glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
     glMatrixMode(GL_MODELVIEW);
-}
-
-void Waveform::StartDrawing(wxDouble pointSize)
-{
-    mIsInitialized = true;
-    mPointSize = pointSize;
-    wxGLCanvas::SetCurrent(*m_context);
-    wxClientDC dc(this);
-    glPointSize( mPointSize );
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
-    glDisable(GL_TEXTURE_2D);   // textures
-    //FT_Set_Pixel_Sizes(face, 0, 48);
 }
 
 int Waveform::getWidth()
