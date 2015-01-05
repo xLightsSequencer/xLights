@@ -38,6 +38,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     if(rowIndex >= mSequenceElements->GetRowInformationSize())
     {
         SetCursor(wxCURSOR_DEFAULT);
+        Refresh(false);
         return;
     }
     if(mResizing)
@@ -53,13 +54,13 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
             mSequenceElements->UnSelectAllEffects();
         }
         CheckForSelectionRectangle();
-        Refresh(false);
     }
     else
     {
         Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
         RunMouseOverHitTests(element,event.GetX(),event.GetY());
     }
+    Refresh(false);
 }
 
 void EffectsGrid::Resize(int position)
