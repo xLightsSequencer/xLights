@@ -18,8 +18,9 @@ EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
 
 
-RowHeading::RowHeading(wxWindow* parent) :
-    wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+                       long style, const wxString &name):
+                       wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     DOUBLE_BUFFER(this);
     mHeaderColorModel = new wxColour(212,208,200);

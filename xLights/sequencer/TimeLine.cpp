@@ -35,13 +35,13 @@ void TimeLine::mouseLeftUp( wxMouseEvent& event)
 {
 }
 
-TimeLine::TimeLine(wxWindow* parent) :
-    wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name):
+                   wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
     SetCanvasSize(1000,25);
-    mIsInitialized;
+    mIsInitialized=false;
 
     mStartPixelOffset = 100;
     mFrequency = 40;
@@ -307,9 +307,15 @@ void TimeLine::SetCanvasSize(int width,int height)
     SetMinSize(s);
 }
 
+void TimeLine::Initialize()
+{
+    mIsInitialized = true;
+}
 
 void TimeLine::render( wxPaintEvent& event )
 {
+        if (!mIsInitialized)
+            return;
         wxCoord w,h;
         float t;
         int labelCount=0;

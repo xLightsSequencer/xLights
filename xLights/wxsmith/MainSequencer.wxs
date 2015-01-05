@@ -29,7 +29,7 @@
 										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 											<cols>3</cols>
 											<object class="sizeritem">
-												<object class="wxPanel" name="ID_PANEL1" variable="PanelTimeLine" member="yes" />
+												<object class="wxPanel" name="ID_PANEL1" subclass="TimeLine" variable="PanelTimeLine" member="yes" />
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<option>1</option>
 											</object>
@@ -41,7 +41,7 @@
 										<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 											<cols>3</cols>
 											<object class="sizeritem">
-												<object class="wxPanel" name="ID_PANEL3" variable="PanelWaveForm" member="yes" />
+												<object class="wxPanel" name="ID_PANEL3" subclass="Waveform" variable="PanelWaveForm" member="yes" />
 												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<option>1</option>
 											</object>
@@ -73,7 +73,7 @@
 									<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
 										<cols>1</cols>
 										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL6" variable="PanelRowHeadings" member="yes">
+											<object class="wxPanel" name="ID_PANEL6" subclass="RowHeading" variable="PanelRowHeadings" member="yes">
 												<size>-1,-1</size>
 												<minsize>-1,-1</minsize>
 												<maxsize>-1,-1</maxsize>
@@ -91,7 +91,7 @@
 										<rows>2</rows>
 										<growablerows>0</growablerows>
 										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL2" variable="PanelEffectGrid" member="yes">
+											<object class="wxPanel" name="ID_PANEL2" subclass="EffectsGrid" variable="PanelEffectGrid" member="yes">
 												<style>wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE</style>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

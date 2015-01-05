@@ -25,7 +25,10 @@ class EffectsGrid : public wxGLCanvas
 {
 
 public:
-	EffectsGrid(wxWindow* parent, int* args);
+	//EffectsGrid(wxWindow* parent, int* args);
+	EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+                const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
+
 	virtual ~EffectsGrid();
 
     // Public Methods

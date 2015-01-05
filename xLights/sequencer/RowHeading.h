@@ -16,7 +16,9 @@ wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 class RowHeading : public wxWindow
 {
     public:
-        RowHeading(wxWindow* parent);
+        //RowHeading(wxScrolledWindow* parent);
+        RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize,
+                       long style=0, const wxString &name=wxPanelNameStr);
         virtual ~RowHeading();
 
         void SetCanvasSize(int width,int height);

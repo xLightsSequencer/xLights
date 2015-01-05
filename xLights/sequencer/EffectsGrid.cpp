@@ -186,9 +186,11 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyPressed(wxKeyEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event) {}
 
-EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
-    wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+//EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
+EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+                       long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
+    mIsInitialized = false;
     mParent = parent;
     mDragging = false;
 	m_context = new wxGLContext(this);

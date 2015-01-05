@@ -22,9 +22,10 @@ wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 class TimeLine : public wxWindow
 {
     public:
-        TimeLine(wxWindow* parent);
+        TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize,
+                       long style=0, const wxString &name=wxPanelNameStr);
         virtual ~TimeLine();
-
+        void Initialize();
         void SetCanvasSize(int width,int height);
 
         void SetStartTime(float time);

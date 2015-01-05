@@ -94,6 +94,8 @@
 #include "sequencer/RowHeading.h"
 #include "sequencer/TimeLine.h"
 #include "sequencer/Waveform.h"
+#include "TopEffectsPanel.h"
+
 #include "wx/aui/aui.h"
 
 #include "../include/bars.xpm"
@@ -155,6 +157,7 @@ wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 
 
 
@@ -1439,15 +1442,16 @@ private:
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);
     void RowHeadingsChanged( wxCommandEvent& event);
+    void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);
     void EffectsPaint(wxPaintEvent& event);
+    void ResizeAndMakeEffectsScroll();
     // Panels
-    wxPanel* effectsPnl;
-    wxNotebook* effectsNotebook;
+    TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
     EffectsPanel* EffectsPanel2;
     wxFlexGridSizer* FlexGridEffects;

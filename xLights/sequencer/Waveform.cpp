@@ -158,12 +158,12 @@ void Waveform::ScrollWaveRight(int xBasedSpeed)
     tmrScrollRight->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
 }
 
-Waveform::Waveform(wxPanel* parent, wxWindow* mainWindow,int* args) :
-    wxGLCanvas(parent, wxID_ANY,args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+                   long style, const wxString &name):
+                   wxGLCanvas(parent,wxID_ANY,nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mIsInitialized = false;
     mParent = parent;
-    mMainWindow = mainWindow;
     m_context = new wxGLContext(this);
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel=10;

@@ -2838,6 +2838,10 @@ void EffectsPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
     EffectChanged=true;
+    wxScrolledWindow* w = (wxScrolledWindow*)Choicebook1->GetPage(Choicebook1->GetSelection());
+    w->FitInside();
+    w->SetScrollRate(5, 5);
+    w->Refresh();
 }
 
 void EffectsPanel::UpdateSpeedText()

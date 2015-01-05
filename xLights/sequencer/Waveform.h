@@ -39,7 +39,8 @@ class Waveform : public wxGLCanvas
 
         void PositionSelected(int x);
 
-        Waveform(wxPanel* parent, wxWindow* mainWindow,int* args);
+        Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+                const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
         virtual ~Waveform();
 
 

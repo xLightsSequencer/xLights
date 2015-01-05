@@ -5,6 +5,10 @@
 #include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
+#include "RowHeading.h"
+#include "EffectsGrid.h"
+#include "Waveform.h"
+
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 
@@ -17,13 +21,13 @@ class MainSequencer: public wxPanel
 
 		//(*Declarations(MainSequencer)
 		wxPanel* panelEffectScrollBarSpacer;
-		wxPanel* PanelRowHeadings;
+		EffectsGrid* PanelEffectGrid;
 		wxScrolledWindow* ScrolledEffectsGrid;
 		wxScrollBar* ScrollBarEffectGridHorz;
-		wxPanel* PanelTimeLine;
+		RowHeading* PanelRowHeadings;
 		wxPanel* PanelPlayControls;
-		wxPanel* PanelEffectGrid;
-		wxPanel* PanelWaveForm;
+		Waveform* PanelWaveForm;
+		TimeLine* PanelTimeLine;
 		//*)
 
 	protected:
