@@ -413,10 +413,10 @@ void Waveform::DrawWaveView(WaveView wv)
     glVertex2f(mSelectedPosition+1,getHeight()-1);
     glEnd();
 
-
-
+    glFlush();
     SwapBuffers();
 }
+
 
 void Waveform::SetCanvasSize(int width,int height)
 {

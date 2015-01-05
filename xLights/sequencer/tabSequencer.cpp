@@ -181,28 +181,21 @@ void xLightsFrame::WindowResized( wxCommandEvent& event)
 {
     ResizeAndMakeEffectsScroll();
 
-
-
     //Play Controls
     mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
+
     // Wave Form and Timeline
     mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
     mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
 
-    mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
-    mainSequencer->PanelRowHeadings->SetCanvasSize(175,2200);
-
     mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
     mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,2200));
+    mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,2200));
 
     mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
     mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
-
-    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
+    mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(1200,2200));
 
     mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
     mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
@@ -212,19 +205,10 @@ void xLightsFrame::WindowResized( wxCommandEvent& event)
     mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
     mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
-
-
-    mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
-    mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
-    mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
-    mainSequencer->PanelEffectGrid->InitializeGrid();
-
-
-
-
-
-
-
+    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,700));
+    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,700));
+    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,700));
+    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
 
 }
 
