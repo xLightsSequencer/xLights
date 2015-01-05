@@ -67,6 +67,7 @@ class TimingPanel: public wxPanel
 		void OnBitmapButton_FadeInClick(wxCommandEvent& event);
 		void OnBitmapButton_FitToTimeClick(wxCommandEvent& event);
 		void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

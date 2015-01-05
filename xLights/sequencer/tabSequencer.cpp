@@ -180,36 +180,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 void xLightsFrame::WindowResized( wxCommandEvent& event)
 {
     ResizeAndMakeEffectsScroll();
-
-    //Play Controls
-    mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
-    mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
-
-    // Wave Form and Timeline
-    mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
-    mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
-
-    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
-    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,2200));
-    mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,2200));
-
-    mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
-    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
-    mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(1200,2200));
-
-    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
-    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
-    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
-
-    mainSequencer->ScrollBarEffectGridHorz->SetSize(1200,20);
-    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
-    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
-
-    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
-
+    ResizeMainSequencer();
 }
 
 void xLightsFrame::ResizeAndMakeEffectsScroll()
@@ -262,6 +233,53 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     sw->FitInside();
     sw->SetScrollRate(5, 5);
     sw->Refresh();
+}
+
+void xLightsFrame::ResizeMainSequencer()
+{
+    //Play Controls
+    wxSize s = mainSequencer->GetSize();
+    int w = s.GetX();
+    int h = s.GetY();
+
+    mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
+    mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
+
+    // Wave Form and Timeline
+    mainSequencer->PanelWaveForm->SetCanvasSize(w-175,75);
+    mainSequencer->PanelTimeLine->SetCanvasSize(w-175,25);
+
+    int effectHeight = mSequenceElements.GetRowInformationSize()* DEFAULT_ROW_HEADING_HEIGHT > h-120?
+                       mSequenceElements.GetRowInformationSize()* DEFAULT_ROW_HEADING_HEIGHT:h-120;
+    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,effectHeight));
+    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,effectHeight));
+    mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,effectHeight));
+
+    mainSequencer->PanelEffectGrid->SetSize(wxSize(w-175,effectHeight));
+    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(w-175,effectHeight));
+    mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(w-175,effectHeight));
+
+    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
+    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
+    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
+
+    mainSequencer->ScrollBarEffectGridHorz->SetSize(w-175,20);
+    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(w-175,20));
+    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(w-175,20));
+
+    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(w,h-120));
+    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(w,h-120));
+    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(w,h-120));
+    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
+    mainSequencer->ScrolledEffectsGrid->FitInside();
+
+    mainSequencer->PanelWaveForm->Refresh();
+    mainSequencer->PanelTimeLine->Refresh();
+    mainSequencer->PanelRowHeadings->Refresh();
+    mainSequencer->PanelEffectGrid->Refresh();
+    mainSequencer->panelEffectScrollBarSpacer->Refresh();
+    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+    mainSequencer->ScrolledEffectsGrid->Refresh();
 }
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)

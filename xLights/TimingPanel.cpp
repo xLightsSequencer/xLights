@@ -151,3 +151,9 @@ void TimingPanel::OnBitmapButton_FitToTimeClick(wxCommandEvent& event)
 void TimingPanel::OnBitmapButton_OverlayBkgClick(wxCommandEvent& event)
 {
 }
+
+void TimingPanel::OnResize(wxSizeEvent& event)
+{
+
+
+}

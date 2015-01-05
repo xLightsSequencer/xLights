@@ -44,5 +44,4 @@ void TopEffectsPanel::OnResize(wxSizeEvent& event)
     wxCommandEvent eventWindowResized(EVT_WINDOW_RESIZED);
     wxPostEvent(GetParent(), eventWindowResized);
     Refresh();
-
 }

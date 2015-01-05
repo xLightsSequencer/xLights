@@ -38,8 +38,6 @@ enum
 
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
-
-
 BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
 //EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
 //EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
@@ -54,7 +52,6 @@ EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 //EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
 EVT_PAINT(Waveform::render)
 END_EVENT_TABLE()
-
 // Custom Events
 
 void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
@@ -284,7 +281,6 @@ int Waveform::GetTrackSize(mpg123_handle *mh)
 
 void Waveform::render( wxPaintEvent& event )
 {
-
     if(!mIsInitialized)
         return;
     wxGLCanvas::SetCurrent(*m_context);
@@ -294,22 +290,12 @@ void Waveform::render( wxPaintEvent& event )
     DrawWaveView(views[mCurrentWaveView]); // continue the event
     glFlush();
     SwapBuffers();
-
 }
 
 void Waveform::DrawWaveView(WaveView wv)
 {
-    int w,h;
-
-    GetSize(&w,&h);
-
-    if(getWidth() !=w || getHeight()!= h)
-        SetCanvasSize(w,h);
-
     int x,y1,y2,y1_2,y2_2;
     int index;
-    int k = getHeight();
-//    glColor3ub(255,255,255);
     glColor3ub(212,208,200);
     glBegin(GL_QUADS);
     glVertex2f(0, 0);
@@ -331,7 +317,6 @@ void Waveform::DrawWaveView(WaveView wv)
     glVertex2f(1,getHeight());
     glVertex2f(1,getHeight());
     glVertex2f(1, 0);
-
     glEnd();
 
     if (m_shaded_region_x1!=m_shaded_region_x2)
@@ -402,15 +387,6 @@ void Waveform::DrawWaveView(WaveView wv)
         }
     }
     glEnd();
-
-//    if (m_shaded_region_x1==m_shaded_region_x2)
-//    {
-//        glColor4ub(0,0,0,128);
-//        glBegin(GL_LINES);
-//        glVertex2f(m_shaded_region_x1, 1);
-//        glVertex2f(m_shaded_region_x1,getHeight()-1);
-//        glEnd();
-//    }
 
     glColor4ub(0,0,0,128);
     glBegin(GL_LINES);
