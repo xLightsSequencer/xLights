@@ -97,8 +97,10 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
-		67B30CDD1A583F7A009E23FF /* libmpg123.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
+		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
+		67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797181A5AE343008D5921 /* TimingPanel.cpp */; };
+		67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */; };
 		67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BC91021A3FD22F00905A53 /* RenderOn.cpp */; };
 		67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */; };
 		67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6488619E3396C006526CD /* RenderCoroFaces.cpp */; };
@@ -245,6 +247,11 @@
 		67B4C92717B53DB50006B951 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		67B4C92B17B53DE70006B951 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		67B4C92C17B53DE70006B951 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
+		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorPanel.cpp; sourceTree = "<group>"; };
+		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimingPanel.cpp; sourceTree = "<group>"; };
+		67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopEffectsPanel.cpp; sourceTree = "<group>"; };
+		67B7971D1A5AE3CA008D5921 /* libmpg123.la */ = {isa = PBXFileReference; lastKnownFileType = text; name = libmpg123.la; path = lib/osx/libmpg123.la; sourceTree = "<group>"; };
+		67B7971F1A5AE40B008D5921 /* libmpg123.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmpg123.a; path = lib/osx/libmpg123.a; sourceTree = "<group>"; };
 		67BAE6E21A08252700CB7041 /* spxml-0.5 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "spxml-0.5"; path = "include/spxml-0.5"; sourceTree = SOURCE_ROOT; };
 		67BC91021A3FD22F00905A53 /* RenderOn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderOn.cpp; sourceTree = "<group>"; };
 		67BEB4E018070DF900A51656 /* RenderSingleStrand.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderSingleStrand.cpp; sourceTree = "<group>"; };
@@ -274,7 +281,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				67B30CDD1A583F7A009E23FF /* libmpg123.0.dylib in Frameworks */,
 				679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */,
 				679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */,
 			);
@@ -339,6 +345,8 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67B7971F1A5AE40B008D5921 /* libmpg123.a */,
+				67B7971D1A5AE3CA008D5921 /* libmpg123.la */,
 				67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */,
 				67E7087017B51AB400A22034 /* Cocoa.framework */,
 				67E7087217B51AB400A22034 /* Other Frameworks */,
@@ -359,6 +367,9 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
+				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
+				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
 				6784F9201A5653670018EC0C /* EffectsGrid.cpp */,
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				6784F9221A5653670018EC0C /* ElementEffects.cpp */,
@@ -606,6 +617,7 @@
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
 				67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */,
+				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */,
 				67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */,
@@ -616,6 +628,7 @@
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */,
 				67A61A4017B51C0F008E95BB /* RenderPictures.cpp in Sources */,
+				67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
 				67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */,
 				67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */,
@@ -648,6 +661,7 @@
 				6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */,
 				67A61A5417B51C0F008E95BB /* ShowDatesDialog.cpp in Sources */,
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
+				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
@@ -745,6 +759,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/lib",
 					"-L/opt/local/lib",
+					"-Llib/osx",
+					lib/osx/libmpg123.a,
 					"-framework",
 					IOKit,
 					"-framework",
@@ -824,6 +840,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/lib",
 					"-L/opt/local/lib",
+					"-Llib/osx",
+					lib/osx/libmpg123.a,
 					"-framework",
 					IOKit,
 					"-framework",
