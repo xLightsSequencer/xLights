@@ -26,6 +26,20 @@
 						<label>Open</label>
 					</object>
 					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarItemSave" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE" />
+							<shorthelp>Save</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarItem2" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE_AS" />
+							<shorthelp>Save As</shorthelp>
+						</object>
+						<label>Save As</label>
+					</object>
+					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY" variable="AuiToolBarItemPlayButton" member="no">
 							<bitmap code="control_play_blue_icon" />
 							<shorthelp>Play</shorthelp>

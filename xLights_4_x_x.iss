@@ -48,12 +48,12 @@ Source: "License.txt"; DestDir: "{app}";
 Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
-;Icons] 
-;Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon
+[Icons] 
+Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon
 
 
-;[Run]
-;Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
+[Run]
+Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent 
 
 
 [Registry]

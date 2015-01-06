@@ -494,6 +494,7 @@ private:
     void OnPanelSequencerPaint(wxPaintEvent& event);
     void OnBitmapButton1Click(wxCommandEvent& event);
     void OnBitmapButton3Click(wxCommandEvent& event);
+    void OnMainToolBarDropdown(wxAuiToolBarEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -508,6 +509,8 @@ private:
     //(*Identifiers(xLightsFrame)
     static const long ID_AUITOOLBAR_OPENSHOW;
     static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBARITEM2;
+    static const long ID_AUITOOLBARITEM3;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
