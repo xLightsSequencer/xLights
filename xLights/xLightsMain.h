@@ -512,15 +512,17 @@ private:
     static const long ID_AUITOOLBAR_OPEN;
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
-    static const long ID_AUITOOLBAR_PLAY;
+    static const long ID_AUITOOLBAR_MAIN;
+    static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
+    static const long ID_AUITOOLBAR_PLAY;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
     static const long ID_BUTTON_LIGHTS_OFF;
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
-    static const long ID_AUITOOLBAR_MAIN;
+    static const long ID_AUITOOLBAR_OUTPUT;
     static const long ID_STATICTEXT_SETUP1;
     static const long ID_STATICTEXT_DIRNAME;
     static const long ID_BUTTON_CHANGEDIR;
@@ -815,6 +817,7 @@ private:
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
     wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
+    xlAuiToolBar* PlayToolBar;
     wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
     wxButton* Button_CoroGroupDelete;
@@ -978,6 +981,7 @@ private:
     wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
+    xlAuiToolBar* OutputToolBar;
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
