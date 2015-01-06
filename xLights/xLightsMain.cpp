@@ -2898,8 +2898,15 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
     }
     Grid1->GetParent()->GetSizer()->Layout();
 }
+
+void createACrash() {
+    int *foo = NULL;
+    *foo = 1;
+}
+
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 {
+    createACrash();
 }
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
@@ -2907,6 +2914,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     if (SeqData.size() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
+        createACrash();
         return;
     }
     wxString NewFilename;

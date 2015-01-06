@@ -20,6 +20,9 @@ public:
     static bool WantDebug; //debug flag from command-line -DJ
     static bool RunPrompt; //prompt before running schedule (allows override) -DJ
     static wxString DebugPath; //path name for debug log file -DJ
+    
+    virtual void OnFatalException();
+
 };
 
 #endif // XLIGHTSAPP_H
