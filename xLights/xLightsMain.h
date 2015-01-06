@@ -1453,6 +1453,7 @@ private:
     void EffectsResize(wxSizeEvent& event);
     void EffectsPaint(wxPaintEvent& event);
     void ResizeAndMakeEffectsScroll();
+    void ResizeMainSequencer();
     // Panels
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;

@@ -11,6 +11,7 @@
 
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 
 class MainSequencer: public wxPanel
 {
@@ -49,6 +50,7 @@ class MainSequencer: public wxPanel
 		void OnPanelWaveFormPaint(wxPaintEvent& event);
 		void OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event);
 		void OnPaint(wxPaintEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
         void TimeLineChanged( wxCommandEvent& event);

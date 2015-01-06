@@ -1,5 +1,6 @@
 #include "MainSequencer.h"
 #include "TimeLine.h"
+#include <wx/event.h>
 
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
@@ -124,4 +125,12 @@ void MainSequencer::OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event)
 
 void MainSequencer::OnPaint(wxPaintEvent& event)
 {
+}
+
+void MainSequencer::OnResize(wxSizeEvent& event)
+{
+    wxCommandEvent eventWindowResized(EVT_WINDOW_RESIZED);
+    wxPostEvent(GetParent(), eventWindowResized);
+    Refresh();
+
 }
