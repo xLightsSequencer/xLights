@@ -126,7 +126,7 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP</style>
+					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER</style>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_SETUP" variable="PanelSetup" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerSetup" member="no">
@@ -2995,6 +2995,8 @@
 				<dockdirection>Center</dockdirection>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
+				<movable>0</movable>
+				<paneborder>0</paneborder>
 				<destroyonclose>0</destroyonclose>
 				<firstadd>0</firstadd>
 			</object>

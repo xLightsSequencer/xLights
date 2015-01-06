@@ -533,7 +533,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
-    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP);
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -1438,7 +1438,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PanelCal, _("Schedule"));
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
-    MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().Movable(false));
+    MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
     MainAuiManager->Update();
     MenuBar1 = new wxMenuBar();
     MenuFile = new wxMenu();
