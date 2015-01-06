@@ -2495,20 +2495,28 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
-								<cols>2</cols>
+								<cols>1</cols>
 								<growablecols>1</growablecols>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton_pinwheel" member="yes">
-										<bitmap code="pinwheel" />
-										<size>21,21</size>
-										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON33" variable="BitmapButton_pinwheel" member="yes">
+												<bitmap code="pinwheel" />
+												<size>21,21</size>
+												<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2548,7 +2556,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2585,7 +2593,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2622,7 +2630,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2657,7 +2665,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2693,7 +2701,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2733,7 +2741,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -2758,7 +2766,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -2784,7 +2792,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>

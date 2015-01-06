@@ -27,6 +27,7 @@ BEGIN {
 	line++;
 	h++;	# header line counter
 	#print header,h,n, tr,$0;
+	$0=fix($0);
 
 	if($1=="<td>Label</td>")
 	{
@@ -248,7 +249,7 @@ function xml_footer(maxN,seconds_array,t1,t2)
 		print "</Element>";
 	}
 
-		if(length(t2)>0)
+	if(length(t2)>0)
 	{
 		print "<Element type='timing' name=\"t2\">";
 		while (getline<t2 > 0)
@@ -309,3 +310,49 @@ function sort(array,   haschanged, len, tmp, i)
 	}
 }
 
+function fix(buff)
+{
+	#	print "IN ",buff);
+	gsub("D_CHECKBOX_LayerMorph","T_CHECKBOX_LayerMorph",buff);
+	gsub("ID_SLIDER_EffectLayerMix","T_SLIDER_EffectLayerMix",buff);
+	gsub("E1_SLIDER_Speed","T1_SLIDER_Speed",buff);
+	gsub("E1_TEXTCTRL_Fadeout","T1_TEXTCTRL_Fadeout",buff);
+	gsub("E1_TEXTCTRL_Fadein","T1_TEXTCTRL_Fadein",buff);
+	gsub("E1_CHECKBOX_FitToTime","T1_CHECKBOX_FitToTime",buff);
+	gsub("E1_CHECKBOX_OverlayBkg","T1_CHECKBOX_OverlayBkg",buff);
+	gsub("E2_TEXTCTRL_Fadeout","T2_TEXTCTRL_Fadeout",buff);
+	gsub("E2_TEXTCTRL_Fadein","T2_TEXTCTRL_Fadein",buff);
+	gsub("E2_CHECKBOX_FitToTime","T2_CHECKBOX_FitToTime",buff);
+	gsub("E2_CHECKBOX_OverlayBkg","T2_CHECKBOX_OverlayBkg",buff);
+	gsub("ID_SLIDER_SparkleFrequency","C_ID_SLIDER_SparkleFrequency",buff);
+	gsub("ID_SLIDER_Brightness","C_ID_SLIDER_Brightness",buff);
+	gsub("ID_SLIDER_Contrast","C_ID_SLIDER_Contrast",buff);
+	gsub("E1_BUTTON_Palette1","C1_BUTTON_Palette1",buff);
+	gsub("E1_BUTTON_Palette2","C1_BUTTON_Palette2",buff);
+	gsub("E1_BUTTON_Palette3","C1_BUTTON_Palette3",buff);
+	gsub("E1_BUTTON_Palette4","C1_BUTTON_Palette4",buff);
+	gsub("E1_BUTTON_Palette5","C1_BUTTON_Palette5",buff);
+	gsub("E1_BUTTON_Palette6","C1_BUTTON_Palette6",buff);
+	gsub("E2_BUTTON_Palette1","C2_BUTTON_Palette1",buff);
+	gsub("E2_BUTTON_Palette2","C2_BUTTON_Palette2",buff);
+	gsub("E2_BUTTON_Palette3","C2_BUTTON_Palette3",buff);
+	gsub("E2_BUTTON_Palette4","C2_BUTTON_Palette4",buff);
+	gsub("E2_BUTTON_Palette5","C2_BUTTON_Palette5",buff);
+	gsub("E2_BUTTON_Palette6","C2_BUTTON_Palette6",buff);
+	gsub("E1_CHECKBOX_Palette1","C1_CHECKBOX_Palette1",buff);
+	gsub("E1_CHECKBOX_Palette2","C1_CHECKBOX_Palette2",buff);
+	gsub("E1_CHECKBOX_Palette3","C1_CHECKBOX_Palette3",buff);
+	gsub("E1_CHECKBOX_Palette4","C1_CHECKBOX_Palette4",buff);
+	gsub("E1_CHECKBOX_Palette5","C1_CHECKBOX_Palette5",buff);
+	gsub("E1_CHECKBOX_Palette6","C1_CHECKBOX_Palette6",buff);
+	gsub("E2_CHECKBOX_Palette1","C2_CHECKBOX_Palette1",buff);
+	gsub("E2_CHECKBOX_Palette2","C2_CHECKBOX_Palette2",buff);
+	gsub("E2_CHECKBOX_Palette3","C2_CHECKBOX_Palette3",buff);
+	gsub("E2_CHECKBOX_Palette4","C2_CHECKBOX_Palette4",buff);
+	gsub("E2_CHECKBOX_Palette5","C2_CHECKBOX_Palette5",buff);
+	gsub("E2_CHECKBOX_Palette6","C2_CHECKBOX_Palette6",buff);
+
+	#	print "OUT",buff);
+
+	return buff;
+}
