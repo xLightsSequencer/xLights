@@ -15,6 +15,9 @@
 #include <wx/image.h>
 //*)
 
+#include <wx/debugrpt.h>
+
+
 IMPLEMENT_APP(xLightsApp)
 
 bool xLightsApp::OnInit()
@@ -50,6 +53,7 @@ bool xLightsApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
+    wxHandleFatalExceptions();
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
@@ -60,6 +64,39 @@ bool xLightsApp::OnInit()
 
     return wxsOK;
 }
+
+#ifdef __WXOSX__
+#include <execinfo.h>
+#endif
+
+void xLightsApp::OnFatalException() {
+    xLightsFrame *frame = (xLightsFrame*)GetTopWindow();
+    wxDebugReportCompress report;
+    report.SetCompressedFileDirectory(frame->CurrentDir);
+    report.AddAll(wxDebugReport::Context_Exception);
+    report.AddFile(wxFileName(frame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
+    report.AddFile(wxFileName(frame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    if (frame->SeqXmlFileName != "") {
+        report.AddFile(frame->SeqXmlFileName, wxFileName(frame->SeqXmlFileName).GetName());
+    }
+#ifdef __WXOSX__
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    wxString backtrace;
+    for (i = 0; i < frames; ++i) {
+        backtrace += strs[i];
+        backtrace += "\n";
+    }
+    free(strs);
+    report.AddText("osx-backtrace.txt", backtrace, "OSX Backtrace");
+#endif
+    if (wxDebugReportPreviewStd().Show(report)) {
+        report.Process();
+    }
+}
+
+
 //global flags from command line:
 bool xLightsApp::WantDebug = false;
 bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
