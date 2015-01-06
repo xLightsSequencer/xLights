@@ -3103,9 +3103,9 @@
 			</object>
 		</object>
 		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
-			<fields>2</fields>
-			<widths>-1,-1</widths>
-			<styles>wxSB_NORMAL,wxSB_NORMAL</styles>
+			<fields>3</fields>
+			<widths>-50,-35,-15</widths>
+			<styles>wxSB_NORMAL,wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">
 			<message>Select directory</message>

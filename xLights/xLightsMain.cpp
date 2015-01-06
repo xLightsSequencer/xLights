@@ -1499,10 +1499,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuBar1->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar1);
     StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[2] = { -1, -1 };
-    int __wxStatusBarStyles_1[2] = { wxSB_NORMAL, wxSB_NORMAL };
-    StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
-    StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
+    int __wxStatusBarWidths_1[3] = { -50, -35, -15 };
+    int __wxStatusBarStyles_1[3] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };
+    StatusBar1->SetFieldsCount(3,__wxStatusBarWidths_1);
+    StatusBar1->SetStatusStyles(3,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
