@@ -68,11 +68,6 @@ void xLightsFrame::InitSequencer()
         sPreview1->InitializePreview();
         m_mgr->AddPane(sPreview1, wxLEFT, wxT("Model Preview 1"));
 
-        sPreview2 = new SequencePreview(PanelSequencer,args);
-        sPreview2->SetSize(wxSize(200,200));
-        sPreview2->InitializePreview();
-        m_mgr->AddPane(sPreview2, wxLEFT, wxT("Model Preview 2"));
-
         effectsPnl = new TopEffectsPanel(PanelSequencer);
         EffectsPanel1 = new EffectsPanel(effectsPnl->EffectsNotebook, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
         EffectsPanel2 = new EffectsPanel(effectsPnl->EffectsNotebook, ID_PANEL_EFFECTS2, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2"));
@@ -97,14 +92,22 @@ void xLightsFrame::InitSequencer()
             w->SetScrollRate(5, 5);
         }
 
+        colorPanel = new ColorPanel(PanelSequencer);
+        timingPanel = new TimingPanel(PanelSequencer);
+
         m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effects")).Caption(wxT("Effects")).
-                       BestSize(wxSize(175,175)).MinSize(wxSize(200,100)).Left());
+                       BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
+
+        m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).
+                       BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
+
+        m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer/Timing")).
+                       BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
 
         m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
         m_mgr->Update();
 
         sPreview1->Refresh();
-        sPreview2->Refresh();
 }
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)
@@ -285,4 +288,201 @@ void xLightsFrame::ResizeMainSequencer()
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
     mainSequencer->ScrollBarEffectGridHorz->Update();
+}
+
+void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
+{
+    Element* element = (Element*)event.GetClientData();
+    if(element->GetType() == "model")
+    {
+        int effectIndex = event.GetInt();
+        Effect_Struct* effect = element->GetElementEffects()->GetEffect(effectIndex);
+        SetEffectControls(effect->Effect,element->GetName());
+    }
+}
+
+
+
+void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_name)
+{
+    long TempLong;
+    wxColour color;
+    wxWindow *CtrlWin, *ContextWin;
+    wxString before,after,name,value;
+    EffectsPanel *efPanel;
+    int cnt=0;
+
+//NOTE: the settings loop after this section does not initialize controls.
+//For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
+//A loop needs to be added to initialize the wx controls to a predictable value.
+//For now, a few recently added controls are explicitly initialized here:
+//(not sure if there will be side effects to using a full loop) -DJ
+//~    CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel2->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
+    EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
+
+
+    while (!settings.IsEmpty())
+    {
+//NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
+        before=settings.BeforeFirst(',');
+        after=settings.AfterFirst(',');
+        switch (cnt)
+        {
+        case 0:
+            SetChoicebook(EffectsPanel1->Choicebook1,before);
+            break;
+        case 1:
+            SetChoicebook(EffectsPanel2->Choicebook1,before);
+            break;
+        case 2:
+//~            Choice_LayerMethod->SetStringSelection(before);
+            break;
+        default:
+            name=before.BeforeFirst('=');
+            if (name.StartsWith("E1_"))
+            {
+                ContextWin=EffectsPanel1;
+                name="ID_"+name.Mid(3);
+                efPanel = EffectsPanel1;
+            }
+            else if (name.StartsWith("E2_"))
+            {
+                ContextWin=EffectsPanel2;
+                name="ID_"+name.Mid(3);
+                efPanel = EffectsPanel2;
+            }
+            else
+            {
+                efPanel = NULL;
+                ContextWin=SeqPanelLeft;
+            }
+            value=before.AfterFirst('=');
+            CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
+            if (CtrlWin)
+            {
+                if (name.StartsWith("ID_SLIDER"))
+                {
+                    wxSlider* ctrl=(wxSlider*)CtrlWin;
+                    if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong);
+                }
+                else if (name.StartsWith("ID_TEXTCTRL"))
+                {
+                    value.Replace("&comma;", ",", true); //kludge: remove escape code for "," -DJ
+                    wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
+                    ctrl->SetValue(value);
+                }
+                else if (name.StartsWith("ID_CHOICE"))
+                {
+                    wxChoice* ctrl=(wxChoice*)CtrlWin;
+                    ctrl->SetStringSelection(value);
+                }
+                else if (name.StartsWith("ID_BUTTON"))
+                {
+                    color.Set(value);
+                    if (efPanel != NULL)
+                    {
+//~                        efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
+                    }
+                    else
+                    {
+                        CtrlWin->SetBackgroundColour(color);
+                    }
+                    //CtrlWin->SetBackgroundColour(color);
+                    //SetTextColor(CtrlWin);
+                }
+                else if (name.StartsWith("ID_CHECKBOX"))
+                {
+                    wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
+                    if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
+                }
+                else if (name.StartsWith("ID_NOTEBOOK"))
+                {
+                    wxNotebook* ctrl=(wxNotebook*)CtrlWin;
+                    for (int z = 0 ; z < ctrl->GetPageCount() ; z++)
+                    {
+                        if (value == ctrl->GetPageText(z))
+                        {
+                            ctrl->SetSelection(z);
+                        }
+                    }
+                }
+#if 0 //obsolete
+                else if (name.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
+                {
+                    wxCheckListBox* ctrl = (wxCheckListBox*)CtrlWin;
+//                    ctrl->Clear();
+//                    if (!model_name.empty())
+                    if (model_name != prev_model) //load face elements from current model
+                        load_face_elements(model_name, ctrl);
+                    debug(10, "set %s from value '%s', model = '%s'", (const char*)name, (const char*)value.c_str(), (const char*)buffer.name.c_str());
+                    wxStringTokenizer wtkz(value, "+");
+                    while (wtkz.HasMoreTokens())
+                    {
+                        wxString nextkey = wtkz.GetNextToken();
+                        if (nextkey.empty()) break; //continue;
+//                        long keyval; //= wxAtoi(nextinx);
+//                        if (nextkey.ToLong(&keyval)) continue;
+                        debug(10, "on[%s]", (const char*)nextkey.c_str());
+                        if (model_name.empty()) //presets effects tree?
+                            if (model_name != prev_model)
+                            {
+                                ctrl->Append(nextkey); //just use value as-is; other values will be filled in when it's copied into grid
+                                ctrl->Check(ctrl->GetCount()); //kludge: turn them all on to preserve them
+                                continue;
+                            }
+                        nextkey = nextkey.BeforeFirst(':'); //strip off the part that can change between models
+//                        ctrl->Check(key); //wrong!
+                        for (int i = 0; i < ctrl->GetCount(); ++i)
+                        {
+                            debug(10, "vs. val str[%d/%d] = '%s', key '%s'", i, ctrl->GetCount(), (const char*)ctrl->GetString(i).c_str(), (const char*)ctrl->GetString(i).BeforeFirst(':').c_str());
+                            if (ctrl->GetString(i).BeforeFirst(':') == nextkey)
+                            {
+                                ctrl->Check(i); //match by key (doesn't change), not by index
+                                break;
+                            }
+                        }
+                    }
+                    prev_model = model_name; //remember which model is cached
+                }
+#endif // 0
+                else
+                {
+                    wxMessageBox("Unknown type: "+name, "Internal Error");
+                }
+            }
+            else
+            {
+                wxMessageBox("Unable to find: "+name, "Internal Error");
+            }
+            break;
+        }
+        settings=after;
+        cnt++;
+    }
+    // set textbox values for sliders that have them
+    wxScrollEvent evt;
+    OnSlider_BrightnessCmdScroll(evt);
+    OnSlider_ContrastCmdScroll(evt);
+    OnSlider_EffectLayerMixCmdScroll(evt);
+
+    OnSlider_SparkleFrequencyCmdScroll(evt);
+//    OnSlider_Model_BrightnessCmdScroll(evt);
+//   OnSlider_SparkleSliderCmdScroll(evt);
+
+    EffectsPanel1->UpdateSpeedText();
+    EffectsPanel2->UpdateSpeedText();
+
+    MixTypeChanged=true;
+    FadesChanged=true;
+    EffectsPanel1->PaletteChanged=true;
+    EffectsPanel2->PaletteChanged=true;
+    ResetEffectStates(playResetEffectState);
 }

@@ -195,8 +195,10 @@ bool ElementEffects::HitTestEffect(int position,int &index, int &result)
     return isHit;
 }
 
-void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
+void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
 {
+    bool FirstSelectedFound = false;
+    FirstSelected = -1;
     for(int i=0;i<mEffects.size();i++)
     {
         if(mEffects[i].StartPosition < 0 &&
@@ -214,6 +216,11 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
             if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
             {
                 mEffects[i].Selected = EFFECT_SELECTED;
+                if(!FirstSelectedFound)
+                {
+                    FirstSelectedFound = true;
+                    FirstSelected = i;
+                }
             }
             else
             {
@@ -225,6 +232,11 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
             if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
             {
                 mEffects[i].Selected = EFFECT_SELECTED;
+                if(!FirstSelectedFound)
+                {
+                    FirstSelectedFound = true;
+                    FirstSelected = i;
+                }
             }
             else
             {
@@ -237,6 +249,11 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
             if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
             {
                 mEffects[i].Selected = EFFECT_LT_SELECTED;
+                if(!FirstSelectedFound)
+                {
+                    FirstSelectedFound = true;
+                    FirstSelected = i;
+                }
             }
             else
             {
@@ -249,6 +266,11 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX)
             if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
             {
                 mEffects[i].Selected = EFFECT_RT_SELECTED;
+                if(!FirstSelectedFound)
+                {
+                    FirstSelectedFound = true;
+                    FirstSelected = i;
+                }
             }
             else
             {

@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include <wx/slider.h>
 #include <wx/panel.h>
+#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
 //*)
 
@@ -27,20 +28,38 @@ class TimingPanel: public wxPanel
 		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* TextCtrl_Speed;
 		wxBitmapButton* BitmapButton_OverlayBkg;
+		wxStaticText* StaticText1;
+		wxSlider* Slider_EffectLayerMix;
 		wxStaticText* StaticText3;
 		wxBitmapButton* BitmapButton_FadeOut;
 		wxBitmapButton* BitmapButton_Speed;
 		wxBitmapButton* BitmapButton_FadeIn;
+		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
+		wxCheckBox* CheckBox_LayerMorph;
+		wxChoice* Choice_LayerMethod;
+		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
 		wxSlider* Slider_Speed;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxStaticText* StaticText59;
+		wxTextCtrl* txtCtlEffectMix;
 		wxCheckBox* CheckBox_FitToTime;
 		//*)
 
 	protected:
 
 		//(*Identifiers(TimingPanel)
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Speed;
+		static const long ID_TEXTCTRL_Speed;
+		static const long ID_BITMAPBUTTON_SLIDER_Speed;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHECKBOX_LayerMorph;
+		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
+		static const long ID_CHOICE_LayerMethod;
+		static const long ID_SLIDER_EffectLayerMix;
+		static const long ID_TEXTCTRL_LayerMix;
+		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_BITMAPBUTTON_TEXTCTRL_Fadein;
@@ -51,10 +70,6 @@ class TimingPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHECKBOX_FitToTime;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
-		static const long ID_STATICTEXT1;
-		static const long ID_SLIDER_Speed;
-		static const long ID_BITMAPBUTTON_SLIDER_Speed;
-		static const long ID_TEXTCTRL_Speed;
 		//*)
 
 	private:

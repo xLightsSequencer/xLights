@@ -78,7 +78,7 @@ class ElementEffects
     bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
 
     bool HitTestEffect(int position,int &index, int &result);
-    void SelectEffectsInPositionRange(int startX,int endX);
+    void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
     void UnSelectAllEffects();
 
     void Sort();

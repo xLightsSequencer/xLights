@@ -3,7 +3,10 @@
 
 //(*Headers(ColorPanel)
 #include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
@@ -28,8 +31,11 @@ class ColorPanel: public wxPanel
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(ColorPanel)
+		wxStaticText* StaticText22;
+		wxBitmapButton* BitmapButton_Contrast;
 		wxButton* Button_Palette6;
 		wxButton* Button_Palette3;
+		wxBitmapButton* BitmapButton_Brightness;
 		wxButton* Button_Palette2;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxCheckBox* CheckBox_Palette6;
@@ -37,14 +43,23 @@ class ColorPanel: public wxPanel
 		wxButton* Button_Palette5;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxCheckBox* CheckBox_Palette1;
+		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxCheckBox* CheckBox_Palette5;
+		wxStaticText* StaticText127;
+		wxTextCtrl* txtCtlBrightness;
+		wxTextCtrl* txtCtlContrast;
 		wxBitmapButton* BitmapButton_Palette1;
 		wxCheckBox* CheckBox_Palette3;
 		wxCheckBox* CheckBox_Palette4;
+		wxSlider* Slider_Brightness;
 		wxButton* Button_Palette4;
 		wxBitmapButton* BitmapButton_Palette4;
+		wxStaticText* StaticText126;
+		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Palette5;
 		wxCheckBox* CheckBox_Palette2;
+		wxTextCtrl* txtCtrlSparkleFreq;
+		wxSlider* Slider_Contrast;
 		wxBitmapButton* BitmapButton_Palette6;
 		wxButton* Button_Palette1;
 		//*)
@@ -53,23 +68,35 @@ class ColorPanel: public wxPanel
 
 		//(*Identifiers(ColorPanel)
 		static const long ID_CHECKBOX1;
-		static const long ID_BUTTON_Palette1;
-		static const long ID_BITMAPBUTTON_BUTTON_Palette1;
 		static const long ID_CHECKBOX_Palette2;
-		static const long ID_BUTTON_Palette2;
-		static const long ID_BITMAPBUTTON_BUTTON_Palette2;
 		static const long ID_CHECKBOX_Palette3;
-		static const long ID_BUTTON_Palette3;
-		static const long ID_BITMAPBUTTON_BUTTON_Palette3;
 		static const long ID_CHECKBOX_Palette4;
-		static const long ID_BUTTON_Palette4;
-		static const long ID_BITMAPBUTTON_BUTTON_Palette4;
 		static const long ID_CHECKBOX_Palette5;
-		static const long ID_BUTTON_Palette5;
-		static const long ID_BITMAPBUTTON_BUTTON_Palette5;
 		static const long ID_CHECKBOX_Palette6;
+		static const long ID_BUTTON_Palette1;
+		static const long ID_BUTTON_Palette2;
+		static const long ID_BUTTON_Palette3;
+		static const long ID_BUTTON_Palette4;
+		static const long ID_BUTTON_Palette5;
 		static const long ID_BUTTON_Palette6;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette1;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette2;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette3;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette4;
+		static const long ID_BITMAPBUTTON_BUTTON_Palette5;
 		static const long ID_BITMAPBUTTON_BUTTON_Palette6;
+		static const long ID_STATICTEXT24;
+		static const long ID_SLIDER_SparkleFrequency;
+		static const long ID_TEXTCTRL5;
+		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
+		static const long ID_STATICTEXT127;
+		static const long ID_SLIDER_Brightness;
+		static const long ID_TEXTCTRL6;
+		static const long ID_BITMAPBUTTON_SLIDER_Brightness;
+		static const long ID_STATICTEXT128;
+		static const long ID_SLIDER_Contrast;
+		static const long ID_TEXTCTRL7;
+		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
 		//*)
 
 	private:

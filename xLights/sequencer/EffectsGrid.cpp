@@ -127,13 +127,23 @@ void EffectsGrid::RunMouseOverHitTests(Element* element,int x,int y)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
+    int FirstSelected;
     if(!(event.ShiftDown() || event.ControlDown()))
     {
         mSequenceElements->UnSelectAllEffects();
     }
 
     int row = GetRow(event.GetY());
-    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX());
+    if(row>=mSequenceElements->GetRowInformationSize())
+        return;
+    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX(),FirstSelected);
+    if(mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected && FirstSelected>=0)
+    {
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        RaiseSelectedEffectChanged(element,FirstSelected);
+    }
+    mSelectedRow = row;
+    mSelectedEffectIndex = FirstSelected;
     mPaintOnIdleCounter = 0;
 
     if(mResizingMode!=EFFECT_RESIZE_NO)
@@ -148,8 +158,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mDragEndX = event.GetX();
         mDragEndY = event.GetY();
    }
-    UpdateTimePosition(event.GetX());
-    event.Skip(true);
+
+   UpdateTimePosition(event.GetX());
+   event.Skip(true);
 }
 
 void EffectsGrid::UpdateTimePosition(int position)
@@ -178,7 +189,8 @@ void EffectsGrid::CheckForSelectionRectangle()
         int row2 =  startRow>endRow?startRow:endRow;
         int x1 = mDragStartX<=mDragEndX?mDragStartX:mDragEndX;
         int x2 = mDragStartX>mDragEndX?mDragStartX:mDragEndX;
-        mSequenceElements->SelectEffectsInRowAndPositionRange(row1,row2,x1,x2);
+        int firstSelected;
+        mSequenceElements->SelectEffectsInRowAndPositionRange(row1,row2,x1,x2,firstSelected);
     }
 }
 
@@ -825,14 +837,12 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_OUT);
             wxPostEvent(mParent, eventZoom);
-//            ZoomOut();
         }
         else
         {
             wxCommandEvent eventZoom(EVT_ZOOM);
             eventZoom.SetInt(ZOOM_IN);
             wxPostEvent(mParent, eventZoom);
-//            ZoomIn();
         }
     }
     else
@@ -844,6 +854,16 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
 int EffectsGrid::GetRow(int y)
 {
     return y/DEFAULT_ROW_HEADING_HEIGHT;
+}
+
+void EffectsGrid::RaiseSelectedEffectChanged(Element* element,int effectIndex)
+{
+    // Place effect pointer in client data
+    // and the effect index in the event integer
+    wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
+    eventEffectChanged.SetClientData(element);
+    eventEffectChanged.SetInt(effectIndex);
+    wxPostEvent(GetParent(), eventEffectChanged);
 }
 
 

@@ -20,12 +20,12 @@
 #define EFFECT_RESIZE_RIGHT                 2
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
 class EffectsGrid : public wxGLCanvas
 {
 
 public:
-	//EffectsGrid(wxWindow* parent, int* args);
 	EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
 
@@ -74,6 +74,7 @@ private:
     void RunMouseOverHitTests(Element * element,int x,int y);
     void UpdateTimePosition(int position);
     void CheckForSelectionRectangle();
+    void RaiseSelectedEffectChanged(Element* element,int effectIndex);
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
@@ -87,9 +88,11 @@ private:
     wxColour * mTimingVerticalLine;
 
     wxColour * mSelectionColor;
-
     wxWindow* mParent;
     TimeLine* mTimeline;
+
+    int mSelectedRow;
+    int mSelectedEffectIndex;
 
     int mResizingMode;
     bool mResizing;
@@ -100,7 +103,6 @@ private:
     int mDragEndY;
     ElementEffects* mElementEffects;
     int mResizeEffectIndex;
-    int mSelectedRow;
     int mPaintOnIdleCounter;
 
 

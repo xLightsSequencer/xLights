@@ -130,7 +130,7 @@ void xLightsFrame::PlayEffect()
     playBuffer.InitBuffer(ModelXml);
     ResetEffectStates(playResetEffectState);
     ClearEffectWindow();
-    playBuffer.SetMixType(Choice_LayerMethod->GetStringSelection());
+//~    playBuffer.SetMixType(Choice_LayerMethod->GetStringSelection());
     StatusBar1->SetStatusText(_("Playback: effect"));
     EnableSequenceControls(false);
 
@@ -244,189 +244,6 @@ static void load_face_elements(const wxString& model_name, wxCheckListBox* ctrl)
 }
 #endif // 0
 
-void xLightsFrame::SetEffectControls(wxString settings, const wxString& model_name)
-{
-    long TempLong;
-    wxColour color;
-    wxWindow *CtrlWin, *ContextWin;
-    wxString before,after,name,value;
-    EffectsPanel *efPanel;
-    int cnt=0;
-
-//NOTE: the settings loop after this section does not initialize controls.
-//For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
-//A loop needs to be added to initialize the wx controls to a predictable value.
-//For now, a few recently added controls are explicitly initialized here:
-//(not sure if there will be side effects to using a full loop) -DJ
-    CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel2->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel2->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel2->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel2->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
-
-
-    while (!settings.IsEmpty())
-    {
-//NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
-        before=settings.BeforeFirst(',');
-        after=settings.AfterFirst(',');
-        switch (cnt)
-        {
-        case 0:
-            SetChoicebook(EffectsPanel1->Choicebook1,before);
-            break;
-        case 1:
-            SetChoicebook(EffectsPanel2->Choicebook1,before);
-            break;
-        case 2:
-            Choice_LayerMethod->SetStringSelection(before);
-            break;
-        default:
-            name=before.BeforeFirst('=');
-            if (name.StartsWith("E1_"))
-            {
-                ContextWin=EffectsPanel1;
-                name="ID_"+name.Mid(3);
-                efPanel = EffectsPanel1;
-            }
-            else if (name.StartsWith("E2_"))
-            {
-                ContextWin=EffectsPanel2;
-                name="ID_"+name.Mid(3);
-                efPanel = EffectsPanel2;
-            }
-            else
-            {
-                efPanel = NULL;
-                ContextWin=SeqPanelLeft;
-            }
-            value=before.AfterFirst('=');
-            CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
-            if (CtrlWin)
-            {
-                if (name.StartsWith("ID_SLIDER"))
-                {
-                    wxSlider* ctrl=(wxSlider*)CtrlWin;
-                    if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong);
-                }
-                else if (name.StartsWith("ID_TEXTCTRL"))
-                {
-                    value.Replace("&comma;", ",", true); //kludge: remove escape code for "," -DJ
-                    wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
-                    ctrl->SetValue(value);
-                }
-                else if (name.StartsWith("ID_CHOICE"))
-                {
-                    wxChoice* ctrl=(wxChoice*)CtrlWin;
-                    ctrl->SetStringSelection(value);
-                }
-                else if (name.StartsWith("ID_BUTTON"))
-                {
-                    color.Set(value);
-                    if (efPanel != NULL)
-                    {
-//~                        efPanel->SetButtonColor((wxButton*)CtrlWin, &color);
-                    }
-                    else
-                    {
-                        CtrlWin->SetBackgroundColour(color);
-                    }
-                    //CtrlWin->SetBackgroundColour(color);
-                    //SetTextColor(CtrlWin);
-                }
-                else if (name.StartsWith("ID_CHECKBOX"))
-                {
-                    wxCheckBox* ctrl=(wxCheckBox*)CtrlWin;
-                    if (value.ToLong(&TempLong)) ctrl->SetValue(TempLong!=0);
-                }
-                else if (name.StartsWith("ID_NOTEBOOK"))
-                {
-                    wxNotebook* ctrl=(wxNotebook*)CtrlWin;
-                    for (int z = 0 ; z < ctrl->GetPageCount() ; z++)
-                    {
-                        if (value == ctrl->GetPageText(z))
-                        {
-                            ctrl->SetSelection(z);
-                        }
-                    }
-                }
-#if 0 //obsolete
-                else if (name.StartsWith("ID_CHECKLISTBOX")) //for Pgo Coro Face element list
-                {
-                    wxCheckListBox* ctrl = (wxCheckListBox*)CtrlWin;
-//                    ctrl->Clear();
-//                    if (!model_name.empty())
-                    if (model_name != prev_model) //load face elements from current model
-                        load_face_elements(model_name, ctrl);
-                    debug(10, "set %s from value '%s', model = '%s'", (const char*)name, (const char*)value.c_str(), (const char*)buffer.name.c_str());
-                    wxStringTokenizer wtkz(value, "+");
-                    while (wtkz.HasMoreTokens())
-                    {
-                        wxString nextkey = wtkz.GetNextToken();
-                        if (nextkey.empty()) break; //continue;
-//                        long keyval; //= wxAtoi(nextinx);
-//                        if (nextkey.ToLong(&keyval)) continue;
-                        debug(10, "on[%s]", (const char*)nextkey.c_str());
-                        if (model_name.empty()) //presets effects tree?
-                            if (model_name != prev_model)
-                            {
-                                ctrl->Append(nextkey); //just use value as-is; other values will be filled in when it's copied into grid
-                                ctrl->Check(ctrl->GetCount()); //kludge: turn them all on to preserve them
-                                continue;
-                            }
-                        nextkey = nextkey.BeforeFirst(':'); //strip off the part that can change between models
-//                        ctrl->Check(key); //wrong!
-                        for (int i = 0; i < ctrl->GetCount(); ++i)
-                        {
-                            debug(10, "vs. val str[%d/%d] = '%s', key '%s'", i, ctrl->GetCount(), (const char*)ctrl->GetString(i).c_str(), (const char*)ctrl->GetString(i).BeforeFirst(':').c_str());
-                            if (ctrl->GetString(i).BeforeFirst(':') == nextkey)
-                            {
-                                ctrl->Check(i); //match by key (doesn't change), not by index
-                                break;
-                            }
-                        }
-                    }
-                    prev_model = model_name; //remember which model is cached
-                }
-#endif // 0
-                else
-                {
-                    wxMessageBox("Unknown type: "+name, "Internal Error");
-                }
-            }
-            else
-            {
-                wxMessageBox("Unable to find: "+name, "Internal Error");
-            }
-            break;
-        }
-        settings=after;
-        cnt++;
-    }
-    // set textbox values for sliders that have them
-    wxScrollEvent evt;
-    OnSlider_BrightnessCmdScroll(evt);
-    OnSlider_ContrastCmdScroll(evt);
-    OnSlider_EffectLayerMixCmdScroll(evt);
-
-    OnSlider_SparkleFrequencyCmdScroll(evt);
-//    OnSlider_Model_BrightnessCmdScroll(evt);
-//   OnSlider_SparkleSliderCmdScroll(evt);
-
-    EffectsPanel1->UpdateSpeedText();
-    EffectsPanel2->UpdateSpeedText();
-
-    MixTypeChanged=true;
-    FadesChanged=true;
-    EffectsPanel1->PaletteChanged=true;
-    EffectsPanel2->PaletteChanged=true;
-    ResetEffectStates(playResetEffectState);
-}
 
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
@@ -514,22 +331,22 @@ wxString xLightsFrame::CreateEffectStringRandom()
         eff2 = EffectsPanel2->Choicebook1->GetSelection();
     }
 
-    layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
+//~    layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
     s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
 #if 0 // <SCM>
     s += ",ID_CHECKBOX_LayerMorph=0";
 #else
-    s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
+//~    s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
 #endif // 1
-    s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
+//~    s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
 
     //  first calculate it the old way
-    int newbrightness = isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue();
-    newbrightness=100; // but instead overwrite it. no matter what we are creating, lets not mess with brightness
+//~    int newbrightness = isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue();
+//~    newbrightness=100; // but instead overwrite it. no matter what we are creating, lets not mess with brightness
     //  s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
-    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", newbrightness);
+//~    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", newbrightness);
 
-    s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
+//~    s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
     s += EffectsPanel1->GetRandomEffectString(eff1);
     s += EffectsPanel2->GetRandomEffectString(eff2);
 #if 0 //partially random -DJ
@@ -583,18 +400,18 @@ wxString xLightsFrame::CreateEffectString()
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
     wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
-    s+=","+Choice_LayerMethod->GetStringSelection();
+//~    s+=","+Choice_LayerMethod->GetStringSelection();
 #if 0 // <SCM>
     s += ",ID_CHECKBOX_LayerMorph=0";
 #else
-    s+=",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", CheckBox_LayerMorph->GetValue()? 1: 0);
+//~    s+=",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", CheckBox_LayerMorph->GetValue()? 1: 0);
 #endif // 1
 
 
-    s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
-    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
-    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
-    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
+//~    s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
+//~    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
+//~    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
+//~    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
     s+=EffectsPanel1->GetEffectString();
     s+=EffectsPanel2->GetEffectString();
     return s;
@@ -2930,7 +2747,7 @@ void xLightsFrame::UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBuf
     UpdateBufferPaletteFromMap(2,SettingsMap,buffer);
     buffer.SetMixType(SettingsMap["LayerMethod"]);
     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+//~    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
     buffer.SetSparkle(freq);
 
     int brightness=wxAtoi(DefaultAs(SettingsMap["ID_SLIDER_Brightness"], wxString("100"))); //set to a safe value if missing -DJ
@@ -3377,7 +3194,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                     buffer.SetMixType(SettingsMap["LayerMethod"]);
                     ResetEffectStates(ResetEffectState);
                     int freq=wxAtoi(SettingsMap["ID_SLIDER_SparkleFrequency"]);
-                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
+//~                    if (freq == Slider_SparkleFrequency->GetMax()) freq=0;
                     buffer.SetSparkle(freq);
 
                     int brightness=wxAtoi(SettingsMap["ID_SLIDER_Brightness"]);
@@ -4134,24 +3951,24 @@ void xLightsFrame::OnbtRandomEffectClick(wxCommandEvent& event)
 
 void xLightsFrame::OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event)
 {
-    txtCtlEffectMix->SetValue(wxString::Format( "%d",Slider_EffectLayerMix->GetValue()));
+//~    txtCtlEffectMix->SetValue(wxString::Format( "%d",Slider_EffectLayerMix->GetValue()));
 }
 
 void xLightsFrame::OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event)
 {
-    txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
+//~    txtCtrlSparkleFreq->SetValue(wxString::Format("%d",Slider_SparkleFrequency->GetValue()));
 }
 
 
 
 void xLightsFrame::OnSlider_BrightnessCmdScroll(wxScrollEvent& event)
 {
-    txtCtlBrightness->SetValue(wxString::Format("%d",Slider_Brightness->GetValue()));
+//~    txtCtlBrightness->SetValue(wxString::Format("%d",Slider_Brightness->GetValue()));
 }
 
 void xLightsFrame::OnSlider_ContrastCmdScroll(wxScrollEvent& event)
 {
-    txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
+//~    txtCtlContrast->SetValue(wxString::Format("%d",Slider_Contrast->GetValue()));
 }
 
 void xLightsFrame::OnScrolledWindow1Resize(wxSizeEvent& event)

@@ -292,7 +292,7 @@ void SequenceElements::DeactivateAllTimingElements()
     }
 }
 
-void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX)
+void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected)
 {
     if(startRow<mRowInformation.size())
     {
@@ -303,7 +303,7 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
         for(int i=startRow;i<=endRow;i++)
         {
             ElementEffects* effects = mRowInformation[i].element->GetElementEffects();
-            effects->SelectEffectsInPositionRange(startX,endX);
+            effects->SelectEffectsInPositionRange(startX,endX,FirstSelected);
         }
     }
 }

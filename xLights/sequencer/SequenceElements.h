@@ -20,7 +20,6 @@ struct Row_Information_Struct
     int colorIndex;
 };
 
-
 class SequenceElements
 {
     public:
@@ -42,7 +41,7 @@ class SequenceElements
 
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
-        void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX);
+        void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected);
         void UnSelectAllEffects();
     protected:
     private:

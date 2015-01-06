@@ -95,6 +95,8 @@
 #include "sequencer/TimeLine.h"
 #include "sequencer/Waveform.h"
 #include "TopEffectsPanel.h"
+#include "TimingPanel.h"
+#include "ColorPanel.h"
 
 #include "wx/aui/aui.h"
 
@@ -158,6 +160,7 @@ wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 
 
 
@@ -638,24 +641,6 @@ private:
     static const long ID_CHOICE7;
     static const long ID_BUTTON59;
     static const long ID_BUTTON_Palette;
-    static const long ID_CHECKBOX_LayerMorph;
-    static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
-    static const long ID_CHOICE_LayerMethod;
-    static const long ID_SLIDER_EffectLayerMix;
-    static const long ID_TEXTCTRL_LayerMix;
-    static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
-    static const long ID_STATICTEXT24;
-    static const long ID_SLIDER_SparkleFrequency;
-    static const long ID_TEXTCTRL5;
-    static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
-    static const long ID_STATICTEXT127;
-    static const long ID_SLIDER_Brightness;
-    static const long ID_TEXTCTRL6;
-    static const long ID_BITMAPBUTTON_SLIDER_Brightness;
-    static const long ID_STATICTEXT128;
-    static const long ID_SLIDER_Contrast;
-    static const long ID_TEXTCTRL7;
-    static const long ID_BITMAPBUTTON_SLIDER_Contrast;
     static const long ID_BITMAPBUTTON11;
     static const long ID_BITMAPBUTTON13;
     static const long ID_BITMAPBUTTON12;
@@ -800,7 +785,6 @@ private:
 
     //(*Declarations(xLightsFrame)
     wxRadioButton* RadioButtonRgbChase;
-    wxSlider* Slider_EffectLayerMix;
     wxSlider* SliderFgColorC;
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxBitmapButton* BitmapButton_normal;
@@ -847,7 +831,6 @@ private:
     wxPanel* PanelTest;
     wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
-    wxBitmapButton* BitmapButton_Brightness;
     wxButton* Button_Palette;
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
@@ -861,10 +844,8 @@ private:
     wxButton* ButtonTestClear;
     wxBitmapButton* BitmapButtonGridCopy;
     wxButton* ButtonStopNow;
-    wxStaticText* StaticText126;
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
-    wxStaticText* StaticText127;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonStartConversion;
     wxBitmapButton* BitmapButtonInsertRow;
@@ -873,7 +854,6 @@ private:
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     wxStaticText* StaticTextSequenceFileName;
-    wxBitmapButton* BitmapButton_SparkleFrequency;
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxButton* ButtonDisplayElements;
@@ -883,7 +863,6 @@ private:
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
     wxMenuItem* MenuItem7;
-    wxTextCtrl* txtCtlBrightness;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
     wxChoice* ChoiceOutputFormat;
@@ -895,12 +874,10 @@ private:
     wxStaticText* StaticText23;
     wxRadioButton* RadioButtonTwinkle10;
     wxStaticText* StaticText12;
-    wxStaticText* StaticText22;
     wxSlider* SliderPreviewRotate;
     wxTreeCtrl* ListBoxSched;
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
-    wxTextCtrl* txtCtlEffectMix;
     wxAuiManager* MainAuiManager;
     wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
@@ -919,10 +896,9 @@ private:
     EffectsPanel* EffectsPanel1_1;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
-    wxSlider* Slider_SparkleFrequency;
     wxStaticText* StaticText_PgoOutputType;
-    wxGrid* Grid1;
     wxButton* ButtonChangeDir;
+    wxGrid* Grid1;
     wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
     wxBitmapButton* BitmapButtonGridCut;
@@ -930,11 +906,10 @@ private:
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
     wxButton* ButtonSetBackgroundImage;
-    wxChoice* Choice_Views;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
+    wxChoice* Choice_Views;
     wxMenuItem* MenuItemSavePlaylists;
-    wxTextCtrl* txtCtrlSparkleFreq;
     wxStaticText* StaticText14;
     wxStaticText* StaticText34;
     wxSlider* SliderBgColorC;
@@ -956,8 +931,8 @@ private:
     wxButton* ButtonLightsOff;
     wxMenuItem* MenuItem11;
     wxMenu* Menu2;
-    wxPanel* SeqPanelRight;
     wxPanel* PanelTestStandard;
+    wxPanel* SeqPanelRight;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
     wxButton* ButtonSeqExport;
@@ -965,13 +940,11 @@ private:
     wxCheckBox* CheckBox_CoroEyesRandomBlink;
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
-    wxBitmapButton* BitmapButton_Contrast;
     wxChoice* Choice_PgoGroupName;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxMenu* MenuItem3;
     wxMenuItem* MenuItem6;
     wxAuiNotebook* Notebook1;
-    wxSlider* Slider_Contrast;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
     wxButton* ButtonTestSave;
@@ -990,14 +963,11 @@ private:
     wxMenuItem* MenuItem9;
     wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
-    wxChoice* Choice_LayerMethod;
-    wxTextCtrl* txtCtlContrast;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
     wxCheckBox* CheckBoxRunSchedule;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
-    wxCheckBox* CheckBox_LayerMorph;
     wxBitmapButton* bbStop;
     wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
@@ -1007,7 +977,6 @@ private:
     wxStaticText* StaticText26;
     wxStaticText* StaticText15;
     wxStaticText* StaticText8;
-    wxBitmapButton* BitmapButton_EffectLayerMix;
     wxMenuItem* MenuItemRefresh;
     wxStaticText* StaticText28;
     wxRadioButton* RadioButtonRgbAlt;
@@ -1033,7 +1002,6 @@ private:
     wxRadioButton* RadioButtonChase;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButtonTabInfo;
-    wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
     wxRadioButton* RadioButtonRgbCycle5;
@@ -1045,7 +1013,6 @@ private:
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
     wxMessageDialog* MessageDialog1;
-    wxSlider* Slider_Brightness;
     wxButton* ButtonNetworkDeleteAll;
     wxRadioButton* RadioButtonRgbChaseOff;
     wxButton* ButtonNetworkChange;
@@ -1433,8 +1400,9 @@ private:
     Waveform* wave ;
     EffectsGrid* effectsGrid ;
     RowHeading* rowHeading;
-    SequencePreview * sPreview1;
-    SequencePreview * sPreview2;
+    SequencePreview* sPreview1;
+    ColorPanel* colorPanel;
+    TimingPanel* timingPanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     // Methods
@@ -1445,6 +1413,7 @@ private:
     void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
+    void SelectedEffectChanged( wxCommandEvent& event);
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);
