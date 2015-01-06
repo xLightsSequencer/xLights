@@ -82,9 +82,10 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(xLightsFrame)
 const long xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
@@ -515,10 +516,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ButtonLightsOff = new wxButton(MainToolBar, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
     CheckBoxLightOutput = new wxCheckBox(MainToolBar, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
     CheckBoxLightOutput->SetValue(false);
-    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open Show Directory"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Open"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM2, _("Item label"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM3, _("Save As"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Open Show Directory"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_NEWSEQUENCE, _("New Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("New Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
+    MainToolBar->AddSeparator();
     MainToolBar->AddTool(ID_AUITOOLBAR_PLAY, _("Play"), control_play_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), control_pause_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), control_stop_icon, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);

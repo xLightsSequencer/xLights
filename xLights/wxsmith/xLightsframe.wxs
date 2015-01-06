@@ -12,32 +12,43 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_MAIN" subclass="xlAuiToolBar" variable="MainToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPENSHOW" variable="AuiToolBarItemOpenShowDirectory" member="no">
-							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_MENU" />
+							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_OTHER" />
 							<shorthelp>Open Show Directory</shorthelp>
 							<handler function="OnMenuOpenFolderSelected" entry="EVT_TOOL" />
 						</object>
 						<label>Open Show Directory</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItemOpen" member="no">
-							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_MENU" />
-							<shorthelp>Open</shorthelp>
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_NEWSEQUENCE" variable="AuiToolBarItemNewSequence" member="no">
+							<bitmap stock_id="wxART_NEW" stock_client="wxART_OTHER" />
+							<shorthelp>New Sequence</shorthelp>
 						</object>
-						<label>Open</label>
+						<label>New Sequence</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarItemSave" member="no">
-							<bitmap stock_id="wxART_FILE_SAVE" />
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPEN" variable="AuiToolBarItemOpen" member="no">
+							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_OTHER" />
+							<shorthelp>Open Sequence</shorthelp>
+						</object>
+						<label>Open Sequence</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVE" variable="AuiToolBarItemSave" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE" stock_client="wxART_OTHER" />
 							<shorthelp>Save</shorthelp>
 						</object>
-						<label>Item label</label>
+						<label>Save</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarItem2" member="no">
-							<bitmap stock_id="wxART_FILE_SAVE_AS" />
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVEAS" variable="AuiToolBarItemSaveAs" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE_AS" stock_client="wxART_OTHER" />
 							<shorthelp>Save As</shorthelp>
 						</object>
 						<label>Save As</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarSeparator" />
+						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY" variable="AuiToolBarItemPlayButton" member="no">

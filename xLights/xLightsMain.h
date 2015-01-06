@@ -508,9 +508,10 @@ private:
 
     //(*Identifiers(xLightsFrame)
     static const long ID_AUITOOLBAR_OPENSHOW;
-    static const long ID_AUITOOLBARITEM1;
-    static const long ID_AUITOOLBARITEM2;
-    static const long ID_AUITOOLBARITEM3;
+    static const long ID_AUITOOLBAR_NEWSEQUENCE;
+    static const long ID_AUITOOLBAR_OPEN;
+    static const long ID_AUITOOLBAR_SAVE;
+    static const long ID_AUITOOLBAR_SAVEAS;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
