@@ -495,6 +495,8 @@ private:
     void OnBitmapButton1Click(wxCommandEvent& event);
     void OnBitmapButton3Click(wxCommandEvent& event);
     void OnMainToolBarDropdown(wxAuiToolBarEvent& event);
+    void OnButtonNewSequenceClick(wxCommandEvent& event);
+    void OnButtonClickSaveAs(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

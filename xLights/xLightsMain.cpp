@@ -1505,10 +1505,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuBar1->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar1);
     StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[3] = { -50, -35, -15 };
-    int __wxStatusBarStyles_1[3] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };
-    StatusBar1->SetFieldsCount(3,__wxStatusBarWidths_1);
-    StatusBar1->SetStatusStyles(3,__wxStatusBarStyles_1);
+    int __wxStatusBarWidths_1[2] = { -50, -35 };
+    int __wxStatusBarStyles_1[2] = { wxSB_NORMAL, wxSB_NORMAL };
+    StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
+    StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
@@ -1517,6 +1517,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
+    Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
+    Connect(ID_AUITOOLBAR_OPEN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
+    Connect(ID_AUITOOLBAR_SAVE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
+    Connect(ID_AUITOOLBAR_SAVEAS,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClickSaveAs);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
@@ -2893,4 +2897,45 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
         Grid1->GetSizer()->Layout();
     }
     Grid1->GetParent()->GetSizer()->Layout();
+}
+void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
+{
+}
+
+void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
+{
+    if (SeqData.size() == 0)
+    {
+        wxMessageBox("You must open a sequence first!", "Error");
+        return;
+    }
+    wxString NewFilename;
+    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
+    bool ok;
+    do
+    {
+        if (dialog.ShowModal() != wxID_OK)
+        {
+            return;
+        }
+        // validate inputs
+        NewFilename=dialog.GetValue();
+        NewFilename.Trim();
+        ok=true;
+        if (NewFilename.IsEmpty())
+        {
+            ok=false;
+            wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+        }
+    }
+    while (!ok);
+    wxFileName oName(NewFilename);
+    oName.SetPath( CurrentDir );
+    oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+    DisplayXlightsFilename(oName.GetFullPath());
+
+    oName.SetExt("xml");
+    SeqXmlFileName=oName.GetFullPath();
+
+    SaveSequence();
 }

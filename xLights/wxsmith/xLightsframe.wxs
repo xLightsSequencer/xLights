@@ -22,6 +22,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_NEWSEQUENCE" variable="AuiToolBarItemNewSequence" member="no">
 							<bitmap stock_id="wxART_NEW" stock_client="wxART_OTHER" />
 							<shorthelp>New Sequence</shorthelp>
+							<handler function="OnButtonNewSequenceClick" entry="EVT_TOOL" />
 						</object>
 						<label>New Sequence</label>
 					</object>
@@ -29,6 +30,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPEN" variable="AuiToolBarItemOpen" member="no">
 							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_OTHER" />
 							<shorthelp>Open Sequence</shorthelp>
+							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_TOOL" />
 						</object>
 						<label>Open Sequence</label>
 					</object>
@@ -36,6 +38,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVE" variable="AuiToolBarItemSave" member="no">
 							<bitmap stock_id="wxART_FILE_SAVE" stock_client="wxART_OTHER" />
 							<shorthelp>Save</shorthelp>
+							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_TOOL" />
 						</object>
 						<label>Save</label>
 					</object>
@@ -43,6 +46,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVEAS" variable="AuiToolBarItemSaveAs" member="no">
 							<bitmap stock_id="wxART_FILE_SAVE_AS" stock_client="wxART_OTHER" />
 							<shorthelp>Save As</shorthelp>
+							<handler function="OnButtonClickSaveAs" entry="EVT_TOOL" />
 						</object>
 						<label>Save As</label>
 					</object>
@@ -3137,9 +3141,9 @@
 			</object>
 		</object>
 		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
-			<fields>3</fields>
-			<widths>-50,-35,-15</widths>
-			<styles>wxSB_NORMAL,wxSB_NORMAL,wxSB_NORMAL</styles>
+			<fields>2</fields>
+			<widths>-50,-35</widths>
+			<styles>wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">
 			<message>Select directory</message>
