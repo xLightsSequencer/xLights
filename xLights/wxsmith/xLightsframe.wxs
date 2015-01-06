@@ -12,21 +12,65 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_MAIN" subclass="xlAuiToolBar" variable="MainToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPENSHOW" variable="AuiToolBarItemOpenShowDirectory" member="no">
-							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_MENU" />
+							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_OTHER" />
 							<shorthelp>Open Show Directory</shorthelp>
 							<handler function="OnMenuOpenFolderSelected" entry="EVT_TOOL" />
 						</object>
 						<label>Open Show Directory</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItemOpen" member="no">
-							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_MENU" />
-							<shorthelp>Open</shorthelp>
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_NEWSEQUENCE" variable="AuiToolBarItemNewSequence" member="no">
+							<bitmap stock_id="wxART_NEW" stock_client="wxART_OTHER" />
+							<shorthelp>New Sequence</shorthelp>
+							<handler function="OnButtonNewSequenceClick" entry="EVT_TOOL" />
 						</object>
-						<label>Open</label>
+						<label>New Sequence</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY" variable="AuiToolBarItemPlayButton" member="no">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPEN" variable="AuiToolBarItemOpen" member="no">
+							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_OTHER" />
+							<shorthelp>Open Sequence</shorthelp>
+							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_TOOL" />
+						</object>
+						<label>Open Sequence</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVE" variable="AuiToolBarItemSave" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE" stock_client="wxART_OTHER" />
+							<shorthelp>Save</shorthelp>
+							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_TOOL" />
+						</object>
+						<label>Save</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVEAS" variable="AuiToolBarItemSaveAs" member="no">
+							<bitmap stock_id="wxART_FILE_SAVE_AS" stock_client="wxART_OTHER" />
+							<shorthelp>Save As</shorthelp>
+							<handler function="OnButtonClickSaveAs" entry="EVT_TOOL" />
+						</object>
+						<label>Save As</label>
+					</object>
+				</object>
+				<name>Main Tool Bar</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>Main Tool Bar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<layer>10</layer>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_PLAY" subclass="xlAuiToolBar" variable="PlayToolBar" member="yes">
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItemPlayButton" member="no">
 							<bitmap code="control_play_blue_icon" />
 							<shorthelp>Play</shorthelp>
 						</object>
@@ -46,10 +90,26 @@
 						</object>
 						<label>Stop</label>
 					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarSeparator" />
-						<label>Item label</label>
-					</object>
+				</object>
+				<name>Play Tool Bar</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>Play Tool Bar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<layer>10</layer>
+				<position>11</position>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_OUTPUT" subclass="xlAuiToolBar" variable="OutputToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
 							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_BUTTON" />
@@ -83,15 +143,16 @@
 						</object>
 					</object>
 				</object>
-				<name>Main Tool Bar</name>
+				<name>Output Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Main Tool Bar</caption>
+				<caption>Output Tool Bar</caption>
 				<captionvisible>0</captionvisible>
 				<minimizebutton>0</minimizebutton>
 				<maximizebutton>0</maximizebutton>
 				<pinbutton>0</pinbutton>
 				<closebutton>0</closebutton>
 				<layer>10</layer>
+				<position>12</position>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>
@@ -101,7 +162,7 @@
 			</object>
 			<object class="AuiManagerItem">
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
-					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP</style>
+					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER</style>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_SETUP" variable="PanelSetup" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerSetup" member="no">
@@ -2763,6 +2824,8 @@
 				<dockdirection>Center</dockdirection>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
+				<movable>0</movable>
+				<paneborder>0</paneborder>
 				<destroyonclose>0</destroyonclose>
 				<firstadd>0</firstadd>
 			</object>
@@ -2872,7 +2935,7 @@
 		</object>
 		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
 			<fields>2</fields>
-			<widths>-1,-1</widths>
+			<widths>-50,-35</widths>
 			<styles>wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">

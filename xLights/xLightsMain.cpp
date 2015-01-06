@@ -82,16 +82,21 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
 //(*IdInit(xLightsFrame)
 const long xLightsFrame::ID_AUITOOLBAR_OPENSHOW = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_NOW = wxNewId();
 const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
 const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_SETUP1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT_DIRNAME = wxNewId();
 const long xLightsFrame::ID_BUTTON_CHANGEDIR = wxNewId();
@@ -490,27 +495,35 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetToolTip(_("Export only Channels associated with one model"));
     MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     MainToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_MAIN, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    BitmapButtonTabInfo = new wxBitmapButton(MainToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
-    BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
-    ButtonStopNow = new wxButton(MainToolBar, ID_BUTTON_STOP_NOW, _("Stop Now!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_NOW"));
-    ButtonGracefulStop = new wxButton(MainToolBar, ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GRACEFUL_STOP"));
-    ButtonLightsOff = new wxButton(MainToolBar, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
-    CheckBoxLightOutput = new wxCheckBox(MainToolBar, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
-    CheckBoxLightOutput->SetValue(false);
-    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open Show Directory"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Open"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_MENU), wxNullBitmap, wxITEM_NORMAL, _("Open"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_PLAY, _("Play"), control_play_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), control_pause_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), control_stop_icon, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
-    MainToolBar->AddSeparator();
-    MainToolBar->AddControl(BitmapButtonTabInfo, wxEmptyString);
-    MainToolBar->AddControl(ButtonStopNow, wxEmptyString);
-    MainToolBar->AddControl(ButtonGracefulStop, wxEmptyString);
-    MainToolBar->AddControl(ButtonLightsOff, wxEmptyString);
-    MainToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPENSHOW, _("Open Show Directory"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Open Show Directory"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_NEWSEQUENCE, _("New Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("New Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
-    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP);
+    PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    PlayToolBar->AddTool(ID_AUITOOLBARITEM1, _("Play"), control_play_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), control_pause_blue_icon, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), control_stop_icon, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
+    PlayToolBar->Realize();
+    MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
+    OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    BitmapButtonTabInfo = new wxBitmapButton(OutputToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
+    BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
+    ButtonStopNow = new wxButton(OutputToolBar, ID_BUTTON_STOP_NOW, _("Stop Now!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_NOW"));
+    ButtonGracefulStop = new wxButton(OutputToolBar, ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GRACEFUL_STOP"));
+    ButtonLightsOff = new wxButton(OutputToolBar, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
+    CheckBoxLightOutput = new wxCheckBox(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
+    CheckBoxLightOutput->SetValue(false);
+    OutputToolBar->AddControl(BitmapButtonTabInfo, wxEmptyString);
+    OutputToolBar->AddControl(ButtonStopNow, wxEmptyString);
+    OutputToolBar->AddControl(ButtonGracefulStop, wxEmptyString);
+    OutputToolBar->AddControl(ButtonLightsOff, wxEmptyString);
+    OutputToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
+    OutputToolBar->Realize();
+    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
+    Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
@@ -1349,7 +1362,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PanelCal, _("Schedule"));
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
-    MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().Movable(false));
+    MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).Floatable().PaneBorder(false));
     MainAuiManager->Update();
     MenuBar1 = new wxMenuBar();
     MenuFile = new wxMenu();
@@ -1410,7 +1423,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuBar1->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar1);
     StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[2] = { -1, -1 };
+    int __wxStatusBarWidths_1[2] = { -50, -35 };
     int __wxStatusBarStyles_1[2] = { wxSB_NORMAL, wxSB_NORMAL };
     StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
     StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
@@ -1422,6 +1435,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
 
     Connect(ID_AUITOOLBAR_OPENSHOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
+    Connect(ID_AUITOOLBAR_NEWSEQUENCE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
+    Connect(ID_AUITOOLBAR_OPEN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
+    Connect(ID_AUITOOLBAR_SAVE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
+    Connect(ID_AUITOOLBAR_SAVEAS,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClickSaveAs);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
@@ -2780,4 +2797,45 @@ void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
         Grid1->GetSizer()->Layout();
     }
     Grid1->GetParent()->GetSizer()->Layout();
+}
+void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
+{
+}
+
+void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
+{
+    if (SeqData.size() == 0)
+    {
+        wxMessageBox("You must open a sequence first!", "Error");
+        return;
+    }
+    wxString NewFilename;
+    wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
+    bool ok;
+    do
+    {
+        if (dialog.ShowModal() != wxID_OK)
+        {
+            return;
+        }
+        // validate inputs
+        NewFilename=dialog.GetValue();
+        NewFilename.Trim();
+        ok=true;
+        if (NewFilename.IsEmpty())
+        {
+            ok=false;
+            wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+        }
+    }
+    while (!ok);
+    wxFileName oName(NewFilename);
+    oName.SetPath( CurrentDir );
+    oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+    DisplayXlightsFilename(oName.GetFullPath());
+
+    oName.SetExt("xml");
+    SeqXmlFileName=oName.GetFullPath();
+
+    SaveSequence();
 }

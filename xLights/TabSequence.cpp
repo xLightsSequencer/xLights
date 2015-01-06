@@ -1672,6 +1672,7 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     bool EnableButtons=!filename.IsEmpty();
     bbPlayPause->Enable(EnableButtons);
     bbStop->Enable(EnableButtons);
+    StatusBar1->SetStatusText(filename, 1);
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)
