@@ -65,7 +65,7 @@ bool xLightsApp::OnInit()
     return wxsOK;
 }
 
-#ifdef __WXOSX__
+#ifndef __WXMSW__
 #include <execinfo.h>
 #endif
 
@@ -79,7 +79,7 @@ void xLightsApp::OnFatalException() {
     if (frame->SeqXmlFileName != "") {
         report.AddFile(frame->SeqXmlFileName, wxFileName(frame->SeqXmlFileName).GetName());
     }
-#ifdef __WXOSX__
+#ifndef __WXMSW__
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
     char** strs = backtrace_symbols(callstack, frames);
@@ -89,7 +89,7 @@ void xLightsApp::OnFatalException() {
         backtrace += "\n";
     }
     free(strs);
-    report.AddText("osx-backtrace.txt", backtrace, "OSX Backtrace");
+    report.AddText("backtrace.txt", backtrace, "Backtrace");
 #endif
     if (wxDebugReportPreviewStd().Show(report)) {
         report.Process();
