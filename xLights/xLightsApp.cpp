@@ -18,12 +18,75 @@
 
 #ifndef __WXMSW__
 #include <execinfo.h>
+#else
+
+#include <windows.h>
+#include <imagehlp.h>
+wxString windows_get_stacktrace(void *data)
+{
+    wxString trace;
+    CONTEXT *context = (CONTEXT*)data;
+  SymInitialize(GetCurrentProcess(), 0, true);
+
+  STACKFRAME frame = { 0 };
+
+  /* setup initial stack frame */
+  frame.AddrPC.Offset         = context->Eip;
+  frame.AddrPC.Mode           = AddrModeFlat;
+  frame.AddrStack.Offset      = context->Esp;
+  frame.AddrStack.Mode        = AddrModeFlat;
+  frame.AddrFrame.Offset      = context->Ebp;
+  frame.AddrFrame.Mode        = AddrModeFlat;
+
+  while (StackWalk(IMAGE_FILE_MACHINE_I386 ,
+                   GetCurrentProcess(),
+                   GetCurrentThread(),
+                   &frame,
+                   context,
+                   0,
+                   SymFunctionTableAccess,
+                   SymGetModuleBase,
+                   0 ) )
+  {
+      static char symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + 255 ];
+      memset( symbolBuffer , 0 , sizeof(IMAGEHLP_SYMBOL) + 255 );
+      IMAGEHLP_SYMBOL * symbol = (IMAGEHLP_SYMBOL*) symbolBuffer;
+
+      // Need to set the first two fields of this symbol before obtaining name info:
+      symbol->SizeOfStruct    = sizeof(IMAGEHLP_SYMBOL) + 255;
+      symbol->MaxNameLength   = 254;
+
+      // The displacement from the beginning of the symbol is stored here: pretty useless
+      unsigned displacement = 0;
+
+      // Get the symbol information from the address of the instruction pointer register:
+      if (SymGetSymFromAddr(
+                    GetCurrentProcess()     ,   // Process to get symbol information for
+                    frame.AddrPC.Offset     ,   // Address to get symbol for: instruction pointer register
+                    (DWORD*) & displacement ,   // Displacement from the beginning of the symbol: whats this for ?
+                    symbol                      // Where to save the symbol
+                )) {
+          // Add the name of the function to the function list:
+          char buffer[2048]; sprintf( buffer , "0x%08x %s\n" ,  frame.AddrPC.Offset , symbol->Name );
+          trace += buffer;
+      } else {
+          // Print an unknown location:
+          // functionNames.push_back("unknown location");
+          char buffer[64]; sprintf( buffer , "0x%08x\n" ,  frame.AddrPC.Offset );
+          trace += buffer;
+      }
+  }
+
+  SymCleanup( GetCurrentProcess() );
+  return trace;
+}
+
 #endif
 
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = NULL;
-void handleCrash() {
+void handleCrash(void *data) {
 
     wxDebugReportCompress report;
     report.SetCompressedFileDirectory(topFrame->CurrentDir);
@@ -33,8 +96,8 @@ void handleCrash() {
     if (topFrame->GetSeqXmlFileName() != "") {
         report.AddFile(topFrame->GetSeqXmlFileName(), wxFileName(topFrame->GetSeqXmlFileName()).GetName());
     }
-#ifndef __WXMSW__
     wxString trace;
+#ifndef __WXMSW__
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
     char** strs = backtrace_symbols(callstack, frames);
@@ -43,8 +106,12 @@ void handleCrash() {
         trace += "\n";
     }
     free(strs);
-    report.AddText("backtrace.txt", trace, "Backtrace");
+#else
+    trace = windows_get_stacktrace(data);
 #endif
+    if (!trace.IsEmpty()) {
+        report.AddText("backtrace.txt", trace, "Backtrace");
+    }
     if (wxDebugReportPreviewStd().Show(report)) {
         report.Process();
     }
@@ -56,7 +123,7 @@ void handleCrash() {
 //MinGW needs to do this manually
 LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
 {
-    handleCrash();
+    handleCrash(ExceptionInfo->ContextRecord);
 }
 #endif
 
@@ -115,7 +182,7 @@ bool xLightsApp::OnInit()
 
 
 void xLightsApp::OnFatalException() {
-    handleCrash();
+    handleCrash(NULL);
 }
 
 
