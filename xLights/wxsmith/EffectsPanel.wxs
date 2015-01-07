@@ -235,7 +235,6 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 								<cols>3</cols>
 								<vgap>0d</vgap>
-								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_BITMAPBUTTON27" variable="BitmapButton6" member="yes">
 										<bitmap code="bars" />
@@ -2496,7 +2495,6 @@
 						<object class="wxScrolledWindow" name="ID_PANEL_Pinwheel" variable="Panel1_Pinwheel" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer55" member="no">
 								<cols>1</cols>
-								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 										<cols>3</cols>

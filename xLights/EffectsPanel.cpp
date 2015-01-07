@@ -588,7 +588,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer62;
     wxFlexGridSizer* FlexGridSizer66;
-    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
     wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
@@ -724,7 +723,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer92->SetSizeHints(Panel1_On);
     Panel1_Bars = new wxScrolledWindow(Choicebook1, ID_PANEL8, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL8"));
     FlexGridSizer35 = new wxFlexGridSizer(0, 3, wxDLG_UNIT(Panel1_Bars,wxSize(0,0)).GetWidth(), 0);
-    FlexGridSizer35->AddGrowableCol(1);
     BitmapButton6 = new wxBitmapButton(Panel1_Bars, ID_BITMAPBUTTON27, bars, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON27"));
     BitmapButton6->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
     FlexGridSizer35->Add(BitmapButton6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -819,12 +817,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer36->SetSizeHints(Panel1_Butterfly);
     Panel1_Circles = new wxScrolledWindow(Choicebook1, ID_PANEL37, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL37"));
     FlexGridSizer80 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton9 = new wxBitmapButton(Panel1_Circles, ID_BITMAPBUTTON29, circles, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON29"));
     BitmapButton9->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer2->Add(BitmapButton9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer80->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer80->Add(BitmapButton9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer80->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText136 = new wxStaticText(Panel1_Circles, ID_STATICTEXT137, _("Number of Circles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT137"));
     FlexGridSizer80->Add(StaticText136, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer17 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1424,7 +1420,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer42->SetSizeHints(Panel1_Pictures);
     Panel1_Pinwheel = new wxScrolledWindow(Choicebook1, ID_PANEL_Pinwheel, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Pinwheel"));
     FlexGridSizer55 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer55->AddGrowableCol(1);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     BitmapButton_pinwheel = new wxBitmapButton(Panel1_Pinwheel, ID_BITMAPBUTTON33, pinwheel, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON33"));
     BitmapButton_pinwheel->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
