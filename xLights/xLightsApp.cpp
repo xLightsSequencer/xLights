@@ -166,6 +166,7 @@ bool xLightsApp::OnInit()
 #endif
 
     //(*AppInitialize
+  /*
     bool wxsOK = true;
     wxInitAllImageHandlers();
     if ( wxsOK )
@@ -175,9 +176,10 @@ bool xLightsApp::OnInit()
     	Frame->Show();
     	SetTopWindow(Frame);
     }
+  */
     //*)
 
-    return wxsOK;
+    return 0; //wxsOK;
 }
 
 
