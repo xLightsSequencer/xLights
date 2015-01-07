@@ -51,6 +51,7 @@ bool xLightsApp::OnInit()
     else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
 
     //(*AppInitialize
+  /*
     bool wxsOK = true;
     wxInitAllImageHandlers();
     wxHandleFatalExceptions();
@@ -60,9 +61,10 @@ bool xLightsApp::OnInit()
     	Frame->Show();
     	SetTopWindow(Frame);
     }
+  */
     //*)
 
-    return wxsOK;
+    return 0; //wxsOK;
 }
 
 #ifndef __WXMSW__
