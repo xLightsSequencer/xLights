@@ -15,8 +15,50 @@
 #include <wx/image.h>
 //*)
 
+
+#ifndef __WXMSW__
+#include <execinfo.h>
+#endif
+
 #include <wx/debugrpt.h>
 
+xLightsFrame *topFrame = NULL;
+void handleCrash() {
+
+    wxDebugReportCompress report;
+    report.SetCompressedFileDirectory(topFrame->CurrentDir);
+    report.AddAll(wxDebugReport::Context_Exception);
+    report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
+    report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    if (topFrame->GetSeqXmlFileName() != "") {
+        report.AddFile(topFrame->GetSeqXmlFileName(), wxFileName(topFrame->GetSeqXmlFileName()).GetName());
+    }
+#ifndef __WXMSW__
+    wxString trace;
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    for (i = 0; i < frames; ++i) {
+        trace += strs[i];
+        trace += "\n";
+    }
+    free(strs);
+    report.AddText("backtrace.txt", trace, "Backtrace");
+#endif
+    if (wxDebugReportPreviewStd().Show(report)) {
+        report.Process();
+    }
+}
+
+
+#if !(wxUSE_ON_FATAL_EXCEPTION)
+#include <windows.h>
+//MinGW needs to do this manually
+LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
+{
+    handleCrash();
+}
+#endif
 
 IMPLEMENT_APP(xLightsApp)
 
@@ -50,13 +92,19 @@ bool xLightsApp::OnInit()
     if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
     else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
 
+#if wxUSE_ON_FATAL_EXCEPTION
+    wxHandleFatalExceptions();
+#else
+    SetUnhandledExceptionFilter(windows_exception_handler);
+#endif
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    wxHandleFatalExceptions();
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
+        topFrame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);
     }
@@ -65,35 +113,9 @@ bool xLightsApp::OnInit()
     return wxsOK;
 }
 
-#ifndef __WXMSW__
-#include <execinfo.h>
-#endif
 
 void xLightsApp::OnFatalException() {
-    xLightsFrame *frame = (xLightsFrame*)GetTopWindow();
-    wxDebugReportCompress report;
-    report.SetCompressedFileDirectory(frame->CurrentDir);
-    report.AddAll(wxDebugReport::Context_Exception);
-    report.AddFile(wxFileName(frame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
-    report.AddFile(wxFileName(frame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
-    if (frame->SeqXmlFileName != "") {
-        report.AddFile(frame->SeqXmlFileName, wxFileName(frame->SeqXmlFileName).GetName());
-    }
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    wxString backtrace;
-    for (i = 0; i < frames; ++i) {
-        backtrace += strs[i];
-        backtrace += "\n";
-    }
-    free(strs);
-    report.AddText("backtrace.txt", backtrace, "Backtrace");
-#endif
-    if (wxDebugReportPreviewStd().Show(report)) {
-        report.Process();
-    }
+    handleCrash();
 }
 
 
