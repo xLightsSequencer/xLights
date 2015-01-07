@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include <vector>
+#include "Effect.h"
 
 
 #define EFFECT_BARS         0
@@ -68,7 +69,7 @@ class ElementEffects
     int GetMinimumStartTime(int index);
 
     int GetEffectCount();
-    Effect_Struct* GetEffect(int index);
+    Effect* GetEffect(int index);
 
     static int GetEffectIndex(wxString effectName);
     static wxString GetEffectNameFromEffectText(wxString effectText);
@@ -87,11 +88,11 @@ class ElementEffects
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);
 
-        std::vector<Effect_Struct> mEffects;
+        std::vector<Effect> mEffects;
 
-        static bool SortByTime(const Effect_Struct &effect1,const Effect_Struct &effect2)
+        static bool SortByTime(Effect &effect1,Effect &effect2)
         {
-            return (effect1.StartTime<effect2.StartTime);
+            return (effect1.GetStartTime()<effect2.GetStartTime());
         }
 
 };

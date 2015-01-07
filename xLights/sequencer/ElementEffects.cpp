@@ -53,15 +53,15 @@ wxString ElementEffects::GetEffectNameFromEffectText(wxString effectText)
 
 void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double startTime,double endTime, bool Protected)
 {
-    Effect_Struct es;
-    es.ID = id;                 // Random ID.
-    es.Effect = effect;
-    es.EffectIndex = effectIndex;
-    es.StartTime = startTime;
-    es.EndTime = endTime;
-    es.Protected = Protected;
-    es.Selected = EFFECT_NOT_SELECTED;
-    mEffects.push_back(es);
+    Effect e;
+    e.SetID(id);                 // Random ID.
+    e.SetEffectParams(0,effect);
+    e.SetEffectIndex(0,effectIndex);
+    e.SetStartTime(startTime);
+    e.SetEndTime(endTime);
+    e.SetProtected(Protected);
+    e.SetSelected(EFFECT_NOT_SELECTED);
+    mEffects.push_back(e);
     Sort();
 }
 
@@ -69,15 +69,15 @@ void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double sta
 
 void ElementEffects::Sort()
 {
-    if (mEffects.size()>1)
-        std::sort(mEffects.begin(),mEffects.end(),SortByTime);
+//    if (mEffects.size()>1)
+//        std::sort(mEffects.begin(),mEffects.end(),SortByTime);
 }
 
 bool ElementEffects::IsStartTimeLinked(int index)
 {
     if(index < mEffects.size())
     {
-        return mEffects[index-1].EndTime == mEffects[index].StartTime;
+        return mEffects[index-1].GetEndTime() == mEffects[index].GetStartTime();
     }
     else
     {
@@ -89,7 +89,7 @@ bool ElementEffects::IsEndTimeLinked(int index)
 {
     if(index < mEffects.size())
     {
-        return mEffects[index].EndTime == mEffects[index+1].StartTime;
+        return mEffects[index].GetEndTime() == mEffects[index+1].GetStartTime();
     }
     else
     {
@@ -105,7 +105,7 @@ int ElementEffects::GetMaximumEndTime(int index)
     }
     else
     {
-        return mEffects[index+1].StartTime;
+        return mEffects[index+1].GetStartTime();
     }
 }
 
@@ -117,7 +117,7 @@ int ElementEffects::GetMinimumStartTime(int index)
     }
     else
     {
-        return mEffects[index-1].EndTime;
+        return mEffects[index-1].GetEndTime();
     }
 }
 
@@ -131,18 +131,18 @@ int ElementEffects::GetEffectCount()
 
 bool ElementEffects::IsEffectStartTimeInRange(int index, float startTime,float endTime)
 {
-    return  (mEffects[index].StartTime >= startTime &&
-             mEffects[index].StartTime <= endTime)?true:false;
+    return  (mEffects[index].GetStartTime() >= startTime &&
+             mEffects[index].GetStartTime() <= endTime)?true:false;
 }
 
 bool ElementEffects::IsEffectEndTimeInRange(int index, float startTime,float endTime)
 {
-    return  (mEffects[index].EndTime >= startTime &&
-             mEffects[index].EndTime <= endTime)?true:false;
+    return  (mEffects[index].GetEndTime() >= startTime &&
+             mEffects[index].GetEndTime() <= endTime)?true:false;
 }
 
 
-Effect_Struct* ElementEffects::GetEffect(int index)
+Effect* ElementEffects::GetEffect(int index)
 {
     return &mEffects[index];
 }
@@ -167,20 +167,20 @@ bool ElementEffects::HitTestEffect(int position,int &index, int &result)
     bool isHit=false;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].EndPosition - mEffects[i].StartPosition > 10)
+        if(mEffects[i].GetEndPosition() - mEffects[i].GetStartPosition() > 10)
         {
-            int s =  mEffects[i].StartPosition;
-            int e =  mEffects[i].EndPosition;
-            if (position >= mEffects[i].StartPosition &&
-                position <= mEffects[i].EndPosition)
+            int s =  mEffects[i].GetStartPosition();
+            int e =  mEffects[i].GetEndPosition();
+            if (position >= mEffects[i].GetStartPosition() &&
+                position <= mEffects[i].GetEndPosition())
             {
                 isHit = true;
                 index = i;
-                if(position < mEffects[i].StartPosition + 5)
+                if(position < mEffects[i].GetStartPosition() + 5)
                 {
                     result = HIT_TEST_EFFECT_LT;
                 }
-                else if(position > mEffects[i].EndPosition - 5)
+                else if(position > mEffects[i].GetEndPosition() - 5)
                 {
                     result = HIT_TEST_EFFECT_RT;
                 }
@@ -201,21 +201,21 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &First
     FirstSelected = -1;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].StartPosition < 0 &&
-           mEffects[i].EndPosition < 0)
+        if(mEffects[i].GetStartPosition() < 0 &&
+           mEffects[i].GetEndPosition() < 0)
         {
             continue;
         }
-        int center = mEffects[i].StartPosition + ((mEffects[i].EndPosition - mEffects[i].StartPosition)/2);
+        int center = mEffects[i].GetStartPosition() + ((mEffects[i].GetEndPosition() - mEffects[i].GetStartPosition())/2);
         int squareWidth =  center<MINIMUM_EFFECT_WIDTH_FOR_ICON?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:EFFECT_ICON_WIDTH;
         int squareLeft = center - (squareWidth/2);
         int squareRight = center + (squareWidth/2);
         // If selection around icon/square
         if (startX>squareLeft && endX < squareRight)
         {
-            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].Selected = EFFECT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -224,14 +224,14 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &First
             }
             else
             {
-                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         else if (startX<squareLeft && endX > squareRight)
         {
-            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].Selected = EFFECT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -240,15 +240,15 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &First
             }
             else
             {
-                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on left side
-        else if (endX>mEffects[i].StartPosition && endX<squareLeft)
+        else if (endX>mEffects[i].GetStartPosition() && endX<squareLeft)
         {
-            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].Selected = EFFECT_LT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_LT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -257,15 +257,15 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &First
             }
             else
             {
-                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on right side
-        else if (startX > squareRight && startX < mEffects[i].EndPosition)
+        else if (startX > squareRight && startX < mEffects[i].GetEndPosition())
         {
-            if(mEffects[i].Selected==EFFECT_NOT_SELECTED)
+            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].Selected = EFFECT_RT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_RT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -274,7 +274,7 @@ void ElementEffects::SelectEffectsInPositionRange(int startX,int endX,int &First
             }
             else
             {
-                mEffects[i].Selected = EFFECT_NOT_SELECTED;
+                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
             }
         }
     }
@@ -284,6 +284,6 @@ void ElementEffects::UnSelectAllEffects()
 {
     for(int i=0;i<mEffects.size();i++)
     {
-        mEffects[i].Selected = EFFECT_NOT_SELECTED;
+        mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
     }
 }

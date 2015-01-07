@@ -53,7 +53,7 @@ bool xLightsApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    wxHandleFatalExceptions();
+    //wxHandleFatalExceptions();
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
