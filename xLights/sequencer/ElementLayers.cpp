@@ -50,12 +50,13 @@ wxString ElementEffects::GetEffectNameFromEffectText(wxString effectText)
     return effect;
 }
 
-
-void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double startTime,double endTime, bool Protected)
+void ElementEffects::AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, bool Protected)
 {
     Effect e;
-    e.SetID(id);                 // Random ID.
-    e.SetEffectParams(0,effect);
+    e.SetID(id);
+    e.SetEffectName(name);
+    e.SetSettings(settings);
+    e.SetLayerSettings(1,layer2Settings);
     e.SetEffectIndex(0,effectIndex);
     e.SetStartTime(startTime);
     e.SetEndTime(endTime);
@@ -69,8 +70,8 @@ void ElementEffects::AddEffect(int id,wxString effect,int effectIndex,double sta
 
 void ElementEffects::Sort()
 {
-//    if (mEffects.size()>1)
-//        std::sort(mEffects.begin(),mEffects.end(),SortByTime);
+    if (mEffects.size()>1)
+        std::sort(mEffects.begin(),mEffects.end());
 }
 
 bool ElementEffects::IsStartTimeLinked(int index)

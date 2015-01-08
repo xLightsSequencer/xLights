@@ -61,7 +61,7 @@ class ElementEffects
     ElementEffects();
     virtual ~ElementEffects();
 
-    void AddEffect(int id,wxString effect,int effectIndex,double startTime,double endTime, bool Protected);
+    void AddEffect(int id,wxString commonSettings,wxString layer1Settings,wxString layer2Settings,int effectIndex,double startTime,double endTime, bool Protected);
     bool IsStartTimeLinked(int index);
     bool IsEndTimeLinked(int index);
 
@@ -89,11 +89,6 @@ class ElementEffects
         int EffectToRightStartTime(int index);
 
         std::vector<Effect> mEffects;
-
-        static bool SortByTime(Effect &effect1,Effect &effect2)
-        {
-            return (effect1.GetStartTime()<effect2.GetStartTime());
-        }
 
 };
 
