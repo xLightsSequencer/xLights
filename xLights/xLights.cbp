@@ -207,6 +207,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-lmpg123-0" />
+					<Add option="-limagehlp" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
 				</Linker>
