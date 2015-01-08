@@ -200,22 +200,36 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                         {
                             if (effect->GetName() == "Effect")
                             {
-                                int effectIndex=0;
                                 int id;
-                                wxString effectText = effect->GetNodeContent();
-                                int si = effectText.length();
-                                if(elementNode->GetAttribute("type") != "timing")
-                                {
-                                    wxString effectName = ElementEffects::GetEffectNameFromEffectText(effectText);
-                                    effectIndex = ElementEffects::GetEffectIndex(effectName);
-                                    id = wxAtoi(effect->GetAttribute("id"));
-                                }
+                                wxString commonSettings = effect->GetNodeContent();
+                                wxString layerSettings1;
+                                wxString layerSettings2;
+                                wxString effectName1;
+                                wxString effectName2;
+                                int effectIndex;
+                                // Start time
                                 effect->GetAttribute("startTime").ToDouble(&startTime);
                                 startTime = ElementEffects::RoundToMultipleOfPeriod(startTime,mFrequency);
+                                // End time
                                 effect->GetAttribute("endTime").ToDouble(&endTime);
                                 endTime = ElementEffects::RoundToMultipleOfPeriod(endTime,mFrequency);
+                                // Protected
                                 bool bProtected = effect->GetAttribute("protected")=='1'?true:false;
-                                element->AddEffect(id,effectText,effectIndex,startTime,endTime,bProtected);
+                                if(elementNode->GetAttribute("type") != "timing")
+                                {
+                                    // ID
+                                    id = wxAtoi(effect->GetAttribute("id"));
+                                    // Get Effect Layers (always two for now
+                                    wxXmlNode* effectLayer=effect->GetChildren();
+                                    // Parse first layer
+                                    wxString effectName = effectLayer->GetAttribute("name");
+                                    effectIndex = ElementEffects::GetEffectIndex(effectName);
+                                    layerSettings1 = effectLayer->GetNodeContent();
+                                    // Parse second layer
+                                    effectLayer=effectLayer->GetNext();
+                                    layerSettings2 = effectLayer->GetNodeContent();
+                                }
+                                element->AddEffect(id,commonSettings,layerSettings1,layerSettings2,effectIndex,startTime,endTime,bProtected);
                             }
                         }
                     }
