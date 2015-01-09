@@ -58,7 +58,7 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
-    if(mSequenceElements->GetRowInformation(row)->element->GetType() == "view" &&
+    if(mSequenceElements->GetRowInformation(row)->element->GetType() != "timing" &&
        x<DEFAULT_ROW_HEADING_MARGIN)
     {
         *IsCollapsed = mSequenceElements->GetRowInformation(row)->Collapsed;
@@ -138,7 +138,6 @@ void RowHeading::render( wxPaintEvent& event )
 
         if(mSequenceElements->GetRowInformation(i)->element->GetType()=="view")
         {
-
             dc.SetBrush(*wxWHITE_BRUSH);
             dc.SetPen(*wxBLACK_PEN);
             dc.DrawRectangle(2,startY+7,9,9);
@@ -149,6 +148,23 @@ void RowHeading::render( wxPaintEvent& event )
             }
             dc.SetPen(penOutline);
             dc.SetBrush(brush);
+        }
+        else if (mSequenceElements->GetRowInformation(i)->element->GetType()=="model")
+        {
+            if(mSequenceElements->GetRowInformation(i)->element->GetEffectLayerCount()>0 &&
+               mSequenceElements->GetRowInformation(i)->layerIndex == 0)
+            {
+                dc.SetBrush(*wxWHITE_BRUSH);
+                dc.SetPen(*wxBLACK_PEN);
+                dc.DrawRectangle(2,startY+7,9,9);
+                dc.DrawLine(4,startY+11,9,startY+11);
+                if(mSequenceElements->GetRowInformation(i)->Collapsed)
+                {
+                    dc.DrawLine(6,startY+9,6,startY+14);
+                }
+                dc.SetPen(penOutline);
+                dc.SetBrush(brush);
+            }
         }
         else if(mSequenceElements->GetRowInformation(i)->element->GetType()=="timing")
         {

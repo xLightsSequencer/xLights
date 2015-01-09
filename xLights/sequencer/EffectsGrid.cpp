@@ -365,7 +365,8 @@ void EffectsGrid::DrawHorizontalLines()
         {
             if (isEvenLayer)
             {
-                int h = DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
+                //Element is collapsed only one row should be shaded
+                int h = e->GetCollapsed()?DEFAULT_ROW_HEADING_HEIGHT:DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
                 DrawFillRectangle(*wxLIGHT_GREY,40,x1,y,x2,h);
             }
             isEvenLayer = !isEvenLayer;

@@ -162,7 +162,7 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                 {
                     active = element->GetAttribute("active")=='1'?true:false;
                 }
-                else if (type=="view")
+                else
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
@@ -261,7 +261,22 @@ void SequenceElements::PopulateRowInformation()
         {
             if (mElements[i].GetType()=="model")
             {
-                for(int j =0; j<mElements[i].GetEffectLayerCount();j++)
+                if(!mElements[i].GetCollapsed())
+                {
+                    for(int j =0; j<mElements[i].GetEffectLayerCount();j++)
+                    {
+                        Row_Information_Struct ri;
+                        ri.element = &mElements[i];
+                        ri.Collapsed = mElements[i].GetCollapsed();
+                        ri.Active = mElements[i].GetActive();
+                        ri.PartOfView = false;
+                        ri.colorIndex = 0;
+                        ri.layerIndex = j;
+                        ri.Index = rowIndex++;
+                        mRowInformation.push_back(ri);
+                    }
+                }
+                else
                 {
                     Row_Information_Struct ri;
                     ri.element = &mElements[i];
@@ -269,7 +284,7 @@ void SequenceElements::PopulateRowInformation()
                     ri.Active = mElements[i].GetActive();
                     ri.PartOfView = false;
                     ri.colorIndex = 0;
-                    ri.layerIndex = j;
+                    ri.layerIndex = 0;
                     ri.Index = rowIndex++;
                     mRowInformation.push_back(ri);
                 }
@@ -309,7 +324,22 @@ void SequenceElements::PopulateRowInformation()
                         for(int m=0;m<model.size();m++)
                         {
                             Element* element = GetElement(model[m]);
-                            for(int j=0;element->GetEffectLayerCount();j++)
+                            if(element->GetCollapsed())
+                            {
+                                for(int j=0;element->GetEffectLayerCount();j++)
+                                {
+                                    Row_Information_Struct r;
+                                    r.element = element;
+                                    r.Collapsed = element->GetCollapsed();
+                                    r.Active = mElements[i].GetActive();
+                                    r.PartOfView = false;
+                                    r.colorIndex = 0;
+                                    r.layerIndex = j;
+                                    r.Index = rowIndex++;
+                                    mRowInformation.push_back(r);
+                                }
+                            }
+                            else
                             {
                                 Row_Information_Struct r;
                                 r.element = element;
@@ -317,7 +347,7 @@ void SequenceElements::PopulateRowInformation()
                                 r.Active = mElements[i].GetActive();
                                 r.PartOfView = false;
                                 r.colorIndex = 0;
-                                r.layerIndex = j;
+                                r.layerIndex = 0;
                                 r.Index = rowIndex++;
                                 mRowInformation.push_back(r);
                             }

@@ -168,8 +168,6 @@
 				<Linker>
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-lmpg123-0" />
-					<Add option="-limagehlp" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
 				</Linker>
@@ -206,8 +204,6 @@
 					<Add option="-s" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
-					<Add option="-lmpg123-0" />
-					<Add option="-limagehlp" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
 				</Linker>
@@ -389,12 +385,14 @@
 			<Option target="MSVC_Debug" />
 			<Option target="MSVC_Release" />
 		</Unit>
+		<Unit filename="sequencer/Effect.cpp" />
+		<Unit filename="sequencer/Effect.h" />
+		<Unit filename="sequencer/EffectLayer.cpp" />
+		<Unit filename="sequencer/EffectLayer.h" />
 		<Unit filename="sequencer/EffectsGrid.cpp" />
 		<Unit filename="sequencer/EffectsGrid.h" />
 		<Unit filename="sequencer/Element.cpp" />
 		<Unit filename="sequencer/Element.h" />
-		<Unit filename="sequencer/ElementEffects.cpp" />
-		<Unit filename="sequencer/ElementEffects.h" />
 		<Unit filename="sequencer/MainSequencer.cpp" />
 		<Unit filename="sequencer/MainSequencer.h" />
 		<Unit filename="sequencer/RowHeading.cpp" />
