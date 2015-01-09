@@ -11,6 +11,7 @@
 #include "SequenceElements.h"
 #include "TimeLine.h"
 #include "EffectLayer.h"
+#include "Effect.h"
 
 
 #define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
@@ -76,7 +77,7 @@ private:
     void RunMouseOverHitTests(Element * element,int effectLayerIndex, int x,int y);
     void UpdateTimePosition(int position);
     void CheckForSelectionRectangle();
-    void RaiseSelectedEffectChanged(Element* element,int effectIndex);
+    void RaiseSelectedEffectChanged(Effect* effect);
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
