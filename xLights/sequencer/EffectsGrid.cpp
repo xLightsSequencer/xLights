@@ -114,7 +114,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if(mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected && FirstSelected>=0)
     {
         Element* element = mSequenceElements->GetRowInformation(row)->element;
-        RaiseSelectedEffectChanged(element,FirstSelected);
+        EffectLayer* el  = element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+        Effect* effect = el->GetEffect(FirstSelected);
+        RaiseSelectedEffectChanged(effect);
     }
     mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
                    GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
@@ -885,13 +887,11 @@ int EffectsGrid::GetRow(int y)
     return y/DEFAULT_ROW_HEADING_HEIGHT;
 }
 
-void EffectsGrid::RaiseSelectedEffectChanged(Element* element,int effectIndex)
+void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
 {
     // Place effect pointer in client data
-    // and the effect index in the event integer
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
-    eventEffectChanged.SetClientData(element);
-    eventEffectChanged.SetInt(effectIndex);
+    eventEffectChanged.SetClientData(effect);
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 
