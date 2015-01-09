@@ -14,11 +14,12 @@
 #define HIT_TEST_EFFECT_RT      1
 #define HIT_TEST_EFFECT_CTR     2
 
+class Element;
 
 class EffectLayer
 {
     public:
-        EffectLayer();
+        EffectLayer(Element* parent);
         virtual ~EffectLayer();
 
         void AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, bool Protected);
@@ -45,6 +46,10 @@ class EffectLayer
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
         void UnSelectAllEffects();
 
+        Element* GetParentElement();
+        void SetParentElement(Element* parent);
+
+
     protected:
     private:
 
@@ -53,6 +58,7 @@ class EffectLayer
 
         std::vector<Effect> mEffects;
         int mIndex;
+        Element* mParentElement;
 };
 
 #endif // EFFECTLAYER_H

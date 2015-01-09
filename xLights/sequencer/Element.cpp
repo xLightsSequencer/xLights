@@ -83,7 +83,7 @@ EffectLayer* Element::GetEffectLayer(int index)
 
 void Element::AddEffectLayer()
 {
-    EffectLayer el;
+    EffectLayer el(this);
     mEffectLayers.push_back(el);
 }
 

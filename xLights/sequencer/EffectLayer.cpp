@@ -4,9 +4,9 @@
 
 
 
-EffectLayer::EffectLayer()
+EffectLayer::EffectLayer(Element* parent)
 {
-    //ctor
+    mParentElement = parent;
 }
 
 EffectLayer::~EffectLayer()
@@ -48,7 +48,7 @@ Effect* EffectLayer::RemoveEffect(int index)
 
 void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, bool Protected)
 {
-    Effect e;
+    Effect e(this);
     e.SetID(id);
     e.SetEffectIndex(effectIndex);
     e.SetEffectName(name);
@@ -262,3 +262,13 @@ void EffectLayer::UnSelectAllEffects()
     }
 }
 
+Element* EffectLayer::GetParentElement()
+{
+    return mParentElement;
+
+}
+
+void EffectLayer::SetParentElement(Element* parent)
+{
+    mParentElement = parent;
+}

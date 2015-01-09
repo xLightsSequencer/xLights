@@ -26,7 +26,7 @@ wxString windows_get_stacktrace(void *data)
 {
     wxString trace;
     CONTEXT *context = (CONTEXT*)data;
-  //SymInitialize(GetCurrentProcess(), 0, true);
+    SymInitialize(GetCurrentProcess(), 0, true);
 
   STACKFRAME frame = { 0 };
 

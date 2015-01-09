@@ -27,11 +27,12 @@
 #define EFFECT_WAVE         20
 #define NUMBER_OF_EFFECTS   21
 
+class EffectLayer;
 
 class Effect
 {
     public:
-        Effect();
+        Effect(EffectLayer* parent);
         virtual ~Effect();
 
         int GetID();
@@ -69,6 +70,9 @@ class Effect
 
         static int GetEffectIndex(wxString effectName);
 
+        EffectLayer* GetParentEffectLayer();
+        void SetParentEffectLayer(EffectLayer* parent);
+
     protected:
     private:
         int mID;
@@ -82,6 +86,7 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         bool mDirty;
+        EffectLayer* mParentLayer;
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

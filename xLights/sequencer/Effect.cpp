@@ -1,8 +1,9 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 
-Effect::Effect()
+Effect::Effect(EffectLayer* parent)
 {
+    mParentLayer = parent;
 }
 
 Effect::~Effect()
@@ -160,4 +161,13 @@ int Effect::GetEffectIndex(wxString effectName)
 
 
 
+EffectLayer* Effect::GetParentEffectLayer()
+{
+    return mParentLayer;
+}
+
+void Effect::SetParentEffectLayer(EffectLayer* parent)
+{
+    mParentLayer = parent;
+}
 

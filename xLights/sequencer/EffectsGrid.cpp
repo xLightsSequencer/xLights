@@ -34,6 +34,40 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
 // some useful events to use
+
+
+//EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
+EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+                       long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+{
+    mIsInitialized = false;
+    mParent = parent;
+    mDragging = false;
+	m_context = new wxGLContext(this);
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+
+    mEffectColor = new wxColour(192,192,192);
+    mGridlineColor = new wxColour(40,40,40);
+
+    mTimingColor = new wxColour(255,255,255);
+    mTimingVerticalLine = new wxColour(130,178,207);
+    mSelectionColor = new wxColour(255,0,255);
+
+    mPaintOnIdleCounter=0;
+
+}
+
+EffectsGrid::~EffectsGrid()
+{
+	delete m_context;
+}
+
+void EffectsGrid::rightClick(wxMouseEvent& event) {}
+void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
+void EffectsGrid::keyPressed(wxKeyEvent& event) {}
+void EffectsGrid::keyReleased(wxKeyEvent& event) {}
+
+
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
     int rowIndex = GetRow(event.GetY());
@@ -63,6 +97,53 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
     }
     Refresh(false);
+}
+
+void EffectsGrid::mouseDown(wxMouseEvent& event)
+{
+    int FirstSelected;
+    if(!(event.ShiftDown() || event.ControlDown()))
+    {
+        mSequenceElements->UnSelectAllEffects();
+    }
+
+    int row = GetRow(event.GetY());
+    if(row>=mSequenceElements->GetRowInformationSize())
+        return;
+    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX(),FirstSelected);
+    if(mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected && FirstSelected>=0)
+    {
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        RaiseSelectedEffectChanged(element,FirstSelected);
+    }
+    mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
+                   GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+    mSelectedRow = row;
+    mSelectedEffectIndex = FirstSelected;
+    mPaintOnIdleCounter = 0;
+
+    if(mResizingMode!=EFFECT_RESIZE_NO)
+    {
+        mResizing = true;
+    }
+    else
+    {
+        mDragging = true;
+        mDragStartX = event.GetX();
+        mDragStartY = event.GetY();
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
+   }
+
+   UpdateTimePosition(event.GetX());
+   event.Skip(true);
+}
+
+void EffectsGrid::mouseReleased(wxMouseEvent& event)
+{
+    mResizing = false;
+    mDragging = false;
+    mPaintOnIdleCounter = 0;
 }
 
 void EffectsGrid::Resize(int position)
@@ -128,60 +209,12 @@ void EffectsGrid::RunMouseOverHitTests(Element* element,int effectLayerIndex,int
     }
 }
 
-void EffectsGrid::mouseDown(wxMouseEvent& event)
-{
-    int FirstSelected;
-    if(!(event.ShiftDown() || event.ControlDown()))
-    {
-        mSequenceElements->UnSelectAllEffects();
-    }
-
-    int row = GetRow(event.GetY());
-    if(row>=mSequenceElements->GetRowInformationSize())
-        return;
-    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX(),FirstSelected);
-    if(mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected && FirstSelected>=0)
-    {
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
-        RaiseSelectedEffectChanged(element,FirstSelected);
-    }
-    mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
-                   GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-    mSelectedRow = row;
-    mSelectedEffectIndex = FirstSelected;
-    mPaintOnIdleCounter = 0;
-
-    if(mResizingMode!=EFFECT_RESIZE_NO)
-    {
-        mResizing = true;
-    }
-    else
-    {
-        mDragging = true;
-        mDragStartX = event.GetX();
-        mDragStartY = event.GetY();
-        mDragEndX = event.GetX();
-        mDragEndY = event.GetY();
-   }
-
-   UpdateTimePosition(event.GetX());
-   event.Skip(true);
-}
-
 void EffectsGrid::UpdateTimePosition(int position)
 {
     // Update time selection
     wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
     eventTimeSelected.SetInt(position);
     wxPostEvent(mParent, eventTimeSelected);
-}
-
-
-void EffectsGrid::mouseReleased(wxMouseEvent& event)
-{
-    mResizing = false;
-    mDragging = false;
-    mPaintOnIdleCounter = 0;
 }
 
 void EffectsGrid::CheckForSelectionRectangle()
@@ -197,37 +230,6 @@ void EffectsGrid::CheckForSelectionRectangle()
         int firstSelected;
         mSequenceElements->SelectEffectsInRowAndPositionRange(row1,row2,x1,x2,firstSelected);
     }
-}
-
-void EffectsGrid::rightClick(wxMouseEvent& event) {}
-void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
-void EffectsGrid::keyPressed(wxKeyEvent& event) {}
-void EffectsGrid::keyReleased(wxKeyEvent& event) {}
-
-//EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
-EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
-                       long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
-{
-    mIsInitialized = false;
-    mParent = parent;
-    mDragging = false;
-	m_context = new wxGLContext(this);
-    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-
-    mEffectColor = new wxColour(192,192,192);
-    mGridlineColor = new wxColour(40,40,40);
-
-    mTimingColor = new wxColour(255,255,255);
-    mTimingVerticalLine = new wxColour(130,178,207);
-    mSelectionColor = new wxColour(255,0,255);
-
-    mPaintOnIdleCounter=0;
-
-}
-
-EffectsGrid::~EffectsGrid()
-{
-	delete m_context;
 }
 
 void EffectsGrid::OnIdle(wxIdleEvent &event)
