@@ -15,8 +15,117 @@
 #include <wx/image.h>
 //*)
 
+
+#ifndef __WXMSW__
+#include <execinfo.h>
+#else
+
+#include <windows.h>
+#include <imagehlp.h>
+wxString windows_get_stacktrace(void *data)
+{
+    wxString trace;
+    CONTEXT *context = (CONTEXT*)data;
+  SymInitialize(GetCurrentProcess(), 0, true);
+
+  STACKFRAME frame = { 0 };
+
+  /* setup initial stack frame */
+  frame.AddrPC.Offset         = context->Eip;
+  frame.AddrPC.Mode           = AddrModeFlat;
+  frame.AddrStack.Offset      = context->Esp;
+  frame.AddrStack.Mode        = AddrModeFlat;
+  frame.AddrFrame.Offset      = context->Ebp;
+  frame.AddrFrame.Mode        = AddrModeFlat;
+
+  while (StackWalk(IMAGE_FILE_MACHINE_I386 ,
+                   GetCurrentProcess(),
+                   GetCurrentThread(),
+                   &frame,
+                   context,
+                   0,
+                   SymFunctionTableAccess,
+                   SymGetModuleBase,
+                   0 ) )
+  {
+      static char symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + 255 ];
+      memset( symbolBuffer , 0 , sizeof(IMAGEHLP_SYMBOL) + 255 );
+      IMAGEHLP_SYMBOL * symbol = (IMAGEHLP_SYMBOL*) symbolBuffer;
+
+      // Need to set the first two fields of this symbol before obtaining name info:
+      symbol->SizeOfStruct    = sizeof(IMAGEHLP_SYMBOL) + 255;
+      symbol->MaxNameLength   = 254;
+
+      // The displacement from the beginning of the symbol is stored here: pretty useless
+      unsigned displacement = 0;
+
+      // Get the symbol information from the address of the instruction pointer register:
+      if (SymGetSymFromAddr(
+                    GetCurrentProcess()     ,   // Process to get symbol information for
+                    frame.AddrPC.Offset     ,   // Address to get symbol for: instruction pointer register
+                    (DWORD*) & displacement ,   // Displacement from the beginning of the symbol: whats this for ?
+                    symbol                      // Where to save the symbol
+                )) {
+          // Add the name of the function to the function list:
+          char buffer[2048]; sprintf( buffer , "0x%08x %s\n" ,  frame.AddrPC.Offset , symbol->Name );
+          trace += buffer;
+      } else {
+          // Print an unknown location:
+          // functionNames.push_back("unknown location");
+          char buffer[64]; sprintf( buffer , "0x%08x\n" ,  frame.AddrPC.Offset );
+          trace += buffer;
+      }
+  }
+
+  SymCleanup( GetCurrentProcess() );
+  return trace;
+}
+
+#endif
+
 #include <wx/debugrpt.h>
 
+xLightsFrame *topFrame = NULL;
+void handleCrash(void *data) {
+
+    wxDebugReportCompress report;
+    report.SetCompressedFileDirectory(topFrame->CurrentDir);
+    report.AddAll(wxDebugReport::Context_Exception);
+    report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
+    report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
+    if (topFrame->GetSeqXmlFileName() != "") {
+        report.AddFile(topFrame->GetSeqXmlFileName(), wxFileName(topFrame->GetSeqXmlFileName()).GetName());
+    }
+    wxString trace;
+#ifndef __WXMSW__
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    for (i = 0; i < frames; ++i) {
+        trace += strs[i];
+        trace += "\n";
+    }
+    free(strs);
+#else
+    trace = windows_get_stacktrace(data);
+#endif
+    if (!trace.IsEmpty()) {
+        report.AddText("backtrace.txt", trace, "Backtrace");
+    }
+    if (wxDebugReportPreviewStd().Show(report)) {
+        report.Process();
+    }
+}
+
+
+#if !(wxUSE_ON_FATAL_EXCEPTION)
+#include <windows.h>
+//MinGW needs to do this manually
+LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS * ExceptionInfo)
+{
+    handleCrash(ExceptionInfo->ContextRecord);
+}
+#endif
 
 IMPLEMENT_APP(xLightsApp)
 
@@ -50,13 +159,19 @@ bool xLightsApp::OnInit()
     if (!unrecog.empty()) wxMessageBox(info + _("Unrecognized command line parameters:") + unrecog, _("Command Line Error"));
     else if (!info.empty()) wxMessageBox(info, _("Command Line Options")); //give positive feedback
 
+#if wxUSE_ON_FATAL_EXCEPTION
+    wxHandleFatalExceptions();
+#else
+    SetUnhandledExceptionFilter(windows_exception_handler);
+#endif
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    //wxHandleFatalExceptions();
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
+        topFrame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);
     }
@@ -65,35 +180,9 @@ bool xLightsApp::OnInit()
     return wxsOK;
 }
 
-#ifndef __WXMSW__
-#include <execinfo.h>
-#endif
 
 void xLightsApp::OnFatalException() {
-    xLightsFrame *frame = (xLightsFrame*)GetTopWindow();
-    wxDebugReportCompress report;
-    report.SetCompressedFileDirectory(frame->CurrentDir);
-    report.AddAll(wxDebugReport::Context_Exception);
-    report.AddFile(wxFileName(frame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
-    report.AddFile(wxFileName(frame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
-    if (frame->SeqXmlFileName != "") {
-        report.AddFile(frame->SeqXmlFileName, wxFileName(frame->SeqXmlFileName).GetName());
-    }
-#ifndef __WXMSW__
-    void* callstack[128];
-    int i, frames = backtrace(callstack, 128);
-    char** strs = backtrace_symbols(callstack, frames);
-    wxString backtrace;
-    for (i = 0; i < frames; ++i) {
-        backtrace += strs[i];
-        backtrace += "\n";
-    }
-    free(strs);
-    report.AddText("backtrace.txt", backtrace, "Backtrace");
-#endif
-    if (wxDebugReportPreviewStd().Show(report)) {
-        report.Process();
-    }
+    handleCrash(NULL);
 }
 
 

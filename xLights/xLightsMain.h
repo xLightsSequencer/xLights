@@ -1452,6 +1452,10 @@ private:
 public:
     static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
+    
+    wxString &GetSeqXmlFileName() {
+        return SeqXmlFileName;
+    }
 };
 
 #endif // XLIGHTSMAIN_H
