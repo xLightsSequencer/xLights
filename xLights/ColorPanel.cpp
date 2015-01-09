@@ -44,6 +44,7 @@
 const long ColorPanel::ID_TEXTCTRL7 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
 const long ColorPanel::ID_SCROLLED_ColorScroll = wxNewId();
+const long ColorPanel::ID_PANEL1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(ColorPanel,wxPanel)
@@ -59,13 +60,14 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDLG_UNIT(parent,wxSize(150,150)), wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	SetMinSize(wxSize(150,150));
-	SetMaxSize(wxSize(150,150));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRADIENTACTIVECAPTION));
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
+	Panel_Sizer = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	Panel_Sizer->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
-	ColorScrollWindow = new wxScrolledWindow(this, ID_SCROLLED_ColorScroll, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_ColorScroll"));
+	ColorScrollWindow = new wxScrolledWindow(Panel_Sizer, ID_SCROLLED_ColorScroll, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLED_ColorScroll"));
+	ColorScrollWindow->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer_Palette = new wxFlexGridSizer(0, 6, 0, 0);
 	CheckBox_Palette1 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -163,15 +165,18 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	BitmapButton_Contrast->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	BitmapButton_Contrast->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ColorScrollWindow->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(ColorScrollWindow);
 	FlexGridSizer4->SetSizeHints(ColorScrollWindow);
-	FlexGridSizer3->Add(ColorScrollWindow, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer3->Add(ColorScrollWindow, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	Panel_Sizer->SetSizer(FlexGridSizer3);
+	FlexGridSizer3->Fit(Panel_Sizer);
+	FlexGridSizer3->SetSizeHints(Panel_Sizer);
+	FlexGridSizer1->Add(Panel_Sizer, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	SetSizer(FlexGridSizer1);
-	SetSizer(FlexGridSizer1);
-	Layout();
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
 	Connect(ID_CHECKBOX_Palette2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
@@ -191,6 +196,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette4Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette5Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette6Click);
+	Connect(wxEVT_PAINT,(wxObjectEventFunction)&ColorPanel::OnPaint);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
 }
@@ -368,9 +374,22 @@ void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 
 void ColorPanel::OnResize(wxSizeEvent& event)
 {
-    int h = GetSize().y;
-    int w = GetSize().x;
-    //ColorScrollWindow->SetSize(wxSize(w,h));
-    //ColorScrollWindow->SetMinSize(wxSize(w,h));
-    //ColorScrollWindow->SetMaxSize(wxSize(w,h));
+    wxSize s = GetSize();
+    Panel_Sizer->SetSize(s);
+    Panel_Sizer->SetMinSize(s);
+    Panel_Sizer->SetMaxSize(s);
+    Panel_Sizer->Refresh();
+
+    ColorScrollWindow->SetSize(s);
+    ColorScrollWindow->SetMinSize(s);
+    ColorScrollWindow->SetMaxSize(s);
+
+    ColorScrollWindow->FitInside();
+    ColorScrollWindow->SetScrollRate(5, 5);
+    ColorScrollWindow->Refresh();
+
+}
+
+void ColorPanel::OnPaint(wxPaintEvent& event)
+{
 }

@@ -44,6 +44,7 @@ class ColorPanel: public wxPanel
 		wxButton* Button_Palette5;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxCheckBox* CheckBox_Palette1;
+		wxPanel* Panel_Sizer;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxCheckBox* CheckBox_Palette5;
 		wxStaticText* StaticText127;
@@ -100,6 +101,7 @@ class ColorPanel: public wxPanel
 		static const long ID_TEXTCTRL7;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
 		static const long ID_SCROLLED_ColorScroll;
+		static const long ID_PANEL1;
 		//*)
 
 	private:
@@ -114,6 +116,7 @@ class ColorPanel: public wxPanel
 		void OnBitmapButton_Palette6Click(wxCommandEvent& event);
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnPaint(wxPaintEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);

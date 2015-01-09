@@ -1,348 +1,349 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="ColorPanel">
-		<size>150,150d</size>
 		<bg>wxSYS_COLOUR_GRADIENTACTIVECAPTION</bg>
-		<minsize>150,150</minsize>
-		<maxsize>150,150</maxsize>
 		<id_arg>0</id_arg>
+		<handler function="OnPaint" entry="EVT_PAINT" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<rows>1</rows>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>1</cols>
-					<object class="sizeritem">
-						<object class="wxScrolledWindow" name="ID_SCROLLED_ColorScroll" variable="ColorScrollWindow" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-								<cols>1</cols>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer_Palette" member="yes">
-										<cols>6</cols>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Palette1" member="yes">
-												<checked>1</checked>
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
+					<bg>wxSYS_COLOUR_BACKGROUND</bg>
+					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+						<cols>1</cols>
+						<object class="sizeritem">
+							<object class="wxScrolledWindow" name="ID_SCROLLED_ColorScroll" variable="ColorScrollWindow" member="yes">
+								<bg>wxSYS_COLOUR_BTNFACE</bg>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>1</cols>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer_Palette" member="yes">
+											<cols>6</cols>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Palette1" member="yes">
+													<checked>1</checked>
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Palette2" variable="CheckBox_Palette2" member="yes">
-												<checked>1</checked>
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Palette2" variable="CheckBox_Palette2" member="yes">
+													<checked>1</checked>
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Palette3" variable="CheckBox_Palette3" member="yes">
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Palette3" variable="CheckBox_Palette3" member="yes">
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Palette4" variable="CheckBox_Palette4" member="yes">
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Palette4" variable="CheckBox_Palette4" member="yes">
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Palette5" variable="CheckBox_Palette5" member="yes">
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Palette5" variable="CheckBox_Palette5" member="yes">
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxCheckBox" name="ID_CHECKBOX_Palette6" variable="CheckBox_Palette6" member="yes">
-												<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Palette6" variable="CheckBox_Palette6" member="yes">
+													<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
-												<label>1</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
+													<label>1</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
-												<label>2</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
+													<label>2</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
-												<label>3</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
+													<label>3</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
-												<label>4</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
+													<label>4</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
-												<label>5</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
+													<label>5</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
-												<label>6</label>
-												<minsize>21,21</minsize>
-												<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
+													<label>6</label>
+													<minsize>21,21</minsize>
+													<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette1" variable="BitmapButton_Palette1" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette1" variable="BitmapButton_Palette1" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette2" variable="BitmapButton_Palette2" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette2" variable="BitmapButton_Palette2" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette3" variable="BitmapButton_Palette3" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette3" variable="BitmapButton_Palette3" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette4" variable="BitmapButton_Palette4" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette4" variable="BitmapButton_Palette4" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette5" variable="BitmapButton_Palette5" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette5" variable="BitmapButton_Palette5" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette6" variable="BitmapButton_Palette6" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-												<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette6" variable="BitmapButton_Palette6" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+													<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>1</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>1</border>
-											<option>1</option>
 										</object>
+										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-										<cols>4</cols>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT24" variable="StaticText22" member="yes">
-												<label>Sparkles</label>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+											<cols>4</cols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT24" variable="StaticText22" member="yes">
+													<label>Sparkles</label>
+												</object>
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
-												<value>200</value>
-												<min>10</min>
-												<max>200</max>
-												<style>wxSL_INVERSE</style>
+											<object class="sizeritem">
+												<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
+													<value>200</value>
+													<min>10</min>
+													<max>200</max>
+													<style>wxSL_INVERSE</style>
+												</object>
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
-												<value>200</value>
-												<size>32,20</size>
-												<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
+													<value>200</value>
+													<size>32,20</size>
+													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>21,21</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>21,21</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT127" variable="StaticText126" member="yes">
-												<label>Brightness</label>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT127" variable="StaticText126" member="yes">
+													<label>Brightness</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
-												<value>100</value>
-												<max>400</max>
+											<object class="sizeritem">
+												<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
+													<value>100</value>
+													<max>400</max>
+												</object>
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
-												<value>100</value>
-												<size>32,20</size>
-												<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
+													<value>100</value>
+													<size>32,20</size>
+													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>20,20</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText127" member="yes">
-												<label>Contrast</label>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT128" variable="StaticText127" member="yes">
+													<label>Contrast</label>
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes" />
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
-												<value>0</value>
-												<size>32,20</size>
-												<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+											<object class="sizeritem">
+												<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes" />
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<default>1</default>
-												<size>20,20</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-												<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
-												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<object class="sizeritem">
+												<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
+													<value>0</value>
+													<size>32,20</size>
+													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>2</border>
+												<option>1</option>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<object class="sizeritem">
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
+													<bitmap code="padlock16x16_blue_xpm" />
+													<default>1</default>
+													<size>20,20</size>
+													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											</object>
 										</object>
+										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
 								</object>
 							</object>
+							<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<option>1</option>
 						</object>
-						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 		</object>

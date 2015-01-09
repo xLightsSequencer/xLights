@@ -2,6 +2,7 @@
 #define TIMINGPANEL_H
 
 //(*Headers(TimingPanel)
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -24,6 +25,7 @@ class TimingPanel: public wxPanel
 
 		//(*Declarations(TimingPanel)
 		wxStaticText* StaticText2;
+		wxPanel* Panel_Sizer;
 		wxBitmapButton* BitmapButton_FitToTime;
 		wxTextCtrl* TextCtrl_Fadein;
 		wxTextCtrl* TextCtrl_Speed;
@@ -39,6 +41,7 @@ class TimingPanel: public wxPanel
 		wxChoice* Choice_LayerMethod;
 		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxTextCtrl* TextCtrl_Fadeout;
+		wxScrolledWindow* ScrolledWindowTiming;
 		wxSlider* Slider_Speed;
 		wxCheckBox* CheckBox_OverlayBkg;
 		wxStaticText* StaticText59;
@@ -70,6 +73,8 @@ class TimingPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_CHECKBOX_FitToTime;
 		static const long ID_CHECKBOX_OverlayBkg;
 		static const long ID_BITMAPBUTTON_OverlayBkg;
+		static const long ID_SCROLLEDWINDOW1;
+		static const long ID_PANEL1;
 		//*)
 
 	private:

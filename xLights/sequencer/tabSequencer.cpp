@@ -99,10 +99,10 @@ void xLightsFrame::InitSequencer()
                        BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
 
         m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).
-                       BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
+                       BestSize(wxSize(175,175)).Left());
 
         m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer/Timing")).
-                       BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
+                       BestSize(wxSize(175,175)).Left());
 
         m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
         m_mgr->Update();
@@ -236,15 +236,6 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     sw->FitInside();
     sw->SetScrollRate(5, 5);
     sw->Refresh();
-
-    //s = colorPanel->GetSize();
-    //colorPanel->SetSize(s);
-    //colorPanel->SetMinSize(s);
-    //colorPanel->SetMaxSize(s);
-
-    colorPanel->ColorScrollWindow->FitInside();
-    colorPanel->ColorScrollWindow->SetScrollRate(5, 5);
-    colorPanel->ColorScrollWindow->Refresh();
 
 }
 
