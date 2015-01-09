@@ -801,8 +801,8 @@ private:
     wxTextCtrl* TextCtrl_PgoAutoFade;
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
-    wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     xlAuiToolBar* PlayToolBar;
+    wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
     wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
     wxButton* Button_CoroGroupDelete;
