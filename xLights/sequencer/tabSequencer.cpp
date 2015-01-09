@@ -236,6 +236,16 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     sw->FitInside();
     sw->SetScrollRate(5, 5);
     sw->Refresh();
+
+    //s = colorPanel->GetSize();
+    //colorPanel->SetSize(s);
+    //colorPanel->SetMinSize(s);
+    //colorPanel->SetMaxSize(s);
+
+    colorPanel->ColorScrollWindow->FitInside();
+    colorPanel->ColorScrollWindow->SetScrollRate(5, 5);
+    colorPanel->ColorScrollWindow->Refresh();
+
 }
 
 void xLightsFrame::ResizeMainSequencer()
@@ -276,6 +286,12 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
     mainSequencer->ScrolledEffectsGrid->FitInside();
 
+    //colorPanel->SetSize(wxSize(50,50));
+    //colorPanel->SetSize(wxSize(50,50));
+    //colorPanel->SetSize(wxSize(50,50));
+
+
+
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelTimeLine->Refresh();
     mainSequencer->PanelRowHeadings->Refresh();
@@ -283,6 +299,8 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->panelEffectScrollBarSpacer->Refresh();
     mainSequencer->ScrollBarEffectGridHorz->Refresh();
     mainSequencer->ScrolledEffectsGrid->Refresh();
+    colorPanel->Refresh();
+    colorPanel->ColorScrollWindow->Refresh();
 }
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)

@@ -2,6 +2,7 @@
 #define COLORPANEL_H
 
 //(*Headers(ColorPanel)
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -57,6 +58,7 @@ class ColorPanel: public wxPanel
 		wxStaticText* StaticText126;
 		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Palette5;
+		wxScrolledWindow* ColorScrollWindow;
 		wxCheckBox* CheckBox_Palette2;
 		wxTextCtrl* txtCtrlSparkleFreq;
 		wxSlider* Slider_Contrast;
@@ -97,6 +99,7 @@ class ColorPanel: public wxPanel
 		static const long ID_SLIDER_Contrast;
 		static const long ID_TEXTCTRL7;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
+		static const long ID_SCROLLED_ColorScroll;
 		//*)
 
 	private:
@@ -110,6 +113,7 @@ class ColorPanel: public wxPanel
 		void OnBitmapButton_Palette5Click(wxCommandEvent& event);
 		void OnBitmapButton_Palette6Click(wxCommandEvent& event);
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
