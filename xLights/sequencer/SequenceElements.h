@@ -1,7 +1,7 @@
 #ifndef SEQUENCEELEMENTS_H
 #define SEQUENCEELEMENTS_H
 
-#include "ElementEffects.h"
+#include "EffectLayer.h"
 #include "Element.h"
 
 #include "wx/wx.h"
@@ -18,6 +18,7 @@ struct Row_Information_Struct
     bool Active;
     bool PartOfView;
     int colorIndex;
+    int layerIndex;
 };
 
 class SequenceElements

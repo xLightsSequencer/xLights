@@ -3,13 +3,15 @@
 
 #ifndef _glpane_
 #define _glpane_
-#endif // EffectsGrid_H
+#endif
+
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
-#include "ElementEffects.h"
+#include "EffectLayer.h"
+
 
 #define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
@@ -71,7 +73,7 @@ private:
     void DrawTimingEffects(int row);
     void DrawEffects();
     void Resize(int position);
-    void RunMouseOverHitTests(Element * element,int x,int y);
+    void RunMouseOverHitTests(Element * element,int effectLayerIndex, int x,int y);
     void UpdateTimePosition(int position);
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Element* element,int effectIndex);
@@ -80,7 +82,9 @@ private:
     bool mIsDrawing = false;
     bool mIsInitialized = false;
     wxGLContext*	m_context;
-    GLuint m_EffectTextures[NUMBER_OF_EFFECTS];
+    //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
+    // for effect count
+    GLuint m_EffectTextures[40];
     int mStartPixelOffset;
     wxColour * mEffectColor;
     wxColour * mGridlineColor;
@@ -101,7 +105,7 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
-    ElementEffects* mElementEffects;
+    EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
     int mPaintOnIdleCounter;
 

@@ -278,7 +278,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
 
-    enum RGB_EFFECTS_e
+     enum RGB_EFFECTS_e
     {
         eff_NONE,
         eff_OFF,
@@ -314,8 +314,7 @@ public:
         eff_LASTEFFECT //Always the last entry
     };
 
-
-    enum LAYER_OPTIONS_e
+   enum LAYER_OPTIONS_e
     {
         EFFECT1,
         EFFECT2,

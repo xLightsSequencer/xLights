@@ -119,8 +119,6 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
 {
     wxString tmpStr;
     wxXmlDocument seqDocument;
-    double startTime;
-    double endTime;
     // read xml sequence info
     wxFileName FileObj(filename);
     FileObj.SetExt("xml");
@@ -185,9 +183,8 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                     }
                 }
             }
-            PopulateRowInformation();
        }
-       if (e->GetName() == "ElementEffects")
+       else if (e->GetName() == "ElementEffects")
         {
             for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
             {
@@ -196,47 +193,54 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                     Element* element = GetElement(elementNode->GetAttribute("name"));
                     if (element !=NULL)
                     {
-                        for(wxXmlNode* effect=elementNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
+                        int layerIndex=0;
+                        for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
                         {
-                            if (effect->GetName() == "Effect")
+                            if (effectLayerNode->GetName() == "EffectLayer")
                             {
-                                int id;
-                                wxString commonSettings = effect->GetNodeContent();
-                                wxString layerSettings1;
-                                wxString layerSettings2;
-                                wxString effectName1;
-                                wxString effectName2;
-                                int effectIndex;
-                                // Start time
-                                effect->GetAttribute("startTime").ToDouble(&startTime);
-                                startTime = ElementEffects::RoundToMultipleOfPeriod(startTime,mFrequency);
-                                // End time
-                                effect->GetAttribute("endTime").ToDouble(&endTime);
-                                endTime = ElementEffects::RoundToMultipleOfPeriod(endTime,mFrequency);
-                                // Protected
-                                bool bProtected = effect->GetAttribute("protected")=='1'?true:false;
-                                if(elementNode->GetAttribute("type") != "timing")
+                                element->AddEffectLayer();
+                                EffectLayer* effectLayer = element->GetEffectLayer(layerIndex);
+                                for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
                                 {
-                                    // ID
-                                    id = wxAtoi(effect->GetAttribute("id"));
-                                    // Get Effect Layers (always two for now
-                                    wxXmlNode* effectLayer=effect->GetChildren();
-                                    // Parse first layer
-                                    wxString effectName = effectLayer->GetAttribute("name");
-                                    effectIndex = ElementEffects::GetEffectIndex(effectName);
-                                    layerSettings1 = effectLayer->GetNodeContent();
-                                    // Parse second layer
-                                    effectLayer=effectLayer->GetNext();
-                                    layerSettings2 = effectLayer->GetNodeContent();
+                                    if (effect->GetName() == "Effect")
+                                    {
+                                        wxString effectName;
+                                        wxString settings;
+                                        int id;
+                                        int effectIndex;
+                                        bool bProtected=false;
+
+                                        // Start time
+                                        double startTime;
+                                        effect->GetAttribute("startTime").ToDouble(&startTime);
+                                        startTime = EffectLayer::RoundToMultipleOfPeriod(startTime,mFrequency);
+                                        // End time
+                                        double endTime;
+                                        effect->GetAttribute("endTime").ToDouble(&endTime);
+                                        endTime = EffectLayer::RoundToMultipleOfPeriod(endTime,mFrequency);
+                                        // Protected
+                                        bProtected = effect->GetAttribute("protected")=='1'?true:false;
+                                        if(elementNode->GetAttribute("type") != "timing")
+                                        {
+                                            // Name
+                                            effectName = effect->GetAttribute("name");
+                                            // ID
+                                            id = wxAtoi(effect->GetAttribute("id"));
+                                            effectIndex = Effect::GetEffectIndex(effectName);
+                                            settings = effect->GetNodeContent();
+                                        }
+                                        effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,bProtected);
+                                    }
                                 }
-                                element->AddEffect(id,commonSettings,layerSettings1,layerSettings2,effectIndex,startTime,endTime,bProtected);
                             }
+                            layerIndex++;
                         }
                     }
                 }
             }
         }
     }
+    PopulateRowInformation();
     return true;
 }
 
@@ -250,44 +254,74 @@ void SequenceElements::PopulateRowInformation()
     int rowIndex=0;
     int timingColorIndex=0;
 
-    Row_Information_Struct ri;
     mRowInformation.clear();
     for(int i=0;i<mElements.size();i++)
     {
         if(mElements[i].GetVisible())
         {
-            ri.element = &mElements[i];
-            ri.Collapsed = mElements[i].GetCollapsed();
-            ri.Active = mElements[i].GetActive();
-            ri.PartOfView = false;
-            if(mElements[i].GetType()=="timing")
+            if (mElements[i].GetType()=="model")
             {
-                ri.colorIndex = timingColorIndex;
-                timingColorIndex++;
-            }
-            else
-            {
-                ri.colorIndex = 0;
-            }
-            ri.Index = rowIndex++;
-
-            mRowInformation.push_back(ri);
-            if(mElements[i].GetType()== "view" && !mElements[i].GetCollapsed())
-            {
-                wxString models = GetViewModels(mElements[i].GetName());
-                if(models.length()> 0)
+                for(int j =0; j<mElements[i].GetEffectLayerCount();j++)
                 {
-                    wxArrayString model=wxSplit(models,',');
-                    for(int m=0;m<model.size();m++)
+                    Row_Information_Struct ri;
+                    ri.element = &mElements[i];
+                    ri.Collapsed = mElements[i].GetCollapsed();
+                    ri.Active = mElements[i].GetActive();
+                    ri.PartOfView = false;
+                    ri.colorIndex = 0;
+                    ri.layerIndex = j;
+                    ri.Index = rowIndex++;
+                    mRowInformation.push_back(ri);
+                }
+            }
+            else if (mElements[i].GetType()=="timing")
+            {
+                Row_Information_Struct ri;
+                ri.element = &mElements[i];
+                ri.Collapsed = mElements[i].GetCollapsed();
+                ri.Active = mElements[i].GetActive();
+                ri.PartOfView = false;
+                ri.colorIndex = timingColorIndex;
+                ri.layerIndex = 0;
+                ri.Index = rowIndex++;
+                mRowInformation.push_back(ri);
+                timingColorIndex++;
+
+            }
+            else        // View
+            {
+                Row_Information_Struct ri;
+                ri.element = &mElements[i];
+                ri.Collapsed = mElements[i].GetCollapsed();
+                ri.Active = mElements[i].GetActive();
+                ri.PartOfView = false;
+                ri.colorIndex = 0;
+                ri.layerIndex = 0;
+                ri.Index = rowIndex++;
+                mRowInformation.push_back(ri);
+                if(!mElements[i].GetCollapsed())
+                {
+                    // Add models/effect layers in view
+                    wxString models = GetViewModels(mElements[i].GetName());
+                    if(models.length()> 0)
                     {
-                        Element* element = GetElement(model[m]);
-                        ri.element = element;
-                        ri.Collapsed = false;
-                        ri.Active = false;              // Not used for models or
-                        ri.PartOfView = true;
-                        ri.Index = rowIndex++;
-                        ri.colorIndex = 0;
-                        mRowInformation.push_back(ri);
+                        wxArrayString model=wxSplit(models,',');
+                        for(int m=0;m<model.size();m++)
+                        {
+                            Element* element = GetElement(model[m]);
+                            for(int j=0;element->GetEffectLayerCount();j++)
+                            {
+                                Row_Information_Struct r;
+                                r.element = element;
+                                r.Collapsed = element->GetCollapsed();
+                                r.Active = mElements[i].GetActive();
+                                r.PartOfView = false;
+                                r.colorIndex = 0;
+                                r.layerIndex = j;
+                                r.Index = rowIndex++;
+                                mRowInformation.push_back(r);
+                            }
+                        }
                     }
                 }
             }
@@ -316,8 +350,8 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
         }
         for(int i=startRow;i<=endRow;i++)
         {
-            ElementEffects* effects = mRowInformation[i].element->GetElementEffects();
-            effects->SelectEffectsInPositionRange(startX,endX,FirstSelected);
+            EffectLayer* effectLayer = mRowInformation[i].element->GetEffectLayer(mRowInformation[i].layerIndex);
+            effectLayer->SelectEffectsInPositionRange(startX,endX,FirstSelected);
         }
     }
 }
@@ -326,7 +360,7 @@ void SequenceElements::UnSelectAllEffects()
 {
     for(int i=0;i<mRowInformation.size();i++)
     {
-        ElementEffects* effects = mRowInformation[i].element->GetElementEffects();
-        effects->UnSelectAllEffects();
+        EffectLayer* effectLayer = mRowInformation[i].element->GetEffectLayer(mRowInformation[i].layerIndex);
+        effectLayer->UnSelectAllEffects();
     }
 }

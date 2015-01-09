@@ -115,16 +115,27 @@ void RowHeading::render( wxPaintEvent& event )
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
-        if(mSequenceElements->GetRowInformation(i)->PartOfView)
+        if(mSequenceElements->GetRowInformation(i)->layerIndex>0)   // If effect layer = 0
         {
-            wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
-            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.SetPen(*wxLIGHT_GREY_PEN);
+            dc.DrawLine(1,startY,w-1,startY);
+            dc.DrawLine(1,startY-1,w-1,startY-1);
+            dc.SetPen(*wxBLACK_PEN);
         }
-        else
+        else        // Draw label
         {
-            wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
-            dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            if(mSequenceElements->GetRowInformation(i)->PartOfView)
+            {
+                wxRect r(INDENT_ROW_HEADING_MARGIN,startY,w-(INDENT_ROW_HEADING_MARGIN),22);
+                dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            }
+            else
+            {
+                wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,22);
+                dc.DrawLabel(mSequenceElements->GetRowInformation(i)->element->GetName(),r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            }
         }
+
         if(mSequenceElements->GetRowInformation(i)->element->GetType()=="view")
         {
 

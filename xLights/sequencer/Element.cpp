@@ -1,7 +1,7 @@
 #include "Element.h"
 
 Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active)
-:mElementEffects()
+:mEffectLayers()
 {
     mName = name;
     mElementType = type;
@@ -76,17 +76,25 @@ void Element::SetIndex(int index)
     mIndex = index;
 }
 
-ElementEffects* Element::GetElementEffects()
+EffectLayer* Element::GetEffectLayer(int index)
 {
-    return &mElementEffects;
+    return &mEffectLayers[index];
 }
 
-void Element::SortElementEffects()
+void Element::AddEffectLayer()
 {
-    mElementEffects.Sort();
+    EffectLayer el;
+    mEffectLayers.push_back(el);
 }
-void Element::AddEffect(int id,wxString commonSettings,wxString layer1Settings,wxString layer2Settings, int effectIndex, double startTime,double endTime, bool Protected)
+
+void Element::RemoveEffectLayer(int index)
 {
-    mElementEffects.AddEffect(id,commonSettings,layer1Settings,layer2Settings,effectIndex,startTime,endTime,Protected);
+    mEffectLayers.erase(mEffectLayers.begin()+index);
 }
+
+int Element::GetEffectLayerCount()
+{
+    return mEffectLayers.size();
+}
+
 

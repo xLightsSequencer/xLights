@@ -4,7 +4,7 @@
 #include "wx/wx.h"
 #include <vector>
 #include "wx/xml/xml.h"
-#include "ElementEffects.h"
+#include "EffectLayer.h"
 
 enum ElementType
 {
@@ -34,17 +34,16 @@ class Element
         wxString GetType();
         void SetType(wxString &type);
 
-        ElementEffects* GetElementEffects();
-        void SortElementEffects();
+        EffectLayer* GetEffectLayer(int index);
+        int GetEffectLayerCount();
 
+        void AddEffectLayer();
+        void RemoveEffectLayer(int index);
 
         int GetIndex();
         void SetIndex(int index);
 
         int Index;
-
-        void AddEffect(int id,wxString commonSettings,wxString layer1Settings,wxString layer2Settings, int effectIndex, double startTime,double endTime, bool Protected);
-
 
     protected:
     private:
@@ -54,7 +53,7 @@ class Element
         bool mVisible;
         bool mCollapsed;
         bool mActive;
-        ElementEffects mElementEffects;
+        std::vector<EffectLayer> mEffectLayers;
 
 };
 

@@ -296,7 +296,7 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
     if(element->GetType() == "model")
     {
         int effectIndex = event.GetInt();
-        Effect* effect = element->GetElementEffects()->GetEffect(effectIndex);
+        //Effect* effect = element->GetEffectLayer()->GetEffect(effectIndex);
         //SetEffectControls(effect->Effect,element->GetName());
     }
 }
