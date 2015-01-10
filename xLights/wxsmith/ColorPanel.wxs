@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="ColorPanel">
-		<bg>wxSYS_COLOUR_GRADIENTACTIVECAPTION</bg>
 		<id_arg>0</id_arg>
 		<handler function="OnPaint" entry="EVT_PAINT" />
 		<handler function="OnResize" entry="EVT_SIZE" />

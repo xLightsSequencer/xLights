@@ -1564,6 +1564,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
+    Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
@@ -1580,7 +1581,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
 
-    InitSequencer();
+    CreateSequencer();
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
     seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
@@ -2108,7 +2109,7 @@ void xLightsFrame::AllLightsOff()
     if (xout) xout->alloff();
 }
 
-void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
+void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
     heartbeat("tab change", true); //tell fido to stop watching -DJ
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
@@ -2127,7 +2128,6 @@ void xLightsFrame::OnNotebook1PageChanged(wxNotebookEvent& event)
     else if (pagenum == NEWSEQUENCER)
     {
         InitSequencer();
-        PanelSequencer->Refresh();
     }
     else
     {
@@ -2576,6 +2576,21 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
             retval = false;
         }
     }
+    else if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        switch(uc)
+        {
+            case '+':
+                mainSequencer->PanelTimeLine->ZoomIn();
+                break;
+            case '-':
+                mainSequencer->PanelTimeLine->ZoomOut();
+                break;
+            default:
+                retval = false;
+        }
+
+    }
     if (!retval)
     {
         event.Skip();
@@ -2865,3 +2880,4 @@ void xLightsFrame::SetButtonColor(wxButton* btn, const wxColour* c)
     btn->SetLabelText("");
 #endif
 }
+

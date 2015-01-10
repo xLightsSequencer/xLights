@@ -51,7 +51,7 @@ class Effect
         void SetEndTime(double endTime);
 
         wxString GetSettings();
-        void SetSettings(wxString settings);;
+        void SetSettings(wxString settings);
 
         int GetSelected();
         void SetSelected(int selected);

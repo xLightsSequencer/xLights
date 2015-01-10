@@ -45,6 +45,7 @@ class TimeLine : public wxWindow
         void TimeSelected(int x);
 
         int GetZoomLevelValue();
+        int GetMaxZoomLevel();
         void ZoomIn();
         void ZoomOut();
 
@@ -86,9 +87,9 @@ class TimeLine : public wxWindow
         int mStartPixelOffset;
         int mFrequency;
         int mZoomLevel;
+        int mMaxZoomLevel;
         int mTimeLength;
         int mViewableTimeMS;
-        int mSequenceMaxSeconds;
         void render( wxPaintEvent& event );
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetStartTimeMSfromSelectedTimeAndPosition();

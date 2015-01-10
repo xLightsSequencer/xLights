@@ -283,7 +283,6 @@ public:
 
      enum RGB_EFFECTS_e
     {
-        eff_NONE,
         eff_OFF,
         eff_ON,
         eff_BARS,
@@ -502,6 +501,7 @@ private:
     void OnMainToolBarDropdown(wxAuiToolBarEvent& event);
     void OnButtonNewSequenceClick(wxCommandEvent& event);
     void OnButtonClickSaveAs(wxCommandEvent& event);
+    void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1407,10 +1407,6 @@ private:
     SequenceElements mSequenceElements;
 
     MainSequencer* mainSequencer;
-    TimeLine* timeLine;
-    Waveform* wave ;
-    EffectsGrid* effectsGrid ;
-    RowHeading* rowHeading;
     SequencePreview* sPreview1;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
@@ -1418,6 +1414,7 @@ private:
     bool mSequencerInitialize = false;
     // Methods
     void InitSequencer();
+    void CreateSequencer();
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);
     void RowHeadingsChanged( wxCommandEvent& event);

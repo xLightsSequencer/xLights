@@ -154,7 +154,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mParent = parent;
     m_context = new wxGLContext(this);
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    mZoomLevel=10;
+    mZoomLevel=0;
     mStartPixelOffset = 0;
     SetTimeFrequency(40);
     tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);

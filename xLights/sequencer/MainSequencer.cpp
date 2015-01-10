@@ -113,8 +113,6 @@ void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
 }
 
 
-
-
 void MainSequencer::OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);

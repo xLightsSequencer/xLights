@@ -13,34 +13,6 @@
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
 					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 					<object class="choicebookpage">
-						<object class="wxScrolledWindow" name="ID_PANEL4" variable="Panel1_None" member="yes">
-							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
-								<cols>1</cols>
-								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON45" variable="BitmapButton_None" member="yes">
-										<bitmap code="None" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_INACTIVECAPTION</bg>
-										<handler function="OnBitmapButton25Click" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText99" member="yes">
-										<label>The &quot;None&quot; effect tells xLights NOT to create anything in this cell. &#x0A;It wont blank out the cell, it wont change the contents of the cell.&#x0A; &quot;None,None&quot; Is used when you want to let imported data come &#x0A;through without having Nutcracker effects step on them.&#x0A; The icon for this effect is indicating that Nutcracker is &#x0A;unplugged from generating anything.</label>
-										<style>wxRAISED_BORDER</style>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>None</label>
-					</object>
-					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL19" variable="Panel1_Off" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer77" member="no">
 								<cols>1</cols>
