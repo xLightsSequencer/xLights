@@ -25,12 +25,12 @@
 wxString windows_get_stacktrace(void *data)
 {
     wxString trace;
-    CONTEXT *context = (CONTEXT*)data;
+ /*   CONTEXT *context = (CONTEXT*)data;
     SymInitialize(GetCurrentProcess(), 0, true);
 
   STACKFRAME frame = { 0 };
 
-  /* setup initial stack frame */
+  // setup initial stack frame
   frame.AddrPC.Offset         = context->Eip;
   frame.AddrPC.Mode           = AddrModeFlat;
   frame.AddrStack.Offset      = context->Esp;
@@ -77,7 +77,7 @@ wxString windows_get_stacktrace(void *data)
       }
   }
 
-  SymCleanup( GetCurrentProcess() );
+  SymCleanup( GetCurrentProcess() );*/
   return trace;
 }
 
@@ -171,7 +171,6 @@ bool xLightsApp::OnInit()
     if ( wxsOK )
     {
     	xLightsFrame* Frame = new xLightsFrame(0);
-        topFrame = Frame;
     	Frame->Show();
     	SetTopWindow(Frame);
     }
