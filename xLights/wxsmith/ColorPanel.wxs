@@ -85,7 +85,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
 															<label>1</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -95,7 +95,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
 															<label>2</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -105,7 +105,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
 															<label>3</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -115,7 +115,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
 															<label>4</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -125,7 +125,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
 															<label>5</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -135,7 +135,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
 															<label>6</label>
-															<minsize>21,21</minsize>
+															<size>21,21</size>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -146,7 +146,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette1" variable="BitmapButton_Palette1" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette1Click" entry="EVT_BUTTON" />
@@ -159,7 +159,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette2" variable="BitmapButton_Palette2" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette2Click" entry="EVT_BUTTON" />
@@ -172,7 +172,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette3" variable="BitmapButton_Palette3" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette3Click" entry="EVT_BUTTON" />
@@ -185,7 +185,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette4" variable="BitmapButton_Palette4" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette4Click" entry="EVT_BUTTON" />
@@ -198,7 +198,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette5" variable="BitmapButton_Palette5" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette5Click" entry="EVT_BUTTON" />
@@ -211,7 +211,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_BUTTON_Palette6" variable="BitmapButton_Palette6" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_Palette6Click" entry="EVT_BUTTON" />
@@ -271,7 +271,7 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>21,21</size>
+													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -310,7 +310,7 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>20,20</size>
+													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -345,7 +345,7 @@
 												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
 													<bitmap code="padlock16x16_blue_xpm" />
 													<default>1</default>
-													<size>20,20</size>
+													<size>13,13</size>
 													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
