@@ -3,7 +3,6 @@
 
 
 //(*Headers(TopEffectsPanel)
-#include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
 //*)
@@ -18,13 +17,11 @@ class TopEffectsPanel: public wxPanel
 		virtual ~TopEffectsPanel();
 
 		//(*Declarations(TopEffectsPanel)
-		wxNotebook* EffectsNotebook;
 		//*)
 
 	protected:
 
 		//(*Identifiers(TopEffectsPanel)
-		static const long ID_NOTEBOOK1;
 		//*)
 
 	private:

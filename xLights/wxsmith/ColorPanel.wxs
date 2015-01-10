@@ -33,7 +33,7 @@
 													<cols>6</cols>
 													<growablecols>0,1,2,3,4,5</growablecols>
 													<object class="sizeritem">
-														<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_Palette1" member="yes">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Palette1" variable="CheckBox_Palette1" member="yes">
 															<checked>1</checked>
 															<handler function="OnCheckBox_PaletteClick" entry="EVT_CHECKBOX" />
 														</object>

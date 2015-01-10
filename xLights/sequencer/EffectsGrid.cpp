@@ -111,7 +111,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if(row>=mSequenceElements->GetRowInformationSize())
         return;
     mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX(),FirstSelected);
-    if(mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected && FirstSelected>=0)
+    if((mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected) && FirstSelected>=0)
     {
         Element* element = mSequenceElements->GetRowInformation(row)->element;
         EffectLayer* el  = element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);

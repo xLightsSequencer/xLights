@@ -28,7 +28,6 @@ class ColorPanel: public wxPanel
         void SetDefaultPalette();
         wxColour GetPaletteColor(int idx);
         void SetPaletteColor(int idx, const wxColour* c);
-        void SetButtonColor(wxButton* btn, const wxColour* c);
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(ColorPanel)
@@ -70,7 +69,7 @@ class ColorPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(ColorPanel)
-		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX_Palette1;
 		static const long ID_CHECKBOX_Palette2;
 		static const long ID_CHECKBOX_Palette3;
 		static const long ID_CHECKBOX_Palette4;

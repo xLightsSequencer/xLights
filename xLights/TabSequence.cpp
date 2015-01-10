@@ -170,9 +170,6 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     EffectsPanel1->Button_Pictures_Filename->Enable(enable);
     EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
     EffectsPanel1->TextCtrl_Glediator_Filename->Enable(enable);
-    EffectsPanel2->Button_Pictures_Filename->Enable(enable);
-    EffectsPanel2->TextCtrl_Pictures_Filename->Enable(enable);
-    EffectsPanel2->TextCtrl_Glediator_Filename->Enable(enable);
     ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     ButtonModelExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
     BitmapButtonOpenSeq->Enable(enable);
@@ -300,7 +297,6 @@ wxString xLightsFrame::CreateEffectStringRandom()
     */
     //   Old way
     eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
-    eff2 = EffectsPanel2->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel2->Choicebook1->GetSelection();
 
     //  new way
     if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
@@ -316,20 +312,20 @@ wxString xLightsFrame::CreateEffectStringRandom()
     {
         eff1 = EffectsPanel1->Choicebook1->GetSelection();
     }
-    if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
-    {
-        eff2 = CreateRandomEffect(eff_LASTEFFECT);
-        /*
-        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
-                || eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2
-                || eff_OFF == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
-        if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
-            */
-    }
-    else
-    {
-        eff2 = EffectsPanel2->Choicebook1->GetSelection();
-    }
+//~    if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
+//    {
+//        eff2 = CreateRandomEffect(eff_LASTEFFECT);
+//        /*
+//        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
+//                || eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2
+//                || eff_OFF == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
+//        if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
+//            */
+//    }
+//    else
+//    {
+//        eff2 = EffectsPanel2->Choicebook1->GetSelection();
+//    }
 
 //~    layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
     s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
@@ -348,7 +344,7 @@ wxString xLightsFrame::CreateEffectStringRandom()
 
 //~    s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
     s += EffectsPanel1->GetRandomEffectString(eff1);
-    s += EffectsPanel2->GetRandomEffectString(eff2);
+//~    s += EffectsPanel2->GetRandomEffectString(eff2);
 #if 0 //partially random -DJ
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
     int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
@@ -397,9 +393,10 @@ int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
 wxString xLightsFrame::CreateEffectString()
 {
     int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
-    int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
+//~    int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
     // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
-    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
+        wxString s;
+//~    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
 //~    s+=","+Choice_LayerMethod->GetStringSelection();
 #if 0 // <SCM>
     s += ",ID_CHECKBOX_LayerMorph=0";
@@ -412,8 +409,8 @@ wxString xLightsFrame::CreateEffectString()
 //~    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
 //~    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
 //~    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
-    s+=EffectsPanel1->GetEffectString();
-    s+=EffectsPanel2->GetEffectString();
+//~    s+=EffectsPanel1->GetEffectString();
+//~    s+=EffectsPanel2->GetEffectString();
     return s;
 }
 void xLightsFrame::GridCellChanged(int row, int col)
@@ -1528,7 +1525,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())
                 {
-                    SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
+//~                   SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
                     xLightsFrame::PlaybackMarker = wxString::Format("%d,%d", SeqPlayColumn, NextGridRowToPlay); //keep track of where we are within grid -DJ
                     LoadSettingsMap(EffectStr, SettingsMap);
                     lastPlayEffect = EffectStr;
@@ -1590,7 +1587,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 EffectStr.Trim();
                 if(!EffectStr.IsEmpty())
                 {
-                    SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
+//~                    SetEffectControls(EffectStr, Grid1->GetColLabelValue(SeqPlayColumn));
 
                     LoadSettingsMap(EffectStr, SettingsMap);
                     lastPlayEffect = EffectStr;
@@ -1659,7 +1656,7 @@ int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
 void xLightsFrame::OnButton_PaletteClick(wxCommandEvent& event)
 {
     PaletteMgmtDialog dialog(this);
-    dialog.initialize(PalettesNode,EffectsPanel1,EffectsPanel2);
+ //~   dialog.initialize(PalettesNode,EffectsPanel1,EffectsPanel2);
     dialog.ShowModal();
     SaveEffectsFile();
 }
@@ -3540,7 +3537,7 @@ void xLightsFrame::OnGrid1CellLeftClick(wxGridEvent& event)
         if (!EffectString.IsEmpty())
         {
             //Choice_Presets->SetSelection(0);  // set to <grid>
-            SetEffectControls(EffectString, Grid1->GetColLabelValue(col));
+//~            SetEffectControls(EffectString, Grid1->GetColLabelValue(col));
         }
     }
     Grid1->ForceRefresh();
