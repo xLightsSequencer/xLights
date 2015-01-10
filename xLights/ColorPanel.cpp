@@ -1,9 +1,12 @@
 #include "ColorPanel.h"
+#include "xLightsMain.h"
 
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
 
+
+class xLightsFrame;
 //(*InternalHeaders(ColorPanel)
 #include <wx/bitmap.h>
 #include <wx/settings.h>
@@ -13,7 +16,7 @@
 //*)
 
 //(*IdInit(ColorPanel)
-const long ColorPanel::ID_CHECKBOX1 = wxNewId();
+const long ColorPanel::ID_CHECKBOX_Palette1 = wxNewId();
 const long ColorPanel::ID_CHECKBOX_Palette2 = wxNewId();
 const long ColorPanel::ID_CHECKBOX_Palette3 = wxNewId();
 const long ColorPanel::ID_CHECKBOX_Palette4 = wxNewId();
@@ -83,7 +86,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer_Palette->AddGrowableCol(3);
 	FlexGridSizer_Palette->AddGrowableCol(4);
 	FlexGridSizer_Palette->AddGrowableCol(5);
-	CheckBox_Palette1 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_Palette1 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette1"));
 	CheckBox_Palette1->SetValue(true);
 	FlexGridSizer_Palette->Add(CheckBox_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_Palette2 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette2"));
@@ -188,7 +191,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
+	Connect(ID_CHECKBOX_Palette1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
 	Connect(ID_CHECKBOX_Palette2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
 	Connect(ID_CHECKBOX_Palette3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
 	Connect(ID_CHECKBOX_Palette4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ColorPanel::OnCheckBox_PaletteClick);
@@ -243,22 +246,22 @@ void ColorPanel::SetPaletteColor(int idx, const wxColour* c)
     switch (idx)
     {
     case 1:
-        SetButtonColor(Button_Palette1,c);
+        xLightsFrame::SetButtonColor(Button_Palette1,c);
         break;
     case 2:
-        SetButtonColor(Button_Palette2,c);
+        xLightsFrame::SetButtonColor(Button_Palette2,c);
         break;
     case 3:
-        SetButtonColor(Button_Palette3,c);
+        xLightsFrame::SetButtonColor(Button_Palette3,c);
         break;
     case 4:
-        SetButtonColor(Button_Palette4,c);
+        xLightsFrame::SetButtonColor(Button_Palette4,c);
         break;
     case 5:
-        SetButtonColor(Button_Palette5,c);
+        xLightsFrame::SetButtonColor(Button_Palette5,c);
         break;
     case 6:
-        SetButtonColor(Button_Palette6,c);
+        xLightsFrame::SetButtonColor(Button_Palette6,c);
         break;
     }
 }
@@ -305,33 +308,14 @@ wxButton* ColorPanel::GetPaletteButton(int idx)
     return Button_Palette1; //0;
 }
 
-void ColorPanel::SetButtonColor(wxButton* btn, const wxColour* c)
-{
-    btn->SetBackgroundColour(*c);
-    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
-    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
-
-#ifdef __WXOSX__
-    //OSX does NOT allow active buttons to have a color other than the default.
-    //We'll use an image of the appropriate color instead
-    wxImage image(15, 15);
-    image.SetRGB(wxRect(0, 0, 15, 15),
-                 c->Red(), c->Green(), c->Blue());
-    wxBitmap bmp(image);
-
-    btn->SetBitmap(bmp);
-    btn->SetLabelText("");
-#endif
-}
-
 void ColorPanel::SetDefaultPalette()
 {
-    SetButtonColor(Button_Palette1,wxRED);
-    SetButtonColor(Button_Palette2,wxGREEN);
-    SetButtonColor(Button_Palette3,wxBLUE);
-    SetButtonColor(Button_Palette4,wxYELLOW);
-    SetButtonColor(Button_Palette5,wxWHITE);
-    SetButtonColor(Button_Palette6,wxBLACK);
+    xLightsFrame::SetButtonColor(Button_Palette1,wxRED);
+    xLightsFrame::SetButtonColor(Button_Palette2,wxGREEN);
+    xLightsFrame::SetButtonColor(Button_Palette3,wxBLUE);
+    xLightsFrame::SetButtonColor(Button_Palette4,wxYELLOW);
+    xLightsFrame::SetButtonColor(Button_Palette5,wxWHITE);
+    xLightsFrame::SetButtonColor(Button_Palette6,wxBLACK);
 }
 
 
@@ -376,7 +360,7 @@ void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
-        SetButtonColor(w, &color);
+        xLightsFrame::SetButtonColor(w, &color);
         PaletteChanged=true;
     }
 

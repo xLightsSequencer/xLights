@@ -274,9 +274,12 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(wxString settings, const wxString& model_name);
+    void SetEffectControls(wxString name, wxString settings, const wxString& model_name);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
+
+    static void SetButtonColor(wxButton* btn, const wxColour* c);
+
 
      enum RGB_EFFECTS_e
     {
@@ -762,7 +765,6 @@ private:
     //*)
 
     static const long ID_PANEL_EFFECTS1;
-    static const long ID_PANEL_EFFECTS2;
     static const long ID_PANEL_EFFECTS;
     static const long ID_NOTEBOOK_EFFECTS;
 
@@ -1244,7 +1246,7 @@ private:
     double GetGridStartTime(int row);
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
-    void SetTextColor(wxWindow* w);
+    //void SetTextColor(wxWindow* w);
     int CreateRandomEffect(int eff_LASTEFFECT);
 
     void GridCellChanged(int row, int col);
@@ -1432,7 +1434,6 @@ private:
     // Panels
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
-    EffectsPanel* EffectsPanel2;
     wxFlexGridSizer* FlexGridEffects;
     std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
@@ -1452,7 +1453,7 @@ private:
 public:
     static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
-    
+
     wxString &GetSeqXmlFileName() {
         return SeqXmlFileName;
     }

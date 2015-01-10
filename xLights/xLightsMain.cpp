@@ -333,7 +333,6 @@ const long xLightsFrame::ID_MESSAGEDIALOG1 = wxNewId();
 
 // For new sequencer
 const long xLightsFrame::ID_PANEL_EFFECTS1 = wxNewId();
-const long xLightsFrame::ID_PANEL_EFFECTS2 = wxNewId();
 const long xLightsFrame::ID_PANEL_EFFECTS = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK_EFFECTS = wxNewId();
 // End
@@ -1812,13 +1811,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     myfile.SetName("Piano-88KeyShapeMap");
     myfile.SetExt("txt");
     EffectsPanel1->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
-    EffectsPanel2->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
+//~    EffectsPanel2->TextCtrl_Piano_MapFilename->SetValue(myfile.GetFullPath());
     myfile.SetName("Piano-ExampleKeyTopShapes");
     myfile.SetExt("png");
     EffectsPanel1->TextCtrl_Piano_ShapeFilename->SetValue(myfile.GetFullPath());
-    EffectsPanel2->TextCtrl_Piano_ShapeFilename->SetValue(myfile.GetFullPath());
+//~    EffectsPanel2->TextCtrl_Piano_ShapeFilename->SetValue(myfile.GetFullPath());
     EffectsPanel1->Choice_Piano_Style->SetSelection(2); //keyboard
-    EffectsPanel2->Choice_Piano_Style->SetSelection(2); //keyboard
+//~    EffectsPanel2->Choice_Piano_Style->SetSelection(2); //keyboard
 
     //  single strand
 //    ButterflyEffectColors.Add("Rainbow");
@@ -1848,7 +1847,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     TextCountDown.Add("!to date!%fmt"); //free fmt countdown -DJ
 
     InitEffectsPanel(EffectsPanel1);
-    InitEffectsPanel(EffectsPanel2);
+//~    InitEffectsPanel(EffectsPanel2);
 
     CurtainEdge=EffectsPanel1->Choice_Curtain_Edge->GetStrings();
     CurtainEffect=EffectsPanel1->Choice_Curtain_Effect->GetStrings();
@@ -1871,7 +1870,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         SetDir(dir);
     }
     EffectsPanel1->PaletteChanged=true;
-    EffectsPanel2->PaletteChanged=true;
+//~    EffectsPanel2->PaletteChanged=true;
     MixTypeChanged=true;
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
     basic.setFrame(this);
@@ -2846,4 +2845,23 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     SeqXmlFileName=oName.GetFullPath();
 
     SaveSequence();
+}
+
+void xLightsFrame::SetButtonColor(wxButton* btn, const wxColour* c)
+{
+    btn->SetBackgroundColour(*c);
+    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
+    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
+
+#ifdef __WXOSX__
+    //OSX does NOT allow active buttons to have a color other than the default.
+    //We'll use an image of the appropriate color instead
+    wxImage image(15, 15);
+    image.SetRGB(wxRect(0, 0, 15, 15),
+                 c->Red(), c->Green(), c->Blue());
+    wxBitmap bmp(image);
+
+    btn->SetBitmap(bmp);
+    btn->SetLabelText("");
+#endif
 }
