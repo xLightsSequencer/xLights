@@ -1,6 +1,8 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 
+class xLightsFrame;
+
 Effect::Effect(EffectLayer* parent)
 {
     mParentLayer = parent;
@@ -135,7 +137,8 @@ bool operator<(const Effect &e1, const Effect &e2){
 
 int Effect::GetEffectIndex(wxString effectName)
 {
-    if(effectName=="Bars"){return EFFECT_BARS;}
+    if(effectName=="Bars"){return eff_ON;}
+    else if(effectName=="Bars"){return EFFECT_BARS;}
     else if(effectName=="Butterfly"){return EFFECT_BUTTERFLY;}
     else if(effectName=="Circles"){return EFFECT_CIRCLES;}
     else if(effectName=="Color Wash"){return EFFECT_COLORWASH;}
