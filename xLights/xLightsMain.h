@@ -151,9 +151,7 @@ class EffectTreeDialog;
 #define OVER_R_BOTTOM_HANDLE        4
 #define OVER_ROTATE_HANDLE          5
 
-// New Sequencer Constants
-#define ZOOM_OUT        0
-#define ZOOM_IN         1
+
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);

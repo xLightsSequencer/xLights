@@ -6,6 +6,9 @@
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
 
+#define ZOOM_OUT        0
+#define ZOOM_IN         1
+
 #define MAX_ZOOM_OUT_INDEX      12
 
 enum EFFECT_SCREEN_MODE{

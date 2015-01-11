@@ -16,6 +16,7 @@
 #define WAVEFORM_SIDE_MARGIN        25
 wxDECLARE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 class Waveform : public wxGLCanvas
 {
     public:
@@ -165,6 +166,7 @@ class Waveform : public wxGLCanvas
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
       	void mouseLeftWindow( wxMouseEvent& event);
+      	void OnLeftDClick(wxMouseEvent& event);
       	void OnWaveScrollLeft(wxTimerEvent& event);
       	void OnWaveScrollRight(wxTimerEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);
