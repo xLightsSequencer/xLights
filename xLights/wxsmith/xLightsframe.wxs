@@ -163,6 +163,7 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 					<style>wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER</style>
+					<handler function="OnNotebook1PageChanged1" entry="EVT_AUINOTEBOOK_PAGE_CHANGED" />
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL_SETUP" variable="PanelSetup" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerSetup" member="no">
@@ -1714,7 +1715,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																			</object>
+																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>
@@ -1725,7 +1726,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																		</object>
+																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>
@@ -1736,7 +1737,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																			</object>
+																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>

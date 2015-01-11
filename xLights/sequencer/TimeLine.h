@@ -6,6 +6,9 @@
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
 
+#define ZOOM_OUT        0
+#define ZOOM_IN         1
+
 #define MAX_ZOOM_OUT_INDEX      12
 
 enum EFFECT_SCREEN_MODE{
@@ -45,6 +48,7 @@ class TimeLine : public wxWindow
         void TimeSelected(int x);
 
         int GetZoomLevelValue();
+        int GetMaxZoomLevel();
         void ZoomIn();
         void ZoomOut();
 
@@ -86,9 +90,9 @@ class TimeLine : public wxWindow
         int mStartPixelOffset;
         int mFrequency;
         int mZoomLevel;
+        int mMaxZoomLevel;
         int mTimeLength;
         int mViewableTimeMS;
-        int mSequenceMaxSeconds;
         void render( wxPaintEvent& event );
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetStartTimeMSfromSelectedTimeAndPosition();

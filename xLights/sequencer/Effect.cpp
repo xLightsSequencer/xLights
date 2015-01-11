@@ -1,5 +1,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
+#include "../xLightsMain.h"
+
 
 Effect::Effect(EffectLayer* parent)
 {
@@ -135,28 +137,36 @@ bool operator<(const Effect &e1, const Effect &e2){
 
 int Effect::GetEffectIndex(wxString effectName)
 {
-    if(effectName=="Bars"){return EFFECT_BARS;}
-    else if(effectName=="Butterfly"){return EFFECT_BUTTERFLY;}
-    else if(effectName=="Circles"){return EFFECT_CIRCLES;}
-    else if(effectName=="Color Wash"){return EFFECT_COLORWASH;}
-    else if(effectName=="Curtain"){return EFFECT_CURTAIN;}
-    else if(effectName=="Fire"){return EFFECT_FIRE;}
-    else if(effectName=="Fireworks"){return EFFECT_FIREWORKS;}
-    else if(effectName=="Garlands"){return EFFECT_GARLANDS;}
-    else if(effectName=="Glediator"){return EFFECT_GLEDIATOR;}
-    else if(effectName=="Life"){return EFFECT_LIFE;}
-    else if(effectName=="Meteors"){return EFFECT_METEORS;}
-    else if(effectName=="Pinwheel"){return EFFECT_PINWHEEL;}
-    else if(effectName=="Ripple"){return EFFECT_RIPPLE;}
-    else if(effectName=="SingleStrand"){return EFFECT_SINGLESTRAND;}
-    else if(effectName=="Snowflakes"){return EFFECT_SNOWFLAKES;}
-    else if(effectName=="Snowstorm"){return EFFECT_SNOWSTORM;}
-    else if(effectName=="Spirals"){return EFFECT_SPIRALS;}
-    else if(effectName=="Spirograph"){return EFFECT_SPIROGRAPH;}
-    else if(effectName=="Tree"){return EFFECT_TREE;}
-    else if(effectName=="Twinkle"){return EFFECT_TWINKLE;}
-    else if(effectName=="Wave"){return EFFECT_WAVE;}
-    else{return EFFECT_BARS;}
+    if(effectName=="Off"){return xLightsFrame::RGB_EFFECTS_e::eff_OFF;}
+    else if(effectName=="On"){return xLightsFrame::RGB_EFFECTS_e::eff_ON;}
+    else if(effectName=="Bars"){return xLightsFrame::RGB_EFFECTS_e::eff_BARS;}
+    else if(effectName=="Butterfly"){return xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY;}
+    else if(effectName=="Circles"){return xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES;}
+    else if(effectName=="Color Wash"){return xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH;}
+    else if(effectName=="Curtain"){return xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN;}
+    else if(effectName=="Faces"){return xLightsFrame::RGB_EFFECTS_e::eff_FACES;}
+    else if(effectName=="Fire"){return xLightsFrame::RGB_EFFECTS_e::eff_FIRE;}
+    else if(effectName=="Fireworks"){return xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS;}
+    else if(effectName=="Garlands"){return xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS;}
+    else if(effectName=="Glediator"){return xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR;}
+    else if(effectName=="Life"){return xLightsFrame::RGB_EFFECTS_e::eff_LIFE;}
+    else if(effectName=="Meteors"){return xLightsFrame::RGB_EFFECTS_e::eff_METEORS;}
+    else if(effectName=="Piano"){return xLightsFrame::RGB_EFFECTS_e::eff_PIANO;}
+    else if(effectName=="Pictures"){return xLightsFrame::RGB_EFFECTS_e::eff_PICTURES;}
+    else if(effectName=="Pinwheel"){return xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL;}
+    else if(effectName=="Ripple"){return xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE;}
+    else if(effectName=="Shimmer"){return xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER;}
+    else if(effectName=="SingleStrand"){return xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND;}
+    else if(effectName=="Snowflakes"){return xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES;}
+    else if(effectName=="Snowstorm"){return xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM;}
+    else if(effectName=="Spirals"){return xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS;}
+    else if(effectName=="Spirograph"){return xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH;}
+    else if(effectName=="Strobe"){return xLightsFrame::RGB_EFFECTS_e::eff_STROBE;}
+    else if(effectName=="Text"){return xLightsFrame::RGB_EFFECTS_e::eff_TEXT;}
+    else if(effectName=="Tree"){return xLightsFrame::RGB_EFFECTS_e::eff_TREE;}
+    else if(effectName=="Twinkle"){return xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE;}
+    else if(effectName=="Wave"){return xLightsFrame::RGB_EFFECTS_e::eff_WAVE;}
+    else{return xLightsFrame::RGB_EFFECTS_e::eff_OFF;}
 }
 
 

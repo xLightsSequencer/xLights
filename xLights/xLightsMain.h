@@ -151,9 +151,7 @@ class EffectTreeDialog;
 #define OVER_R_BOTTOM_HANDLE        4
 #define OVER_ROTATE_HANDLE          5
 
-// New Sequencer Constants
-#define ZOOM_OUT        0
-#define ZOOM_IN         1
+
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
@@ -283,7 +281,6 @@ public:
 
      enum RGB_EFFECTS_e
     {
-        eff_NONE,
         eff_OFF,
         eff_ON,
         eff_BARS,
@@ -502,6 +499,7 @@ private:
     void OnMainToolBarDropdown(wxAuiToolBarEvent& event);
     void OnButtonNewSequenceClick(wxCommandEvent& event);
     void OnButtonClickSaveAs(wxCommandEvent& event);
+    void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1408,10 +1406,6 @@ private:
     SequenceElements mSequenceElements;
 
     MainSequencer* mainSequencer;
-    TimeLine* timeLine;
-    Waveform* wave ;
-    EffectsGrid* effectsGrid ;
-    RowHeading* rowHeading;
     SequencePreview* sPreview1;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
@@ -1419,6 +1413,7 @@ private:
     bool mSequencerInitialize = false;
     // Methods
     void InitSequencer();
+    void CreateSequencer();
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);
     void RowHeadingsChanged( wxCommandEvent& event);

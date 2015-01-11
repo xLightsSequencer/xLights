@@ -45,6 +45,7 @@ BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
+EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
 //EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
@@ -53,6 +54,42 @@ EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_PAINT(Waveform::render)
 END_EVENT_TABLE()
 // Custom Events
+
+
+Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+                   long style, const wxString &name):
+                   wxGLCanvas(parent,wxID_ANY,nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+{
+    mIsInitialized = false;
+    mParent = parent;
+    m_context = new wxGLContext(this);
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    mZoomLevel=0;
+    mStartPixelOffset = 0;
+    SetTimeFrequency(40);
+    tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
+    tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
+
+}
+
+Waveform::~Waveform()
+{
+    delete m_left_data;
+    delete m_right_data;
+    delete tmrScrollLeft;
+    delete tmrScrollRight;
+}
+
+void Waveform::OnLeftDClick(wxMouseEvent& event)
+{
+    // Zoom on double click
+    wxCommandEvent eventZoom(EVT_ZOOM);
+
+    if(event.ShiftDown() || event.ControlDown()){eventZoom.SetInt(ZOOM_OUT);}
+    else {eventZoom.SetInt(ZOOM_IN);}
+
+    wxPostEvent(GetParent(), eventZoom);
+}
 
 void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
 {
@@ -144,30 +181,6 @@ void Waveform::ScrollWaveRight(int xBasedSpeed)
     if(tmrScrollRight->IsRunning())
         tmrScrollRight->Stop();
     tmrScrollRight->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
-}
-
-Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
-                   long style, const wxString &name):
-                   wxGLCanvas(parent,wxID_ANY,nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
-{
-    mIsInitialized = false;
-    mParent = parent;
-    m_context = new wxGLContext(this);
-    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    mZoomLevel=10;
-    mStartPixelOffset = 0;
-    SetTimeFrequency(40);
-    tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
-    tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
-
-}
-
-Waveform::~Waveform()
-{
-    delete m_left_data;
-    delete m_right_data;
-    delete tmrScrollLeft;
-    delete tmrScrollRight;
 }
 
 // Open Media file and return elapsed time in millseconds

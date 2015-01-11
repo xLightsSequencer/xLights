@@ -172,7 +172,6 @@ public:
     wxSlider* Slider_Number_Waves;
     wxSlider* Slider_Eff_On_Red;
     wxStaticText* StaticText13;
-    wxBitmapButton* BitmapButton_None;
     wxSlider* Slider_Meteors_Length;
     wxBitmapButton* BitmapButton_Piano_KeyPlacement;
     wxStaticText* StaticText_Piano_NumRows;
@@ -289,7 +288,6 @@ public:
     wxBitmapButton* BitmapButton_ButterflyStyle;
     wxScrolledWindow* Panel1_Spirograph;
     wxNotebook* SingleStrandEffectType;
-    wxScrolledWindow* Panel1_None;
     wxTextCtrl* TextCtrl_Eff_On_Red;
     wxSlider* Slider_Text_Position4;
     wxBitmapButton* BitmapButton_TextEffect4;
@@ -340,7 +338,6 @@ public:
     wxSlider* Slider_Meteors_Swirl_Intensity;
     wxStaticText* StaticText79;
     wxScrolledWindow* Panel1_Wave;
-    wxStaticText* StaticText99;
     wxSlider* Slider_Butterfly_Chunks;
     wxTextCtrl* TextCtrl_Piano_MapFilename;
     wxScrolledWindow* Panel1_Pictures;
@@ -536,9 +533,6 @@ public:
 protected:
 
     //(*Identifiers(EffectsPanel)
-    static const long ID_BITMAPBUTTON45;
-    static const long ID_STATICTEXT102;
-    static const long ID_PANEL4;
     static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
     static const long ID_STATICTEXT120;

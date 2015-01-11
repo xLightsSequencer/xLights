@@ -382,11 +382,11 @@ int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
     {
         count++;
         eff=rand() % eff_LASTEFFECT;
-        BAD_CHOICE = (eff_NONE == eff || eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
+        BAD_CHOICE = (eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
                       || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
                       || eff_OFF == eff || eff_ON == eff);
     }
-    if(count==MAX_TRIES) eff=eff_NONE; // we failed to find a good effect after MAX_TRIES attempts
+    if(count==MAX_TRIES) eff=eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
 }
 

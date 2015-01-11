@@ -19,6 +19,11 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 
+//~ Not sure why these need to be defined again.
+//~ They are in EffecsPanel.cpp they should most likely all be moved.
+//#include "../../include/faces.xpm"
+//#include "../../include/strobe.xpm"
+
 
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
 EVT_IDLE(EffectsGrid::OnIdle)
@@ -34,11 +39,11 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
 // some useful events to use
-
+int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 //EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
 EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
-                       long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+                       long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mIsInitialized = false;
     mParent = parent;
@@ -64,8 +69,9 @@ EffectsGrid::~EffectsGrid()
 
 void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
-void EffectsGrid::keyPressed(wxKeyEvent& event) {}
-void EffectsGrid::keyReleased(wxKeyEvent& event) {}
+void EffectsGrid::keyReleased(wxKeyEvent& event){}
+void EffectsGrid::keyPressed(wxKeyEvent& event){}
+
 
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
@@ -664,74 +670,100 @@ void EffectsGrid::DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,in
 void EffectsGrid::CreateEffectIconTextures()
 {
     const char** p_XPM;
-    for(int effectID=0;effectID<NUMBER_OF_EFFECTS;effectID++)
+    for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         switch(effectID)
         {
-            case EFFECT_BARS:
+            case xLightsFrame::RGB_EFFECTS_e::eff_OFF:
+                p_XPM = Off;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_ON:
+                p_XPM = Off;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
                 p_XPM = bars;
                 break;
-            case EFFECT_BUTTERFLY:
+            case xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY:
                 p_XPM = butterfly;
                 break;
-            case EFFECT_CIRCLES:
+            case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
                 p_XPM = circles;
                 break;
-            case EFFECT_COLORWASH:
+            case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
                 p_XPM = ColorWash;
                 break;
-            case EFFECT_CURTAIN:
+            case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
                 p_XPM = curtain;
                 break;
-            case EFFECT_FIRE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
+                p_XPM = Off;
+                //p_XPM = faces;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
                 p_XPM = fire;
                 break;
-            case EFFECT_FIREWORKS:
+            case xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS:
                 p_XPM = fireworks;
                 break;
-            case EFFECT_GARLANDS:
+            case xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS:
                 p_XPM = garlands;
                 break;
-            case EFFECT_GLEDIATOR:
+            case xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR:
                 p_XPM = glediator;
                 break;
-            case EFFECT_LIFE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_LIFE:
                 p_XPM = life;
                 break;
-            case EFFECT_METEORS:
+            case xLightsFrame::RGB_EFFECTS_e::eff_METEORS:
                 p_XPM = meteors;
                 break;
-            case EFFECT_PINWHEEL:
+            case xLightsFrame::RGB_EFFECTS_e::eff_PIANO:
                 p_XPM = pinwheel;
                 break;
-            case EFFECT_RIPPLE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
+//~ Fix this missing "pictures" xpm
+                p_XPM = Off;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
+                p_XPM = pinwheel;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE:
                 p_XPM = ripple;
                 break;
-            case EFFECT_SINGLESTRAND:
+//~ Fix this missing "shimmer" xpm
+            case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
+                p_XPM = Off;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND:
                 p_XPM = singleStrand;
                 break;
-            case EFFECT_SNOWFLAKES:
+            case xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES:
                 p_XPM = snowflakes;
                 break;
-            case EFFECT_SNOWSTORM:
+            case xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM:
                 p_XPM = snowstorm;
                 break;
-            case EFFECT_SPIRALS:
+            case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
                 p_XPM = spirals;
                 break;
-            case EFFECT_SPIROGRAPH:
+            case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
                 p_XPM = spirograph;
                 break;
-            case EFFECT_TREE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
+                p_XPM = Off;
+               // p_XPM = strobe;
+                break;
+            case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
                 p_XPM = tree;
                 break;
-            case EFFECT_TWINKLE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
                 p_XPM = twinkle;
                 break;
-            case EFFECT_WAVE:
+            case xLightsFrame::RGB_EFFECTS_e::eff_WAVE:
                 p_XPM = wave;
                 break;
             default:
+                p_XPM = Off;
                 break;
         }
         CreateOrUpdateTexture((char**)p_XPM,&m_EffectTextures[effectID]);

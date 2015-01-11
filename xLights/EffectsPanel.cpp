@@ -53,9 +53,6 @@
 //*)
 
 //(*IdInit(EffectsPanel)
-const long EffectsPanel::ID_BITMAPBUTTON45 = wxNewId();
-const long EffectsPanel::ID_STATICTEXT102 = wxNewId();
-const long EffectsPanel::ID_PANEL4 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON43 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT100 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT120 = wxNewId();
@@ -622,7 +619,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer99;
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
-    wxFlexGridSizer* FlexGridSizer78;
     wxFlexGridSizer* FlexGridSizer89;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer48;
@@ -659,16 +655,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     SetMaxSize(wxSize(150,150));
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-    Panel1_None = new wxScrolledWindow(Choicebook1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL4"));
-    FlexGridSizer78 = new wxFlexGridSizer(0, 1, 0, 0);
-    BitmapButton_None = new wxBitmapButton(Panel1_None, ID_BITMAPBUTTON45, None, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON45"));
-    BitmapButton_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer78->Add(BitmapButton_None, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText99 = new wxStaticText(Panel1_None, ID_STATICTEXT102, _("The \"None\" effect tells xLights NOT to create anything in this cell. \nIt wont blank out the cell, it wont change the contents of the cell.\n \"None,None\" Is used when you want to let imported data come \nthrough without having Nutcracker effects step on them.\n The icon for this effect is indicating that Nutcracker is \nunplugged from generating anything."), wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER, _T("ID_STATICTEXT102"));
-    FlexGridSizer78->Add(StaticText99, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Panel1_None->SetSizer(FlexGridSizer78);
-    FlexGridSizer78->Fit(Panel1_None);
-    FlexGridSizer78->SetSizeHints(Panel1_None);
     Panel1_Off = new wxScrolledWindow(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL19"));
     FlexGridSizer77 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer77->AddGrowableCol(0);
@@ -2296,7 +2282,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Wave->SetSizer(FlexGridSizer51);
     FlexGridSizer51->Fit(Panel1_Wave);
     FlexGridSizer51->SetSizeHints(Panel1_Wave);
-    Choicebook1->AddPage(Panel1_None, _("None"), false);
     Choicebook1->AddPage(Panel1_Off, _("Off"), false);
     Choicebook1->AddPage(Panel1_On, _("On"), false);
     Choicebook1->AddPage(Panel1_Bars, _("Bars"), false);
@@ -2351,7 +2336,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     SetSizer(FlexGridSizer1);
     Layout();
 
-    Connect(ID_BITMAPBUTTON45,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton25Click);
     Connect(ID_BITMAPBUTTON_EFF_ON_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Eff_On_ColorClick);
     Connect(ID_SLIDER_Eff_On_Red,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_RedCmdScroll);
     Connect(ID_TEXTCTRL_EFF_ON_RED,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_RedText);
