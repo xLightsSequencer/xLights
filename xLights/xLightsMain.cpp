@@ -323,6 +323,7 @@ const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::idCustomScript = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
+const long xLightsFrame::ID_XML_CONVERSION = wxNewId();
 const long xLightsFrame::ID_NO_THREADED_SAVE = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
@@ -1410,6 +1411,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem9 = new wxMenuItem(Menu2, ID_EXPORT_MODEL, _("Export Model"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem9);
     MenuBar1->Append(Menu2, _("&Export"));
+    Menu3 = new wxMenu();
+    Menu4 = new wxMenuItem(Menu3, ID_XML_CONVERSION, _("XML Conversion and Settings"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(Menu4);
+    MenuBar1->Append(Menu3, _("&Utilities"));
     Menu1 = new wxMenu();
     ThreadedSaveMenuItem = new wxMenuItem(Menu1, ID_NO_THREADED_SAVE, _("Disable Threaded Save"), wxEmptyString, wxITEM_CHECK);
     Menu1->Append(ThreadedSaveMenuItem);
@@ -1574,6 +1579,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuDelList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemDelListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRefreshSelected);
     Connect(idCustomScript,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCustomScriptSelected);
+    Connect(ID_XML_CONVERSION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuXmlConversionSettings);
     Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -2881,3 +2887,11 @@ void xLightsFrame::SetButtonColor(wxButton* btn, const wxColour* c)
 #endif
 }
 
+
+void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
+{
+    // populate dialog
+    XmlConversionDialog dialog(this);
+    dialog.Fit();
+    if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
+}
