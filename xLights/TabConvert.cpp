@@ -2327,6 +2327,7 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
     {
         wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"), wxT(""));
         effect->AddAttribute(wxT("protected"), timing_protection[j]);
+        effect->AddAttribute(wxT("label"), labels[j]);
         effect->AddAttribute(wxT("startTime"), timing[j]);
         effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
     }
@@ -2345,11 +2346,14 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
 
     node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
-    // save the new XML file
-
+    // write converted XML file to xLights directory
     wxFileName full_filename(filename);
     wxString new_filename = full_filename.GetName() + "_v4." + full_filename.GetExt();
-    doc->Save(new_filename);
+    wxFileName oName(new_filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath=oName.GetFullPath();
+
+    doc->Save(fullpath);
 
     AppendConvertStatus (wxString("xLights XML converted successfully\n"));
     SetStatusText(wxString("xLights XML converted successfully"));
