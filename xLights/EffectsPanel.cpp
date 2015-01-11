@@ -53,8 +53,8 @@
 //*)
 
 //(*IdInit(EffectsPanel)
-const long EffectsPanel::ID_BITMAPBUTTON43 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT100 = wxNewId();
+const long EffectsPanel::ID_BITMAPBUTTON43 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT120 = wxNewId();
 const long EffectsPanel::ID_PANEL19 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON21 = wxNewId();
@@ -585,6 +585,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer62;
     wxFlexGridSizer* FlexGridSizer66;
+    wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer69;
     wxFlexGridSizer* FlexGridSizer53;
     wxFlexGridSizer* FlexGridSizer7;
@@ -656,15 +657,19 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
     Choicebook1 = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
     Panel1_Off = new wxScrolledWindow(Choicebook1, ID_PANEL19, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL19"));
-    FlexGridSizer77 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer77 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer77->AddGrowableCol(0);
+    FlexGridSizer77->Add(19,44,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText97 = new wxStaticText(Panel1_Off, ID_STATICTEXT100, _("This Effect simply turns every"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT100"));
+    FlexGridSizer2->Add(StaticText97, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     BitmapButton23 = new wxBitmapButton(Panel1_Off, ID_BITMAPBUTTON43, Off, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON43"));
     BitmapButton23->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION));
-    FlexGridSizer77->Add(BitmapButton23, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText97 = new wxStaticText(Panel1_Off, ID_STATICTEXT100, _("This Effect simply turns every"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT100"));
-    FlexGridSizer77->Add(StaticText97, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(BitmapButton23, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText118 = new wxStaticText(Panel1_Off, ID_STATICTEXT120, _("pixel off on this model."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT120"));
-    FlexGridSizer77->Add(StaticText118, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(StaticText118, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer77->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer77->Add(0,0,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     Panel1_Off->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel1_Off);
     FlexGridSizer77->SetSizeHints(Panel1_Off);
