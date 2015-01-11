@@ -2345,11 +2345,14 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
 
     node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
-    // save the new XML file
-
+    // write converted XML file to xLights directory
     wxFileName full_filename(filename);
     wxString new_filename = full_filename.GetName() + "_v4." + full_filename.GetExt();
-    doc->Save(new_filename);
+    wxFileName oName(new_filename);
+    oName.SetPath( CurrentDir );
+    wxString fullpath=oName.GetFullPath();
+
+    doc->Save(fullpath);
 
     AppendConvertStatus (wxString("xLights XML converted successfully\n"));
     SetStatusText(wxString("xLights XML converted successfully"));
