@@ -96,6 +96,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollChanged);
 	//*)
 	mParent = parent;
@@ -116,13 +117,22 @@ void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
 void MainSequencer::OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    int positionPercentage = (int)((float)event.GetPosition()/ (float)ScrollBarEffectGridHorz->GetRange()*100);
-    eventScroll.SetInt(positionPercentage);
+    int position = event.GetPosition();
+    eventScroll.SetInt(position);
+    wxPostEvent(mParent, eventScroll);
+}
+
+void MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event)
+{
+    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+    int position = event.GetPosition();
+    eventScroll.SetInt(position);
     wxPostEvent(mParent, eventScroll);
 }
 
 void MainSequencer::OnPaint(wxPaintEvent& event)
 {
+
 }
 
 void MainSequencer::OnResize(wxSizeEvent& event)
@@ -132,3 +142,4 @@ void MainSequencer::OnResize(wxSizeEvent& event)
     Refresh();
 
 }
+
