@@ -48,6 +48,7 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
     mIsInitialized = false;
     mParent = parent;
     mDragging = false;
+    mResizing = false;
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -86,6 +87,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     if(mResizing)
     {
         Resize(event.GetX());
+        Refresh(false);
     }
     else if (mDragging)
     {
@@ -96,13 +98,13 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
             mSequenceElements->UnSelectAllEffects();
         }
         CheckForSelectionRectangle();
+        Refresh(false);
     }
     else
     {
         Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
         RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
     }
-    Refresh(false);
 }
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
@@ -177,7 +179,7 @@ void EffectsGrid::Resize(int position)
         }
         mEffectLayer->GetEffect(mResizeEffectIndex)->SetEndTime(time);
     }
-    Refresh();
+    Refresh(false);
     mPaintOnIdleCounter=0;
     // Move time line and waveform to new position
     UpdateTimePosition(position);
@@ -247,9 +249,9 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // continuously repainting during idle causing excessive
     // cpu usage. It will only repaint on idle for 25 times
     // mPaintOnIdleCounter is reset to "0".
-    if(mPaintOnIdleCounter < 25)
+    if(mPaintOnIdleCounter <2)
     {
-        Refresh(false);
+        //Refresh(false);
         mPaintOnIdleCounter++;
     }
 }
@@ -911,6 +913,7 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
     else
     {
         wxPostEvent(GetGrandParent()->GetEventHandler(), event);
+        event.Skip();
     }
 }
 
