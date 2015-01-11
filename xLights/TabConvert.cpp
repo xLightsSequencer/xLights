@@ -2327,6 +2327,7 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
     {
         wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"), wxT(""));
         effect->AddAttribute(wxT("protected"), timing_protection[j]);
+        effect->AddAttribute(wxT("label"), labels[j]);
         effect->AddAttribute(wxT("startTime"), timing[j]);
         effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
     }
