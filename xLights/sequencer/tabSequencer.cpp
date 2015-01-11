@@ -135,6 +135,15 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
+
+    int position = mainSequencer->ScrollBarEffectGridHorz->GetThumbPosition();
+    int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
+
+    int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
+    mainSequencer->PanelTimeLine->SetStartTimeMS(startTime);
+
+//    mainSequencer->PanelTimeLine->GetViewableTimeRange(startTime,endTime);
+
 }
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
@@ -152,14 +161,39 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelWaveForm->PositionSelected(tla->SelectedPosition);
     mainSequencer->PanelWaveForm->Refresh();
-    mainSequencer->ScrollBarEffectGridHorz->SetRange(((MAX_ZOOM_OUT_INDEX - tla->ZoomLevel)*5)+1);
-    mainSequencer->ScrollBarEffectGridHorz->Refresh();
-
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
-
+    UpdateEffectGridHorizontalScrollBar();
 }
 
+void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
+{
+    int zoomLevel = mainSequencer->PanelTimeLine->GetZoomLevel();
+    int maxZoomLevel = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
+    if(zoomLevel == maxZoomLevel)
+    {
+        // Max Zoom so scrollbar is same size as window.
+        int range = mainSequencer->PanelTimeLine->GetSize().x;
+        int pageSize =range;
+        int thumbSize = range;
+        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(0,thumbSize,range,pageSize);
+    }
+    else
+    {
+        double startTime;
+        double endTime;
+        int range = mainSequencer->PanelTimeLine->GetTimeLength();
+        mainSequencer->PanelTimeLine->GetViewableTimeRange(startTime,endTime);
+
+        double diff = endTime - startTime;
+        int thumbSize = (int)(diff*(double)1000);
+        int pageSize = thumbSize;
+        int position = (int)(startTime * (double)1000);
+        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(position,thumbSize,range,pageSize);
+    }
+
+    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+}
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {

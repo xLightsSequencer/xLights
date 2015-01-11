@@ -134,6 +134,7 @@
 									<range>100</range>
 									<pagesize>1</pagesize>
 									<style>wxSB_HORIZONTAL|wxALWAYS_SHOW_SB</style>
+									<handler function="OnScrollBarEffectGridHorzScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 									<handler function="OnScrollBarEffectGridHorzScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

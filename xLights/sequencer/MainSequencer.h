@@ -51,6 +51,7 @@ class MainSequencer: public wxPanel
 		void OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
         void TimeLineChanged( wxCommandEvent& event);

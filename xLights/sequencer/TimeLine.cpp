@@ -68,15 +68,18 @@ void TimeLine::RaiseChangeTimeline()
 }
 
 
-void TimeLine::SetStartTime(float time)
+void TimeLine::SetStartTimeMS(int time)
 {
     mStartTimeMS = time;
     mEndTimeMS = GetMaxViewableTimeMS();
     mStartTime = (double)mStartTimeMS/(double)1000;
     mEndTime = (double)mEndTimeMS/(double)1000;
+    mStartPixelOffset = GetPixelOffsetFromStartTime();
+    Refresh();
+    RaiseChangeTimeline();
 }
 
-float TimeLine::GetStartTime()
+float TimeLine::GetStartTimeMS()
 {
     return mStartTimeMS;
 }
@@ -232,6 +235,11 @@ void TimeLine::GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN
 void TimeLine::SetTimeLength(int ms)
 {
     mTimeLength = ms;
+}
+
+int TimeLine::GetTimeLength()
+{
+    return mTimeLength;
 }
 
 void TimeLine::TimeSelected(int x)

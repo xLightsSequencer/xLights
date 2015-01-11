@@ -1427,6 +1427,7 @@ private:
     void EffectsPaint(wxPaintEvent& event);
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
+    void UpdateEffectGridHorizontalScrollBar();
     // Panels
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;

@@ -31,8 +31,8 @@ class TimeLine : public wxWindow
         void Initialize();
         void SetCanvasSize(int width,int height);
 
-        void SetStartTime(float time);
-        float GetStartTime();
+        void SetStartTimeMS(int time);
+        float GetStartTimeMS();
 
         void SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
@@ -41,6 +41,7 @@ class TimeLine : public wxWindow
         int GetTimeFrequency();
 
         void SetTimeLength(int ms);
+        int GetTimeLength();
 
         void SetZoomLevel(int level);
         int GetZoomLevel();
