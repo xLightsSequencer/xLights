@@ -94,7 +94,7 @@ void xLightsFrame::CreateSequencer()
 
 void xLightsFrame::InitSequencer()
 {
-        if(mSequencerInitialize)
+        if(mSequencerInitialize || EffectsPanel1 == NULL)
         {
             return;
         }
