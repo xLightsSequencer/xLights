@@ -51,7 +51,7 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
   c) In Code::Blocks:
      1) select Settings > Compiler
      2) click Search Directories tab
-     3) Under Compiler sub-tab should be:
+     3) Under Compiler, Search  sub-tab should be:
           $(#wx)\include
           $(#wx)\contrib\include
      4) Under Linker sub-tab should be:
@@ -61,6 +61,8 @@ Here are the steps to compile xLights/Nutcracker for Windows using the MinGW com
         set to your wxWidgets base directory. Just the "Base" field
         needs to be filled in - to something like "C:\wxWidgets-3.0.0",
         assuming that is where your copy of wxWidgets is located.
+	6) go to Toolchain Executables
+	
 
   d) Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the cbp file in the xLights directory.

@@ -61,7 +61,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Speed" variable="BitmapButton_Speed" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>22,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 														</object>
@@ -78,7 +78,6 @@
 																<weight>bold</weight>
 																<underlined>0</underlined>
 																<family>swiss</family>
-																<face></face>
 															</font>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -123,12 +122,12 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>20,20</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -176,12 +175,12 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>20,20</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -212,7 +211,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadein" variable="BitmapButton_FadeOut" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_FadeOutClick" entry="EVT_BUTTON" />
@@ -248,7 +247,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TEXTCTRL_Fadeout" variable="BitmapButton_FadeIn" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_FadeInClick" entry="EVT_BUTTON" />
@@ -280,7 +279,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_FitToTime" variable="BitmapButton_FitToTime" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,20</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_FitToTimeClick" entry="EVT_BUTTON" />
@@ -312,7 +311,7 @@
 														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
 															<bitmap code="padlock16x16_blue_xpm" />
 															<default>1</default>
-															<size>21,21</size>
+															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_OverlayBkgClick" entry="EVT_BUTTON" />

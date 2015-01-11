@@ -2031,6 +2031,57 @@ void mapLORInfo(const LORInfo &info, std::vector<std::vector<int>> *unitSizes)
     }
 }
 
+wxString SubstituteV3toV4tags(const wxString& effect_string)
+{
+    wxString new_string = effect_string;
+    new_string.Replace(wxString("ID_CHECKBOX_LayerMorph"), wxString("T_CHECKBOX_LayerMorph"));
+    new_string.Replace(wxString("ID_SLIDER_EffectLayerMix"), wxString("T_SLIDER_EffectLayerMix"));
+    new_string.Replace(wxString("E1_SLIDER_Speed"), wxString("T_SLIDER_Speed"));
+    new_string.Replace(wxString("E2_SLIDER_Speed"), wxString("T_SLIDER_Speed"));
+    new_string.Replace(wxString("E1_TEXTCTRL_Fadeout"), wxString("T_TEXTCTRL_Fadeout"));
+    new_string.Replace(wxString("E2_TEXTCTRL_Fadeout"), wxString("T_TEXTCTRL_Fadeout"));
+    new_string.Replace(wxString("E1_TEXTCTRL_Fadein"), wxString("T_TEXTCTRL_Fadein"));
+    new_string.Replace(wxString("E2_TEXTCTRL_Fadein"), wxString("T_TEXTCTRL_Fadein"));
+    new_string.Replace(wxString("E1_CHECKBOX_FitToTime"), wxString("T_CHECKBOX_FitToTime"));
+    new_string.Replace(wxString("E2_CHECKBOX_FitToTime"), wxString("T_CHECKBOX_FitToTime"));
+    new_string.Replace(wxString("E1_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
+    new_string.Replace(wxString("E2_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
+    new_string.Replace(wxString("ID_SLIDER_SparkleFrequency"), wxString("C_SLIDER_SparkleFrequency"));
+    new_string.Replace(wxString("ID_SLIDER_Brightness"), wxString("C_SLIDER_Brightness"));
+    new_string.Replace(wxString("ID_SLIDER_Contrast"), wxString("C_SLIDER_Contrast"));
+    new_string.Replace(wxString("E1_BUTTON_Palette1"), wxString("C_BUTTON_Palette1"));
+    new_string.Replace(wxString("E1_BUTTON_Palette2"), wxString("C_BUTTON_Palette2"));
+    new_string.Replace(wxString("E1_BUTTON_Palette3"), wxString("C_BUTTON_Palette3"));
+    new_string.Replace(wxString("E1_BUTTON_Palette4"), wxString("C_BUTTON_Palette4"));
+    new_string.Replace(wxString("E1_BUTTON_Palette5"), wxString("C_BUTTON_Palette5"));
+    new_string.Replace(wxString("E1_BUTTON_Palette6"), wxString("C_BUTTON_Palette6"));
+    new_string.Replace(wxString("E2_BUTTON_Palette1"), wxString("C_BUTTON_Palette1"));
+    new_string.Replace(wxString("E2_BUTTON_Palette2"), wxString("C_BUTTON_Palette2"));
+    new_string.Replace(wxString("E2_BUTTON_Palette3"), wxString("C_BUTTON_Palette3"));
+    new_string.Replace(wxString("E2_BUTTON_Palette4"), wxString("C_BUTTON_Palette4"));
+    new_string.Replace(wxString("E2_BUTTON_Palette5"), wxString("C_BUTTON_Palette5"));
+    new_string.Replace(wxString("E2_BUTTON_Palette6"), wxString("C_BUTTON_Palette6"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette1"), wxString("C_CHECKBOX_Palette1"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette2"), wxString("C_CHECKBOX_Palette2"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette3"), wxString("C_CHECKBOX_Palette3"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette4"), wxString("C_CHECKBOX_Palette4"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette5"), wxString("C_CHECKBOX_Palette5"));
+    new_string.Replace(wxString("E1_CHECKBOX_Palette6"), wxString("C_CHECKBOX_Palette6"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette1"), wxString("C_CHECKBOX_Palette1"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette2"), wxString("C_CHECKBOX_Palette2"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette3"), wxString("C_CHECKBOX_Palette3"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette4"), wxString("C_CHECKBOX_Palette4"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette5"), wxString("C_CHECKBOX_Palette5"));
+    new_string.Replace(wxString("E2_CHECKBOX_Palette6"), wxString("C_CHECKBOX_Palette6"));
+    new_string.Replace(wxString("E1"), wxString("E"));
+    new_string.Replace(wxString("E2"), wxString("E"));
+
+    new_string = wxString("T_CHOICE_LayerMethod=") + new_string;
+
+    return new_string;
+}
+
+
 wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
@@ -2045,10 +2096,10 @@ wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxS
 void AddTimingAttributes(wxXmlNode* node, const wxString& type, const wxString& name, const wxString& visible, const wxString& active)
 {
     wxXmlNode* child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-    child->AddAttribute(wxT("active"), active);
-    child->AddAttribute(wxT("visible"), visible);
-    child->AddAttribute(wxT("name"), name);
     child->AddAttribute(wxT("type"), type);
+    child->AddAttribute(wxT("name"), name);
+    child->AddAttribute(wxT("visible"), visible);
+    child->AddAttribute(wxT("active"), active);
 }
 
 void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
@@ -2063,7 +2114,6 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
     wxXmlDocument seqDocument;
     bool models_defined = false;
 
-    AppendConvertStatus (wxString("Reading xLights XML file\n"));
     SetStatusText(wxString("Reading xLights XML file"));
 
     wxFileName FileObj(filename);
@@ -2137,7 +2187,7 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
 
     wxXmlNode* node;
     wxXmlNode* child;
-    node = AddChildXmlNode(root, wxT("Head"), wxT(""));
+    node = AddChildXmlNode(root, wxT("head"), wxT(""));
     AddChildXmlNode(node, wxT("version"), wxT("4.0.0"));
     AddChildXmlNode(node, wxT("author"), wxT(""));
     AddChildXmlNode(node, wxT("author-email"), wxT(""));
@@ -2156,65 +2206,71 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
     for(int i = 0; i < models.GetCount(); ++i)
     {
         child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-        child->AddAttribute(wxT("visible"),wxT("1"));
-        child->AddAttribute(wxT("name"),models[i]);
-        child->AddAttribute(wxT("type"),wxT("model"));
         child->AddAttribute(wxT("collapsed"),wxT("0"));
+        child->AddAttribute(wxT("type"),wxT("model"));
+        child->AddAttribute(wxT("name"),models[i]);
+        child->AddAttribute(wxT("visible"),wxT("1"));
     }
 
     AppendConvertStatus (string_format(wxString("Total timings = %d\n"),timing.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total timing prot = %d\n"),timing_protection.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total labels = %d\n"),labels.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total labels prot = %d\n"),label_protection.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total effects = %d\n"),effects.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total effect prot = %d\n"),effect_protection.GetCount()));
 
     node = AddChildXmlNode(root, wxT("ElementEffects"), wxT(""));
-	int effect_id = 1;
+    int num_effects = timing.GetCount();
+    int effect_id = 1;
+
     for(int i = 0; i < models.GetCount(); ++i)
     {
+        AppendConvertStatus (string_format(wxString("Processing Model = %s\n"),models[i]));
         child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-        child->AddAttribute(wxT("name"),models[i]);
         child->AddAttribute(wxT("type"),wxT("model"));
+        child->AddAttribute(wxT("name"),models[i]);
         wxXmlNode* layer1 = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
         wxXmlNode* layer2 = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
 
         int num_effects = timing.GetCount();
         for(int j = 0; j < num_effects; ++j)
         {
-            wxArrayString parts = wxSplit(effects[j],',');
-            if(parts.GetCount() > 2)
+            int next_effect = i+(j*models.GetCount());
+            wxString effect_string = effects[next_effect];
+            if(effect_string.length() > 500)
             {
-                wxArrayString parts_copy(parts);
+                wxArrayString parts = wxSplit(effect_string, ',');
+                wxArrayString parts_copy = parts;
                 parts_copy.RemoveAt(0,2);
-                wxString data = wxJoin(parts_copy,',');
+                effect_string = wxJoin(parts_copy, ',');
 
-                wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data);
-                effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
-                effect->AddAttribute(wxT("startTime"), timing[j]);
-                effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
-                effect->AddAttribute(wxT("protected"), effect_protection[j]);
+                int eff1_start = effect_string.find(wxString(",E1_SLIDER_Speed"));
+                int eff2_start = effect_string.find(wxString("E2_SLIDER_Speed"));
+
+                wxString prefix = effect_string.substr(0, eff1_start);
+                wxString eff1 = effect_string.substr(0, eff2_start-1);
+                wxString eff2 = prefix + effect_string.substr(eff2_start, effect_string.length() - eff2_start);
+
+                wxString data1 = SubstituteV3toV4tags(eff1);
+                wxString data2 = SubstituteV3toV4tags(eff2);
+
+                wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
                 effect->AddAttribute(wxT("name"), parts[0]);
-
-                effect = AddChildXmlNode(layer2, wxT("Effect"), data);
-                effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
-                effect->AddAttribute(wxT("startTime"), timing[j]);
-                effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                 effect->AddAttribute(wxT("protected"), effect_protection[j]);
+                effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
+                effect->AddAttribute(wxT("startTime"), timing[j]);
+                effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
+
+                effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
                 effect->AddAttribute(wxT("name"), parts[1]);
+                effect->AddAttribute(wxT("protected"), effect_protection[j]);
+                effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
+                effect->AddAttribute(wxT("startTime"), timing[j]);
+                effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
 
                 effect_id++;
             }
         }
     }
 
-    doc->Save("gils_test.xml");
-
     // prune unnecessary effects
-    AppendConvertStatus (string_format(wxString("Node: %s\n"),node->GetName()));
     for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        AppendConvertStatus (string_format(wxString("E: %s\n"),e->GetName()));
         wxXmlNode* layer1 = e->GetChildren();
         wxXmlNode* layer2 = layer1->GetNext();
 
@@ -2262,72 +2318,38 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
         }
     }
 
+    // create Song Timing elements
+    child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+    child->AddAttribute(wxT("type"),wxT("timing"));
+    child->AddAttribute(wxT("name"),wxT("Song Timing"));
+    wxXmlNode* layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+    for(int j = 0; j < num_effects; ++j)
+    {
+        wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"), wxT(""));
+        effect->AddAttribute(wxT("protected"), timing_protection[j]);
+        effect->AddAttribute(wxT("startTime"), timing[j]);
+        effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
+    }
+
+    // create t1 elements
+    child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+    child->AddAttribute(wxT("type"),wxT("timing"));
+    child->AddAttribute(wxT("name"),wxT("t1"));
+    layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+
+    // create t2 elements
+    child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+    child->AddAttribute(wxT("type"),wxT("timing"));
+    child->AddAttribute(wxT("name"),wxT("t2"));
+    layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+
+    node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
+
     // save the new XML file
 
     wxFileName full_filename(filename);
     wxString new_filename = full_filename.GetName() + "_v4." + full_filename.GetExt();
     doc->Save(new_filename);
-
-   /* // save the data out to the new file
-    wxFileName full_filename(filename);
-    wxString new_filename = full_filename.GetName() + "_v4." + full_filename.GetExt();
-    wxFile f;
-    if (!f.Create(new_filename,true))
-    {
-        ConversionError(wxString("Unable to create file: ")+new_filename);
-        return;
-    }
-    AppendConvertStatus (string_format("Writing xLights XML file: %s\n", new_filename));
-
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-	f.Write("<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\">\n");
-    f.Write("\t<DisplayElements>\n");
-	f.Write("\t\t<Element type =\"timing\" name=\"Song Timing\"  visible=\"1\" active=\"1\"/>\n");
-	f.Write("\t\t<Element type =\"timing\" name=\"t1\"  visible=\"1\" active=\"0\"/>\n");
-	f.Write("\t\t<Element type =\"timing\" name=\"t2\"  visible=\"1\" active=\"0\"/>\n");
-	for(int i = 0; i < models.GetCount(); ++i)
-    {
-		f.Write(string_format("\t\t<Element collapsed=\"0\" type =\"model\" name=\"%s\"  visible=\"1\"/>\n",models[i]));
-    }
-    f.Write("\t</DisplayElements>\n");
-
-	f.Write("\n\t<ElementEffects>\n");
-
-    AppendConvertStatus (string_format(wxString("Total timings = %d\n"),timing.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total timing prot = %d\n"),timing_protection.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total labels = %d\n"),labels.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total labels prot = %d\n"),label_protection.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total effects = %d\n"),effects.GetCount()));
-    AppendConvertStatus (string_format(wxString("Total effect prot = %d\n"),effect_protection.GetCount()));
-
-	int num_times = timing.GetCount();
-	int effect_id = 1;
-	for(int i = 0; i < models.GetCount(); ++i)
-    {
-        f.Write(string_format("\t\t<Element type='model' name=\"%s\">\n",models[i]));
-        for(int j = 0; j < num_times; ++j)
-        {
-            wxArrayString parts = wxSplit(effects[j],',');
-            if(parts.GetCount() > 2)
-            {
-                wxArrayString parts_copy(parts);
-                parts_copy.RemoveAt(0,2);
-                wxString data = wxJoin(parts_copy,',');
-                f.Write("\t\t\t<EffectLayer>\n");
-                f.Write(string_format("\t\t\t\t<Effect name=\"%s\" protected=\"%s\" id=\"%d\" startTime=\"%s\" endTime=\"%s\">%s</Effect>\n", parts[0], effect_protection[j], effect_id, timing[j], timing[(j+1<num_times)?j+1:j], data));
-                f.Write("\t\t\t</EffectLayer>\n");
-                f.Write("\t\t\t<EffectLayer>\n");
-                f.Write(string_format("\t\t\t\t<Effect name=\"%s\" protected=\"%s\" id=\"%d\" startTime=\"%s\" endTime=\"%s\">%s</Effect>\n", parts[1], effect_protection[j], effect_id, timing[j], timing[(j+1<num_times)?j+1:j], data));
-                f.Write("\t\t\t</EffectLayer>\n");
-                effect_id++;
-            }
-        }
-        f.Write("\t\t</Element>\n");
-    }
-	f.Write("\t</ElementEffects>\n");
-
-    f.Write("</xsequence>\n");
-    f.Close();*/
 
     AppendConvertStatus (wxString("xLights XML converted successfully\n"));
     SetStatusText(wxString("xLights XML converted successfully"));

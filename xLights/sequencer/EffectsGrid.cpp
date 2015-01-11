@@ -246,7 +246,7 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
         Refresh(false);
         mPaintOnIdleCounter++;
     }
-};
+}
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
 {

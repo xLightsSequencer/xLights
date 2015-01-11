@@ -1714,8 +1714,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																		<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
-																	</object>
+																			</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>
@@ -1726,8 +1725,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																		<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
-																	</object>
+																		</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>
@@ -1738,8 +1736,7 @@
 																		<size>22,21</size>
 																		<hidden>1</hidden>
 																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-																		<handler function="OnBitmapButton_EffectLayerMixClick" entry="EVT_BUTTON" />
-																	</object>
+																			</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																	<option>1</option>
 																</object>
