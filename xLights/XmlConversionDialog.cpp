@@ -1,4 +1,6 @@
 #include "XmlConversionDialog.h"
+#include <wx/dir.h>
+#include "xLightsMain.h"
 
 //(*InternalHeaders(XmlConversionDialog)
 #include <wx/font.h>
@@ -10,6 +12,10 @@
 const long XmlConversionDialog::ID_STATICTEXT1 = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Filename = wxNewId();
 const long XmlConversionDialog::ID_CHOICE_Xml_Settings_Filename = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_XML_Type_Version = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_XML_Version = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Num_Models_Label = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Num_Models = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Author = wxNewId();
 const long XmlConversionDialog::ID_TEXTCTRL_Xml_Author = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Author_Email = wxNewId();
@@ -31,6 +37,7 @@ const long XmlConversionDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Delete_Timing = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Convert = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Settings_Save = wxNewId();
+const long XmlConversionDialog::ID_BUTTON_Xml_Close_Dialog = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(XmlConversionDialog,wxDialog)
@@ -38,13 +45,18 @@ BEGIN_EVENT_TABLE(XmlConversionDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+#define string_format wxString::Format
+
 XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
+:   current_selection(-1)
 {
 	//(*Initialize(XmlConversionDialog)
 	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticBoxSizer* StaticBoxSizer_File_Info;
 	wxStaticBoxSizer* StaticBoxSizer_Xml_Header;
 	wxGridBagSizer* GridBagSizer1;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxStaticBoxSizer* StaticBoxSizer_Xml_Song_Timings;
 	wxFlexGridSizer* FlexGridSizer1;
@@ -62,6 +74,18 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Choice_Xml_Settings_Filename = new wxChoice(this, ID_CHOICE_Xml_Settings_Filename, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Xml_Settings_Filename"));
 	FlexGridSizer2->Add(Choice_Xml_Settings_Filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer_File_Info = new wxStaticBoxSizer(wxHORIZONTAL, this, _("File Information:"));
+	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
+	StaticText_XML_Type_Version = new wxStaticText(this, ID_STATICTEXT_XML_Type_Version, _("XML Version:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_XML_Type_Version"));
+	FlexGridSizer5->Add(StaticText_XML_Type_Version, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_XML_Version = new wxStaticText(this, ID_STATICTEXT_XML_Version, wxEmptyString, wxDefaultPosition, wxSize(70,-1), 0, _T("ID_STATICTEXT_XML_Version"));
+	FlexGridSizer5->Add(StaticText_XML_Version, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Num_Models_Label = new wxStaticText(this, ID_STATICTEXT_Num_Models_Label, _("# Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Num_Models_Label"));
+	FlexGridSizer5->Add(StaticText_Num_Models_Label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Num_Models = new wxStaticText(this, ID_STATICTEXT_Num_Models, wxEmptyString, wxDefaultPosition, wxSize(70,-1), 0, _T("ID_STATICTEXT_Num_Models"));
+	FlexGridSizer5->Add(StaticText_Num_Models, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer_File_Info->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(StaticBoxSizer_File_Info, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_Xml_Header = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Header"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText_Xml_Author = new wxStaticText(this, ID_STATICTEXT_Xml_Author, _("Author:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Author"));
@@ -92,7 +116,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	FlexGridSizer3->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Comment = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
 	FlexGridSizer3->Add(TextCtrl_Xml_Comment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Extract_Song_Info = new wxButton(this, ID_BUTTON_Extract_Song_Info, _("Extract Song Info from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Extract_Song_Info"));
 	FlexGridSizer3->Add(Button_Extract_Song_Info, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_Xml_Header->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -114,16 +138,66 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	FlexGridSizer4->Add(Button_Xml_Convert, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Xml_Settings_Save = new wxButton(this, ID_BUTTON_Xml_Settings_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Settings_Save"));
 	FlexGridSizer4->Add(Button_Xml_Settings_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Xml_Close_Dialog = new wxButton(this, ID_BUTTON_Xml_Close_Dialog, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Close_Dialog"));
+	FlexGridSizer4->Add(Button_Xml_Close_Dialog, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
+
+	Connect(ID_CHOICE_Xml_Settings_Filename,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect);
+	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
 	//*)
+
+    wxString filename;
+    wxFileName oName;
+    wxDir dir(xLightsFrame::CurrentDir);
+
+    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while ( cont )
+    {
+        oName.SetFullName(filename);
+        if (oName.GetExt() == _("xml"))
+        {
+            xml_file_list.Add(oName.GetFullPath());
+        }
+        cont = dir.GetNext(&filename);
+    }
+    Choice_Xml_Settings_Filename->Set(xml_file_list);
 }
 
 XmlConversionDialog::~XmlConversionDialog()
 {
 	//(*Destroy(XmlConversionDialog)
 	//*)
+
 }
 
+void XmlConversionDialog::Clear()
+{
+    StaticText_XML_Version->SetLabelText(_(""));
+    StaticText_Num_Models->SetLabelText(_(""));
+}
+
+void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event)
+{
+    int selection = Choice_Xml_Settings_Filename->GetSelection();
+    if( selection != current_selection )
+    {
+        Clear();
+        xml_file.SetFullName(xml_file_list[selection]);
+        xml_file.Load();
+        if( xml_file.IsLoaded() )
+        {
+            StaticText_XML_Version->SetLabelText(xml_file.GetVersion());
+            StaticText_Num_Models->SetLabelText(string_format("%d",xml_file.GetNumModels()));
+        }
+    }
+    current_selection = selection;
+}
+
+void XmlConversionDialog::OnButton_Xml_Close_DialogClick(wxCommandEvent& event)
+{
+    xml_file.Clear();
+    Close();
+}

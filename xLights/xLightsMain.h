@@ -88,7 +88,6 @@
 #include "ModelPreview.h"
 #include "SequencePreview.h"
 #include "dlgPreviewSize.h"
-#include "XmlConversionDialog.h"
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"

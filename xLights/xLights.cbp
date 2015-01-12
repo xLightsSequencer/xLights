@@ -457,6 +457,8 @@
 		</Unit>
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
+		<Unit filename="xLightsXmlFile.cpp" />
+		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlights_out.cpp" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
