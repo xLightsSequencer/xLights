@@ -533,8 +533,8 @@ public:
 protected:
 
     //(*Identifiers(EffectsPanel)
-    static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT100;
+    static const long ID_BITMAPBUTTON43;
     static const long ID_STATICTEXT120;
     static const long ID_PANEL19;
     static const long ID_BITMAPBUTTON21;

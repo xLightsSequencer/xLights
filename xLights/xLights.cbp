@@ -170,6 +170,9 @@
 					<Add option="-lopengl32" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -206,6 +209,9 @@
 					<Add option="-lopengl32" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -373,6 +379,8 @@
 		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="XmlConversionDialog.cpp" />
+		<Unit filename="XmlConversionDialog.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="dlgPreviewSize.cpp" />
 		<Unit filename="dlgPreviewSize.h" />
@@ -438,6 +446,7 @@
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
+		<Unit filename="wxsmith/XmlConversionDialog.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
@@ -483,6 +492,7 @@
 					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/XmlConversionDialog.wxs" src="XmlConversionDialog.cpp" hdr="XmlConversionDialog.h" fwddecl="0" i18n="1" name="XmlConversionDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
