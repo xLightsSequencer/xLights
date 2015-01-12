@@ -379,6 +379,8 @@
 		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="XmlConversionDialog.cpp" />
+		<Unit filename="XmlConversionDialog.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="dlgPreviewSize.cpp" />
 		<Unit filename="dlgPreviewSize.h" />
@@ -444,6 +446,7 @@
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
+		<Unit filename="wxsmith/XmlConversionDialog.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
@@ -454,6 +457,8 @@
 		</Unit>
 		<Unit filename="xLightsMain.cpp" />
 		<Unit filename="xLightsMain.h" />
+		<Unit filename="xLightsXmlFile.cpp" />
+		<Unit filename="xLightsXmlFile.h" />
 		<Unit filename="xlights_out.cpp" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
