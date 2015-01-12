@@ -81,7 +81,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     if(rowIndex >= mSequenceElements->GetRowInformationSize())
     {
         SetCursor(wxCURSOR_DEFAULT);
-        Refresh(false);
+        //Refresh(false);
         return;
     }
     if(mResizing)
@@ -249,9 +249,9 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // continuously repainting during idle causing excessive
     // cpu usage. It will only repaint on idle for 25 times
     // mPaintOnIdleCounter is reset to "0".
-    if(mPaintOnIdleCounter <2)
+    if(mPaintOnIdleCounter <5)
     {
-        //Refresh(false);
+        Refresh(false);
         mPaintOnIdleCounter++;
     }
 }

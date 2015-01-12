@@ -117,16 +117,18 @@ void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
 void MainSequencer::OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    int position = event.GetPosition();
-    eventScroll.SetInt(position);
     wxPostEvent(mParent, eventScroll);
 }
 
 void MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    int position = event.GetPosition();
-    eventScroll.SetInt(position);
+    wxPostEvent(mParent, eventScroll);
+}
+
+void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
+{
+    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     wxPostEvent(mParent, eventScroll);
 }
 
@@ -142,4 +144,3 @@ void MainSequencer::OnResize(wxSizeEvent& event)
     Refresh();
 
 }
-
