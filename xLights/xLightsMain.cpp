@@ -19,6 +19,7 @@
 #include <wx/clipbrd.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
+#include "XmlConversionDialog.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
