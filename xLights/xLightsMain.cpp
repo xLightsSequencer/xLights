@@ -324,7 +324,6 @@ const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::idCustomScript = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
-const long xLightsFrame::ID_XML_CONVERSION = wxNewId();
 const long xLightsFrame::ID_NO_THREADED_SAVE = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
@@ -1412,10 +1411,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem9 = new wxMenuItem(Menu2, ID_EXPORT_MODEL, _("Export Model"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem9);
     MenuBar1->Append(Menu2, _("&Export"));
-    Menu3 = new wxMenu();
-    Menu4 = new wxMenuItem(Menu3, ID_XML_CONVERSION, _("XML Conversion and Settings"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(Menu4);
-    MenuBar1->Append(Menu3, _("&Utilities"));
     Menu1 = new wxMenu();
     ThreadedSaveMenuItem = new wxMenuItem(Menu1, ID_NO_THREADED_SAVE, _("Disable Threaded Save"), wxEmptyString, wxITEM_CHECK);
     Menu1->Append(ThreadedSaveMenuItem);
@@ -1433,6 +1428,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
     StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
+    DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    Timer1.SetOwner(this, ID_TIMER1);
+    FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|\n\n\t\t\txLights 3 XML(*.xml)|*.xml"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
+    FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|\n\n\t\t\txLights 3 XML(*.xml)|*.xml"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
@@ -1580,10 +1580,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuDelList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemDelListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRefreshSelected);
     Connect(idCustomScript,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCustomScriptSelected);
-    Connect(ID_XML_CONVERSION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuXmlConversionSettings);
     Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
+    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     //*)
