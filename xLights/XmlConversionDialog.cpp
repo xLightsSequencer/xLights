@@ -175,10 +175,24 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
 	//*)
 
+    PopulateFiles();
+    Clear();
+}
+
+XmlConversionDialog::~XmlConversionDialog()
+{
+	//(*Destroy(XmlConversionDialog)
+	//*)
+
+}
+
+void XmlConversionDialog::PopulateFiles()
+{
     wxString filename;
     wxFileName oName;
     wxDir dir(xLightsFrame::CurrentDir);
-
+    Choice_Xml_Settings_Filename->Clear();
+    xml_file_list.Clear();
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while ( cont )
     {
@@ -192,17 +206,31 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
     Choice_Xml_Settings_Filename->Set(xml_file_list);
 }
 
-XmlConversionDialog::~XmlConversionDialog()
+void XmlConversionDialog::SetSelectionToXMLFile()
 {
-	//(*Destroy(XmlConversionDialog)
-	//*)
-
+    wxString current_file = xml_file.GetFullName();
+    for(int i = 0; i < xml_file_list.GetCount(); ++i)
+    {
+        if( xml_file_list[i] == current_file )
+        {
+            Choice_Xml_Settings_Filename->SetSelection(i);
+            current_selection = i;
+            break;
+        }
+    }
 }
-
 void XmlConversionDialog::Clear()
 {
     StaticText_XML_Version->SetLabelText(_(""));
     StaticText_Num_Models->SetLabelText(_(""));
+    TextCtrl_Xml_Author->SetValue(_(""));
+    TextCtrl_Xml_Author_Email->SetValue(_(""));
+    TextCtrl_Xml_Website->SetValue(_(""));
+    TextCtrl_Xml_Song->SetValue(_(""));
+    TextCtrl_Xml_Artist->SetValue(_(""));
+    TextCtrl_Xml_Album->SetValue(_(""));
+    TextCtrl_Xml_Music_Url->SetValue(_(""));
+    TextCtrl_Xml_Comment->SetValue(_(""));
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
     xml_file.Clear();
@@ -213,7 +241,7 @@ void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& e
     int selection = Choice_Xml_Settings_Filename->GetSelection();
     if( selection != current_selection )
     {
-        Clear();
+        xml_file.Clear();
         xml_file.SetFullName(xml_file_list[selection]);
         xml_file.Load();
         if( xml_file.IsLoaded() )
@@ -268,13 +296,18 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
     info.push_back(TextCtrl_Xml_Music_Url->GetValue());
     info.push_back(TextCtrl_Xml_Comment->GetValue());
     xml_file.SetHeaderInfo(info);
+    bool reload = xml_file.NeedsConversion();
     xml_file.Save(TextCtrl_Xml_Log);
+    StaticText_XML_Version->SetLabelText(xml_file.GetVersion());
+    if( reload )
+    {
+        PopulateFiles();
+        xml_file.Clear();
+        xml_file.Load();
+    }
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
-    //StaticText_XML_Version->SetLabelText(xml_file.GetVersion());
-    Clear();
-    current_selection = -1;
-    Choice_Xml_Settings_Filename->SetSelection(-1);
+    SetSelectionToXMLFile();
 }
 
 void XmlConversionDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)

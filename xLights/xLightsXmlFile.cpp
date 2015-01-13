@@ -108,7 +108,7 @@ static void SetNodeContent(wxXmlNode* node, const wxString& content)
     wxXmlNode* element=node->GetChildren();
     if(element != NULL)
     {
-        node->SetContent(content);
+        element->SetContent(content);
     }
     else
     {
@@ -305,15 +305,14 @@ void xLightsXmlFile::Load()
 
 void xLightsXmlFile::Save(wxTextCtrl* log)
 {
-    wxString new_filename = GetName() + "_v4." + GetExt();
-    wxFileName oName(new_filename);
-    oName.SetPath( xLightsFrame::CurrentDir );
-    wxString fullpath=oName.GetFullPath();
-
-    log->AppendText(string_format("Saving XML file: %s\n", fullpath));
-
     if( needs_conversion )
     {
+        wxString new_filename = GetName() + "_v4." + GetExt();
+        SetFullName(new_filename);
+        SetPath( xLightsFrame::CurrentDir );
+
+        log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
+
         // construct the new XML file
         wxXmlDocument *doc = new wxXmlDocument();
         wxXmlNode* root=doc->GetRoot();
@@ -485,13 +484,18 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
         // write converted XML file to xLights directory
-        doc->Save(fullpath);
+        doc->Save(GetFullPath());
 
         version_string = latest_version;
     }
     else
     {
-        seqDocument.Save(fullpath);
+        SetPath( xLightsFrame::CurrentDir );
+        GetFullPath();
+
+        log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
+
+        seqDocument.Save(GetFullPath());
     }
     needs_conversion = false;
     log->AppendText(_("xLights XML saved successfully\n\n"));

@@ -98,6 +98,9 @@ class XmlConversionDialog: public wxDialog
         xLightsXmlFile xml_file;
         int current_selection;
 
+        void PopulateFiles();
+        void SetSelectionToXMLFile();
+
 		//(*Handlers(XmlConversionDialog)
 		void OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event);
 		void OnButton_Xml_Close_DialogClick(wxCommandEvent& event);
