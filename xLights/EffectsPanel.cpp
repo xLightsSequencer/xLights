@@ -669,7 +669,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     StaticText118 = new wxStaticText(Panel1_Off, ID_STATICTEXT120, _("pixel off on this model."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT120"));
     FlexGridSizer2->Add(StaticText118, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer77->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer77->Add(0,0,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer77->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     Panel1_Off->SetSizer(FlexGridSizer77);
     FlexGridSizer77->Fit(Panel1_Off);
     FlexGridSizer77->SetSizeHints(Panel1_Off);
