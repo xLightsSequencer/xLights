@@ -755,6 +755,7 @@ private:
     static const long idCustomScript;
     static const long ID_EXPORT_ALL;
     static const long ID_EXPORT_MODEL;
+    static const long ID_XML_CONVERSION;
     static const long ID_NO_THREADED_SAVE;
     static const long idMenuHelpContent;
     static const long idMenuAbout;
@@ -975,10 +976,12 @@ private:
     wxRadioButton* RadioButtonAlt;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
+    wxMenuItem* Menu4;
     wxCheckBox* CheckBoxRunSchedule;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxButton* Button_Models;
     wxBitmapButton* bbStop;
+    wxMenu* Menu3;
     wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;

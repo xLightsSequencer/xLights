@@ -4,7 +4,7 @@
 		<size>574,398</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>1</cols>
+			<cols>2</cols>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 					<label>XML Conversion and Settings Editor</label>
@@ -21,266 +21,246 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT_Xml_Filename" variable="StaticText_Xml_Filename" member="yes">
-							<label>XML Filename:</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Xml_Settings_Filename" variable="Choice_Xml_Settings_Filename" member="yes">
-							<size>238,21</size>
-							<style>wxCB_SORT</style>
-							<handler function="OnChoice_Xml_Settings_FilenameSelect" entry="EVT_CHOICE" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
+			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="StaticBoxSizer_File_Info" member="no">
-					<label>File Information:</label>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+					<cols>1</cols>
 					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-							<cols>4</cols>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_XML_Type_Version" variable="StaticText_XML_Type_Version" member="yes">
-									<label>XML Version:</label>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_XML_Version" variable="StaticText_XML_Version" member="yes">
-									<label></label>
-									<size>70,-1</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Num_Models_Label" variable="StaticText_Num_Models_Label" member="yes">
-									<label># Models:</label>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Num_Models" variable="StaticText_Num_Models" member="yes">
-									<label></label>
-									<size>70,-1</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="StaticBoxSizer_Xml_Header" member="no">
-					<label>Header</label>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>2</cols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Author" variable="StaticText_Xml_Author" member="yes">
-									<label>Author:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author" variable="TextCtrl_Xml_Author" member="yes">
-									<size>250,21</size>
+								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Filename" variable="StaticText_Xml_Filename" member="yes">
+									<label>XML Filename:</label>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Author_Email" variable="StaticText_Xml_Author_Email" member="yes">
-									<label>Email:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author_Email" variable="TextCtrl_Xml_Author_Email" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Website" variable="StaticText_Xml_Website" member="yes">
-									<label>Website:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Website" variable="TextCtrl_Xml_Website" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Song" variable="StaticText_Xml_Song" member="yes">
-									<label>Song:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Song" variable="TextCtrl_Xml_Song" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Artist" variable="StaticText_Xml_Artist" member="yes">
-									<label>Artist:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Artist" variable="TextCtrl_Xml_Artist" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Music_Url" variable="StaticText_Xml_Music_Url" member="yes">
-									<label>Music URL:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Music_Url" variable="TextCtrl_Xml_Music_Url" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Comment" variable="StaticText_Xml_Comment" member="yes">
-									<label>Comment:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Comment" variable="TextCtrl_Xml_Comment" member="yes">
-									<size>250,21</size>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON_Extract_Song_Info" variable="Button_Extract_Song_Info" member="yes">
-									<label>Extract Song Info from File</label>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticBoxSizer" variable="StaticBoxSizer_Xml_Song_Timings" member="no">
-					<label>Song Timings</label>
-					<object class="sizeritem">
-						<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Timing" variable="StaticText_Xml_Timing" member="yes">
-									<label>Timing:</label>
-								</object>
-								<col>0</col>
-								<row>0</row>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Xml_Settings_Filename" variable="Choice_Xml_Settings_Filename" member="yes">
 									<size>238,21</size>
 									<style>wxCB_SORT</style>
+									<handler function="OnChoice_Xml_Settings_FilenameSelect" entry="EVT_CHOICE" />
 								</object>
-								<colspan>2</colspan>
-								<col>1</col>
-								<row>0</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer_File_Info" member="no">
+							<label>File Information:</label>
 							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
-									<label>Import</label>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+									<cols>4</cols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_XML_Type_Version" variable="StaticText_XML_Type_Version" member="yes">
+											<label>XML Version:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_XML_Version" variable="StaticText_XML_Version" member="yes">
+											<label></label>
+											<size>70,-1</size>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Num_Models_Label" variable="StaticText_Num_Models_Label" member="yes">
+											<label># Models:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Num_Models" variable="StaticText_Num_Models" member="yes">
+											<label></label>
+											<size>70,-1</size>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
-								<col>1</col>
-								<row>1</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer_Xml_Header" member="no">
+							<label>Header</label>
 							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON_Xml_Delete_Timing" variable="Button_Xml_Delete_Timing" member="yes">
-									<label>Delete</label>
+								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+									<cols>2</cols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Author" variable="StaticText_Xml_Author" member="yes">
+											<label>Author:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author" variable="TextCtrl_Xml_Author" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_AuthorText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Author_Email" variable="StaticText_Xml_Author_Email" member="yes">
+											<label>Email:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author_Email" variable="TextCtrl_Xml_Author_Email" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_Author_EmailText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Website" variable="StaticText_Xml_Website" member="yes">
+											<label>Website:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Website" variable="TextCtrl_Xml_Website" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_WebsiteText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Song" variable="StaticText_Xml_Song" member="yes">
+											<label>Song:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Song" variable="TextCtrl_Xml_Song" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_SongText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Artist" variable="StaticText_Xml_Artist" member="yes">
+											<label>Artist:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Artist" variable="TextCtrl_Xml_Artist" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_ArtistText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Album" variable="StaticText_Xml_Album" member="yes">
+											<label>Album:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Album" variable="TextCtrl_Xml_Album" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_AlbumText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Music_Url" variable="StaticText_Xml_Music_Url" member="yes">
+											<label>Music URL:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Music_Url" variable="TextCtrl_Xml_Music_Url" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_Music_UrlText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Comment" variable="StaticText_Xml_Comment" member="yes">
+											<label>Comment:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Comment" variable="TextCtrl_Xml_Comment" member="yes">
+											<size>250,21</size>
+											<handler function="OnTextCtrl_Xml_CommentText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Extract_Song_Info" variable="Button_Extract_Song_Info" member="yes">
+											<label>Extract Song Info from File</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
-								<col>2</col>
-								<row>1</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
@@ -296,28 +276,104 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>3</cols>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>1</cols>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Xml_Convert" variable="Button_Xml_Convert" member="yes">
-							<label>Convert</label>
+						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+							<cols>3</cols>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_Xml_Settings_Save" variable="Button_Xml_Settings_Save" member="yes">
+									<label>Save</label>
+									<enabled>0</enabled>
+									<handler function="OnButton_Xml_Settings_SaveClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON_Xml_Close_Dialog" variable="Button_Xml_Close_Dialog" member="yes">
+									<label>Close</label>
+									<handler function="OnButton_Xml_Close_DialogClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Xml_Settings_Save" variable="Button_Xml_Settings_Save" member="yes">
-							<label>Save</label>
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer_Xml_Song_Timings" member="no">
+							<label>Song Timings</label>
+							<object class="sizeritem">
+								<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Timing" variable="StaticText_Xml_Timing" member="yes">
+											<label>Timing:</label>
+										</object>
+										<col>0</col>
+										<row>0</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+											<size>238,21</size>
+											<style>wxCB_SORT</style>
+										</object>
+										<colspan>2</colspan>
+										<col>1</col>
+										<row>0</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
+											<label>Import</label>
+										</object>
+										<col>1</col>
+										<row>1</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Xml_Delete_Timing" variable="Button_Xml_Delete_Timing" member="yes">
+											<label>Delete</label>
+										</object>
+										<col>2</col>
+										<row>1</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Xml_Close_Dialog" variable="Button_Xml_Close_Dialog" member="yes">
-							<label>Close</label>
-							<handler function="OnButton_Xml_Close_DialogClick" entry="EVT_BUTTON" />
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
+							<label>Message Log:</label>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Log" variable="TextCtrl_Xml_Log" member="yes">
+									<size>293,238</size>
+									<style>wxTE_MULTILINE|wxTE_READONLY</style>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
