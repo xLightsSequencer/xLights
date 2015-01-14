@@ -353,6 +353,8 @@
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />
 		<Unit filename="SeqParmsDialog.h" />
+		<Unit filename="SequenceData.cpp" />
+		<Unit filename="SequenceData.h" />
 		<Unit filename="SequencePreview.cpp" />
 		<Unit filename="SequencePreview.h" />
 		<Unit filename="SerialPortWithRate.cpp" />

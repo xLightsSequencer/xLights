@@ -69,7 +69,7 @@ void xLightsFrame::PlayRgbSequence()
         return;
     }
 
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -1503,7 +1503,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 //            break; //keep going; might catch up -DJ
         }
         EffectPeriod = msec / XTIMER_INTERVAL;
-        if (EffectPeriod >= SeqNumPeriods)
+        if (EffectPeriod >= SeqData.NumFrames())
         {
             // sequence has finished
             if (xout) xout->alloff();
@@ -1565,7 +1565,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
         msec = PlayerDlg->MediaCtrl->Tell();
         EffectPeriod = msec / XTIMER_INTERVAL;
-        if (EffectPeriod >= SeqNumPeriods || PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+        if (EffectPeriod >= SeqData.NumFrames() || PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
         {
             // sequence has finished
             PlayerDlg->MediaCtrl->Stop();
@@ -1627,7 +1627,7 @@ int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
     if (startRow+ii < rowcnt)
     {
         tmpStr = Grid1->GetCellValue(startRow+ii,0);
-        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
+        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*XTIMER_INTERVAL;
         do
         {
             tmpStr = Grid1->GetCellValue(startRow+ii, playCol);
@@ -1637,16 +1637,16 @@ int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
         if (!tmpStr.IsEmpty())
         {
             tmpStr = Grid1->GetCellValue(startRow+ii,0);
-            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqNumPeriods*XTIMER_INTERVAL;
+            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*XTIMER_INTERVAL;
         }
         else
         {
-            nextEffMsec = SeqNumPeriods*XTIMER_INTERVAL;
+            nextEffMsec = SeqData.NumFrames()*XTIMER_INTERVAL;
         }
     }
     else
     {
-        nextEffMsec = nextTimePeriodMsec = SeqNumPeriods*XTIMER_INTERVAL;
+        nextEffMsec = nextTimePeriodMsec = SeqData.NumFrames()*XTIMER_INTERVAL;
     }
     buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
     buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
@@ -1709,7 +1709,7 @@ void xLightsFrame::GetGridColumnLabels(wxArrayString& a)
 
 void xLightsFrame::ChooseModelsForSequence()
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -1794,7 +1794,7 @@ void xLightsFrame::ChooseModelsForSequence()
 
 void xLightsFrame::OnButton_ChannelMapClick(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -2703,17 +2703,14 @@ void xLightsFrame::OpenSequence()
         //     duration*=1000;  // convert to milliseconds
         duration=f_duration*1000;  // convert to milliseconds <SCM>
     }
-
-    SeqData.clear();
-    SeqNumChannels=NetInfo.GetTotChannels();
-    SeqNumPeriods=duration / interval;
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
-    SeqData.resize(SeqDataLen,0);
+    
+    SeqData.init(NetInfo.GetTotChannels(), duration / interval, interval);
+    
     int nSeconds=duration/1000;
     int nMinutes=nSeconds/60;
     nSeconds%=60;
     wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
-                                  SeqNumChannels,SeqNumPeriods,interval,nMinutes,nSeconds));
+                                  SeqData.NumChannels(),SeqData.NumFrames(),interval,nMinutes,nSeconds));
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -2909,7 +2906,7 @@ public:
                     for(size_t c=0; c<cn; c++)
                     {
                         buffer.GetChanIntensity(n,c,&chnum,&intensity);
-                        xLights->SeqData[chnum*xLights->SeqNumPeriods+p]=intensity;
+                        xLights->SeqData[p][chnum]=intensity;
                     }
                 }
             }
@@ -3002,7 +2999,7 @@ void xLightsFrame::RenderGridToSeqData()
             continue;
         }
 
-        xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqNumPeriods, this, threads);
+        xLightsRenderThread *thread = new xLightsRenderThread(c, ColName, ModelNode, SeqData.NumFrames(), this, threads);
         threads[c] = thread;
         if (c == firstColToRender)
         {
@@ -3014,18 +3011,16 @@ void xLightsFrame::RenderGridToSeqData()
         ChannelLimit=thread->GetBuffer().GetLastChannel() + 1;
 
 
-        if (ChannelLimit > SeqNumChannels)
+        if (ChannelLimit > SeqData.NumChannels())
         {
             // need to add more channels to existing sequence
-            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqNumChannels,ChannelLimit);
+            msg=wxString::Format("Increasing sequence channel count from %ld to %d",SeqData.NumChannels(),ChannelLimit);
             if (ChannelLimit > NetInfo.GetTotChannels())
             {
                 msg+="\n\nEither your model is incorrect or the networks you have defined on the Setup Tab are incorrect.\n\nYou should fix this before doing any more exports!";
             }
             wxMessageBox(msg);
-            SeqNumChannels=ChannelLimit;
-            SeqDataLen=SeqNumChannels*SeqNumPeriods;
-            SeqData.resize(SeqDataLen,0);
+            SeqData.init(ChannelLimit, SeqData.NumFrames(), SeqData.FrameTime());
         }
         for (int x = 0; x < rowcnt; x++)
         {
@@ -3107,14 +3102,13 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
     size_t  NodeCnt;
     int rowcnt=Grid1->GetNumberRows();
     int colcnt=Grid1->GetNumberCols();
-    SeqDataType* retData;
+    SeqDataType* retData = new SeqDataType();
 
 
 
     //buffer.InitBuffer(modelNode);
     NodeCnt = buffer.GetNodeCount();
-    int max = buffer.GetChanCount() * SeqNumPeriods;
-    retData = new SeqDataType(max);
+    retData->init(buffer.GetChanCount(), SeqData.NumFrames(), SeqData.FrameTime());
 
     size_t firstChannel = 0;
     if (modelNode->GetAttribute("exportFirstStrand") != "")
@@ -3137,7 +3131,6 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
         }
         if (firstNode > 0)
         {
-            size_t chnum;
             unsigned char intensity;
             buffer.GetChanIntensity(firstNode, 0, &firstChannel, &intensity);
             AppendConvertStatus(wxString::Format("firstNode: %d     NodeCnt:  %d    FirstChannel: %d\n",
@@ -3155,9 +3148,9 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
         if (ColName != buffer.name) continue;
 
         int NextGridRowToPlay=0;
-        for (int p=0; p<SeqNumPeriods; p++)
+        for (int p=0; p < SeqData.NumFrames(); p++)
         {
-            msec=p * XTIMER_INTERVAL;
+            msec=p * SeqData.FrameTime();
 
             wxString effect1=SettingsMap["E1_Effect"];
             wxString effect2=SettingsMap["E1_Effect"];
@@ -3233,8 +3226,7 @@ SeqDataType* xLightsFrame::RenderModelToData(wxXmlNode *modelNode, PixelBufferCl
                         {
                             chnum = cn * NodeCnt - firstChannel + chnum;
                         }
-                        unsigned long idx = chnum * SeqNumPeriods + p;
-                        (*retData)[idx]=intensity;
+                        (*retData)[p][chnum]=intensity;
                     }
                 }
             }//if (effectsToUpdate)
@@ -3252,7 +3244,7 @@ void xLightsFrame::SaveSequence()
 {
     wxString NewFilename;
     bool ok;
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3386,7 +3378,7 @@ void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
 
 void xLightsFrame::InsertRow()
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3405,7 +3397,7 @@ void xLightsFrame::InsertRow()
 
 void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3435,7 +3427,7 @@ void xLightsFrame::OnBitmapButtonDeleteRowClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonDisplayElementsClick(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3552,7 +3544,7 @@ void xLightsFrame::ClearEffectWindow()
 
 void xLightsFrame::OnButtonSeqExportClick(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3699,7 +3691,7 @@ wxXmlNode* xLightsFrame::SelectModelToExport()
 
 void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         return;
@@ -3771,27 +3763,27 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
     {
         oName.SetExt(_("lcb"));
         fullpath=oName.GetFullPath();
-        WriteLcbFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        WriteLcbFile(fullpath, numChan, SeqData.NumFrames(), dataBuf);
     }
     else if (Out3 == "Vir")
     {
         oName.SetExt(_("vir"));
         fullpath=oName.GetFullPath();
-        WriteVirFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        WriteVirFile(fullpath, numChan, SeqData.NumFrames(), dataBuf);
     }
     else if (Out3 == "LSP")
     {
         oName.SetExt(_("xml"));
         fullpath=oName.GetFullPath();
         //    int cpn = ChannelsPerNode();
-        WriteLSPFile(fullpath, numChan, SeqNumPeriods, dataBuf, cpn);
+        WriteLSPFile(fullpath, numChan, SeqData.NumFrames(), dataBuf, cpn);
         return;
     }
     else if (Out3 == "HLS")
     {
         oName.SetExt(_("hlsnc"));
         fullpath=oName.GetFullPath();
-        WriteHLSFile(fullpath, numChan, SeqNumPeriods, dataBuf);
+        WriteHLSFile(fullpath, numChan, SeqData.NumFrames(), dataBuf);
     }
     else if (Out3 == "Fal")
     {
@@ -3801,7 +3793,7 @@ void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
         tempstr.ToLong(&stChan);
         oName.SetExt(_("eseq"));
         fullpath=oName.GetFullPath();
-        WriteFalconPiModelFile(fullpath, numChan, SeqNumPeriods, dataBuf, stChan, numChan);
+        WriteFalconPiModelFile(fullpath, numChan, SeqData.NumFrames(), dataBuf, stChan, numChan);
     }
 
     delete dataBuf;

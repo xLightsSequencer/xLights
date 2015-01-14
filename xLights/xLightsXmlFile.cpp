@@ -7,6 +7,7 @@ xLightsXmlFile::xLightsXmlFile()
 {
     Clear();
     latest_version = _("4.0.0");
+    SetPath( xLightsFrame::CurrentDir );
 }
 
 xLightsXmlFile::~xLightsXmlFile()
@@ -67,10 +68,14 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
 static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
-    if( node_data != wxString(""))
-    {
-        wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
-    }
+    wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
+    node->AddChild(new_node);
+    return new_node;
+}
+
+static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name)
+{
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     node->AddChild(new_node);
     return new_node;
 }
@@ -174,7 +179,6 @@ void xLightsXmlFile::Load()
 
     Clear();
 
-    SetPath( xLightsFrame::CurrentDir );
     wxString SeqXmlFileName=GetFullPath();
 
     if (!FileExists())
@@ -309,7 +313,6 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
     {
         wxString new_filename = GetName() + "_v4." + GetExt();
         SetFullName(new_filename);
-        SetPath( xLightsFrame::CurrentDir );
 
         log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
 
@@ -324,7 +327,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
 
         wxXmlNode* node;
         wxXmlNode* child;
-        node = AddChildXmlNode(root, wxT("head"), wxT(""));
+        node = AddChildXmlNode(root, wxT("head"));
         AddChildXmlNode(node, wxT("version"), wxT("4.0.0"));
         AddChildXmlNode(node, wxT("author"), header_info[HEADER_INFO_TYPES::AUTHOR]);
         AddChildXmlNode(node, wxT("author-email"), header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
@@ -335,14 +338,14 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
 
-        node = AddChildXmlNode(root, wxT("DisplayElements"), wxT(""));
+        node = AddChildXmlNode(root, wxT("DisplayElements"));
         AddTimingAttributes(node, wxT("timing"), wxT("Song Timing"), wxT("1"), wxT("1"));
         AddTimingAttributes(node, wxT("timing"), wxT("t1"), wxT("1"), wxT("0"));
         AddTimingAttributes(node, wxT("timing"), wxT("t2"), wxT("1"), wxT("0"));
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
-            child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+            child = AddChildXmlNode(node, wxT("Element"));
             child->AddAttribute(wxT("collapsed"),wxT("0"));
             child->AddAttribute(wxT("type"),wxT("model"));
             child->AddAttribute(wxT("name"),models[i]);
@@ -351,20 +354,19 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
 
         log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
 
-        node = AddChildXmlNode(root, wxT("ElementEffects"), wxT(""));
+        node = AddChildXmlNode(root, wxT("ElementEffects"));
         int num_effects = timing.GetCount();
         int effect_id = 1;
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
             log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
-            child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+            child = AddChildXmlNode(node, wxT("Element"));
             child->AddAttribute(wxT("type"),wxT("model"));
             child->AddAttribute(wxT("name"),models[i]);
-            wxXmlNode* layer1 = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
-            wxXmlNode* layer2 = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+            wxXmlNode* layer1 = AddChildXmlNode(child, wxT("EffectLayer"));
+            wxXmlNode* layer2 = AddChildXmlNode(child, wxT("EffectLayer"));
 
-            int num_effects = timing.GetCount();
             for(int j = 0; j < num_effects; ++j)
             {
                 int next_effect = i+(j*models.GetCount());
@@ -409,12 +411,18 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
         {
             wxXmlNode* layer1 = e->GetChildren();
+            if( layer1 == NULL ) break;
             wxXmlNode* layer2 = layer1->GetNext();
+            if( layer2 == NULL ) break;
 
             wxXmlNode* layer1_effect = layer1->GetChildren();
+            if( layer1_effect == NULL ) break;
             wxXmlNode* layer2_effect = layer2->GetChildren();
+            if( layer2_effect == NULL ) break;
             wxXmlNode* layer1_next_effect = layer1_effect->GetNext();
+            if( layer1_next_effect == NULL ) break;
             wxXmlNode* layer2_next_effect = layer2_effect->GetNext();
+            if( layer2_next_effect == NULL ) break;
 
             wxString layer1_effect_name;
             wxString layer2_effect_name;
@@ -456,13 +464,13 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         }
 
         // create Song Timing elements
-        child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+        child = AddChildXmlNode(node, wxT("Element"));
         child->AddAttribute(wxT("type"),wxT("timing"));
         child->AddAttribute(wxT("name"),wxT("Song Timing"));
-        wxXmlNode* layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+        wxXmlNode* layer = AddChildXmlNode(child, wxT("EffectLayer"));
         for(int j = 0; j < num_effects; ++j)
         {
-            wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"), wxT(""));
+            wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"));
             effect->AddAttribute(wxT("protected"), timing_protection[j]);
             effect->AddAttribute(wxT("label"), labels[j]);
             effect->AddAttribute(wxT("startTime"), timing[j]);
@@ -470,16 +478,16 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         }
 
         // create t1 elements
-        child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+        child = AddChildXmlNode(node, wxT("Element"));
         child->AddAttribute(wxT("type"),wxT("timing"));
         child->AddAttribute(wxT("name"),wxT("t1"));
-        layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+        layer = AddChildXmlNode(child, wxT("EffectLayer"));
 
         // create t2 elements
-        child = AddChildXmlNode(node, wxT("Element"), wxT(""));
+        child = AddChildXmlNode(node, wxT("Element"));
         child->AddAttribute(wxT("type"),wxT("timing"));
         child->AddAttribute(wxT("name"),wxT("t2"));
-        layer = AddChildXmlNode(child, wxT("EffectLayer"), wxT(""));
+        layer = AddChildXmlNode(child, wxT("EffectLayer"));
 
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
@@ -490,7 +498,6 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
     }
     else
     {
-        SetPath( xLightsFrame::CurrentDir );
         GetFullPath();
 
         log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));

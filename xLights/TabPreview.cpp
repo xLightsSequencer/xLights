@@ -497,7 +497,6 @@ void xLightsFrame::ShowModelProperties()
 
 int xLightsFrame::FindModelsClicked(int x,int y,wxArrayInt* found)
 {
-    found;
     for (int i=0; i<PreviewModels.size(); i++)
     {
         if(PreviewModels[i]->HitTest(modelPreview,x,y))
@@ -746,7 +745,7 @@ void xLightsFrame::OnButtonModelsPreviewClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
 {
-    if (SeqNumChannels == 0)
+    if (SeqData.NumChannels() == 0)
     {
         wxMessageBox(_("Nothing to play. Please open a sequence first."),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
         return;
@@ -777,10 +776,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         wxString details; //show details to help user -DJ
         for (int i=0; i<PreviewModels.size(); i++)
         {
-            if (PreviewModels[i]->GetLastChannel() > SeqNumChannels) details = wxString::Format("\nLast was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqNumChannels);
+            if (PreviewModels[i]->GetLastChannel() > SeqData.NumChannels()) details = wxString::Format("\nLast was model '%s' - ends on channel %d vs. %d channels in the sequence", PreviewModels[i]->name, PreviewModels[i]->GetLastChannel(), SeqData.NumChannels());
             LastPreviewChannel=std::max(LastPreviewChannel,PreviewModels[i]->GetLastChannel());
         }
-        if (LastPreviewChannel >= SeqNumChannels)
+        if (LastPreviewChannel >= SeqData.NumChannels())
         {
 //            wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence.\n" + details),_("Error in Preview"),wxOK | wxCENTRE | wxICON_ERROR);
             if (wxMessageBox(_("One or more of the models define channels beyond what is contained in the sequence. Verify your channel numbers and/or resave the sequence." + details + "\nContinue?"),_("Error in Preview"),wxYES_NO | wxNO_DEFAULT | wxCENTRE | wxICON_ERROR) != wxYES)
@@ -851,13 +850,13 @@ void xLightsFrame::PreviewOutput(int period)
         {
             if (cn==1) {
                 PreviewModels[m]->GetChanIntensity(n,0,&chnum,&intensity);
-                intensity=(chnum * SeqNumPeriods + period < SeqData.size())? SeqData[chnum*SeqNumPeriods+period]: 0; //allow missing channel data -DJ
+                intensity = SeqData[period][chnum];
                 PreviewModels[m]->SetChanIntensityAll(n,intensity);
             } else {
                 for(size_t c=0; c<cn; c++)
                 {
                     PreviewModels[m]->GetChanIntensity(n,c,&chnum,&intensity);
-                    intensity=(chnum * SeqNumPeriods + period < SeqData.size())? SeqData[chnum*SeqNumPeriods+period]: 0; //allow missing channel data -DJ
+                    intensity = SeqData[period][chnum];
                     PreviewModels[m]->SetChanIntensity(n,c,intensity);
                 }
             }
@@ -865,13 +864,13 @@ void xLightsFrame::PreviewOutput(int period)
         PreviewModels[m]->DisplayModelOnWindow(modelPreview);
     }
     modelPreview->EndDrawing();
-    int amtdone = period * SliderPreviewTime->GetMax() / (SeqNumPeriods-1);
+    int amtdone = period * SliderPreviewTime->GetMax() / (SeqData.NumFrames()-1);
     SliderPreviewTime->SetValue(amtdone);
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
 {
-    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
@@ -891,7 +890,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
 {
     //when drag event starts stop the timer till the drag event ends.
     Timer1.Stop();
-    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
@@ -916,7 +915,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
 void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
 {
 
-    int newperiod = SliderPreviewTime->GetValue() * (SeqNumPeriods-1) / SliderPreviewTime->GetMax();
+    int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * XTIMER_INTERVAL;
     if (mediaFilename.IsEmpty())
     {
@@ -937,7 +936,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         PlayerDlg->MediaCtrl->Seek(msec);
         //Update the slider back to where the user last selected since it played past that point
         int frame = msec / XTIMER_INTERVAL;
-        SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqNumPeriods-1));
+        SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqData.NumFrames()-1));
         //Update the time box.
 
         bbPlayPause->SetBitmap(playIcon);

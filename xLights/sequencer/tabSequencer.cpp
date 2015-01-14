@@ -8,12 +8,18 @@
 #include "../TopEffectsPanel.h"
 
 
+#if __WXOSX__
+#define BASEPATH wxString("/tmp/")
+#else
+#define BASEPATH wxString("c:\\temp\\")
+#endif
+
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetFrequency(40);
-    bool success = mSequenceElements.LoadSequencerFile("c:\\temp\\v4.xml");
+    bool success = mSequenceElements.LoadSequencerFile(BASEPATH + "v4.xml");
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
@@ -45,7 +51,7 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
     mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
-    mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile("c:\\temp\\4.mp3");
+    mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(BASEPATH + "4.mp3");
     mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
 
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);

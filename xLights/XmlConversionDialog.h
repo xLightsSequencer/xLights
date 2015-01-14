@@ -9,6 +9,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/choice.h>
+#include <wx/bmpbuttn.h>
 #include <wx/gbsizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -47,11 +48,13 @@ class XmlConversionDialog: public wxDialog
 		wxButton* Button_Xml_Import_Timing;
 		wxStaticText* StaticText_Xml_Timing;
 		wxTextCtrl* TextCtrl_Xml_Log;
+		wxStaticText* StaticText_Work_Dir;
 		wxTextCtrl* TextCtrl_Xml_Comment;
 		wxStaticText* StaticText_Xml_Comment;
 		wxTextCtrl* TextCtrl_Xml_Author;
 		wxStaticText* StaticText_Xml_Song;
 		wxTextCtrl* TextCtrl_Xml_Website;
+		wxBitmapButton* BitmapButton_Change_Dir;
 		wxButton* Button_Xml_Close_Dialog;
 		wxTextCtrl* TextCtrl_Xml_Artist;
 		wxChoice* Choice1;
@@ -63,6 +66,8 @@ class XmlConversionDialog: public wxDialog
 		static const long ID_STATICTEXT1;
 		static const long ID_STATICTEXT_Xml_Filename;
 		static const long ID_CHOICE_Xml_Settings_Filename;
+		static const long ID_BITMAPBUTTON_Change_Dir;
+		static const long ID_STATICTEXT_Work_Dir;
 		static const long ID_STATICTEXT_XML_Type_Version;
 		static const long ID_STATICTEXT_XML_Version;
 		static const long ID_STATICTEXT_Num_Models_Label;
@@ -114,6 +119,7 @@ class XmlConversionDialog: public wxDialog
 		void OnTextCtrl_Xml_AlbumText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_CommentText(wxCommandEvent& event);
+		void OnBitmapButton_Change_DirClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -490,9 +490,9 @@ void xLightsFrame::TimerOutput(int period)
     char intensity;
     if (CheckBoxLightOutput->IsChecked())
     {
-        for (chindex=0; chindex<SeqNumChannels; chindex++)
+        for (chindex=0; chindex<SeqData.NumChannels(); chindex++)
         {
-            intensity=SeqData[chindex*SeqNumPeriods+period];
+            intensity=SeqData[period][chindex];
             if (xout && intensity != LastIntensity[chindex])
             {
                 xout->SetIntensity(chindex, intensity);
@@ -535,7 +535,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         break;
     case STARTING_SEQ_ANIM:
         LastIntensity.clear();
-        LastIntensity.resize(SeqNumChannels,1);
+        LastIntensity.resize(SeqData.NumChannels(),1);
         ResetTimer(PLAYING_SEQ_ANIM);
         break;
     case PLAYING_SEQ_ANIM:
@@ -547,7 +547,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         period = msec / XTIMER_INTERVAL;
         PlaybackPeriod = period;
-        if (period < SeqNumPeriods)
+        if (period < SeqData.NumFrames())
         {
             TimerOutput(period);
             if (ShowPreview) {
@@ -564,7 +564,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
         {
             LastIntensity.clear();
-            LastIntensity.resize(SeqNumChannels,1);
+            LastIntensity.resize(SeqData.NumChannels(),1);
             ResetTimer(PLAYING_SEQ);
         }
         else
@@ -586,7 +586,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         msec = PlayerDlg->MediaCtrl->Tell();
         period = msec / XTIMER_INTERVAL;
-        if (period < SeqNumPeriods)
+        if (period < SeqData.NumFrames())
         {
             TimerOutput(period);
             if (ShowPreview) {
@@ -598,7 +598,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
     case PAUSE_SEQ:
         if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
         {
-            LastIntensity.resize(SeqNumChannels,1);
+            LastIntensity.resize(SeqData.NumChannels(),1);
             ResetTimer(PLAYING_SEQ);
         } else if (ShowPreview && previewPlaying)
         {
@@ -799,7 +799,7 @@ void xLightsFrame::StopPlayback()
 // returns true on success
 bool xLightsFrame::PlayCurrentXlightsFile()
 {
-    if (SeqNumChannels <= 0)
+    if (SeqData.NumChannels() <= 0)
     {
         PlayerError(_("Unable to determine number of channels"));
     }

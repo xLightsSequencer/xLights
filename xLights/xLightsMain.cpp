@@ -2150,7 +2150,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
                 StopPreviewPlayback(); //FR. If we have sequence data loaded make sure that media playback is inproper state when returnign to preview tab.
                 ResetTimer(PAUSE_SEQ);
             }
-            else if (SeqDataLen > 0)
+            else if (SeqData.NumFrames() > 0)
             {
                 StopPreviewPlayback();
                 ResetTimer(PAUSE_SEQ_ANIM,0);
@@ -2832,7 +2832,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 {
-    if (SeqData.size() == 0)
+    if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
         createACrash();

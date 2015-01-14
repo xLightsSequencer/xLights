@@ -30,12 +30,13 @@
 				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
 					<cols>1</cols>
 					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-							<cols>2</cols>
+						<object class="wxGridBagSizer" variable="GridBagSizer2" member="no">
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Filename" variable="StaticText_Xml_Filename" member="yes">
 									<label>XML Filename:</label>
 								</object>
+								<col>0</col>
+								<row>0</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
@@ -46,7 +47,32 @@
 									<style>wxCB_SORT</style>
 									<handler function="OnChoice_Xml_Settings_FilenameSelect" entry="EVT_CHOICE" />
 								</object>
+								<col>1</col>
+								<row>0</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Change_Dir" variable="BitmapButton_Change_Dir" member="yes">
+									<bitmap stock_id="wxART_FOLDER_OPEN" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnBitmapButton_Change_DirClick" entry="EVT_BUTTON" />
+								</object>
+								<col>2</col>
+								<row>0</row>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_Work_Dir" variable="StaticText_Work_Dir" member="yes">
+									<label>Directory:</label>
+								</object>
+								<colspan>3</colspan>
+								<col>0</col>
+								<row>1</row>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
