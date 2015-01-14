@@ -3,8 +3,11 @@
 #include "xLightsMain.h"
 
 //(*InternalHeaders(XmlConversionDialog)
+#include <wx/artprov.h>
+#include <wx/bitmap.h>
 #include <wx/font.h>
 #include <wx/intl.h>
+#include <wx/image.h>
 #include <wx/string.h>
 //*)
 
@@ -12,6 +15,8 @@
 const long XmlConversionDialog::ID_STATICTEXT1 = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Filename = wxNewId();
 const long XmlConversionDialog::ID_CHOICE_Xml_Settings_Filename = wxNewId();
+const long XmlConversionDialog::ID_BITMAPBUTTON_Change_Dir = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Work_Dir = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_XML_Type_Version = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_XML_Version = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Num_Models_Label = wxNewId();
@@ -58,8 +63,8 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	wxStaticBoxSizer* StaticBoxSizer_Xml_Header;
 	wxGridBagSizer* GridBagSizer1;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxGridBagSizer* GridBagSizer2;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxStaticBoxSizer* StaticBoxSizer_Xml_Song_Timings;
 	wxFlexGridSizer* FlexGridSizer6;
@@ -75,12 +80,16 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	GridBagSizer2 = new wxGridBagSizer(0, 0);
 	StaticText_Xml_Filename = new wxStaticText(this, ID_STATICTEXT_Xml_Filename, _("XML Filename:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Filename"));
-	FlexGridSizer2->Add(StaticText_Xml_Filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(StaticText_Xml_Filename, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Xml_Settings_Filename = new wxChoice(this, ID_CHOICE_Xml_Settings_Filename, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Xml_Settings_Filename"));
-	FlexGridSizer2->Add(Choice_Xml_Settings_Filename, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(Choice_Xml_Settings_Filename, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Change_Dir = new wxBitmapButton(this, ID_BITMAPBUTTON_Change_Dir, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Change_Dir"));
+	GridBagSizer2->Add(BitmapButton_Change_Dir, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Work_Dir = new wxStaticText(this, ID_STATICTEXT_Work_Dir, _("Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Work_Dir"));
+	GridBagSizer2->Add(StaticText_Work_Dir, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_File_Info = new wxStaticBoxSizer(wxHORIZONTAL, this, _("File Information:"));
 	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText_XML_Type_Version = new wxStaticText(this, ID_STATICTEXT_XML_Type_Version, _("XML Version:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_XML_Type_Version"));
@@ -163,6 +172,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Layout();
 
 	Connect(ID_CHOICE_Xml_Settings_Filename,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect);
+	Connect(ID_BITMAPBUTTON_Change_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnBitmapButton_Change_DirClick);
 	Connect(ID_TEXTCTRL_Xml_Author,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_AuthorText);
 	Connect(ID_TEXTCTRL_Xml_Author_Email,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Author_EmailText);
 	Connect(ID_TEXTCTRL_Xml_Website,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_WebsiteText);
@@ -190,7 +200,7 @@ void XmlConversionDialog::PopulateFiles()
 {
     wxString filename;
     wxFileName oName;
-    wxDir dir(xLightsFrame::CurrentDir);
+    wxDir dir(xml_file.GetPath());
     Choice_Xml_Settings_Filename->Clear();
     xml_file_list.Clear();
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
@@ -204,6 +214,7 @@ void XmlConversionDialog::PopulateFiles()
         cont = dir.GetNext(&filename);
     }
     Choice_Xml_Settings_Filename->Set(xml_file_list);
+    StaticText_Work_Dir->SetLabelText(_("Directory: " + xml_file.GetPath()));
 }
 
 void XmlConversionDialog::SetSelectionToXMLFile()
@@ -371,5 +382,20 @@ void XmlConversionDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
     if( xml_file.IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
+    }
+}
+
+void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)
+{
+    wxDirDialog* dlg = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
+    wxString newdir;
+    if (dlg->ShowModal() == wxID_OK)
+    {
+        newdir=dlg->GetPath();
+        if (newdir == xml_file.GetPath()) return;
+        xml_file.SetPath(newdir);
+        PopulateFiles();
+        Clear();
     }
 }
