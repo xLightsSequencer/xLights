@@ -17,6 +17,7 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
     wxArrayString SeqFiles;
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
     wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
@@ -767,10 +768,10 @@ void xLightsFrame::OnButtonPlayPreviewClick(wxCommandEvent& event)
         PlayerDlg->MediaCtrl->Play();
         break;
     case PAUSE_SEQ_ANIM:
-        ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        ResetTimer(PLAYING_SEQ_ANIM, PlaybackPeriod * SeqData.FrameTime());
         break;
     case PLAYING_SEQ_ANIM:
-        ResetTimer(PAUSE_SEQ_ANIM, PlaybackPeriod * XTIMER_INTERVAL);
+        ResetTimer(PAUSE_SEQ_ANIM, PlaybackPeriod * SeqData.FrameTime());
         break;
     default:
         wxString details; //show details to help user -DJ
@@ -871,7 +872,7 @@ void xLightsFrame::PreviewOutput(int period)
 void xLightsFrame::OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event)
 {
     int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
-    long msec=newperiod * XTIMER_INTERVAL;
+    long msec=newperiod * SeqData.FrameTime();
     if (mediaFilename.IsEmpty())
     {
         ResetTimer(PAUSE_SEQ_ANIM, msec);
@@ -891,7 +892,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
     //when drag event starts stop the timer till the drag event ends.
     Timer1.Stop();
     int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
-    long msec=newperiod * XTIMER_INTERVAL;
+    long msec=newperiod * SeqData.FrameTime();
     if (mediaFilename.IsEmpty())
     {
         //ResetTimer(PAUSE_SEQ_ANIM, msec);
@@ -916,7 +917,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
 {
 
     int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
-    long msec=newperiod * XTIMER_INTERVAL;
+    long msec=newperiod * SeqData.FrameTime();
     if (mediaFilename.IsEmpty())
     {
         ResetTimer(PAUSE_SEQ_ANIM, msec);
@@ -935,14 +936,14 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         PlayerDlg->MediaCtrl->Stop();
         PlayerDlg->MediaCtrl->Seek(msec);
         //Update the slider back to where the user last selected since it played past that point
-        int frame = msec / XTIMER_INTERVAL;
+        int frame = msec / SeqData.FrameTime();
         SliderPreviewTime->SetValue(frame*SliderPreviewTime->GetMax()/(SeqData.NumFrames()-1));
         //Update the time box.
 
         bbPlayPause->SetBitmap(playIcon);
         previewPlaying = false;
     }
-    Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
+    Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
 }
 
 

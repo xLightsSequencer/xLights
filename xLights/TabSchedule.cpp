@@ -545,7 +545,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
             TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
-        period = msec / XTIMER_INTERVAL;
+        period = msec / SeqData.FrameTime();
         PlaybackPeriod = period;
         if (period < SeqData.NumFrames())
         {
@@ -585,7 +585,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
 //            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->MediaCtrl->Tell();
-        period = msec / XTIMER_INTERVAL;
+        period = msec / SeqData.FrameTime();
         if (period < SeqData.NumFrames())
         {
             TimerOutput(period);
@@ -676,6 +676,7 @@ void xLightsFrame::ScanForFiles()
                 ok=CheckBoxVideo->IsChecked();
                 break;
             case 'X':
+            case 'F':
                 ok=CheckBoxXlights->IsChecked();
                 break;
             }
@@ -692,10 +693,10 @@ char xLightsFrame::ExtType(const wxString& ext)
     if (ext == _("vix"))
     {
         return 'V';
-    }
-    else if (ext == _(XLIGHTS_SEQUENCE_EXT))
-    {
+    } else if (ext == _(XLIGHTS_SEQUENCE_EXT)) {
         return 'X';
+    } else if (ext == "fseq") {
+        return 'F';
     }
     else if (ext == "lms" || ext == "las")
     {
@@ -846,6 +847,10 @@ bool xLightsFrame::Play(wxString& filename, long delay)
         break;
     case 'X':
         ReadXlightsFile(fullpath);
+        return PlayCurrentXlightsFile();
+        break;
+    case 'F':
+        ReadFalconFile(fullpath);
         return PlayCurrentXlightsFile();
         break;
     }

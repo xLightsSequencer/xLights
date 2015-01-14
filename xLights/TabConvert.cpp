@@ -449,14 +449,11 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
 {
     wxUint16 fixedHeaderLength = 28;
     wxFile f;
-    char hdr[512],filetype[10];
-    int numper;
     size_t readcnt;
     int seqStepTime = 0;
 	int falconPeriods = 0;
     int periodsRead = 0;
     int i = 0;
-	int xlPeriod = 0;
     char *tmpBuf = NULL;
 
     ConversionInit();
@@ -465,36 +462,44 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
         PlayerError(wxString("Unable to load sequence:\n")+FileName);
         return;
     }
+    unsigned char hdr[1024];
     f.Read(hdr,fixedHeaderLength);
 
+    int dataOffset = hdr[4] + (hdr[5] << 8);
+    if (dataOffset < 1024) {
+        f.Seek(0);
+        f.Read(hdr, dataOffset);
+    }
     int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
     seqStepTime = hdr[18] + (hdr[19] << 8);
-    falconPeriods = (f.Length() - fixedHeaderLength) / numChannels;
-    wxString filename;
-    SetMediaFilename(filename);
+    if (dataOffset > 28 && hdr[30] == 'm' && hdr[31] == 'f') {
+        SetMediaFilename((char *)&hdr[32]);
+    } else {
+        SetMediaFilename("");
+    }
+    
+    falconPeriods = (f.Length() - dataOffset) / numChannels;
     
     SeqData.init(numChannels, falconPeriods, seqStepTime);
 
+    f.Seek(dataOffset);
     tmpBuf = new char[numChannels];
     while (periodsRead < falconPeriods)
     {
-		xlPeriod = periodsRead * seqStepTime / XTIMER_INTERVAL;
-
         readcnt = f.Read(tmpBuf, numChannels);
         if (readcnt < numChannels)
         {
             PlayerError(wxString("Unable to read all event data from:\n")+FileName);
         }
 
-        wxYield();
         for (i = 0; i < numChannels; i++)
         {
-            SeqData[xlPeriod][i] = tmpBuf[i];
+            SeqData[periodsRead][i] = tmpBuf[i];
         }
 
         periodsRead++;
     }
-    delete tmpBuf;
+    delete []tmpBuf;
 
 #ifndef NDEBUG
     AppendConvertLog(string_format(wxString("ReadFalconFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),SeqData.NumFrames(),SeqData.NumChannels()));
@@ -502,14 +507,20 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
 
     f.Close();
 }
-
+int rountTo4(int i)  {
+    int remainder = i % 4;
+    if (remainder == 0) {
+        return i;
+    }
+    return i + 4 - remainder;
+}
 void FRAMECLASS WriteFalconPiFile(const wxString& filename)
 {
     wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
-    wxUint32 dataOffset = 28;
     wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = SeqData.NumChannels() + (SeqData.NumChannels()%4);
+    wxUint32 stepSize = rountTo4(SeqData.NumChannels());
+    
     wxUint16 stepTime = SeqData.FrameTime();
     // Ignored by Pi Player
     wxUint16 numUniverses = 0;
@@ -524,7 +535,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     // Step Size must be multiple of 4
     //wxUint8 buf[stepSize];
     wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
+    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
 
     size_t ch;
     if (!f.Create(filename,true))
@@ -533,17 +544,13 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
         return;
     }
 
-
     // Header Information
     // Format Identifier
     buf[0] = 'P';
     buf[1] = 'S';
     buf[2] = 'E';
     buf[3] = 'Q';
-    // Data offset
-    buf[4] = (wxUint8)(dataOffset%256);
-    buf[5] = (wxUint8)(dataOffset/256);
-    // Data offset
+
     buf[6] = vMinor;
     buf[7] = vMajor;
     // Fixed header length
@@ -572,14 +579,27 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     buf[24] = gamma;
     // universe Size
     buf[25] = colorEncoding;
-    buf[26] =0;
+    buf[26] = 0;
     buf[27] = 0;
+    
+    if (mediaFilename.length() > 0) {
+        int len = strlen(mediaFilename.c_str()) + 5;
+        buf[28] = (wxUint8)(len & 0xFF);
+        buf[29] = (wxUint8)((len >> 8) & 0xFF);
+        buf[30] = 'm';
+        buf[31] = 'f';
+        strcpy((char *)&buf[32],mediaFilename.c_str());
+        fixedHeaderLength += len;
+        fixedHeaderLength = rountTo4(fixedHeaderLength);
+    }
+    // Data offset
+    buf[4] = (wxUint8)(fixedHeaderLength%256);
+    buf[5] = (wxUint8)(fixedHeaderLength/256);
     f.Write(buf,fixedHeaderLength);
+
 
     for (long period=0; period < SeqData.NumFrames(); period++)
     {
-        //if (period % 500 == 499) AppendConvertStatus (string_format("Writing time period %ld\n",period+1));
-        wxYield();
         for(ch=0; ch<stepSize; ch++)
         {
             buf[ch] = SeqData[period][ch];
@@ -587,6 +607,7 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
         f.Write(buf,stepSize);
     }
     f.Close();
+    free(buf);
 }
 
 void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
@@ -806,10 +827,9 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
     wxString ChannelName,TestName,xmlString,guiString;
     int ch,p,channels_exported=0;
-    int seqidx=0,seqidx0=0;
+    int seqidx=0;
     int pos,bst,old_bst,ben;
     unsigned long rgb;
-    int DATA_FOUND=0;
     float seconds;
     wxFile f;
     if (!f.Create(filename,true))
@@ -817,9 +837,6 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
-    int interval= XTIMER_INTERVAL / 10;  // in centiseconds
-
-
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
 
@@ -886,7 +903,7 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
         for (p=0; p < numPeriods; p++)
         {
-            seconds = (p*50)/1000.0;
+            seconds = (p*dataBuf->FrameTime())/1000.0;
             //  SetStatusText(wxString("Status: " )+string_format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
             pos = seconds * 88200;
             //   SetStatusText(wxString("Status: " )+string_format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
@@ -2341,7 +2358,7 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
 
 }
 
-void FRAMECLASS ReadLorFile(const wxString& filename)
+void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
 {
     wxString NodeName,msg,EffectType,ChannelName,deviceType,networkAsString;
     wxArrayString context;
@@ -2495,8 +2512,6 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     }
     delete parser;
     AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
-
-    int LORImportInterval = 50;  ///FIXME - quere from a dialog
     
     if (centisec > 0)
     {
@@ -2505,7 +2520,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
         {
             numFrames=1;
         }
-        SeqData.init(SeqData.NumChannels(), numFrames, LORImportInterval);
+        SeqData.init(NetInfo.GetTotChannels(), numFrames, LORImportInterval);
     }
     else
     {
@@ -2887,7 +2902,19 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
             ConversionError(wxString("Cannot convert from LOR to LOR!"));
             return;
         }
-        ReadLorFile(Filename);
+        int i = LORImportTimeResolution->GetSelection();
+        switch (i) {
+            case 0:
+                i = 25;
+                break;
+            case 2:
+                i = 100;
+                break;
+            default:
+                i = 50;
+                break;
+        }
+        ReadLorFile(Filename, i);
     }
     else if(ext == wxString("xml"))
     {

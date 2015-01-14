@@ -613,12 +613,13 @@ private:
     static const long ID_TEXTCTRL_FILENAME;
     static const long ID_STATICTEXT16;
     static const long ID_CHOICE_OUTPUT_FORMAT;
+    static const long ID_STATICTEXT17;
+    static const long ID_CHECKBOX_OFF_AT_END;
     static const long ID_STATICTEXT20;
     static const long ID_CHECKBOX_MAP_EMPTY_CHANNELS;
     static const long ID_STATICTEXT33;
     static const long ID_CHECKBOX_LOR_WITH_NO_CHANNELS;
-    static const long ID_STATICTEXT17;
-    static const long ID_CHECKBOX_OFF_AT_END;
+    static const long ID_CHOICE1;
     static const long ID_BUTTON_START_CONVERSION;
     static const long ID_STATICTEXT18;
     static const long ID_TEXTCTRL_CONVERSION_STATUS;
@@ -1017,6 +1018,7 @@ private:
     wxButton* ButtonAddDongle;
     wxSplitterWindow* SplitterWindow3;
     wxRadioButton* RadioButtonChase;
+    wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText11;
@@ -1113,7 +1115,7 @@ private:
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const wxString& filename);
-    void ReadLorFile(const wxString& filename);
+    void ReadLorFile(const wxString& filename, int LORImportInterval);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
     void ReadFalconFile(const wxString& FileName);
