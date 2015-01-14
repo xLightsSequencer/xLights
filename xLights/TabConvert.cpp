@@ -462,7 +462,7 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
         PlayerError(wxString("Unable to load sequence:\n")+FileName);
         return;
     }
-    char hdr[1024];
+    unsigned char hdr[1024];
     f.Read(hdr,fixedHeaderLength);
 
     int dataOffset = hdr[4] + (hdr[5] << 8);
@@ -827,10 +827,9 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
     wxString ChannelName,TestName,xmlString,guiString;
     int ch,p,channels_exported=0;
-    int seqidx=0,seqidx0=0;
+    int seqidx=0;
     int pos,bst,old_bst,ben;
     unsigned long rgb;
-    int DATA_FOUND=0;
     float seconds;
     wxFile f;
     if (!f.Create(filename,true))
@@ -838,9 +837,6 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
-    int interval= XTIMER_INTERVAL / 10;  // in centiseconds
-
-
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
 
@@ -907,7 +903,7 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
         for (p=0; p < numPeriods; p++)
         {
-            seconds = (p*50)/1000.0;
+            seconds = (p*dataBuf->FrameTime())/1000.0;
             //  SetStatusText(wxString("Status: " )+string_format(" Channel %4d. %4d out of %4d ",ch,p,numPeriods));
             pos = seconds * 88200;
             //   SetStatusText(wxString("Status: " )+string_format(" Channel %ld. p=%ld (%ld). Sizeof %ld . seqid %ld",ch,p,numPeriods,sizeof(dataBuf),seqidx));
@@ -2362,7 +2358,7 @@ void FRAMECLASS ConvertXL3toXL4(const wxString& filename)
 
 }
 
-void FRAMECLASS ReadLorFile(const wxString& filename)
+void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
 {
     wxString NodeName,msg,EffectType,ChannelName,deviceType,networkAsString;
     wxArrayString context;
@@ -2516,8 +2512,6 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     }
     delete parser;
     AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
-
-    int LORImportInterval = 50;  ///FIXME - quere from a dialog
     
     if (centisec > 0)
     {
@@ -2526,7 +2520,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
         {
             numFrames=1;
         }
-        SeqData.init(SeqData.NumChannels(), numFrames, LORImportInterval);
+        SeqData.init(NetInfo.GetTotChannels(), numFrames, LORImportInterval);
     }
     else
     {
@@ -2908,7 +2902,19 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
             ConversionError(wxString("Cannot convert from LOR to LOR!"));
             return;
         }
-        ReadLorFile(Filename);
+        int i = LORImportTimeResolution->GetSelection();
+        switch (i) {
+            case 0:
+                i = 25;
+                break;
+            case 2:
+                i = 100;
+                break;
+            default:
+                i = 50;
+                break;
+        }
+        ReadLorFile(Filename, i);
     }
     else if(ext == wxString("xml"))
     {

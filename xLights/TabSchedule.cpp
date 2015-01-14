@@ -545,7 +545,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
             TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
-        period = msec / XTIMER_INTERVAL;
+        period = msec / SeqData.FrameTime();
         PlaybackPeriod = period;
         if (period < SeqData.NumFrames())
         {
@@ -585,7 +585,7 @@ void xLightsFrame::OnTimerPlaylist(long msec)
 //            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->MediaCtrl->Tell();
-        period = msec / XTIMER_INTERVAL;
+        period = msec / SeqData.FrameTime();
         if (period < SeqData.NumFrames())
         {
             TimerOutput(period);

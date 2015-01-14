@@ -1502,7 +1502,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             TxOverflowTotal += xout->TxNonEmptyCount(); //show how much -DJ
 //            break; //keep going; might catch up -DJ
         }
-        EffectPeriod = msec / XTIMER_INTERVAL;
+        EffectPeriod = msec / SeqData.FrameTime();
         if (EffectPeriod >= SeqData.NumFrames())
         {
             // sequence has finished
@@ -1564,7 +1564,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 //            break; //keep going; might catch up -DJ
         }
         msec = PlayerDlg->MediaCtrl->Tell();
-        EffectPeriod = msec / XTIMER_INTERVAL;
+        EffectPeriod = msec / SeqData.FrameTime();
         if (EffectPeriod >= SeqData.NumFrames() || PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
         {
             // sequence has finished
@@ -1627,7 +1627,7 @@ int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
     if (startRow+ii < rowcnt)
     {
         tmpStr = Grid1->GetCellValue(startRow+ii,0);
-        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*XTIMER_INTERVAL;
+        nextTimePeriodMsec =tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*SeqData.FrameTime();
         do
         {
             tmpStr = Grid1->GetCellValue(startRow+ii, playCol);
@@ -1637,16 +1637,16 @@ int xLightsFrame::UpdateEffectDuration(bool new_effect_starts, int startRow,
         if (!tmpStr.IsEmpty())
         {
             tmpStr = Grid1->GetCellValue(startRow+ii,0);
-            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*XTIMER_INTERVAL;
+            nextEffMsec = tmpStr.ToDouble(&val )?(int)(val*1000):SeqData.NumFrames()*SeqData.FrameTime();
         }
         else
         {
-            nextEffMsec = SeqData.NumFrames()*XTIMER_INTERVAL;
+            nextEffMsec = SeqData.NumFrames()*SeqData.FrameTime();
         }
     }
     else
     {
-        nextEffMsec = nextTimePeriodMsec = SeqData.NumFrames()*XTIMER_INTERVAL;
+        nextEffMsec = nextTimePeriodMsec = SeqData.NumFrames()*SeqData.FrameTime();
     }
     buffer.SetTimes(0, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
     buffer.SetTimes(1, curEffMsec, nextEffMsec, nextTimePeriodMsec, new_effect_starts);
@@ -2530,7 +2530,6 @@ void xLightsFrame::OpenSequence()
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
     nullString.Clear();
-    int interval=Timer1.GetInterval();
 
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
@@ -2611,6 +2610,7 @@ void xLightsFrame::OpenSequence()
         wxStopWatch sw; // start a stopwatch timer
         SeqLoadXlightsXSEQ(dialog.ChoiceSeqFiles->GetStringSelection());
         SeqLoadXlightsFile(dialog.ChoiceSeqFiles->GetStringSelection(), true);
+        Timer1.Start(SeqData.FrameTime());
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), dialog.ChoiceSeqFiles->GetStringSelection(), elapsedTime));
         return;
@@ -2618,7 +2618,8 @@ void xLightsFrame::OpenSequence()
     else if (dialog.RadioButtonLor->GetValue())
     {
         filename=dialog.ChoiceLorFiles->GetStringSelection();
-        ReadLorFile(filename);
+        ReadLorFile(filename, 50);  //FIXME - query time
+        Timer1.Start(SeqData.FrameTime());
         oName.SetFullName( filename );
         oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
@@ -2636,7 +2637,7 @@ void xLightsFrame::OpenSequence()
             for (std::set<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
             {
                 int period=*it;
-                float seconds=(float)period*interval/1000.0;
+                float seconds=(float)period*SeqData.FrameTime()/1000.0;
                 Grid1->SetCellValue(r, 0, wxString::Format("%5.3f",seconds));
                 r++;
             }
@@ -2709,14 +2710,15 @@ void xLightsFrame::OpenSequence()
         //     duration*=1000;  // convert to milliseconds
         duration=f_duration*1000;  // convert to milliseconds <SCM>
     }
-    
-    SeqData.init(NetInfo.GetTotChannels(), duration / interval, interval);
+    int intervalSize = 50;  //FIXME - query from user
+    SeqData.init(NetInfo.GetTotChannels(), duration / intervalSize, intervalSize);
+    Timer1.Start(SeqData.FrameTime());
     
     int nSeconds=duration/1000;
     int nMinutes=nSeconds/60;
     nSeconds%=60;
     wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
-                                  SeqData.NumChannels(),SeqData.NumFrames(),interval,nMinutes,nSeconds));
+                                  SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -2811,7 +2813,7 @@ public:
         long msec = 0;
         for (int p=0; p<seqNumPeriods; p++)
         {
-            msec=p * XTIMER_INTERVAL;
+            msec=p * xLights->SeqData.FrameTime();
 
             if (!bufferClear)
             {
