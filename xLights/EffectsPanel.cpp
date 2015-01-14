@@ -2829,6 +2829,12 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
     EffectChanged=true;
     wxScrolledWindow* w = (wxScrolledWindow*)Choicebook1->GetPage(Choicebook1->GetSelection());
+
+    wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
+    // We do not have an actual effect in grid to send
+    eventEffectChanged.SetClientData(nullptr);
+    wxPostEvent(GetParent(), eventEffectChanged);
+
     w->FitInside();
     w->SetScrollRate(5, 5);
     w->Refresh();
@@ -3251,5 +3257,5 @@ void EffectsPanel::OnResize(wxSizeEvent& event)
 
 void EffectsPanel::OnPaint1(wxPaintEvent& event)
 {
-    int k=0;
+
 }

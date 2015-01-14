@@ -5,6 +5,8 @@
 //(*Headers(TopEffectsPanel)
 #include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
 //*)
 
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -17,11 +19,17 @@ class TopEffectsPanel: public wxPanel
 		virtual ~TopEffectsPanel();
 
 		//(*Declarations(TopEffectsPanel)
+		wxBitmapButton* BitmapButtonSelectedEffect;
+		wxButton* Button1;
+		wxPanel* Panel_EffectContainer;
 		//*)
 
 	protected:
 
 		//(*Identifiers(TopEffectsPanel)
+		static const long ID_BUTTON1;
+		static const long ID_BITMAPBUTTON_SelectedEffect;
+		static const long ID_PANEL1;
 		//*)
 
 	private:

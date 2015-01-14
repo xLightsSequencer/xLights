@@ -276,6 +276,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
 
+    static const char** GetIconBuffer(int effectID);
     static void SetButtonColor(wxButton* btn, const wxColour* c);
 
 
@@ -1432,6 +1433,7 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
+
     // Panels
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;

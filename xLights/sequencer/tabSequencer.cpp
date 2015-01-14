@@ -64,7 +64,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(sPreview1, wxLEFT, wxT("Model Preview 1"));
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
-    EffectsPanel1 = new EffectsPanel(effectsPnl, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
+    EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
     effectsPnl->Refresh();
 
 
@@ -217,16 +217,21 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
     int h = effectsPnl->GetSize().GetHeight();
     if(w>10 && h>50)
     {
-        s = wxSize(w-10,h-30);
+        s = wxSize(w-10,h-60);
     }
     else
     {
         s = wxSize(200,200);
     }
 
+    effectsPnl->Panel_EffectContainer->SetSize(s);
+    effectsPnl->Panel_EffectContainer->SetMinSize(s);
+    effectsPnl->Panel_EffectContainer->SetMaxSize(s);
+
     EffectsPanel1->SetSize(s);
     EffectsPanel1->SetMinSize(s);
     EffectsPanel1->SetMaxSize(s);
+
 
     EffectsPanel1->Choicebook1->SetSize(s);
     EffectsPanel1->Choicebook1->SetMinSize(s);
@@ -304,8 +309,15 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();
-    wxString name = "Hello";
-    SetEffectControls(effect->GetEffectName(),effect->GetSettings(),name);
+    wxString name = "";
+    if(effect!=nullptr)
+    {
+        SetEffectControls(effect->GetEffectName(),effect->GetSettings(),name);
+    }
+
+    wxBitmap bm(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
+    effectsPnl->BitmapButtonSelectedEffect->SetBitmapLabel(bm);
+
 }
 
 
@@ -441,5 +453,105 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, con
     FadesChanged=true;
     EffectsPanel1->PaletteChanged=true;
     ResetEffectStates(playResetEffectState);
+}
+
+const char** xLightsFrame::GetIconBuffer(int effectID)
+{
+    const char** p_XPM;
+    switch(effectID)
+    {
+        case xLightsFrame::RGB_EFFECTS_e::eff_OFF:
+            p_XPM = Off;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_ON:
+            p_XPM = Off;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
+            p_XPM = bars;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY:
+            p_XPM = butterfly;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
+            p_XPM = circles;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
+            p_XPM = ColorWash;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
+            p_XPM = curtain;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
+            p_XPM = Off;
+            //p_XPM = faces;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
+            p_XPM = fire;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS:
+            p_XPM = fireworks;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS:
+            p_XPM = garlands;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR:
+            p_XPM = glediator;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_LIFE:
+            p_XPM = life;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_METEORS:
+            p_XPM = meteors;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_PIANO:
+            p_XPM = pinwheel;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
+//~ Fix this missing "pictures" xpm
+            p_XPM = Off;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
+            p_XPM = pinwheel;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE:
+            p_XPM = ripple;
+            break;
+//~ Fix this missing "shimmer" xpm
+        case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
+            p_XPM = Off;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND:
+            p_XPM = singleStrand;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES:
+            p_XPM = snowflakes;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM:
+            p_XPM = snowstorm;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
+            p_XPM = spirals;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
+            p_XPM = spirograph;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
+            p_XPM = Off;
+           // p_XPM = strobe;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
+            p_XPM = tree;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
+            p_XPM = twinkle;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_WAVE:
+            p_XPM = wave;
+            break;
+        default:
+            p_XPM = Off;
+            break;
+    }
+    return p_XPM;
 }
 

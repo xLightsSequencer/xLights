@@ -21,6 +21,9 @@
 #include <unordered_map> //-DJ
 #include <wx/colordlg.h>
 
+wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+
+
 class EffectsPanel: public wxPanel
 {
 public:
