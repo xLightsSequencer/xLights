@@ -1,5 +1,6 @@
 #ifndef TOPEFFECTSPANEL_H
 #define TOPEFFECTSPANEL_H
+#include "DragEffectBitmapButton.h"
 
 
 //(*Headers(TopEffectsPanel)
@@ -18,11 +19,13 @@ class TopEffectsPanel: public wxPanel
 		TopEffectsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TopEffectsPanel();
 
+		void SetDragIconBuffer(const char** buffer);
 		//(*Declarations(TopEffectsPanel)
-		wxBitmapButton* BitmapButtonSelectedEffect;
 		wxButton* Button1;
+		DragEffectBitmapButton* BitmapButtonSelectedEffect;
 		wxPanel* Panel_EffectContainer;
 		//*)
+
 
 	protected:
 
@@ -36,6 +39,8 @@ class TopEffectsPanel: public wxPanel
 
 		//(*Handlers(TopEffectsPanel)
 		void OnResize(wxSizeEvent& event);
+		void OnBitmapButtonSelectedEffectClick(wxCommandEvent& event);
+		void OnLeftDown(wxMouseEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

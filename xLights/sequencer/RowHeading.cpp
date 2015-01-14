@@ -3,6 +3,8 @@
 #include "wx/wx.h"
 #include "wx/brush.h"
 #include "../xLightsMain.h"
+#include "EffectDropTarget.h"
+
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 //EVT_MOTION(RowHeading::mouseMoved)
@@ -26,6 +28,8 @@ RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &p
     mHeaderColorModel = new wxColour(212,208,200);
     mHeaderColorView = new wxColour(159,157,152);
     mHeaderColorTiming = new wxColour(130,178,207);
+    SetDropTarget(new EffectDropTarget(false));
+
 }
 
 RowHeading::~RowHeading()

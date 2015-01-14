@@ -401,6 +401,8 @@
 		</Unit>
 		<Unit filename="sequencer/Effect.cpp" />
 		<Unit filename="sequencer/Effect.h" />
+		<Unit filename="sequencer/EffectDropTarget.cpp" />
+		<Unit filename="sequencer/EffectDropTarget.h" />
 		<Unit filename="sequencer/EffectLayer.cpp" />
 		<Unit filename="sequencer/EffectLayer.h" />
 		<Unit filename="sequencer/EffectsGrid.cpp" />

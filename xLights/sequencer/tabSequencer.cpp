@@ -320,9 +320,7 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
     {
         SetEffectControls(effect->GetEffectName(),effect->GetSettings(),name);
     }
-
-    wxBitmap bm(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
-    effectsPnl->BitmapButtonSelectedEffect->SetBitmapLabel(bm);
+    effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
 
 }
 

@@ -18,6 +18,7 @@
 #include "SequenceElements.h"
 #include "Effect.h"
 #include "EffectLayer.h"
+#include "EffectDropTarget.h"
 
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
 EVT_IDLE(EffectsGrid::OnIdle)
@@ -54,6 +55,7 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
     mSelectionColor = new wxColour(255,0,255);
 
     mPaintOnIdleCounter=0;
+    SetDropTarget(new EffectDropTarget(true));
 
 }
 

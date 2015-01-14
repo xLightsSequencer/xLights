@@ -29,10 +29,11 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SelectedEffect" variable="BitmapButtonSelectedEffect" member="yes">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SelectedEffect" subclass="DragEffectBitmapButton" variable="BitmapButtonSelectedEffect" member="yes">
 											<bitmap code="butterfly" />
 											<size>13,13</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+											<handler function="OnBitmapButtonSelectedEffectClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
