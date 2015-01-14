@@ -12,6 +12,7 @@
 #include "TimeLine.h"
 #include "EffectLayer.h"
 #include "Effect.h"
+#include "Element.h"
 
 
 #define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
@@ -47,6 +48,7 @@ public:
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
     void SetTimeline(TimeLine* timeline);
+    void DragOver(int x, int y);
 
 private:
 	void render(wxPaintEvent& evt);
@@ -78,6 +80,9 @@ private:
     void UpdateTimePosition(int position);
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
+
+    Element* GetActiveTimingElement();
+
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;

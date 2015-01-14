@@ -55,8 +55,7 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
     mSelectionColor = new wxColour(255,0,255);
 
     mPaintOnIdleCounter=0;
-    SetDropTarget(new EffectDropTarget(true));
-
+    SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
 }
 
 EffectsGrid::~EffectsGrid()
@@ -70,6 +69,11 @@ void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
 
+void EffectsGrid::DragOver(int x, int y)
+{
+    int row = GetRow(y);
+    int j=0;
+}
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
@@ -831,6 +835,21 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(effect);
     wxPostEvent(GetParent(), eventEffectChanged);
+}
+
+
+Element* EffectsGrid::GetActiveTimingElement()
+{
+    Element* returnValue=nullptr;
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    {
+        Element* e = mSequenceElements->GetRowInformation(row)->element;
+        if(e->GetType()== "Timing" && e->GetActive())
+        {
+            returnValue = e;
+            break;
+        }
+    }
 }
 
 

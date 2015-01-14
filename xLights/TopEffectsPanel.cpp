@@ -62,7 +62,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&TopEffectsPanel::OnResize);
 	//*)
 
-    SetDropTarget(new EffectDropTarget(false));
+    SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
 }
 
 TopEffectsPanel::~TopEffectsPanel()

@@ -1,11 +1,15 @@
 #include "EffectDropTarget.h"
 #include <wx/dnd.h>
+#include "wx/wx.h"
+#include "EffectsGrid.h"
 
 
-EffectDropTarget::EffectDropTarget(bool IsEffectsGrid)
+
+EffectDropTarget::EffectDropTarget(wxWindow* parent,bool IsEffectsGrid)
 {
     //ctor
     mIsEffectsGrid = IsEffectsGrid;
+    mParent = parent;
 }
 
 EffectDropTarget::~EffectDropTarget()
@@ -34,6 +38,7 @@ wxDragResult EffectDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
 {
     if(mIsEffectsGrid)
     {
+        ((EffectsGrid*)(mParent))->DragOver(x,y);
         return wxDragCopy;
     }
     else
