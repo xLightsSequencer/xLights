@@ -175,6 +175,7 @@ bool xLightsApp::OnInit()
     	SetTopWindow(Frame);
     }
     //*)
+    topFrame = (xLightsFrame* )GetTopWindow();
 
     return wxsOK;
 }
