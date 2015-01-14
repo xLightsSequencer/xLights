@@ -367,7 +367,6 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
             wxXmlNode* layer1 = AddChildXmlNode(child, wxT("EffectLayer"));
             wxXmlNode* layer2 = AddChildXmlNode(child, wxT("EffectLayer"));
 
-            int num_effects = timing.GetCount();
             for(int j = 0; j < num_effects; ++j)
             {
                 int next_effect = i+(j*models.GetCount());
@@ -412,12 +411,18 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
         for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
         {
             wxXmlNode* layer1 = e->GetChildren();
+            if( layer1 == NULL ) break;
             wxXmlNode* layer2 = layer1->GetNext();
+            if( layer2 == NULL ) break;
 
             wxXmlNode* layer1_effect = layer1->GetChildren();
+            if( layer1_effect == NULL ) break;
             wxXmlNode* layer2_effect = layer2->GetChildren();
+            if( layer2_effect == NULL ) break;
             wxXmlNode* layer1_next_effect = layer1_effect->GetNext();
+            if( layer1_next_effect == NULL ) break;
             wxXmlNode* layer2_next_effect = layer2_effect->GetNext();
+            if( layer2_next_effect == NULL ) break;
 
             wxString layer1_effect_name;
             wxString layer2_effect_name;
