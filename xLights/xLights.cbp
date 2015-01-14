@@ -190,6 +190,7 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-std=gnu++0x" />
+					<Add option="-static-libgcc" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
 					<Add option="-D__WXMSW__" />
@@ -267,6 +268,9 @@
 		<Compiler>
 			<Add option="-DwxUSE_UNICODE" />
 		</Compiler>
+		<Linker>
+			<Add option="-static-libgcc" />
+		</Linker>
 		<Unit filename="AddShowDialog.cpp" />
 		<Unit filename="AddShowDialog.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
@@ -353,8 +357,6 @@
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />
 		<Unit filename="SeqParmsDialog.h" />
-		<Unit filename="SequenceData.cpp" />
-		<Unit filename="SequenceData.h" />
 		<Unit filename="SequencePreview.cpp" />
 		<Unit filename="SequencePreview.h" />
 		<Unit filename="SerialPortWithRate.cpp" />

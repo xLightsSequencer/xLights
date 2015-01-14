@@ -33,6 +33,7 @@ Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}"
 
 Source: "bin/ffmpeg.exe"; DestDir: "{app}"
+Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}"
 Source: "bin/gawk.exe"; DestDir: "{app}"
 Source: "bin/coroface.awk"; DestDir: "{app}"
 Source: "bin/corofaces.bat"; DestDir: "{app}"

@@ -115,6 +115,7 @@
 #include "../include/None.xpm"
 
 #include "../include/Off.xpm"
+#include "../include/On.xpm"
 #include "../include/pinwheel.xpm"
 #include "../include/ripple.xpm"
 #include "../include/singleStrand.xpm"
@@ -122,6 +123,7 @@
 #include "../include/snowstorm.xpm"
 #include "../include/spirals.xpm"
 #include "../include/spirograph.xpm"
+#include "../include/strobe.xpm"
 #include "../include/text.xpm"
 #include "../include/tree.xpm"
 #include "../include/twinkle.xpm"

@@ -470,7 +470,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
             p_XPM = Off;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_ON:
-            p_XPM = Off;
+            p_XPM = On;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
             p_XPM = bars;
@@ -542,8 +542,8 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
             p_XPM = spirograph;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
-            p_XPM = Off;
-//            p_XPM = strobe;
+  //         p_XPM = Off;
+          p_XPM = strobe;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
             p_XPM = tree;
