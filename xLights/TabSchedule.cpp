@@ -676,6 +676,7 @@ void xLightsFrame::ScanForFiles()
                 ok=CheckBoxVideo->IsChecked();
                 break;
             case 'X':
+            case 'F':
                 ok=CheckBoxXlights->IsChecked();
                 break;
             }
@@ -692,10 +693,10 @@ char xLightsFrame::ExtType(const wxString& ext)
     if (ext == _("vix"))
     {
         return 'V';
-    }
-    else if (ext == _(XLIGHTS_SEQUENCE_EXT) || ext == "fseq")
-    {
+    } else if (ext == _(XLIGHTS_SEQUENCE_EXT)) {
         return 'X';
+    } else if (ext == "fseq") {
+        return 'F';
     }
     else if (ext == "lms" || ext == "las")
     {
@@ -846,6 +847,10 @@ bool xLightsFrame::Play(wxString& filename, long delay)
         break;
     case 'X':
         ReadXlightsFile(fullpath);
+        return PlayCurrentXlightsFile();
+        break;
+    case 'F':
+        ReadFalconFile(fullpath);
         return PlayCurrentXlightsFile();
         break;
     }
