@@ -1,6 +1,6 @@
 #ifndef TOPEFFECTSPANEL_H
 #define TOPEFFECTSPANEL_H
-#include "DragEffectBitmapButton.h"
+#include "sequencer/DragEffectBitmapButton.h"
 
 
 //(*Headers(TopEffectsPanel)

@@ -2,7 +2,7 @@
 #include "TopEffectsPanel.h"
 #include <wx/event.h>
 #include "xLightsMain.h"
-#include "EffectDropTarget.h"
+#include "sequencer/EffectDropTarget.h"
 
 //(*InternalHeaders(TopEffectsPanel)
 #include <wx/bitmap.h>
