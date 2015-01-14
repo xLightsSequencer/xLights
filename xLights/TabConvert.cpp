@@ -122,7 +122,7 @@ static inline bool is_base64(unsigned char c)
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-// encodes contents of SeqData
+// encodes contents of SeqData in channel order
 wxString FRAMECLASS base64_encode()
 {
     wxString ret;
@@ -132,21 +132,22 @@ wxString FRAMECLASS base64_encode()
     unsigned char char_array_3[3];
     unsigned char char_array_4[4];
 
-    for(long SeqDataIdx = 0; SeqDataIdx < SeqDataLen; SeqDataIdx++)
-    {
-        char_array_3[i++] = SeqData[SeqDataIdx];
-        if (i == 3)
-        {
-            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-            char_array_4[3] = char_array_3[2] & 0x3f;
-
-            for(i = 0; (i <4) ; i++)
+    for (int channel = 0; channel < SeqData.NumChannels(); channel++) {
+        for (int frame = 0; frame < SeqData.NumFrames(); frame++) {
+            char_array_3[i++] = SeqData[frame][channel];
+            if (i == 3)
             {
-                ret += base64_chars[char_array_4[i]];
+                char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+                char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+                char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+                char_array_4[3] = char_array_3[2] & 0x3f;
+                
+                for(i = 0; (i <4) ; i++)
+                {
+                    ret += base64_chars[char_array_4[i]];
+                }
+                i = 0;
             }
-            i = 0;
         }
     }
 
@@ -244,9 +245,7 @@ void FRAMECLASS ConversionInit()
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
-    SeqData.clear();
-    SeqNumChannels=TotChannels;
-    SeqNumPeriods=0;
+    SeqData.init(0, 0, 50);
 }
 void FRAMECLASS SetMediaFilename(const wxString& filename)
 {
@@ -274,7 +273,7 @@ bool FRAMECLASS WriteVixenFile(const wxString& filename)
 {
     wxString ChannelName,TestName;
     int32_t ChannelColor;
-    long TotalTime=SeqNumPeriods * XTIMER_INTERVAL;
+    long TotalTime=SeqData.TotalTime();
     wxXmlNode *node,*chparent,*textnode;
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode( wxXML_ELEMENT_NODE, "Program" );
@@ -296,7 +295,7 @@ bool FRAMECLASS WriteVixenFile(const wxString& filename)
     chparent = new wxXmlNode( root, wxXML_ELEMENT_NODE, "Channels" );
 
 
-    for (int ch=0; ch < SeqNumChannels; ch++ )
+    for (int ch=0; ch < SeqData.NumChannels(); ch++ )
     {
         SetStatusText(string_format("Status: Channel %ld ",ch));
 
@@ -358,18 +357,10 @@ bool FRAMECLASS WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, "0" );
 
     node = new wxXmlNode( root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds" );
-    textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, "50" );
+    textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", SeqData.FrameTime()) );
 
     node = new wxXmlNode( root, wxXML_ELEMENT_NODE, "Time" );
     textnode = new wxXmlNode( node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld",TotalTime) );
-
-
-#if defined(__WXMSW__)
-    Sleep(1000);
-#else
-    sleep(1);
-#endif
-
 
     return doc.Save( filename );
 }
@@ -380,7 +371,6 @@ void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPe
     wxString buff;
 
     int ch,p;
-    int seqidx=0;
     wxFile f;
     if (!f.Create(filename,true))
     {
@@ -393,9 +383,9 @@ void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPe
         SetStatusText(wxString("Status: " )+string_format(" Channel %ld ",ch));
 
         buff="";
-        for (p=0; p < numPeriods; p++, seqidx++)
+        for (p=0; p < numPeriods; p++)
         {
-            buff += string_format("%d ",(*dataBuf)[seqidx]);
+            buff += string_format("%d ",(*dataBuf)[p][ch]);
         }
         buff += string_format("\n");
         f.Write(buff);
@@ -405,7 +395,7 @@ void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPe
 
 void FRAMECLASS WriteVirFile(const wxString& filename)
 {
-    WriteVirFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+    WriteVirFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
 void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
@@ -430,9 +420,9 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
 
         for (p=0; p < numPeriods; p++, seqidx++)
         {
-            rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
-                  ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
-                  ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+            rgb = ((*dataBuf)[p][ch]& 0xff) << 16 |
+                  ((*dataBuf)[p][ch+1]& 0xff) << 8 |
+                  ((*dataBuf)[p][ch+2]& 0xff); // we want a 24bit value for HLS
             if(p<numPeriods-1)
             {
                 buff += string_format("%d ",rgb);
@@ -451,7 +441,7 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
 
 void FRAMECLASS WriteHLSFile(const wxString& filename)
 {
-    WriteHLSFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+    WriteHLSFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
 
@@ -477,30 +467,29 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
     }
     f.Read(hdr,fixedHeaderLength);
 
-    SeqNumChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
+    int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
     seqStepTime = hdr[18] + (hdr[19] << 8);
-    falconPeriods = (f.Length() - fixedHeaderLength) / SeqNumChannels;
-	SeqNumPeriods = falconPeriods * seqStepTime / XTIMER_INTERVAL;
-    SeqDataLen = SeqNumPeriods * SeqNumChannels;
+    falconPeriods = (f.Length() - fixedHeaderLength) / numChannels;
     wxString filename;
     SetMediaFilename(filename);
-    SeqData.resize(SeqDataLen);
+    
+    SeqData.init(numChannels, falconPeriods, seqStepTime);
 
-    tmpBuf = new char[SeqNumChannels];
+    tmpBuf = new char[numChannels];
     while (periodsRead < falconPeriods)
     {
 		xlPeriod = periodsRead * seqStepTime / XTIMER_INTERVAL;
 
-        readcnt = f.Read(tmpBuf, SeqNumChannels);
-        if (readcnt < SeqNumChannels)
+        readcnt = f.Read(tmpBuf, numChannels);
+        if (readcnt < numChannels)
         {
             PlayerError(wxString("Unable to read all event data from:\n")+FileName);
         }
 
         wxYield();
-        for (i = 0; i < SeqNumChannels; i++)
+        for (i = 0; i < numChannels; i++)
         {
-            SeqData[(i * SeqNumPeriods) + xlPeriod] = tmpBuf[i];
+            SeqData[xlPeriod][i] = tmpBuf[i];
         }
 
         periodsRead++;
@@ -508,7 +497,7 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
     delete tmpBuf;
 
 #ifndef NDEBUG
-    AppendConvertLog(string_format(wxString("ReadFalconFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+    AppendConvertLog(string_format(wxString("ReadFalconFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),SeqData.NumFrames(),SeqData.NumChannels()));
 #endif
 
     f.Close();
@@ -520,9 +509,8 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     wxUint8 vMajor = 1;
     wxUint32 dataOffset = 28;
     wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = SeqNumChannels + (SeqNumChannels%4);
-    // Fixed 50 Milliseconds
-    wxUint16 stepTime = 50;
+    wxUint32 stepSize = SeqData.NumChannels() + (SeqData.NumChannels()%4);
+    wxUint16 stepTime = SeqData.FrameTime();
     // Ignored by Pi Player
     wxUint16 numUniverses = 0;
     // Ignored by Pi Player
@@ -567,10 +555,10 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
     buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
     // Number of Steps
-    buf[14] = (wxUint8)(SeqNumPeriods & 0xFF);
-    buf[15] = (wxUint8)((SeqNumPeriods >> 8) & 0xFF);
-    buf[16] = (wxUint8)((SeqNumPeriods >> 16) & 0xFF);
-    buf[17] = (wxUint8)((SeqNumPeriods >> 24) & 0xFF);
+    buf[14] = (wxUint8)(SeqData.NumFrames() & 0xFF);
+    buf[15] = (wxUint8)((SeqData.NumFrames() >> 8) & 0xFF);
+    buf[16] = (wxUint8)((SeqData.NumFrames() >> 16) & 0xFF);
+    buf[17] = (wxUint8)((SeqData.NumFrames() >> 24) & 0xFF);
     // Step time in ms
     buf[18] = (wxUint8)(stepTime & 0xFF);
     buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
@@ -588,13 +576,13 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     buf[27] = 0;
     f.Write(buf,fixedHeaderLength);
 
-    for (long period=0; period < SeqNumPeriods; period++)
+    for (long period=0; period < SeqData.NumFrames(); period++)
     {
         //if (period % 500 == 499) AppendConvertStatus (string_format("Writing time period %ld\n",period+1));
         wxYield();
         for(ch=0; ch<stepSize; ch++)
         {
-            buf[ch] = ch < SeqNumChannels ? SeqData[(ch *SeqNumPeriods) + period] : 0;
+            buf[ch] = SeqData[period][ch];
         }
         f.Write(buf,stepSize);
     }
@@ -652,7 +640,7 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
         wxYield();
         for(ch=0; ch<stepSize; ch++)
         {
-            buf[ch] = ch < numChans ? (*dataBuf)[(ch *numPeriods) + period] : 0;
+            buf[ch] = (*dataBuf)[period][ch];
         }
         f.Write(buf,stepSize);
     }
@@ -673,12 +661,20 @@ void FRAMECLASS WriteXLightsFile(const wxString& filename)
         ConversionError(wxString("Media file name is too long"));
         return;
     }
+    if (SeqData.FrameTime() != 50) {
+        ConversionError(wxString("xseq file must be 50ms timing"));
+        return;
+    }
     int xseq_format_version = 1;
 
-    sprintf(hdr,"xLights %2d %8ld %8ld",xseq_format_version,SeqNumChannels,SeqNumPeriods);
+    sprintf(hdr,"xLights %2d %8d %8d",xseq_format_version,SeqData.NumChannels(),SeqData.NumFrames());
     strncpy(&hdr[32],mediaFilename.c_str(),470);
     f.Write(hdr,512);
-    f.Write((const char *)&SeqData.front(),SeqDataLen);
+    for (int x = 0; x < SeqData.NumChannels(); x++) {
+        for (int p = 0; p < SeqData.NumFrames(); p++) {
+            f.Write(&SeqData[p][x], 1);
+        }
+    }
     f.Close();
 
 }
@@ -910,11 +906,11 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
             rgb = ((*dataBuf)[r_idx]& 0xff) << 16 | ((*dataBuf)[g_idx]& 0xff) << 8 | ((*dataBuf)[b_idx]& 0xff); // we want a 24bit value for HLS
             */
             if(cpn==1)  // cpn (Channels per Node. if non rgb, we only use one byte
-                rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 ;
+                rgb = ((*dataBuf)[p][ch]& 0xff) << 16 ;
             else
-                rgb = ((*dataBuf)[(ch*numPeriods)+p]& 0xff) << 16 |
-                      ((*dataBuf)[((ch+1)*numPeriods)+p]& 0xff) << 8 |
-                      ((*dataBuf)[((ch+2)*numPeriods)+p]& 0xff); // we want a 24bit value for HLS
+                rgb = ((*dataBuf)[p][ch]& 0xff) << 16 |
+                      ((*dataBuf)[p][ch+1]& 0xff) << 8 |
+                      ((*dataBuf)[p][ch+2]& 0xff); // we want a 24bit value for HLS
 
             //  if(rgb>0 or rgb<0)
             {
@@ -959,7 +955,7 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
 void FRAMECLASS WriteLSPFile(const wxString& filename )
 {
-    WriteLSPFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData, 0);
+    WriteLSPFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 0);
 }
 
 
@@ -969,12 +965,11 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
     wxString ChannelName,TestName;
     int32_t ChannelColor;
     int ch,p,csec,StartCSec, ii;
-    int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
     int* savedIndexes;
     int savedIndexCount = 0;
-    savedIndexes = (int *)calloc(SeqNumChannels, sizeof(int));
+    savedIndexes = (int *)calloc(SeqData.NumChannels(), sizeof(int));
 
     int index = 0;
     int rgbChanIndexes[3] = {0,0,0};
@@ -985,8 +980,8 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
-    int interval=XTIMER_INTERVAL / 10;  // in centiseconds
-    long centiseconds=SeqNumPeriods * interval;
+    int interval=SeqData.FrameTime() / 10;  // in centiseconds
+    long centiseconds=SeqData.NumFrames() * interval;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<sequence saveFileVersion=\"3\"");
@@ -996,7 +991,7 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
     }
     f.Write(">\n");
     f.Write("\t<channels>\n");
-    for (ch=0; ch < SeqNumChannels; ch++ )
+    for (ch=0; ch < SeqData.NumChannels(); ch++ )
     {
         SetStatusText(wxString("Status: " )+string_format(" Channel %ld ",ch));
 
@@ -1042,9 +1037,9 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
         f.Write("\t\t<channel name=\""+ChannelName+string_format("\" color=\"%d\" centiseconds=\"%ld\" savedIndex=\"%d\">\n",ChannelColor,centiseconds,index));
         // write intensity values for this channel
         LastIntensity=0;
-        for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval, seqidx++)
+        for (p=0,csec=0; p < SeqData.NumFrames(); p++, csec+=interval)
         {
-            intensity=SeqData[seqidx] * 100 / 255;
+            intensity=SeqData[p][ch] * 100 / 255;
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)
@@ -1097,7 +1092,7 @@ void FRAMECLASS WriteLorFile(const wxString& filename)
     }
     f.Write("\t\t\t</channels>\n");
     f.Write("\t\t\t<timings>\n");
-    for (p=0,csec=0; p < SeqNumPeriods; p++, csec+=interval)
+    for (p=0,csec=0; p < SeqData.NumFrames(); p++, csec+=interval)
     {
         f.Write(string_format("\t\t\t\t<timing centisecond=\"%d\"/>\n",csec));
     }
@@ -1113,7 +1108,6 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
 {
     wxString ChannelName,TestName;
     int ch,p,csec,StartCSec;
-    int seqidx=0;
     int intensity,LastIntensity;
     wxFile f;
     if (!f.Create(filename,true))
@@ -1128,7 +1122,7 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
     //  printf("'%s' is split as '%s', '%s', '%s'\n", m_FileName, m_Path,
     //  m_Name, m_Ext);
 
-    int interval=XTIMER_INTERVAL / 10;  // in centiseconds
+    int interval=SeqData.FrameTime() / 10;  // in centiseconds
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<channelsClipboard version=\"1\" name=\"" + m_Name + "\">\n");
 
@@ -1151,9 +1145,9 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
 
         f.Write("\t<channel>\n");
         LastIntensity=0;
-        for (p=0,csec=0; p < numPeriods; p++, csec+=interval, seqidx++)
+        for (p=0,csec=0; p < numPeriods; p++, csec+=interval)
         {
-            intensity=(*dataBuf)[seqidx] * 100 / 255;
+            intensity=(*dataBuf)[p][ch] * 100 / 255;
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)
@@ -1179,7 +1173,7 @@ void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPe
 }
 void FRAMECLASS WriteLcbFile(const wxString& filename)
 {
-    WriteLcbFile(filename, SeqNumChannels, SeqNumPeriods, &SeqData);
+    WriteLcbFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
 void FRAMECLASS WriteConductorFile(const wxString& filename)
@@ -1192,7 +1186,7 @@ void FRAMECLASS WriteConductorFile(const wxString& filename)
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
-    for (long period=0; period < SeqNumPeriods; period++)
+    for (long period=0; period < SeqData.NumFrames(); period++)
     {
         //if (period % 500 == 499) AppendConvertStatus (string_format("Writing time period %ld\n",period+1));
         wxYield();
@@ -1201,7 +1195,7 @@ void FRAMECLASS WriteConductorFile(const wxString& filename)
             for (j=0; j < 4; j++)
             {
                 ch=j * 4096 + i;
-                buf[i*4+j] = ch < SeqNumChannels ? SeqData[ch * SeqNumPeriods + period] : 0;
+                buf[i*4+j] = SeqData[period][ch];
             }
         }
         f.Write(buf,16384);
@@ -1290,9 +1284,9 @@ void FRAMECLASS ReadConductorFile(const wxString& FileName)
         PlayerError(wxString("Unable to load sequence:\n")+FileName);
         return;
     }
-    SeqNumPeriods=f.Length()/16384;
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
-    SeqData.resize(SeqDataLen);
+    int numPeriods=f.Length()/16384;
+    
+    SeqData.init(SeqData.NumChannels(),numPeriods,50);
     while (f.Read(row,16384) == 16384)
     {
         wxYield();
@@ -1301,9 +1295,9 @@ void FRAMECLASS ReadConductorFile(const wxString& FileName)
             for (j=0; j < 4; j++)
             {
                 ch=j * 4096 + i;
-                if (ch < SeqNumChannels)
+                if (ch < SeqData.NumChannels())
                 {
-                    SeqData[ch * SeqNumPeriods + period] = row[i*4+j];
+                    SeqData[period][ch] = row[i*4+j];
                 }
             }
         }
@@ -1334,19 +1328,23 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName)
     }
     else
     {
-        SeqNumPeriods=numper;
-        SeqNumChannels=numch;
-        SeqDataLen=SeqNumPeriods * SeqNumChannels;
+        SeqData.init(numch, numper, 50);
+        char * buf = new char[numper];
         wxString filename=FromAscii(hdr+32);
         SetMediaFilename(filename);
-        SeqData.resize(SeqDataLen);
-        readcnt = f.Read((char *)&SeqData.front(),SeqDataLen);
-        if (readcnt < SeqDataLen)
-        {
-            PlayerError(wxString("Unable to read all event data from:\n")+FileName);
+        for (int x = 0; x < numch; x++) {
+            readcnt = f.Read(buf, numper);
+            if (readcnt < numper)
+            {
+                PlayerError(wxString("Unable to read all event data from:\n")+FileName);
+            }
+            for (int p = 0; p < numper; p++) {
+                SeqData[p][x] = buf[p];
+            }
         }
+        delete [] buf;
 #ifndef NDEBUG
-        AppendConvertLog (string_format(wxString("ReadXlightsFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+        AppendConvertLog (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),SeqData.NumFrames(),SeqData.NumChannels()));
 #endif
     }
     f.Close();
@@ -1371,22 +1369,20 @@ void FRAMECLASS ReadGlediatorFile(const wxString& FileName)
     }
 
     fileLength=f.Length();
-    SeqNumChannels=(x_width*3*y_height); // 3072 = 32*32*3
-    char *frameBuffer=new char[SeqNumChannels];
+    int numChannels=(x_width*3*y_height); // 3072 = 32*32*3
+    char *frameBuffer=new char[SeqData.NumChannels()];
 
-    SeqNumPeriods=(int)(fileLength/(x_width*3*y_height));
-    SeqDataLen=SeqNumPeriods * SeqNumChannels;
+    int numFrames=(int)(fileLength/(x_width*3*y_height));
     SetMediaFilename(filename);
-    SeqData.resize(fileLength);
-    SeqDataLen=fileLength;
-
+    SeqData.init(numChannels, numFrames, 50);
+    
     wxYield();
     period = 0;
-    while(readcnt=f.Read(frameBuffer,SeqNumChannels))   // Read one period of channels
+    while(readcnt=f.Read(frameBuffer,SeqData.NumChannels()))   // Read one period of channels
     {
         for(j=0; j<readcnt; j++)   // Loop thru all channel.s
         {
-            SeqData[(j*SeqNumPeriods)+period] = frameBuffer[j++];
+            SeqData[period][j] = frameBuffer[j];
         }
         period++;
     }
@@ -1400,8 +1396,8 @@ void FRAMECLASS ReadGlediatorFile(const wxString& FileName)
         p=period * (bytes_per_period); // byte offset for start of each period
         ch=p+ (y*x_width*3) + x*3; // shows offset into source buffer
         byte =p+i;
-        byte1=p+i+(1)* (SeqNumPeriods);
-        byte2=p+i+(2)* (SeqNumPeriods);
+        byte1=p+i+(1)* (SeqData.NumFrames());
+        byte2=p+i+(2)* (SeqData.NumFrames());
         if ( byte2<readcnt) {
             SeqData[byte]  = row[i];
             SeqData[byte1] = row[i+1];
@@ -1414,7 +1410,7 @@ void FRAMECLASS ReadGlediatorFile(const wxString& FileName)
     delete[] frameBuffer;
 
 #ifndef NDEBUG
-    AppendConvertLog (string_format(wxString("ReadGlediatorFile SeqNumPeriods=%ld SeqNumChannels=%ld\n"),SeqNumPeriods,SeqNumChannels));
+    AppendConvertLog (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),SeqData.NumFrames(),SeqData.NumChannels()));
 #endif
 }
 
@@ -1594,51 +1590,45 @@ void FRAMECLASS ReadVixFile(const wxString& filename)
     }
 
     long VixDataLen = VixSeqData.size();
-    SeqNumChannels = (max - min) + 1;
-    if (SeqNumChannels < 0)
+    int numChannels = (max - min) + 1;
+    if (numChannels < 0)
     {
-        SeqNumChannels = 0;
+        numChannels = 0;
     }
     AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
-    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),SeqNumChannels), false);
+    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),SeqData.NumChannels()), false);
     AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
     AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
-    if (SeqNumChannels == 0)
+    if (SeqData.NumChannels() == 0)
     {
         return;
     }
     long VixNumPeriods = VixDataLen / VixChannels.size();
     AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
     AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"), false);
-    SeqNumPeriods = VixNumPeriods * VixEventPeriod / XTIMER_INTERVAL;
-    SeqDataLen = SeqNumPeriods * SeqNumChannels;
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
-    AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
-    if (SeqDataLen == 0)
-    {
+    if (VixNumPeriods == 0) {
         return;
     }
-    SeqData.resize(SeqDataLen);
+    SeqData.init(numChannels, VixNumPeriods, VixEventPeriod);
 
-    // convert to 50ms timing, reorder channels according to output number, scale so that max intensity is 255
-    int newper,vixper,intensity;
+    // reorder channels according to output number, scale so that max intensity is 255
+    int newper,intensity;
     size_t ch;
-    for (ch=0; ch < SeqNumChannels; ch++)
+    for (ch=0; ch < SeqData.NumChannels(); ch++)
     {
         OutputChannel = VixChannels[ch] - min;
         if (ch < VixChannelNames.size())
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
-        for (newper=0; newper < SeqNumPeriods; newper++)
+        for (newper=0; newper < SeqData.NumFrames(); newper++)
         {
-            vixper=newper * VixNumPeriods / SeqNumPeriods;
-            intensity=VixSeqData[ch*VixNumPeriods+vixper];
+            intensity=VixSeqData[ch*VixNumPeriods+newper];
             if (MaxIntensity != 255)
             {
                 intensity=intensity * 255 / MaxIntensity;
             }
-            SeqData[OutputChannel*SeqNumPeriods+newper] = intensity;
+            SeqData[newper][OutputChannel] = intensity;
         }
     }
 }
@@ -1801,23 +1791,15 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
     AppendConvertStatus (string_format(wxString("TimeCells = %d\n"), timeCells), false);
     AppendConvertStatus (string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
     AppendConvertStatus (string_format(wxString("Channels = %d\n"), channels), false);
-    SeqNumChannels = channels;
-    if (SeqNumChannels == 0)
+    if (channels == 0)
     {
         return;
     }
-    SeqNumPeriods = timeCells * msPerCell / XTIMER_INTERVAL;
-    SeqDataLen = SeqNumPeriods * SeqNumChannels;
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
-    AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
-    if (SeqDataLen == 0)
+    if (timeCells == 0)
     {
         return;
     }
-    SeqData.resize(SeqDataLen);
-    for (int x = 0; x < SeqDataLen; x++) {
-        SeqData[x] = 0;
-    }
+    SeqData.init(channels, timeCells, msPerCell);
 
     ChannelNames.resize(channels);
     ChannelColors.resize(channels);
@@ -1940,12 +1922,11 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
                                                            o2.c_str()), false);
-                        for (long newper = 0; newper < SeqNumPeriods; newper++)
+                        for (long newper = 0; newper < SeqData.NumFrames(); newper++)
                         {
-                            int hlsper = newper * timeCells / SeqNumPeriods;
                             long intensity;
-                            intensity = strtoul(Data.substr(hlsper * 3, 2).c_str(), NULL, 16);
-                            SeqData[channels * SeqNumPeriods + newper] = intensity;
+                            intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
+                            SeqData[newper][channels] = intensity;
                         }
                         Data.clear();
                         channels++;
@@ -2515,15 +2496,16 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     delete parser;
     AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
 
+    int LORImportInterval = 50;  ///FIXME - quere from a dialog
+    
     if (centisec > 0)
     {
-        SeqNumPeriods = centisec * 10 / XTIMER_INTERVAL;
-        if (SeqNumPeriods == 0)
+        int numFrames = centisec * 10 / LORImportInterval;
+        if (numFrames == 0)
         {
-            SeqNumPeriods=1;
+            numFrames=1;
         }
-        SeqDataLen = SeqNumPeriods * SeqNumChannels;
-        SeqData.resize(SeqDataLen,0);
+        SeqData.init(SeqData.NumChannels(), numFrames, LORImportInterval);
     }
     else
     {
@@ -2708,9 +2690,9 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                     intensity = getAttributeValueAsInt(stagEvent, "intensity");
                     startIntensity = getAttributeValueAsInt(stagEvent, "startIntensity");
                     endIntensity = getAttributeValueAsInt(stagEvent, "endIntensity");
-                    startper = startcsec * 10 / XTIMER_INTERVAL;
-                    endper = endcsec * 10 / XTIMER_INTERVAL;
-                    perdiff=endper - startper;  // # of 50ms ticks
+                    startper = startcsec * 10 / LORImportInterval;
+                    endper = endcsec * 10 / LORImportInterval;
+                    perdiff=endper - startper;  // # of ticks
                     LorTimingList.insert(startper);
 
                     if (perdiff > 0)
@@ -2725,7 +2707,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                             {
                                 for (i=0; i < perdiff; i++)
                                 {
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity;
+                                    SeqData[startper+i][curchannel] = intensity;
                                 }
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
@@ -2735,7 +2717,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                                 for (i=0; i < perdiff; i++)
                                 {
                                     intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity;
+                                    SeqData[startper+i][curchannel] = intensity;
                                 }
                             }
                         }
@@ -2746,17 +2728,17 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                                 intensity=MaxIntensity;
                             }
                             twinklestate=static_cast<int>(rand01()*2.0) & 0x01;
-                            nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
+                            nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / LORImportInterval;
                             if (intensity > 0)
                             {
                                 for (i=0; i < perdiff; i++)
                                 {
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
+                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
                                     nexttwinkle--;
                                     if (nexttwinkle <= 0)
                                     {
                                         twinklestate=1-twinklestate;
-                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
+                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / LORImportInterval;
                                     }
                                 }
                             }
@@ -2767,12 +2749,12 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                                 for (i=0; i < perdiff; i++)
                                 {
                                     intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
+                                    SeqData[startper + i][curchannel] = intensity * twinklestate;
                                     nexttwinkle--;
                                     if (nexttwinkle <= 0)
                                     {
                                         twinklestate=1-twinklestate;
-                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / XTIMER_INTERVAL;
+                                        nexttwinkle=static_cast<int>(rand01()*twinkleperiod+100) / LORImportInterval;
                                     }
                                 }
                             }
@@ -2788,7 +2770,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                                 for (i=0; i < perdiff; i++)
                                 {
                                     twinklestate=(startper + i) & 0x01;
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
+                                    SeqData[startper+i][curchannel] = intensity * twinklestate;
                                 }
                             }
                             else if (startIntensity > 0 || endIntensity > 0)
@@ -2799,7 +2781,7 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
                                 {
                                     twinklestate=(startper + i) & 0x01;
                                     intensity=(int)((double)(i) / perdiff * rampdiff + startIntensity);
-                                    SeqData[curchannel*SeqNumPeriods+startper+i] = intensity * twinklestate;
+                                    SeqData[startper+i][curchannel] = intensity * twinklestate;
                                 }
                             }
                         }
@@ -2824,17 +2806,16 @@ void FRAMECLASS ReadLorFile(const wxString& filename)
     AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
     AppendConvertStatus (string_format(wxString("# of effects=%d\n"),EffectCnt), false);
     AppendConvertStatus (wxString("Media file=")+mediaFilename+wxString("\n"), false);
-    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqNumPeriods), false);
-    AppendConvertStatus (string_format(wxString("New data len=%ld\n"),SeqDataLen));
+    AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),SeqData.NumFrames()), false);
     SetStatusText(wxString("LOR sequence loaded successfully"));
 }
 
 void FRAMECLASS ClearLastPeriod()
 {
-    long LastPer = SeqNumPeriods-1;
-    for (size_t ch=0; ch < SeqNumChannels; ch++)
+    int LastPer = SeqData.NumFrames()-1;
+    for (size_t ch=0; ch < SeqData.NumChannels(); ch++)
     {
-        SeqData[ch*SeqNumPeriods+LastPer] = 0;
+        SeqData[LastPer][ch] = 0;
     }
 }
 
@@ -2919,14 +2900,9 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
     }
 
     // check for errors
-    if (SeqNumChannels == 0)
+    if (SeqData.NumChannels() == 0)
     {
         AppendConvertStatus (wxString("ERROR: no channels defined\n"));
-        return;
-    }
-    if (SeqDataLen == 0)
-    {
-        AppendConvertStatus (wxString("ERROR: sequence length is 0\n"));
         return;
     }
 

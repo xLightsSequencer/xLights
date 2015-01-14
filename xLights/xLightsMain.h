@@ -88,6 +88,7 @@
 #include "ModelPreview.h"
 #include "SequencePreview.h"
 #include "dlgPreviewSize.h"
+#include "SequenceData.h"
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
@@ -165,7 +166,7 @@ wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 static wxCriticalSection gs_xoutCriticalSection;
 
 typedef std::map<wxString,wxString> MapStringString;
-typedef std::vector<wxUint8> SeqDataType;
+typedef SequenceData SeqDataType;
 
 enum play_modes
 {
@@ -1095,9 +1096,7 @@ private:
     wxString mediaFilename;
 //    wxString xlightsFilename;
     SeqDataType SeqData;
-    long SeqDataLen;
-    long SeqNumPeriods;
-    long SeqNumChannels;
+
     wxArrayString FileNames;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;

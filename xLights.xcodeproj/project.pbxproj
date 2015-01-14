@@ -24,6 +24,7 @@
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */; };
+		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6784F9291A5653670018EC0C /* EffectsGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9201A5653670018EC0C /* EffectsGrid.cpp */; };
 		6784F92A1A5653670018EC0C /* Element.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9211A5653670018EC0C /* Element.cpp */; };
 		6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9231A5653670018EC0C /* MainSequencer.cpp */; };
@@ -143,6 +144,8 @@
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
 		677DECF01A0BEB1000D43E5C /* RenderPinwheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPinwheel.cpp; sourceTree = "<group>"; };
+		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
+		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6784F9201A5653670018EC0C /* EffectsGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectsGrid.cpp; path = sequencer/EffectsGrid.cpp; sourceTree = "<group>"; };
 		6784F9211A5653670018EC0C /* Element.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Element.cpp; path = sequencer/Element.cpp; sourceTree = "<group>"; };
 		6784F9231A5653670018EC0C /* MainSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainSequencer.cpp; path = sequencer/MainSequencer.cpp; sourceTree = "<group>"; };
@@ -465,6 +468,7 @@
 				67A61A2117B51C0F008E95BB /* xLightsApp.cpp */,
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67A61A2417B51C0F008E95BB /* xLightsMain.cpp */,
+				6780AB891A65C3480090B26E /* SequenceData.cpp */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -472,6 +476,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				6780AB881A65C3100090B26E /* SequenceData.h */,
 				6708AB4B1A37F88F008313E3 /* minibasic.cpp */,
 				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				673E425817F0D23E00F4BC76 /* TabSchedule.cpp */,
@@ -666,6 +671,7 @@
 				6784F9311A5653670018EC0C /* Waveform.cpp in Sources */,
 				67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */,
 				674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */,
+				6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */,
 				67A61A5317B51C0F008E95BB /* SerialPortWithRate.cpp in Sources */,
 				674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
