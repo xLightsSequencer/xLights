@@ -19,12 +19,6 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 
-//~ Not sure why these need to be defined again.
-//~ They are in EffecsPanel.cpp they should most likely all be moved.
-//#include "../../include/faces.xpm"
-//#include "../../include/strobe.xpm"
-
-
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
 EVT_IDLE(EffectsGrid::OnIdle)
 EVT_MOTION(EffectsGrid::mouseMoved)

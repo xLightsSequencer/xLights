@@ -489,7 +489,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
             p_XPM = Off;
-            //p_XPM = faces;
+//            p_XPM = faces;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
             p_XPM = fire;
@@ -543,9 +543,9 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
             p_XPM = Off;
-           // p_XPM = strobe;
+//            p_XPM = strobe;
             break;
-        case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
+        case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
             p_XPM = tree;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
