@@ -17,6 +17,7 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
     wxArrayString SeqFiles;
+    wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.fseq");
     wxDir::GetAllFiles(CurrentDir,&SeqFiles,"*.xseq");
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
             "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))

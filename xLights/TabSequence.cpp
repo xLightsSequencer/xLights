@@ -2389,8 +2389,14 @@ void xLightsFrame::ImportxLightsXMLTimings()
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
-    ReadXlightsFile(filename);
-    DisplayXlightsFilename(filename);
+    wxFileName fn(filename);
+    if (fn.GetExt() == "xseq") {
+        ReadXlightsFile(filename);
+        fn.SetExt("fseq");
+    } else {
+        ReadFalconFile(filename);
+    }
+    DisplayXlightsFilename(fn.GetFullPath());
     SeqBaseChannel=1;
     SeqChanCtrlBasic=false;
     SeqChanCtrlColor=false;
@@ -2614,7 +2620,7 @@ void xLightsFrame::OpenSequence()
         filename=dialog.ChoiceLorFiles->GetStringSelection();
         ReadLorFile(filename);
         oName.SetFullName( filename );
-        oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+        oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
         oName.SetExt("xml");
         SeqXmlFileName=oName.GetFullPath();
@@ -3283,7 +3289,7 @@ void xLightsFrame::SaveSequence()
         while (!ok);
         wxFileName oName(NewFilename);
         oName.SetPath( CurrentDir );
-        oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+        oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
 
         oName.SetExt("xml");
@@ -3330,7 +3336,7 @@ void xLightsFrame::SaveSequence()
     doc.Save(SeqXmlFileName);
 
     RenderGridToSeqData();  // incorporate effects into xseq file
-    WriteXLightsFile(xlightsFilename);
+    WriteFalconPiFile(xlightsFilename);
     UnsavedChanges = false;
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);

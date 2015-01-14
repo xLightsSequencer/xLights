@@ -693,7 +693,7 @@ char xLightsFrame::ExtType(const wxString& ext)
     {
         return 'V';
     }
-    else if (ext == _(XLIGHTS_SEQUENCE_EXT))
+    else if (ext == _(XLIGHTS_SEQUENCE_EXT) || ext == "fseq")
     {
         return 'X';
     }
