@@ -399,6 +399,8 @@
 			<Option target="MSVC_Debug" />
 			<Option target="MSVC_Release" />
 		</Unit>
+		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
+		<Unit filename="sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="sequencer/Effect.cpp" />
 		<Unit filename="sequencer/Effect.h" />
 		<Unit filename="sequencer/EffectDropTarget.cpp" />
