@@ -590,31 +590,59 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
 }
 
+void xLightsFrame::UpdateModelsList()
+{
+    wxString name;
+    ModelClass *model;
+    ListBoxElementList->Clear();
+    PreviewModels.clear();
+    OtherModels.clear();
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                if (ModelClass::IsMyDisplay(e))
+                {
+                    model=new ModelClass;
+                    model->SetFromXml(e);
+                    ListBoxElementList->Append(name,model);
+                    PreviewModels.push_back(ModelClassPtr(model));
+                }
+                else //keep a list of non-preview models as well -DJ
+                {
+                    model=new ModelClass;
+                    model->SetFromXml(e);
+                    OtherModels.push_back(ModelClassPtr(model));
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void xLightsFrame::SaveSequence()
 {
-    wxString NewFilename;
-    bool ok;
     if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
@@ -650,44 +678,10 @@ void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
     
 }
 
-#include <wx/textfile.h>
-#include <wx/string.h>
-#include <wx/tokenzr.h>
-
-wxString xLightsFrame::InsertMissing(wxString str,wxString missing_array,bool INSERT)
-{
-    int pos;
-    wxStringTokenizer tkz(missing_array, "|");
-    wxString replacement;
-    wxString token1 = tkz.GetNextToken(); // get first two dummy tokens out
-    wxString token2 = tkz.GetNextToken();
-    while ( tkz.HasMoreTokens() )
-    {
-        token1 = tkz.GetNextToken();
-        token2 = tkz.GetNextToken();
-        pos=str.find(token1,0);
-        replacement = "," + token2 + "</td>";
-        if(pos<=0 && INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
-        {
-            str.Replace("</td>",replacement);
-        }
-        else if(pos>0 && !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
-        {
-            str.Replace(token1,token2);
-        }
-    }
-    return str;
-}
-
-
-
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)
 {
 }
 void xLightsFrame::PlayEffect()
-{
-}
-void xLightsFrame::UpdateModelsList()
 {
 }
 void xLightsFrame::TimerRgbSeq(long msec)
@@ -1452,51 +1446,6 @@ void xLightsFrame::ShowModelsView()
     }
 }
 
-void xLightsFrame::UpdateModelsList()
-{
-    //TODO: Add code to read in model list with v2 values
-    wxString name;
-    ModelClass *model;
-    wxString SelectedStr=Choice_Models->GetStringSelection();
-    Choice_Models->Clear();
-    ListBoxElementList->Clear();
-    PreviewModels.clear();
-    OtherModels.clear();
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                Choice_Models->Append(name,e);
-                if (ModelClass::IsMyDisplay(e))
-                {
-                    model=new ModelClass;
-                    model->SetFromXml(e);
-                    ListBoxElementList->Append(name,model);
-                    PreviewModels.push_back(ModelClassPtr(model));
-                }
-                else //keep a list of non-preview models as well -DJ
-                {
-                    model=new ModelClass;
-                    model->SetFromXml(e);
-                    OtherModels.push_back(ModelClassPtr(model));
-                }
-            }
-        }
-    }
-
-    // select a model if one exists
-    if (Choice_Models->GetCount() > 0)
-    {
-        if (SelectedStr.IsEmpty() || !Choice_Models->SetStringSelection(SelectedStr))
-        {
-            Choice_Models->SetSelection(0);
-        }
-        Button_PlayEffect->Enable(play_mode == play_off);
-    }
-}
 
 // PaletteNum should be 1 or 2
 void xLightsFrame::UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer)
@@ -3788,6 +3737,35 @@ void xLightsFrame::AllRowsAreUpdated()
 
 
 
+
+#include <wx/textfile.h>
+#include <wx/string.h>
+#include <wx/tokenzr.h>
+
+wxString InsertMissing(wxString str,wxString missing_array,bool INSERT)
+{
+    int pos;
+    wxStringTokenizer tkz(missing_array, "|");
+    wxString replacement;
+    wxString token1 = tkz.GetNextToken(); // get first two dummy tokens out
+    wxString token2 = tkz.GetNextToken();
+    while ( tkz.HasMoreTokens() )
+    {
+        token1 = tkz.GetNextToken();
+        token2 = tkz.GetNextToken();
+        pos=str.find(token1,0);
+        replacement = "," + token2 + "</td>";
+        if(pos<=0 && INSERT) // if we are INSERT mode we will add token 2 to the end of the xml string
+        {
+            str.Replace("</td>",replacement);
+        }
+        else if(pos>0 && !INSERT) // if we are in REPLACE mode (!INSERT), we replace token1 with token 2
+        {
+            str.Replace(token1,token2);
+        }
+    }
+    return str;
+}
 
 
 // file should be full path
