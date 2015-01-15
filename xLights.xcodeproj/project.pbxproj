@@ -11,6 +11,20 @@
 		6717E3AE19FC9D3F00E94972 /* RenderRipple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
+		671D815A1A673CC4005819EA /* NewSequenceDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */; };
+		671D815B1A673CC4005819EA /* TopEffectsPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */; };
+		671D815C1A673CC4005819EA /* XmlConversionDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */; };
+		671D815D1A673CC4005819EA /* ColorPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81501A673CC4005819EA /* ColorPanel.wxs */; };
+		671D815E1A673CC4005819EA /* MainSequencer.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81511A673CC4005819EA /* MainSequencer.wxs */; };
+		671D815F1A673CC4005819EA /* TimingPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81521A673CC4005819EA /* TimingPanel.wxs */; };
+		671D81601A673CC4005819EA /* CurrentPreviewModels.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81531A673CC4005819EA /* CurrentPreviewModels.wxs */; };
+		671D81611A673CC4005819EA /* dlgPreviewSize.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81541A673CC4005819EA /* dlgPreviewSize.wxs */; };
+		671D81621A673CC4005819EA /* EffectTreeDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81551A673CC4005819EA /* EffectTreeDialog.wxs */; };
+		671D81631A673CC4005819EA /* ExportModelSelect.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81561A673CC4005819EA /* ExportModelSelect.wxs */; };
+		671D81641A673CC4005819EA /* PreviewModels.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81571A673CC4005819EA /* PreviewModels.wxs */; };
+		671D81651A673CC4005819EA /* ViewsDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81581A673CC4005819EA /* ViewsDialog.wxs */; };
+		671D81661A673CC4005819EA /* WholeHouseModelNameDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81591A673CC4005819EA /* WholeHouseModelNameDialog.wxs */; };
+		671D81681A67408D005819EA /* NewSequenceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81671A67408D005819EA /* NewSequenceDialog.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		674A74A21A6315B000D2B0E6 /* XmlConversionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674A74A11A6315B000D2B0E6 /* XmlConversionDialog.cpp */; };
@@ -130,6 +144,20 @@
 		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
 		671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragEffectBitmapButton.cpp; path = sequencer/DragEffectBitmapButton.cpp; sourceTree = "<group>"; };
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
+		671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NewSequenceDialog.wxs; sourceTree = "<group>"; };
+		671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TopEffectsPanel.wxs; sourceTree = "<group>"; };
+		671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = XmlConversionDialog.wxs; sourceTree = "<group>"; };
+		671D81501A673CC4005819EA /* ColorPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ColorPanel.wxs; sourceTree = "<group>"; };
+		671D81511A673CC4005819EA /* MainSequencer.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = MainSequencer.wxs; sourceTree = "<group>"; };
+		671D81521A673CC4005819EA /* TimingPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TimingPanel.wxs; sourceTree = "<group>"; };
+		671D81531A673CC4005819EA /* CurrentPreviewModels.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = CurrentPreviewModels.wxs; sourceTree = "<group>"; };
+		671D81541A673CC4005819EA /* dlgPreviewSize.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = dlgPreviewSize.wxs; sourceTree = "<group>"; };
+		671D81551A673CC4005819EA /* EffectTreeDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = EffectTreeDialog.wxs; sourceTree = "<group>"; };
+		671D81561A673CC4005819EA /* ExportModelSelect.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ExportModelSelect.wxs; sourceTree = "<group>"; };
+		671D81571A673CC4005819EA /* PreviewModels.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PreviewModels.wxs; sourceTree = "<group>"; };
+		671D81581A673CC4005819EA /* ViewsDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ViewsDialog.wxs; sourceTree = "<group>"; };
+		671D81591A673CC4005819EA /* WholeHouseModelNameDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = WholeHouseModelNameDialog.wxs; sourceTree = "<group>"; };
+		671D81671A67408D005819EA /* NewSequenceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NewSequenceDialog.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425817F0D23E00F4BC76 /* TabSchedule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSchedule.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
@@ -307,6 +335,19 @@
 			children = (
 				67A61A0A17B51C0F008E95BB /* AddShowDialog.wxs */,
 				67A61A0B17B51C0F008E95BB /* ChannelLayoutDialog.wxs */,
+				671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */,
+				671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */,
+				671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */,
+				671D81501A673CC4005819EA /* ColorPanel.wxs */,
+				671D81511A673CC4005819EA /* MainSequencer.wxs */,
+				671D81521A673CC4005819EA /* TimingPanel.wxs */,
+				671D81531A673CC4005819EA /* CurrentPreviewModels.wxs */,
+				671D81541A673CC4005819EA /* dlgPreviewSize.wxs */,
+				671D81551A673CC4005819EA /* EffectTreeDialog.wxs */,
+				671D81561A673CC4005819EA /* ExportModelSelect.wxs */,
+				671D81571A673CC4005819EA /* PreviewModels.wxs */,
+				671D81581A673CC4005819EA /* ViewsDialog.wxs */,
+				671D81591A673CC4005819EA /* WholeHouseModelNameDialog.wxs */,
 				67A61A0C17B51C0F008E95BB /* ChannelMapDialog.wxs */,
 				67A61A0D17B51C0F008E95BB /* E131Dialog.wxs */,
 				67A61A0E17B51C0F008E95BB /* EffectDialogv2.wxs */,
@@ -380,6 +421,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				671D81671A67408D005819EA /* NewSequenceDialog.cpp */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
 				671D814A1A6723CF005819EA /* EffectDropTarget.cpp */,
@@ -575,11 +617,21 @@
 				67A61A5B17B51C0F008E95BB /* ChannelLayoutDialog.wxs in Resources */,
 				67A61A5C17B51C0F008E95BB /* ChannelMapDialog.wxs in Resources */,
 				67A61A5D17B51C0F008E95BB /* E131Dialog.wxs in Resources */,
+				671D81611A673CC4005819EA /* dlgPreviewSize.wxs in Resources */,
 				67A61A5E17B51C0F008E95BB /* EffectDialogv2.wxs in Resources */,
+				671D81641A673CC4005819EA /* PreviewModels.wxs in Resources */,
+				671D815B1A673CC4005819EA /* TopEffectsPanel.wxs in Resources */,
+				671D815D1A673CC4005819EA /* ColorPanel.wxs in Resources */,
+				671D81631A673CC4005819EA /* ExportModelSelect.wxs in Resources */,
+				671D815A1A673CC4005819EA /* NewSequenceDialog.wxs in Resources */,
 				67A61A5F17B51C0F008E95BB /* EffectListDialog.wxs in Resources */,
 				67A61A6017B51C0F008E95BB /* EffectsPanel.wxs in Resources */,
+				671D81661A673CC4005819EA /* WholeHouseModelNameDialog.wxs in Resources */,
 				67A61A6117B51C0F008E95BB /* ModelDialog.wxs in Resources */,
+				671D81621A673CC4005819EA /* EffectTreeDialog.wxs in Resources */,
 				67A61A6217B51C0F008E95BB /* ModelListDialog.wxs in Resources */,
+				671D81601A673CC4005819EA /* CurrentPreviewModels.wxs in Resources */,
+				671D81651A673CC4005819EA /* ViewsDialog.wxs in Resources */,
 				67A61A6317B51C0F008E95BB /* PaletteMgmtDialog.wxs in Resources */,
 				67A61A6417B51C0F008E95BB /* PlaybackOptionsDialog.wxs in Resources */,
 				67A61A6517B51C0F008E95BB /* PlayerFrame.wxs in Resources */,
@@ -590,6 +642,9 @@
 				67A61A6A17B51C0F008E95BB /* SerialPortWithRate.wxs in Resources */,
 				67A61A6B17B51C0F008E95BB /* ShowDatesDialog.wxs in Resources */,
 				67A61A6C17B51C0F008E95BB /* xLightsframe.wxs in Resources */,
+				671D815E1A673CC4005819EA /* MainSequencer.wxs in Resources */,
+				671D815C1A673CC4005819EA /* XmlConversionDialog.wxs in Resources */,
+				671D815F1A673CC4005819EA /* TimingPanel.wxs in Resources */,
 				67C7968F17B578B100CEE775 /* icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -637,6 +692,7 @@
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
 				67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */,
+				671D81681A67408D005819EA /* NewSequenceDialog.cpp in Sources */,
 				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,

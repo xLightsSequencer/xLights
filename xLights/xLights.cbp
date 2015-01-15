@@ -306,6 +306,8 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="NetInfo.cpp" />
 		<Unit filename="NetInfo.h" />
+		<Unit filename="NewSequenceDialog.cpp" />
+		<Unit filename="NewSequenceDialog.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PixelBuffer.cpp" />
@@ -444,6 +446,7 @@
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
+		<Unit filename="wxsmith/NewSequenceDialog.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
@@ -505,6 +508,7 @@
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/XmlConversionDialog.wxs" src="XmlConversionDialog.cpp" hdr="XmlConversionDialog.h" fwddecl="0" i18n="1" name="XmlConversionDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/NewSequenceDialog.wxs" src="NewSequenceDialog.cpp" hdr="NewSequenceDialog.h" fwddecl="0" i18n="1" name="NewSequenceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -73,7 +73,6 @@
 #include "EffectListDialog.h"
 #include "SeqParmsDialog.h"
 #include "ChannelMapDialog.h"
-#include "SeqOpenDialog.h"
 #include "SeqExportDialog.h"
 #include "ViewsDialog.h"
 #include "SeqElementMismatchDialog.h"
@@ -140,12 +139,11 @@ class EffectTreeDialog;
 #define TESTTAB 1
 #define CONVERTTAB 2
 #define PREVIEWTAB 3
-#define SEQUENCETAB 4
-#define SCHEDULETAB 5
-#define PAPAGAYOTAB 6
-#define NEWSEQUENCER 7
+#define SCHEDULETAB 4
+#define PAPAGAYOTAB 5
+#define NEWSEQUENCER 6
 
-#define FixedPages 8
+#define FixedPages 7
 
 #define OVER_NO_HANDLE              0
 #define OVER_L_TOP_HANDLE           1
@@ -496,7 +494,6 @@ private:
     void OnGrid1LabelRightClick(wxGridEvent& event);
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
     void ToggleThreadedSave(wxCommandEvent& event);
-    void OnCollapseEffectsButtonClick(wxCommandEvent& event);
     void OnPanelSequencerPaint(wxPaintEvent& event);
     void OnBitmapButton1Click(wxCommandEvent& event);
     void OnBitmapButton3Click(wxCommandEvent& event);
@@ -649,43 +646,6 @@ private:
     static const long ID_SLIDER_PREVIEW_ROTATE;
     static const long ID_SCROLLEDWINDOW1;
     static const long ID_PANEL_PREVIEW;
-    static const long ID_BUTTON13;
-    static const long ID_BUTTON3;
-    static const long ID_BUTTON58;
-    static const long ID_CHOICE7;
-    static const long ID_BUTTON59;
-    static const long ID_BUTTON_Palette;
-    static const long ID_BITMAPBUTTON11;
-    static const long ID_BITMAPBUTTON13;
-    static const long ID_BITMAPBUTTON12;
-    static const long ID_PANEL31;
-    static const long ID_STATICTEXT4;
-    static const long ID_BUTTON_PLAY_RGB_SEQ;
-    static const long ID_BUTTON2;
-    static const long ID_BUTTON_SeqExport;
-    static const long ID_BUTTON4;
-    static const long ID_BUTTON_CREATE_RANDOM;
-    static const long ID_BUTTON_CollapseEffectsButton;
-    static const long ID_BITMAPBUTTON7;
-    static const long ID_BITMAPBUTTON9;
-    static const long ID_CHECKBOX1;
-    static const long ID_BITMAPBUTTON3;
-    static const long ID_BITMAPBUTTON4;
-    static const long ID_BITMAPBUTTON_GRID_CUT;
-    static const long ID_BITMAPBUTTON_GRID_COPY;
-    static const long ID_BITMAPBUTTON_GRID_PASTE;
-    static const long ID_STATICTEXT31;
-    static const long ID_CHOICE_VIEWS;
-    static const long ID_BT_EDIT_VIEWS;
-    static const long ID_GRID1;
-    static const long ID_PANEL_EFFECTS1_1;
-    static const long ID_PANEL5;
-    static const long ID_PANEL_EFFECTS2_1;
-    static const long ID_PANEL6;
-    static const long ID_NOTEBOOK2;
-    static const long ID_PANEL32;
-    static const long ID_SPLITTERWINDOW2;
-    static const long ID_PANEL30;
     static const long ID_TREECTRL1;
     static const long ID_CHECKBOX_RUN_SCHEDULE;
     static const long ID_BUTTON_SAVE_SCHEDULE;
@@ -801,24 +761,16 @@ private:
     wxRadioButton* RadioButtonRgbChase;
     wxSlider* SliderFgColorC;
     wxRadioButton* RadioButtonRgbCycleMixed;
-    wxBitmapButton* BitmapButton_normal;
-    wxButton* Button_Presets;
-    wxChoice* Choice_Models;
     wxButton* Button_papagayo_output_sequence;
     wxTextCtrl* TextCtrl_PgoAutoFade;
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
     xlAuiToolBar* PlayToolBar;
-    wxStaticBoxSizer* StaticBoxSizerSequenceButtons;
-    wxStaticText* StaticText68;
     wxSlider* SliderBgIntensity;
+    wxStaticText* StaticText68;
     wxButton* Button_CoroGroupDelete;
-    wxPanel* SeqPanelLeft;
     wxStaticText* StaticText32;
-    wxButton* btEditViews;
-    wxPanel* Panel5;
     wxStaticText* StaticText36;
-    wxButton* Button_PlayRgbSeq;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
     wxButton* ButtonSaveSchedule;
@@ -826,52 +778,42 @@ private:
     wxStaticText* StaticText27;
     wxButton* ButtonAddE131;
     wxTextCtrl* TextCtrlFilename;
-    wxBitmapButton* BitmapButtonDeleteRow;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxCheckBox* CheckBoxLightOutput;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
-    wxNotebook* Notebook2;
     wxPanel* PanelPapagayo;
     wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
     wxTextCtrl* TextCtrl_PgoMaxRest;
     wxButton* Button_pgo_filename;
-    wxButton* Button_PlayEffect;
     wxRadioButton* RadioButtonRgbChase4;
     wxButton* ButtonModelsPreview;
     wxButton* ButtonPreviewOpen;
     wxPanel* PanelTest;
-    wxButton* ButtonModelExport;
     wxMenuItem* MenuItemBackup;
-    wxButton* Button_Palette;
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
     wxCheckBox* MapLORChannelsWithNoNetwork;
-    wxBitmapButton* BitmapButton_locked;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
-    wxBitmapButton* BitmapButtonGridCopy;
     wxButton* ButtonStopNow;
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
     wxButton* ButtonSaveSetup;
     wxButton* ButtonStartConversion;
-    wxBitmapButton* BitmapButtonInsertRow;
     wxStaticText* StaticText19;
     wxPanel* PanelSequencer;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
-    wxStaticText* StaticTextSequenceFileName;
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
-    wxButton* ButtonDisplayElements;
     wxAuiManager* m_mgr;
     wxListBox* ListBoxElementList;
     wxSlider* Slider_BackgroundBrightness;
@@ -883,7 +825,6 @@ private:
     wxChoice* ChoiceOutputFormat;
     wxDirDialog* DirDialog1;
     wxStaticText* StaticTextSetup1;
-    wxButton* Button_CreateRandom;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText33;
     wxStaticText* StaticText23;
@@ -894,36 +835,27 @@ private:
     wxNotebook* NotebookTest;
     wxRadioButton* RadioButtonTwinkle25;
     wxAuiManager* MainAuiManager;
-    wxBitmapButton* BitmapButtonSaveSeq;
     wxSlider* SliderChaseSpeed;
-    EffectsPanel* EffectsPanel2_1;
     wxButton* Button_PgoCopyVoices;
     wxCheckBox* CheckBoxMapEmptyChannels;
-    wxPanel* PaneNutcracker;
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
-    wxButton* Button_UpdateGrid;
     wxRadioButton* RadioButtonDim;
     wxButton* ButtonUpdateShow;
-    wxBitmapButton* BitmapButtonGridPaste;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
-    EffectsPanel* EffectsPanel1_1;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxStaticText* StaticText_PgoOutputType;
     wxButton* ButtonChangeDir;
-    wxGrid* Grid1;
-    wxButton* ButtonSaveLog;
     wxPanel* PanelSetup;
-    wxBitmapButton* BitmapButtonGridCut;
+    wxButton* ButtonSaveLog;
     wxStaticText* StaticText43;
     wxStaticText* StaticText24;
     wxSlider* SliderFgColorB;
     wxButton* ButtonSetBackgroundImage;
     wxStaticText* StaticText65;
     wxRadioButton* RadioButtonShimmer;
-    wxChoice* Choice_Views;
     wxMenuItem* MenuItemSavePlaylists;
     wxStaticText* StaticText14;
     wxStaticText* StaticText34;
@@ -934,23 +866,20 @@ private:
     wxPanel* Panel3;
     wxStaticText* StaticText18;
     wxListCtrl* GridNetwork;
-    wxBitmapButton* BitmapButton_random;
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxMenuItem* ThreadedSaveMenuItem;
     wxStaticText* StaticTextPreviewRotation;
-    wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
+    wxSplitterWindow* SplitterWindow1;
     xlAuiToolBar* MainToolBar;
     wxButton* ButtonLightsOff;
     wxMenuItem* MenuItem11;
     wxMenu* Menu2;
     wxPanel* PanelTestStandard;
-    wxPanel* SeqPanelRight;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
-    wxButton* ButtonSeqExport;
     wxTextCtrl* TextCtrl_pgo_filename;
     wxCheckBox* CheckBox_CoroEyesRandomBlink;
     wxRadioButton* RadioButtonRgbCycle4;
@@ -966,37 +895,31 @@ private:
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
-    wxPanel* Panel4;
     wxStaticText* StaticTextShowEnd;
     wxMenuItem* MenuItem10;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
-    wxButton* CollapseEffectsButton;
-    wxCheckBox* FastSave_CheckBox;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxMenuItem* MenuItem9;
-    wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
+    wxStaticText* StaticText4;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
     wxMenuItem* Menu4;
     wxCheckBox* CheckBoxRunSchedule;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
-    wxButton* Button_Models;
     wxBitmapButton* bbStop;
     wxMenu* Menu3;
     wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxBitmapButton* BitmapButtonOpenSeq;
-    wxStaticText* StaticText26;
     wxStaticText* StaticText15;
+    wxStaticText* StaticText26;
     wxStaticText* StaticText8;
     wxMenuItem* MenuItemRefresh;
-    wxStaticText* StaticText28;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText30;
     wxStaticText* StaticText29;
@@ -1009,8 +932,8 @@ private:
     wxRadioButton* RadioButtonOff;
     wxRadioButton* RadioButtonRgbTwinkle25;
     wxRadioButton* RadioButtonRgbChase5;
-    wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText1;
+    wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText2;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* SliderBgColorB;
@@ -1041,7 +964,6 @@ private:
     wxSlider* SliderBgColorA;
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
-    wxSplitterWindow* SplitterWindow2;
     //*)
 
     wxBitmap pauseIcon;
@@ -1062,8 +984,6 @@ private:
     NetInfoClass NetInfo;
 
     ModelPreview* modelPreview;
-    SequencePreview* seqPreview;
-
 
     int effGridPrevX;
     int effGridPrevY;
@@ -1451,7 +1371,6 @@ private:
     std::unordered_map<std::string, EditState> buttonState;
     bool isRandom_(wxControl* ctl, const char*debug);
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
-    void setlock(wxBitmapButton* button); //, EditState& islocked);
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ

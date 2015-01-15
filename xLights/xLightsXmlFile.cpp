@@ -348,14 +348,16 @@ void xLightsXmlFile::Load()
     is_loaded = true;
 }
 
-void xLightsXmlFile::Save(wxTextCtrl* log)
+void xLightsXmlFile::Save(wxTextCtrl* log, bool append)
 {
     if( needs_conversion )
     {
-        wxString new_filename = GetName() + "_v4." + GetExt();
-        SetFullName(new_filename);
+        if (append) {
+            wxString new_filename = GetName() + "_v4." + GetExt();
+            SetFullName(new_filename);
+        }
 
-        log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
+        if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
 
         // construct the new XML file
         wxXmlDocument *doc = new wxXmlDocument();
@@ -393,7 +395,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
             child->AddAttribute(wxT("visible"),wxT("1"));
         }
 
-        log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
+        if (log) log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
 
         node = AddChildXmlNode(root, wxT("ElementEffects"));
         int num_effects = timing.GetCount();
@@ -401,7 +403,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
-            log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
+            if (log) log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
             child = AddChildXmlNode(node, wxT("Element"));
             child->AddAttribute(wxT("type"),wxT("model"));
             child->AddAttribute(wxT("name"),models[i]);
@@ -539,10 +541,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
     }
     else
     {
-        log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
-
+        if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
         seqDocument.Save(GetFullPath());
     }
     needs_conversion = false;
-    log->AppendText(_("xLights XML saved successfully\n\n"));
+    if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
 }

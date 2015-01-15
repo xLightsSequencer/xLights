@@ -214,43 +214,6 @@ const long xLightsFrame::ID_TEXTCTRL2 = wxNewId();
 const long xLightsFrame::ID_SLIDER_PREVIEW_ROTATE = wxNewId();
 const long xLightsFrame::ID_SCROLLEDWINDOW1 = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_BUTTON13 = wxNewId();
-const long xLightsFrame::ID_BUTTON3 = wxNewId();
-const long xLightsFrame::ID_BUTTON58 = wxNewId();
-const long xLightsFrame::ID_CHOICE7 = wxNewId();
-const long xLightsFrame::ID_BUTTON59 = wxNewId();
-const long xLightsFrame::ID_BUTTON_Palette = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON11 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON13 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON12 = wxNewId();
-const long xLightsFrame::ID_PANEL31 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
-const long xLightsFrame::ID_BUTTON_PLAY_RGB_SEQ = wxNewId();
-const long xLightsFrame::ID_BUTTON2 = wxNewId();
-const long xLightsFrame::ID_BUTTON_SeqExport = wxNewId();
-const long xLightsFrame::ID_BUTTON4 = wxNewId();
-const long xLightsFrame::ID_BUTTON_CREATE_RANDOM = wxNewId();
-const long xLightsFrame::ID_BUTTON_CollapseEffectsButton = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON7 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON9 = wxNewId();
-const long xLightsFrame::ID_CHECKBOX1 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON3 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON4 = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_GRID_CUT = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_GRID_COPY = wxNewId();
-const long xLightsFrame::ID_BITMAPBUTTON_GRID_PASTE = wxNewId();
-const long xLightsFrame::ID_STATICTEXT31 = wxNewId();
-const long xLightsFrame::ID_CHOICE_VIEWS = wxNewId();
-const long xLightsFrame::ID_BT_EDIT_VIEWS = wxNewId();
-const long xLightsFrame::ID_GRID1 = wxNewId();
-const long xLightsFrame::ID_PANEL_EFFECTS1_1 = wxNewId();
-const long xLightsFrame::ID_PANEL5 = wxNewId();
-const long xLightsFrame::ID_PANEL_EFFECTS2_1 = wxNewId();
-const long xLightsFrame::ID_PANEL6 = wxNewId();
-const long xLightsFrame::ID_NOTEBOOK2 = wxNewId();
-const long xLightsFrame::ID_PANEL32 = wxNewId();
-const long xLightsFrame::ID_SPLITTERWINDOW2 = wxNewId();
-const long xLightsFrame::ID_PANEL30 = wxNewId();
 const long xLightsFrame::ID_TREECTRL1 = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_RUN_SCHEDULE = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SCHEDULE = wxNewId();
@@ -409,10 +372,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 {
 
     //(*Initialize(xLightsFrame)
-    wxBoxSizer* BoxSizer4;
     wxStaticText* StaticText22;
     wxStaticBoxSizer* StaticBoxSizer2;
-    wxBoxSizer* BoxSizer6;
     wxMenu* MenuHelp;
     wxFlexGridSizer* FlexGridSizer4;
     wxBoxSizer* BoxSizerModelsPreview;
@@ -424,12 +385,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer24;
     wxMenuItem* MenuItemCustomScript;
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
-    wxBoxSizer* BoxSizer5;
     wxBoxSizer* BoxSizer10;
-    wxBoxSizer* BoxSizer7;
-    wxFlexGridSizer* FlexGridSizer70;
     wxBoxSizer* BoxSizer8;
-    wxFlexGridSizer* FlexGridSizer38;
     wxFlexGridSizer* FlexGridSizer23;
     wxMenuItem* MenuItem5;
     wxFlexGridSizer* FlexGridSizer41;
@@ -447,7 +404,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
-    wxBoxSizer* BoxSizerSequencePreview;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizerCal;
@@ -459,7 +415,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxStaticBoxSizer* StaticBoxSizer3;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
@@ -477,15 +432,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer33;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
     wxFlexGridSizer* FlexGridSizer11;
     wxBoxSizer* BoxSizer3;
     wxFlexGridSizer* FlexGridSizer17;
     wxFlexGridSizer* FlexGridSizerPapagayo;
-    wxFlexGridSizer* FlexGridSizer32;
-    wxFlexGridSizer* FlexGridSizer68;
     wxFlexGridSizer* FlexGridSizer31;
     wxFlexGridSizer* FlexGridSizer40;
     wxFlexGridSizer* FlexGridSizer39;
@@ -947,166 +899,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
-    PaneNutcracker = new wxPanel(Notebook1, ID_PANEL30, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL30"));
-    FlexGridSizer70 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer70->AddGrowableCol(0);
-    FlexGridSizer70->AddGrowableRow(0);
-    SplitterWindow2 = new wxSplitterWindow(PaneNutcracker, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3DSASH|wxSP_NOBORDER|wxSP_NO_XP_THEME, _T("ID_SPLITTERWINDOW2"));
-    SplitterWindow2->SetMinSize(wxSize(10,10));
-    SplitterWindow2->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    SplitterWindow2->SetMinimumPaneSize(10);
-    SplitterWindow2->SetSashGravity(0.5);
-    SeqPanelLeft = new wxPanel(SplitterWindow2, ID_PANEL31, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL31"));
-    SeqPanelLeft->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    BoxSizer6 = new wxBoxSizer(wxVERTICAL);
-    BoxSizerSequencePreview = new wxBoxSizer(wxHORIZONTAL);
-    BoxSizer6->Add(BoxSizerSequencePreview, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    StaticBoxSizer3 = new wxStaticBoxSizer(wxHORIZONTAL, SeqPanelLeft, _("Combined Effect"));
-    FlexGridSizer33 = new wxFlexGridSizer(0, 4, 0, 0);
-    Button_PlayEffect = new wxButton(SeqPanelLeft, ID_BUTTON13, _("Play (F3)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
-    Button_PlayEffect->Disable();
-    Button_PlayEffect->SetBackgroundColour(wxColour(0,255,0));
-    FlexGridSizer33->Add(Button_PlayEffect, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Button_UpdateGrid = new wxButton(SeqPanelLeft, ID_BUTTON3, _("Update Grid (F5)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    Button_UpdateGrid->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer33->Add(Button_UpdateGrid, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer33->Add(-1,-1,1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    Button_Models = new wxButton(SeqPanelLeft, ID_BUTTON58, _("Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON58"));
-    Button_Models->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    FlexGridSizer33->Add(Button_Models, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Choice_Models = new wxChoice(SeqPanelLeft, ID_CHOICE7, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE7"));
-    FlexGridSizer33->Add(Choice_Models, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer33->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    Button_Presets = new wxButton(SeqPanelLeft, ID_BUTTON59, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON59"));
-    Button_Presets->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    Button_Presets->SetToolTip(_("Click here to load previously saved effects"));
-    FlexGridSizer33->Add(Button_Presets, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    Button_Palette = new wxButton(SeqPanelLeft, ID_BUTTON_Palette, _("Palette"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Palette"));
-    Button_Palette->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    Button_Palette->SetToolTip(_("Ckick here to load Palettes of colors."));
-    FlexGridSizer33->Add(Button_Palette, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_normal = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON11, padlock16x16_green_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON11"));
-    BitmapButton_normal->SetDefault();
-    BitmapButton_normal->Hide();
-    FlexGridSizer33->Add(BitmapButton_normal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    BitmapButton_locked = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON13, padlock16x16_red_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON13"));
-    BitmapButton_locked->SetDefault();
-    BitmapButton_locked->Hide();
-    FlexGridSizer33->Add(BitmapButton_locked, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    BitmapButton_random = new wxBitmapButton(SeqPanelLeft, ID_BITMAPBUTTON12, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(22,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON12"));
-    BitmapButton_random->SetDefault();
-    BitmapButton_random->Hide();
-    FlexGridSizer33->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    StaticBoxSizer3->Add(FlexGridSizer33, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    BoxSizer6->Add(StaticBoxSizer3, 0, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    SeqPanelLeft->SetSizer(BoxSizer6);
-    BoxSizer6->Fit(SeqPanelLeft);
-    BoxSizer6->SetSizeHints(SeqPanelLeft);
-    SeqPanelRight = new wxPanel(SplitterWindow2, ID_PANEL32, wxPoint(40,-11), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL32"));
-    SeqPanelRight->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_SCROLLBAR));
-    BoxSizer4 = new wxBoxSizer(wxVERTICAL);
-    StaticBoxSizerSequenceButtons = new wxStaticBoxSizer(wxVERTICAL, SeqPanelRight, _("RGB Sequence"));
-    FlexGridSizer32 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer32->AddGrowableCol(0);
-    FlexGridSizer32->AddGrowableRow(2);
-    StaticTextSequenceFileName = new wxStaticText(SeqPanelRight, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    FlexGridSizer32->Add(StaticTextSequenceFileName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
-    BoxSizer7 = new wxBoxSizer(wxVERTICAL);
-    FlexGridSizer68 = new wxFlexGridSizer(1, 6, 0, 0);
-    Button_PlayRgbSeq = new wxButton(SeqPanelRight, ID_BUTTON_PLAY_RGB_SEQ, _("Play (F4)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_RGB_SEQ"));
-    Button_PlayRgbSeq->SetBackgroundColour(wxColour(0,255,0));
-    Button_PlayRgbSeq->SetToolTip(_("Play your sequence. Before pressing Play, highlight a grid cell under a model. You will see that model show in the window. If you want to see all models switch over to the PREVIEW window."));
-    FlexGridSizer68->Add(Button_PlayRgbSeq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
-    ButtonDisplayElements = new wxButton(SeqPanelRight, ID_BUTTON2, _("Display Elements"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    ButtonDisplayElements->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    ButtonDisplayElements->SetToolTip(_("Display Models that can be attached to your Sequence"));
-    FlexGridSizer68->Add(ButtonDisplayElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonSeqExport = new wxButton(SeqPanelRight, ID_BUTTON_SeqExport, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SeqExport"));
-    ButtonSeqExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    ButtonSeqExport->SetToolTip(_("Export all Channels"));
-    FlexGridSizer68->Add(ButtonSeqExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonModelExport = new wxButton(SeqPanelRight, ID_BUTTON4, _("Model Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    ButtonModelExport->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    ButtonModelExport->SetToolTip(_("Export Channels for one model"));
-    FlexGridSizer68->Add(ButtonModelExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_CreateRandom = new wxButton(SeqPanelRight, ID_BUTTON_CREATE_RANDOM, _("Create Random Effects"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CREATE_RANDOM"));
-    Button_CreateRandom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    Button_CreateRandom->SetToolTip(_("Create a random effect for every unprotected cell in grid. If you hold down the SHIFT key while clicking \"Create Random Effects\", a random effect will be created and assigned to every model on a row."));
-    FlexGridSizer68->Add(Button_CreateRandom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CollapseEffectsButton = new wxButton(SeqPanelRight, ID_BUTTON_CollapseEffectsButton, _("v"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator, _T("ID_BUTTON_CollapseEffectsButton"));
-    FlexGridSizer68->Add(CollapseEffectsButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer7->Add(FlexGridSizer68, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer38 = new wxFlexGridSizer(1, 12, 0, 0);
-    BitmapButtonOpenSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON7, open_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
-    BitmapButtonOpenSeq->SetDefault();
-    BitmapButtonOpenSeq->SetToolTip(_("Open Sequence, Create a Sequence"));
-    FlexGridSizer38->Add(BitmapButtonOpenSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonSaveSeq = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON9, save_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON9"));
-    BitmapButtonSaveSeq->SetDefault();
-    BitmapButtonSaveSeq->SetToolTip(_("Save Sequence. The save will be done for every model you have. The save will start with the leftmost model and finish with the rightmost"));
-    FlexGridSizer38->Add(BitmapButtonSaveSeq, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FastSave_CheckBox = new wxCheckBox(SeqPanelRight, ID_CHECKBOX1, _("Fast Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    FastSave_CheckBox->SetValue(false);
-    FlexGridSizer38->Add(FastSave_CheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonInsertRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON3, insertrow_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON3"));
-    BitmapButtonInsertRow->SetDefault();
-    BitmapButtonInsertRow->SetToolTip(_("Insert Row"));
-    FlexGridSizer38->Add(BitmapButtonInsertRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonDeleteRow = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON4, deleterow_xpm, wxDefaultPosition, wxSize(23,23), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON4"));
-    BitmapButtonDeleteRow->SetDefault();
-    BitmapButtonDeleteRow->SetToolTip(_("Delete Row"));
-    FlexGridSizer38->Add(BitmapButtonDeleteRow, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonGridCut = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_CUT, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CUT")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_CUT"));
-    BitmapButtonGridCut->SetToolTip(_("Cut"));
-    FlexGridSizer38->Add(BitmapButtonGridCut, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonGridCopy = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_COPY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_COPY")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_COPY"));
-    BitmapButtonGridCopy->SetDefault();
-    BitmapButtonGridCopy->SetToolTip(_("Copy"));
-    FlexGridSizer38->Add(BitmapButtonGridCopy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonGridPaste = new wxBitmapButton(SeqPanelRight, ID_BITMAPBUTTON_GRID_PASTE, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_PASTE")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_GRID_PASTE"));
-    BitmapButtonGridPaste->SetDefault();
-    BitmapButtonGridPaste->SetToolTip(_("Paste"));
-    FlexGridSizer38->Add(BitmapButtonGridPaste, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText28 = new wxStaticText(SeqPanelRight, ID_STATICTEXT31, _("View:"), wxDefaultPosition, wxSize(-1,-1), 0, _T("ID_STATICTEXT31"));
-    FlexGridSizer38->Add(StaticText28, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_Views = new wxChoice(SeqPanelRight, ID_CHOICE_VIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEWS"));
-    FlexGridSizer38->Add(Choice_Views, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    btEditViews = new wxButton(SeqPanelRight, ID_BT_EDIT_VIEWS, _("Edit View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BT_EDIT_VIEWS"));
-    FlexGridSizer38->Add(btEditViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer7->Add(FlexGridSizer38, 1, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer32->Add(BoxSizer7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Grid1 = new wxGrid(SeqPanelRight, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxFULL_REPAINT_ON_RESIZE, _T("ID_GRID1"));
-    Grid1->CreateGrid(0,2);
-    Grid1->EnableEditing(true);
-    Grid1->EnableGridLines(true);
-    Grid1->SetRowLabelSize(35);
-    Grid1->SetColLabelValue(0, _("Start Time"));
-    Grid1->SetColLabelValue(1, _("Label"));
-    Grid1->SetDefaultCellFont( Grid1->GetFont() );
-    Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
-    FlexGridSizer32->Add(Grid1, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP, 5);
-    StaticBoxSizerSequenceButtons->Add(FlexGridSizer32, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer4->Add(StaticBoxSizerSequenceButtons, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer5 = new wxBoxSizer(wxHORIZONTAL);
-    Notebook2 = new wxNotebook(SeqPanelRight, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
-    Panel4 = new wxPanel(Notebook2, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-    EffectsPanel1_1 = new EffectsPanel(Panel4, ID_PANEL_EFFECTS1_1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1_1"));
-    Panel5 = new wxPanel(Notebook2, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-    EffectsPanel2_1 = new EffectsPanel(Panel5, ID_PANEL_EFFECTS2_1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS2_1"));
-    Notebook2->AddPage(Panel4, _("Effect1"), false);
-    Notebook2->AddPage(Panel5, _("Effect2"), false);
-    BoxSizer5->Add(Notebook2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BoxSizer4->Add(BoxSizer5, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    SeqPanelRight->SetSizer(BoxSizer4);
-    BoxSizer4->Fit(SeqPanelRight);
-    BoxSizer4->SetSizeHints(SeqPanelRight);
-    SplitterWindow2->SplitVertically(SeqPanelLeft, SeqPanelRight);
-    FlexGridSizer70->Add(SplitterWindow2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-    PaneNutcracker->SetSizer(FlexGridSizer70);
-    FlexGridSizer70->Fit(PaneNutcracker);
-    FlexGridSizer70->SetSizeHints(PaneNutcracker);
     PanelCal = new wxPanel(Notebook1, ID_PANEL_CAL, wxPoint(49,10), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_CAL"));
     FlexGridSizerCal = new wxFlexGridSizer(2, 2, 0, 0);
     FlexGridSizerCal->AddGrowableCol(0);
@@ -1374,7 +1166,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Notebook1->AddPage(PanelTest, _("Test"));
     Notebook1->AddPage(PanelConvert, _("Convert"));
     Notebook1->AddPage(PanelPreview, _("Preview"));
-    Notebook1->AddPage(PaneNutcracker, _("Nutcracker"));
     Notebook1->AddPage(PanelCal, _("Schedule"));
     Notebook1->AddPage(PanelPapagayo, _("Papagayo"));
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
@@ -1534,33 +1325,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ScrolledWindowPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewRightDown,0,this);
     ScrolledWindowPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseMove,0,this);
     ScrolledWindowPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewMouseLeave,0,this);
-    Connect(ID_BUTTON13,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayEffectClick);
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_UpdateGridClick);
-    Connect(ID_BUTTON58,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_ModelsClick);
-    Connect(ID_BUTTON59,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PresetsClick);
-    Connect(ID_BUTTON_Palette,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PaletteClick);
-    Connect(ID_BUTTON_PLAY_RGB_SEQ,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_PlayAllClick);
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonDisplayElementsClick);
-    Connect(ID_BUTTON_SeqExport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSeqExportClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonModelExportClick);
-    Connect(ID_BUTTON_CREATE_RANDOM,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtRandomEffectClick);
-    Connect(ID_BUTTON_CollapseEffectsButton,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCollapseEffectsButtonClick);
-    Connect(ID_BITMAPBUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
-    Connect(ID_BITMAPBUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
-    Connect(ID_BITMAPBUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonInsertRowClick);
-    Connect(ID_BITMAPBUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonDeleteRowClick);
-    Connect(ID_BITMAPBUTTON_GRID_CUT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridCutClick);
-    Connect(ID_BITMAPBUTTON_GRID_COPY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridCopyClick);
-    Connect(ID_BITMAPBUTTON_GRID_PASTE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonGridPasteClick);
-    Connect(ID_CHOICE_VIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnChoice_ViewsSelect);
-    Connect(ID_BT_EDIT_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnbtEditViewsClick);
-    Connect(ID_GRID1,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellRightClick);
-    Connect(ID_GRID1,wxEVT_GRID_LABEL_RIGHT_CLICK,(wxObjectEventFunction)&xLightsFrame::OnGrid1LabelRightClick);
-    Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellChange);
-    Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&xLightsFrame::OnGrid1CellLeftClick);
-    Grid1->Connect(wxEVT_SET_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1SetFocus,0,this);
-    Grid1->Connect(wxEVT_KILL_FOCUS,(wxObjectEventFunction)&xLightsFrame::OnGrid1KillFocus,0,this);
-    EffectsPanel1_1->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnEffectsPanel1Paint,0,this);
     Connect(ID_CHECKBOX_RUN_SCHEDULE,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxRunScheduleClick);
     Connect(ID_BUTTON_SAVE_SCHEDULE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveScheduleClick);
     Connect(ID_BUTTON_ADD_SHOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddShowClick);
@@ -1606,8 +1370,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CreateSequencer();
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
-    seqPreview = new SequencePreview( (wxPanel*) SeqPanelLeft, args);
-    BoxSizerSequencePreview->Add(seqPreview, 1, wxEXPAND);
     modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
@@ -1651,8 +1413,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     GridNetwork->SetColumnWidth(2,wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(3,100);
     GridNetwork->SetColumnWidth(4,170);
-
-    Grid1->SetColFormatFloat(0,7,3);
 
     // get list of most recently used directories
     wxString dir,mru_name;
@@ -2059,7 +1819,7 @@ void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
     case TESTTAB:
         OnTimerTest(curtime);
         break;
-    case SEQUENCETAB:
+    case NEWSEQUENCER:
         TimerRgbSeq(curtime);
         break;
     default:
@@ -2108,9 +1868,9 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
         caption=_("Preview Tab");
         msg=_("Create display elements by clicking on the Models button. Only models that have 'My Display' checked will be included in the Display Elements list and shown in the preview area.\n\nSelect an item in the Display Elements list and it will turn from gray to yellow (you may not see the yellow if the selected element is hidden behind another one). Once selected, you can drag your cursor across the preview area to move the element. You can also use the Element Size slider to make it bigger or smaller. You can rotate elements that have Display As set to 'Single Line'. Don't forget to click the Save button to save your preview!\n\nClick the Open button to select an xLights sequence to be previewed. Note that any xLights sequence can be previewed, not just those created on the Nutcracker tab. Click Play to start preview playback. Use the Pause button to stop play, and then the Play button to resume. You can drag the slider that appears across the top of the preview area to move playback to any spot in your sequence. The Stop Now button in the upper left will also stop playback.");
         break;
-    case SEQUENCETAB:
-        caption=_("Nutcracker Tab");
-        msg=_("The Nutcracker tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights (.xseq) sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
+    case NEWSEQUENCER:
+        caption=_("Sequencer Tab");
+        msg=_("The Sequencer tab can be used to create RGB sequences. First, create a model of your RGB display element(s) by clicking on the Models button. Then try the different effects and settings until you create something you like. You can save the settings as a preset by clicking the New Preset button. From then on, that preset will be available in the presets drop-down list. You can combine effects by creating a second effect in the Effect 2 area, then choosing a Layering Method. To create a series of effects that will be used in a sequence, click the open file icon to open an xLights (.xseq) sequence. Choose which display elements/models you will use in this sequence. Then click the insert rows icon and type in the start time in seconds when that effect should begin. Rows will automatically sort by start time. To add an effect to the sequence, click on the grid cell in the desired display model column and the desired start time row, then click the Update button. When you are done creating effects for the sequence, click the save icon and the xLights sequence will be updated with the effects you stored in the grid.");
         break;
     case PAPAGAYOTAB:
         caption=_("Papagayo Tab");
@@ -2138,10 +1898,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     if (pagenum == TESTTAB && !xout)
     {
         StatusBar1->SetStatusText(_("Testing disabled - Output to Lights is not checked"));
-    }
-    else if (pagenum == SEQUENCETAB)
-    {
-        seqPreview->InitializePreview();
     }
     else if (pagenum == PREVIEWTAB)
     {
@@ -2324,12 +2080,10 @@ void xLightsFrame::StopNow(void)
     case TESTTAB:
         TestButtonsOff();
         break;
-    case SEQUENCETAB:
+    case NEWSEQUENCER:
         EnableSequenceControls(true);
         break;
     }
-    Button_PlayEffect->SetLabel(_("Play Effect (F3)")); //toggle label -DJ
-    Button_PlayRgbSeq->SetLabel("Play (F4)");
 }
 
 void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
@@ -2498,6 +2252,7 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
     wxChar uc = event.GetKeyCode();
     bool retval = false;
 
+    /*
     if (Notebook1->GetSelection() == SEQUENCETAB) //Nutcracker tab
     {
         retval = true;
@@ -2568,8 +2323,6 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
             if (Grid1HasFocus) PasteFromClipboard();
             else retval = false; //allow other text controls to get the event -DJ
             break;
-
-
         case WXK_F5:
             if (Button_UpdateGrid->IsEnabled())
             {
@@ -2588,17 +2341,12 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 SaveSequence();
             }
             break;
-        case WXK_INSERT:
-            if (BitmapButtonInsertRow->IsEnabled())
-            {
-                InsertRow();
-            }
-            break;
         default:
             retval = false;
         }
     }
-    else if (Notebook1->GetSelection() == NEWSEQUENCER)
+    else*/
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         switch(uc)
         {
@@ -2625,32 +2373,6 @@ void xLightsFrame::OnPaneNutcrackerChar(wxKeyEvent& event)
     HotKey(event);
 }
 
-//add lock/unlock/random state flags -DJ
-//these could be used to make fields read-only, but initially they are just used for partially random effects
-//void djdebug(const char* fmt, ...); //_DJ
-//typedef enum { Normal, Locked, Random } EditState;
-void xLightsFrame::setlock(wxBitmapButton* button) //, EditState& islocked)
-{
-    wxString parent = button->GetName();
-    if (parent.StartsWith("ID_BITMAPBUTTON_")) parent = "ID_" + parent.substr(16); //map to associated control
-    EditState& islocked = buttonState[std::string(parent)]; //creates entry if not there
-//    djdebug("ctl %s was %d", (const char*)parent.c_str(), islocked);
-    switch (islocked) //cycle thru states
-    {
-    case Locked:
-        islocked = Random;
-        button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
-        break;
-//        case Random:
-//            islocked = Normal;
-//            button->SetBitmapLabel(BitmapButton_normal->GetBitmapLabel());
-//            break;
-    default:
-        islocked = Locked;
-        button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
-        break;
-    }
-}
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
 bool xLightsFrame::isRandom_(wxControl* ctl, const char*debug)
 {
@@ -2659,31 +2381,6 @@ bool xLightsFrame::isRandom_(wxControl* ctl, const char*debug)
 //    djdebug("isRandom(%s) = %d", (const char*)ctl->GetName().c_str(), retval);
     return retval;
 }
-
-#define showlock(name)  \
-/*EditState isLockedFx_##name = Normal;*/ \
-void xLightsFrame::OnBitmapButton_##name##Click(wxCommandEvent& event) \
-{ \
-    setlock(BitmapButton_##name/*, isLockedFx_##name*/); \
-}
-//#define showlock(name)  \
-//EditState isLockedMain_##name = Normal; \
-//void xLightsFrame::OnBitmapButton_##name##Click(wxCommandEvent& event) \
-//{ \
-//    setlock(BitmapButton_##name, BitmapButton_normal, BitmapButton_locked, BitmapButton_random, isLockedMain_##name); \
-//}
-//~showlock(EffectLayerMix)
-//~showlock(SparkleFrequency)
-//~showlock(Brightness)
-//~showlock(Contrast)
-#if 1   // <SCM>
-//~showlock(CheckBox_LayerMorph)
-#endif
-
-/*void xLightsFrame::OnButtonModelExportClick(wxCommandEvent& event)
-{
-}
-*/
 
 void xLightsFrame::OnEffectsPanel1Paint(wxPaintEvent& event)
 {
@@ -2820,37 +2517,11 @@ void xLightsFrame::ToggleThreadedSave(wxCommandEvent& event)
     ThreadedSaveMenuItem->Check(!threadedSave);
 }
 
-void xLightsFrame::OnCollapseEffectsButtonClick(wxCommandEvent& event)
-{
-    bool is_expanded = (CollapseEffectsButton->GetLabel() == "v");
-    CollapseEffectsButton->SetLabel(is_expanded? "^": "v"); //TODO: make a nicer looking button
-    Notebook2->Show(!is_expanded);
-    wxSize size = Grid1->GetSize();
-    size.y = is_expanded? 470: 120; //TODO: use auto layout
-    Grid1->SetSize(size);
-    if (Grid1->GetSizer() != NULL) {
-        //No Sizer on the Mac
-        Grid1->GetSizer()->Layout();
-    }
-    Grid1->GetParent()->GetSizer()->Layout();
-}
-
-void createACrash() {
-    int *foo = NULL;
-    *foo = 1;
-}
-
-void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
-{
-    createACrash();
-}
-
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 {
     if (SeqData.NumFrames() == 0)
     {
         wxMessageBox("You must open a sequence first!", "Error");
-        createACrash();
         return;
     }
     wxString NewFilename;

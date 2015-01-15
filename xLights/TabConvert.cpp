@@ -255,6 +255,7 @@ void FRAMECLASS SetMediaFilename(const wxString& filename)
     mediaFilename=filename;
     if (mediaFilename.size() == 0)
     {
+        mMediaLengthMS = 0;
         return;
     }
 #ifndef FPP
@@ -265,6 +266,8 @@ void FRAMECLASS SetMediaFilename(const wxString& filename)
         wxFileName fn2(CurrentDir,fn1.GetFullName());
         mediaFilename=fn2.GetFullPath();
     }
+    mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(mediaFilename);
+    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
 #endif
 }
 

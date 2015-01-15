@@ -24,7 +24,7 @@ class xLightsXmlFile : public wxFileName
             NUM_TYPES
         };
         void Load();
-        void Save(wxTextCtrl* log);
+        void Save(wxTextCtrl* log = NULL, bool append4 = true);
         void SetHeaderInfo(wxArrayString info);
         void DeleteTimingSection(wxString section);
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
