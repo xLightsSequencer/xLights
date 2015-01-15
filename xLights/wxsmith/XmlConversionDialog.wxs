@@ -347,7 +347,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+										<object class="wxChoice" name="ID_CHOICE_Xml_Song_Timings" variable="Choice_Xml_Song_Timings" member="yes">
 											<size>238,21</size>
 											<style>wxCB_SORT</style>
 										</object>
@@ -361,6 +361,8 @@
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
 											<label>Import</label>
+											<enabled>0</enabled>
+											<handler function="OnButton_Xml_Import_TimingClick" entry="EVT_BUTTON" />
 										</object>
 										<col>1</col>
 										<row>1</row>
@@ -371,6 +373,8 @@
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_Xml_Delete_Timing" variable="Button_Xml_Delete_Timing" member="yes">
 											<label>Delete</label>
+											<enabled>0</enabled>
+											<handler function="OnButton_Xml_Delete_TimingClick" entry="EVT_BUTTON" />
 										</object>
 										<col>2</col>
 										<row>1</row>

@@ -41,7 +41,7 @@ const long XmlConversionDialog::ID_BUTTON_Extract_Song_Info = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Settings_Save = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Close_Dialog = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Timing = wxNewId();
-const long XmlConversionDialog::ID_CHOICE1 = wxNewId();
+const long XmlConversionDialog::ID_CHOICE_Xml_Song_Timings = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Delete_Timing = wxNewId();
 const long XmlConversionDialog::ID_TEXTCTRL_Xml_Log = wxNewId();
@@ -154,11 +154,13 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	GridBagSizer1 = new wxGridBagSizer(0, 0);
 	StaticText_Xml_Timing = new wxStaticText(this, ID_STATICTEXT_Xml_Timing, _("Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Timing"));
 	GridBagSizer1->Add(StaticText_Xml_Timing, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice1 = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE1"));
-	GridBagSizer1->Add(Choice1, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Xml_Song_Timings = new wxChoice(this, ID_CHOICE_Xml_Song_Timings, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Xml_Song_Timings"));
+	GridBagSizer1->Add(Choice_Xml_Song_Timings, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Xml_Import_Timing = new wxButton(this, ID_BUTTON_Xml_Import_Timing, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Import_Timing"));
+	Button_Xml_Import_Timing->Disable();
 	GridBagSizer1->Add(Button_Xml_Import_Timing, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Xml_Delete_Timing = new wxButton(this, ID_BUTTON_Xml_Delete_Timing, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Delete_Timing"));
+	Button_Xml_Delete_Timing->Disable();
 	GridBagSizer1->Add(Button_Xml_Delete_Timing, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_Xml_Song_Timings->Add(GridBagSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7->Add(StaticBoxSizer_Xml_Song_Timings, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -183,6 +185,8 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_Settings_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Settings_SaveClick);
 	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
+	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Import_TimingClick);
+	Connect(ID_BUTTON_Xml_Delete_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Delete_TimingClick);
 	//*)
 
     PopulateFiles();
@@ -215,6 +219,15 @@ void XmlConversionDialog::PopulateFiles()
     }
     Choice_Xml_Settings_Filename->Set(xml_file_list);
     StaticText_Work_Dir->SetLabelText(_("Directory: " + xml_file.GetPath()));
+}
+
+void XmlConversionDialog::PopulateSongTimings()
+{
+    Choice_Xml_Song_Timings->Clear();
+    Choice_Xml_Song_Timings->Set(xml_file.GetTimingList());
+    Button_Xml_Import_Timing->Enable(true);
+    Button_Xml_Delete_Timing->Enable(true);
+    Choice_Xml_Song_Timings->SetSelection(0);
 }
 
 void XmlConversionDialog::SetSelectionToXMLFile()
@@ -272,6 +285,7 @@ void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& e
             TextCtrl_Xml_Album->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::ALBUM));
             TextCtrl_Xml_Music_Url->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::URL));
             TextCtrl_Xml_Comment->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::COMMENT));
+            PopulateSongTimings();
         }
     }
     if( xml_file.IsLoaded() )
@@ -316,8 +330,11 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
         xml_file.Clear();
         xml_file.Load();
     }
+    PopulateSongTimings();
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
+    Button_Xml_Import_Timing->Enable(true);
+    Button_Xml_Delete_Timing->Enable(true);
     SetSelectionToXMLFile();
 }
 
@@ -398,4 +415,17 @@ void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)
         PopulateFiles();
         Clear();
     }
+}
+
+void XmlConversionDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
+{
+    PopulateSongTimings();
+}
+
+void XmlConversionDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
+{
+    int selection = Choice_Xml_Song_Timings->GetSelection();
+    wxArrayString timing_list = xml_file.GetTimingList();
+    xml_file.DeleteTimingSection(timing_list[selection]);
+    PopulateSongTimings();
 }

@@ -27,6 +27,7 @@ class XmlConversionDialog: public wxDialog
 		//(*Declarations(XmlConversionDialog)
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
+		wxChoice* Choice_Xml_Song_Timings;
 		wxButton* Button_Xml_Settings_Save;
 		wxStaticText* StaticText_XML_Version;
 		wxTextCtrl* TextCtrl_Xml_Album;
@@ -57,7 +58,6 @@ class XmlConversionDialog: public wxDialog
 		wxBitmapButton* BitmapButton_Change_Dir;
 		wxButton* Button_Xml_Close_Dialog;
 		wxTextCtrl* TextCtrl_Xml_Artist;
-		wxChoice* Choice1;
 		//*)
 
 	protected:
@@ -92,7 +92,7 @@ class XmlConversionDialog: public wxDialog
 		static const long ID_BUTTON_Xml_Settings_Save;
 		static const long ID_BUTTON_Xml_Close_Dialog;
 		static const long ID_STATICTEXT_Xml_Timing;
-		static const long ID_CHOICE1;
+		static const long ID_CHOICE_Xml_Song_Timings;
 		static const long ID_BUTTON_Xml_Import_Timing;
 		static const long ID_BUTTON_Xml_Delete_Timing;
 		static const long ID_TEXTCTRL_Xml_Log;
@@ -104,6 +104,7 @@ class XmlConversionDialog: public wxDialog
         int current_selection;
 
         void PopulateFiles();
+        void PopulateSongTimings();
         void SetSelectionToXMLFile();
 
 		//(*Handlers(XmlConversionDialog)
@@ -120,6 +121,8 @@ class XmlConversionDialog: public wxDialog
 		void OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_CommentText(wxCommandEvent& event);
 		void OnBitmapButton_Change_DirClick(wxCommandEvent& event);
+		void OnButton_Xml_Import_TimingClick(wxCommandEvent& event);
+		void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
