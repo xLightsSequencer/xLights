@@ -169,6 +169,23 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     return isHit;
 }
 
+int EffectLayer::GetEffectIndexThatContainsPosition(int position)
+{
+   int index=-1;
+    for(int i=0;i<mEffects.size();i++)
+    {
+        int s =  mEffects[i].GetStartPosition();
+        int e =  mEffects[i].GetEndPosition();
+        if (position >= mEffects[i].GetStartPosition() &&
+            position <= mEffects[i].GetEndPosition())
+        {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
 void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
 {
     bool FirstSelectedFound = false;
@@ -272,3 +289,5 @@ void EffectLayer::SetParentElement(Element* parent)
 {
     mParentElement = parent;
 }
+
+

@@ -43,6 +43,7 @@ class EffectLayer
         int GetMinimumStartTime(int index);
 
         bool HitTestEffect(int position,int &index, int &result);
+        int GetEffectIndexThatContainsPosition(int position);
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
         void UnSelectAllEffects();
 

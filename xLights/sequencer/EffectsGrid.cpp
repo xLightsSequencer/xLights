@@ -44,6 +44,9 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
     mParent = parent;
     mDragging = false;
     mResizing = false;
+    mDragDropping = false;
+    mDropStartX = 0;
+    mDropEndX = 0;
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -68,11 +71,39 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
 
-
 void EffectsGrid::DragOver(int x, int y)
 {
     int row = GetRow(y);
-    int j=0;
+    int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+    if(selectedTimingIndex >= 0)
+    {
+        Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
+        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
+        int timingIndex = el->GetEffectIndexThatContainsPosition(x);
+        if(timingIndex >=0)
+        {
+            mDragDropping = true;
+            mDropStartX = el->GetEffect(timingIndex)->GetStartPosition();
+            mDropEndX = el->GetEffect(timingIndex)->GetEndPosition();
+            mDropRow = row;
+        }
+        else
+        {
+            mDragDropping = false;
+        }
+    }
+    else
+    {
+        mDragDropping = false;
+    }
+    Refresh(false);
+    mPaintOnIdleCounter=0;
+}
+
+void EffectsGrid::OnDrop(int x, int y)
+{
+    mDragDropping = false;
+    Refresh(false);
 }
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
@@ -153,6 +184,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
     mResizing = false;
     mDragging = false;
+    mDragDropping = false;
     mPaintOnIdleCounter = 0;
 }
 
@@ -435,14 +467,15 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     wxColour* mEffectColorRight;
     wxColour* mEffectColorLeft;
     wxColour* mEffectColorCenter;
+    int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
+    int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
+    int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
+
     for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
     {
         Effect* e = effectLayer->GetEffect(effectIndex);
         EFFECT_SCREEN_MODE mode;
 
-        int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
-        int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
-        int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
         int x1,x2;
         mTimeline->GetPositionFromTime(effectLayer->GetEffect(effectIndex)->GetStartTime(),
                                        effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2);
@@ -522,6 +555,15 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             }
 
         }
+    }
+    if(mDragDropping && mDropRow == row)
+    {
+        int y3 = row*DEFAULT_ROW_HEADING_HEIGHT;
+        const wxColour c = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+
+        glEnable(GL_BLEND);
+        DrawFillRectangle(c,80,mDropStartX,y3,mDropEndX-mDropStartX,DEFAULT_ROW_HEADING_HEIGHT);
+        glDisable(GL_BLEND);
     }
 }
 

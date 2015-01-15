@@ -49,6 +49,7 @@ public:
     void SetSequenceElements(SequenceElements* elements);
     void SetTimeline(TimeLine* timeline);
     void DragOver(int x, int y);
+    void OnDrop(int x, int y);
 
 private:
 	void render(wxPaintEvent& evt);
@@ -111,10 +112,16 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
+
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
     int mPaintOnIdleCounter;
 
+    // Drag And Drop
+    bool mDragDropping;
+    int mDropStartX;
+    int mDropEndX;
+    int mDropRow;
 
 
 	DECLARE_EVENT_TABLE()

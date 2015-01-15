@@ -54,6 +54,9 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
             mSequenceElements->DeactivateAllTimingElements();
             Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
             e->SetActive(!result);
+            // Set the selected timing row.
+            int selectedTimingRow = result?rowIndex:-1;
+            mSequenceElements->SetSelectedTimingRow(selectedTimingRow);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }

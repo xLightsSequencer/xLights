@@ -33,6 +33,9 @@ class SequenceElements
         Row_Information_Struct* GetRowInformation(int index);
         int GetRowInformationSize();
 
+        int GetSelectedTimingRow();
+        void SetSelectedTimingRow(int row);
+
         void SetViewsNode(wxXmlNode* viewsNode);
         wxString GetViewModels(wxString viewName);
 
@@ -48,6 +51,7 @@ class SequenceElements
     private:
     std::vector<Element> mElements;
     std::vector<Row_Information_Struct> mRowInformation;
+    int mSelectedTimingRow;
     bool ElementExists(wxString elementName);
     wxXmlNode* mViewsNode;
     double mFrequency;

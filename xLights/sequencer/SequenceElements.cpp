@@ -9,6 +9,7 @@
 
 SequenceElements::SequenceElements()
 {
+    mSelectedTimingRow = -1;
 }
 
 SequenceElements::~SequenceElements()
@@ -249,11 +250,23 @@ void SequenceElements::SetFrequency(double frequency)
     mFrequency = frequency;
 }
 
+
+void SequenceElements::SetSelectedTimingRow(int row)
+{
+    mSelectedTimingRow = row;
+}
+
+int SequenceElements::GetSelectedTimingRow()
+{
+    return mSelectedTimingRow;
+}
+
+
 void SequenceElements::PopulateRowInformation()
 {
     int rowIndex=0;
     int timingColorIndex=0;
-
+    mSelectedTimingRow = -1;
     mRowInformation.clear();
     for(int i=0;i<mElements.size();i++)
     {
@@ -298,6 +311,11 @@ void SequenceElements::PopulateRowInformation()
                 ri.PartOfView = false;
                 ri.colorIndex = timingColorIndex;
                 ri.layerIndex = 0;
+                if(mSelectedTimingRow<0)
+                {
+                    mSelectedTimingRow = ri.Active?rowIndex:-1;
+                }
+
                 ri.Index = rowIndex++;
                 mRowInformation.push_back(ri);
                 timingColorIndex++;

@@ -19,6 +19,7 @@ EffectDropTarget::~EffectDropTarget()
 
 bool EffectDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
+    ((EffectsGrid*)(mParent))->OnDrop(x,y);
     return true;
 }
 
