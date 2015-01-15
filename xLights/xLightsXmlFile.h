@@ -34,6 +34,7 @@ class xLightsXmlFile : public wxFileName
         wxArrayString GetTimingList() { return timing_list; }
         const wxString GetVersion() { return version_string; };
         bool NeedsConversion() { return needs_conversion; }
+        void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
     protected:
     private:
         wxArrayString models;

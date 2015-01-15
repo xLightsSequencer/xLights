@@ -1,5 +1,6 @@
 #include "xLightsXmlFile.h"
 #include "xLightsMain.h"
+#include <wx/tokenzr.h>
 
 #define string_format wxString::Format
 
@@ -547,3 +548,72 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool append)
     needs_conversion = false;
     if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
 }
+
+void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames)
+{
+    wxTextFile f;
+    wxString line;
+    int r;
+
+    for( int i = 0; i < filenames.Count(); ++i )
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            //Add error dialog if open file failed
+            return;
+        }
+
+        wxString filename = filenames[i];
+        wxXmlNode* root=seqDocument.GetRoot();
+        wxXmlNode* child;
+        wxXmlNode* layer;
+
+        for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            if (e->GetName() == "ElementEffects")
+            {
+                child = AddChildXmlNode(e, wxT("Element"));
+                child->AddAttribute(wxT("type"),wxT("timing"));
+                child->AddAttribute(wxT("name"),filename);
+                layer = AddChildXmlNode(child, wxT("EffectLayer"));
+            }
+        }
+
+        for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
+        {
+            std::string::size_type ofs;
+            if ((ofs = line.find("#")) != std::string::npos) line.erase(ofs); //remove comments
+            while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
+            if (line.empty())
+            {
+                --r;    //skip blank lines; don't add grid row
+                continue;
+            }
+
+            wxStringTokenizer tkz(line, "\t");
+            wxString start_time = tkz.GetNextToken(); //first column = start time
+            //pull in lyrics or other label text
+            wxString end_time = tkz.GetNextToken(); //second column = end time;
+            wxString label = tkz.GetNextToken(); //third column = label/text
+            for (;;) //collect remaining tokens into label
+            {
+                wxString more = tkz.GetNextToken();
+                if (more.empty()) break;
+                label += " " + more;
+            }
+
+            child = AddChildXmlNode(layer, wxT("Effect"));
+            child->AddAttribute(wxT("protected"), _("0"));
+            child->AddAttribute(wxT("label"), label);
+            child->AddAttribute(wxT("startTime"), start_time);
+            child->AddAttribute(wxT("endTime"), end_time);
+        }
+        timing_list.push_back(filename);
+    }
+
+    seqDocument.Save(GetFullPath());
+}
+

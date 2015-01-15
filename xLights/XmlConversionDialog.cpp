@@ -415,10 +415,22 @@ void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)
         PopulateFiles();
         Clear();
     }
+    dlg->Destroy();
 }
 
 void XmlConversionDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 {
+    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audacity timing file(s)"), wxEmptyString, wxEmptyString, _("Text files (*.txt)|*.txt"), wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxString fDir;
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fDir =	OpenDialog->GetDirectory();
+        wxArrayString filenames;
+        OpenDialog->GetFilenames(filenames);
+        xml_file.ProcessAudacityTimingFiles(fDir, filenames);
+    }
+
+    OpenDialog->Destroy();
     PopulateSongTimings();
 }
 
@@ -429,3 +441,4 @@ void XmlConversionDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
     xml_file.DeleteTimingSection(timing_list[selection]);
     PopulateSongTimings();
 }
+
