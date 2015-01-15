@@ -303,7 +303,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
         //     duration*=1000;  // convert to milliseconds
         duration=f_duration*1000;  // convert to milliseconds <SCM>
     }
-    int intervalSize = 50;  //FIXME - query from user
+    int intervalSize = atoi(dialog.NewSequenceTiming->GetStringSelection().c_str());
     SeqData.init(NetInfo.GetTotChannels(), duration / intervalSize, intervalSize);
     Timer1.Start(SeqData.FrameTime());
     
@@ -627,20 +627,6 @@ void xLightsFrame::UpdateModelsList()
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void xLightsFrame::SaveSequence()
 {
     if (SeqData.NumFrames() == 0)
@@ -648,8 +634,63 @@ void xLightsFrame::SaveSequence()
         wxMessageBox("You must open a sequence first!", "Error");
         return;
     }
-    //FIXME
+    if (xlightsFilename.IsEmpty())
+    {
+        wxString NewFilename;
+        wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
+        bool ok = false;
+        do
+        {
+            if (dialog.ShowModal() != wxID_OK)
+            {
+                return;
+            }
+            // validate inputs
+            NewFilename=dialog.GetValue();
+            NewFilename.Trim();
+            ok=true;
+            if (NewFilename.IsEmpty())
+            {
+                ok=false;
+                wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+            }
+        }
+        while (!ok);
+        wxFileName oName(NewFilename);
+        oName.SetPath( CurrentDir );
+        oName.SetExt("fseq");
+        DisplayXlightsFilename(oName.GetFullPath());
+        
+        oName.SetExt("xml");
+        SeqXmlFileName=oName.GetFullPath();
+    }
+    
+    EnableSequenceControls(false);
+    wxStopWatch sw; // start a stopwatch timer
+    StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
+
+    //FIXME  -  save the XML file
+    //Save(SeqXmlFileName);
+    
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
@@ -708,42 +749,17 @@ void xLightsFrame::ResetSequenceGrid()
 void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 {
 }
+
+
+
+
+
 #if 0
-
-
-
-
-
-//#define WANT_FASTER_GRID(grid)  MakeGridFaster grid##_faster(grid) //experimental; comment out this line for slower grid updates -DJ
-
-#ifdef WANT_FASTER_GRID
- class MakeGridFaster //scoped wrapper to turn grid updates off+on
- {
- private:
-    wxGrid* grid_ptr;
- public:
-    MakeGridFaster(wxGrid* grid): grid_ptr(grid)
-    {
-        if (grid_ptr) grid_ptr->BeginBatch(); //defer repaints until finished updating
-    }
-    ~MakeGridFaster(void)
-    {
-        if (grid_ptr) grid_ptr->EndBatch(); //resume updates when wrapper goes out of scope
-    }
- };
-#else
- #define WANT_FASTER_GRID(ignore) //works as before
-#endif // FASTER_GRID
-
 
 const wxString& DefaultAs(const wxString& str, const wxString& defval)
 {
     return !str.IsEmpty()? str: defval;
 }
-
-
-
-
 
 void xLightsFrame::OnButton_PlayAllClick(wxCommandEvent& event)
 {

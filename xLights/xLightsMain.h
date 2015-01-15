@@ -278,7 +278,6 @@ public:
     bool SaveEffectsFile();
 
     static const char** GetIconBuffer(int effectID);
-    static void SetButtonColor(wxButton* btn, const wxColour* c);
 
 
      enum RGB_EFFECTS_e

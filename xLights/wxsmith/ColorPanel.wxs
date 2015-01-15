@@ -82,62 +82,68 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
-															<label>1</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette1" variable="Button_Palette1" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
-															<label>2</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette2" variable="Button_Palette2" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
-															<label>3</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette3" variable="Button_Palette3" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
-															<label>4</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette4" variable="Button_Palette4" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
-															<label>5</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette5" variable="Button_Palette5" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
-															<label>6</label>
+														<object class="wxBitmapButton" name="ID_BUTTON_Palette6" variable="Button_Palette6" member="yes">
+															<default>1</default>
 															<size>21,21</size>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnButton_PaletteNumberClick" entry="EVT_BUTTON" />
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>

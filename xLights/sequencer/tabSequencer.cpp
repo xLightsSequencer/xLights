@@ -404,7 +404,7 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, con
                 color.Set(value);
                 if (efPanel != NULL)
                 {
-                    SetButtonColor((wxButton*)CtrlWin, &color);
+                    ColorPanel::SetButtonColor((wxBitmapButton*)CtrlWin, &color);
                 }
                 else
                 {

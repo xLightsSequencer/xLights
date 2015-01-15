@@ -10,7 +10,6 @@
 #include <wx/slider.h>
 #include <wx/panel.h>
 #include <wx/bmpbuttn.h>
-#include <wx/button.h>
 //*)
 
 #include <wx/colordlg.h>
@@ -28,22 +27,23 @@ class ColorPanel: public wxPanel
         void SetDefaultPalette();
         wxColour GetPaletteColor(int idx);
         void SetPaletteColor(int idx, const wxColour* c);
+        static void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(ColorPanel)
 		wxStaticText* StaticText22;
 		wxBitmapButton* BitmapButton_Contrast;
-		wxButton* Button_Palette6;
-		wxButton* Button_Palette3;
 		wxBitmapButton* BitmapButton_Brightness;
-		wxButton* Button_Palette2;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxCheckBox* CheckBox_Palette6;
 		wxBitmapButton* BitmapButton_Palette3;
-		wxButton* Button_Palette5;
+		wxBitmapButton* Button_Palette3;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxCheckBox* CheckBox_Palette1;
 		wxPanel* Panel_Sizer;
+		wxBitmapButton* Button_Palette5;
+		wxBitmapButton* Button_Palette6;
+		wxBitmapButton* Button_Palette1;
 		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxCheckBox* CheckBox_Palette5;
 		wxStaticText* StaticText127;
@@ -53,8 +53,8 @@ class ColorPanel: public wxPanel
 		wxCheckBox* CheckBox_Palette3;
 		wxCheckBox* CheckBox_Palette4;
 		wxSlider* Slider_Brightness;
-		wxButton* Button_Palette4;
 		wxBitmapButton* BitmapButton_Palette4;
+		wxBitmapButton* Button_Palette2;
 		wxStaticText* StaticText126;
 		wxSlider* Slider_SparkleFrequency;
 		wxBitmapButton* BitmapButton_Palette5;
@@ -63,7 +63,7 @@ class ColorPanel: public wxPanel
 		wxTextCtrl* txtCtrlSparkleFreq;
 		wxSlider* Slider_Contrast;
 		wxBitmapButton* BitmapButton_Palette6;
-		wxButton* Button_Palette1;
+		wxBitmapButton* Button_Palette4;
 		//*)
 
 	protected:
