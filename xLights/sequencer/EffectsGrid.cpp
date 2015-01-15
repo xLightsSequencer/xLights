@@ -26,6 +26,7 @@ EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
+
 //EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 //EVT_SIZE(EffectsGrid::resized)
