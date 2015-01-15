@@ -26,10 +26,12 @@ class xLightsXmlFile : public wxFileName
         void Load();
         void Save(wxTextCtrl* log);
         void SetHeaderInfo(wxArrayString info);
+        void DeleteTimingSection(wxString section);
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
         void Clear();
         bool IsLoaded() { return is_loaded; }
         int GetNumModels() { return models.GetCount(); }
+        wxArrayString GetTimingList() { return timing_list; }
         const wxString GetVersion() { return version_string; };
         bool NeedsConversion() { return needs_conversion; }
     protected:
@@ -43,6 +45,7 @@ class xLightsXmlFile : public wxFileName
         wxArrayString effects;
         wxXmlDocument seqDocument;
         wxArrayString header_info;
+        wxArrayString timing_list;
         bool is_loaded;
         bool needs_conversion;
         wxString version_string;

@@ -102,6 +102,7 @@ void xLightsXmlFile::Clear()
     effect_protection.Clear();
     effects.Clear();
     header_info.Clear();
+    timing_list.Clear();
     for(int i = 0; i < NUM_TYPES; ++i )
     {
         header_info.push_back(_(""));
@@ -167,6 +168,41 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
                 else if( element->GetName() == "comment")
                 {
                     SetNodeContent(element, header_info[COMMENT]);
+                }
+            }
+       }
+    }
+}
+
+void xLightsXmlFile::DeleteTimingSection(wxString section)
+{
+    if( needs_conversion ) // conversion process will take care of writing this info
+        return;
+
+    bool found = false;
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
+    {
+       if (e->GetName() == "ElementEffects")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL & !found; element=element->GetNext() )
+            {
+                if (element->GetName() == "Element")
+                {
+                    wxString attr;
+                    element->GetAttribute("type", &attr);
+                    if( attr == _("timing"))
+                    {
+                        element->GetAttribute("name", &attr);
+                        if( attr == section )
+                        {
+                            e->RemoveChild(element);
+                            seqDocument.Save(GetFullPath());
+                            timing_list.Remove(section);
+                            found = true;
+                        }
+                    }
                 }
             }
        }
@@ -294,6 +330,11 @@ void xLightsXmlFile::Load()
                         {
                             element->GetAttribute("name", &attr);
                             models.push_back(attr);
+                        }
+                        else if( attr == _("timing"))
+                        {
+                            element->GetAttribute("name", &attr);
+                            timing_list.push_back(attr);
                         }
                     }
                 }
@@ -498,8 +539,6 @@ void xLightsXmlFile::Save(wxTextCtrl* log)
     }
     else
     {
-        GetFullPath();
-
         log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
 
         seqDocument.Save(GetFullPath());

@@ -2548,6 +2548,7 @@ void xLightsFrame::OpenSequence()
             MediaFiles.Add(oName.GetFullPath());
             break;
         case 'X':
+        case 'F':
             XSeqFiles.Add(oName.GetFullPath());
             break;
         case 'L':
