@@ -1205,7 +1205,6 @@ private:
     void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
     wxString CreateEffectStringRandom();
-    wxString InsertMissing(wxString str,wxString missing_array,bool INSERT);
     void FixVersionDifferences(wxString file);
     void BackupDirectory(wxString targetDirName);
     void OpenSequence();
