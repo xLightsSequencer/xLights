@@ -206,7 +206,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
         case Mix_Effect2:
             emt = effectMixThreshold[layer];
             emtNot = 1-effectMixThreshold[layer];
-            if (!effectMixVaries) {
+            if (!effectMixVaries[layer]) {
                 //make cross-fade linear; this inverts it? -DJ
                 emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
                 emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
