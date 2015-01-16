@@ -20,6 +20,7 @@ class TopEffectsPanel: public wxPanel
 		virtual ~TopEffectsPanel();
 
 		void SetDragIconBuffer(const char** buffer);
+
 		//(*Declarations(TopEffectsPanel)
 		wxButton* Button1;
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;

@@ -160,7 +160,7 @@ wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
-
+wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 
 
 static wxCriticalSection gs_xoutCriticalSection;
@@ -202,6 +202,14 @@ enum SeqPlayerStates
     DELAY_AFTER_PLAY,
     PLAYING_EFFECT
 };
+
+struct EffectDropData
+{
+    wxDouble StartTime;
+    wxDouble EndTime;
+    EffectLayer* Layer;
+};
+
 class xlAuiToolBar;
 
 class SchedTreeData : public wxTreeItemData
@@ -1341,6 +1349,7 @@ private:
     // Methods
     void InitSequencer();
     void CreateSequencer();
+    // Events
     void Zoom( wxCommandEvent& event);
     void TimelineChanged( wxCommandEvent& event);
     void RowHeadingsChanged( wxCommandEvent& event);
@@ -1348,6 +1357,8 @@ private:
     void HorizontalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
+    void EffectDroppedOnGrid(wxCommandEvent& event);
+
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);
@@ -1355,6 +1366,8 @@ private:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
+    wxString GetEffectTextFromWindows();
+
 
     // Panels
     TopEffectsPanel* effectsPnl;

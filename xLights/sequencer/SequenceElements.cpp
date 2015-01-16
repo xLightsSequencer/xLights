@@ -5,6 +5,7 @@
 #include <wx/filename.h>
 
 #include "SequenceElements.h"
+#include "TimeLine.h"
 
 
 SequenceElements::SequenceElements()
@@ -214,11 +215,11 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                                         // Start time
                                         double startTime;
                                         effect->GetAttribute("startTime").ToDouble(&startTime);
-                                        startTime = EffectLayer::RoundToMultipleOfPeriod(startTime,mFrequency);
+                                        startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
                                         // End time
                                         double endTime;
                                         effect->GetAttribute("endTime").ToDouble(&endTime);
-                                        endTime = EffectLayer::RoundToMultipleOfPeriod(endTime,mFrequency);
+                                        endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
                                         // Protected
                                         bProtected = effect->GetAttribute("protected")=='1'?true:false;
                                         if(elementNode->GetAttribute("type") != "timing")

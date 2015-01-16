@@ -261,6 +261,7 @@ double TimeLine::GetAbsoluteTimefromPosition(int position)
 {
     double nMajorHashs = (double)position/(double)PIXELS_PER_MAJOR_HASH;
     double time = mStartTime + (double)(nMajorHashs*TimePerMajorTickInMS()/(double)1000);
+    time = RoundToMultipleOfPeriod(time,mFrequency);
     return time;
 }
 
@@ -401,6 +402,21 @@ TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOf
     ZoomLevel = zoomLevel;
     StartPixelOffset = startPixelOffset;
     SelectedPosition = selectedPosition;
+}
+
+double TimeLine::RoundToMultipleOfPeriod(double number,double frequency)
+{
+    double period = (double)1/frequency;
+    int i = (int)(number/period);
+    double d = number/period;
+    if(d-(double)i < .5)
+    {
+        return ((double)i * period);
+    }
+    else
+    {
+        return ((double)(i+1) * period);
+    }
 }
 
 TimelineChangeArguments::~TimelineChangeArguments()

@@ -63,7 +63,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	//*)
 
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
-     BitmapButtonSelectedEffect->SetBitmap(Off);
+    BitmapButtonSelectedEffect->SetBitmap(Off);
 }
 
 TopEffectsPanel::~TopEffectsPanel()
@@ -87,6 +87,7 @@ void TopEffectsPanel::OnResize(wxSizeEvent& event)
 
 void TopEffectsPanel::OnBitmapButtonSelectedEffectClick(wxCommandEvent& event)
 {
+
 }
 
 void TopEffectsPanel::OnLeftDown(wxMouseEvent& event)

@@ -324,6 +324,19 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
 
 }
 
+void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
+{
+    EffectDropData * dropData = (EffectDropData*)event.GetClientData();
+    int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+    wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
+    wxString settings = GetEffectTextFromWindows();
+
+    dropData->Layer->AddEffect(0,effectIndex,name,settings,dropData->StartTime,dropData->EndTime,false);
+    mainSequencer->PanelEffectGrid->Refresh(false);
+}
+
+
+
 
 
 void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, const wxString& model_name)
@@ -557,5 +570,13 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
             break;
     }
     return p_XPM;
+}
+
+
+wxString xLightsFrame::GetEffectTextFromWindows()
+{
+    wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," + colorPanel->GetColorString();
+    return effectText;
 }
 

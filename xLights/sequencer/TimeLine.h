@@ -61,6 +61,8 @@ class TimeLine : public wxWindow
         int GetTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
 
+        static double RoundToMultipleOfPeriod(double number,double period);
+
         struct TIME_LINE_CHANGED_ARGS
         {
             int zoomLevel;

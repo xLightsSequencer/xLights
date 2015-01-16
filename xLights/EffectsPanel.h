@@ -39,6 +39,7 @@ public:
     wxString GetEffectString();
     wxString GetRandomEffectString(int effidx);
     void SetButtonColor(wxButton* btn, const wxColour* c);
+    wxString GetEffectStringFromWindow(wxWindow *ParentWin);
 
     static const int PALETTE_SIZE = 6;
 
@@ -270,6 +271,7 @@ public:
     wxStaticText* StaticText14_layout_kludge2;
     wxCheckBox* CheckBox_Fire_GrowFire;
     wxBitmapButton* BitmapButton_TextEffect3;
+    wxTextCtrl* TextCtrl_Text_Line2;
     wxStaticText* StaticText72;
     wxSlider* Slider_Fire_HueShift;
     wxBitmapButton* BitmapButton_Number_Chases;
@@ -562,28 +564,28 @@ protected:
     static const long ID_BITMAPBUTTON_SLIDER_Circles_Size;
     static const long ID_CHECKBOX_Circles_Bounce;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Bounce;
-    static const long ID_CHECKBOX_Circles_Collide;
-    static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Collide;
     static const long ID_CHECKBOX_Circles_Radial;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Radial;
     static const long ID_CHECKBOX_Circles_Plasma;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Plasma;
     static const long ID_CHECKBOX_Circles_Radial_3D;
     static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Radial_3D;
-    static const long ID_CHECKBOX_Circles_Random_m;
-    static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m;
     static const long ID_CHECKBOX_Circles_Bubbles;
     static const long ID_BITMAPBUTTON15;
+    static const long ID_CHECKBOX_Circles_Collide;
+    static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Collide;
+    static const long ID_CHECKBOX_Circles_Random_m;
+    static const long ID_BITMAPBUTTON_CHECKBOX_Circles_Random_m;
     static const long ID_PANEL37;
     static const long ID_STATICTEXT21;
     static const long ID_SLIDER_ColorWash_Count;
     static const long ID_BITMAPBUTTON_SLIDER_ColorWash_Count;
-    static const long ID_STATICTEXT32;
-    static const long ID_CHECKBOX_ColorWash_HFade;
-    static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
     static const long ID_STATICTEXT33;
     static const long ID_CHECKBOX_ColorWash_VFade;
     static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade;
+    static const long ID_STATICTEXT32;
+    static const long ID_CHECKBOX_ColorWash_HFade;
+    static const long ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade;
     static const long ID_PANEL5;
     static const long ID_STATICTEXT73;
     static const long ID_CHOICE_CoroFaces_Phoneme;
@@ -855,6 +857,7 @@ protected:
     static const long ID_STATICTEXT53;
     static const long ID_TEXTCTRL_Text_Line1;
     static const long ID_STATICTEXT54;
+    static const long ID_TEXTCTRL_Text_Line2;
     static const long ID_STATICTEXT22;
     static const long ID_TEXTCTRL_Text_Line3;
     static const long ID_STATICTEXT23;
@@ -975,6 +978,8 @@ protected:
     static const long ID_BITMAPBUTTON1;
     static const long ID_BITMAPBUTTON88;
     //*)
+
+
 
 private:
 
@@ -1209,7 +1214,6 @@ private:
     void UpdateFont(wxTextCtrl* FontCtrl);
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetAttrPrefix();
-    wxString GetEffectStringFromWindow(wxWindow *ParentWin);
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
 
 //add lock/unlock/random state flags -DJ

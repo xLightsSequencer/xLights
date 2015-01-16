@@ -18,6 +18,7 @@ class DragEffectBitmapButton : public wxBitmapButton
     private:
         const char** mDragIconBuffer;
 
+        wxString (*GetStringFunction)();
 };
 
 #endif // DRAGEFFECTBITMAPBUTTON_H

@@ -25,6 +25,9 @@
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
+
+struct EffectDropData;
 
 class EffectsGrid : public wxGLCanvas
 {
@@ -81,6 +84,7 @@ private:
     void UpdateTimePosition(int position);
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
+    void RaiseEffectDropped(int x, int y);
 
     Element* GetActiveTimingElement();
 
@@ -122,7 +126,10 @@ private:
     int mDropStartX;
     int mDropEndX;
     int mDropRow;
+    double mDropStartTime;
+    double mDropEndTime;
 
+    EffectDropData* mDropData;
 
 	DECLARE_EVENT_TABLE()
 };

@@ -32,8 +32,6 @@ class EffectLayer
         void SetIndex(int index);
         void SortEffects();
 
-        static double RoundToMultipleOfPeriod(double number,double period);
-
         bool IsStartTimeLinked(int index);
         bool IsEndTimeLinked(int index);
         bool IsEffectStartTimeInRange(int index, float startTime,float endTime);

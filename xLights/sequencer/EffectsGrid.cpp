@@ -60,11 +60,19 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
 
     mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
+    mDropData = new EffectDropData();
+
 }
 
 EffectsGrid::~EffectsGrid()
 {
 	delete m_context;
+	delete mDropData;
+	delete mEffectColor;
+	delete mGridlineColor;
+	delete mTimingColor;
+	delete mTimingVerticalLine;
+	delete mSelectionColor;
 }
 
 void EffectsGrid::rightClick(wxMouseEvent& event) {}
@@ -86,6 +94,8 @@ void EffectsGrid::DragOver(int x, int y)
             mDragDropping = true;
             mDropStartX = el->GetEffect(timingIndex)->GetStartPosition();
             mDropEndX = el->GetEffect(timingIndex)->GetEndPosition();
+            mDropStartTime = el->GetEffect(timingIndex)->GetStartTime();
+            mDropEndTime = el->GetEffect(timingIndex)->GetEndTime();
             mDropRow = row;
         }
         else
@@ -104,6 +114,7 @@ void EffectsGrid::DragOver(int x, int y)
 void EffectsGrid::OnDrop(int x, int y)
 {
     mDragDropping = false;
+    RaiseEffectDropped(x,y);
     Refresh(false);
 }
 
@@ -195,7 +206,7 @@ void EffectsGrid::Resize(int position)
     {
         double time = mTimeline->GetAbsoluteTimefromPosition(position);
 
-        time = EffectLayer::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+        time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
         if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex))
         {
             mEffectLayer->GetEffect(mResizeEffectIndex-1)->SetEndTime(time);
@@ -205,7 +216,7 @@ void EffectsGrid::Resize(int position)
     else if(mResizingMode==EFFECT_RESIZE_RIGHT)
     {
         double time = mTimeline->GetAbsoluteTimefromPosition(position);;
-        time = EffectLayer::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+        time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
         if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex))
         {
             mEffectLayer->GetEffect(mResizeEffectIndex+1)->SetStartTime(time);
@@ -880,6 +891,21 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 
+void EffectsGrid::RaiseEffectDropped(int x, int y)
+{
+    //Store Effect Layer to add effect to
+    int row = GetRow(y);
+    Element* e = mSequenceElements->GetRowInformation(row)->element;
+    EffectLayer* effectLayer = e->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+    mDropData->Layer = effectLayer;
+    // Store start and end time. The effect text will be supplied by parent class
+    mDropData->StartTime = mDropStartTime;
+    mDropData->EndTime = mDropEndTime;
+    // Raise event
+    wxCommandEvent eventDropped(EVT_EFFECT_DROPPED);
+    eventDropped.SetClientData(mDropData);
+    wxPostEvent(GetParent(), eventDropped);
+}
 
 Element* EffectsGrid::GetActiveTimingElement()
 {

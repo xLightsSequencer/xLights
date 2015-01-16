@@ -28,6 +28,7 @@ class ColorPanel: public wxPanel
         void SetDefaultPalette();
         wxColour GetPaletteColor(int idx);
         void SetPaletteColor(int idx, const wxColour* c);
+        wxString GetColorString();
         static const int PALETTE_SIZE = 6;
 
 		//(*Declarations(ColorPanel)

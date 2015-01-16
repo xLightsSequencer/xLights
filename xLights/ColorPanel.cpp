@@ -219,6 +219,33 @@ ColorPanel::~ColorPanel()
 	//*)
 }
 
+wxString ColorPanel::GetColorString()
+{
+    wxString s,ChildName,AttrName;
+//    wxString prefix=GetAttrPrefix();
+//    //~s=prefix+wxString::Format("SLIDER_Speed=%d",Slider_Speed->GetValue());
+//    //~s+=prefix+"TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue();
+//    //~s+=prefix+"TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue();
+//    //~s+=prefix+wxString::Format("CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0);
+//    //~s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
+//
+    wxColour color;
+    for (int i=1; i<=PALETTE_SIZE; i++)
+    {
+        color=GetPaletteColor(i);
+        AttrName.Printf("C_BUTTON_Palette%d=",i);
+        s+=AttrName+color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
+        ChildName.Printf("ID_CHECKBOX_Palette%d",i);
+        AttrName.Printf("C_CHECKBOX_Palette%d",i);
+        wxCheckBox* ctrl=(wxCheckBox*)wxWindow::FindWindowByName(ChildName,this);
+        wxString v=(ctrl->IsChecked()) ? "1" : "0";
+        s+=AttrName+"="+v + ",";
+    }
+    return s;
+}
+
+
+
 wxColour ColorPanel::GetPaletteColor(int idx)
 {
     switch (idx)

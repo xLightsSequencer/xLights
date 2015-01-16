@@ -56,6 +56,7 @@ void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString set
     e.SetStartTime(startTime);
     e.SetEndTime(endTime);
     e.SetProtected(Protected);
+    e.SetSelected(false);
     mEffects.push_back(e);
 }
 
@@ -119,21 +120,6 @@ int EffectLayer::GetEffectCount()
         return 0;
     else
         return mEffects.size();
-}
-
-double EffectLayer::RoundToMultipleOfPeriod(double number,double frequency)
-{
-    double period = (double)1/frequency;
-    int i = (int)(number/period);
-    double d = number/period;
-    if(d-(double)i < .5)
-    {
-        return ((double)i * period);
-    }
-    else
-    {
-        return ((double)(i+1) * period);
-    }
 }
 
 bool EffectLayer::HitTestEffect(int position,int &index, int &result)
