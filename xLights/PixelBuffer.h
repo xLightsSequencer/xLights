@@ -54,39 +54,45 @@ enum MixTypes
 class PixelBufferClass : public ModelClass
 {
 private:
+    int numLayers;
+    int frameTimeInMs;
 
-    int sparkle_count;
-    int brightness;
-    int ModelBrightness;
-    int contrast;
     int CurrentLayer;  // 0 or 1
-    float effectMixThreshold;
-    bool effectMixVaries; //allow varying mix threshold -DJ
-    MixTypes MixType;
-    RgbEffects Effect[2];
-    void GetMixedColor(wxCoord x, wxCoord y, xlColour& c);
-    double fadeFactor[2];
+    int ModelBrightness;
 
+    //bunch of per layer settings
+    RgbEffects *effects;
+    int *sparkle_count;
+    int *brightness;
+    int *contrast;
+    double *fadeFactor;
+    MixTypes *mixType;
+    float *effectMixThreshold;
+    bool *effectMixVaries; //allow varying mix threshold -DJ
+    
+    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c);
+    xlColour mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer);
+    void SetModelBrightness(int value);
 public:
     PixelBufferClass();
     ~PixelBufferClass();
-    void InitBuffer(wxXmlNode* ModelNode, bool zeroBased=false);
+    void InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased=false);
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
-    void SetMixType(const wxString& MixName);
+    void SetMixType(int layer, const wxString& MixName);
     void SetPalette(int layer, wxColourVector& newcolors);
+    void SetPalette(int layer, xlColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
-    void SetTimes(int layer, int startTime, int endTime, int nextTime, bool new_effect_starts);
+    void SetTimes(int layer, int startTime, int endTime);
     void SetFitToTime(int layer, bool fit);
     void SetFadeTimes(int layer, float inTime, float outTime);
-    void SetSparkle(int freq);
-    void SetBrightness(int value);
-    void SetModelBrightness(int value);
-    void SetContrast(int value);
-    void SetMixThreshold(int value, bool varies);
+    void SetSparkle(int layer, int freq);
+    void SetBrightness(int layer, int value);
+    void SetContrast(int layer, int value);
+    void SetMixThreshold(int layer, int value, bool varies);
+    
     void CalcOutput(int EffectPeriod);
 
-    int StartingPeriod();
 #include "Effects.h"
 
 };

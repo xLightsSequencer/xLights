@@ -457,30 +457,50 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                 wxString effect_string = effects[next_effect];
                 if(effect_string.length() > 500)
                 {
-                    wxArrayString parts = wxSplit(effect_string, ',');
-                    wxArrayString parts_copy = parts;
-                    parts_copy.RemoveAt(0,2);
-                    effect_string = wxJoin(parts_copy, ',');
-
-                    int eff1_start = effect_string.find(wxString(",E1_SLIDER_Speed"));
-                    int eff2_start = effect_string.find(wxString("E2_SLIDER_Speed"));
-
-                    wxString prefix = effect_string.substr(0, eff1_start);
-                    wxString eff1 = effect_string.substr(0, eff2_start-1);
-                    wxString eff2 = prefix + effect_string.substr(eff2_start, effect_string.length() - eff2_start);
-
-                    wxString data1 = SubstituteV3toV4tags(eff1);
-                    wxString data2 = SubstituteV3toV4tags(eff2);
+                    wxString settings(effect_string);
+                    wxString eff1, eff2, prefix;
+                    wxString effect1, effect2;
+                    wxString before,after;
+                    int cnt=0;
+                    while (!settings.IsEmpty()) {
+                        before=settings.BeforeFirst(',');
+                        switch (cnt)
+                        {
+                        case 0:
+                            effect1 = before;
+                            break;
+                        case 1:
+                            effect2 = before;
+                            break;
+                        case 2:
+                            prefix = before;
+                            break;
+                        default:
+                            if (before.StartsWith("E1_")) {
+                                eff1 += "," + before;
+                            } else if (before.StartsWith("E1_")) {
+                                eff2 += "," + before;
+                            } else {
+                                prefix += "," + before;
+                            }
+                            break;
+                        }
+                        settings=settings.AfterFirst(',');
+                        cnt++;
+                    }
+                    
+                    wxString data1 = SubstituteV3toV4tags(prefix + eff1);
+                    wxString data2 = SubstituteV3toV4tags(prefix + eff2);
 
                     wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
-                    effect->AddAttribute(wxT("name"), parts[0]);
+                    effect->AddAttribute(wxT("name"), effect1);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
                     effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
 
                     effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
-                    effect->AddAttribute(wxT("name"), parts[1]);
+                    effect->AddAttribute(wxT("name"), effect2);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
