@@ -13,6 +13,8 @@
 //*)
 
 #include <wx/colordlg.h>
+#include <unordered_map>
+
 
 class ColorPanel: public wxPanel
 {
@@ -40,8 +42,10 @@ class ColorPanel: public wxPanel
 		wxCheckBox* CheckBox_Palette6;
 		wxBitmapButton* BitmapButton_Palette3;
 		wxBitmapButton* Button_Palette3;
+		wxBitmapButton* BitmapButton_random;
 		wxBitmapButton* BitmapButton_Palette2;
 		wxCheckBox* CheckBox_Palette1;
+		wxBitmapButton* BitmapButton_normal;
 		wxPanel* Panel_Sizer;
 		wxBitmapButton* Button_Palette5;
 		wxBitmapButton* Button_Palette6;
@@ -51,6 +55,7 @@ class ColorPanel: public wxPanel
 		wxStaticText* StaticText127;
 		wxTextCtrl* txtCtlBrightness;
 		wxTextCtrl* txtCtlContrast;
+		wxBitmapButton* BitmapButton_locked;
 		wxBitmapButton* BitmapButton_Palette1;
 		wxCheckBox* CheckBox_Palette3;
 		wxCheckBox* CheckBox_Palette4;
@@ -101,6 +106,9 @@ class ColorPanel: public wxPanel
 		static const long ID_SLIDER_Contrast;
 		static const long ID_TEXTCTRL7;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
+		static const long ID_BITMAPBUTTON87;
+		static const long ID_BITMAPBUTTON1;
+		static const long ID_BITMAPBUTTON88;
 		static const long ID_SCROLLED_ColorScroll;
 		static const long ID_PANEL1;
 		//*)
@@ -118,12 +126,17 @@ class ColorPanel: public wxPanel
 		void OnButton_PaletteNumberClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnPaint(wxPaintEvent& event);
+		void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
+		void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
+		void OnBitmapButton_ContrastClick(wxCommandEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;
         void setlock(wxButton* button); //, EditState& islocked);
 
+        typedef enum { Normal, Locked, Random } EditState;
+        std::unordered_map<std::string, EditState> buttonState;
 
 		DECLARE_EVENT_TABLE()
 };

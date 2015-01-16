@@ -289,7 +289,7 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(w,h-120));
     mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(w,h-120));
     mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(w,h-120));
-    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
+    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 10, 0, 2);
     mainSequencer->ScrolledEffectsGrid->FitInside();
 
     //colorPanel->SetSize(wxSize(50,50));

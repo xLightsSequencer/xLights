@@ -46,6 +46,9 @@ const long ColorPanel::ID_STATICTEXT128 = wxNewId();
 const long ColorPanel::ID_SLIDER_Contrast = wxNewId();
 const long ColorPanel::ID_TEXTCTRL7 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON87 = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON1 = wxNewId();
+const long ColorPanel::ID_BITMAPBUTTON88 = wxNewId();
 const long ColorPanel::ID_SCROLLED_ColorScroll = wxNewId();
 const long ColorPanel::ID_PANEL1 = wxNewId();
 //*)
@@ -62,6 +65,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -184,6 +188,20 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	BitmapButton_Contrast->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_Contrast, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer4->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
+	BitmapButton_normal = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON87, padlock16x16_green_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON87"));
+	BitmapButton_normal->SetDefault();
+	BitmapButton_normal->Hide();
+	FlexGridSizer6->Add(BitmapButton_normal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	BitmapButton_locked = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON1, padlock16x16_red_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
+	BitmapButton_locked->SetDefault();
+	BitmapButton_locked->Hide();
+	FlexGridSizer6->Add(BitmapButton_locked, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	BitmapButton_random = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON88, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON88"));
+	BitmapButton_random->SetDefault();
+	BitmapButton_random->Hide();
+	FlexGridSizer6->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ColorScrollWindow->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(ColorScrollWindow);
 	FlexGridSizer4->SetSizeHints(ColorScrollWindow);
@@ -214,12 +232,15 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette4Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette5Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette6Click);
+	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SparkleFrequencyClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_BrightnessClick);
+	Connect(ID_BITMAPBUTTON_SLIDER_Contrast,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ContrastClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&ColorPanel::OnPaint);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
-    
-    
+
     SetDefaultPalette();
+
 }
 
 ColorPanel::~ColorPanel()
@@ -234,12 +255,12 @@ void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
     btn->SetBackgroundColour(*c);
     int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
     btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
-    
+
     wxImage image(15, 15);
     image.SetRGB(wxRect(0, 0, 15, 15),
                  c->Red(), c->Green(), c->Blue());
     wxBitmap bmp(image);
-    
+
     btn->SetBitmap(bmp);
 }
 
@@ -376,30 +397,6 @@ void ColorPanel::OnCheckBox_PaletteClick(wxCommandEvent& event)
     PaletteChanged=true;
 }
 
-void ColorPanel::OnBitmapButton_Palette2Click(wxCommandEvent& event)
-{
-}
-
-void ColorPanel::OnBitmapButton_Palette1Click(wxCommandEvent& event)
-{
-}
-
-void ColorPanel::OnBitmapButton_Palette3Click(wxCommandEvent& event)
-{
-}
-
-void ColorPanel::OnBitmapButton_Palette4Click(wxCommandEvent& event)
-{
-}
-
-void ColorPanel::OnBitmapButton_Palette5Click(wxCommandEvent& event)
-{
-}
-
-void ColorPanel::OnBitmapButton_Palette6Click(wxCommandEvent& event)
-{
-}
-
 void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 {
     wxBitmapButton* w=(wxBitmapButton*)event.GetEventObject();
@@ -437,3 +434,44 @@ void ColorPanel::OnResize(wxSizeEvent& event)
 void ColorPanel::OnPaint(wxPaintEvent& event)
 {
 }
+
+void ColorPanel::setlock(wxButton* button) //, EditState& islocked)
+{
+    wxString parent = button->GetName();
+    if (parent.StartsWith("ID_BITMAPBUTTON_")) parent = "ID_" + parent.substr(16); //map to associated control
+    EditState& islocked = buttonState[std::string(parent)]; //creates entry if not there
+//    djdebug("ctl %s was %d", (const char*)parent.c_str(), islocked);
+    switch (islocked) //cycle thru states
+    {
+    case Locked:
+        islocked = Random;
+        button->SetBitmapLabel(BitmapButton_random->GetBitmapLabel());
+        break;
+//        case Random:
+//            islocked = Normal;
+//            button->SetBitmapLabel(BitmapButton_normal->GetBitmapLabel());
+//            break;
+    default:
+        islocked = Locked;
+        button->SetBitmapLabel(BitmapButton_locked->GetBitmapLabel());
+        break;
+    }
+}
+
+#define showlock(name)  \
+/*EditState isLockedFx_##name = Normal;*/ \
+void ColorPanel::OnBitmapButton_##name##Click(wxCommandEvent& event) \
+{ \
+    setlock(BitmapButton_##name/*, isLockedFx_##name*/); \
+}
+showlock(Palette1)
+showlock(Palette2)
+showlock(Palette3)
+showlock(Palette4)
+showlock(Palette5)
+showlock(Palette6)
+showlock(SparkleFrequency)
+showlock(Brightness)
+showlock(Contrast)
+
+

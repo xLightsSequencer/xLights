@@ -2784,12 +2784,6 @@ void EffectsPanel::OnBitmapButton_##name##Click(wxCommandEvent& event) \
     setlock(BitmapButton_##name/*, isLockedFx_##name*/); \
 }
 showlock(LayerEffect)
-//~showlock(Palette1)
-//~showlock(Palette2)
-//~showlock(Palette3)
-//~showlock(Palette4)
-//~showlock(Palette5)
-//~showlock(Palette6)
 //~showlock(Speed)
 //~showlock(FadeOut)
 //~showlock(FadeIn)
