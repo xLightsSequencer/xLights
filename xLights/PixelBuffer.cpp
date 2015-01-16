@@ -294,24 +294,30 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
     return c;
 }
 
-void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c)
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[])
 {
     xlColour *colors = new xlColour[numLayers];
+    int layerIdxs[numLayers];
     
     wxImage::HSVValue hsv;
-
+    int pos = 0;
     for (int layer = 0; layer < numLayers; layer++) {
-        effects[layer].GetPixel(x, y, colors[layer]);
-        hsv = wxImage::RGBtoHSV(colors[layer]);
-        hsv.value *= fadeFactor[layer];
-        colors[layer] = hsv;
-        
-        if (layer > 0) {
-            //mix with layer below
-            colors[layer] = mixColors(x, y, colors[layer - 1], colors[layer], layer - 1);
+        if (validLayers[layer]) {
+            effects[layer].GetPixel(x, y, colors[pos]);
+            layerIdxs[pos] = layer;
+            hsv = wxImage::RGBtoHSV(colors[pos]);
+            hsv.value *= fadeFactor[layer];
+            colors[pos] = hsv;
+            
+            if (pos > 0) {
+                //mix with layer below
+                colors[pos] = mixColors(x, y, colors[pos - 1], colors[pos], layerIdxs[pos - 1]);
+            }
+            pos++;
         }
     }
-    c = colors[numLayers - 1];
+    c = colors[pos - 1];
+    delete [] colors;
 }
 
 void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
@@ -373,7 +379,7 @@ void PixelBufferClass::SetFitToTime(int layer, bool fit)
     effects[layer].SetFitToTime(fit);
 }
 
-void PixelBufferClass::CalcOutput(int EffectPeriod)
+void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
 {
     xlColor color;
     wxImage::HSVValue hsv;
@@ -419,7 +425,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod)
             Nodes[i]->SetColor(0,0,0);
         } else {
             // get blend of two effects
-            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color);
+            GetMixedColor(Nodes[i]->Coords[0].bufX, Nodes[i]->Coords[0].bufY, color, validLayers);
 
             // add sparkles
             if (sparkle_count[0] > 0 && color.GetRGB() != 0) {

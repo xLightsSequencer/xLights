@@ -70,7 +70,7 @@ private:
     float *effectMixThreshold;
     bool *effectMixVaries; //allow varying mix threshold -DJ
     
-    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c);
+    void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]);
     xlColour mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer);
     void SetModelBrightness(int value);
 public:
@@ -91,7 +91,7 @@ public:
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
     
-    void CalcOutput(int EffectPeriod);
+    void CalcOutput(int EffectPeriod, bool validLayers[]);
 
 #include "Effects.h"
 

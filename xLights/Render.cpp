@@ -54,6 +54,7 @@ public:
         }
         
         for (int frame = startFrame; frame < endFrame; frame++) {
+            bool validLayers[numLayers];
             //make sure we can do this frame
             waitForFrame(frame);
             bool effectsToUpdate = false;
@@ -69,11 +70,12 @@ public:
                     buffer->Clear(layer);
                 }
                 
-                effectsToUpdate |= xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true);
+                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true);
+                effectsToUpdate |= validLayers[layer];
             }
             
             if (effectsToUpdate) {
-                buffer->CalcOutput(frame);
+                buffer->CalcOutput(frame, validLayers);
                 size_t chnum;
                 wxByte intensity;
                 size_t nodeCnt = buffer->GetNodeCount();
