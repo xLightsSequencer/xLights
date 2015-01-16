@@ -128,6 +128,8 @@
 #include "../include/twinkle.xpm"
 #include "../include/wave.xpm"
 
+#include "JobPool.h"
+
 
 class EffectTreeDialog;
 
@@ -286,7 +288,6 @@ public:
     bool SaveEffectsFile();
 
     static const char** GetIconBuffer(int effectID);
-    static void SetButtonColor(wxButton* btn, const wxColour* c);
 
 
      enum RGB_EFFECTS_e
@@ -1082,6 +1083,7 @@ private:
     SeqDataType* RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer);
     wxXmlNode* SelectModelToExport();
 
+    JobPool jobPool;
 
 //  papagayo
     void PapagayoError(const wxString& msg);

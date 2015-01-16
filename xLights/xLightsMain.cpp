@@ -1685,6 +1685,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
+    
+    jobPool.Start(wxThread::GetCPUCount() * 2);
 }
 
 xLightsFrame::~xLightsFrame()
@@ -2557,30 +2559,11 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     SaveSequence();
 }
 
-void xLightsFrame::SetButtonColor(wxButton* btn, const wxColour* c)
-{
-    btn->SetBackgroundColour(*c);
-    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
-    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
-
-#ifdef __WXOSX__
-    //OSX does NOT allow active buttons to have a color other than the default.
-    //We'll use an image of the appropriate color instead
-    wxImage image(15, 15);
-    image.SetRGB(wxRect(0, 0, 15, 15),
-                 c->Red(), c->Green(), c->Blue());
-    wxBitmap bmp(image);
-
-    btn->SetBitmap(bmp);
-    btn->SetLabelText("");
-#endif
-}
-
 
 void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
 {
     // populate dialog
-    XmlConversionDialog dialog(this);
+    XmlConversionDialog dialog(this, NULL);
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 }

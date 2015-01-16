@@ -103,18 +103,24 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	CheckBox_Palette6 = new wxCheckBox(ColorScrollWindow, ID_CHECKBOX_Palette6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Palette6"));
 	CheckBox_Palette6->SetValue(false);
 	FlexGridSizer_Palette->Add(CheckBox_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette1 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette1, _("1"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
-	FlexGridSizer_Palette->Add(Button_Palette1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette2 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette2, _("2"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette2"));
-	FlexGridSizer_Palette->Add(Button_Palette2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette3 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette3, _("3"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette3"));
-	FlexGridSizer_Palette->Add(Button_Palette3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette4 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette4, _("4"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette4"));
-	FlexGridSizer_Palette->Add(Button_Palette4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette5 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette5, _("5"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette5"));
-	FlexGridSizer_Palette->Add(Button_Palette5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	Button_Palette6 = new wxButton(ColorScrollWindow, ID_BUTTON_Palette6, _("6"), wxDefaultPosition, wxSize(21,21), 0, wxDefaultValidator, _T("ID_BUTTON_Palette6"));
-	FlexGridSizer_Palette->Add(Button_Palette6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	Button_Palette1 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette1, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette1"));
+	Button_Palette1->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette1, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
+	Button_Palette2 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette2, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette2"));
+	Button_Palette2->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette2, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
+	Button_Palette3 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette3, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette3"));
+	Button_Palette3->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette3, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
+	Button_Palette4 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette4, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette4"));
+	Button_Palette4->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette4, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
+	Button_Palette5 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette5, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette5"));
+	Button_Palette5->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette5, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
+	Button_Palette6 = new wxBitmapButton(ColorScrollWindow, ID_BUTTON_Palette6, wxNullBitmap, wxDefaultPosition, wxSize(21,21), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BUTTON_Palette6"));
+	Button_Palette6->SetDefault();
+	FlexGridSizer_Palette->Add(Button_Palette6, 1, wxALIGN_LEFT|wxALIGN_TOP, 2);
 	BitmapButton_Palette1 = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_BUTTON_Palette1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_BUTTON_Palette1"));
 	BitmapButton_Palette1->SetDefault();
 	BitmapButton_Palette1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
@@ -211,12 +217,30 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&ColorPanel::OnPaint);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
 	//*)
+    
+    
+    SetDefaultPalette();
 }
 
 ColorPanel::~ColorPanel()
 {
 	//(*Destroy(ColorPanel)
 	//*)
+}
+
+
+void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
+{
+    btn->SetBackgroundColour(*c);
+    int test=c->Red()*0.299 + c->Green()*0.587 + c->Blue()*0.114;
+    btn->SetForegroundColour(test < 186 ? *wxWHITE : *wxBLACK);
+    
+    wxImage image(15, 15);
+    image.SetRGB(wxRect(0, 0, 15, 15),
+                 c->Red(), c->Green(), c->Blue());
+    wxBitmap bmp(image);
+    
+    btn->SetBitmap(bmp);
 }
 
 wxString ColorPanel::GetColorString()
@@ -272,22 +296,22 @@ void ColorPanel::SetPaletteColor(int idx, const wxColour* c)
     switch (idx)
     {
     case 1:
-        xLightsFrame::SetButtonColor(Button_Palette1,c);
+        SetButtonColor(Button_Palette1,c);
         break;
     case 2:
-        xLightsFrame::SetButtonColor(Button_Palette2,c);
+        SetButtonColor(Button_Palette2,c);
         break;
     case 3:
-        xLightsFrame::SetButtonColor(Button_Palette3,c);
+        SetButtonColor(Button_Palette3,c);
         break;
     case 4:
-        xLightsFrame::SetButtonColor(Button_Palette4,c);
+        SetButtonColor(Button_Palette4,c);
         break;
     case 5:
-        xLightsFrame::SetButtonColor(Button_Palette5,c);
+        SetButtonColor(Button_Palette5,c);
         break;
     case 6:
-        xLightsFrame::SetButtonColor(Button_Palette6,c);
+        SetButtonColor(Button_Palette6,c);
         break;
     }
 }
@@ -336,12 +360,12 @@ wxButton* ColorPanel::GetPaletteButton(int idx)
 
 void ColorPanel::SetDefaultPalette()
 {
-    xLightsFrame::SetButtonColor(Button_Palette1,wxRED);
-    xLightsFrame::SetButtonColor(Button_Palette2,wxGREEN);
-    xLightsFrame::SetButtonColor(Button_Palette3,wxBLUE);
-    xLightsFrame::SetButtonColor(Button_Palette4,wxYELLOW);
-    xLightsFrame::SetButtonColor(Button_Palette5,wxWHITE);
-    xLightsFrame::SetButtonColor(Button_Palette6,wxBLACK);
+    SetButtonColor(Button_Palette1,wxRED);
+    SetButtonColor(Button_Palette2,wxGREEN);
+    SetButtonColor(Button_Palette3,wxBLUE);
+    SetButtonColor(Button_Palette4,wxYELLOW);
+    SetButtonColor(Button_Palette5,wxWHITE);
+    SetButtonColor(Button_Palette6,wxBLACK);
 }
 
 
@@ -378,7 +402,7 @@ void ColorPanel::OnBitmapButton_Palette6Click(wxCommandEvent& event)
 
 void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
 {
-    wxButton* w=(wxButton*)event.GetEventObject();
+    wxBitmapButton* w=(wxBitmapButton*)event.GetEventObject();
     wxColour color = w->GetBackgroundColour();
     colorData.SetColour(color);
     wxColourDialog dialog(this, &colorData);
@@ -386,7 +410,7 @@ void ColorPanel::OnButton_PaletteNumberClick(wxCommandEvent& event)
     {
         wxColourData retData = dialog.GetColourData();
         wxColour color = retData.GetColour();
-        xLightsFrame::SetButtonColor(w, &color);
+        SetButtonColor(w, &color);
         PaletteChanged=true;
     }
 
