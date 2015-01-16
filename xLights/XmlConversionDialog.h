@@ -19,7 +19,7 @@ class XmlConversionDialog: public wxDialog
 {
 	public:
 
-		XmlConversionDialog(wxWindow* parent,wxWindowID id=wxID_ANY);
+		XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_to_handle);
 		virtual ~XmlConversionDialog();
 
         void Clear();
@@ -36,7 +36,6 @@ class XmlConversionDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Website;
 		wxChoice* Choice_Xml_Settings_Filename;
 		wxStaticText* StaticText_Xml_Music_Url;
-		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrl_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models;
 		wxTextCtrl* TextCtrl_Xml_Song;
@@ -58,12 +57,13 @@ class XmlConversionDialog: public wxDialog
 		wxBitmapButton* BitmapButton_Change_Dir;
 		wxButton* Button_Xml_Close_Dialog;
 		wxTextCtrl* TextCtrl_Xml_Artist;
+		wxStaticText* StaticText_XML_Convert_Title;
 		//*)
 
 	protected:
 
 		//(*Identifiers(XmlConversionDialog)
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_XML_Convert_Title;
 		static const long ID_STATICTEXT_Xml_Filename;
 		static const long ID_CHOICE_Xml_Settings_Filename;
 		static const long ID_BITMAPBUTTON_Change_Dir;
@@ -100,12 +100,14 @@ class XmlConversionDialog: public wxDialog
 
 	private:
         wxArrayString xml_file_list;
-        xLightsXmlFile xml_file;
+        xLightsXmlFile* xml_file;
         int current_selection;
+        bool fixed_file_mode;
 
         void PopulateFiles();
         void PopulateSongTimings();
         void SetSelectionToXMLFile();
+        void ProcessSelectedFile();
 
 		//(*Handlers(XmlConversionDialog)
 		void OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event);

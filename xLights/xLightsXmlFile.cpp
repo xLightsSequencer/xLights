@@ -9,10 +9,39 @@ xLightsXmlFile::xLightsXmlFile()
     Clear();
     latest_version = _("4.0.0");
     SetPath( xLightsFrame::CurrentDir );
+    for(int i = 0; i < NUM_TYPES; ++i )
+    {
+        header_info.push_back(_(""));
+    }
 }
 
 xLightsXmlFile::~xLightsXmlFile()
 {
+    FreeMemory();
+}
+
+void xLightsXmlFile::FreeNode(wxXmlNode* node)
+{
+    if( node != NULL )
+    {
+        wxXmlNode* next_node = node->GetNext();
+        if( next_node != NULL )
+        {
+            FreeNode(next_node);
+            for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext())
+            {
+                FreeNode(e);
+            }
+            delete node;
+       }
+    }
+}
+
+void xLightsXmlFile::FreeMemory()
+{
+    Clear();
+    wxXmlNode* root=seqDocument.GetRoot();
+    FreeNode(root);
 }
 
 static wxString SubstituteV3toV4tags(const wxString& effect_string)
@@ -104,10 +133,6 @@ void xLightsXmlFile::Clear()
     effects.Clear();
     header_info.Clear();
     timing_list.Clear();
-    for(int i = 0; i < NUM_TYPES; ++i )
-    {
-        header_info.push_back(_(""));
-    }
 }
 
 static void SetNodeContent(wxXmlNode* node, const wxString& content)
@@ -201,6 +226,7 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                             e->RemoveChild(element);
                             seqDocument.Save(GetFullPath());
                             timing_list.Remove(section);
+                            delete element;
                             found = true;
                         }
                     }
@@ -214,7 +240,12 @@ void xLightsXmlFile::Load()
 {
     bool models_defined = false;
 
-    Clear();
+    FreeMemory();  // always free current memory usage before a load
+
+    for(int i = 0; i < NUM_TYPES; ++i )
+    {
+        header_info.push_back(_(""));
+    }
 
     wxString SeqXmlFileName=GetFullPath();
 
@@ -349,13 +380,15 @@ void xLightsXmlFile::Load()
     is_loaded = true;
 }
 
-void xLightsXmlFile::Save(wxTextCtrl* log, bool append)
+void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
 {
     if( needs_conversion )
     {
-        if (append) {
-            wxString new_filename = GetName() + "_v4." + GetExt();
-            SetFullName(new_filename);
+        if( rename_v3_file )
+        {
+            wxString new_filename = GetPathWithSep() + GetName() + "_v3." + GetExt();
+            if (log) log->AppendText(string_format("Renaming: %s to %s\n", GetFullPath(), new_filename));
+            wxRenameFile(GetFullPath(), new_filename);
         }
 
         if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
@@ -451,59 +484,60 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool append)
             }
         }
 
-        // prune unnecessary effects
+        // connect timing gaps
         for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
         {
-            wxXmlNode* layer1 = e->GetChildren();
-            if( layer1 == NULL ) break;
-            wxXmlNode* layer2 = layer1->GetNext();
-            if( layer2 == NULL ) break;
-
-            wxXmlNode* layer1_effect = layer1->GetChildren();
-            if( layer1_effect == NULL ) break;
-            wxXmlNode* layer2_effect = layer2->GetChildren();
-            if( layer2_effect == NULL ) break;
-            wxXmlNode* layer1_next_effect = layer1_effect->GetNext();
-            if( layer1_next_effect == NULL ) break;
-            wxXmlNode* layer2_next_effect = layer2_effect->GetNext();
-            if( layer2_next_effect == NULL ) break;
-
-            wxString layer1_effect_name;
-            wxString layer2_effect_name;
-            wxString layer1_next_effect_name;
-            wxString layer2_next_effect_name;
-            wxString end_time;
-
-            while((layer1_next_effect != NULL) && (layer2_next_effect != NULL))
+            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
             {
-                layer1_effect->GetAttribute("name", &layer1_effect_name);
-                layer2_effect->GetAttribute("name", &layer2_effect_name);
-                layer1_next_effect->GetAttribute("name", &layer1_next_effect_name);
-                layer2_next_effect->GetAttribute("name", &layer2_next_effect_name);
-                wxString layer1_effect_content = layer1_effect->GetContent();
-                wxString layer2_effect_content = layer2_effect->GetContent();
-                wxString layer1_next_effect_content = layer1_next_effect->GetContent();
-                wxString layer2_next_effect_content = layer2_next_effect->GetContent();
+                wxXmlNode* eff1 = layer->GetChildren();
+                if( eff1 == NULL ) continue;
+                wxXmlNode* eff2 = eff1->GetNext();
+                if( eff2 == NULL ) continue;
 
-                if( layer1_effect_name == layer1_next_effect_name &&
-                    layer1_effect_content == layer1_next_effect_content &&
-                    layer2_effect_name == layer2_next_effect_name &&
-                    layer2_effect_content == layer2_next_effect_content)
+                while( eff1 != NULL && eff2 != NULL )
                 {
-                    // remove next effect and copy end time
-                    layer1_next_effect->GetAttribute("endTime", &end_time);
-                    layer1_effect->DeleteAttribute("endTime");
-                    layer1_effect->AddAttribute("endTime", end_time);
-                    layer1->RemoveChild(layer1_next_effect);
-                    layer2->RemoveChild(layer2_next_effect);
+                    wxString start_time;
+                    wxString end_time;
+                    eff1->GetAttribute("endTime", &end_time);
+                    eff2->GetAttribute("startTime", &start_time);
+                    if( end_time != start_time && start_time != _("") )
+                    {
+                        for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
+                        {
+                            if( attr->GetName() == "endTime" )
+                            {
+                                attr->SetValue(start_time);
+                                break;
+                            }
+                        }
+                    }
+                    eff1 = eff2;
+                    eff2 = eff1->GetNext();
                 }
-                else
+            }
+        }
+
+        // remove "None" effects
+        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
+            {
+                for( wxXmlNode* effect=layer->GetChildren(); effect!=NULL; )
                 {
-                    layer1_effect = layer1_next_effect;
-                    layer2_effect = layer2_next_effect;
+                    wxString layer_effect_name;
+                    effect->GetAttribute("name", &layer_effect_name);
+                    if( layer_effect_name == "None" )
+                    {
+                        wxXmlNode* node_to_delete = effect;
+                        effect = effect->GetNext();
+                        layer->RemoveChild(node_to_delete);
+                        delete node_to_delete;
+                    }
+                    else
+                    {
+                        effect = effect->GetNext();
+                    }
                 }
-                layer1_next_effect = layer1_effect->GetNext();
-                layer2_next_effect = layer2_effect->GetNext();
             }
         }
 
@@ -538,6 +572,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool append)
         // write converted XML file to xLights directory
         doc->Save(GetFullPath());
 
+        // release memory
+        FreeNode(root);
+        delete doc;
         version_string = latest_version;
     }
     else

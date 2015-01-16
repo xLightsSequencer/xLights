@@ -7,6 +7,7 @@
 #include "SeqOpenDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
+#include "XmlConversionDialog.h"
 
 bool isXmlSequence(wxFileName &fname) {
     char buf[1024];
@@ -32,19 +33,19 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 void xLightsFrame::OpenSequence()
 {
     wxArrayString XSeqFiles,xmlFiles;
-    
+
     // get list of media files
     wxFileName oName;
     wxString filename;
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
-    
+
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
                                                "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
-    
+
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while ( cont )
     {
@@ -63,7 +64,7 @@ void xLightsFrame::OpenSequence()
         }
         cont = dir.GetNext(&filename);
     }
-    
+
     // populate dialog
     SeqOpenDialog dialog(this);
     if (XSeqFiles.Count() > 0)
@@ -87,10 +88,10 @@ void xLightsFrame::OpenSequence()
         dialog.RadioButtonXML->Enable(false);
         dialog.ChoiceSeqXMLFiles->Enable(false);
     }
-    
+
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
-    
+
     mediaFilename.Clear();
     ResetSequenceGrid();
     ResetTimer(NO_SEQ);
@@ -98,7 +99,7 @@ void xLightsFrame::OpenSequence()
     previewPlaying = false;
     changedRow = 99999;
     changedColumn = 99999;
-    
+
     if (dialog.RadioButtonBinary->GetValue())
     {
         wxStopWatch sw; // start a stopwatch timer
@@ -116,7 +117,7 @@ void xLightsFrame::OpenSequence()
         wxString mss = dialog.SeqChoiceTiming->GetStringSelection();
         int ms = atoi(mss.c_str());
         SeqData.init(NetInfo.GetTotChannels(), 0, ms);
-        
+
         SeqLoadXlightsFile(dialog.ChoiceSeqXMLFiles->GetStringSelection(), true);
         int len = 0;
         if (mediaFilename.IsEmpty()) {
@@ -139,19 +140,19 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 {
     wxArrayString LorFiles,MediaFiles;
-    
+
     // get list of media files
     wxFileName oName;
     wxString filename;
     oName.AssignDir( CurrentDir );
     wxDir dir(CurrentDir);
-    
+
     if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
                                                "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
     {
         return;
     }
-    
+
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while ( cont )
     {
@@ -168,7 +169,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
         }
         cont = dir.GetNext(&filename);
     }
-    
+
     // populate dialog
     NewSequenceDialog dialog(this);
     if (LorFiles.Count() > 0)
@@ -195,7 +196,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     }
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
-    
+
     mediaFilename.Clear();
     ResetSequenceGrid();
     ResetTimer(NO_SEQ);
@@ -203,7 +204,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     previewPlaying = false;
     changedRow = 99999;
     changedColumn = 99999;
-    
+
     long duration;
     if (dialog.RadioButtonLor->GetValue())
     {
@@ -240,12 +241,12 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     else if (dialog.RadioButtonNewMusic->GetValue())
     {
         UnsavedChanges = true;
-        
+
         // determine media file length
         mediaFilename=dialog.ChoiceMediaFiles->GetStringSelection();
-        
+
         DisplayXlightsFilename("");
-        
+
         if (!PlayerDlg->Play(mediaFilename))
         {
             wxMessageBox("Unable to load:\n"+mediaFilename,"ERROR");
@@ -279,7 +280,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
                 break;
         }
         //Clear xlights filename
-        
+
     }
     else if (dialog.RadioButtonNewAnim->GetValue())
     {
@@ -292,7 +293,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
         {
             /* error! */
         }
-        
+
         DisplayXlightsFilename("");
         if (f_duration <= 0.0)
         {
@@ -305,13 +306,13 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     int intervalSize = atoi(dialog.NewSequenceTiming->GetStringSelection().c_str());
     SeqData.init(NetInfo.GetTotChannels(), duration / intervalSize, intervalSize);
     Timer1.Start(SeqData.FrameTime());
-    
+
     int nSeconds=duration/1000;
     int nMinutes=nSeconds/60;
     nSeconds%=60;
     wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
                                   SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
-  
+
 }
 
 
@@ -324,7 +325,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     wxFileName FileObj(filename);
     FileObj.SetExt("xml");
     SeqXmlFileName=FileObj.GetFullPath();
-    
+
     // read xml
     // first fix any version specific changes
     FixVersionDifferences(SeqXmlFileName);
@@ -333,7 +334,13 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     v3File.SetFullName(SeqXmlFileName);
     v3File.Load();
     if (v3File.NeedsConversion()) {
-        v3File.Save(NULL, false);
+        XmlConversionDialog dialog(this, &v3File);
+        dialog.Fit();
+        dialog.ShowModal();
+        if (v3File.NeedsConversion()) {
+            // TBD handle file not being converted - display message?
+            return false;
+        }
     }
     mSequenceElements.SetViewsNode(ViewsNode);
     mSequenceElements.SetFrequency(1000 / SeqData.FrameTime());
@@ -417,19 +424,19 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         PalettesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "palettes" );
         root->AddChild( PalettesNode );
     }
-    
+
     if (ViewsNode == 0)
     {
         ViewsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "views" );
         root->AddChild( ViewsNode );
     }
-    
+
     if (ModelGroupsNode == 0)
     {
         ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
         root->AddChild( ModelGroupsNode );
     }
-    
+
     if(SettingsNode==0)
     {
         SettingsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "settings" );
@@ -445,7 +452,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         previewHeight = 720;
     }
     SetPreviewSize(previewWidth,previewHeight);
-    
+
     mBackgroundImage = GetXmlSetting("backgroundImage","");
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
     Slider_BackgroundBrightness->SetValue(mBackgroundBrightness);
@@ -470,7 +477,7 @@ void xLightsFrame::LoadEffectsFile()
         // re-save
         EffectsXml.Save( filename );
     }
-    
+
     UpdateModelsList();
     UpdateViewList();
     float elapsedTime = sw.Time()/1000.0; //msec => sec
@@ -524,9 +531,9 @@ void xLightsFrame::ImportAudacityTimings()
     }
     else
     {
-        
+
     }
-    
+
     // Clean up after ourselves
     OpenDialog->Destroy();
 }
@@ -535,7 +542,7 @@ void xLightsFrame::ImportxLightsXMLTimings()
     wxFileDialog OpenDialog(this, _("Choose xLights sequence"), CurrentDir, wxEmptyString,
                             _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
     wxString fName;
-    
+
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         fName =	OpenDialog.GetPath();
@@ -561,7 +568,7 @@ void xLightsFrame::ShowModelsDialog()
     }
     dialog.HtmlEasyPrint=HtmlEasyPrint;
     dialog.ShowModal();
-    
+
     // append any new models to the main xml structure
     for(size_t i=0; i<dialog.ListBox1->GetCount(); i++)
     {
@@ -722,7 +729,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
 void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
 {
-    
+
 }
 
 void xLightsFrame::GetSeqModelNames(wxArrayString& a)
@@ -3752,7 +3759,7 @@ void xLightsFrame::AllRowsAreUpdated()
 
 
 
-#endif 
+#endif
 
 
 
@@ -3815,7 +3822,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //
     missing      = missing + "|ID_SLIDER_Brightness|ID_SLIDER_Brightness=100";
     missing      = missing + "|ID_SLIDER_Contrast|ID_SLIDER_Contrast=0";
-    
+
     /*  missing      = missing + "|ID_SLIDER_EffectLayerMix|ID_SLIDER_EffectLayerMix=0";
      missing      = missing + "|ID_TEXTCTRL_Effect1_Fadein|ID_TEXTCTRL_Effect1_Fadein=0";
      missing      = missing + "|ID_TEXTCTRL_Effect1_Fadeout|ID_TEXTCTRL_Effect1_Fadeout=0";
@@ -3824,7 +3831,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
      missing      = missing + "|ID_CHECKBOX_Effect1_Fit|ID_CHECKBOX_Effect1_Fit=0";
      missing      = missing + "|ID_CHECKBOX_Effect2_Fit|ID_CHECKBOX_Effect2_Fit=0";
      */
-    
+
     /*
      ID_SLIDER_EffectLayerMix=0,E1_TEXTCTRL_Fadein=0,E1_TEXTCTRL_Fadeout=0,E2_TEXTCTRL_Fadein=0
      ,E2_TEXTCTRL_Fadeout=0,E1_CHECKBOX_FitToTime=0,E2_CHECKBOX_FitToTime=0,ID_TEXTCTRL_Effect1_Fadein=0
@@ -3832,20 +3839,20 @@ void xLightsFrame::FixVersionDifferences(wxString file)
      ,ID_CHECKBOX_Effect1_Fit=0,ID_CHECKBOX_Effect2_Fit=0
      */
     //
-    
+
     //   Meteors1 = Meteors1 + "|ID_CHECKBOX_Meteors1_FallUp|ID_CHECKBOX_Meteors1_FallUp=0";
     //    Meteors2 = Meteors2 + "|ID_CHECKBOX_Meteors2_FallUp|ID_CHECKBOX_Meteors2_FallUp=0";
     Meteors1 = Meteors1 + "|ID_CHOICE_Meteors1_Effect|ID_CHOICE_Meteors1_Effect=Meteor";
     Meteors2 = Meteors2 + "|ID_CHOICE_Meteors2_Effect|ID_CHOICE_Meteors2_Effect=Meteor";
     Meteors1 = Meteors1 + "|ID_SLIDER_Meteors1_Swirl_Intensity|ID_SLIDER_Meteors1_Swirl_Intensity=10";
     Meteors2 = Meteors2 + "|ID_SLIDER_Meteors2_Swirl_Intensity|ID_SLIDER_Meteors2_Swirl_Intensity=10";
-    
+
     Fire1 = Fire1 + "|ID_SLIDER_Fire1_HueShift|ID_SLIDER_Fire1_HueShift=0";
     Fire2 = Fire2 + "|ID_SLIDER_Fire2_HueShift|ID_SLIDER_Fire2_HueShift=0";
     Fire1 = Fire1 + "|ID_CHECKBOX_Fire1_GrowFire|ID_CHECKBOX_Fire1_GrowFire=0";
     Fire2 = Fire2 + "|ID_CHECKBOX_Fire2_GrowFire|ID_CHECKBOX_Fire2_GrowFire=0";
-    
-    
+
+
     // Lots of variables to check for  text effect
     //    ,E1_TEXTCTRL_Text_Line1=God Bless the USA
     //	,E1_TEXTCTRL_Text_Line2=God Bless The USA
@@ -3854,9 +3861,9 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //	,E1_CHOICE_Text_Effect1=normal
     //	,E1_CHOICE_Text_Count1=none
     //	,E1_SLIDER_Text_Position1=45
-    
-    
-    
+
+
+
     replace_str = replace_str + "|ID_BUTTON_Palette1_1|E1_BUTTON_Palette1";
     replace_str = replace_str + "|ID_BUTTON_Palette1_2|E1_BUTTON_Palette2";
     replace_str = replace_str + "|ID_BUTTON_Palette1_3|E1_BUTTON_Palette3";
@@ -3920,7 +3927,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|ID_CHOICE_Meteors2_Type|E2_CHOICE_Meteors_Type";
     replace_str = replace_str + "|ID_CHOICE_Pictures1_Direction|E1_CHOICE_Pictures_Direction";
     replace_str = replace_str + "|ID_CHOICE_Pictures2_Direction|E2_CHOICE_Pictures_Direction";
-    
+
     replace_str = replace_str + "|ID_SLIDER_Bars1_BarCount|E1_SLIDER_Bars_BarCount";
     replace_str = replace_str + "|ID_SLIDER_Bars2_BarCount|E2_SLIDER_Bars_BarCount";
     replace_str = replace_str + "|ID_SLIDER_Brightness|ID_SLIDER_Brightness";
@@ -3992,7 +3999,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|ID_SLIDER_Spirograph2_d|E2_SLIDER_Spirograph_d";
     replace_str = replace_str + "|ID_SLIDER_Spirograph2_R|E2_SLIDER_Spirograph_R";
     replace_str = replace_str + "|ID_SLIDER_Spirograph2_r|E2_SLIDER_Spirograph_r";
-    
+
     replace_str = replace_str + "|ID_SLIDER_Tree1_Branches|E1_SLIDER_Tree_Branches";
     replace_str = replace_str + "|ID_SLIDER_Tree2_Branches|E2_SLIDER_Tree_Branches";
     replace_str = replace_str + "|ID_SLIDER_Twinkle1_Count|E1_SLIDER_Twinkle_Count";
@@ -4001,8 +4008,8 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|ID_SLIDER_Twinkle2_Steps|E2_SLIDER_Twinkle_Steps";
     replace_str = replace_str + "|ID_TEXTCTRL_Pictures1_Filename|E1_TEXTCTRL_Pictures_Filename";
     replace_str = replace_str + "|ID_TEXTCTRL_Pictures2_Filename|E2_TEXTCTRL_Pictures_Filename";
-    
-    
+
+
     Text1 = Text1 + "|ID_TEXTCTRL_Text1_1_Font|ID_TEXTCTRL_Text1_1_Font=";
     Text2 = Text2 + "|ID_TEXTCTRL_Text2_1_Font|ID_TEXTCTRL_Text2_1_Font=";
     Text1 = Text1 + "|ID_TEXTCTRL_Text1_2_Font|ID_TEXTCTRL_Text1_2_Font=";
@@ -4023,7 +4030,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     Text2 = Text2 + "|ID_CHECKBOX_Text2_COUNTDOWN1|ID_CHECKBOX_Text2_COUNTDOWN1=0";
     Text1 = Text1 + "|ID_CHECKBOX_Text1_COUNTDOWN2|ID_CHECKBOX_Text1_COUNTDOWN2=0";
     Text2 = Text2 + "|ID_CHECKBOX_Text2_COUNTDOWN2|ID_CHECKBOX_Text2_COUNTDOWN2=0";
-    
+
     replace_str = replace_str + "|ID_TEXTCTRL_Text1_1_Font|E1_TEXTCTRL_Text_Font1";
     replace_str = replace_str + "|ID_TEXTCTRL_Text1_2_Font|E1_TEXTCTRL_Text_Font2";
     replace_str = replace_str + "|ID_TEXTCTRL_Text2_1_Font|E2_TEXTCTRL_Text_Font1";
@@ -4052,7 +4059,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //
     replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_ID_CHECKBOX_Meteors1_FallUp";
     replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_ID_CHECKBOX_Meteors1_FallUp";
-    
+
     //  single strand effects
     replace_str = replace_str + "|E1_SLIDER_Single_Color_Mix1|ID_SLIDER_Single_Color_Mix1";
     replace_str = replace_str + "|E1_SLIDER_Single_Color_Spacing1|ID_SLIDER_Chase_Spacing1";
@@ -4060,21 +4067,21 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|E2_SLIDER_Single_Color_Mix2|ID_SLIDER_Single_Color_Mix2";
     replace_str = replace_str + "|E2_SLIDER_Single_Color_Spacing2|ID_SLIDER_Chase_Spacing2";
     replace_str = replace_str + "|E2_CHECKBOX_Single_Group_Arches2|ID_CHECKBOX_Group_Arches2";
-    
+
     replace_str = replace_str + "|ID_SLIDER_Single_Color_Mix1|E1_SLIDER_Color_Mix1";
     replace_str = replace_str + "|ID_SLIDER_Chase_Spacing1|E1_SLIDER_Chase_Spacing1";
     replace_str = replace_str + "|ID_CHECKBOX_Group_Arches1|E1_CHECKBOX_Chase_3dFade1";
-    
+
     //  Single Strand
     replace_str = replace_str + "|E1_CHECKBOX_R_TO_L1|E1_CHOICE_Chase_Type1=Right-Left";
-    
+
     //  RIPPLE
     replace_str = replace_str + "|E1_SLIDER5|E1_SLIDER_Ripple_Thickness";
     replace_str = replace_str + "|E2_SLIDER5|E2_SLIDER_Ripple_Thickness";
     replace_str = replace_str + "|E1_CHECKBOX3|E1_CHECKBOX_Ripple3D";
     replace_str = replace_str + "|E2_CHECKBOX3|E2_CHECKBOX_Ripple3D";
-    
-    
+
+
     /*
      E2_CHOICE_Ripple_Movement=Implode,
      E2_SLIDER_Ripple_Thickness=36,
@@ -4082,11 +4089,11 @@ void xLightsFrame::FixVersionDifferences(wxString file)
      E2_CHECKBOX_Ripple_Blend=1,
      E2_CHECKBOX3=1, // ID_CHECKBOX_Ripple3D
      */
-    
+
     //    replace_str = replace_str + "|ID_CHECKBOX_Meteors1_FallUp|E1_CHECKBOX_Meteors_FallUp";
     //    replace_str = replace_str + "|ID_CHECKBOX_Meteors2_FallUp|E2_CHECKBOX_Meteors_FallUp";
     //
-    
+
     //    E1_TEXTCTRL_Text_Font1=
     //	,E1_CHOICE_Text_Dir1=left
     //	,E1_CHOICE_Text_Effect1=normal
@@ -4109,8 +4116,8 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     //	,E1_CHECKBOX_Palette5=0
     //	,E1_BUTTON_Palette6=#000000
     //	,E1_CHECKBOX_Palette6=1
-    
-    
+
+
     //  this set will convert old, unsed tokens into a new not used token. this eliminates the error messages
     replace_str = replace_str + "|ID_SLIDER_Text1_1_TextRotation|E1_SLIDER_Text_Rotation1";
     replace_str = replace_str + "|ID_SLIDER_Text1_2_TextRotation|E1_SLIDER_Text_Rotation2";
@@ -4126,43 +4133,43 @@ void xLightsFrame::FixVersionDifferences(wxString file)
     replace_str = replace_str + "|ID_Text2_Countdown|E2_Text_Countdown";
     replace_str = replace_str + "|ID_Text1_COUNTDOWN|E1_Text_COUNTDOWN";
     replace_str = replace_str + "|ID_Text2_COUNTDOWN|E2_Text_COUNTDOWN";
-    
+
     replace_str = replace_str + "|ID_TEXTCTRL_Effect1_Fadein|E1_TEXTCTRL_Fadein";
     replace_str = replace_str + "|ID_TEXTCTRL_Effect1_Fadeout|E1_TEXTCTRL_Fadeout";
     replace_str = replace_str + "|ID_TEXTCTRL_Effect2_Fadein|E2_TEXTCTRL_Fadein";
     replace_str = replace_str + "|ID_TEXTCTRL_Effect2_Fadeout|E2_TEXTCTRL_Fadeout";
     replace_str = replace_str + "|ID_CHECKBOX_Effect1_Fit|E1_CHECKBOX_FitToTime";
     replace_str = replace_str + "|ID_CHECKBOX_Effect2_Fit|E2_CHECKBOX_FitToTime";
-    
+
     replace_str = replace_str + "|vertical text up|vert text up";
     replace_str = replace_str + "|vertical dext down|vert text down";
     replace_str = replace_str + "|count down seconds|seconds";
     replace_str = replace_str + "|count down to date|to date";
-    
+
     if (!f.Create(fileout,true))
     {
         return;
     }
-    
+
     tfile.Open(file); // open input file
     // read the first line
     str =  tfile.GetFirstLine() + "\n";
-    
-    
+
+
     f.Write(str);
     int pos,pos_SLIDER_Slider,pos_ID_TEXTCTRL4;
-    
+
     // read all lines one by one
     // until the end of the file
     while(!tfile.Eof())
     {
         str = tfile.GetNextLine();
-        
+
         pos=str.find("ID_SLIDER",0); // is this line a Effect?
         if(pos>0) // are we on the xml line containg the effect?
         {
             //  Yes
-            
+
             //  do we have the bad SILDER_slider token?
             pos_SLIDER_Slider=str.find("SLIDER_Slider",0);
             if(pos_SLIDER_Slider>0) // if we have SLIDER_Slider bad text,
@@ -4170,7 +4177,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
                 modified=true;  // yes,fix it
                 str.Replace("SLIDER_Slider","SLIDER");
             }
-            
+
             // do we have the old text1 font token?
             pos_ID_TEXTCTRL4=str.find("ID_TEXTCTRL4",0);
             if(pos_ID_TEXTCTRL4>0) // if we have ID_TEXTCTRL4 bad text,
@@ -4178,21 +4185,21 @@ void xLightsFrame::FixVersionDifferences(wxString file)
                 modified=true;  // yes,fix it
                 str.Replace("ID_TEXTCTRL4","ID_TEXTCTRL_Text1_1_Font");
             }
-            
+
             //  166 tokens
             modified=true;
             str=InsertMissing(str,replace_str,false);
             str=InsertMissing(str,missing,true);
-            
+
             //  now look to fill in any missing tokens
-            
+
             /* comment out now with ver 25
              p=str.find("ID_SLIDER",0);
              if(p>0) // Look for lines that should have brightness and contrast, in other words all
              {
              modified=true;
              }
-             
+
              p=str.find("ID_TEXTCTRL_Text1_Line1",0);
              if(p>0) // Is this a text 1 line?
              {
@@ -4205,7 +4212,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
              modified=true;
              str=InsertMissing(str,Text2,true);
              }
-             
+
              p=str.find("ID_CHOICE_Meteors1",0);
              if(p>0) // is there a meteors 1 effect on this line?
              {
@@ -4218,7 +4225,7 @@ void xLightsFrame::FixVersionDifferences(wxString file)
              modified=true;
              str=InsertMissing(str,Meteors2,true);
              }
-             
+
              p=str.find("ID_CHOICE_Fire11",0);
              if(p>0) // is there a meteors 1 effect on this line?
              {
@@ -4232,11 +4239,11 @@ void xLightsFrame::FixVersionDifferences(wxString file)
              str=InsertMissing(str,Fire2,true); // fix any missing values
              }
              */
-            
+
         }
         str = str + "\n";
         f.Write(str); // placeholder, do whatever you want with the string
-        
+
     }
     tfile.Close();
     f.Close();

@@ -2561,7 +2561,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
 {
     // populate dialog
-    XmlConversionDialog dialog(this);
+    XmlConversionDialog dialog(this, NULL);
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 }

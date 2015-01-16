@@ -24,7 +24,7 @@ class xLightsXmlFile : public wxFileName
             NUM_TYPES
         };
         void Load();
-        void Save(wxTextCtrl* log = NULL, bool append4 = true);
+        void Save(wxTextCtrl* log = NULL, bool rename_v3_file = true);
         void SetHeaderInfo(wxArrayString info);
         void DeleteTimingSection(wxString section);
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
@@ -35,6 +35,7 @@ class xLightsXmlFile : public wxFileName
         const wxString GetVersion() { return version_string; };
         bool NeedsConversion() { return needs_conversion; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
+        void FreeMemory();
     protected:
     private:
         wxArrayString models;
@@ -51,6 +52,8 @@ class xLightsXmlFile : public wxFileName
         bool needs_conversion;
         wxString version_string;
         wxString latest_version;
+
+        void FreeNode(wxXmlNode* node);
 
 };
 

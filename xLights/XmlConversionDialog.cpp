@@ -12,7 +12,7 @@
 //*)
 
 //(*IdInit(XmlConversionDialog)
-const long XmlConversionDialog::ID_STATICTEXT1 = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_XML_Convert_Title = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Filename = wxNewId();
 const long XmlConversionDialog::ID_CHOICE_Xml_Settings_Filename = wxNewId();
 const long XmlConversionDialog::ID_BITMAPBUTTON_Change_Dir = wxNewId();
@@ -54,8 +54,10 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
-XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
-:   current_selection(-1)
+XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_)
+:   current_selection(-1),
+    xml_file(file_to_handle_),
+    fixed_file_mode(true)
 {
 	//(*Initialize(XmlConversionDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -74,10 +76,10 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	SetClientSize(wxSize(574,398));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("XML Conversion and Settings Editor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	wxFont StaticText1Font(12,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,_T("Arial"),wxFONTENCODING_DEFAULT);
-	StaticText1->SetFont(StaticText1Font);
-	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_XML_Convert_Title = new wxStaticText(this, ID_STATICTEXT_XML_Convert_Title, _("XML Conversion and Settings Editor"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_XML_Convert_Title"));
+	wxFont StaticText_XML_Convert_TitleFont(12,wxSWISS,wxFONTSTYLE_NORMAL,wxBOLD,false,_T("Arial"),wxFONTENCODING_DEFAULT);
+	StaticText_XML_Convert_Title->SetFont(StaticText_XML_Convert_TitleFont);
+	FlexGridSizer1->Add(StaticText_XML_Convert_Title, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
 	GridBagSizer2 = new wxGridBagSizer(0, 0);
@@ -189,22 +191,34 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent,wxWindowID id)
 	Connect(ID_BUTTON_Xml_Delete_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Delete_TimingClick);
 	//*)
 
-    PopulateFiles();
-    Clear();
+    if( xml_file == NULL )
+    {
+        xml_file = new xLightsXmlFile();
+        PopulateFiles();
+        fixed_file_mode = false;
+    }
+    else
+    {
+        PopulateFiles();
+        SetSelectionToXMLFile();
+        ProcessSelectedFile();
+        Choice_Xml_Settings_Filename->Enable(false);
+        BitmapButton_Change_Dir->Enable(false);
+    }
 }
 
 XmlConversionDialog::~XmlConversionDialog()
 {
 	//(*Destroy(XmlConversionDialog)
 	//*)
-
+    if( !fixed_file_mode ) xml_file->FreeMemory();
 }
 
 void XmlConversionDialog::PopulateFiles()
 {
     wxString filename;
     wxFileName oName;
-    wxDir dir(xml_file.GetPath());
+    wxDir dir(xml_file->GetPath());
     Choice_Xml_Settings_Filename->Clear();
     xml_file_list.Clear();
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
@@ -218,13 +232,13 @@ void XmlConversionDialog::PopulateFiles()
         cont = dir.GetNext(&filename);
     }
     Choice_Xml_Settings_Filename->Set(xml_file_list);
-    StaticText_Work_Dir->SetLabelText(_("Directory: " + xml_file.GetPath()));
+    StaticText_Work_Dir->SetLabelText(_("Directory: " + xml_file->GetPath()));
 }
 
 void XmlConversionDialog::PopulateSongTimings()
 {
     Choice_Xml_Song_Timings->Clear();
-    Choice_Xml_Song_Timings->Set(xml_file.GetTimingList());
+    Choice_Xml_Song_Timings->Set(xml_file->GetTimingList());
     Button_Xml_Import_Timing->Enable(true);
     Button_Xml_Delete_Timing->Enable(true);
     Choice_Xml_Song_Timings->SetSelection(0);
@@ -232,7 +246,7 @@ void XmlConversionDialog::PopulateSongTimings()
 
 void XmlConversionDialog::SetSelectionToXMLFile()
 {
-    wxString current_file = xml_file.GetFullName();
+    wxString current_file = xml_file->GetFullName();
     for(int i = 0; i < xml_file_list.GetCount(); ++i)
     {
         if( xml_file_list[i] == current_file )
@@ -257,40 +271,27 @@ void XmlConversionDialog::Clear()
     TextCtrl_Xml_Comment->SetValue(_(""));
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
-    xml_file.Clear();
 }
 
-void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event)
+void XmlConversionDialog::ProcessSelectedFile()
 {
-    int selection = Choice_Xml_Settings_Filename->GetSelection();
-    if( selection != current_selection )
+    if( xml_file->IsLoaded() )
     {
-        xml_file.Clear();
-        xml_file.SetFullName(xml_file_list[selection]);
-        xml_file.Load();
-        if( xml_file.IsLoaded() )
-        {
-            StaticText_XML_Version->SetLabelText(xml_file.GetVersion());
-            StaticText_Num_Models->SetLabelText(string_format("%d",xml_file.GetNumModels()));
-            if( xml_file.NeedsConversion() )
-            {
-                Button_Xml_Settings_Save->Enable(true);
-                Button_Xml_Settings_Save->SetLabel(_("Convert"));
-            }
-            TextCtrl_Xml_Author->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::AUTHOR));
-            TextCtrl_Xml_Author_Email->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::AUTHOR_EMAIL));
-            TextCtrl_Xml_Website->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::WEBSITE));
-            TextCtrl_Xml_Song->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::SONG));
-            TextCtrl_Xml_Artist->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::ARTIST));
-            TextCtrl_Xml_Album->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::ALBUM));
-            TextCtrl_Xml_Music_Url->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::URL));
-            TextCtrl_Xml_Comment->SetValue(xml_file.GetHeaderInfo(xLightsXmlFile::COMMENT));
-            PopulateSongTimings();
-        }
+        StaticText_XML_Version->SetLabelText(xml_file->GetVersion());
+        StaticText_Num_Models->SetLabelText(string_format("%d",xml_file->GetNumModels()));
+        TextCtrl_Xml_Author->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::AUTHOR));
+        TextCtrl_Xml_Author_Email->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::AUTHOR_EMAIL));
+        TextCtrl_Xml_Website->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::WEBSITE));
+        TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
+        TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
+        TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
+        TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
+        TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
+        PopulateSongTimings();
     }
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
-        if( xml_file.NeedsConversion() )
+        if( xml_file->NeedsConversion() )
         {
             Button_Xml_Settings_Save->Enable(true);
             Button_Xml_Settings_Save->SetLabel(_("Convert"));
@@ -300,12 +301,22 @@ void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& e
             Button_Xml_Settings_Save->Enable(false);
         }
     }
+}
+
+void XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event)
+{
+    int selection = Choice_Xml_Settings_Filename->GetSelection();
+    if( selection != current_selection )
+    {
+        xml_file->SetFullName(xml_file_list[selection]);
+        xml_file->Load();
+        ProcessSelectedFile();
+    }
     current_selection = selection;
 }
 
 void XmlConversionDialog::OnButton_Xml_Close_DialogClick(wxCommandEvent& event)
 {
-    xml_file.Clear();
     Close();
 }
 
@@ -320,15 +331,14 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
     info.push_back(TextCtrl_Xml_Album->GetValue());
     info.push_back(TextCtrl_Xml_Music_Url->GetValue());
     info.push_back(TextCtrl_Xml_Comment->GetValue());
-    xml_file.SetHeaderInfo(info);
-    bool reload = xml_file.NeedsConversion();
-    xml_file.Save(TextCtrl_Xml_Log);
-    StaticText_XML_Version->SetLabelText(xml_file.GetVersion());
+    xml_file->SetHeaderInfo(info);
+    bool reload = xml_file->NeedsConversion();
+    xml_file->Save(TextCtrl_Xml_Log);
+    StaticText_XML_Version->SetLabelText(xml_file->GetVersion());
     if( reload )
     {
         PopulateFiles();
-        xml_file.Clear();
-        xml_file.Load();
+        xml_file->Load();
     }
     PopulateSongTimings();
     Button_Xml_Settings_Save->Enable(false);
@@ -340,7 +350,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -348,7 +358,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_Author_EmailText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -356,7 +366,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_Author_EmailText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_WebsiteText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -364,7 +374,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_WebsiteText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_SongText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -372,7 +382,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_SongText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_ArtistText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -380,7 +390,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_ArtistText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_AlbumText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -388,7 +398,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_AlbumText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -396,7 +406,7 @@ void XmlConversionDialog::OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event)
 
 void XmlConversionDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 {
-    if( xml_file.IsLoaded() )
+    if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
@@ -410,8 +420,8 @@ void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)
     if (dlg->ShowModal() == wxID_OK)
     {
         newdir=dlg->GetPath();
-        if (newdir == xml_file.GetPath()) return;
-        xml_file.SetPath(newdir);
+        if (newdir == xml_file->GetPath()) return;
+        xml_file->SetPath(newdir);
         PopulateFiles();
         Clear();
     }
@@ -427,7 +437,7 @@ void XmlConversionDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
         fDir =	OpenDialog->GetDirectory();
         wxArrayString filenames;
         OpenDialog->GetFilenames(filenames);
-        xml_file.ProcessAudacityTimingFiles(fDir, filenames);
+        xml_file->ProcessAudacityTimingFiles(fDir, filenames);
     }
 
     OpenDialog->Destroy();
@@ -437,8 +447,8 @@ void XmlConversionDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 void XmlConversionDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 {
     int selection = Choice_Xml_Song_Timings->GetSelection();
-    wxArrayString timing_list = xml_file.GetTimingList();
-    xml_file.DeleteTimingSection(timing_list[selection]);
+    wxArrayString timing_list = xml_file->GetTimingList();
+    xml_file->DeleteTimingSection(timing_list[selection]);
     PopulateSongTimings();
 }
 
