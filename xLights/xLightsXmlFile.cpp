@@ -95,7 +95,7 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
 }
 
 
-static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
+wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
@@ -103,20 +103,27 @@ static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, co
     return new_node;
 }
 
-static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name)
+wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     node->AddChild(new_node);
     return new_node;
 }
 
-static void AddTimingAttributes(wxXmlNode* node, const wxString& type, const wxString& name, const wxString& visible, const wxString& active)
+void xLightsXmlFile::AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active)
 {
-    wxXmlNode* child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-    child->AddAttribute(wxT("type"), type);
-    child->AddAttribute(wxT("name"), name);
-    child->AddAttribute(wxT("visible"), visible);
-    child->AddAttribute(wxT("active"), active);
+    // inserts the element after the last "timing" entry to keep the XML pretty
+    wxXmlNode* child;
+    for(child=node->GetChildren(); child!=NULL; child=child->GetNext() )
+    {
+        if( child->GetAttribute("type") != "timing" ) break;
+    }
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Element"));
+    new_node->AddAttribute(wxT("type"), wxT("timing"));
+    new_node->AddAttribute(wxT("name"), name);
+    new_node->AddAttribute(wxT("visible"), visible);
+    new_node->AddAttribute(wxT("active"), active);
+    node->InsertChild(new_node, child);
 }
 
 void xLightsXmlFile::Clear()
@@ -416,9 +423,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
-        AddTimingAttributes(node, wxT("timing"), wxT("Song Timing"), wxT("1"), wxT("1"));
-        AddTimingAttributes(node, wxT("timing"), wxT("t1"), wxT("1"), wxT("0"));
-        AddTimingAttributes(node, wxT("timing"), wxT("t2"), wxT("1"), wxT("0"));
+        AddTimingAttributes(node, wxT("Song Timing"), wxT("1"), wxT("1"));
+        AddTimingAttributes(node, wxT("t1"), wxT("1"), wxT("0"));
+        AddTimingAttributes(node, wxT("t2"), wxT("1"), wxT("0"));
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
@@ -603,14 +610,18 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             return;
         }
 
-        wxString filename = filenames[i];
+        wxString filename = next_file.GetName();
         wxXmlNode* root=seqDocument.GetRoot();
         wxXmlNode* child;
         wxXmlNode* layer;
 
         for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
         {
-            if (e->GetName() == "ElementEffects")
+            if (e->GetName() == "DisplayElements")
+            {
+                AddTimingAttributes(e, filename, wxT("1"), wxT("0"));
+            }
+            else if (e->GetName() == "ElementEffects")
             {
                 child = AddChildXmlNode(e, wxT("Element"));
                 child->AddAttribute(wxT("type"),wxT("timing"));

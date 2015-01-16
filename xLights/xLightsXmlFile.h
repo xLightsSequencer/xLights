@@ -53,6 +53,9 @@ class xLightsXmlFile : public wxFileName
         wxString version_string;
         wxString latest_version;
 
+        wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
+        wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
+        void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void FreeNode(wxXmlNode* node);
 
 };
