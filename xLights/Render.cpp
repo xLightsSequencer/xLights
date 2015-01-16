@@ -218,6 +218,8 @@ void xLightsFrame::RenderGridToSeqData() {
                 last->setNext(jobs[row]);
             }
             last = jobs[row];
+        } else {
+            jobs[row] = NULL;
         }
     }
     if (last) {
