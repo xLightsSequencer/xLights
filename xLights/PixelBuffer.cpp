@@ -301,7 +301,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     wxImage::HSVValue hsv;
 
     for (int layer = 0; layer < numLayers; layer++) {
-        effects[0].GetPixel(x, y, colors[layer]);
+        effects[layer].GetPixel(x, y, colors[layer]);
         hsv = wxImage::RGBtoHSV(colors[layer]);
         hsv.value *= fadeFactor[layer];
         colors[layer] = hsv;
