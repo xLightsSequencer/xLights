@@ -95,7 +95,7 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
 }
 
 
-static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
+wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
@@ -103,20 +103,27 @@ static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, co
     return new_node;
 }
 
-static wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name)
+wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     node->AddChild(new_node);
     return new_node;
 }
 
-static void AddTimingAttributes(wxXmlNode* node, const wxString& type, const wxString& name, const wxString& visible, const wxString& active)
+void xLightsXmlFile::AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active)
 {
-    wxXmlNode* child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-    child->AddAttribute(wxT("type"), type);
-    child->AddAttribute(wxT("name"), name);
-    child->AddAttribute(wxT("visible"), visible);
-    child->AddAttribute(wxT("active"), active);
+    // inserts the element after the last "timing" entry to keep the XML pretty
+    wxXmlNode* child;
+    for(child=node->GetChildren(); child!=NULL; child=child->GetNext() )
+    {
+        if( child->GetAttribute("type") != "timing" ) break;
+    }
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Element"));
+    new_node->AddAttribute(wxT("type"), wxT("timing"));
+    new_node->AddAttribute(wxT("name"), name);
+    new_node->AddAttribute(wxT("visible"), visible);
+    new_node->AddAttribute(wxT("active"), active);
+    node->InsertChild(new_node, child);
 }
 
 void xLightsXmlFile::Clear()
@@ -416,9 +423,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
-        AddTimingAttributes(node, wxT("timing"), wxT("Song Timing"), wxT("1"), wxT("1"));
-        AddTimingAttributes(node, wxT("timing"), wxT("t1"), wxT("1"), wxT("0"));
-        AddTimingAttributes(node, wxT("timing"), wxT("t2"), wxT("1"), wxT("0"));
+        AddTimingAttributes(node, wxT("Song Timing"), wxT("1"), wxT("1"));
+        AddTimingAttributes(node, wxT("t1"), wxT("1"), wxT("0"));
+        AddTimingAttributes(node, wxT("t2"), wxT("1"), wxT("0"));
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
@@ -450,30 +457,50 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                 wxString effect_string = effects[next_effect];
                 if(effect_string.length() > 500)
                 {
-                    wxArrayString parts = wxSplit(effect_string, ',');
-                    wxArrayString parts_copy = parts;
-                    parts_copy.RemoveAt(0,2);
-                    effect_string = wxJoin(parts_copy, ',');
-
-                    int eff1_start = effect_string.find(wxString(",E1_SLIDER_Speed"));
-                    int eff2_start = effect_string.find(wxString("E2_SLIDER_Speed"));
-
-                    wxString prefix = effect_string.substr(0, eff1_start);
-                    wxString eff1 = effect_string.substr(0, eff2_start-1);
-                    wxString eff2 = prefix + effect_string.substr(eff2_start, effect_string.length() - eff2_start);
-
-                    wxString data1 = SubstituteV3toV4tags(eff1);
-                    wxString data2 = SubstituteV3toV4tags(eff2);
+                    wxString settings(effect_string);
+                    wxString eff1, eff2, prefix;
+                    wxString effect1, effect2;
+                    wxString before,after;
+                    int cnt=0;
+                    while (!settings.IsEmpty()) {
+                        before=settings.BeforeFirst(',');
+                        switch (cnt)
+                        {
+                        case 0:
+                            effect1 = before;
+                            break;
+                        case 1:
+                            effect2 = before;
+                            break;
+                        case 2:
+                            prefix = before;
+                            break;
+                        default:
+                            if (before.StartsWith("E1_")) {
+                                eff1 += "," + before;
+                            } else if (before.StartsWith("E1_")) {
+                                eff2 += "," + before;
+                            } else {
+                                prefix += "," + before;
+                            }
+                            break;
+                        }
+                        settings=settings.AfterFirst(',');
+                        cnt++;
+                    }
+                    
+                    wxString data1 = SubstituteV3toV4tags(prefix + eff1);
+                    wxString data2 = SubstituteV3toV4tags(prefix + eff2);
 
                     wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
-                    effect->AddAttribute(wxT("name"), parts[0]);
+                    effect->AddAttribute(wxT("name"), effect1);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
                     effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
 
                     effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
-                    effect->AddAttribute(wxT("name"), parts[1]);
+                    effect->AddAttribute(wxT("name"), effect2);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
@@ -603,14 +630,18 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             return;
         }
 
-        wxString filename = filenames[i];
+        wxString filename = next_file.GetName();
         wxXmlNode* root=seqDocument.GetRoot();
         wxXmlNode* child;
         wxXmlNode* layer;
 
         for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
         {
-            if (e->GetName() == "ElementEffects")
+            if (e->GetName() == "DisplayElements")
+            {
+                AddTimingAttributes(e, filename, wxT("1"), wxT("0"));
+            }
+            else if (e->GetName() == "ElementEffects")
             {
                 child = AddChildXmlNode(e, wxT("Element"));
                 child->AddAttribute(wxT("type"),wxT("timing"));

@@ -6,6 +6,7 @@
 #include "wx/xml/xml.h"
 #include "EffectLayer.h"
 
+
 enum ElementType
 {
     ELEMENT_TYPE_MODEL,

@@ -1187,7 +1187,6 @@ private:
     int CreateRandomEffect(int eff_LASTEFFECT);
 
     void GridCellChanged(int row, int col);
-    void LoadSettingsMap(wxString settings, MapStringString& SettingsMap);
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
     int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
     void ResetEffectDuration(PixelBufferClass &buffer);
@@ -1195,8 +1194,12 @@ private:
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
 
     void UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer);
+    
+public:
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
-                             PixelBufferClass &buffer, bool *ResetEffectState, bool bgThread = false);
+                             PixelBufferClass &buffer, bool &ResetEffectState,
+                             bool bgThread = false);
+protected:
     bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState,
                              bool &bufferClear,

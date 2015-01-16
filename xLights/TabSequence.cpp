@@ -2960,37 +2960,6 @@ void xLightsFrame::SaveSequence()
     EnableSequenceControls(true);
 }
 
-void xLightsFrame::LoadSettingsMap(wxString settings, MapStringString& SettingsMap)
-{
-    wxString before,after,name,value;
-    int cnt=0;
-    while (!settings.IsEmpty())
-    {
-        before=settings.BeforeFirst(',');
-        after=settings.AfterFirst(',');
-        switch (cnt)
-        {
-        case 0:
-            SettingsMap.clear();
-            SettingsMap["E1_Effect"]=before;
-            break;
-        case 1:
-            SettingsMap["E2_Effect"]=before;
-            break;
-        case 2:
-            SettingsMap["LayerMethod"]=before;
-            break;
-        default:
-            name=before.BeforeFirst('=');
-            value=before.AfterFirst('=');
-            SettingsMap[name]=value;
-            break;
-        }
-        settings=after;
-        cnt++;
-    }
-}
-
 void xLightsFrame::OnBitmapButtonInsertRowClick(wxCommandEvent& event)
 {
     InsertRow();

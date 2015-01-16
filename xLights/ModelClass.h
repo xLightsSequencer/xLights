@@ -83,11 +83,11 @@ private:
             Coords.push_back(c);
         }
 
-        void SetColor(wxColour& color)
+        void SetColor(const wxImage::RGBValue& color)
         {
-            c[0]=color.Red();
-            c[1]=color.Green();
-            c[2]=color.Blue();
+            c[0]=color.red;
+            c[1]=color.green;
+            c[2]=color.blue;
         }
 
         void SetColor(uint8_t r,uint8_t g,uint8_t b)
