@@ -21,6 +21,8 @@ class ColorPanel: public wxPanel
 		ColorPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ColorPanel();
 
+		wxString GetColorString();
+
         bool PaletteChanged;
         bool EffectChanged;
 
