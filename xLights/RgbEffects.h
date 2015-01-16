@@ -106,11 +106,11 @@ public:
         blue = rgb.blue;
         green = rgb.green;
     }
-    int Red() const { return red; }
-    int Blue() const { return blue; };
-    int Green() const { return green; };
+    unsigned char Red() const { return red; }
+    unsigned char Blue() const { return blue; };
+    unsigned char Green() const { return green; };
     
-    void Set(int r, int g, int b) {
+    void Set(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
         blue = b;

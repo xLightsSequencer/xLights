@@ -4,7 +4,6 @@
 #include "xLightsMain.h"
 #include "heartbeat.h"
 
-
 #include "SeqOpenDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
@@ -125,7 +124,7 @@ void xLightsFrame::OpenSequence()
         } else {
             //FIXME - calc length from media
         }
-        SeqData.init(NetInfo.GetTotChannels(), 0, ms);
+        SeqData.init(NetInfo.GetTotChannels(), len, ms);
         Timer1.Start(SeqData.FrameTime());
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), dialog.ChoiceSeqBinaryFiles->GetStringSelection(), elapsedTime));
@@ -673,6 +672,13 @@ void xLightsFrame::SaveSequence()
     //Save(SeqXmlFileName);
     
     
+    RenderGridToSeqData();
+    WriteFalconPiFile(xlightsFilename);
+    UnsavedChanges = false;
+    float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+    wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+    StatusBar1->SetStatusText(displayBuff);
+    EnableSequenceControls(true);
 }
 
 

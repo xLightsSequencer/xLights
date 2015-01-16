@@ -128,6 +128,8 @@
 #include "../include/twinkle.xpm"
 #include "../include/wave.xpm"
 
+#include "JobPool.h"
+
 
 class EffectTreeDialog;
 
@@ -1073,6 +1075,7 @@ private:
     SeqDataType* RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer);
     wxXmlNode* SelectModelToExport();
 
+    JobPool jobPool;
 
 //  papagayo
     void PapagayoError(const wxString& msg);
