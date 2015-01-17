@@ -19,7 +19,7 @@ void xLightsFrame::CreateSequencer()
 {
     EffectsPanel1 = NULL;
     timingPanel = NULL;
-    
+
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetFrequency(40);
     bool success = mSequenceElements.LoadSequencerFile(BASEPATH + "v4.xml");
@@ -173,6 +173,8 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
     UpdateEffectGridHorizontalScrollBar();
+    SetLabel(wxString::Format("Zoom=%d MaxZoom=%d",mainSequencer->PanelTimeLine->GetZoomLevel(),mainSequencer->PanelTimeLine->GetMaxZoomLevel()));
+
 }
 
 void xLightsFrame::UpdateEffectGridHorizontalScrollBar()

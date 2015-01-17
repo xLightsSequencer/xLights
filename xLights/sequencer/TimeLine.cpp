@@ -143,31 +143,15 @@ int TimeLine::GetZoomLevel()
 
 void TimeLine::ZoomOut()
 {
-    if(mZoomLevel<MAX_ZOOM_OUT_INDEX)
+    if(mZoomLevel<mMaxZoomLevel)
     {
-        if(mViewableTimeMS < mTimeLength)
-        {
-            SetZoomLevel(mZoomLevel+1);
-        }
-        else
-        {
-            int selectedTime = mStartTimeMS+GetTimeMSfromPosition(mSelectedPosition);
-            mStartTimeMS = 0;
-            mStartPixelOffset = 0;
-            mEndTimeMS = GetMaxViewableTimeMS();
-            mStartTime = 0;
-            mEndTime = (double)mEndTimeMS/(double)1000;
-
-            float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
-            mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
-            Refresh();
-            RaiseChangeTimeline();
-        }
+        SetZoomLevel(mZoomLevel+1);
     }
 }
 
 void TimeLine::ZoomIn()
 {
+    wxString s;
     if(mZoomLevel>0)
     {
         SetZoomLevel(mZoomLevel-1);
