@@ -6,6 +6,7 @@
 #include "../SequencePreview.h"
 #include "SequenceElements.h"
 #include "../TopEffectsPanel.h"
+#include "../EffectIconPanel.h"
 
 
 #if __WXOSX__
@@ -87,6 +88,11 @@ void xLightsFrame::CreateSequencer()
 
     colorPanel = new ColorPanel(PanelSequencer);
     timingPanel = new TimingPanel(PanelSequencer);
+
+    EffectIconPanel* effectIconPanel1 = new EffectIconPanel(PanelSequencer);
+
+    m_mgr->AddPane(effectIconPanel1,wxAuiPaneInfo().Name(wxT("EffectIcons1")).Caption(wxT("Effects")).
+                   BestSize(wxSize(150,150)).MinSize(wxSize(150,150)).Left());
 
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effects")).
                    BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
@@ -317,14 +323,20 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 
 void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
 {
-    Effect* effect = (Effect*)event.GetClientData();
-    wxString name = "";
-    if(effect!=nullptr)
+    bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
+    if(OnlyChoiceBookPage)
     {
-        SetEffectControls(effect->GetEffectName(),effect->GetSettings(),name);
+        int pageIndex = event.GetInt();
+        // Dont change page if it is already on correct page
+        if (EffectsPanel1->Choicebook1->GetSelection()!=pageIndex)
+        {EffectsPanel1->Choicebook1->SetSelection(pageIndex);}
     }
-    effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
-
+    else
+    {
+        Effect* effect = (Effect*)event.GetClientData();
+        SetEffectControls(effect->GetEffectName(),effect->GetSettings());
+        effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
+    }
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
@@ -333,7 +345,6 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
     wxString settings = GetEffectTextFromWindows();
-
     dropData->Layer->AddEffect(0,effectIndex,name,settings,dropData->StartTime,dropData->EndTime,false);
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
@@ -342,7 +353,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 
 
-void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, const wxString& model_name)
+void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
 {
     long TempLong;
     wxColour color;
@@ -351,6 +362,7 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, con
     wxPanel *efPanel;
     int cnt=0;
 
+    SetChoicebook(EffectsPanel1->Choicebook1, effectName);
 //NOTE: the settings loop after this section does not initialize controls.
 //For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
 //A loop needs to be added to initialize the wx controls to a predictable value.
@@ -363,7 +375,6 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings, con
     EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
 
-    SetChoicebook(EffectsPanel1->Choicebook1, effectName);
     while (!settings.IsEmpty())
     {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ

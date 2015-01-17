@@ -2675,6 +2675,8 @@ void EffectsPanel::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     // We do not have an actual effect in grid to send
+    // Set Index of page.
+    eventEffectChanged.SetInt(Choicebook1->GetSelection());
     eventEffectChanged.SetClientData(nullptr);
     wxPostEvent(GetParent(), eventEffectChanged);
 

@@ -283,7 +283,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(wxString name, wxString settings, const wxString& model_name);
+    void SetEffectControls(wxString name, wxString settings);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
 
@@ -1194,7 +1194,7 @@ private:
     void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
 
     void UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer);
-    
+
 public:
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
