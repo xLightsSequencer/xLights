@@ -170,9 +170,9 @@
 					<Add option="-lopengl32" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -210,9 +210,9 @@
 					<Add option="-lopengl32" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="../lib/windows/DbgHelp.Lib" />
-					<Add library="../lib/windows/ImageHlp.Lib" />
-					<Add library="../lib/windows/libmpg123-0.lib" />
+					<Add library="..\lib\windows\DbgHelp.Lib" />
+					<Add library="..\lib\windows\ImageHlp.Lib" />
+					<Add library="..\lib\windows\libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -283,6 +283,8 @@
 		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
+		<Unit filename="EffectIconPanel.cpp" />
+		<Unit filename="EffectIconPanel.h" />
 		<Unit filename="EffectListDialog.cpp" />
 		<Unit filename="EffectListDialog.h" />
 		<Unit filename="EffectTreeDialog.cpp" />
@@ -449,6 +451,7 @@
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
+		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
@@ -520,6 +523,7 @@
 					<wxDialog wxs="wxsmith/NewSequenceDialog.wxs" src="NewSequenceDialog.cpp" hdr="NewSequenceDialog.h" fwddecl="0" i18n="1" name="NewSequenceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
