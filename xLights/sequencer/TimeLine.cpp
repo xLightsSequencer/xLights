@@ -145,7 +145,23 @@ void TimeLine::ZoomOut()
 {
     if(mZoomLevel<mMaxZoomLevel)
     {
+//        SetZoomLevel(mZoomLevel+1);
+
         SetZoomLevel(mZoomLevel+1);
+        if(GetTotalViewableTimeMS()> mTimeLength)
+        {
+            int selectedTime = mStartTimeMS+GetTimeMSfromPosition(mSelectedPosition);
+            mStartTimeMS = 0;
+            mStartPixelOffset = 0;
+            mEndTimeMS = GetMaxViewableTimeMS();
+            mStartTime = 0;
+            mEndTime = (double)mEndTimeMS/(double)1000;
+
+            float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
+            mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
+            Refresh();
+            RaiseChangeTimeline();
+        }
     }
 }
 
@@ -254,6 +270,13 @@ int TimeLine::GetMaxViewableTimeMS()
     wxSize s = GetSize();
     float majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
     return (int)((majorTicks * (float)TimePerMajorTickInMS()) + mStartTimeMS);
+}
+
+int TimeLine::GetTotalViewableTimeMS()
+{
+    wxSize s = GetSize();
+    float majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
+    return (int)((majorTicks * (float)TimePerMajorTickInMS()));
 }
 
 int TimeLine::GetZoomLevelValue()

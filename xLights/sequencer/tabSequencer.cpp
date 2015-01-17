@@ -173,8 +173,6 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
     UpdateEffectGridHorizontalScrollBar();
-    SetLabel(wxString::Format("Zoom=%d MaxZoom=%d",mainSequencer->PanelTimeLine->GetZoomLevel(),mainSequencer->PanelTimeLine->GetMaxZoomLevel()));
-
 }
 
 void xLightsFrame::UpdateEffectGridHorizontalScrollBar()

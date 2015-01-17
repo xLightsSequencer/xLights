@@ -101,6 +101,7 @@ class TimeLine : public wxWindow
         int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetPixelOffsetFromStartTime();
         int GetMaxViewableTimeMS();
+        int GetTotalViewableTimeMS();
         wxPanel* mParent;
 };
 
