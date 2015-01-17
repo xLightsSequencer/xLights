@@ -205,13 +205,6 @@ enum SeqPlayerStates
     PLAYING_EFFECT
 };
 
-struct EffectDropData
-{
-    wxDouble StartTime;
-    wxDouble EndTime;
-    EffectLayer* Layer;
-};
-
 class xlAuiToolBar;
 
 class SchedTreeData : public wxTreeItemData

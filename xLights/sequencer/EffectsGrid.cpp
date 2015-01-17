@@ -60,7 +60,6 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
 
     mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
-    mDropData = new EffectDropData();
 
 }
 
@@ -897,13 +896,16 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
     int row = GetRow(y);
     Element* e = mSequenceElements->GetRowInformation(row)->element;
     EffectLayer* effectLayer = e->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-    mDropData->Layer = effectLayer;
+
+    mSequenceElements->ClearSelectedRanges();
+    EffectRange effectRange;
+    effectRange.Layer = effectLayer;
     // Store start and end time. The effect text will be supplied by parent class
-    mDropData->StartTime = mDropStartTime;
-    mDropData->EndTime = mDropEndTime;
+    effectRange.StartTime = mDropStartTime;
+    effectRange.EndTime = mDropEndTime;
+    mSequenceElements->AddSelectedRange(&effectRange);
     // Raise event
     wxCommandEvent eventDropped(EVT_EFFECT_DROPPED);
-    eventDropped.SetClientData(mDropData);
     wxPostEvent(GetParent(), eventDropped);
 }
 

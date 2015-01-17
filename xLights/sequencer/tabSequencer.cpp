@@ -329,29 +329,32 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->Choicebook1->GetSelection()!=pageIndex)
-        {EffectsPanel1->Choicebook1->SetSelection(pageIndex);}
+        {
+            EffectsPanel1->Choicebook1->SetSelection(pageIndex);
+        }
     }
     else
     {
         Effect* effect = (Effect*)event.GetClientData();
         SetEffectControls(effect->GetEffectName(),effect->GetSettings());
-        effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
     }
+    effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
+    effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
-    EffectDropData * dropData = (EffectDropData*)event.GetClientData();
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
     wxString settings = GetEffectTextFromWindows();
-    dropData->Layer->AddEffect(0,effectIndex,name,settings,dropData->StartTime,dropData->EndTime,false);
+    for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
+    {
+        mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
+                                   mSequenceElements.GetSelectedRange(i)->StartTime,
+                                   mSequenceElements.GetSelectedRange(i)->EndTime,false);
+    }
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
-
-
-
-
 
 void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
 {

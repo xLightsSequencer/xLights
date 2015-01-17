@@ -129,7 +129,7 @@ private:
     double mDropStartTime;
     double mDropEndTime;
 
-    EffectDropData* mDropData;
+    EffectRange* mDropData;
 
 	DECLARE_EVENT_TABLE()
 };

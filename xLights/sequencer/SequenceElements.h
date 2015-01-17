@@ -21,6 +21,14 @@ struct Row_Information_Struct
     int layerIndex;
 };
 
+struct EffectRange
+{
+    wxDouble StartTime;
+    wxDouble EndTime;
+    EffectLayer* Layer;
+    int Row;
+};
+
 class SequenceElements
 {
     public:
@@ -32,6 +40,13 @@ class SequenceElements
         Element* GetElement(const wxString &name);
         Row_Information_Struct* GetRowInformation(int index);
         int GetRowInformationSize();
+
+        // Selected Ranges
+        int GetSelectedRangeCount();
+        EffectRange* GetSelectedRange(int index);
+        void AddSelectedRange(EffectRange* range);
+        void DeleteSelectedRange(int index);
+        void ClearSelectedRanges();
 
         int GetSelectedTimingRow();
         void SetSelectedTimingRow(int row);
@@ -51,6 +66,7 @@ class SequenceElements
     private:
     std::vector<Element> mElements;
     std::vector<Row_Information_Struct> mRowInformation;
+    std::vector<EffectRange> mSelectedRanges;
     int mSelectedTimingRow;
     bool ElementExists(wxString elementName);
     wxXmlNode* mViewsNode;

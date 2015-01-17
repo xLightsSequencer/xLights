@@ -413,3 +413,33 @@ void SequenceElements::UnSelectAllEffects()
         effectLayer->UnSelectAllEffects();
     }
 }
+
+// Functions to manage selected ranges
+int SequenceElements::GetSelectedRangeCount()
+{
+    return mSelectedRanges.size();
+}
+
+EffectRange* SequenceElements::GetSelectedRange(int index)
+{
+    return &mSelectedRanges[index];
+}
+
+void SequenceElements::AddSelectedRange(EffectRange* range)
+{
+    mSelectedRanges.push_back(*range);
+}
+
+void SequenceElements::DeleteSelectedRange(int index)
+{
+    if(index < mSelectedRanges.size())
+    {
+        mSelectedRanges.erase(mSelectedRanges.begin()+index);
+    }
+}
+
+void SequenceElements::ClearSelectedRanges()
+{
+    mSelectedRanges.clear();
+}
+
