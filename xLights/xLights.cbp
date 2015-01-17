@@ -310,8 +310,6 @@
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewSequenceDialog.cpp" />
 		<Unit filename="NewSequenceDialog.h" />
-		<Unit filename="NewTimingDialog.cpp" />
-		<Unit filename="NewTimingDialog.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="PixelBuffer.cpp" />
@@ -322,8 +320,6 @@
 		<Unit filename="PlayerFrame.h" />
 		<Unit filename="PreviewModels.cpp" />
 		<Unit filename="PreviewModels.h" />
-		<Unit filename="RenameTextDialog.cpp" />
-		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBars.cpp" />
 		<Unit filename="RenderButterfly.cpp" />
@@ -454,12 +450,10 @@
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/NewSequenceDialog.wxs" />
-		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
 		<Unit filename="wxsmith/PlaybackOptionsDialog.wxs" />
 		<Unit filename="wxsmith/PlayerFrame.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
-		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/SeqElementMismatchDialog.wxs" />
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
@@ -518,8 +512,6 @@
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/XmlConversionDialog.wxs" src="XmlConversionDialog.cpp" hdr="XmlConversionDialog.h" fwddecl="0" i18n="1" name="XmlConversionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NewSequenceDialog.wxs" src="NewSequenceDialog.cpp" hdr="NewSequenceDialog.h" fwddecl="0" i18n="1" name="NewSequenceDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

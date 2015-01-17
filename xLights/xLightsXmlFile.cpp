@@ -207,73 +207,6 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
     }
 }
 
-void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
-{
-    bool found = false;
-    wxXmlNode* root=seqDocument.GetRoot();
-
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
-    {
-       if (e->GetName() == "ElementEffects")
-       {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL & !found; element=element->GetNext() )
-            {
-                if (element->GetName() == "Element")
-                {
-                    wxString name_attr;
-                    element->GetAttribute("type", &name_attr);
-                    if( name_attr == _("timing"))
-                    {
-                        element->GetAttribute("name", &name_attr);
-                        if( name_attr == section )
-                        {
-                            for( wxXmlAttribute* attr=element->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
-                            {
-                                if( attr->GetValue() == section )
-                                {
-                                    attr->SetValue(name);
-                                    int index = timing_list.Index(section);
-                                    timing_list.Remove(section);
-                                    timing_list.Insert(name, index);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else if (e->GetName() == "DisplayElements")
-        {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL & !found; element=element->GetNext() )
-            {
-                if (element->GetName() == "Element")
-                {
-                    wxString name_attr;
-                    element->GetAttribute("type", &name_attr);
-                    if( name_attr == _("timing"))
-                    {
-                        element->GetAttribute("name", &name_attr);
-                        if( name_attr == section )
-                        {
-                            for( wxXmlAttribute* attr=element->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
-                            {
-                                if( attr->GetValue() == section )
-                                {
-                                    attr->SetValue(name);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-    }
-}
-
 void xLightsXmlFile::DeleteTimingSection(wxString section)
 {
     if( needs_conversion ) // conversion process will take care of writing this info
@@ -298,6 +231,7 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                         if( attr == section )
                         {
                             e->RemoveChild(element);
+                            seqDocument.Save(GetFullPath());
                             timing_list.Remove(section);
                             delete element;
                             found = true;
@@ -554,7 +488,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                         settings=settings.AfterFirst(',');
                         cnt++;
                     }
-
+                    
                     wxString data1 = SubstituteV3toV4tags(prefix + eff1);
                     wxString data2 = SubstituteV3toV4tags(prefix + eff2);
 

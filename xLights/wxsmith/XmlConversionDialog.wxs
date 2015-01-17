@@ -281,8 +281,6 @@
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_Extract_Song_Info" variable="Button_Extract_Song_Info" member="yes">
 											<label>Extract Song Info from File</label>
-											<enabled>0</enabled>
-											<handler function="OnButton_Extract_Song_InfoClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -337,79 +335,49 @@
 						<object class="wxStaticBoxSizer" variable="StaticBoxSizer_Xml_Song_Timings" member="no">
 							<label>Song Timings</label>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-									<cols>1</cols>
+								<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-											<cols>3</cols>
-											<object class="sizeritem">
-												<object class="wxStaticText" name="ID_STATICTEXT_Xml_Timing" variable="StaticText_Xml_Timing" member="yes">
-													<label>Timing:</label>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxChoice" name="ID_CHOICE_Xml_Song_Timings" variable="Choice_Xml_Song_Timings" member="yes">
-													<size>238,21</size>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Timing" variable="StaticText_Xml_Timing" member="yes">
+											<label>Timing:</label>
 										</object>
+										<col>0</col>
+										<row>0</row>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-											<cols>4</cols>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_Xml_New_Timing" variable="Button_Xml_New_Timing" member="yes">
-													<label>New</label>
-													<size>60,23</size>
-													<enabled>0</enabled>
-													<handler function="OnButton_Xml_New_TimingClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
-													<label>Import</label>
-													<size>60,23</size>
-													<enabled>0</enabled>
-													<handler function="OnButton_Xml_Import_TimingClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_Xml_Rename_Timing" variable="Button_Xml_Rename_Timing" member="yes">
-													<label>Rename</label>
-													<size>60,23</size>
-													<enabled>0</enabled>
-													<handler function="OnButton_Xml_Rename_TimingClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_Xml_Delete_Timing" variable="Button_Xml_Delete_Timing" member="yes">
-													<label>Delete</label>
-													<size>60,23</size>
-													<enabled>0</enabled>
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
+										<object class="wxChoice" name="ID_CHOICE_Xml_Song_Timings" variable="Choice_Xml_Song_Timings" member="yes">
+											<size>238,21</size>
+											<style>wxCB_SORT</style>
 										</object>
+										<colspan>2</colspan>
+										<col>1</col>
+										<row>0</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
+											<label>Import</label>
+											<enabled>0</enabled>
+											<handler function="OnButton_Xml_Import_TimingClick" entry="EVT_BUTTON" />
+										</object>
+										<col>1</col>
+										<row>1</row>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON_Xml_Delete_Timing" variable="Button_Xml_Delete_Timing" member="yes">
+											<label>Delete</label>
+											<enabled>0</enabled>
+											<handler function="OnButton_Xml_Delete_TimingClick" entry="EVT_BUTTON" />
+										</object>
+										<col>2</col>
+										<row>1</row>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>

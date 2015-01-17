@@ -47,7 +47,6 @@ class XmlConversionDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
 		wxStaticText* StaticText_Xml_Timing;
-		wxButton* Button_Xml_Rename_Timing;
 		wxTextCtrl* TextCtrl_Xml_Log;
 		wxStaticText* StaticText_Work_Dir;
 		wxTextCtrl* TextCtrl_Xml_Comment;
@@ -59,7 +58,6 @@ class XmlConversionDialog: public wxDialog
 		wxButton* Button_Xml_Close_Dialog;
 		wxTextCtrl* TextCtrl_Xml_Artist;
 		wxStaticText* StaticText_XML_Convert_Title;
-		wxButton* Button_Xml_New_Timing;
 		//*)
 
 	protected:
@@ -95,9 +93,7 @@ class XmlConversionDialog: public wxDialog
 		static const long ID_BUTTON_Xml_Close_Dialog;
 		static const long ID_STATICTEXT_Xml_Timing;
 		static const long ID_CHOICE_Xml_Song_Timings;
-		static const long ID_BUTTON_Xml_New_Timing;
 		static const long ID_BUTTON_Xml_Import_Timing;
-		static const long ID_BUTTON_Xml_Rename_Timing;
 		static const long ID_BUTTON_Xml_Delete_Timing;
 		static const long ID_TEXTCTRL_Xml_Log;
 		//*)
@@ -129,9 +125,6 @@ class XmlConversionDialog: public wxDialog
 		void OnBitmapButton_Change_DirClick(wxCommandEvent& event);
 		void OnButton_Xml_Import_TimingClick(wxCommandEvent& event);
 		void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
-		void OnButton_Xml_New_TimingClick(wxCommandEvent& event);
-		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
-		void OnButton_Extract_Song_InfoClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

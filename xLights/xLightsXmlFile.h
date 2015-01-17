@@ -26,7 +26,6 @@ class xLightsXmlFile : public wxFileName
         void Load();
         void Save(wxTextCtrl* log = NULL, bool rename_v3_file = true);
         void SetHeaderInfo(wxArrayString info);
-        void SetTimingSectionName(wxString section, wxString name);
         void DeleteTimingSection(wxString section);
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
         void Clear();
