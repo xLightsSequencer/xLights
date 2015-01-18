@@ -512,12 +512,14 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
         case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
             p_XPM = ColorWash;
             break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_COROFACES:
+            p_XPM = corofaces;
+            break;
         case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
             p_XPM = curtain;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
-            p_XPM = Off;
-//            p_XPM = faces;
+            p_XPM = faces;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
             p_XPM = fire;
@@ -572,6 +574,9 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
         case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
   //         p_XPM = Off;
           p_XPM = strobe;
+            break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
+            p_XPM = text;
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
             p_XPM = tree;
