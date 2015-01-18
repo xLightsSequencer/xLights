@@ -356,6 +356,16 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 
+void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
+{
+    EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
+    int startTime = (int)(args->effect->GetStartTime() * 1000);
+    int endTime = (int)(args->effect->GetEndTime() * 1000);
+    RenderEffectForModel(args->element->GetName(),startTime,endTime);
+}
+
+
+
 void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
 {
     long TempLong;

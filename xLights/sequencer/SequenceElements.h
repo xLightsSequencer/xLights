@@ -29,6 +29,12 @@ struct EffectRange
     int Row;
 };
 
+struct EventPlayEffectArgs
+{
+    Element* element;
+    Effect* effect;
+};
+
 class SequenceElements
 {
     public:

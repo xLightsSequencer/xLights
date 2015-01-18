@@ -331,6 +331,7 @@ wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
@@ -344,6 +345,9 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_EFFECT_CHANGED, xLightsFrame::SelectedEffectChanged)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
+    EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL_EFFECT, xLightsFrame::PlayModelEffect)
+
+
 
 END_EVENT_TABLE()
 
@@ -1685,7 +1689,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
-    
+
     jobPool.Start(wxThread::GetCPUCount() * 2);
 }
 

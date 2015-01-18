@@ -25,6 +25,8 @@
 
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
+
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 
 struct EffectDropData;
@@ -85,6 +87,7 @@ private:
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
     void RaiseEffectDropped(int x, int y);
+    void RaisePlayModelEffect(Element* element, Effect* effect);
 
     Element* GetActiveTimingElement();
 
@@ -130,6 +133,7 @@ private:
     double mDropEndTime;
 
     EffectRange* mDropData;
+    EventPlayEffectArgs* playArgs;
 
 	DECLARE_EVENT_TABLE()
 };

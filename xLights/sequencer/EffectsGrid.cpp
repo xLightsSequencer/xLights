@@ -60,6 +60,7 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
 
     mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
+    playArgs = new EventPlayEffectArgs();
 
 }
 
@@ -167,6 +168,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         EffectLayer* el  = element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
         Effect* effect = el->GetEffect(FirstSelected);
         RaiseSelectedEffectChanged(effect);
+        RaisePlayModelEffect(element,effect);
     }
     mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
                    GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
@@ -888,6 +890,16 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
     wxCommandEvent eventEffectChanged(EVT_SELECTED_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(effect);
     wxPostEvent(GetParent(), eventEffectChanged);
+}
+
+void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect)
+{
+    // Place effect pointer in client data
+    wxCommandEvent eventPlayModelEffect(EVT_PLAY_MODEL_EFFECT);
+    playArgs->element = element;
+    playArgs->effect = effect;
+    eventPlayModelEffect.SetClientData(playArgs);
+    wxPostEvent(GetParent(), eventPlayModelEffect);
 }
 
 void EffectsGrid::RaiseEffectDropped(int x, int y)

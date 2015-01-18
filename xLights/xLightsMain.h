@@ -165,6 +165,7 @@ wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 
 
 static wxCriticalSection gs_xoutCriticalSection;
@@ -1198,8 +1199,8 @@ public:
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const wxString &model, int startms, int endms);
     void EnableSequenceControls(bool enable);
-    
-    
+
+
 protected:
     bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState,
@@ -1363,6 +1364,9 @@ protected:
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
+    void PlayModelEffect(wxCommandEvent& event);
+
+
 
     void ZoomIn();
     void ZoomOut();
