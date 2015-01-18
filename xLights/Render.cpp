@@ -87,7 +87,7 @@ public:
                 if (el != currentEffects[layer]) {
                     currentEffects[layer] = el;
                     initialize(layer, frame, el, settingsMaps[layer]);
-                    effectStates[layer] = false;
+                    effectStates[layer] = true;
                 }
                 int persist=wxAtoi(settingsMaps[layer]["CHECKBOX_OverlayBkg"]);
                 if (!persist || "None" == settingsMaps[layer]["Effect"]) {
