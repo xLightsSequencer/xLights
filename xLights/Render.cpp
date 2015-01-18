@@ -91,12 +91,17 @@ public:
         }
         delete [] settingsMaps;
         next->setPreviousFrameDone(endFrame);
+        xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender.GetName()));
     }
     void waitForFrame(int frame) {
         wxMutexLocker lock(nextLock);
         while (frame >= previousFrameDone) {
             nextSignal.WaitTimeout(5);
         }
+    }
+    bool checkIfDone(int frame, int timeout = 5) {
+        wxMutexLocker lock(nextLock);
+        return previousFrameDone >= frame;
     }
     
 private:
@@ -233,7 +238,9 @@ void xLightsFrame::RenderGridToSeqData() {
         }
     }
     //wait to complete
-    wait.waitForFrame(SeqData.NumFrames() - 1);
+    while (!wait.checkIfDone(SeqData.NumFrames())) {
+        wxYield();
+    }
     
     delete []jobs;
 }
