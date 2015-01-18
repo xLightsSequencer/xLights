@@ -206,6 +206,7 @@ enum SeqPlayerStates
 };
 
 class xlAuiToolBar;
+class RenderEvent;
 
 class SchedTreeData : public wxTreeItemData
 {
@@ -1192,6 +1193,7 @@ public:
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
+    void RenderEffectOnMainThread(RenderEvent *evt);
 protected:
     bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState,

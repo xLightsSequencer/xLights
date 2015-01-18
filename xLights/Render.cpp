@@ -8,6 +8,30 @@
 #include "xLightsMain.h"
 
 
+class RenderEvent
+{
+public:
+    RenderEvent(int l, int p, MapStringString& sm,
+                PixelBufferClass &b, bool *res) : mutex(), signal(mutex)
+    {
+        layer = l;
+        period = p;
+        SettingsMap = &sm;
+        buffer = &b;
+        ResetEffectState = res;
+    }
+    wxMutex mutex;
+    wxCondition signal;
+    volatile bool done = false;
+    int layer;
+    int period;
+    MapStringString *SettingsMap;
+    PixelBufferClass *buffer;
+    bool *ResetEffectState;
+    bool returnVal = false;
+};
+
+
 class RenderJob: public Job {
 public:
     RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe)
@@ -206,6 +230,14 @@ private:
     wxCondition nextSignal;
 };
 
+void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
+    wxMutexLocker(ev->mutex);
+    ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+                                        *ev->SettingsMap,
+                                        *ev->buffer, *ev->ResetEffectState, false);
+    ev->done = true;
+    ev->signal.Broadcast();
+}
 
 void xLightsFrame::RenderGridToSeqData() {
     int numRows = mSequenceElements.GetRowInformationSize();
@@ -405,21 +437,14 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& S
     } else if (effect == "Text") {
         // this needs to be on the primary thread due to GDI calls
         if (bgThread) {
-            /*
-             //FIXME - must pop to main thread
-            EffectEvent ev(layer, period, SettingsMap, buffer, ResetEffectState);
-            ev.mutex.Lock();
-            thread1Mutex.Lock();
-            effectsToRender.push_back(&ev);
-            thread1Condition.Broadcast();
-            thread1Mutex.Unlock();
-            ev.mutex.Unlock();
+            RenderEvent ev(layer, period, SettingsMap, buffer, &resetEffectState);
+            GetEventHandler()->CallAfter(&xLightsFrame::RenderEffectOnMainThread, &ev);
+            wxMutexLocker lock(ev.mutex);
             int cnt = 0;
             while (cnt < 50 && !ev.done) {
-                wxMilliSleep(1);
+                ev.signal.WaitTimeout(2);
                 cnt++;
             }
-            */
         } else {
             buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),
                               SettingsMap["TEXTCTRL_Text_Line1"],
