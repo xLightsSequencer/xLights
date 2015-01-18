@@ -899,7 +899,7 @@ void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect)
     playArgs->element = element;
     playArgs->effect = effect;
     eventPlayModelEffect.SetClientData(playArgs);
-    wxPostEvent(GetParent(), eventPlayModelEffect);
+    //wxPostEvent(GetParent(), eventPlayModelEffect);
 }
 
 void EffectsGrid::RaiseEffectDropped(int x, int y)

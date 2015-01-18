@@ -666,19 +666,19 @@ void xLightsFrame::SaveSequence()
         oName.SetPath( CurrentDir );
         oName.SetExt("fseq");
         DisplayXlightsFilename(oName.GetFullPath());
-        
+
         oName.SetExt("xml");
         SeqXmlFileName=oName.GetFullPath();
     }
-    
+
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
     StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
 
     //FIXME  -  save the XML file
     //Save(SeqXmlFileName);
-    
-    
+
+
     RenderGridToSeqData();
     WriteFalconPiFile(xlightsFilename);
     UnsavedChanges = false;
