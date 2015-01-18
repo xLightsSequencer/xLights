@@ -111,11 +111,15 @@ public:
                     }
                 }
             }
-            next->setPreviousFrameDone(frame);
+            if (next) {
+                next->setPreviousFrameDone(frame);
+            }
         }
         delete [] settingsMaps;
-        next->setPreviousFrameDone(endFrame);
-        xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender.GetName()));
+        if (next) {
+            next->setPreviousFrameDone(endFrame);
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender.GetName()));
+        }
     }
     void waitForFrame(int frame) {
         wxMutexLocker lock(nextLock);
@@ -276,6 +280,17 @@ void xLightsFrame::RenderGridToSeqData() {
     
     delete []jobs;
 }
+
+void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms) {
+    RenderJob *job = NULL;
+    Element * el = mSequenceElements.GetElement(model);
+    wxXmlNode *modelNode = GetModelNode(model);
+    job = new RenderJob(el, modelNode, SeqData, this);
+    job->setRenderRange(0, SeqData.NumFrames());
+    job->setPreviousFrameDone(SeqData.NumFrames() + 1);
+    jobPool.PushJob(job);
+}
+
 
 
 

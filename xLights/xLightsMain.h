@@ -1194,6 +1194,10 @@ public:
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
+    void RenderEffectForModel(const wxString &model, int startms, int endms);
+    void EnableSequenceControls(bool enable);
+    
+    
 protected:
     bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool *ResetEffectState,
@@ -1202,7 +1206,6 @@ protected:
     void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();
-    void EnableSequenceControls(bool enable);
     void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     void RenderGridToSeqData();
