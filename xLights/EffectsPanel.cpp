@@ -17,7 +17,6 @@
 #include "../include/glediator.xpm"
 #include "../include/life.xpm"
 #include "../include/meteors.xpm"
-#include "../include/None.xpm"
 
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
@@ -35,13 +34,13 @@
 #include "../include/twinkle.xpm"
 #include "../include/wave.xpm"
 
-#include "../include/control-play-blue-icon.xpm";
-#include "../include/control-play-icon.xpm";
-#include "../include/control-pause-blue-icon.xpm";
-#include "../include/control-pause-icon.xpm";
+#include "../include/control-play-blue-icon.xpm"
+#include "../include/control-play-icon.xpm"
+#include "../include/control-pause-blue-icon.xpm"
+#include "../include/control-pause-icon.xpm"
 
-#include "../include/control-stop-blue-icon.xpm";
-#include "../include/control-stop-icon.xpm";
+#include "../include/control-stop-blue-icon.xpm"
+#include "../include/control-stop-icon.xpm"
 
 
 //(*InternalHeaders(EffectsPanel)

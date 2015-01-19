@@ -35,11 +35,15 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxBitmap* bmDrag=new wxBitmap(mDragIconBuffer);
     wxCursor dragCursor(bmDrag->ConvertToImage());
 
+#ifndef __linux__
+	// FIXME - This is failing compile on Linux/GTK, not sure why yet
+	// http://docs.wxwidgets.org/3.0.2/classwx_drop_source.html
     wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
 
     dragSource.SetData( dragData );
     wxDragResult result = dragSource.DoDragDrop( wxDragMove );
     int i = 0;
+#endif
 }
 
 void DragEffectBitmapButton::SetBitmap(const char** xpm)

@@ -237,8 +237,8 @@
 					<Add directory="sequencer" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU " />
-					<Add option="`wx-config --libs std,media,gl`" />
+					<Add option="-lGL -lGLU -lmpg123 " />
+					<Add option="`wx-config --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -260,8 +260,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-lGL -lGLU " />
-					<Add option="`wx-config --version=3.0 --libs std,media,gl`" />
+					<Add option="-lGL -lGLU -lmpg123 " />
+					<Add option="`wx-config --version=3.0 --libs std,media,gl,aui`" />
 				</Linker>
 			</Target>
 		</Build>

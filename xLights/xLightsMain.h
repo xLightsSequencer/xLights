@@ -113,7 +113,6 @@
 #include "../include/glediator.xpm"
 #include "../include/life.xpm"
 #include "../include/meteors.xpm"
-#include "../include/None.xpm"
 
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
