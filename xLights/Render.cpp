@@ -44,6 +44,7 @@ public:
             buffer = NULL;
         }
         startFrame = 0;
+        next = NULL;
     }
     
     virtual ~RenderJob() {
