@@ -1,0 +1,39 @@
+/* XPM */
+static const char  *play_24_off_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    24    24        8            1",
+/* colors */
+"` c #94b2c4",
+". c #d4e2ec",
+"# c #b4bec4",
+"a c #f4f6f4",
+"b c #c4cacc",
+"c c #fcfefc",
+"d c #fcfafc",
+"e c #c4cecc",
+/* pixels */
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccd#dcccccccccccccc",
+"ccccccc```#ccccccccccccc",
+"ccccccc`..`#cccccccccccc",
+"ccccccc`...`#ccccccccccc",
+"ccccccc`....`#cccccccccc",
+"ccccccc`.....`#ccccccccc",
+"ccccccc`......`#cccccccc",
+"ccccccc`.......`eccccccc",
+"ccccccc`........`ccccccc",
+"ccccccc`........`ccccccc",
+"ccccccc`.......`eccccccc",
+"ccccccc`......`bdccccccc",
+"ccccccc`.....`#ccccccccc",
+"ccccccc`....`bdccccccccc",
+"ccccccc`...`#ccccccccccc",
+"ccccccc`..`#cccccccccccc",
+"ccccccc```bdcccccccccccc",
+"cccccccd#ddccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc"
+};

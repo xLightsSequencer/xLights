@@ -90,6 +90,104 @@
 						</object>
 						<label>Stop</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarItem1" member="yes">
+							<bitmap code="play_24_xpm" />
+							<shorthelp>Play</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarItem2" member="yes">
+							<bitmap code="pause_24_xpm" />
+							<shorthelp>Pause</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarItem4" member="yes">
+							<bitmap code="stop_24_off_xpm" />
+							<shorthelp>Stop</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarItem5" member="yes">
+							<bitmap code="backward_24_xpm" />
+							<shorthelp>First Frame</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarItem3" member="yes">
+							<bitmap code="forward_24_xpm" />
+							<shorthelp>Last Frame</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM7" variable="AuiToolBarItem6" member="yes">
+							<bitmap code="replay_24_xpm" />
+							<shorthelp>Replay Section</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM8" variable="AuiToolBarItem7" member="yes">
+							<bitmap code="zoom_in_24_xpm" />
+							<shorthelp>Zoom In</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM9" variable="AuiToolBarItem8" member="yes">
+							<bitmap code="zoom_out_24_xpm" />
+							<shorthelp>Zoom Out</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
+							<bitmap code="settings_24_xpm" />
+							<shorthelp>Settings</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM15" variable="AuiToolBarItem14" member="yes">
+							<bitmap code="gears_24_xpm" />
+							<shorthelp>Gears</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItem9" member="yes">
+							<bitmap code="eye_open_24_xpm" />
+							<shorthelp>Search</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM11" variable="AuiToolBarItem10" member="yes">
+							<bitmap code="home_24_xpm" />
+							<shorthelp>Home</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM12" variable="AuiToolBarItem11" member="yes">
+							<bitmap code="folder_xpm" />
+							<shorthelp>Open</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM13" variable="AuiToolBarItem12" member="yes">
+							<bitmap code="save_24_xpm" />
+							<shorthelp>Save</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
 				</object>
 				<name>Play Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

@@ -1,0 +1,39 @@
+/* XPM */
+static const char *forward_24_off_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    24    24        8            1",
+/* colors */
+"` c #949294",
+". c #dad9db",
+"# c #efefef",
+"a c #dddfdd",
+"b c #9fb0b7",
+"c c #fcfefc",
+"d c #acbabc",
+"e c #acaaac",
+/* pixels */
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cc#a.cccccc#..#ccccccccc",
+"cca```#cccce``eccccccccc",
+"cc.`.e`#ccc`..`ecccccccc",
+"cc.`..e`#cc`...`eccccccc",
+"cc.`...e`#c`....`bcccccc",
+"cc.`....e`a`.....`bccccc",
+"cc.`.....e``......`bcccc",
+"cc.`......``.......`bccc",
+"cc.`................`acc",
+"cc.`................`#cc",
+"c#.`.......`.......`bccc",
+"c#.`......``......``cccc",
+"c#.`.....`a`.....``#cccc",
+"c#.`....`ac`....``cccccc",
+"c#.`...`acc`...``#cccccc",
+"c#.`..`accc````bcccccccc",
+"cc.```accccd``b#cccccccc",
+"cc#.d#ccccc#..accccccccc",
+"ccc#c#cccccccccccccccccc",
+"cccccccccccccccccccccccc",
+"cccccccccccccccccccccccc"
+};

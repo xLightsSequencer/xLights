@@ -38,9 +38,33 @@
 #include "../include/control-play-icon.xpm"
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-pause-icon.xpm"
-
 #include "../include/control-stop-blue-icon.xpm"
 #include "../include/control-stop-icon.xpm"
+
+//  New icons from sean 01-17-2015
+#include "../include/zoom-out-24.xpm"
+#include "../include/zoom-in-24.xpm"
+#include "../include/stop-24.xpm"
+#include "../include/stop-24_off.xpm"
+#include "../include/settings-24.xpm"
+#include "../include/trash-24.xpm"
+#include "../include/search-24.xpm"
+#include "../include/save-24.xpm"
+#include "../include/replay-24.xpm"
+#include "../include/play-24.xpm"
+#include "../include/play-24_off.xpm"
+#include "../include/pause-24.xpm"
+#include "../include/pause-24_off.xpm"
+#include "../include/move-24.xpm"
+#include "../include/home-24.xpm"
+#include "../include/gears-24.xpm"
+#include "../include/forward-24.xpm"
+#include "../include/forward-24_off.xpm"
+#include "../include/folder.xpm"
+#include "../include/eye-open-24.xpm"
+#include "../include/backward-24.xpm"
+#include "../include/backward-24_off.xpm"
+
 
 
 //(*InternalHeaders(EffectsPanel)

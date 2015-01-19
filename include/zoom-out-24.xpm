@@ -1,0 +1,39 @@
+/* XPM */
+static const char  *zoom_out_24_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    24    24        8            1",
+/* colors */
+"` c #525556",
+". c #96b6d0",
+"# c #7b8795",
+"a c #fbfdfb",
+"b c #697075",
+"c c #c4c3c4",
+"d c #8e9da7",
+"e c #9cd2fc",
+/* pixels */
+"aaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaacaaaaaaaaaaaaaaa",
+"aaaaab``b`#aaaaaaaaaaaaa",
+"aaac`#eeee#`caaaaaaaaaaa",
+"aaa`.eeeeee.`aaaaaaaaaaa",
+"aabdeeeeeeee#daaaaaaaaaa",
+"aa`eeeeeeeee.`aaaaaaaaaa",
+"aa`eb``````#e`aaaaaaaaaa",
+"acbeb#b#b#b#e`aaaaaaaaaa",
+"aa`eeeeeeeee.baaaaaaaaaa",
+"aa##eeeeeeeebdaaaaaaaaaa",
+"aaa`.eeeeeedbcaaaaaaaaaa",
+"aaac`#.ee.bbccdaaaaaaaaa",
+"aaaaad```bdadb``aaaaaaaa",
+"aaaaaaaaaaaad````aaaaaaa",
+"aaaaaaaaaaaaa`````aaaaaa",
+"aaaaaaaaaaaaaa`````aaaaa",
+"aaaaaaaaaaaaaaab````aaaa",
+"aaaaaaaaaaaaaaaa`````aaa",
+"aaaaaaaaaaaaaaaaa````baa",
+"aaaaaaaaaaaaaaaaaab```aa",
+"aaaaaaaaaaaaaaaaaaab`daa",
+"aaaaaaaaaaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaaaaaaaaaa"
+};

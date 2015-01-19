@@ -1,0 +1,39 @@
+/* XPM */
+static const char  *trash_24_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    24    24        8            1",
+/* colors */
+"` c #404954",
+". c #04a8fc",
+"# c #5c5b5c",
+"a c #0e90eb",
+"b c #2f6383",
+"c c #b3b4b3",
+"d c #fbfdfc",
+"e c #7b919c",
+/* pixels */
+"dddddddddddddddddddddddd",
+"dddddddddddddddddddddddd",
+"dddddddddc####cddddddddd",
+"ddddddbeabababbabecddddd",
+"ddddde..a...a..aaaeddddd",
+"dddddeeeeeeeeeeeeeeddddd",
+"ddddd##############ddddd",
+"ddddd#````````````#ddddd",
+"ddddd#`a``a``b``a`#ddddd",
+"ddddd#b.`ba``ab`a`#ddddd",
+"ddddd#b.`b.``ab`ab#ddddd",
+"ddddd#b.bb.``ab`ab#ddddd",
+"ddddd#b.`b.``abba`#ddddd",
+"ddddd#b.`b.``ab`ab`ddddd",
+"ddddd#b.bba``ab`ab#ddddd",
+"ddddd#b.`b.``ab`a`#ddddd",
+"ddddd#b.`b.``ab`ab#ddddd",
+"ddddd#b.bb.``ab`ab#ddddd",
+"ddddd#b.`ba``ab`a`#ddddd",
+"ddddd#`.`b.``ab`ab`ddddd",
+"ddddd#````````````#ddddd",
+"dddddc````````````eddddd",
+"dddddddccccccccccddddddd",
+"dddddddddddddddddddddddd"
+};

@@ -129,6 +129,31 @@
 #include "../include/twinkle.xpm"
 #include "../include/wave.xpm"
 
+//  <scm> 01-17-2015
+#include "../include/zoom-out-24.xpm"
+#include "../include/zoom-in-24.xpm"
+#include "../include/stop-24.xpm"
+#include "../include/stop-24_off.xpm"
+#include "../include/settings-24.xpm"
+#include "../include/trash-24.xpm"
+#include "../include/search-24.xpm"
+#include "../include/save-24.xpm"
+#include "../include/replay-24.xpm"
+#include "../include/play-24.xpm"
+#include "../include/play-24_off.xpm"
+#include "../include/pause-24.xpm"
+#include "../include/pause-24_off.xpm"
+#include "../include/move-24.xpm"
+#include "../include/home-24.xpm"
+#include "../include/gears-24.xpm"
+#include "../include/forward-24.xpm"
+#include "../include/forward-24_off.xpm"
+#include "../include/folder.xpm"
+#include "../include/eye-open-24.xpm"
+#include "../include/backward-24.xpm"
+#include "../include/backward-24_off.xpm"
+
+
 #include "JobPool.h"
 
 
@@ -529,6 +554,20 @@ private:
     static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
+    static const long ID_AUITOOLBARITEM2;
+    static const long ID_AUITOOLBARITEM3;
+    static const long ID_AUITOOLBARITEM5;
+    static const long ID_AUITOOLBARITEM6;
+    static const long ID_AUITOOLBARITEM4;
+    static const long ID_AUITOOLBARITEM7;
+    static const long ID_AUITOOLBARITEM8;
+    static const long ID_AUITOOLBARITEM9;
+    static const long ID_AUITOOLBARITEM14;
+    static const long ID_AUITOOLBARITEM15;
+    static const long ID_AUITOOLBARITEM10;
+    static const long ID_AUITOOLBARITEM11;
+    static const long ID_AUITOOLBARITEM12;
+    static const long ID_AUITOOLBARITEM13;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
