@@ -301,7 +301,9 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxStr
     }
     else
     {
-        state+=(period-lastperiod) * NewSpeed;
+        //xLights effect speeds are set on 50ms, this scales appropriately so the speed stays
+        //visually the same for 25ms and others
+        state+=(period-lastperiod) * NewSpeed * frameTime / 50;
     }
     speed=NewSpeed;
     lastperiod=curPeriod=period;
