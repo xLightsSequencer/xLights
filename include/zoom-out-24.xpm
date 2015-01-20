@@ -6,7 +6,7 @@ static const char  *zoom_out_24_xpm[] = {
 "` c #525556",
 ". c #96b6d0",
 "# c #7b8795",
-"a c #fbfdfb",
+"a c None",
 "b c #697075",
 "c c #c4c3c4",
 "d c #8e9da7",

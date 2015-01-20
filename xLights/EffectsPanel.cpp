@@ -42,10 +42,12 @@
 #include "../include/control-stop-icon.xpm"
 
 //  New icons from sean 01-17-2015
+
 #include "../include/zoom-out-24.xpm"
 #include "../include/zoom-in-24.xpm"
 #include "../include/stop-24.xpm"
 #include "../include/stop-24_off.xpm"
+#include "../include/save-as-24.xpm"
 #include "../include/settings-24.xpm"
 #include "../include/trash-24.xpm"
 #include "../include/search-24.xpm"
@@ -64,8 +66,6 @@
 #include "../include/eye-open-24.xpm"
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
-
-
 
 //(*InternalHeaders(EffectsPanel)
 #include <wx/bitmap.h>

@@ -7,7 +7,7 @@ static const char  *search_24_xpm[] = {
 ". c #4daffc",
 "# c #2791e9",
 "a c #b4b4b4",
-"b c #fafcfb",
+"b c None",
 "c c #898787",
 "d c #59595a",
 "e c #1a6baf",

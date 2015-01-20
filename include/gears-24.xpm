@@ -9,7 +9,7 @@ static const char *gears_24_xpm[] = {
 "a c #668197",
 "b c #0f88e0",
 "c c #a9b1b7",
-"d c #fbfcfb",
+"d c None",
 "e c #374f5b",
 /* pixels */
 "dddddddddddddddddddddddd",

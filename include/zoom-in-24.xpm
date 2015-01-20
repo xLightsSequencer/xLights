@@ -10,7 +10,7 @@ static const char  *zoom_in_24_xpm[] = {
 "b c #606568",
 "c c #9ed0f7",
 "d c #8397a7",
-"e c #fcfdfc",
+"e c None",
 /* pixels */
 "eeeeeeeeeeeeeeeeeeeeeeee",
 "eeeeeeeaaeeeeeeeeeeeeeee",

@@ -10,7 +10,7 @@ static const char *eye_open_24_xpm[] = {
 "b c #b8b9b8",
 "c c #acdefc",
 "d c #808993",
-"e c #fafcfa",
+"e c None",
 /* pixels */
 "eeeeeeeeeeeeeeeeeeeeeeee",
 "eeeeeeeeeeeeeeeeeeeeeeee",
