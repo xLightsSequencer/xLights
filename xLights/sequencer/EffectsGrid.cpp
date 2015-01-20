@@ -166,8 +166,11 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         Element* element = mSequenceElements->GetRowInformation(row)->element;
         EffectLayer* el  = element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
         Effect* effect = el->GetEffect(FirstSelected);
-        RaiseSelectedEffectChanged(effect);
-        RaisePlayModelEffect(element,effect);
+        if(element->GetType()=="model")
+        {
+            RaiseSelectedEffectChanged(effect);
+            RaisePlayModelEffect(element,effect);
+        }
     }
     mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
                    GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
