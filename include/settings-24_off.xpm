@@ -1,0 +1,39 @@
+/* XPM */
+static const char *settings_24_off_xpm[] = {
+/* width height num_colors chars_per_pixel */
+"    24    24        8            1",
+/* colors */
+"` c #3c7aac",
+". c #c8c8ca",
+"# c #e9e9e9",
+"a c #88989c",
+"b c #d2d8d9",
+"c c #5c819d",
+"d c #a4afb9",
+"e c None",
+/* pixels */
+"eeeeeeeeeeeeeeeeeeeeeeee",
+"eeeeeeeeee#.d#eeeeeeeeee",
+"eeeeeeeeeec.bceeeeeeeeee",
+"eeeeeeeeeec..ceeeeeeeeee",
+"eeeeb`cbed`b.`debc`beeee",
+"eeee`..`.....b..`..c#eee",
+"eeeec....b.....b...ceeee",
+"eeeeb`.....b.b....`beeee",
+"eeeee..b.d.d.dd..b.eeeee",
+"eeeed...dd.dd.dd...deeee",
+"e#cc`.b...a##a....b`cc#e",
+"e...b....d#ee#d......b.e",
+"edb.......#ee#...b....de",
+"e#cc`b.b.ba##ab....`cc#e",
+"eeeed...dbb..bbdb.bdeeee",
+"eeeee..b..bbbbdb...eeeee",
+"eeeeb`............`beeee",
+"eeeec.b......b..b.bceeee",
+"eeee`..`b.b.....`..`#eee",
+"eeeebccbed`.b`debccbeeee",
+"eeeee#eeeec..ceeee#eeeee",
+"eeeeeeeeeec..ceeeeeeeeee",
+"eeeeeeeeee#..#eeeeeeeeee",
+"eeeeeeeeeeeeeeeeeeeeeeee"
+};
