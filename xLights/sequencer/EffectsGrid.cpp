@@ -67,7 +67,6 @@ EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint 
 EffectsGrid::~EffectsGrid()
 {
 	delete m_context;
-	delete mDropData;
 	delete mEffectColor;
 	delete mGridlineColor;
 	delete mTimingColor;

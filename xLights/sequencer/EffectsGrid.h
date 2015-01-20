@@ -132,7 +132,6 @@ private:
     double mDropStartTime;
     double mDropEndTime;
 
-    EffectRange* mDropData;
     EventPlayEffectArgs* playArgs;
 
 	DECLARE_EVENT_TABLE()
