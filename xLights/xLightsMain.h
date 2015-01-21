@@ -1091,7 +1091,6 @@ private:
     void ReadFalconFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
-    void ConvertXL3toXL4(const wxString& filename);
     void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
     bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
