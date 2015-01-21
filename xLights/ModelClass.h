@@ -37,7 +37,9 @@
 #include <wx/checklst.h>
 #include <wx/listbox.h>
 
-#include "ModelPreview.h"
+#include "ModelPreview.h" 
+#include "Color.h"
+
 
 typedef std::vector<long> StartChannelVector_t;
 
@@ -148,7 +150,7 @@ private:
         {
         }
 
-        virtual void GetColor(wxColour& color)
+        virtual void GetColor(xlColor& color)
         {
             color.Set(c[0],c[1],c[2]);
         }
@@ -161,7 +163,7 @@ private:
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         }
-        virtual void GetColor(wxColour& color)
+        virtual void GetColor(xlColor& color)
         {
             color.Set(c[0],0,0);
         }
@@ -174,7 +176,7 @@ private:
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         }
-        virtual void GetColor(wxColour& color)
+        virtual void GetColor(xlColor& color)
         {
             color.Set(0,c[1],0);
         }
@@ -187,7 +189,7 @@ private:
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         }
-        virtual void GetColor(wxColour& color)
+        virtual void GetColor(xlColor& color)
         {
             color.Set(0,0,c[2]);
         }
@@ -201,7 +203,7 @@ private:
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
         }
 
-        virtual void GetColor(wxColour& color)
+        virtual void GetColor(xlColor& color)
         {
             uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
             color.Set(cmin,cmin,cmin);

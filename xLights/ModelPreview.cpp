@@ -204,7 +204,7 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
     glDisable(GL_TEXTURE_2D);   // textures
 }
 
-void ModelPreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
+void ModelPreview::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_POINTS);
@@ -213,7 +213,7 @@ void ModelPreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
     glEnd();
 }
 
-void ModelPreview::DrawFillRectangle(const wxColour &color, int x, int y,int width, int height)
+void ModelPreview::DrawFillRectangle(const xlColor &color, int x, int y,int width, int height)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_QUADS);
@@ -224,7 +224,7 @@ void ModelPreview::DrawFillRectangle(const wxColour &color, int x, int y,int wid
     glEnd();
 }
 
-void ModelPreview::DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2)
+void ModelPreview::DrawRectangle(const xlColor &color, bool dashed, int x1, int y1,int x2, int y2)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     if (!dashed)
@@ -293,7 +293,7 @@ void ModelPreview::DrawRectangle(const wxColour &color, bool dashed, int x1, int
 
 
 
-void ModelPreview::DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2)
+void ModelPreview::DrawLine(const xlColor &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glBegin(GL_LINES);

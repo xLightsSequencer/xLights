@@ -25,6 +25,7 @@
 #include <wx/tokenzr.h>
 #include <wx/graphics.h>
 #include "xLightsMain.h" //for Preview and Other model collections
+#include "Color.h"
 
 
 void ModelClass::InitWholeHouse(wxString WholeHouseData)
@@ -1666,7 +1667,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
-    wxColour color;
+    xlColour color;
     int w, h;
     preview->GetSize(&w, &h);
 
@@ -1704,7 +1705,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++)
             {
-                wxColor c2 = *wxBLACK;
+                xlColor c2(0, 0, 0);
                 // draw node on screen
                 if (CanFlash && rand() % StrobeRate == 0)
                 {
@@ -1724,7 +1725,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview)
 // uses DrawCircle instead of DrawPoint
 void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSize)
 {
-    wxColour color;
+    xlColor color;
     int w, h;
 
 

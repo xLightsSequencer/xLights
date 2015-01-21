@@ -9,6 +9,7 @@
 
 #include "Image.h"
 #include "XlightsDrawable.h"
+#include "Color.h"
 
 class ModelPreview : public wxGLCanvas
 {
@@ -26,10 +27,10 @@ public:
     void InitializePreview(wxString img);
     void StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
-    void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
-    void DrawRectangle(const wxColour &color,bool dashed,int x1, int y1,int x2, int y2);
-    void DrawFillRectangle(const wxColour &color, int x, int y,int width, int height);
-    void DrawLine(const wxColour &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2);
+    void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
+    void DrawRectangle(const xlColor &color,bool dashed,int x1, int y1,int x2, int y2);
+    void DrawFillRectangle(const xlColor &color, int x, int y,int width, int height);
+    void DrawLine(const xlColor &color, wxDouble x1, wxDouble y1,wxDouble x2, wxDouble y2);
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
 	void SetbackgroundImage(wxString image);
