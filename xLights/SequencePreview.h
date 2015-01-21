@@ -9,6 +9,8 @@
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 
+class xlColor;
+
 class SequencePreview : public wxGLCanvas
 {
 
@@ -23,7 +25,7 @@ public:
 	void ClearBackground();
     void InitializePreview();
     void StartDrawing(wxDouble pointSize);
-    void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
+    void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
     void EndDrawing();
 private:
 	void render(wxPaintEvent& evt);

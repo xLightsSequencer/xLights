@@ -10,6 +10,7 @@
 #endif
 
 #include "SequencePreview.h"
+#include "RgbEffects.h"
 
 BEGIN_EVENT_TABLE(SequencePreview, wxGLCanvas)
 //EVT_MOTION(SequencePreview::mouseMoved)
@@ -113,7 +114,7 @@ void SequencePreview::StartDrawing(wxDouble pointSize)
     glBegin(GL_POINTS);
 }
 
-void SequencePreview::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
+void SequencePreview::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
     glVertex2f(x, y);
