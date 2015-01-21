@@ -553,11 +553,14 @@ void XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event)
 
 void XmlConversionDialog::OnClose(wxCloseEvent& event)
 {
-    if( Button_Xml_Settings_Save->IsEnabled() )
+    if( Button_Xml_Settings_Save->IsEnabled() && event.CanVeto())
     {
         int answer = wxMessageBox("Close without saving XML?", "Confirm", wxYES_NO, this);
-        if (answer != wxYES )
+        if (answer != wxYES ) {
+            event.Veto();
             return;
+        }
     }
+    EndModal(Button_Xml_Settings_Save->IsEnabled() ? wxCANCEL : wxOK);
     Destroy();
 }

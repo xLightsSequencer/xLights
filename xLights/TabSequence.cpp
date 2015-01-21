@@ -118,7 +118,9 @@ void xLightsFrame::OpenSequence()
         int ms = atoi(mss.c_str());
         SeqData.init(NetInfo.GetTotChannels(), 0, ms);
 
-        SeqLoadXlightsFile(dialog.ChoiceSeqXMLFiles->GetStringSelection(), true);
+        if (!SeqLoadXlightsFile(dialog.ChoiceSeqXMLFiles->GetStringSelection(), true)) {
+            //FIXME - error on load of xml
+        }
         int len = 0;
         if (mediaFilename.IsEmpty()) {
             //FIXME - prompt for media name
@@ -247,7 +249,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 
         DisplayXlightsFilename("");
 
-        if (!PlayerDlg->Play(mediaFilename))
+        if (!PlayerDlg->Load(mediaFilename))
         {
             wxMessageBox("Unable to load:\n"+mediaFilename,"ERROR");
             return;
@@ -259,7 +261,6 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
             wxYield();
             wxMilliSleep(100);
         }
-        PlayerDlg->MediaCtrl->Stop();
         if (duration <= 0)
         {
             wxMessageBox("Unable to determine the length of:\n"+mediaFilename,"ERROR");
@@ -336,9 +337,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     if (v3File.NeedsConversion()) {
         XmlConversionDialog dialog(this, &v3File);
         dialog.Fit();
-        dialog.ShowModal();
-        if (v3File.NeedsConversion()) {
-            // TBD handle file not being converted - display message?
+        if (dialog.ShowModal() != wxOK) {
             return false;
         }
     }
