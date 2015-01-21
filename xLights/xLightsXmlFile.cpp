@@ -579,6 +579,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
                     effect->AddAttribute(wxT("name"), effect1);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
+                    effect->AddAttribute(wxT("selected"), wxT("0"));
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
                     effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
@@ -586,6 +587,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
                     effect->AddAttribute(wxT("name"), effect2);
                     effect->AddAttribute(wxT("protected"), effect_protection[j]);
+                    effect->AddAttribute(wxT("selected"), wxT("0"));
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
                     effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
@@ -662,6 +664,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         {
             wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"));
             effect->AddAttribute(wxT("protected"), timing_protection[j]);
+            effect->AddAttribute(wxT("selected"), wxT("0"));
             effect->AddAttribute(wxT("label"), labels[j]);
             effect->AddAttribute(wxT("startTime"), timing[j]);
             effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
@@ -760,6 +763,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             child = AddChildXmlNode(layer, wxT("Effect"));
             child->AddAttribute(wxT("protected"), _("0"));
+            child->AddAttribute(wxT("selected"), wxT("0"));
             child->AddAttribute(wxT("label"), label);
             child->AddAttribute(wxT("startTime"), start_time);
             child->AddAttribute(wxT("endTime"), end_time);
@@ -809,6 +813,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                 effect = AddChildXmlNode(layer, wxT("Effect"));
                 effect->AddAttribute(wxT("protected"), wxT("0"));
+                effect->AddAttribute(wxT("selected"), wxT("0"));
                 effect->AddAttribute(wxT("label"), wxT(""));
                 effect->AddAttribute(wxT("startTime"), string_format("%f",time));
                 effect->AddAttribute(wxT("endTime"), string_format("%f",next_time));
