@@ -14,12 +14,13 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice1" member="yes">
+				<object class="wxChoice" name="ID_CHOICE_New_Fixed_Timing" variable="Choice_New_Fixed_Timing" member="yes">
 					<content>
 						<item>25ms</item>
 						<item>50ms</item>
 						<item>100ms</item>
 					</content>
+					<selection>1</selection>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

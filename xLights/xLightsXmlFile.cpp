@@ -131,6 +131,7 @@ void xLightsXmlFile::Clear()
     is_loaded = false;
     needs_conversion = true;
     version_string = _("");
+    last_time = _("0.0");
     models.Clear();
     timing_protection.Clear();
     timing.Clear();
@@ -440,6 +441,12 @@ void xLightsXmlFile::Load()
                         {
                             element->GetAttribute("name", &attr);
                             timing_list.push_back(attr);
+                            wxXmlNode* layer = element->GetChildren();
+                            for(wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
+                            {
+                                effect->GetAttribute("endTime", &attr);
+                                StoreEndTime(attr);
+                            }
                         }
                     }
                 }
@@ -451,6 +458,17 @@ void xLightsXmlFile::Load()
         version_string = _("3.x");
     }
     is_loaded = true;
+}
+
+void xLightsXmlFile::StoreEndTime(wxString end_time)
+{
+    double time1, time2;
+    end_time.ToDouble(&time1);
+    last_time.ToDouble(&time2);
+    if( time1 > time2 )
+    {
+        last_time = end_time;
+    }
 }
 
 void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
@@ -593,6 +611,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     wxString end_time;
                     eff1->GetAttribute("endTime", &end_time);
                     eff2->GetAttribute("startTime", &start_time);
+                    StoreEndTime(end_time);
                     if( end_time != start_time && start_time != _("") )
                     {
                         for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
@@ -751,3 +770,50 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
     seqDocument.Save(GetFullPath());
 }
 
+void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
+{
+   if( needs_conversion ) // conversion process will take care of writing this info
+        return;
+
+    double interval;
+    interval_name.ToDouble(&interval);
+    interval = interval / 1000;
+
+    bool found = false;
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "DisplayElements")
+        {
+            AddTimingAttributes(e, interval_name, wxT("1"), wxT("0"));
+            timing_list.push_back(interval_name);
+        }
+        else if (e->GetName() == "ElementEffects")
+        {
+            wxXmlNode* child;
+            wxXmlNode* layer;
+            wxXmlNode* effect;
+            child = AddChildXmlNode(e, wxT("Element"));
+            child->AddAttribute(wxT("type"),wxT("timing"));
+            child->AddAttribute(wxT("name"),interval_name);
+            layer = AddChildXmlNode(child, wxT("EffectLayer"));
+
+            double time = 0.0;
+            double end_time;
+            last_time.ToDouble(&end_time);
+            double next_time;
+
+            while( time <= end_time )
+            {
+                next_time = (time + interval <= end_time) ? time + interval : end_time;
+                effect = AddChildXmlNode(layer, wxT("Effect"));
+                effect->AddAttribute(wxT("protected"), wxT("0"));
+                effect->AddAttribute(wxT("label"), wxT(""));
+                effect->AddAttribute(wxT("startTime"), string_format("%f",time));
+                effect->AddAttribute(wxT("endTime"), string_format("%f",next_time));
+                time += interval;
+            }
+        }
+    }
+}

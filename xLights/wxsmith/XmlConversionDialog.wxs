@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="XmlConversionDialog">
 		<size>574,398</size>
 		<id_arg>0</id_arg>
+		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
 			<object class="sizeritem">
@@ -55,7 +56,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Change_Dir" variable="BitmapButton_Change_Dir" member="yes">
-									<bitmap stock_id="wxART_FOLDER_OPEN" />
+									<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_MENU" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnBitmapButton_Change_DirClick" entry="EVT_BUTTON" />
 								</object>
@@ -353,6 +354,7 @@
 											<object class="sizeritem">
 												<object class="wxChoice" name="ID_CHOICE_Xml_Song_Timings" variable="Choice_Xml_Song_Timings" member="yes">
 													<size>238,21</size>
+													<handler function="OnChoice_Xml_Song_TimingsSelect" entry="EVT_CHOICE" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
@@ -404,6 +406,7 @@
 													<label>Delete</label>
 													<size>60,23</size>
 													<enabled>0</enabled>
+													<handler function="OnButton_Xml_Delete_TimingClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>

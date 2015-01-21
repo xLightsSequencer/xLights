@@ -112,6 +112,7 @@ class XmlConversionDialog: public wxDialog
         void PopulateSongTimings();
         void SetSelectionToXMLFile();
         void ProcessSelectedFile();
+        void SetWindowState(bool value);
 
 		//(*Handlers(XmlConversionDialog)
 		void OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event);
@@ -132,6 +133,9 @@ class XmlConversionDialog: public wxDialog
 		void OnButton_Xml_New_TimingClick(wxCommandEvent& event);
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
 		void OnButton_Extract_Song_InfoClick(wxCommandEvent& event);
+		void OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event);
+		void OnCustom1Paint(wxPaintEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

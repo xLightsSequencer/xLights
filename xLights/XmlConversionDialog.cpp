@@ -2,6 +2,8 @@
 #include <wx/dir.h>
 #include "xLightsMain.h"
 #include "RenameTextDialog.h"
+#include "NewTimingDialog.h"
+#include <wx/collpane.h>
 
 //(*InternalHeaders(XmlConversionDialog)
 #include <wx/artprov.h>
@@ -92,7 +94,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	GridBagSizer2->Add(StaticText_Xml_Filename, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Xml_Settings_Filename = new wxChoice(this, ID_CHOICE_Xml_Settings_Filename, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Xml_Settings_Filename"));
 	GridBagSizer2->Add(Choice_Xml_Settings_Filename, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Change_Dir = new wxBitmapButton(this, ID_BITMAPBUTTON_Change_Dir, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Change_Dir"));
+	BitmapButton_Change_Dir = new wxBitmapButton(this, ID_BITMAPBUTTON_Change_Dir, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_MENU), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Change_Dir"));
 	GridBagSizer2->Add(BitmapButton_Change_Dir, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Work_Dir = new wxStaticText(this, ID_STATICTEXT_Work_Dir, _("Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Work_Dir"));
 	GridBagSizer2->Add(StaticText_Work_Dir, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -204,10 +206,15 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	Connect(ID_BUTTON_Extract_Song_Info,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Extract_Song_InfoClick);
 	Connect(ID_BUTTON_Xml_Settings_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Settings_SaveClick);
 	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
+	Connect(ID_CHOICE_Xml_Song_Timings,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Import_TimingClick);
 	Connect(ID_BUTTON_Xml_Rename_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Rename_TimingClick);
+	Connect(ID_BUTTON_Xml_Delete_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Delete_TimingClick);
+	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&XmlConversionDialog::OnClose);
 	//*)
+
+    wxCollapsiblePane *collpane = new wxCollapsiblePane(this, wxID_ANY, "Details:");
 
     if( xml_file == NULL )
     {
@@ -292,6 +299,23 @@ void XmlConversionDialog::Clear()
     Button_Xml_Settings_Save->SetLabel(_("Save"));
 }
 
+void XmlConversionDialog::SetWindowState(bool value)
+{
+    TextCtrl_Xml_Author->Enable(value);
+    TextCtrl_Xml_Author_Email->Enable(value);
+    TextCtrl_Xml_Website->Enable(value);
+    TextCtrl_Xml_Song->Enable(value);
+    TextCtrl_Xml_Artist->Enable(value);
+    TextCtrl_Xml_Album->Enable(value);
+    TextCtrl_Xml_Music_Url->Enable(value);
+    TextCtrl_Xml_Comment->Enable(value);
+    Button_Xml_New_Timing->Enable(value);
+    Button_Xml_Import_Timing->Enable(value);
+    Button_Xml_Delete_Timing->Enable(value);
+    Button_Xml_Rename_Timing->Enable(value);
+    Choice_Xml_Song_Timings->Enable(value);
+}
+
 void XmlConversionDialog::ProcessSelectedFile()
 {
     if( xml_file->IsLoaded() )
@@ -312,11 +336,13 @@ void XmlConversionDialog::ProcessSelectedFile()
     {
         if( xml_file->NeedsConversion() )
         {
+            SetWindowState(false);
             Button_Xml_Settings_Save->Enable(true);
             Button_Xml_Settings_Save->SetLabel(_("Convert"));
         }
         else
         {
+            SetWindowState(true);
             Button_Xml_Settings_Save->Enable(false);
         }
     }
@@ -360,6 +386,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
         xml_file->Load();
     }
     PopulateSongTimings();
+    SetWindowState(true);
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
     SetSelectionToXMLFile();
@@ -476,9 +503,18 @@ void XmlConversionDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
     Button_Xml_Settings_Save->Enable(true);
 }
 
-
 void XmlConversionDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 {
+    NewTimingDialog dialog(this);
+    dialog.Fit();
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxString selected_timing = dialog.GetTiming();
+        xml_file->AddFixedTimingSection(selected_timing);
+        PopulateSongTimings();
+        Button_Xml_Settings_Save->Enable(true);
+    }
+    dialog.Destroy();
 }
 
 void XmlConversionDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
@@ -499,4 +535,29 @@ void XmlConversionDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 
 void XmlConversionDialog::OnButton_Extract_Song_InfoClick(wxCommandEvent& event)
 {
+}
+
+void XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event)
+{
+    if( Choice_Xml_Song_Timings->GetString(Choice_Xml_Song_Timings->GetSelection()) == _("Song Timing"))
+    {
+        Button_Xml_Delete_Timing->Enable(false);
+        Button_Xml_Rename_Timing->Enable(false);
+    }
+    else
+    {
+        Button_Xml_Delete_Timing->Enable(true);
+        Button_Xml_Rename_Timing->Enable(true);
+    }
+}
+
+void XmlConversionDialog::OnClose(wxCloseEvent& event)
+{
+    if( Button_Xml_Settings_Save->IsEnabled() )
+    {
+        int answer = wxMessageBox("Close without saving XML?", "Confirm", wxYES_NO, this);
+        if (answer != wxYES )
+            return;
+    }
+    Destroy();
 }

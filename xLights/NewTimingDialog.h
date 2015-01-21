@@ -15,16 +15,22 @@ class NewTimingDialog: public wxDialog
 		NewTimingDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~NewTimingDialog();
 
+        wxString GetTiming()
+        {
+            int selection = Choice_New_Fixed_Timing->GetSelection();
+            return Choice_New_Fixed_Timing->GetString(selection);
+        }
+
 		//(*Declarations(NewTimingDialog)
+		wxChoice* Choice_New_Fixed_Timing;
 		wxStaticText* StaticText1;
-		wxChoice* Choice1;
 		//*)
 
 	protected:
 
 		//(*Identifiers(NewTimingDialog)
 		static const long ID_STATICTEXT1;
-		static const long ID_CHOICE1;
+		static const long ID_CHOICE_New_Fixed_Timing;
 		//*)
 
 	private:

@@ -28,6 +28,7 @@ class xLightsXmlFile : public wxFileName
         void SetHeaderInfo(wxArrayString info);
         void SetTimingSectionName(wxString section, wxString name);
         void DeleteTimingSection(wxString section);
+        void AddFixedTimingSection(wxString interval_name);
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
         void Clear();
         bool IsLoaded() { return is_loaded; }
@@ -53,11 +54,13 @@ class xLightsXmlFile : public wxFileName
         bool needs_conversion;
         wxString version_string;
         wxString latest_version;
+        wxString last_time;
 
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void FreeNode(wxXmlNode* node);
+        void StoreEndTime(wxString end_time);
 
 };
 
