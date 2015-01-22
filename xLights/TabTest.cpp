@@ -383,13 +383,13 @@ void xLightsFrame::OnTimerTest(long curtime)
                     else if (TwinkleState[i] == -1)
                     {
                         // was background, now highlight for random period
-                        TwinkleState[i]=static_cast<int>(rand01()*interval+100) / XTIMER_INTERVAL;
+                        TwinkleState[i]=static_cast<int>(rand01()*interval+100) / SeqData.FrameTime();
                         xout->SetIntensity(chArray[i], FgIntensity);
                     }
                     else
                     {
                         // was on, now go to bg color for random period
-                        TwinkleState[i]=-static_cast<int>(rand01()*interval+100) / XTIMER_INTERVAL * (TwinkleRatio - 1);
+                        TwinkleState[i]=-static_cast<int>(rand01()*interval+100) / SeqData.FrameTime() * (TwinkleRatio - 1);
                         xout->SetIntensity(chArray[i], BgIntensity);
                     }
                 }
@@ -489,7 +489,7 @@ void xLightsFrame::OnTimerTest(long curtime)
                     else if (TwinkleState[i] == -1)
                     {
                         // was background, now highlight for random period
-                        TwinkleState[i]=static_cast<int>(rand01()*interval+100) / XTIMER_INTERVAL;
+                        TwinkleState[i]=static_cast<int>(rand01()*interval+100) / SeqData.FrameTime();
                         TestSeqIdx = i * 3;
                         xout->SetIntensity(chArray[TestSeqIdx], FgColor[0]);
                         xout->SetIntensity(chArray[TestSeqIdx+1], FgColor[1]);
@@ -498,7 +498,7 @@ void xLightsFrame::OnTimerTest(long curtime)
                     else
                     {
                         // was on, now go to bg color for random period
-                        TwinkleState[i]=-static_cast<int>(rand01()*interval+100) / XTIMER_INTERVAL * (TwinkleRatio - 1);
+                        TwinkleState[i]=-static_cast<int>(rand01()*interval+100) / SeqData.FrameTime() * (TwinkleRatio - 1);
                         TestSeqIdx = i * 3;
                         xout->SetIntensity(chArray[TestSeqIdx], BgColor[0]);
                         xout->SetIntensity(chArray[TestSeqIdx+1], BgColor[1]);

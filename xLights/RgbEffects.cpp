@@ -341,8 +341,8 @@ void RgbEffects::ClearWaveBuffer2()
 
 void RgbEffects::SetFadeTimes(float fadeInDuration, float fadeOutDuration )
 {
-    fadeinsteps = (int)(fadeInDuration*1000)/XTIMER_INTERVAL;
-    fadeoutsteps = (int)(fadeOutDuration*1000)/XTIMER_INTERVAL;
+    fadeinsteps = (int)(fadeInDuration*1000)/frameTimeInMs;
+    fadeoutsteps = (int)(fadeOutDuration*1000)/frameTimeInMs;
 }
 void RgbEffects::SetFitToTime(bool fit)
 {

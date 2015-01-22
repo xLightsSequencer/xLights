@@ -1700,7 +1700,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     curCell = new wxGridCellCoords(0,0);
     wxImage::AddHandler(new wxGIFHandler);
-    Timer1.Start(XTIMER_INTERVAL, wxTIMER_CONTINUOUS);
+    
+    //start out with 50ms timer, once we load a file or create a new one, we'll reset
+    //to whatever the timing that is selected
+    Timer1.Start(50, wxTIMER_CONTINUOUS);
     EffectTreeDlg = NULL;
 
 //    ConnectOnChar(PaneNutcracker);
@@ -2569,7 +2572,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     while (!ok);
     wxFileName oName(NewFilename);
     oName.SetPath( CurrentDir );
-    oName.SetExt(_(XLIGHTS_SEQUENCE_EXT));
+    oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
     oName.SetExt("xml");
