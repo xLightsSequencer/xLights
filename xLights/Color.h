@@ -11,7 +11,7 @@ public:
     xlColor() {
         red = green = blue = 0;
     }
-    xlColor(int r, int g, int b) {
+    xlColor(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
         blue = b;
@@ -21,10 +21,8 @@ public:
         blue = rgb.blue;
         green = rgb.green;
     }
-    xlColor(const wxColour &rgb) {
-        red = rgb.Red();
-        blue = rgb.Blue();
-        green = rgb.Green();
+    xlColor(const wxString &str) {
+        SetFromString(str);
     }
     xlColor(const wxImage::RGBValue &rgb) {
         red = rgb.red;
@@ -46,12 +44,6 @@ public:
         green = g;
         blue = b;
     }
-    xlColor&operator=(const wxColor&c) {
-        red = c.Red();
-        blue = c.Blue();
-        green = c.Green();
-        return *this;
-    }
     xlColor&operator=(const wxImage::HSVValue& hsv) {
         wxImage::RGBValue rgb = wxImage::HSVtoRGB(hsv);
         red = rgb.red;
@@ -62,17 +54,60 @@ public:
     xlColor&operator=(const wxImage::RGBValue& rgb) {
         return operator=(rgb);
     }
-    operator wxColor() const {
+    wxColor asWxColor() const {
         return wxColor(red, green, blue);
     }
     wxUint32 GetRGB() const
     { return Red() | (Green() << 8) | (Blue() << 16); }
+    
+    void SetFromString(const wxString &str) {
+        if (str.empty()) {
+            red = blue = green = 0;
+            return;
+        } else if ( str[0] == wxT('#') && wxStrlen(str) == 7 ) {
+            // hexadecimal prefixed with # (HTML syntax)
+            unsigned long tmp;
+            if (wxSscanf(str.wx_str() + 1, wxT("%lx"), &tmp) != 1) {
+                red = blue = green = 0;
+                return;
+            }
+            
+            Set((unsigned char)(tmp >> 16),
+                (unsigned char)(tmp >> 8),
+                (unsigned char)tmp);
+        } else if (str[0] == wxT('0') && str[1] == wxT('x') && wxStrlen(str) == 8 ) {
+            // hexadecimal prefixed with 0x
+            unsigned long tmp;
+            if (wxSscanf(str.wx_str() + 2, wxT("%lx"), &tmp) != 1) {
+                red = blue = green = 0;
+                return;
+            }
+            
+            Set((unsigned char)(tmp >> 16),
+                (unsigned char)(tmp >> 8),
+                (unsigned char)tmp);
+        } else {
+            //need to do the slower lookups
+            wxColor c(str);
+            red = c.Red();
+            green = c.Green();
+            blue = c.Blue();
+        }
+    }
 };
+
+static const xlColor xlBLUE(0, 0, 255);
+static const xlColor xlRED(255, 0, 0);
+static const xlColor xlGREEN(0, 255, 0);
+static const xlColor xlBLACK(0, 0, 0);
+static const xlColor xlWHITE(255, 255, 255);
+static const xlColor xlYELLOW(255, 255, 0);
+static const xlColor xlLIGHT_GREY(211, 211, 211);
+
 
 typedef xlColor xlColour;
 typedef std::vector<xlColor> xlColorVector;
 typedef std::vector<xlColor> xlColourVector;
-typedef std::vector<wxColor> wxColourVector;
 typedef std::vector<wxImage::HSVValue> hsvVector;
 typedef std::vector<wxPoint> wxPointVector;
 typedef wxImage::HSVValue HSVValue;

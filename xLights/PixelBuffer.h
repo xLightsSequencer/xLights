@@ -80,7 +80,6 @@ public:
     void Clear(int which);
     // not used: size_t GetColorCount(int layer);
     void SetMixType(int layer, const wxString& MixName);
-    void SetPalette(int layer, wxColourVector& newcolors);
     void SetPalette(int layer, xlColourVector& newcolors);
     void SetLayer(int newlayer, int period, int speed, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);

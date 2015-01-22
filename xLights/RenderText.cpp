@@ -49,7 +49,7 @@ public:
     }
     
     void SetFont(wxFont &font, const xlColor &color) {
-        dc->SetFont(font, color);
+        dc->SetFont(font, color.asWxColor());
     }
     
     void DrawText(const wxString &msg, int x, int y, double rotation) {

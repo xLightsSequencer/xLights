@@ -322,16 +322,6 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     c = colors[pos - 1];
     delete [] colors;
 }
-
-void PixelBufferClass::SetPalette(int layer, wxColourVector& newcolors)
-{
-    xlColorVector p2;
-    for (int x = 0; x < newcolors.size(); x++)
-    {
-        p2.push_back(xlColor(newcolors[x]));
-    }
-    effects[layer].SetPalette(p2);
-}
 void PixelBufferClass::SetPalette(int layer, xlColourVector& newcolors)
 {
     effects[layer].SetPalette(newcolors);

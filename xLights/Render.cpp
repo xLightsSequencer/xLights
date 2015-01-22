@@ -4,7 +4,6 @@
 //
 //
 
-
 #include "xLightsMain.h"
 
 
@@ -167,10 +166,10 @@ private:
     }
     
     void updateBufferPaletteFromMap(int layer, MapStringString& settingsMap) {
-        wxColourVector newcolors;
+        xlColorVector newcolors;
         for (int i = 1; i <= 6; i++) {
             if (settingsMap[wxString::Format("CHECKBOX_Palette%d",i)] ==  "1") {
-                newcolors.push_back(wxColour(settingsMap[wxString::Format("BUTTON_Palette%d",i)]));
+                newcolors.push_back(xlColor(settingsMap[wxString::Format("BUTTON_Palette%d",i)]));
             }
         }
         buffer->SetPalette(layer, newcolors);

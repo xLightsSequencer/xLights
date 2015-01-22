@@ -314,7 +314,7 @@ void RgbEffects::ClearTempBuf()
 {
     for (size_t i=0; i < tempbuf.size(); i++)
     {
-        tempbuf[i]=*wxBLACK;
+        tempbuf[i].Set(0, 0, 0);
     }
 }
 

@@ -1470,7 +1470,7 @@ bool ModelClass::HitTest(ModelPreview* preview,int x,int y)
 }
 
 // display model using a single color
-void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* color)
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour &color)
 {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
@@ -1493,7 +1493,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
             sy=Nodes[n]->Coords[c].screenY;
             sx = (sx*scale)+w1;
             sy = (sy*scale)+h1;
-            preview->DrawPoint(*color,sx,sy);
+            preview->DrawPoint(color,sx,sy);
         }
     }
     if(Selected)
@@ -1506,7 +1506,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawFillRectangle(xlBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[0].x = sx;
         mHandlePosition[0].y = sy;
         // Upper Right Handle
@@ -1515,7 +1515,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawFillRectangle(xlBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[1].x = sx;
         mHandlePosition[1].y = sy;
         // Lower Right Handle
@@ -1524,7 +1524,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawFillRectangle(xlBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[2].x = sx;
         mHandlePosition[2].y = sy;
         // Lower Left Handle
@@ -1533,7 +1533,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
-        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawFillRectangle(xlBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         mHandlePosition[3].x = sx;
         mHandlePosition[3].y = sy;
 
@@ -1543,7 +1543,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx += w1;
         sy += h1;
-        preview->DrawFillRectangle(*wxBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        preview->DrawFillRectangle(xlBLUE,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
         // Save rotate handle
         mHandlePosition[4].x = sx;
         mHandlePosition[4].y = sy;
@@ -1553,7 +1553,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const wxColour* col
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx += w1;
         sy += h1;
-        preview->DrawLine(*wxWHITE,w1,h1,sx,sy);
+        preview->DrawLine(xlWHITE,w1,h1,sx,sy);
     }
 }
 

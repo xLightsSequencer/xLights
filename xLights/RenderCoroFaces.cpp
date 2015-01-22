@@ -236,7 +236,7 @@ void RgbEffects::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, 
         xlColor color;
 //        palette.GetColor(ColorMap.size() % GetColorCount(), color); //assign user-selected colors to shape palette sequentially, loop if run out of colors
         palette.GetColor(0, color); //use first color; user must make sure it matches model node type
-        color = *wxWHITE; //kludge: must use WHITE to get single-color nodes to show correctly
+        color = xlWHITE; //kludge: must use WHITE to get single-color nodes to show correctly
         Color2HSV(color, hsv);
 #endif // 0
 

@@ -298,7 +298,7 @@ public:
     wxCursor GetResizeCursor(int cornerIndex);
     void DisplayModelOnWindow(ModelPreview* preview);
     void DisplayModelOnWindow(wxWindow* window);
-    void DisplayModelOnWindow(ModelPreview* preview, const wxColour* color);
+    void DisplayModelOnWindow(ModelPreview* preview, const xlColour &color);
     void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
     void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);

@@ -78,17 +78,17 @@ void xLightsFrame::CompareMyDisplayToSeq()
 
 void xLightsFrame::UpdatePreview()
 {
-    const wxColour* color;
+    const xlColour *color;
     wxString SelModelName=ListBoxElementList->GetStringSelection();
     modelPreview->StartDrawing(mPointSize);
     if(m_creating_bound_rect)
     {
-        modelPreview->DrawRectangle(*wxYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
+        modelPreview->DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
     }
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        color = (PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected) ? wxYELLOW : wxLIGHT_GREY;
-        PreviewModels[i]->DisplayModelOnWindow(modelPreview,color);
+        color = (PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected) ? &xlYELLOW : &xlLIGHT_GREY;
+        PreviewModels[i]->DisplayModelOnWindow(modelPreview, *color);
     }
     modelPreview->EndDrawing();
 }
@@ -107,7 +107,6 @@ void xLightsFrame::OnButtonBuildWholeHouseModelClick(wxCommandEvent& event)
 void xLightsFrame::BuildWholeHouseModel(wxString modelName)
 {
     size_t numberOfNodes=0;
-    const wxColour *color;
     int w,h,wScaled,hScaled;
     size_t index=0;
     float scale=0;
@@ -133,8 +132,6 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     }
 
     // Add WholeHouseData attribute
-    int ii=0;
-
     if(w>h){scale = (float)400/(float)w;}
     else{scale = (float)400/(float)h;}
     wScaled = (int)(scale*w);
