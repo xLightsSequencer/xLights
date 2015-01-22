@@ -1751,7 +1751,6 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                color.red = 255;
                 preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
             }
         }
