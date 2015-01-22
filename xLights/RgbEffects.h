@@ -108,7 +108,7 @@ public:
     void InitBuffer(int newBufferHt, int newBufferWi);
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
-    void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name, int frameTime);
+    void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
     void GetPixel(int x, int y, xlColor &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
@@ -118,6 +118,8 @@ public:
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
     void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod, int& curEffEndPer);  // nobody wants endPer?
 
+    void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
+    
 #include "Effects.h"
 
 protected:

@@ -97,6 +97,9 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     SetModelBrightness(wxAtoi(ModelNode->GetAttribute("ModelBrightness","0")));
     numLayers = layers;
     effects = new RgbEffects[numLayers];
+    for (int x = 0; x < numLayers; x++) {
+        effects[x].SetFrameTimeInMs(frameTimeInMs);
+    }
     sparkle_count = new int[numLayers];
     brightness = new int[numLayers];
     contrast = new int[numLayers];
@@ -364,7 +367,7 @@ void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies)
 void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool resetState)
 {
     CurrentLayer=newlayer;
-    effects[CurrentLayer].SetState(period, speed, resetState, name, frameTimeInMs);
+    effects[CurrentLayer].SetState(period, speed, resetState, name);
 }
 void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
 {

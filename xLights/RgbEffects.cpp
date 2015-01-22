@@ -50,6 +50,7 @@ RgbEffects::RgbEffects()
         FirePalette.push_back(xlColor(rgb));
         hsv.hue+=0.00166666;
     }
+    frameTimeInMs = 50;
 }
 
 RgbEffects::~RgbEffects()
@@ -292,9 +293,8 @@ wxUint32 RgbEffects::GetTempPixelRGB(int x, int y)
     return 0;
 }
 
-void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name, int frameTime)
+void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name)
 {
-    frameTimeInMs = frameTime;
     if (ResetState)
     {
         state=0;
@@ -303,7 +303,7 @@ void RgbEffects::SetState(int period, int NewSpeed, bool ResetState, const wxStr
     {
         //xLights effect speeds are set on 50ms, this scales appropriately so the speed stays
         //visually the same for 25ms and others
-        state+=(period-lastperiod) * NewSpeed * frameTime / 50;
+        state+=(period-lastperiod) * NewSpeed * frameTimeInMs / 50;
     }
     speed=NewSpeed;
     lastperiod=curPeriod=period;
