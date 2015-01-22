@@ -37,8 +37,8 @@ class EffectLayer
         bool IsEffectStartTimeInRange(int index, float startTime,float endTime);
         bool IsEffectEndTimeInRange(int index, float startTime,float endTime);
 
-        int GetMaximumEndTime(int index);
-        int GetMinimumStartTime(int index);
+        float GetMaximumEndTime(int index);
+        float GetMinimumStartTime(int index);
 
         bool HitTestEffect(int position,int &index, int &result);
         int GetEffectIndexThatContainsPosition(int position);

@@ -58,6 +58,7 @@ void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString set
     e.SetProtected(Protected);
     e.SetSelected(false);
     mEffects.push_back(e);
+    SortEffects();
 }
 
 
@@ -90,7 +91,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
     }
 }
 
-int EffectLayer::GetMaximumEndTime(int index)
+float EffectLayer::GetMaximumEndTime(int index)
 {
     if(index == mEffects.size()-1)
     {
@@ -98,11 +99,18 @@ int EffectLayer::GetMaximumEndTime(int index)
     }
     else
     {
-        return mEffects[index+1].GetStartTime();
+        if(mEffects[index].GetEndTime() == mEffects[index+1].GetStartTime())
+        {
+            return mEffects[index+1].GetEndTime();
+        }
+        else
+        {
+            return mEffects[index+1].GetStartTime();
+        }
     }
 }
 
-int EffectLayer::GetMinimumStartTime(int index)
+float EffectLayer::GetMinimumStartTime(int index)
 {
     if(index == 0)
     {
@@ -110,7 +118,14 @@ int EffectLayer::GetMinimumStartTime(int index)
     }
     else
     {
-        return mEffects[index-1].GetEndTime();
+        if(mEffects[index-1].GetEndTime() == mEffects[index].GetStartTime())
+        {
+            return mEffects[index-1].GetStartTime();
+        }
+        else
+        {
+            return mEffects[index-1].GetEndTime();
+        }
     }
 }
 

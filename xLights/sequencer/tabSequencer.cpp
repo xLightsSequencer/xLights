@@ -56,7 +56,6 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
     mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(BASEPATH + "4.mp3");
-    PlayerDlg->MediaCtrl->Load(BASEPATH + "4.mp3");
 
     mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
 
@@ -124,6 +123,8 @@ void xLightsFrame::InitSequencer()
         mainSequencer->PanelWaveForm->Refresh();
         mainSequencer->PanelEffectGrid->Refresh();
         m_mgr->Update();
+        PlayerDlg->MediaCtrl->Load(BASEPATH + "4.mp3");
+
 
         sPreview1->Refresh();
 }

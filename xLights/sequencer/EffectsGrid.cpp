@@ -169,7 +169,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         if(element->GetType()=="model")
         {
             RaiseSelectedEffectChanged(effect);
-            RaisePlayModelEffect(element,effect);
+            //RaisePlayModelEffect(element,effect);
         }
     }
     mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
@@ -208,23 +208,55 @@ void EffectsGrid::Resize(int position)
     if(mResizingMode==EFFECT_RESIZE_LEFT)
     {
         double time = mTimeline->GetAbsoluteTimefromPosition(position);
-
         time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
-        if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex))
+        double minimumTime = mEffectLayer->GetMinimumStartTime(mResizeEffectIndex);
+        // User has dragged left side to the right side exit
+        if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime())
         {
-            mEffectLayer->GetEffect(mResizeEffectIndex-1)->SetEndTime(time);
+            return;
         }
-        mEffectLayer->GetEffect(mResizeEffectIndex)->SetStartTime(time);
+        else if (time >= minimumTime  || minimumTime == NO_MIN_MAX_TIME)
+        {
+            if(mEffectLayer->IsStartTimeLinked(mResizeEffectIndex))
+            {
+                mEffectLayer->GetEffect(mResizeEffectIndex-1)->SetEndTime(time);
+            }
+            mEffectLayer->GetEffect(mResizeEffectIndex)->SetStartTime(time);
+        }
+        else
+        {
+            if(mResizeEffectIndex!=0)
+            {
+                mEffectLayer->GetEffect(mResizeEffectIndex)->SetStartTime(mEffectLayer->GetEffect(mResizeEffectIndex-1)->GetEndTime());
+            }
+        }
+
     }
     else if(mResizingMode==EFFECT_RESIZE_RIGHT)
     {
         double time = mTimeline->GetAbsoluteTimefromPosition(position);;
         time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
-        if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex))
+        double maximumTime = mEffectLayer->GetMaximumEndTime(mResizeEffectIndex);
+        // User has dragged right side to the left side exit
+        if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime())
         {
-            mEffectLayer->GetEffect(mResizeEffectIndex+1)->SetStartTime(time);
+            return;
         }
-        mEffectLayer->GetEffect(mResizeEffectIndex)->SetEndTime(time);
+        else if (time <= maximumTime  || maximumTime == NO_MIN_MAX_TIME)
+        {
+            if(mEffectLayer->IsEndTimeLinked(mResizeEffectIndex))
+            {
+                mEffectLayer->GetEffect(mResizeEffectIndex+1)->SetStartTime(time);
+            }
+            mEffectLayer->GetEffect(mResizeEffectIndex)->SetEndTime(time);
+        }
+        else
+        {
+            if(mResizeEffectIndex < mEffectLayer->GetEffectCount()-1)
+            {
+                mEffectLayer->GetEffect(mResizeEffectIndex)->SetEndTime(mEffectLayer->GetEffect(mResizeEffectIndex+1)->GetStartTime());
+            }
+        }
     }
     Refresh(false);
     mPaintOnIdleCounter=0;
@@ -296,11 +328,11 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // continuously repainting during idle causing excessive
     // cpu usage. It will only repaint on idle for 25 times
     // mPaintOnIdleCounter is reset to "0".
-    if(mPaintOnIdleCounter <5)
-    {
+    //if(mPaintOnIdleCounter <5)
+    //{
         Refresh(false);
-        mPaintOnIdleCounter++;
-    }
+        //mPaintOnIdleCounter++;
+    //}
 }
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
