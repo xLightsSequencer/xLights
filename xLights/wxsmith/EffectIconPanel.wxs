@@ -13,6 +13,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton1-&gt;SetEffectIndex(0);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>3</border>
@@ -25,6 +26,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton2-&gt;SetEffectIndex(1);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>3</border>
@@ -37,6 +39,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton3-&gt;SetEffectIndex(2);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -49,6 +52,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton4-&gt;SetEffectIndex(3);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -61,6 +65,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton5-&gt;SetEffectIndex(4);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -73,8 +78,9 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton6-&gt;SetEffectIndex(5);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
@@ -85,6 +91,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton7-&gt;SetEffectIndex(6);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -97,6 +104,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton8-&gt;SetEffectIndex(7);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -109,6 +117,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton9-&gt;SetEffectIndex(8);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -121,6 +130,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton10-&gt;SetEffectIndex(9);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -133,6 +143,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton11-&gt;SetEffectIndex(10);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -145,6 +156,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton12-&gt;SetEffectIndex(11);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -157,6 +169,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton13-&gt;SetEffectIndex(12);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -169,6 +182,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton14-&gt;SetEffectIndex(13);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -181,6 +195,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton15-&gt;SetEffectIndex(14);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -193,6 +208,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton16-&gt;SetEffectIndex(15);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -205,6 +221,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton17-&gt;SetEffectIndex(16);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -217,6 +234,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton18-&gt;SetEffectIndex(17);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -229,6 +247,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton19-&gt;SetEffectIndex(18);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -241,6 +260,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton20-&gt;SetEffectIndex(19);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -253,6 +273,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton21-&gt;SetEffectIndex(20);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -265,6 +286,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton22-&gt;SetEffectIndex(21);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -277,6 +299,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton23-&gt;SetEffectIndex(22);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -289,6 +312,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton24-&gt;SetEffectIndex(23);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -301,6 +325,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton25-&gt;SetEffectIndex(24);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -313,6 +338,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton26-&gt;SetEffectIndex(25);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -325,6 +351,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton27-&gt;SetEffectIndex(26);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -337,6 +364,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton28-&gt;SetEffectIndex(27);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -349,6 +377,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton29-&gt;SetEffectIndex(28);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -361,6 +390,7 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton30-&gt;SetEffectIndex(29);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
