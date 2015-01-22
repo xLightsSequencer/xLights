@@ -35,9 +35,6 @@ class NewSequenceDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(NewSequenceDialog)
-		static const long ID_RADIOBUTTON4;
-		static const long ID_STATICTEXT4;
-		static const long ID_CHOICE3;
 		static const long ID_RADIOBUTTON2;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE2;
@@ -45,6 +42,9 @@ class NewSequenceDialog: public wxDialog
 		static const long ID_RADIOBUTTON3;
 		static const long ID_STATICTEXT5;
 		static const long ID_SpinCtrlDuration_Float;
+		static const long ID_RADIOBUTTON4;
+		static const long ID_STATICTEXT4;
+		static const long ID_CHOICE3;
 		static const long ID_CHOICE1;
 		//*)
 
