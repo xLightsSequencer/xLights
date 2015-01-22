@@ -47,25 +47,25 @@ public:
         dc->Flush();
         delete dc;
     }
-    
+
     void SetFont(wxFont &font, const xlColor &color) {
         dc->SetFont(font, color.asWxColor());
     }
-    
+
     void DrawText(const wxString &msg, int x, int y, double rotation) {
         dc->DrawText(msg, x, y, rotation);
     }
     void DrawText(const wxString &msg, int x, int y) {
         dc->DrawText(msg, x, y);
     }
-    
+
     void GetTextExtent(const wxString &msg, double *width, double *height) {
         dc->GetTextExtent(msg, width, height);
     }
 private:
     wxGraphicsContext *dc;
 };
-#else 
+#else
 class DrawingContext {
 public:
     DrawingContext(wxImage *image) : bitmap(image->GetWidth(), image->GetHeight()) {
@@ -76,19 +76,19 @@ public:
         delete dc;
         *img = bitmap.ConvertToImage();
     }
-    
+
     void SetFont(wxFont &font, const xlColor &color) {
         dc->SetFont(font);
-        dc->SetTextForeground(color);
+        dc->SetTextForeground(color.asWxColor());
     }
-    
+
     void DrawText(const wxString &msg, int x, int y, double rotation) {
         dc->DrawRotatedText(msg, x, y, rotation);
     }
     void DrawText(const wxString &msg, int x, int y) {
         dc->DrawText(msg, x, y);
     }
-    
+
     void GetTextExtent(const wxString &msg, double *width, double *height) {
         wxSize size = dc->GetTextExtent(msg);
         *width = size.GetWidth();
@@ -215,7 +215,7 @@ void RgbEffects::RenderText(int Position1, const wxString& Line1, const wxString
     }
 
     delete dc;
-    
+
     //convert to image to get the pixel data
     //wxImage image(bitmap.ConvertToImage());
     for(wxCoord x=0; x<BufferWi; x++)
