@@ -1,6 +1,7 @@
 bin/xLights
 bin/*.dll
 bin/*.exe
+bin/*.map
 *.bak
 thumbs.db
 *.save

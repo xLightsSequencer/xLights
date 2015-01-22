@@ -168,6 +168,7 @@
 				<Linker>
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
+					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
 					<Add library="..\lib\windows\DbgHelp.Lib" />
@@ -208,6 +209,7 @@
 					<Add option="-s" />
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
+					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
 					<Add library="..\lib\windows\DbgHelp.Lib" />

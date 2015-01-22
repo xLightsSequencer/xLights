@@ -19,7 +19,8 @@
 #ifndef __WXMSW__
 #include <execinfo.h>
 #else
-
+#include <wx/textfile.h>
+#include <algorithm>
 #include <windows.h>
 #include <imagehlp.h>
 wxString windows_get_stacktrace(void *data)
@@ -29,6 +30,25 @@ wxString windows_get_stacktrace(void *data)
     SymInitialize(GetCurrentProcess(), 0, true);
 
     STACKFRAME frame = { 0 };
+
+    wxArrayString mapLines;
+    wxFileName name = wxStandardPaths::Get().GetExecutablePath();
+    name.SetExt("map");
+    wxTextFile mapFile(name.GetFullPath());
+    if (mapFile.Exists()) {
+        mapFile.Open();
+        wxString line = mapFile.GetFirstLine();
+        while (!mapFile.Eof()) {
+            line = mapFile.GetNextLine();
+            line.Trim(true).Trim(false);
+            if (line.StartsWith("0x")) {
+                mapLines.Add(line);
+            }
+        }
+        mapLines.Sort();
+    } else {
+        trace += name.GetFullPath() + " does not exist\n";
+    }
 
     // setup initial stack frame
     frame.AddrPC.Offset         = context->Eip;
@@ -72,8 +92,14 @@ wxString windows_get_stacktrace(void *data)
         } else {
             // Print an unknown location:
             // functionNames.push_back("unknown location");
-            char buffer[64]; sprintf( buffer , "0x%08x\n" ,  frame.AddrPC.Offset );
-            trace += buffer;
+            wxString buffer(wxString::Format("0x%08x" , frame.AddrPC.Offset));
+            for (int x = 1; x < mapLines.GetCount(); x++) {
+                if (wxString(buffer) < mapLines[x]) {
+                    buffer += mapLines[x - 1].substr(12).Trim();
+                    x = mapLines.GetCount();
+                }
+            }
+            trace += buffer + "\n";
         }
     }
 
