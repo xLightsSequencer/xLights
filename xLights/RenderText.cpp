@@ -341,11 +341,6 @@ void DrawLabel(DrawingContext *dc,
          y = rect.GetTop();
      }
 
-     // draw the bitmap first
-     wxCoord x0 = x,
-     y0 = y,
-     width0 = width;
-
      // split the string into lines and draw each of them separately
      //
      // NB: while wxDC::DrawText() on some platforms supports drawing multi-line

@@ -4,7 +4,7 @@
 #include <stdarg.h>
 
 inline std::string string_format(const std::string fmt, ...) {
-    int n, size=100;
+    int size=100;
     std::string str;
     va_list ap;
     while (1) {

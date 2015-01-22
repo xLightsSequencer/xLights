@@ -207,7 +207,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     changedRow = 99999;
     changedColumn = 99999;
 
-    long duration;
+    long duration = 0;
     if (dialog.RadioButtonLor->GetValue())
     {
         filename=dialog.ChoiceLorFiles->GetStringSelection();
@@ -745,6 +745,7 @@ void xLightsFrame::UpdateViewList()
 }
 wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
 {
+    return NULL;
 }
 void xLightsFrame::PasteFromClipboard()
 {

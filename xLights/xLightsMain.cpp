@@ -1800,9 +1800,8 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString msg = _(XLIGHTS_LICENSE);
     wxString hdg = wxString::Format(_("About xLights %s"),_(XLIGHTS_VERSION));
-    wxMessageBox(msg, hdg);
+    wxMessageBox(XLIGHTS_LICENSE, hdg);
 }
 
 // return a random number between 0 and 1 inclusive

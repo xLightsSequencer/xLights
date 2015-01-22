@@ -105,8 +105,6 @@ void RowHeading::SetCanvasSize(int width,int height)
 void RowHeading::render( wxPaintEvent& event )
 {
     wxCoord w,h;
-    float t;
-    int labelCount=0;
     wxPaintDC dc(this);
     wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
