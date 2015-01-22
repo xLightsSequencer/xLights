@@ -103,8 +103,9 @@ void SequencePreview::InitializePreview()
     glLoadIdentity();
 }
 
-void SequencePreview::StartDrawing(wxDouble pointSize)
+bool SequencePreview::StartDrawing(wxDouble pointSize)
 {
+    if(mIsDrawing){return false;}
     mIsDrawing = true;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
@@ -112,6 +113,7 @@ void SequencePreview::StartDrawing(wxDouble pointSize)
     prepare2DViewport(0,0,getWidth(), getHeight());
     glPointSize( pointSize );
     glBegin(GL_POINTS);
+    return(true);
 }
 
 void SequencePreview::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
@@ -136,4 +138,6 @@ void SequencePreview::render( wxPaintEvent& evt )
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFlush();
     SwapBuffers();
+
+
 }

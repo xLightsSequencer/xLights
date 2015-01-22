@@ -1735,23 +1735,28 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
 
-    preview->StartDrawing(pointSize);
-    // layer calculation and map to output
-    size_t NodeCount=Nodes.size();
-    double sx,sy;
-    for(size_t n=0; n<NodeCount; n++)
+    bool success = preview->StartDrawing(pointSize);
+
+    if(success)
     {
-        Nodes[n]->GetColor(color);
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++)
+        // layer calculation and map to output
+        size_t NodeCount=Nodes.size();
+        double sx,sy;
+        for(size_t n=0; n<NodeCount; n++)
         {
-            // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-            preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
+            Nodes[n]->GetColor(color);
+            size_t CoordCount=GetCoordCount(n);
+            for(size_t c=0; c < CoordCount; c++)
+            {
+                // draw node on screen
+                sx=Nodes[n]->Coords[c].screenX;
+                sy=Nodes[n]->Coords[c].screenY;
+                color.red = 255;
+                preview->DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
+            }
         }
+        preview->EndDrawing();
     }
-    preview->EndDrawing();
 }
 
 static inline void TranslatePointDoubles(double radians,wxCoord x,wxCoord y,double &x1, double &y1) {

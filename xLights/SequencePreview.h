@@ -24,7 +24,7 @@ public:
 	int getHeight();
 	void ClearBackground();
     void InitializePreview();
-    void StartDrawing(wxDouble pointSize);
+    bool StartDrawing(wxDouble pointSize);
     void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
     void EndDrawing();
 private:

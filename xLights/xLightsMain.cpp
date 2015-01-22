@@ -1700,7 +1700,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     curCell = new wxGridCellCoords(0,0);
     wxImage::AddHandler(new wxGIFHandler);
-    
+
     //start out with 50ms timer, once we load a file or create a new one, we'll reset
     //to whatever the timing that is selected
     Timer1.Start(50, wxTIMER_CONTINUOUS);

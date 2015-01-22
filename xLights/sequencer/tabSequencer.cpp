@@ -365,6 +365,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     playStartTime = (int)(args->effect->GetStartTime() * 1000);
     playEndTime = (int)(args->effect->GetEndTime() * 1000);
     RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+
     playStartMS = -1;
     playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
                           args->element->GetEffectLayerCount(),
@@ -404,9 +405,8 @@ void xLightsFrame::TimerRgbSeq(long msec)
             }
         }
     }
-    sPreview1->StartDrawing(mPointSize);
+
     playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
-    sPreview1->EndDrawing();
 }
 
 
