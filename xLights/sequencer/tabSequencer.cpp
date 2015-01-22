@@ -362,11 +362,52 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
     EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
-    int startTime = (int)(args->effect->GetStartTime() * 1000);
-    int endTime = (int)(args->effect->GetEndTime() * 1000);
-    RenderEffectForModel(args->element->GetName(),startTime,endTime);
+    playStartTime = (int)(args->effect->GetStartTime() * 1000);
+    playEndTime = (int)(args->effect->GetEndTime() * 1000);
+    RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+    playStartMS = -1;
+    playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
+                          args->element->GetEffectLayerCount(),
+                          SeqData.FrameTime());
 }
 
+void xLightsFrame::TimerRgbSeq(long msec)
+{
+    if (playStartTime == playEndTime) {
+        return;
+    }
+    if (playStartMS == -1) {
+        playStartMS = msec;
+    }
+    int curt = (playStartTime + msec - playStartMS);
+    if (curt > playEndTime) {
+        playStartMS = msec;
+        curt = (playStartTime + msec - playStartMS);
+    }
+    int frame = curt / SeqData.FrameTime();
+    //have the frame, copy from SeqData
+    int nn = playBuffer.GetNodeCount();
+    unsigned char intensity;
+    size_t chnum;
+    size_t cn = playBuffer.ChannelsPerNode();
+    for (int node = 0; node < nn; node++) {
+        if (cn == 1) {
+            playBuffer.GetChanIntensity(node, 0, &chnum, &intensity);
+            intensity = SeqData[frame][chnum];
+            playBuffer.SetChanIntensityAll(node, intensity);
+        } else {
+            for(size_t c = 0; c < cn; c++)
+            {
+                playBuffer.GetChanIntensity(node, c, &chnum, &intensity);
+                intensity = SeqData[frame][chnum];
+                playBuffer.SetChanIntensity(node, c, intensity);
+            }
+        }
+    }
+    sPreview1->StartDrawing(mPointSize);
+    playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
+    sPreview1->EndDrawing();
+}
 
 
 void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)

@@ -737,9 +737,6 @@ void xLightsFrame::GetSeqModelNames(wxArrayString& a)
 void xLightsFrame::PlayEffect()
 {
 }
-void xLightsFrame::TimerRgbSeq(long msec)
-{
-}
 void xLightsFrame::UpdateViewList()
 {
 }

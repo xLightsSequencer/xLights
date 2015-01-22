@@ -1329,8 +1329,15 @@ protected:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
+    
+    
     PixelBufferClass playBuffer;
     int playPeriod;
+    int playStartMS;
+    int playStartTime;
+    int playEndTime;
+    
+    
     wxString lastPlayEffect;
     bool playResetEffectState[2];
     double mPointSize = 2.0;
