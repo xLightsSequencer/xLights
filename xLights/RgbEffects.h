@@ -78,8 +78,6 @@ typedef enum
 
 
 
-#define rgb_MAX_BALLS 20
-
 // eventually this will go in some header..
 // the idea is to define this (currently) for the MS compiler
 // and to switch its value based on creating vs using the dll
@@ -560,14 +558,18 @@ protected:
     int speed;
     int lastperiod, curPeriod;
     RgbFireworks *fireworkBursts;
-    int numBalls = 0;
-    bool metaType=false;
-    RgbBalls balls[rgb_MAX_BALLS];
 
     long timer_countdown[4]; // was  long timer_countdown[1];
     bool fitToTime;
 
-    MetaBall metaballs[10];
+
+    //circles
+    bool metaType=false;
+    RgbBalls *balls;
+    MetaBall *metaballs;
+    int numBalls = 0;
+    
+    
     wxString ModeName; //model currently in effect
 
     size_t GetNodeCount();

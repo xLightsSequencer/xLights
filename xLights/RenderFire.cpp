@@ -45,7 +45,6 @@ public:
             firePalette.push_back(xlColor(hsv));
             hsv.hue+=0.00166666;
         }
-        printf("fps:  %ld\n", firePalette.size());
     }
     int size() const {
         return firePalette.size();

@@ -23,6 +23,7 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+static const int MAX_RGB_BALLS = 20;
 
 void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
                                bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma)
@@ -35,13 +36,22 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
     float spd;
     float angle;
     RgbBalls *effectObjects;
+    if (number > MAX_RGB_BALLS) {
+        number = MAX_RGB_BALLS;
+    }
 
     if(plasma)
     {
+        if (metaballs == NULL) {
+            metaballs = new MetaBall[MAX_RGB_BALLS];
+        }
         effectObjects = metaballs;
     }
     else
     {
+        if (balls == NULL) {
+            balls = new RgbBalls[MAX_RGB_BALLS];
+        }
         effectObjects = balls;
     }
 
