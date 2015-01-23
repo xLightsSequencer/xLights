@@ -24,19 +24,23 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+static const int maxFlakes = 1000;
 
 void RgbEffects::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
 {
     int idxFlakes=0;
     int i=0,mod100;
     int x25,x75,y25,y75,stateChunk,denom;
-    const int maxFlakes = 1000;
     //float velocity = 3.5;
     int startX;
     int startY,ColorIdx;
     float v;
     wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
+    
+    if (fireworkBursts == NULL) {
+        fireworkBursts = new RgbFireworks[maxFlakes];
+    }
 
     if(state==0)
         for(i=0; i<maxFlakes; i++)

@@ -27,35 +27,16 @@
 
 RgbEffects::RgbEffects()
 {
-    //ctor
-    // initialize FirePalette[]
-    wxImage::HSVValue hsv;
-    wxImage::RGBValue rgb;
-    int i;
-    // calc 100 reds, black to bright red
-    hsv.hue=0.0;
-    hsv.saturation=1.0;
-    for (i=0; i<100; i++)
-    {
-        hsv.value=double(i)/100.0;
-        rgb = wxImage::HSVtoRGB(hsv);
-        FirePalette.push_back(xlColor(rgb));
-    }
-
-    // gives 100 hues red to yellow
-    hsv.value=1.0;
-    for (i=0; i<100; i++)
-    {
-        rgb = wxImage::HSVtoRGB(hsv);
-        FirePalette.push_back(xlColor(rgb));
-        hsv.hue+=0.00166666;
-    }
     frameTimeInMs = 50;
+    fireworkBursts = NULL;
 }
 
 RgbEffects::~RgbEffects()
 {
     //dtor
+    if (fireworkBursts != NULL) {
+        delete [] fireworkBursts;
+    }
 }
 
 void RgbEffects::InitBuffer(int newBufferHt, int newBufferWi)

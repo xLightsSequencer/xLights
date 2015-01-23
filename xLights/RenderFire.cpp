@@ -23,6 +23,41 @@
 #include <cmath>
 #include "RgbEffects.h"
 
+
+class FirePaletteClass {
+public:
+    FirePaletteClass() {
+        wxImage::HSVValue hsv;
+        int i;
+        // calc 100 reds, black to bright red
+        hsv.hue=0.0;
+        hsv.saturation=1.0;
+        for (i=0; i<100; i++)
+        {
+            hsv.value=double(i)/100.0;
+            firePalette.push_back(xlColor(hsv));
+        }
+        
+        // gives 100 hues red to yellow
+        hsv.value=1.0;
+        for (i=0; i<100; i++)
+        {
+            firePalette.push_back(xlColor(hsv));
+            hsv.hue+=0.00166666;
+        }
+        printf("fps:  %ld\n", firePalette.size());
+    }
+    int size() const {
+        return firePalette.size();
+    }
+    const xlColor &operator[](int x) const {
+        return firePalette[x];
+    }
+private:
+    xlColorVector firePalette;
+};
+static const FirePaletteClass FirePalette;
+
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
 void RgbEffects::SetFireBuffer(int x, int y, int PaletteIdx)

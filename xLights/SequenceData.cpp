@@ -39,10 +39,10 @@ void SequenceData::init(int numChannels, int numFrames, int frameTime) {
     
     if (numFrames > 0 && numChannels > 0) {
         data = (unsigned char *)malloc(numChannels * numFrames);
-        invalidData = (unsigned char *)malloc(numChannels);
         memset(data, 0, numChannels * numFrames);
-        memset(invalidData, 0, numChannels);
     }
+    invalidData = (unsigned char *)malloc(numChannels);
+    memset(invalidData, 0, numChannels);
 }
 
 FrameData SequenceData::operator[](int frame) {

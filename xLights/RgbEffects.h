@@ -530,7 +530,6 @@ protected:
     bool InhibitClear; //allow canvas to be persistent for piano fx -DJ
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
-    xlColorVector FirePalette;
     std::vector<int> FireBuffer;
     std::vector<int> WaveBuffer0;
     std::vector<int> WaveBuffer1;
@@ -560,7 +559,7 @@ protected:
     long LastLifeState;
     int speed;
     int lastperiod, curPeriod;
-    RgbFireworks fireworkBursts[20000];
+    RgbFireworks *fireworkBursts;
     int numBalls = 0;
     bool metaType=false;
     RgbBalls balls[rgb_MAX_BALLS];
