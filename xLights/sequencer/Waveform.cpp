@@ -219,7 +219,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
     mpg123_close(mh);
     mpg123_delete(mh);
     mpg123_exit();
-    delete trackData;
+    free(trackData);
     float seconds = (float)mMediaTrackSize * ((float)1/(float)rate);
     return (int)(seconds * (float)1000);
 }
