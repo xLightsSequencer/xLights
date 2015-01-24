@@ -237,7 +237,7 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
     {
        if (e->GetName() == "ElementEffects")
        {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL & !found; element=element->GetNext() )
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL && !found; element=element->GetNext() )
             {
                 if (element->GetName() == "Element")
                 {
@@ -266,7 +266,7 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
         }
         else if (e->GetName() == "DisplayElements")
         {
-            for(wxXmlNode* element=e->GetChildren(); element!=NULL & !found; element=element->GetNext() )
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL && !found; element=element->GetNext() )
             {
                 if (element->GetName() == "Element")
                 {
