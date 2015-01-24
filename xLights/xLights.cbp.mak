@@ -682,7 +682,7 @@ sequencer/EffectLayer.h: sequencer/Effect.h
 
 sequencer/Element.h: sequencer/EffectLayer.h
 
-XmlConversionDialog.cpp: XmlConversionDialog.h xLightsMain.h RenameTextDialog.h
+XmlConversionDialog.cpp: XmlConversionDialog.h xLightsMain.h RenameTextDialog.h NewTimingDialog.h
 
 XmlConversionDialog.h: xLightsXmlFile.h
 
@@ -692,9 +692,9 @@ EffectTreeDialog.h: xLightsMain.h
 
 ModelListDialog.h: ModelClass.h
 
-ModelClass.h: SequencePreview.h ModelPreview.h
+ModelClass.h: SequencePreview.h ModelPreview.h Color.h
 
-ModelPreview.h: Image.h XlightsDrawable.h
+ModelPreview.h: Image.h XlightsDrawable.h Color.h
 
 XlightsDrawable.h: Image.h
 
@@ -702,7 +702,7 @@ ChannelMapDialog.h: NetInfo.h
 
 PixelBuffer.h: ModelClass.h RgbEffects.h Effects.h
 
-RgbEffects.h: Effects.h
+RgbEffects.h: Color.h Effects.h
 
 PaletteMgmtDialog.h: EffectsPanel.h
 
@@ -736,13 +736,13 @@ sequencer/RowHeading.cpp: sequencer/RowHeading.h sequencer/Waveform.h xLightsMai
 
 TabSequence.cpp: xLightsMain.h heartbeat.h SeqOpenDialog.h NewSequenceDialog.h xLightsXmlFile.h XmlConversionDialog.h
 
-SequencePreview.cpp: SequencePreview.h
+SequencePreview.cpp: SequencePreview.h RgbEffects.h
 
 SerialPortWithRate.cpp: SerialPortWithRate.h
 
 ShowDatesDialog.cpp: ShowDatesDialog.h
 
-TabConvert.cpp: xLightsMain.h
+TabConvert.cpp: xLightsMain.h XmlConversionDialog.h
 
 TabPapagayo.cpp: xLightsMain.h
 
@@ -796,7 +796,7 @@ Image_Loader.cpp: Image_Loader.h
 
 JobPool.cpp: JobPool.h
 
-ModelClass.cpp: ModelClass.h xLightsMain.h
+ModelClass.cpp: ModelClass.h xLightsMain.h Color.h
 
 ModelDialog.cpp: ModelDialog.h ModelClass.h
 
