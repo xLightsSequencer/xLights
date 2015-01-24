@@ -538,8 +538,6 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     wxFile f;
     // Step Size must be multiple of 4
     //wxUint8 buf[stepSize];
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
 
     size_t ch;
     if (!f.Create(filename,true))
@@ -547,6 +545,9 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
+
+    wxUint8* buf;
+    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
 
     // Header Information
     // Format Identifier
@@ -621,8 +622,6 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
     wxUint32 stepSize = numChans + (numChans%4);
 
     wxFile f;
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
 
     size_t ch;
     if (!f.Create(filename,true))
@@ -630,6 +629,9 @@ void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, 
         ConversionError(wxString("Unable to create file: ")+filename);
         return;
     }
+
+    wxUint8* buf;
+    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize);
 
     // Header Information
     // Format Identifier

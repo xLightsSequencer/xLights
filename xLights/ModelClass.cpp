@@ -31,7 +31,6 @@
 void ModelClass::InitWholeHouse(wxString WholeHouseData)
 {
     long xCoord,yCoord,actChn;
-    int nodeCount=0;
     int lastActChn=0;
     wxArrayString data;
     SetBufferSize(parm2,parm1);
@@ -52,7 +51,6 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
         Nodes.back()->ActChan = actChn;
         Nodes.back()->Coords[0].bufX = xCoord;
         Nodes.back()->Coords[0].bufY = yCoord;
-        int j = GetCoordCount(0);
         lastActChn = actChn;
         for(size_t i=1; i < coordinateCount; i++)
         {
@@ -600,7 +598,7 @@ void ModelClass::InitLine()
     SetNodeCount(parm1,parm2);
     SetBufferSize(1,numLights);
     int LastStringNum=-1;
-    int chan,idx;
+    int chan = 0,idx;
     int ChanIncr=SingleChannel ?  1 : 3;
     size_t NodeCount=GetNodeCount();
 
@@ -651,7 +649,7 @@ void ModelClass::InitStar()
 
 
     int LastStringNum=-1;
-    int chan,cursegment,nextsegment,x,y;
+    int chan = 0,cursegment,nextsegment,x,y;
     int start = 0;
 
     for (int cur = 0; cur < starSizes.size(); cur++) {
@@ -744,7 +742,7 @@ void ModelClass::InitWreath()
     int LastStringNum=-1;
     int offset=numlights/2;
     double r=offset;
-    int chan,x,y;
+    int chan = 0,x,y;
     double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
     double pctIncr=1.0 / (double)numlights;     // this is cw
     if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
