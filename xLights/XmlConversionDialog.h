@@ -20,6 +20,8 @@ class XmlConversionDialog: public wxDialog
 	public:
 
 		XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_to_handle);
+		void SetMP3File(wxString mp3_file);
+
 		virtual ~XmlConversionDialog();
 
         void Clear();
@@ -117,6 +119,7 @@ class XmlConversionDialog: public wxDialog
         void SetSelectionToXMLFile();
         void ProcessSelectedFile();
         void SetWindowState(bool value);
+        bool ExtractMetaTagsFromMP3(wxString filename);
 
 		//(*Handlers(XmlConversionDialog)
 		void OnChoice_Xml_Settings_FilenameSelect(wxCommandEvent& event);

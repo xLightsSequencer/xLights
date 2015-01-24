@@ -246,6 +246,12 @@ XmlConversionDialog::~XmlConversionDialog()
     if( !fixed_file_mode ) xml_file->FreeMemory();
 }
 
+
+void XmlConversionDialog::SetMP3File(wxString mp3_file)
+{
+    ExtractMetaTagsFromMP3(mp3_file);
+}
+
 void XmlConversionDialog::PopulateFiles()
 {
     wxString filename;
@@ -323,6 +329,7 @@ void XmlConversionDialog::SetWindowState(bool value)
     Button_Xml_Delete_Timing->Enable(value);
     Button_Xml_Rename_Timing->Enable(value);
     Choice_Xml_Song_Timings->Enable(value);
+    Button_Extract_Song_Info->Enable(value);
 }
 
 void XmlConversionDialog::ProcessSelectedFile()
@@ -556,6 +563,21 @@ void XmlConversionDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 
 void XmlConversionDialog::OnButton_Extract_Song_InfoClick(wxCommandEvent& event)
 {
+    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
+    wxString fDir;
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fDir =	OpenDialog->GetDirectory();
+        wxString filename = OpenDialog->GetFilename();
+        wxFileName name_and_path(filename);
+        name_and_path.SetPath(xLightsFrame::CurrentDir);
+        if( ExtractMetaTagsFromMP3(name_and_path.GetFullPath()) )
+        {
+            Button_Xml_Settings_Save->Enable(true);
+        }
+    }
+
+    OpenDialog->Destroy();
 }
 
 void XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event)
@@ -584,4 +606,67 @@ void XmlConversionDialog::OnClose(wxCloseEvent& event)
     }
     EndModal(Button_Xml_Settings_Save->IsEnabled() ? wxCANCEL : wxOK);
     Destroy();
+}
+
+bool XmlConversionDialog::ExtractMetaTagsFromMP3(wxString filename)
+{
+    bool modified = false;
+    mpg123_handle *mh;
+    mpg123_id3v1 *v1;
+    mpg123_id3v2 *v2;
+    int err;
+
+    mpg123_init();
+    mh = mpg123_new(NULL, &err);
+
+    mpg123_open(mh, filename);
+
+    if( err == MPG123_OK )
+    {
+        // get meta tags
+        mpg123_scan(mh);
+        int meta = mpg123_meta_check(mh);
+
+        if( meta == MPG123_ID3 && mpg123_id3(mh, &v1, &v2) == MPG123_OK )
+        {
+            wxString title = wxT("");
+            wxString artist = wxT("");
+            wxString album = wxT("");
+
+            if( v2 != NULL ) // "ID3V2 tag found"
+            {
+                title = v2->title->p;
+                artist = v2->artist->p;
+                album = v2->album->p;
+                modified = true;
+            }
+
+            else if( v1 != NULL ) // "ID3V2 tag found"
+            {
+                title = v1->title[0];
+                artist = v1->artist[0];
+                album = v1->album[0];
+                modified = true;
+            }
+
+            if( title != wxT("") )
+            {
+                TextCtrl_Xml_Song->SetValue(title);
+            }
+            if( artist != wxT("") )
+            {
+                TextCtrl_Xml_Artist->SetValue(artist);
+            }
+            if( album != wxT("") )
+            {
+                TextCtrl_Xml_Album->SetValue(album);
+            }
+        }
+    }
+
+    mpg123_close(mh);
+    mpg123_delete(mh);
+    mpg123_exit();
+
+    return modified;
 }
