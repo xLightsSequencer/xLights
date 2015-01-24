@@ -347,15 +347,18 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
+    Effect* effect;
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+    mSequenceElements.UnSelectAllEffects();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
     wxString settings = GetEffectTextFromWindows();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
-        mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
+       Effect* effect = mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
                                    mSequenceElements.GetSelectedRange(i)->StartTime,
-                                   mSequenceElements.GetSelectedRange(i)->EndTime,false);
+                                   mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
     }
+
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 
@@ -654,7 +657,8 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
 wxString xLightsFrame::GetEffectTextFromWindows()
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," + colorPanel->GetColorString();
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," +
+                          colorPanel->GetColorString() + "," + timingPanel->GetTimingString();
     return effectText;
 }
 

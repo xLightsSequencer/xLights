@@ -267,13 +267,6 @@ void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
 wxString ColorPanel::GetColorString()
 {
     wxString s,ChildName,AttrName;
-//    wxString prefix=GetAttrPrefix();
-//    //~s=prefix+wxString::Format("SLIDER_Speed=%d",Slider_Speed->GetValue());
-//    //~s+=prefix+"TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue();
-//    //~s+=prefix+"TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue();
-//    //~s+=prefix+wxString::Format("CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0);
-//    //~s+=prefix+wxString::Format("CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
-//
     wxColour color;
     for (int i=1; i<=PALETTE_SIZE; i++)
     {
@@ -286,6 +279,8 @@ wxString ColorPanel::GetColorString()
         wxString v=(ctrl->IsChecked()) ? "1" : "0";
         s+=AttrName+"="+v + ",";
     }
+    // Remove last comma
+    s = s.substr(0,s.size()-1);
     return s;
 }
 

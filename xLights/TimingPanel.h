@@ -21,6 +21,7 @@ class TimingPanel: public wxPanel
 		virtual ~TimingPanel();
 
         void UpdateSpeedText();
+        wxString GetTimingString();
 
 
 		//(*Declarations(TimingPanel)

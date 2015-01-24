@@ -170,8 +170,6 @@ int Effect::GetEffectIndex(wxString effectName)
     else{return xLightsFrame::RGB_EFFECTS_e::eff_OFF;}
 }
 
-
-
 EffectLayer* Effect::GetParentEffectLayer()
 {
     return mParentLayer;

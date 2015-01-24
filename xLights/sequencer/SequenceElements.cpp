@@ -231,7 +231,7 @@ bool SequenceElements::LoadSequencerFile(wxString filename)
                                             effectIndex = Effect::GetEffectIndex(effectName);
                                             settings = effect->GetNodeContent();
                                         }
-                                        effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,bProtected);
+                                        Effect* e = effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                     }
                                 }
                             }

@@ -46,7 +46,7 @@ Effect* EffectLayer::RemoveEffect(int index)
     }
 }
 
-void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, bool Protected)
+Effect* EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, int Selected, bool Protected)
 {
     Effect e(this);
     e.SetID(id);
@@ -56,9 +56,10 @@ void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString set
     e.SetStartTime(startTime);
     e.SetEndTime(endTime);
     e.SetProtected(Protected);
-    e.SetSelected(false);
+    e.SetSelected(Selected);
     mEffects.push_back(e);
     SortEffects();
+    return &e;
 }
 
 

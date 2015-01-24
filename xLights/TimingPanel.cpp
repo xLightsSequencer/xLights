@@ -2,7 +2,7 @@
 #include "../include/padlock16x16-green.xpm" //-DJ
 #include "../include/padlock16x16-red.xpm" //-DJ
 #include "../include/padlock16x16-blue.xpm" //-DJ
-
+#include <wx/msgdlg.h>
 //(*InternalHeaders(TimingPanel)
 #include <wx/bitmap.h>
 #include <wx/settings.h>
@@ -240,3 +240,27 @@ void TimingPanel::OnResize(wxSizeEvent& event)
     ScrolledWindowTiming->SetScrollRate(5, 5);
     ScrolledWindowTiming->Refresh();
 }
+
+wxString TimingPanel::GetTimingString()
+{
+    wxString s,ChildName,AttrName;
+    // Speed
+    s=wxString::Format("T_SLIDER_Speed=%d",Slider_Speed->GetValue()) + ",";
+    // Layer Morph
+    s+=wxString::Format("T_CHECKBOX_LayerMorph=%d",CheckBox_LayerMorph->IsChecked()?1:0) + ",";
+    // Layer Method
+    s+=wxString::Format("T_CHOICE_LayerMethod=%s",
+                          Choice_LayerMethod->GetString(Choice_LayerMethod->GetSelection())) + ",";
+    // Effect Mix
+    s+=wxString::Format("T_SLIDER_EffectLayerMix=%d",Slider_EffectLayerMix->GetValue()) + ",";
+    // Fade in
+    s+="T_TEXTCTRL_Fadein="+TextCtrl_Fadein->GetValue() + ",";
+    // Fade Out
+    s+="T_TEXTCTRL_Fadeout="+TextCtrl_Fadeout->GetValue() + ",";
+    // Fit to time
+    s+=wxString::Format("T_CHECKBOX_FitToTime=%d",CheckBox_FitToTime->GetValue()?1:0) + ",";
+    // Fit to time
+    s+=wxString::Format("T_CHECKBOX_OverlayBkg=%d",CheckBox_OverlayBkg->GetValue()?1:0);
+    return s;
+}
+
