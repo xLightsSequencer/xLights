@@ -354,7 +354,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString settings = GetEffectTextFromWindows();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
-       Effect* effect = mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
+       mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
                                    mSequenceElements.GetSelectedRange(i)->StartTime,
                                    mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
     }

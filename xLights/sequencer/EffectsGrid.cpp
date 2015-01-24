@@ -152,7 +152,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
     int FirstSelected;
-    if(!(event.ShiftDown() || event.ControlDown()))
+    if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
     {
         mSequenceElements->UnSelectAllEffects();
     }
