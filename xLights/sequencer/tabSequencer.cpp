@@ -181,6 +181,7 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
     UpdateEffectGridHorizontalScrollBar();
+    delete tla;
 }
 
 void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
