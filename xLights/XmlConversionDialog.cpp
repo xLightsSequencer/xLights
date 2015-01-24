@@ -40,6 +40,8 @@ const long XmlConversionDialog::ID_STATICTEXT_Xml_Music_Url = wxNewId();
 const long XmlConversionDialog::ID_TEXTCTRL_Xml_Music_Url = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Comment = wxNewId();
 const long XmlConversionDialog::ID_TEXTCTRL_Xml_Comment = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
+const long XmlConversionDialog::ID_TEXTCTRL_Xml_Total_Length = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Extract_Song_Info = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Settings_Save = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Close_Dialog = wxNewId();
@@ -145,6 +147,10 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	FlexGridSizer3->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Comment = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
 	FlexGridSizer3->Add(TextCtrl_Xml_Comment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Xml_Total_Length = new wxStaticText(this, ID_STATICTEXT_Xml_Total_Length, _("Total Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
+	FlexGridSizer3->Add(StaticText_Xml_Total_Length, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Xml_Total_Length = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Total_Length, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Total_Length"));
+	FlexGridSizer3->Add(TextCtrl_Xml_Total_Length, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Extract_Song_Info = new wxButton(this, ID_BUTTON_Extract_Song_Info, _("Extract Song Info from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Extract_Song_Info"));
 	Button_Extract_Song_Info->Disable();
@@ -203,6 +209,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	Connect(ID_TEXTCTRL_Xml_Album,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_AlbumText);
 	Connect(ID_TEXTCTRL_Xml_Music_Url,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Music_UrlText);
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_CommentText);
+	Connect(ID_TEXTCTRL_Xml_Total_Length,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Total_LengthText);
 	Connect(ID_BUTTON_Extract_Song_Info,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Extract_Song_InfoClick);
 	Connect(ID_BUTTON_Xml_Settings_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Settings_SaveClick);
 	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
@@ -295,6 +302,7 @@ void XmlConversionDialog::Clear()
     TextCtrl_Xml_Album->SetValue(_(""));
     TextCtrl_Xml_Music_Url->SetValue(_(""));
     TextCtrl_Xml_Comment->SetValue(_(""));
+    TextCtrl_Xml_Total_Length->SetValue(_(""));
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
 }
@@ -309,6 +317,7 @@ void XmlConversionDialog::SetWindowState(bool value)
     TextCtrl_Xml_Album->Enable(value);
     TextCtrl_Xml_Music_Url->Enable(value);
     TextCtrl_Xml_Comment->Enable(value);
+    TextCtrl_Xml_Total_Length->Enable(value);
     Button_Xml_New_Timing->Enable(value);
     Button_Xml_Import_Timing->Enable(value);
     Button_Xml_Delete_Timing->Enable(value);
@@ -330,6 +339,7 @@ void XmlConversionDialog::ProcessSelectedFile()
         TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
         TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
         TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
+        TextCtrl_Xml_Total_Length->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::TOTAL_LENGTH));
         PopulateSongTimings();
     }
     if( xml_file->IsLoaded() )
@@ -376,6 +386,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
     info.push_back(TextCtrl_Xml_Album->GetValue());
     info.push_back(TextCtrl_Xml_Music_Url->GetValue());
     info.push_back(TextCtrl_Xml_Comment->GetValue());
+    info.push_back(TextCtrl_Xml_Total_Length->GetValue());
     xml_file->SetHeaderInfo(info);
     bool reload = xml_file->NeedsConversion();
     xml_file->Save(TextCtrl_Xml_Log);
@@ -385,6 +396,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
         PopulateFiles();
         xml_file->Load();
     }
+    TextCtrl_Xml_Total_Length->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::TOTAL_LENGTH));
     PopulateSongTimings();
     SetWindowState(true);
     Button_Xml_Settings_Save->Enable(false);
@@ -454,6 +466,15 @@ void XmlConversionDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
     {
         Button_Xml_Settings_Save->Enable(true);
     }
+}
+
+void XmlConversionDialog::OnTextCtrl_Xml_Total_LengthText(wxCommandEvent& event)
+{
+    if( xml_file->IsLoaded() )
+    {
+        Button_Xml_Settings_Save->Enable(true);
+    }
+
 }
 
 void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)

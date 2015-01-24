@@ -22,6 +22,7 @@ class xLightsXmlFile : public wxFileName
             ALBUM,
             URL,
             COMMENT,
+            TOTAL_LENGTH,
             NUM_TYPES
         };
         void Load();
@@ -39,6 +40,8 @@ class xLightsXmlFile : public wxFileName
         bool NeedsConversion() { return needs_conversion; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
         void FixVersionDifferences();
+        double GetTotalLength() { return total_length; }
+        void SetTotalLength(double length);
         void FreeMemory();
     protected:
     private:
@@ -57,6 +60,7 @@ class xLightsXmlFile : public wxFileName
         wxString version_string;
         wxString latest_version;
         wxString last_time;
+        double total_length;
 
         void Init();
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);

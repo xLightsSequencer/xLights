@@ -23,6 +23,7 @@ xLightsXmlFile::~xLightsXmlFile()
 
 void xLightsXmlFile::Init()
 {
+    total_length = 0.0;
     Clear();
     latest_version = _("4.0.0");
     for(int i = 0; i < NUM_TYPES; ++i )
@@ -213,6 +214,14 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
                 else if( element->GetName() == "comment")
                 {
                     SetNodeContent(element, header_info[COMMENT]);
+                }
+                else if( element->GetName() == "total_length")
+                {
+                    // try to correct bad formatted length
+                    header_info[TOTAL_LENGTH].ToDouble(&total_length);
+                    last_time = string_format("%.3f", total_length);
+                    SetNodeContent(element, last_time);
+                    header_info[TOTAL_LENGTH] = last_time;
                 }
             }
        }
@@ -435,6 +444,10 @@ void xLightsXmlFile::Load()
                     {
                         header_info[COMMENT] = element->GetNodeContent();
                     }
+                    else if( element->GetName() == "total_length")
+                    {
+                        header_info[TOTAL_LENGTH] = element->GetNodeContent();
+                    }
                 }
            }
            if (e->GetName() == "ElementEffects")
@@ -458,7 +471,6 @@ void xLightsXmlFile::Load()
                             for(wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
                             {
                                 effect->GetAttribute("endTime", &attr);
-                                StoreEndTime(attr);
                             }
                         }
                     }
@@ -481,6 +493,30 @@ void xLightsXmlFile::StoreEndTime(wxString end_time)
     if( time1 > time2 )
     {
         last_time = end_time;
+    }
+}
+
+void xLightsXmlFile::SetTotalLength(double length)
+{
+    // try to correct bad formatted length
+    last_time = string_format("%.3f", length);
+    total_length = length;
+    header_info[TOTAL_LENGTH] = last_time;
+
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "total_length")
+                {
+                    SetNodeContent(element, header_info[TOTAL_LENGTH]);
+                }
+            }
+       }
     }
 }
 
@@ -518,6 +554,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
         AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
+        wxXmlNode* length = AddChildXmlNode(node, wxT("total_length"), header_info[HEADER_INFO_TYPES::TOTAL_LENGTH]);
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
         AddTimingAttributes(node, wxT("Song Timing"), wxT("1"), wxT("1"));
@@ -588,6 +625,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
 
                     wxString data1 = SubstituteV3toV4tags(prefix + eff1);
                     wxString data2 = SubstituteV3toV4tags(prefix + eff2);
+                    wxString end_time = timing[(j+1<num_effects)?j+1:j];
 
                     wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
                     effect->AddAttribute(wxT("name"), effect1);
@@ -595,7 +633,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     effect->AddAttribute(wxT("selected"), wxT("0"));
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
-                    effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
+                    effect->AddAttribute(wxT("endTime"),end_time);
 
                     effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
                     effect->AddAttribute(wxT("name"), effect2);
@@ -603,7 +641,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     effect->AddAttribute(wxT("selected"), wxT("0"));
                     effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
                     effect->AddAttribute(wxT("startTime"), timing[j]);
-                    effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
+                    effect->AddAttribute(wxT("endTime"), end_time);
+
+                    StoreEndTime(end_time);
 
                     effect_id++;
                 }
@@ -626,7 +666,6 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                     wxString end_time;
                     eff1->GetAttribute("endTime", &end_time);
                     eff2->GetAttribute("startTime", &start_time);
-                    StoreEndTime(end_time);
                     if( end_time != start_time && start_time != _("") )
                     {
                         for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
@@ -696,6 +735,11 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         layer = AddChildXmlNode(child, wxT("EffectLayer"));
 
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
+
+        // store off total length
+        last_time.ToDouble(&total_length);
+        SetNodeContent(length, last_time);
+        header_info[HEADER_INFO_TYPES::TOTAL_LENGTH] = last_time;
 
         // write converted XML file to xLights directory
         doc->Save(GetFullPath());
@@ -793,8 +837,8 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
         return;
 
     double interval;
-    interval_name.ToDouble(&interval);
-    interval = interval / 1000;
+    int ms = wxAtoi(interval_name);
+    interval = ms / 1000;
 
     bool found = false;
     wxXmlNode* root=seqDocument.GetRoot();
@@ -814,24 +858,8 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
             child = AddChildXmlNode(e, wxT("Element"));
             child->AddAttribute(wxT("type"),wxT("timing"));
             child->AddAttribute(wxT("name"),interval_name);
+            child->AddAttribute(wxT("fixed"),string_format("%d",ms));
             layer = AddChildXmlNode(child, wxT("EffectLayer"));
-
-            double time = 0.0;
-            double end_time;
-            last_time.ToDouble(&end_time);
-            double next_time;
-
-            while( time <= end_time )
-            {
-                next_time = (time + interval <= end_time) ? time + interval : end_time;
-                effect = AddChildXmlNode(layer, wxT("Effect"));
-                effect->AddAttribute(wxT("protected"), wxT("0"));
-                effect->AddAttribute(wxT("selected"), wxT("0"));
-                effect->AddAttribute(wxT("label"), wxT(""));
-                effect->AddAttribute(wxT("startTime"), string_format("%f",time));
-                effect->AddAttribute(wxT("endTime"), string_format("%f",next_time));
-                time += interval;
-            }
         }
     }
 }
