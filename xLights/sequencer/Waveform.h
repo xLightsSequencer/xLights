@@ -21,7 +21,8 @@ class Waveform : public wxGLCanvas
 {
     public:
 
-        int mZoomLevel;
+        static int GetLengthOfMusicFileInMS(const char* filename);
+        static int GetTrackSize(mpg123_handle *mh,int bits, int channels);
 
         int OpenfileMediaFile(const char* filename);
         void SetCanvasSize(int width,int height);
@@ -56,7 +57,6 @@ class Waveform : public wxGLCanvas
     protected:
     private:
       	DECLARE_EVENT_TABLE()
-        int GetTrackSize(mpg123_handle *mh);
         void LoadTrackData(mpg123_handle *mh,char  * data);
         void SplitTrackDataAndNormalize(signed short* trackData,int trackSize,float* leftData,float* rightData);
         void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
@@ -68,6 +68,7 @@ class Waveform : public wxGLCanvas
         int mCurrentWaveView;
         int mMediaTrackSize;
         int mFrequency;
+        int mZoomLevel;
         int m_bits;
         int m_rate;
         int m_channels;

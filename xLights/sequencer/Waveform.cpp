@@ -202,7 +202,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
     m_rate = rate;
     m_channels = channels;
     /* Get Track Size */
-    mMediaTrackSize = GetTrackSize(mh);
+    mMediaTrackSize = GetTrackSize(mh,m_bits,m_channels);
     char * trackData = (char*)malloc(mMediaTrackSize*m_bits*m_channels);
     LoadTrackData(mh,trackData);
     // Split data into left and right and normalize -1 to 1
@@ -223,6 +223,29 @@ int Waveform::OpenfileMediaFile(const char* filename)
     float seconds = (float)mMediaTrackSize * ((float)1/(float)rate);
     return (int)(seconds * (float)1000);
 }
+
+int Waveform::GetLengthOfMusicFileInMS(const char* filename)
+{
+    mpg123_handle *mh;
+    int err;
+    int channels, encoding;
+    long rate;
+    mpg123_init();
+    mh = mpg123_new(NULL, &err);
+    /* open the file and get the decoding format */
+    mpg123_open(mh, filename);
+    mpg123_getformat(mh, &rate, &channels, &encoding);
+    int bits = mpg123_encsize(encoding);
+
+    /* Get Track Size */
+    int trackSize = GetTrackSize(mh,bits,channels);
+    mpg123_close(mh);
+    mpg123_delete(mh);
+    mpg123_exit();
+    float seconds = (float)trackSize * ((float)1/(float)rate);
+    return (int)(seconds * (float)1000);
+}
+
 
 void Waveform::SplitTrackDataAndNormalize(signed short* trackData,int trackSize, float* leftData, float* rightData)
 {
@@ -260,7 +283,7 @@ void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
 
 }
 
-int Waveform::GetTrackSize(mpg123_handle *mh)
+int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 {
     size_t buffer_size;
     unsigned char *buffer;
@@ -288,7 +311,7 @@ int Waveform::GetTrackSize(mpg123_handle *mh)
     }
     free(buffer);
     // Debug
-    trackSize = fileSize/(m_bits*m_channels);
+    trackSize = fileSize/(bits*channels);
     return trackSize;
 }
 
