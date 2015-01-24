@@ -6,6 +6,7 @@
 Effect::Effect(EffectLayer* parent)
 {
     mParentLayer = parent;
+    changeCount = 0;
 }
 
 Effect::~Effect()
@@ -180,4 +181,10 @@ void Effect::SetParentEffectLayer(EffectLayer* parent)
 {
     mParentLayer = parent;
 }
+
+void Effect::IncrementChangeCount()
+{
+    changeCount++;
+}
+
 

@@ -73,6 +73,10 @@ class Effect
         EffectLayer* GetParentEffectLayer();
         void SetParentEffectLayer(EffectLayer* parent);
 
+        void IncrementChangeCount();
+
+        volatile int changeCount;
+
     protected:
     private:
         int mID;

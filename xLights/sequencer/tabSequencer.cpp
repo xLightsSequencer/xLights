@@ -364,8 +364,10 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
     EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
     playStartTime = (int)(args->effect->GetStartTime() * 1000);
     playEndTime = (int)(args->effect->GetEndTime() * 1000);
-    RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
-
+    if(args->renderEffect)
+    {
+        RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+    }
     playStartMS = -1;
     playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
                           args->element->GetEffectLayerCount(),

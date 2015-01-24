@@ -33,6 +33,7 @@ struct EventPlayEffectArgs
 {
     Element* element;
     Effect* effect;
+    bool renderEffect;
 };
 
 class SequenceElements

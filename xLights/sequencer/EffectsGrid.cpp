@@ -169,7 +169,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         if(element->GetType()=="model")
         {
             RaiseSelectedEffectChanged(effect);
-            RaisePlayModelEffect(element,effect);
+            RaisePlayModelEffect(element,effect,false);
         }
     }
     mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
@@ -197,6 +197,16 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
+    if(mResizing)
+    {
+        if(mEffectLayer->GetParentElement()->GetType()=="model")
+        {
+            Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
+            effect->IncrementChangeCount();
+            RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
+        }
+    }
+
     mResizing = false;
     mDragging = false;
     mDragDropping = false;
@@ -230,7 +240,6 @@ void EffectsGrid::Resize(int position)
                 mEffectLayer->GetEffect(mResizeEffectIndex)->SetStartTime(mEffectLayer->GetEffect(mResizeEffectIndex-1)->GetEndTime());
             }
         }
-
     }
     else if(mResizingMode==EFFECT_RESIZE_RIGHT)
     {
@@ -926,12 +935,13 @@ void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect)
     wxPostEvent(GetParent(), eventEffectChanged);
 }
 
-void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect)
+void EffectsGrid::RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect)
 {
     // Place effect pointer in client data
     wxCommandEvent eventPlayModelEffect(EVT_PLAY_MODEL_EFFECT);
     playArgs->element = element;
     playArgs->effect = effect;
+    playArgs->renderEffect = renderEffect;
     eventPlayModelEffect.SetClientData(playArgs);
     wxPostEvent(GetParent(), eventPlayModelEffect);
 }

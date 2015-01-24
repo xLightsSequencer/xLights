@@ -87,8 +87,7 @@ private:
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
     void RaiseEffectDropped(int x, int y);
-    void RaisePlayModelEffect(Element* element, Effect* effect);
-
+    void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();
 
     int GetRow(int y);
