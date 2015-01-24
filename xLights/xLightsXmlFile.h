@@ -9,6 +9,7 @@ class xLightsXmlFile : public wxFileName
 {
     public:
         xLightsXmlFile();
+        xLightsXmlFile(const wxFileName &filename);
         virtual ~xLightsXmlFile();
 
         enum HEADER_INFO_TYPES
@@ -37,6 +38,7 @@ class xLightsXmlFile : public wxFileName
         const wxString GetVersion() { return version_string; };
         bool NeedsConversion() { return needs_conversion; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
+        void FixVersionDifferences();
         void FreeMemory();
     protected:
     private:
@@ -56,11 +58,13 @@ class xLightsXmlFile : public wxFileName
         wxString latest_version;
         wxString last_time;
 
+        void Init();
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void FreeNode(wxXmlNode* node);
         void StoreEndTime(wxString end_time);
+        wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
 
 };
 

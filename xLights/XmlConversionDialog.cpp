@@ -214,7 +214,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&XmlConversionDialog::OnClose);
 	//*)
 
-    wxCollapsiblePane *collpane = new wxCollapsiblePane(this, wxID_ANY, "Details:");
+    //wxCollapsiblePane *collpane = new wxCollapsiblePane(this, wxID_ANY, "Details:");
 
     if( xml_file == NULL )
     {

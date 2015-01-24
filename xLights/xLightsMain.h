@@ -1261,7 +1261,6 @@ protected:
     void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
     wxString CreateEffectStringRandom();
-    void FixVersionDifferences(wxString file);
     void BackupDirectory(wxString targetDirName);
     void OpenSequence();
     void SaveSequence();
@@ -1329,15 +1328,15 @@ protected:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
     wxString SeqXmlFileName;
-    
-    
+
+
     PixelBufferClass playBuffer;
     int playPeriod;
     int playStartMS;
     int playStartTime;
     int playEndTime;
-    
-    
+
+
     wxString lastPlayEffect;
     bool playResetEffectState[2];
     double mPointSize = 2.0;
