@@ -9,10 +9,10 @@
 #include "../EffectIconPanel.h"
 
 
-#if __WXOSX__
-#define BASEPATH wxString("/tmp/")
-#else
+#ifdef __WXMSW__
 #define BASEPATH wxString("c:\\temp\\")
+#else
+#define BASEPATH wxString("/tmp/")
 #endif
 
 /************************************* New Sequencer Code*****************************************/
