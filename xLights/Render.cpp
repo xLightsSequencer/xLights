@@ -34,11 +34,11 @@ public:
 class RenderJob: public Job {
 public:
     RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe)
-        : Job(), rowToRender(*row), nextLock(), nextSignal(nextLock), seqData(data), xLights(xframe) {
+        : Job(), rowToRender(row), nextLock(), nextSignal(nextLock), seqData(data), xLights(xframe) {
         previousFrameDone = -1;
         if (row != NULL) {
             buffer = new PixelBufferClass();
-            buffer->InitBuffer(modelNode, rowToRender.GetEffectLayerCount(), seqData.FrameTime(), false);
+            buffer->InitBuffer(modelNode, rowToRender->GetEffectLayerCount(), seqData.FrameTime(), false);
         } else {
             buffer = NULL;
         }
@@ -66,7 +66,7 @@ public:
     }
     
     virtual void Process() {
-        int numLayers = rowToRender.GetEffectLayerCount();
+        int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
         bool effectStates[numLayers];
@@ -118,7 +118,7 @@ public:
         delete [] settingsMaps;
         if (next) {
             next->setPreviousFrameDone(endFrame);
-            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender.GetName()));
+            xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
         }
     }
     void waitForFrame(int frame) {
@@ -193,8 +193,8 @@ private:
     
     Effect *findEffectForFrame(int layer, int frame) {
         int time = frame * seqData.FrameTime();
-        for (int e = 0; e < rowToRender.GetEffectLayer(layer)->GetEffectCount(); e++) {
-            Effect *effect = rowToRender.GetEffectLayer(layer)->GetEffect(e);
+        for (int e = 0; e < rowToRender->GetEffectLayer(layer)->GetEffectCount(); e++) {
+            Effect *effect = rowToRender->GetEffectLayer(layer)->GetEffect(e);
             if ((effect->GetEndTime() * 1000) > time && (effect->GetStartTime() * 1000) <= time) {
                 return effect;
             }
@@ -220,7 +220,7 @@ private:
     }
 
     
-    Element &rowToRender;
+    Element *rowToRender;
     volatile long previousFrameDone;
     
     int startFrame;
@@ -286,7 +286,16 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);
     job = new RenderJob(el, modelNode, SeqData, this);
-    job->setRenderRange(0, SeqData.NumFrames());
+    //account for some rounding by rendering before/after
+    int startframe = startms / SeqData.FrameTime() - 1;
+    if (startframe < 0) {
+        startframe = 0;
+    }
+    int endframe = endms / SeqData.FrameTime() + 1;
+    if (endframe >= SeqData.NumFrames()) {
+        endframe = SeqData.NumFrames() - 1;
+    }
+    job->setRenderRange(startframe, endframe);
     job->setPreviousFrameDone(SeqData.NumFrames() + 1);
     jobPool.PushJob(job);
 }
