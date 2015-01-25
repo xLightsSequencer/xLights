@@ -120,7 +120,6 @@ void xLightsFrame::SetDir(const wxString& newdir)
         xout=0;
     }
     CurrentDir=newdir;
-    StaticTextDirName->SetLabel(CurrentDir);
     UnsavedChanges=false;
     TextCtrlLog->Clear();
     while (Notebook1->GetPageCount() > FixedPages)

@@ -544,6 +544,8 @@ private:
     void OnButtonClickSaveAs(wxCommandEvent& event);
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     void OnMenuXmlConversionSettings(wxCommandEvent& event);
+    void ChangeMediaDirectory(wxCommandEvent& event);
+    void ChangeFseqDirectory(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -580,9 +582,10 @@ private:
     static const long ID_BUTTON_LIGHTS_OFF;
     static const long ID_CHECKBOX_LIGHT_OUTPUT;
     static const long ID_AUITOOLBAR_OUTPUT;
-    static const long ID_STATICTEXT_SETUP1;
-    static const long ID_STATICTEXT_DIRNAME;
-    static const long ID_BUTTON_CHANGEDIR;
+    static const long ID_ANY;
+    static const long ID_BUTTON1;
+    static const long ID_STATICTEXT24;
+    static const long ID_BUTTON2;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
@@ -834,7 +837,6 @@ private:
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
     wxPanel* PanelPapagayo;
-    wxStaticText* StaticTextDirName;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
     wxTextCtrl* TextCtrl_PgoMaxRest;
@@ -874,7 +876,6 @@ private:
     wxStaticText* StaticText35;
     wxChoice* ChoiceOutputFormat;
     wxDirDialog* DirDialog1;
-    wxStaticText* StaticTextSetup1;
     wxCheckListBox* CheckListBoxTestChannels;
     wxStaticText* StaticText33;
     wxStaticText* StaticText23;
@@ -897,7 +898,6 @@ private:
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxStaticText* StaticText_PgoOutputType;
-    wxButton* ButtonChangeDir;
     wxPanel* PanelSetup;
     wxButton* ButtonSaveLog;
     wxStaticText* StaticText43;
@@ -959,6 +959,7 @@ private:
     wxRadioButton* RadioButtonRgbChase3;
     wxMenuItem* Menu4;
     wxCheckBox* CheckBoxRunSchedule;
+    wxStaticText* fseqDirectoryLabel;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxBitmapButton* bbStop;
     wxMenu* Menu3;
@@ -985,6 +986,7 @@ private:
     wxStaticText* StaticText1;
     wxTextCtrl* TextCtrlLog;
     wxStaticText* StaticText2;
+    wxStaticText* MediaDirectoryLabel;
     wxTextCtrl* TextCtrlConversionStatus;
     wxSlider* SliderBgColorB;
     wxPanel* PanelTestRgb;

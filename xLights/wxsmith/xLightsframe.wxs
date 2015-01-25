@@ -228,38 +228,63 @@
 								<growablerows>1</growablerows>
 								<object class="sizeritem">
 									<object class="wxStaticBoxSizer" variable="StaticBoxSizer1" member="no">
-										<label>Show Directory</label>
+										<label>Directories</label>
 										<orient>wxVERTICAL</orient>
 										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT_SETUP1" variable="StaticTextSetup1" member="yes">
-												<label>All sequences and media files must be in this directory</label>
-												<font>
-													<size>10</size>
-													<style>italic</style>
-													<weight>normal</weight>
-													<underlined>0</underlined>
-												</font>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT_DIRNAME" variable="StaticTextDirName" member="yes">
-												<label>&lt;No directory selected - SET THIS FIRST&gt;</label>
-												<fg>#0000FF</fg>
-												<minsize>300,0</minsize>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+												<cols>3</cols>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="wxID_ANY" variable="StaticText28" member="no">
+														<label>Default Media Directory:</label>
+													</object>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_ANY" variable="MediaDirectoryLabel" member="yes">
+														<label></label>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON1" variable="Button1" member="no">
+														<label>Change</label>
+														<handler function="ChangeMediaDirectory" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="wxID_ANY" variable="StaticText37" member="no">
+														<label>fseq Save Directory:</label>
+													</object>
+													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxStaticText" name="ID_STATICTEXT24" variable="fseqDirectoryLabel" member="yes">
+														<label></label>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON2" variable="Button2" member="no">
+														<label>Change</label>
+														<handler function="ChangeFseqDirectory" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_CHANGEDIR" variable="ButtonChangeDir" member="yes">
-												<label>Change</label>
-												<handler function="OnMenuOpenFolderSelected" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>

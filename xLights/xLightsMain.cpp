@@ -106,9 +106,10 @@ const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
 const long xLightsFrame::ID_BUTTON_LIGHTS_OFF = wxNewId();
 const long xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OUTPUT = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_SETUP1 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT_DIRNAME = wxNewId();
-const long xLightsFrame::ID_BUTTON_CHANGEDIR = wxNewId();
+const long xLightsFrame::ID_ANY = wxNewId();
+const long xLightsFrame::ID_BUTTON1 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
+const long xLightsFrame::ID_BUTTON2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_DONGLE = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
@@ -401,6 +402,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
     wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer8;
+    wxStaticText* StaticText37;
     wxFlexGridSizer* FlexGridSizer23;
     wxMenuItem* MenuItem5;
     wxFlexGridSizer* FlexGridSizer41;
@@ -408,6 +410,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItemAddList;
     wxStaticBoxSizer* StaticBoxSizer4;
     wxFlexGridSizer* FlexGridSizer10;
+    wxButton* Button1;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem1;
@@ -418,9 +421,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
+    wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizerCal;
+    wxButton* Button2;
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenuItem* MenuItemDelList;
@@ -435,6 +440,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer14;
     wxFlexGridSizer* FlexGridSizer20;
+    wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
     wxMenuItem* MenuItemRenameList;
     wxFlexGridSizer* FlexGridSizer50;
@@ -507,17 +513,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerSetup->AddGrowableCol(0);
     FlexGridSizerSetup->AddGrowableRow(1);
-    StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, PanelSetup, _("Show Directory"));
-    StaticTextSetup1 = new wxStaticText(PanelSetup, ID_STATICTEXT_SETUP1, _("All sequences and media files must be in this directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_SETUP1"));
-    wxFont StaticTextSetup1Font(10,wxDEFAULT,wxFONTSTYLE_ITALIC,wxNORMAL,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-    StaticTextSetup1->SetFont(StaticTextSetup1Font);
-    StaticBoxSizer1->Add(StaticTextSetup1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextDirName = new wxStaticText(PanelSetup, ID_STATICTEXT_DIRNAME, _("<No directory selected - SET THIS FIRST>"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_DIRNAME"));
-    StaticTextDirName->SetMinSize(wxSize(300,0));
-    StaticTextDirName->SetForegroundColour(wxColour(0,0,255));
-    StaticBoxSizer1->Add(StaticTextDirName, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonChangeDir = new wxButton(PanelSetup, ID_BUTTON_CHANGEDIR, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CHANGEDIR"));
-    StaticBoxSizer1->Add(ButtonChangeDir, 1, wxALL|wxFIXED_MINSIZE|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, PanelSetup, _("Directories"));
+    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+    StaticText28 = new wxStaticText(PanelSetup, wxID_ANY, _("Default Media Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer2->Add(StaticText28, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    MediaDirectoryLabel = new wxStaticText(PanelSetup, ID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_ANY"));
+    FlexGridSizer2->Add(MediaDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button1 = new wxButton(PanelSetup, ID_BUTTON1, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer2->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText37 = new wxStaticText(PanelSetup, wxID_ANY, _("fseq Save Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer2->Add(StaticText37, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    fseqDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT24, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
+    FlexGridSizer2->Add(fseqDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button2 = new wxButton(PanelSetup, ID_BUTTON2, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer2->Add(Button2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Lighting Networks"));
     FlexGridSizerNetworks = new wxFlexGridSizer(0, 3, 0, 0);
@@ -1277,7 +1287,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
-    Connect(ID_BUTTON_CHANGEDIR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeMediaDirectory);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeFseqDirectory);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
     Connect(ID_BUTTON_ADD_DONGLE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDongleClick);
     Connect(ID_BUTTON_ADD_E131,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddE131Click);
@@ -1825,7 +1836,6 @@ void xLightsFrame::SetPlayMode(play_modes newmode)
     }
 
     ButtonGracefulStop->Enable(newmode == play_sched || newmode == play_list);
-    ButtonChangeDir->Enable(newmode != play_sched && newmode != play_list && newmode != play_single);
     play_mode=newmode;
     starttime = wxDateTime::UNow();
 #ifndef NDEBUG
@@ -2588,4 +2598,12 @@ void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
     XmlConversionDialog dialog(this, NULL);
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
+}
+
+void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
+{
+}
+
+void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
+{
 }
