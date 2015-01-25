@@ -120,6 +120,8 @@ void xLightsFrame::SetDir(const wxString& newdir)
         xout=0;
     }
     CurrentDir=newdir;
+    mediaDirectory=newdir;
+    fseqDirectory=newdir;
     UnsavedChanges=false;
     TextCtrlLog->Clear();
     while (Notebook1->GetPageCount() > FixedPages)
@@ -144,6 +146,12 @@ void xLightsFrame::SetDir(const wxString& newdir)
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
         }
     }
+    
+    mediaDirectory = NetworkXML.GetDocumentNode()->GetAttribute("mediaDirectory", mediaDirectory);
+    fseqDirectory = NetworkXML.GetDocumentNode()->GetAttribute("fseqDirectory", fseqDirectory);
+    MediaDirectoryLabel->SetLabel(mediaDirectory);
+    fseqDirectoryLabel->SetLabel(fseqDirectory);
+    MediaDirectoryLabel->GetParent()->Layout();
 
     // load schedule
     UpdateShowDates(wxDateTime::Now(),wxDateTime::Now());
@@ -669,3 +677,31 @@ void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event)
         wxMessageBox(_("Unable to save network definition file"), _("Error"));
     }
 }
+
+
+void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
+{
+    wxDirDialog dialog(this);
+    dialog.SetPath(mediaDirectory);
+    if (dialog.ShowModal() == wxID_OK) {
+        mediaDirectory = dialog.GetPath();
+        MediaDirectoryLabel->SetLabel(mediaDirectory);
+        MediaDirectoryLabel->GetParent()->Layout();
+        NetworkXML.GetRoot()->DeleteAttribute("mediaDirectory");
+        NetworkXML.GetRoot()->AddAttribute("mediaDirectory", mediaDirectory);
+    }
+}
+
+void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
+{
+    wxDirDialog dialog(this);
+    dialog.SetPath(fseqDirectory);
+    if (dialog.ShowModal() == wxID_OK) {
+        fseqDirectory = dialog.GetPath();
+        fseqDirectoryLabel->SetLabel(fseqDirectory);
+        fseqDirectoryLabel->GetParent()->Layout();
+        NetworkXML.GetRoot()->DeleteAttribute("fseqDirectory");
+        NetworkXML.GetRoot()->AddAttribute("fseqDirectory", fseqDirectory);
+    }
+}
+

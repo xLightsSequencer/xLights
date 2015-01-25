@@ -1079,7 +1079,8 @@ private:
     void OnTimerTest(long curtime);
 
     wxString mediaFilename;
-//    wxString xlightsFilename;
+    wxString mediaDirectory;
+    wxString fseqDirectory;
     SeqDataType SeqData;
 
     wxArrayString FileNames;

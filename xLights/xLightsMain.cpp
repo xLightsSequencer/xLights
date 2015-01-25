@@ -2617,13 +2617,6 @@ void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 }
 
-void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
-{
-}
-
-void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
-{
-}
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 {
@@ -2680,3 +2673,4 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
         mainSequencer->PanelTimeLine->ZoomOut();
     }
 }
+
