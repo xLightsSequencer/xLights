@@ -68,6 +68,7 @@ class SequenceElements
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
         void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected);
+        Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
     protected:
     private:

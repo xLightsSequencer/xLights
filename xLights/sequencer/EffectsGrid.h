@@ -89,7 +89,11 @@ private:
     void RaiseEffectDropped(int x, int y);
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect);
     Element* GetActiveTimingElement();
-
+    bool MultipleEffectsSelected();
+    void ResizeSingleEffect(int position);
+    void ResizeMoveMultipleEffects(int position);
+    void GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight);
+    void MoveAllSelectedEffects(double delta);
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
@@ -109,7 +113,7 @@ private:
     TimeLine* mTimeline;
 
     int mSelectedRow;
-    int mSelectedEffectIndex;
+    Effect* mSelectedEffect;
 
     int mResizingMode;
     bool mResizing;

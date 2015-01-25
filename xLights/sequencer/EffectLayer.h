@@ -14,6 +14,7 @@
 #define HIT_TEST_EFFECT_RT      1
 #define HIT_TEST_EFFECT_CTR     2
 
+#define NO_MAX                  1000
 class Element;
 
 class EffectLayer
@@ -41,20 +42,24 @@ class EffectLayer
         float GetMinimumStartTime(int index);
 
         bool HitTestEffect(int position,int &index, int &result);
-        int GetEffectIndexThatContainsPosition(int position);
+        int GetEffectIndexThatContainsPosition(int position,int &selectionType);
+        void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
         void UnSelectAllEffects();
 
         Element* GetParentElement();
         void SetParentElement(Element* parent);
-
+        int GetSelectedEffectCount();
+        void MoveAllSelectedEffects(double delta);
 
     protected:
     private:
 
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);
-
+        void GetMaximumRangeOfMovementForEffect(int index, double &toLeft, double &toRight);
+        void GetMaximumRangeWithLeftMovement(int index, double &toLeft, double &toRight);
+        void GetMaximumRangeWithRightMovement(int index, double &toLeft, double &toRight);
         std::vector<Effect> mEffects;
         int mIndex;
         Element* mParentElement;

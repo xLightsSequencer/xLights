@@ -405,6 +405,23 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
     }
 }
 
+Effect* SequenceElements::GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType)
+{
+    EffectLayer* effectLayer = mRowInformation[row].element->GetEffectLayer(mRowInformation[row].layerIndex);
+
+    index = effectLayer->GetEffectIndexThatContainsPosition(x,selectionType);
+    if(index<0)
+    {
+        return nullptr;
+    }
+    else
+    {
+        return effectLayer->GetEffect(index);
+    }
+}
+
+
+
 void SequenceElements::UnSelectAllEffects()
 {
     for(int i=0;i<mRowInformation.size();i++)

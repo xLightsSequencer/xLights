@@ -87,7 +87,8 @@ void EffectsGrid::DragOver(int x, int y)
     {
         Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
         EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
-        int timingIndex = el->GetEffectIndexThatContainsPosition(x);
+        int selectionType;
+        int timingIndex = el->GetEffectIndexThatContainsPosition(x,selectionType);
         if(timingIndex >=0)
         {
             mDragDropping = true;
@@ -160,27 +161,36 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetRowInformationSize())
         return;
-    mSequenceElements->SelectEffectsInRowAndPositionRange(row,row,event.GetX(),event.GetX(),FirstSelected);
-    if((mSelectedRow!=row || mSelectedEffectIndex!=FirstSelected) && FirstSelected>=0)
+    int effectIndex;
+    int selectionType;
+    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
+    if(selectedEffect!= nullptr)
     {
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
-        EffectLayer* el  = element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-        Effect* effect = el->GetEffect(FirstSelected);
-        if(element->GetType()=="model")
+        if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
         {
-            RaiseSelectedEffectChanged(effect);
-            RaisePlayModelEffect(element,effect,false);
+            mSequenceElements->UnSelectAllEffects();
+            selectedEffect->SetSelected(selectionType);
+        }
+        mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        mSelectedRow = row;
+        mPaintOnIdleCounter = 0;
+
+        if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
+        {
+            mSelectedEffect = selectedEffect;
+            if(element->GetType()=="model")
+            {
+                RaiseSelectedEffectChanged(mSelectedEffect);
+                RaisePlayModelEffect(element,mSelectedEffect,false);
+            }
         }
     }
-    mEffectLayer = mSequenceElements->GetRowInformation(row)->element->
-                   GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-    mSelectedRow = row;
-    mSelectedEffectIndex = FirstSelected;
-    mPaintOnIdleCounter = 0;
 
     if(mResizingMode!=EFFECT_RESIZE_NO)
     {
         mResizing = true;
+        mResizeEffectIndex = effectIndex;
     }
     else
     {
@@ -215,10 +225,69 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
 void EffectsGrid::Resize(int position)
 {
+    if(MultipleEffectsSelected())
+    {
+        ResizeMoveMultipleEffects(position);
+    }
+    else
+    {
+        ResizeSingleEffect(position);
+    }
+}
+
+bool EffectsGrid::MultipleEffectsSelected()
+{
+    int count=0;
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    {
+        Element * element = mSequenceElements->GetRowInformation(i)->element;
+        EffectLayer* el = mSequenceElements->GetRowInformation(i)->element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
+        count+= el->GetSelectedEffectCount();
+        if(count > 1)
+        {
+             return true;
+        }
+    }
+    return false;
+}
+
+void EffectsGrid::ResizeMoveMultipleEffects(int position)
+{
+    double deltaTime;
+    double toLeft,toRight;
+    double time = mTimeline->GetAbsoluteTimefromPosition(position);
+    time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+    GetRangeOfMovementForSelectedEffects(toLeft,toRight);
     if(mResizingMode==EFFECT_RESIZE_LEFT)
     {
-        double time = mTimeline->GetAbsoluteTimefromPosition(position);
-        time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime();
+    }
+    else if(mResizingMode==EFFECT_RESIZE_RIGHT)
+    {
+        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime();
+    }
+    if(deltaTime<0)
+    {
+        if (abs(deltaTime)< toLeft)
+        {
+            MoveAllSelectedEffects(deltaTime);
+        }
+    }
+    else
+    {
+        if (deltaTime< toRight)
+        {
+            MoveAllSelectedEffects(deltaTime);
+        }
+    }
+}
+
+void EffectsGrid::ResizeSingleEffect(int position)
+{
+    double time = mTimeline->GetAbsoluteTimefromPosition(position);
+    time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
+    if(mResizingMode==EFFECT_RESIZE_LEFT)
+    {
         double minimumTime = mEffectLayer->GetMinimumStartTime(mResizeEffectIndex);
         // User has dragged left side to the right side exit
         if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime())
@@ -243,8 +312,6 @@ void EffectsGrid::Resize(int position)
     }
     else if(mResizingMode==EFFECT_RESIZE_RIGHT)
     {
-        double time = mTimeline->GetAbsoluteTimefromPosition(position);;
-        time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
         double maximumTime = mEffectLayer->GetMaximumEndTime(mResizeEffectIndex);
         // User has dragged right side to the left side exit
         if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime())
@@ -272,6 +339,7 @@ void EffectsGrid::Resize(int position)
     // Move time line and waveform to new position
     UpdateTimePosition(position);
 }
+
 
 void EffectsGrid::RunMouseOverHitTests(Element* element,int effectLayerIndex,int x,int y)
 {
@@ -979,5 +1047,30 @@ Element* EffectsGrid::GetActiveTimingElement()
     }
 }
 
+void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight)
+{
+    double left,right;
+    toLeft = 1000;
+    toRight = 1000;
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        EffectLayer* el =  element->GetEffectLayer( mSequenceElements->GetRowInformation(row)->layerIndex);
+        el->GetMaximumRangeOfMovementForSelectedEffects(left,right);
+        toLeft = toLeft<left?toLeft:left;
+        toRight = toRight<right?toRight:right;
+    }
+    int i=0;
+}
+
+void EffectsGrid::MoveAllSelectedEffects(double delta)
+{
+    for(int row=0;row<mSequenceElements->GetRowInformationSize();row++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        EffectLayer* el =  element->GetEffectLayer( mSequenceElements->GetRowInformation(row)->layerIndex);
+        el->MoveAllSelectedEffects(delta);
+    }
+}
 
 
