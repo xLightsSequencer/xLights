@@ -55,6 +55,7 @@ public:
     void SetTimeline(TimeLine* timeline);
     void DragOver(int x, int y);
     void OnDrop(int x, int y);
+    void ForceRefresh();
 
 private:
 	void render(wxPaintEvent& evt);

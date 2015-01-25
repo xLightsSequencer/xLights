@@ -342,6 +342,8 @@ wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
+
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -355,6 +357,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_EFFECT_CHANGED, xLightsFrame::SelectedEffectChanged)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL_EFFECT, xLightsFrame::PlayModelEffect)
+    EVT_COMMAND(wxID_ANY, EVT_EFFECT_UPDATED, xLightsFrame::UpdateEffect)
 
 
 
@@ -2282,7 +2285,6 @@ void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
 #endif //0
 
 
-//need to return a "processed" flag here; refactor: -DJ
 bool xLightsFrame::HotKey(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
@@ -2392,6 +2394,12 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
             case '-':
                 mainSequencer->PanelTimeLine->ZoomOut();
                 break;
+            case WXK_F5:
+            {
+                wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
+                wxPostEvent(this, eventEffectUpdated);
+                break;
+            }
             default:
                 retval = false;
         }

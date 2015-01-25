@@ -212,7 +212,6 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         if(mEffectLayer->GetParentElement()->GetType()=="model")
         {
             Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
-            effect->IncrementChangeCount();
             RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
         }
     }
@@ -405,12 +404,18 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     // continuously repainting during idle causing excessive
     // cpu usage. It will only repaint on idle for 25 times
     // mPaintOnIdleCounter is reset to "0".
-    //if(mPaintOnIdleCounter <5)
-    //{
+    if(mPaintOnIdleCounter <5)
+    {
         Refresh(false);
-        //mPaintOnIdleCounter++;
-    //}
+        mPaintOnIdleCounter++;
+    }
 }
+
+void EffectsGrid::ForceRefresh()
+{
+    mPaintOnIdleCounter=0;
+}
+
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
 {

@@ -377,6 +377,35 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
                           SeqData.FrameTime());
 }
 
+void xLightsFrame::UpdateEffect(wxCommandEvent& event)
+{
+    wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," +
+                          colorPanel->GetColorString() + "," + timingPanel->GetTimingString();
+    int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+    wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
+
+    for(int i=0;i<mSequenceElements.GetRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements.GetRowInformation(i)->element;
+        if(element->GetType() == "model" || element->GetType() == "timing")
+        {
+            int layerIndex = mSequenceElements.GetRowInformation(i)->layerIndex;
+            EffectLayer* el = element->GetEffectLayer(layerIndex);
+            for(int j=0;j< el->GetEffectCount();j++)
+            {
+                if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED)
+                {
+                    el->GetEffect(j)->SetSettings(effectText);
+                    el->GetEffect(j)->SetEffectIndex(effectIndex);
+                    el->GetEffect(j)->SetEffectName(effectName);
+                }
+            }
+        }
+    }
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+}
+
 void xLightsFrame::TimerRgbSeq(long msec)
 {
     if (playStartTime == playEndTime) {

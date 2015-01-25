@@ -21,8 +21,9 @@
 								<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 									<cols>2</cols>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON1" variable="Button01" member="yes">
+										<object class="wxButton" name="ID_BUTTON_UpdateEffect" variable="ButtonUpdateEffect" member="yes">
 											<label>Update (F5)</label>
+											<handler function="OnButtonUpdateEffectClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>

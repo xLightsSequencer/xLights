@@ -11,6 +11,8 @@
 //*)
 
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
+
 
 class TopEffectsPanel: public wxPanel
 {
@@ -22,8 +24,8 @@ class TopEffectsPanel: public wxPanel
 		void SetDragIconBuffer(const char** buffer);
 
 		//(*Declarations(TopEffectsPanel)
-		wxButton* Button01;
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;
+		wxButton* ButtonUpdateEffect;
 		wxPanel* Panel_EffectContainer;
 		//*)
 
@@ -31,7 +33,7 @@ class TopEffectsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(TopEffectsPanel)
-		static const long ID_BUTTON1;
+		static const long ID_BUTTON_UpdateEffect;
 		static const long ID_BITMAPBUTTON_SelectedEffect;
 		static const long ID_PANEL1;
 		//*)
@@ -42,6 +44,7 @@ class TopEffectsPanel: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnBitmapButtonSelectedEffectClick(wxCommandEvent& event);
 		void OnLeftDown(wxMouseEvent& event);
+		void OnButtonUpdateEffectClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

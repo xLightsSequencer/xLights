@@ -32,6 +32,7 @@ wxString Effect::GetSettings()
 void Effect::SetSettings(wxString settings)
 {
     mSettings = settings;
+    IncrementChangeCount();
     mDirty = true;
 }
 
@@ -65,6 +66,7 @@ double Effect::GetStartTime() const
 void Effect::SetStartTime(double startTime)
 {
    mStartTime = startTime;
+   IncrementChangeCount();
    mDirty = true;
 }
 
@@ -76,6 +78,7 @@ double Effect::GetEndTime()
 void Effect::SetEndTime(double endTime)
 {
     mEndTime = endTime;
+    IncrementChangeCount();
     mDirty = true;
 }
 
