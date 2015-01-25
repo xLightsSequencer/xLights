@@ -173,6 +173,8 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
 	Connect(ID_SLIDER_Speed,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_SpeedCmdScroll);
 	Connect(ID_SLIDER_Speed,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_SpeedCmdScroll);
+	Connect(ID_SLIDER_EffectLayerMix,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
+	Connect(ID_SLIDER_EffectLayerMix,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&TimingPanel::OnSlider_EffectLayerMixCmdScroll);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadein,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeOutClick);
 	Connect(ID_BITMAPBUTTON_TEXTCTRL_Fadeout,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TimingPanel::OnBitmapButton_FadeInClick);
 	Connect(ID_CHECKBOX_FitToTime,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&TimingPanel::OnCheckBox_FitToTimeClick);
@@ -199,6 +201,12 @@ void TimingPanel::UpdateSpeedText()
 {
     TextCtrl_Speed->SetValue(wxString::Format("%d",Slider_Speed->GetValue()));
 }
+
+void TimingPanel::UpdateEffectLayerMix()
+{
+    txtCtlEffectMix->SetValue(wxString::Format("%d",Slider_EffectLayerMix->GetValue()));
+}
+
 
 void TimingPanel::OnCheckBox_FitToTimeClick(wxCommandEvent& event)
 {
@@ -264,3 +272,8 @@ wxString TimingPanel::GetTimingString()
     return s;
 }
 
+
+void TimingPanel::OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event)
+{
+    UpdateEffectLayerMix();
+}

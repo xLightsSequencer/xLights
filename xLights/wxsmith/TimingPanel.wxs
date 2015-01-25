@@ -156,7 +156,10 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_EffectLayerMix" variable="Slider_EffectLayerMix" member="yes">
+															<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SCROLL" />
+															<handler function="OnSlider_EffectLayerMixCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
 														<option>1</option>

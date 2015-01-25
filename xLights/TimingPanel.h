@@ -21,8 +21,8 @@ class TimingPanel: public wxPanel
 		virtual ~TimingPanel();
 
         void UpdateSpeedText();
+        void UpdateEffectLayerMix();
         wxString GetTimingString();
-
 
 		//(*Declarations(TimingPanel)
 		wxStaticText* StaticText2;
@@ -90,6 +90,7 @@ class TimingPanel: public wxPanel
 		void OnBitmapButton_OverlayBkgClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnLeftDClick(wxMouseEvent& event);
+		void OnSlider_EffectLayerMixCmdScroll(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

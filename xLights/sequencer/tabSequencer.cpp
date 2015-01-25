@@ -458,12 +458,12 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
 //A loop needs to be added to initialize the wx controls to a predictable value.
 //For now, a few recently added controls are explicitly initialized here:
 //(not sure if there will be side effects to using a full loop) -DJ
-    timingPanel->CheckBox_LayerMorph->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
-    EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
+    timingPanel->CheckBox_LayerMorph->SetValue(false);
+    EffectsPanel1->CheckBox_TextToCenter1->SetValue(false);
+    EffectsPanel1->CheckBox_TextToCenter2->SetValue(false);
+    EffectsPanel1->CheckBox_TextToCenter3->SetValue(false);
+    EffectsPanel1->CheckBox_TextToCenter4->SetValue(false);
+    EffectsPanel1->SingleStrandEffectType->SetSelection(0);
     while (!settings.IsEmpty())
     {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
@@ -559,13 +559,8 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
     }
     // set textbox values for sliders that have them
     colorPanel->UpdateSliderText();
-
-//    OnSlider_BrightnessCmdScroll(evt);
-//    OnSlider_ContrastCmdScroll(evt);
-//    OnSlider_EffectLayerMixCmdScroll(evt);
-
-
     EffectsPanel1->UpdateSpeedText();
+    timingPanel->UpdateEffectLayerMix();
 
     MixTypeChanged=true;
     FadesChanged=true;
