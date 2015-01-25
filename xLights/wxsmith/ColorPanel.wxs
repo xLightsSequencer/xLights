@@ -257,6 +257,7 @@
 													<min>10</min>
 													<max>200</max>
 													<style>wxSL_INVERSE</style>
+													<handler function="OnSlider_SparkleFrequencyCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -297,6 +298,7 @@
 												<object class="wxSlider" name="ID_SLIDER_Brightness" variable="Slider_Brightness" member="yes">
 													<value>100</value>
 													<max>400</max>
+													<handler function="OnSlider_BrightnessCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -333,7 +335,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes" />
+												<object class="wxSlider" name="ID_SLIDER_Contrast" variable="Slider_Contrast" member="yes">
+													<handler function="OnSlider_ContrastCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
 												<option>1</option>

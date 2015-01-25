@@ -232,8 +232,11 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette4Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette5Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette6Click);
+	Connect(ID_SLIDER_SparkleFrequency,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_SparkleFrequencyCmdScrollThumbTrack);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SparkleFrequencyClick);
+	Connect(ID_SLIDER_Brightness,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_BrightnessCmdScrollThumbTrack);
 	Connect(ID_BITMAPBUTTON_SLIDER_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_BrightnessClick);
+	Connect(ID_SLIDER_Contrast,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_ContrastCmdScrollThumbTrack);
 	Connect(ID_BITMAPBUTTON_SLIDER_Contrast,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ContrastClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&ColorPanel::OnPaint);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
@@ -279,8 +282,9 @@ wxString ColorPanel::GetColorString()
         wxString v=(ctrl->IsChecked()) ? "1" : "0";
         s+=AttrName+"="+v + ",";
     }
-    // Remove last comma
-    s = s.substr(0,s.size()-1);
+    s+= wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
+    s+= wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
+    s+= wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
     return s;
 }
 
@@ -469,4 +473,25 @@ showlock(SparkleFrequency)
 showlock(Brightness)
 showlock(Contrast)
 
+void ColorPanel::OnSlider_SparkleFrequencyCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    txtCtrlSparkleFreq->SetValue( wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue()));
+}
+
+void ColorPanel::OnSlider_BrightnessCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    txtCtlBrightness->SetValue( wxString::Format(wxT("%d"),Slider_Brightness->GetValue()));
+}
+
+void ColorPanel::OnSlider_ContrastCmdScrollThumbTrack(wxScrollEvent& event)
+{
+    txtCtlContrast->SetValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
+}
+
+void ColorPanel::UpdateSliderText()
+{
+    txtCtlBrightness->SetValue( wxString::Format(wxT("%d"),Slider_Brightness->GetValue()));
+    txtCtrlSparkleFreq->SetValue( wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue()));
+    txtCtlContrast->SetValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
+}
 

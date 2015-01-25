@@ -380,8 +380,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," +
-                          colorPanel->GetColorString() + "," + timingPanel->GetTimingString();
+    wxString effectText = GetEffectTextFromWindows();
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
 
@@ -465,7 +464,6 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
     EffectsPanel1->CheckBox_TextToCenter3->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->CheckBox_TextToCenter4->SetValue(false); //reset in case not present in settings -DJ
     EffectsPanel1->SingleStrandEffectType->SetSelection(0); //Set to first page in case not present
-
     while (!settings.IsEmpty())
     {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
@@ -560,14 +558,12 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
         cnt++;
     }
     // set textbox values for sliders that have them
-    wxScrollEvent evt;
+    colorPanel->UpdateSliderText();
+
 //    OnSlider_BrightnessCmdScroll(evt);
 //    OnSlider_ContrastCmdScroll(evt);
 //    OnSlider_EffectLayerMixCmdScroll(evt);
 
-//    OnSlider_SparkleFrequencyCmdScroll(evt);
-//    OnSlider_Model_BrightnessCmdScroll(evt);
-//   OnSlider_SparkleSliderCmdScroll(evt);
 
     EffectsPanel1->UpdateSpeedText();
 
@@ -686,7 +682,9 @@ const char** xLightsFrame::GetIconBuffer(int effectID)
 wxString xLightsFrame::GetEffectTextFromWindows()
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + "," +
+    // This is needed because of the "Off" effect that does not return any text.
+    wxString comma = EffectsPanel1->GetEffectStringFromWindow(window).size()>0?",":"";
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + comma +
                           colorPanel->GetColorString() + "," + timingPanel->GetTimingString();
     return effectText;
 }

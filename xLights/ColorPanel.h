@@ -31,6 +31,7 @@ class ColorPanel: public wxPanel
         void SetDefaultPalette();
         wxColour GetPaletteColor(int idx);
         void SetPaletteColor(int idx, const wxColour* c);
+        void UpdateSliderText();
         static void SetButtonColor(wxBitmapButton* btn, const wxColour* c);
         static const int PALETTE_SIZE = 6;
 
@@ -129,12 +130,18 @@ class ColorPanel: public wxPanel
 		void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
 		void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
 		void OnBitmapButton_ContrastClick(wxCommandEvent& event);
+		void OnSlider_SparkleFrequencyCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_SparkleFrequencyCmdScrollThumbTrack(wxScrollEvent& event);
+		void OnSlider_BrightnessCmdScrollThumbTrack(wxScrollEvent& event);
+		void OnSlider_ContrastCmdScrollThumbTrack(wxScrollEvent& event);
+		void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
+		void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
+		void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);
         wxColourData colorData;
         void setlock(wxButton* button); //, EditState& islocked);
-
         typedef enum { Normal, Locked, Random } EditState;
         std::unordered_map<std::string, EditState> buttonState;
 
