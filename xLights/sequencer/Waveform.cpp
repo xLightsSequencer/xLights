@@ -41,11 +41,13 @@ wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
 //EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
 //EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
-//EVT_MOTION(Waveform::mouseMoved)
+EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
+EVT_IDLE(Waveform::OnIdle)
+
 //EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
@@ -69,7 +71,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     SetTimeFrequency(40);
     tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
     tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
-
+    mPaintOnIdleCounter = 0;
 }
 
 Waveform::~Waveform()
@@ -78,6 +80,22 @@ Waveform::~Waveform()
     delete m_right_data;
     delete tmrScrollLeft;
     delete tmrScrollRight;
+}
+
+void Waveform::OnIdle(wxIdleEvent &event)
+{
+    // It will only repaint on idle for 5 times
+    // mPaintOnIdleCounter is reset to "0".
+    if(mPaintOnIdleCounter < 5)
+    {
+        Refresh(false);
+        mPaintOnIdleCounter++;
+    }
+}
+
+void Waveform::SetTimeline(TimeLine* timeLine)
+{
+    mTimeline = timeLine;
 }
 
 void Waveform::OnLeftDClick(wxMouseEvent& event)
@@ -143,7 +161,14 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     if (mIsInitialized && m_dragging)
     {
         m_shaded_region_x2 = event.GetPosition().x;
-        Refresh();
+
+         double time = mTimeline->GetAbsoluteTimefromPosition(m_shaded_region_x2);
+        // Round to nearest period
+        time = mTimeline->RoundToMultipleOfPeriod(time,mFrequency);
+        // Recalulate Position with corrected time
+        m_shaded_region_x2 = mTimeline->GetPositionFromTime(time);
+        // Force refresh on idle
+        mPaintOnIdleCounter=0;
     }
 
     if(event.GetPosition().x > getWidth()-WAVEFORM_SIDE_MARGIN)
@@ -428,6 +453,11 @@ void Waveform::DrawWaveView(WaveView wv)
     glBegin(GL_LINES);
     glVertex2f(mSelectedPosition+1, 1);
     glVertex2f(mSelectedPosition+1,getHeight()-1);
+    if(m_shaded_region_x1!=m_shaded_region_x2)
+    {
+        glVertex2f(m_shaded_region_x2+1, 1);
+        glVertex2f(m_shaded_region_x2+1,getHeight()-1);
+    }
     glEnd();
 }
 
@@ -517,6 +547,8 @@ int Waveform::SetStartPixelOffset(int offset)
 void Waveform::PositionSelected(int x)
 {
     mSelectedPosition = x;
+    m_shaded_region_x1 = x;
+    m_shaded_region_x2 = x;
     Refresh();
     Update();
 }

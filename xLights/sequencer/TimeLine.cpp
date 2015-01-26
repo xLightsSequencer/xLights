@@ -10,6 +10,7 @@ BEGIN_EVENT_TABLE(TimeLine, wxWindow)
 //EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
+
 //EVT_LEAVE_WINDOW(TimeLine::mouseLeftWindow)
 //EVT_RIGHT_DOWN(TimeLine::rightClick)
 //EVT_SIZE(TimeLine::resized)
@@ -192,7 +193,14 @@ int TimeLine::GetPixelOffsetFromStartTime()
     return offset;
 }
 
-void TimeLine::GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2)
+int TimeLine::GetPositionFromTime(double time)
+{
+   double majorHashs = time*(double)1000/(double)TimePerMajorTickInMS();
+   int xAbsolutePosition = (int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+   return xAbsolutePosition - mStartPixelOffset;
+}
+
+void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2)
 {
     if(startTime < mStartTime && endTime > mEndTime)
     {
@@ -244,10 +252,15 @@ int TimeLine::GetTimeLength()
 
 void TimeLine::TimeSelected(int x)
 {
-    mSelectedPosition = x;
-    mSelectedTimeMS = GetTimeMSfromPosition(mSelectedPosition+mStartPixelOffset);
+    double time = GetAbsoluteTimefromPosition(x);
+    // Round to nearest period
+    time = RoundToMultipleOfPeriod(time,mFrequency);
+    // Recalulate Position with corrected time
+    mSelectedPosition = GetPositionFromTime(time);
+    mSelectedTimeMS = (int)(time * 1000);
     RaiseChangeTimeline();
     Refresh();
+
 }
 
 int TimeLine::GetTimeMSfromPosition(int position)

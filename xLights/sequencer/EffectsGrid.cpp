@@ -606,7 +606,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         EFFECT_SCREEN_MODE mode;
 
         int x1,x2;
-        mTimeline->GetPositionFromTime(effectLayer->GetEffect(effectIndex)->GetStartTime(),
+        mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTime(),
                                        effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2);
         int x = x2-x1;
         // Draw Left line
@@ -716,7 +716,7 @@ void EffectsGrid::DrawTimingEffects(int row)
         int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
         int x1,x2;
 
-        mTimeline->GetPositionFromTime(effectLayer->GetEffect(effectIndex)->GetStartTime(),
+        mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTime(),
                                        effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2);
         mEffectColorLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?mTimingColor:mSelectionColor;

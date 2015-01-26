@@ -27,6 +27,7 @@ void xLightsFrame::CreateSequencer()
     mainSequencer = new MainSequencer(PanelSequencer);
 
     DOUBLE_BUFFER(mainSequencer);
+    mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
@@ -168,9 +169,6 @@ void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
     mainSequencer->PanelTimeLine->SetStartTimeMS(startTime);
-
-//    mainSequencer->PanelTimeLine->GetViewableTimeRange(startTime,endTime);
-
 }
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)

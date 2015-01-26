@@ -56,7 +56,8 @@ class TimeLine : public wxWindow
         int TimePerMajorTickInMS();
         void GetViewableTimeRange(double &StartTime, double &EndTime);
 
-        void GetPositionFromTime(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
+        void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
+        int GetPositionFromTime(double time);
 
         int GetTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);

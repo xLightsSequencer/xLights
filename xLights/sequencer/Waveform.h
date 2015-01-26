@@ -17,6 +17,9 @@
 wxDECLARE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
+
+class TimeLine;
+
 class Waveform : public wxGLCanvas
 {
     public:
@@ -38,6 +41,8 @@ class Waveform : public wxGLCanvas
 
         void SetTimeFrequency(int startPixel);
         int GetTimeFrequency();
+
+        void SetTimeline(TimeLine* timeLine);
 
         void PositionSelected(int x);
 
@@ -62,6 +67,7 @@ class Waveform : public wxGLCanvas
         void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
         wxGLContext*	m_context;
+        TimeLine* mTimeline;
         wxPanel* mParent;
         wxWindow* mMainWindow;
         int mStartPixelOffset;
@@ -85,6 +91,7 @@ class Waveform : public wxGLCanvas
         float* m_left_data;
         float* m_right_data;
         int mSelectedPosition;
+        int mPaintOnIdleCounter;
 
         class WaveView
         {
@@ -167,6 +174,7 @@ class Waveform : public wxGLCanvas
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
       	void mouseLeftWindow( wxMouseEvent& event);
+      	void OnIdle(wxIdleEvent &event);
       	void OnLeftDClick(wxMouseEvent& event);
       	void OnWaveScrollLeft(wxTimerEvent& event);
       	void OnWaveScrollRight(wxTimerEvent& event);
