@@ -3,7 +3,7 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
-
+#include "../xLightsXmlFile.h"
 #include "wx/wx.h"
 #include <vector>
 #include "wx/xml/xml.h"
@@ -41,7 +41,7 @@ class SequenceElements
     public:
         SequenceElements();
         virtual ~SequenceElements();
-        bool LoadSequencerFile(wxString filename);
+        bool LoadSequencerFile(xLightsXmlFile xml_file);
         bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
         void AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active);
         Element* GetElement(const wxString &name);

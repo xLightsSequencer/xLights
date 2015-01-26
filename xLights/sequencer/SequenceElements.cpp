@@ -117,35 +117,13 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 }
 
 
-bool SequenceElements::LoadSequencerFile(wxString filename)
+bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
 {
-    wxString tmpStr;
-    wxXmlDocument seqDocument;
-    // read xml sequence info
-    wxFileName FileObj(filename);
-    FileObj.SetExt("xml");
-    wxString SeqXmlFileName=FileObj.GetFullPath();
+    wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
+
     int gridCol;
-    if (!FileObj.FileExists())
-    {
-        //if (ChooseModels) ChooseModelsForSequence();
-        return false;
-    }
-    // read xml
-    //  first fix any version specific changes
-    //FixVersionDifferences(SeqXmlFileName);
-    if (!seqDocument.Load(SeqXmlFileName))
-    {
-        wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return false;
-    }
+
     wxXmlNode* root=seqDocument.GetRoot();
-    //wxString tempstr=root->GetAttribute("BaseChannel", "1");
-    //tempstr.ToLong(&SeqBaseChannel);
-    //tempstr=root->GetAttribute("ChanCtrlBasic", "0");
-    //SeqChanCtrlBasic=tempstr!="0";
-    //tempstr=root->GetAttribute("ChanCtrlColor", "0");
-    //SeqChanCtrlColor=tempstr!="0";
 
     mElements.clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )

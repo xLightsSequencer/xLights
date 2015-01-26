@@ -1256,6 +1256,7 @@ protected:
     void ClearEffectWindow();
     void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
+    bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void RenderGridToSeqData();
     void ResetEffectsXml();
     void ImportAudacityTimings();

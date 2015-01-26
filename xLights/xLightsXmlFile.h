@@ -25,7 +25,7 @@ class xLightsXmlFile : public wxFileName
             TOTAL_LENGTH,
             NUM_TYPES
         };
-        void Load();
+        bool Load();
         void Save(wxTextCtrl* log = NULL, bool rename_v3_file = true);
         void SetHeaderInfo(wxArrayString info);
         void SetTimingSectionName(wxString section, wxString name);
@@ -34,6 +34,7 @@ class xLightsXmlFile : public wxFileName
         wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
         void Clear();
         bool IsLoaded() { return is_loaded; }
+        bool HasAudioMedia() { return has_audio_media; }
         int GetNumModels() { return models.GetCount(); }
         wxArrayString GetTimingList() { return timing_list; }
         const wxString GetVersion() { return version_string; };
@@ -42,6 +43,7 @@ class xLightsXmlFile : public wxFileName
         void FixVersionDifferences();
         double GetTotalLength() { return total_length; }
         void SetTotalLength(double length);
+        wxXmlDocument& GetXmlDocument() { return seqDocument; }
         void FreeMemory();
     protected:
     private:
@@ -61,6 +63,7 @@ class xLightsXmlFile : public wxFileName
         wxString latest_version;
         wxString last_time;
         double total_length;
+        bool has_audio_media;
 
         void Init();
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);

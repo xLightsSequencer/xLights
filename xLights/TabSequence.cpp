@@ -119,7 +119,8 @@ void xLightsFrame::OpenSequence()
         SeqData.init(NetInfo.GetTotChannels(), 0, ms);
 
         if (!SeqLoadXlightsFile(dialog.ChoiceSeqXMLFiles->GetStringSelection(), true)) {
-            //FIXME - error on load of xml
+            StatusBar1->SetStatusText(wxString::Format(_("Failed to load: '%s'."), dialog.ChoiceSeqBinaryFiles->GetStringSelection()));
+            return;
         }
         int len = 0;
         if (mediaFilename.IsEmpty()) {
@@ -316,29 +317,43 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 
 }
 
+bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
+{
+    xLightsXmlFile xml_file(filename);
+    xml_file.SetExt(wxT("xml"));
+    return SeqLoadXlightsFile(xml_file, ChooseModels);
+}
 
 // Load the xml file containing effects for a particular sequence
 // Returns true if file exists and was read successfully
-bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
+bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
-    wxString tmpStr;
-    // read xml sequence info
-    xLightsXmlFile FileObj(filename);
-    FileObj.SetExt("xml");
-    SeqXmlFileName=FileObj.GetFullPath();
+    bool loaded = false;
+    SeqXmlFileName=xml_file.GetFullPath();
 
     // read xml
-    FileObj.Load();
-    if (FileObj.NeedsConversion()) {
-        XmlConversionDialog dialog(this, &FileObj);
+    xml_file.Load();
+    if (xml_file.NeedsConversion())
+    {
+        XmlConversionDialog dialog(this, &xml_file);
         dialog.Fit();
-        if (dialog.ShowModal() != wxOK) {
+        if (dialog.ShowModal() != wxOK)
+        {
             return false;
         }
     }
-    mSequenceElements.SetViewsNode(ViewsNode);
-    mSequenceElements.SetFrequency(1000 / SeqData.FrameTime());
-    return mSequenceElements.LoadSequencerFile(SeqXmlFileName);
+    if( xml_file.HasAudioMedia() )
+    {
+        // FIXME - load audio
+    }
+
+    if( xml_file.IsLoaded() )
+    {
+        mSequenceElements.SetViewsNode(ViewsNode);
+        mSequenceElements.SetFrequency(1000 / SeqData.FrameTime());
+        loaded = mSequenceElements.LoadSequencerFile(xml_file);
+    }
+    return loaded;
 }
 
 

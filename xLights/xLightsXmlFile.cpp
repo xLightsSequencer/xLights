@@ -24,6 +24,7 @@ xLightsXmlFile::~xLightsXmlFile()
 void xLightsXmlFile::Init()
 {
     total_length = 0.0;
+    has_audio_media = false;
     Clear();
     latest_version = _("4.0.0");
     for(int i = 0; i < NUM_TYPES; ++i )
@@ -330,8 +331,9 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
     }
 }
 
-void xLightsXmlFile::Load()
+bool xLightsXmlFile::Load()
 {
+    bool success = false;
     bool models_defined = false;
 
     FreeMemory();  // always free current memory usage before a load
@@ -348,14 +350,14 @@ void xLightsXmlFile::Load()
     if (!FileExists())
     {
         wxMessageBox(_("File does not exist: ")+SeqXmlFileName);
-        return;
+        return false;
     }
 
     // read xml
     if (!seqDocument.Load(SeqXmlFileName))
     {
         wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return;
+        return false;
     }
 
     wxXmlNode* root=seqDocument.GetRoot();
@@ -477,12 +479,14 @@ void xLightsXmlFile::Load()
                 }
            }
         }
+        success = true;
     }
     else
     {
         version_string = _("3.x");
     }
     is_loaded = true;
+    return success;  // note that we return false for a v3 file since XML data is not populated until a Save is executed.
 }
 
 void xLightsXmlFile::StoreEndTime(wxString end_time)

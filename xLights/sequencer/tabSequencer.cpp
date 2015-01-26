@@ -23,7 +23,10 @@ void xLightsFrame::CreateSequencer()
 
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetFrequency(40);
-    bool success = mSequenceElements.LoadSequencerFile(BASEPATH + "v4.xml");
+    wxFileName filename(BASEPATH + "v4.xml");
+    xLightsXmlFile default_xml(filename);
+    default_xml.Load();
+    bool success = mSequenceElements.LoadSequencerFile(default_xml);
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
