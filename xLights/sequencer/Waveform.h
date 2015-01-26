@@ -163,7 +163,6 @@ class Waveform : public wxGLCanvas
 
         };
 
-
         void DrawWaveView(WaveView wv);
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void StartDrawing(wxDouble pointSize);

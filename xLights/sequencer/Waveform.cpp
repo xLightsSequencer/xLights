@@ -169,6 +169,7 @@ void Waveform::mouseMoved( wxMouseEvent& event)
         m_shaded_region_x2 = mTimeline->GetPositionFromTime(time);
         // Force refresh on idle
         mPaintOnIdleCounter=0;
+        Refresh(false);
     }
 
     if(event.GetPosition().x > getWidth()-WAVEFORM_SIDE_MARGIN)
