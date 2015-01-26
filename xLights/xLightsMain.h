@@ -550,6 +550,8 @@ private:
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemStopClick(wxCommandEvent& event);
+    void OnAuiToolBarItemZoominClick(wxCommandEvent& event);
+    void OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -576,8 +578,8 @@ private:
     static const long ID_AUITOOLBARITEM7;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBARITEM10;
-    static const long ID_AUITOOLBARITEM8;
-    static const long ID_AUITOOLBARITEM9;
+    static const long ID_AUITOOLBARITEM_ZOOM_IN;
+    static const long ID_AUITOOLBARITEM_ZOOM_OUT;
     static const long ID_AUITOOLBARITEM14;
     static const long ID_AUITOOLBARITEM11;
     static const long ID_AUITOOLBAR_VIEW;

@@ -87,7 +87,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_STOP" variable="AuiToolBarItemStop" member="yes">
-							<bitmap code="stop_24_off_xpm" />
+							<bitmap code="stop_24_xpm" />
 							<shorthelp>Stop</shorthelp>
 							<handler function="OnAuiToolBarItemStopClick" entry="EVT_TOOL" />
 						</object>
@@ -142,18 +142,20 @@
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM8" variable="AuiToolBarItem7" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
 							<bitmap code="zoom_in_24_xpm" />
 							<shorthelp>Zoom In</shorthelp>
+							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
 						</object>
-						<label>Item label</label>
+						<label>Zoom In</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM9" variable="AuiToolBarItem8" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_OUT" variable="AuiToolBarItem_ZoomOut" member="yes">
 							<bitmap code="zoom_out_24_xpm" />
 							<shorthelp>Zoom Out</shorthelp>
+							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
 						</object>
-						<label>Item label</label>
+						<label>Zoom Out</label>
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
