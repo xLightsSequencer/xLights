@@ -21,13 +21,7 @@ void xLightsFrame::CreateSequencer()
     EffectsPanel1 = NULL;
     timingPanel = NULL;
 
-    mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.SetFrequency(40);
-    wxFileName filename(BASEPATH + "v4.xml");
-    xLightsXmlFile default_xml(filename);
-    default_xml.Load();
-    bool success = mSequenceElements.LoadSequencerFile(default_xml);
-
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
     mainSequencer = new MainSequencer(PanelSequencer);
@@ -58,18 +52,6 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
     mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
-    mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(BASEPATH + "4.mp3");
-    mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
-
-    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
-
-    mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
-    mainSequencer->PanelTimeLine->Initialize();
-
-    mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
-    mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
-    mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
-    mainSequencer->PanelEffectGrid->InitializeGrid();
 
     sPreview1 = new SequencePreview(PanelSequencer,args);
     sPreview1->SetSize(wxSize(200,200));
@@ -112,11 +94,39 @@ void xLightsFrame::CreateSequencer()
 
 void xLightsFrame::InitSequencer()
 {
-        if(mSequencerInitialize || EffectsPanel1 == NULL || timingPanel == NULL)
-        {
-            return;
-        }
+    if(mSequencerInitialize || EffectsPanel1 == NULL || timingPanel == NULL)
+    {
+        return;
+    }
+    int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
+    LoadSequencer("media",BASEPATH + "v4.xml",BASEPATH + "4.mp3",mediaLengthMS);
+}
+
+void xLightsFrame::LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
+                                 const wxString mediaFile,int sequenceLengthMS)
+{
         mSequencerInitialize = true;
+        mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+        wxFileName filename(sequenceFile);
+        xLightsXmlFile default_xml(filename);
+        default_xml.Load();
+        bool success = mSequenceElements.LoadSequencerFile(default_xml);
+
+        if(sequenceType=="media")
+        {
+            mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(mediaFile);
+            mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
+            mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
+            PlayerDlg->MediaCtrl->Load(mediaFile);
+        }
+
+        mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
+        mainSequencer->PanelTimeLine->Initialize();
+        mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
+        mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
+        mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
+        mainSequencer->PanelEffectGrid->InitializeGrid();
+
         ResizeAndMakeEffectsScroll();
         ResizeMainSequencer();
         int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
@@ -125,9 +135,6 @@ void xLightsFrame::InitSequencer()
         mainSequencer->PanelWaveForm->Refresh();
         mainSequencer->PanelEffectGrid->Refresh();
         m_mgr->Update();
-        PlayerDlg->MediaCtrl->Load(BASEPATH + "4.mp3");
-
-
         sPreview1->Refresh();
 }
 

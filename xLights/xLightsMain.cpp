@@ -88,18 +88,19 @@ const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM11 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON_TAB_INFO = wxNewId();
 const long xLightsFrame::ID_BUTTON_STOP_NOW = wxNewId();
 const long xLightsFrame::ID_BUTTON_GRACEFUL_STOP = wxNewId();
@@ -483,19 +484,22 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
     PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM1, _("Play"), play_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_PLAY_NOW, _("Play"), play_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), pause_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), stop_24_off_xpm, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBARITEM6, _("Item label"), backward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBARITEM4, _("Item label"), forward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBARITEM7, _("Item label"), replay_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM8, _("Item label"), zoom_in_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM9, _("Item label"), zoom_out_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM14, _("Item label"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM10, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM11, _("Item label"), home_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Home"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
+    AuiToolBarView = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    AuiToolBarView->AddTool(ID_AUITOOLBARITEM10, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
+    AuiToolBarView->AddTool(ID_AUITOOLBARITEM8, _("Item label"), zoom_in_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
+    AuiToolBarView->AddTool(ID_AUITOOLBARITEM9, _("Item label"), zoom_out_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
+    AuiToolBarView->AddTool(ID_AUITOOLBARITEM14, _("Item label"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
+    AuiToolBarView->AddTool(ID_AUITOOLBARITEM11, _("Item label"), home_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Home"), wxEmptyString, NULL);
+    AuiToolBarView->Realize();
+    MainAuiManager->AddPane(AuiToolBarView, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).Layer(10).Top().Gripper());
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     BitmapButtonTabInfo = new wxBitmapButton(OutputToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
     BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
@@ -1285,6 +1289,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_OPEN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
     Connect(ID_AUITOOLBAR_SAVE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_AUITOOLBAR_SAVEAS,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClickSaveAs);
+    Connect(ID_AUITOOLBAR_PLAY_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPlayButtonClick);
+    Connect(ID_AUITOOLBAR_PAUSE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPauseButtonClick);
+    Connect(ID_AUITOOLBAR_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemStopClick);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
@@ -2614,4 +2621,44 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
 
 void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
 {
+}
+
+void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        PlayerDlg->MediaCtrl->Play();
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+    }
+}
+
+void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable)
+{
+    wxAuiToolBarItem* button = toolbar->FindTool(id);
+    int state = enable?wxAUI_BUTTON_STATE_NORMAL:wxAUI_BUTTON_STATE_DISABLED;
+    button->SetState(state);
+}
+
+void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        PlayerDlg->MediaCtrl->Pause();
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+    }
+}
+
+void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        PlayerDlg->MediaCtrl->Stop();
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+    }
 }

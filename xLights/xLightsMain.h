@@ -547,6 +547,9 @@ private:
     void OnMenuXmlConversionSettings(wxCommandEvent& event);
     void ChangeMediaDirectory(wxCommandEvent& event);
     void ChangeFseqDirectory(wxCommandEvent& event);
+    void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
+    void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
+    void OnAuiToolBarItemStopClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -565,18 +568,19 @@ private:
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
     static const long ID_AUITOOLBAR_MAIN;
-    static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
     static const long ID_AUITOOLBARITEM6;
     static const long ID_AUITOOLBARITEM4;
     static const long ID_AUITOOLBARITEM7;
+    static const long ID_AUITOOLBAR_PLAY;
+    static const long ID_AUITOOLBARITEM10;
     static const long ID_AUITOOLBARITEM8;
     static const long ID_AUITOOLBARITEM9;
     static const long ID_AUITOOLBARITEM14;
-    static const long ID_AUITOOLBARITEM10;
     static const long ID_AUITOOLBARITEM11;
-    static const long ID_AUITOOLBAR_PLAY;
+    static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
     static const long ID_BUTTON_GRACEFUL_STOP;
@@ -860,6 +864,7 @@ private:
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
     wxButton* ButtonSaveSetup;
+    wxAuiToolBar* AuiToolBarView;
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
     wxPanel* PanelSequencer;
@@ -1418,6 +1423,8 @@ protected:
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
+    void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
+                       const wxString mediaFile,int sequenceLengthMS);
 
 
 
@@ -1430,7 +1437,7 @@ protected:
     void UpdateEffectGridHorizontalScrollBar();
     wxString GetEffectTextFromWindows();
 
-
+    void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;

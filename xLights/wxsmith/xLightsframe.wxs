@@ -70,9 +70,10 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_PLAY" subclass="xlAuiToolBar" variable="PlayToolBar" member="yes">
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItemPlayButton" member="no">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY_NOW" variable="AuiToolBarItemPlayButton" member="no">
 							<bitmap code="play_24_xpm" />
 							<shorthelp>Play</shorthelp>
+							<handler function="OnAuiToolBarItemPlayButtonClick" entry="EVT_TOOL" />
 						</object>
 						<label>Play</label>
 					</object>
@@ -80,6 +81,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PAUSE" variable="AuiToolBarItemPauseButton" member="no">
 							<bitmap code="pause_24_xpm" />
 							<shorthelp>Pause</shorthelp>
+							<handler function="OnAuiToolBarItemPauseButtonClick" entry="EVT_TOOL" />
 						</object>
 						<label>Pause</label>
 					</object>
@@ -87,6 +89,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_STOP" variable="AuiToolBarItemStop" member="yes">
 							<bitmap code="stop_24_off_xpm" />
 							<shorthelp>Stop</shorthelp>
+							<handler function="OnAuiToolBarItemStopClick" entry="EVT_TOOL" />
 						</object>
 						<label>Stop</label>
 					</object>
@@ -108,6 +111,33 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM7" variable="AuiToolBarItem6" member="yes">
 							<bitmap code="replay_24_xpm" />
 							<shorthelp>Replay Section</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
+				</object>
+				<name>Play Tool Bar</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>Play Tool Bar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<layer>10</layer>
+				<position>11</position>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" variable="AuiToolBarView" member="yes">
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItem9" member="yes">
+							<bitmap code="eye_open_24_xpm" />
+							<shorthelp>Search</shorthelp>
 						</object>
 						<label>Item label</label>
 					</object>
@@ -133,13 +163,6 @@
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItem9" member="yes">
-							<bitmap code="eye_open_24_xpm" />
-							<shorthelp>Search</shorthelp>
-						</object>
-						<label>Item label</label>
-					</object>
-					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM11" variable="AuiToolBarItem10" member="yes">
 							<bitmap code="home_24_xpm" />
 							<shorthelp>Home</shorthelp>
@@ -147,16 +170,14 @@
 						<label>Item label</label>
 					</object>
 				</object>
-				<name>Play Tool Bar</name>
+				<name>View Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Play Tool Bar</caption>
+				<caption>Pane caption</caption>
 				<captionvisible>0</captionvisible>
 				<minimizebutton>0</minimizebutton>
 				<maximizebutton>0</maximizebutton>
 				<pinbutton>0</pinbutton>
-				<closebutton>0</closebutton>
 				<layer>10</layer>
-				<position>11</position>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>
