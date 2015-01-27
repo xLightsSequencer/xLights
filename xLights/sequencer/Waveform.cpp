@@ -62,6 +62,11 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
                    long style, const wxString &name):
                    wxGLCanvas(parent,wxID_ANY,nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
+    m_left_data = NULL;
+    m_right_data = NULL;
+    tmrScrollLeft = NULL;
+    tmrScrollRight = NULL;
+
     mIsInitialized = false;
     mParent = parent;
     m_context = new wxGLContext(this);
@@ -76,10 +81,10 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 
 Waveform::~Waveform()
 {
-    delete m_left_data;
-    delete m_right_data;
-    delete tmrScrollLeft;
-    delete tmrScrollRight;
+    if (m_left_data) delete m_left_data;
+    if (m_right_data) delete m_right_data;
+    if (tmrScrollLeft) delete tmrScrollLeft;
+    if (tmrScrollRight) delete tmrScrollRight;
 }
 
 void Waveform::OnIdle(wxIdleEvent &event)

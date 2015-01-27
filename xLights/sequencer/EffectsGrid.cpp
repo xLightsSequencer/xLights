@@ -120,6 +120,9 @@ void EffectsGrid::OnDrop(int x, int y)
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
+    if (mSequenceElements == NULL) {
+        return;
+    }
     int rowIndex = GetRow(event.GetY());
     if(rowIndex >= mSequenceElements->GetRowInformationSize())
     {
