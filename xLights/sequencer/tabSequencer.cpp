@@ -770,3 +770,9 @@ void xLightsFrame::DeleteAllSelectedEffects()
     }
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
+
+
+void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+}

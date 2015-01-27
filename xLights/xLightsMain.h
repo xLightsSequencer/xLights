@@ -205,6 +205,7 @@ wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 
 
 static wxCriticalSection gs_xoutCriticalSection;
@@ -1430,6 +1431,7 @@ protected:
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
+    void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
                        const wxString mediaFile,int sequenceLengthMS);
 

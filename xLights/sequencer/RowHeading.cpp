@@ -11,13 +11,18 @@ BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
 //EVT_LEFT_UP(RowHeading::mouseLeftUp)
 //EVT_LEAVE_WINDOW(RowHeading::mouseLeftWindow)
-//EVT_RIGHT_DOWN(RowHeading::rightClick)
+EVT_RIGHT_DOWN(RowHeading::rightClick)
 //EVT_SIZE(RowHeading::resized)
 //EVT_KEY_DOWN(RowHeading::keyPressed)
 //EVT_KEY_UP(RowHeading::keyReleased)
 //EVT_MOUSEWHEEL(RowHeading::mouseWheelMoved)
 EVT_PAINT(RowHeading::render)
 END_EVENT_TABLE()
+
+// Menu constants
+const long RowHeading::ID_ROW_MNU_ADD_LAYER = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
+const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
 
 
 RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
@@ -62,6 +67,56 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         }
     }
 }
+
+void RowHeading::rightClick( wxMouseEvent& event)
+{
+    //wxMenu mnu;
+    wxMenu *mnuLayer;
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
+    if(element->GetType()=="model" || element->GetType()=="view")
+    {
+        mnuLayer = new wxMenu();
+        mnuLayer->Append(ID_ROW_MNU_ADD_LAYER,"Add Layer");
+        if(element->GetEffectLayerCount() > 1)
+       {
+            mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
+       }
+        mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
+        PopupMenu(mnuLayer);
+    }
+}
+
+void RowHeading::OnLayerPopup(wxCommandEvent& event)
+{
+    Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
+    if (event.GetId() == ID_ROW_MNU_ADD_LAYER)
+    {
+        element->AddEffectLayer();
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+    else if (event.GetId() == ID_ROW_MNU_DELETE_LAYER)
+    {
+        int layerIndex = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
+        wxString prompt = wxString::Format("Delete 'Layer %d' of '%s'?",
+                                      layerIndex+1,element->GetName());
+        wxString caption = "Comfirm Layer Deletion";
+
+        int answer = wxMessageBox(prompt,caption,wxYES_NO);
+        if(answer == wxYES)
+        {
+            element->RemoveEffectLayer(layerIndex);
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
+    // Make sure message box is painted over by grid.
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
+
+}
+
 
 bool RowHeading::HitTestCollapseExpand(int row,int x, bool* IsCollapsed)
 {
@@ -156,7 +211,7 @@ void RowHeading::render( wxPaintEvent& event )
         }
         else if (mSequenceElements->GetRowInformation(i)->element->GetType()=="model")
         {
-            if(mSequenceElements->GetRowInformation(i)->element->GetEffectLayerCount()>0 &&
+            if(mSequenceElements->GetRowInformation(i)->element->GetEffectLayerCount() > 1 &&
                mSequenceElements->GetRowInformation(i)->layerIndex == 0)
             {
                 dc.SetBrush(*wxWHITE_BRUSH);
@@ -262,6 +317,8 @@ const wxColour* RowHeading::GetTimingColor(int colorIndex)
     }
     return value;
 }
+
+
 
 
 

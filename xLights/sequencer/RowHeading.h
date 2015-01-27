@@ -33,6 +33,8 @@ class RowHeading : public wxWindow
         DECLARE_EVENT_TABLE()
         void render( wxPaintEvent& event );
         void mouseLeftDown( wxMouseEvent& event);
+        void rightClick( wxMouseEvent& event);
+        void OnLayerPopup(wxCommandEvent& event);
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
@@ -41,7 +43,13 @@ class RowHeading : public wxWindow
         const wxColour * mHeaderColorView;
         const wxColour * mHeaderColorTiming;
 
+        int mSelectedRow;
         SequenceElements* mSequenceElements;
+
+        static const long ID_ROW_MNU_ADD_LAYER;
+        static const long ID_ROW_MNU_DELETE_LAYER;
+        static const long ID_ROW_MNU_LAYER;
+
 
 };
 
