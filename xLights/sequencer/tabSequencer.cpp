@@ -60,7 +60,8 @@ void xLightsFrame::CreateSequencer()
     sPreview1 = new SequencePreview(PanelSequencer,args);
     sPreview1->SetSize(wxSize(200,200));
     sPreview1->InitializePreview();
-    m_mgr->AddPane(sPreview1, wxLEFT, wxT("Model Preview 1"));
+    m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
+                   BestSize(wxSize(200,200)).Left());
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
@@ -156,6 +157,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         wxString settings = mCurrentPerpective->GetAttribute("settings");
         m_mgr->LoadPerspective(settings);
     }
+    m_mgr->GetPane(wxT("ModelPreview")).Show(true);
 
 }
 
@@ -847,6 +849,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     }
     bool success = m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
+    m_mgr->GetPane(wxT("ModelPreview")).Show(true);
     m_mgr->Update();
 }
 
