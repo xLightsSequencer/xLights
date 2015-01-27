@@ -383,6 +383,7 @@ void xLightsFrame::ResetEffectsXml()
     ViewsNode=NULL;
     ModelGroupsNode=NULL;
     SettingsNode=NULL;
+    PerspectivesNode = NULL;
 }
 
 wxString xLightsFrame::LoadEffectsFileNoCheck()
@@ -416,6 +417,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "views") ViewsNode=e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
+        if (e->GetName() == "perspectives") PerspectivesNode=e;
     }
     if (ModelsNode == 0)
     {
@@ -444,6 +446,12 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ModelGroupsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "modelGroups" );
         root->AddChild( ModelGroupsNode );
+    }
+
+    if (PerspectivesNode == 0)
+    {
+        PerspectivesNode = new wxXmlNode( wxXML_ELEMENT_NODE, "perspectives" );
+        root->AddChild( PerspectivesNode );
     }
 
     if(SettingsNode==0)

@@ -29,11 +29,12 @@ class XmlConversionDialog: public wxDialog
 		//(*Declarations(XmlConversionDialog)
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
+		wxStaticText* StaticText_Xml_Seq_Type;
 		wxChoice* Choice_Xml_Song_Timings;
 		wxButton* Button_Xml_Settings_Save;
 		wxStaticText* StaticText_XML_Version;
+		wxStaticText* StaticText_Xml_MediaFile;
 		wxTextCtrl* TextCtrl_Xml_Album;
-		wxButton* Button_Extract_Song_Info;
 		wxStaticText* StaticText_Xml_Artist;
 		wxStaticText* StaticText_Xml_Website;
 		wxStaticText* StaticText_Xml_Total_Length;
@@ -50,6 +51,8 @@ class XmlConversionDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
 		wxStaticText* StaticText_Xml_Timing;
+		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
+		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxButton* Button_Xml_Rename_Timing;
 		wxTextCtrl* TextCtrl_Xml_Log;
 		wxStaticText* StaticText_Work_Dir;
@@ -57,11 +60,12 @@ class XmlConversionDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Comment;
 		wxTextCtrl* TextCtrl_Xml_Author;
 		wxStaticText* StaticText_Xml_Song;
-		wxTextCtrl* TextCtrl_Xml_Total_Length;
+		wxChoice* Choice_Xml_Seq_Type;
 		wxTextCtrl* TextCtrl_Xml_Website;
 		wxBitmapButton* BitmapButton_Change_Dir;
 		wxButton* Button_Xml_Close_Dialog;
 		wxTextCtrl* TextCtrl_Xml_Artist;
+		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxStaticText* StaticText_XML_Convert_Title;
 		wxButton* Button_Xml_New_Timing;
 		//*)
@@ -74,6 +78,11 @@ class XmlConversionDialog: public wxDialog
 		static const long ID_CHOICE_Xml_Settings_Filename;
 		static const long ID_BITMAPBUTTON_Change_Dir;
 		static const long ID_STATICTEXT_Work_Dir;
+		static const long ID_STATICTEXT_Xml_Seq_Type;
+		static const long ID_CHOICE_Xml_Seq_Type;
+		static const long ID_STATICTEXT_Xml_MediaFile;
+		static const long ID_TEXTCTRL_Xml_Media_File;
+		static const long ID_BITMAPBUTTON_Xml_Media_File;
 		static const long ID_STATICTEXT_XML_Type_Version;
 		static const long ID_STATICTEXT_XML_Version;
 		static const long ID_STATICTEXT_Num_Models_Label;
@@ -95,8 +104,7 @@ class XmlConversionDialog: public wxDialog
 		static const long ID_STATICTEXT_Xml_Comment;
 		static const long ID_TEXTCTRL_Xml_Comment;
 		static const long ID_STATICTEXT_Xml_Total_Length;
-		static const long ID_TEXTCTRL_Xml_Total_Length;
-		static const long ID_BUTTON_Extract_Song_Info;
+		static const long ID_TEXTCTRL_Xml_Seq_Duration;
 		static const long ID_BUTTON_Xml_Settings_Save;
 		static const long ID_BUTTON_Xml_Close_Dialog;
 		static const long ID_STATICTEXT_Xml_Timing;
@@ -118,6 +126,7 @@ class XmlConversionDialog: public wxDialog
         void PopulateSongTimings();
         void SetSelectionToXMLFile();
         void ProcessSelectedFile();
+        void ProcessSequenceType();
         void SetWindowState(bool value);
         bool ExtractMetaTagsFromMP3(wxString filename);
 
@@ -144,6 +153,10 @@ class XmlConversionDialog: public wxDialog
 		void OnCustom1Paint(wxPaintEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnTextCtrl_Xml_Total_LengthText(wxCommandEvent& event);
+		void OnBitmapButton1Click(wxCommandEvent& event);
+		void OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event);
+		void OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event);
+		void OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

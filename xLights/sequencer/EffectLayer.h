@@ -54,7 +54,8 @@ class EffectLayer
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
         void MoveAllSelectedEffects(double delta);
-
+        void DeleteSelectedEffects();
+        static bool ShouldDelete(Effect eff);
     protected:
     private:
 

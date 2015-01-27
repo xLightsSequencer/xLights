@@ -301,6 +301,20 @@ const long xLightsFrame::idMenuRenameList = wxNewId();
 const long xLightsFrame::idMenuDelList = wxNewId();
 const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::idCustomScript = wxNewId();
+const long xLightsFrame::ID_MENUITEM_VIEW_ZOOM_IN = wxNewId();
+const long xLightsFrame::ID_MENUITEM_VIEW_ZOOM_OUT = wxNewId();
+const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
+const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
+const long xLightsFrame::ID_MENUITEM7 = wxNewId();
+const long xLightsFrame::ID_MENUITEM11 = wxNewId();
+const long xLightsFrame::ID_MENUITEM12 = wxNewId();
+const long xLightsFrame::ID_MENUITEM13 = wxNewId();
+const long xLightsFrame::ID_MENUITEM14 = wxNewId();
+const long xLightsFrame::ID_MENUITEM15 = wxNewId();
+const long xLightsFrame::ID_MENUITEM16 = wxNewId();
+const long xLightsFrame::ID_MENUITEM17 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
+const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
 const long xLightsFrame::ID_XML_CONVERSION = wxNewId();
@@ -349,6 +363,10 @@ wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
+
 
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
@@ -364,6 +382,9 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL_EFFECT, xLightsFrame::PlayModelEffect)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_UPDATED, xLightsFrame::UpdateEffect)
+    EVT_COMMAND(wxID_ANY, EVT_FORCE_SEQUENCER_REFRESH, xLightsFrame::ForceSequencerRefresh)
+    EVT_COMMAND(wxID_ANY, EVT_LOAD_PERSPECTIVE, xLightsFrame::LoadPerspective)
+    EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
 
 
 
@@ -511,7 +532,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM14, _("Item label"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM11, _("Item label"), home_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Home"), wxEmptyString, NULL);
     AuiToolBarView->Realize();
-    MainAuiManager->AddPane(AuiToolBarView, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).Layer(10).Top().Gripper());
+    MainAuiManager->AddPane(AuiToolBarView, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     BitmapButtonTabInfo = new wxBitmapButton(OutputToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
     BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
@@ -526,7 +547,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     OutputToolBar->AddControl(ButtonLightsOff, wxEmptyString);
     OutputToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
     OutputToolBar->Realize();
-    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
+    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(15).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
@@ -1263,6 +1284,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItemCustomScript = new wxMenuItem(MenuPlaylist, idCustomScript, _("Custom Script"), wxEmptyString, wxITEM_NORMAL);
     MenuPlaylist->Append(MenuItemCustomScript);
     MenuBar1->Append(MenuPlaylist, _("&Playlist"));
+    Menu5 = new wxMenu();
+    MenuItem_ViewZoomIn = new wxMenuItem(Menu5, ID_MENUITEM_VIEW_ZOOM_IN, _("Zoom In"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_ViewZoomIn);
+    MenuItem_ViewZoomOut = new wxMenuItem(Menu5, ID_MENUITEM_VIEW_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
+    Menu5->Append(MenuItem_ViewZoomOut);
+    Menu5->AppendSeparator();
+    MenuItem15 = new wxMenu();
+    MenuItemViewSavePerspective = new wxMenuItem(MenuItem15, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem15->Append(MenuItemViewSavePerspective);
+    MenuItemLoadEditPerspective = new wxMenuItem(MenuItem15, ID_MENUITEM_LOAD_PERSPECTIVE, _("Edit/Load"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem15->Append(MenuItemLoadEditPerspective);
+    Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItem15, wxEmptyString);
+    MenuItem18 = new wxMenu();
+    MenuItem19 = new wxMenuItem(MenuItem18, ID_MENUITEM11, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem19);
+    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Models"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem20);
+    MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem21);
+    MenuItem22 = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem22);
+    MenuItem23 = new wxMenuItem(MenuItem18, ID_MENUITEM15, _("Colors"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem23);
+    MenuItem24 = new wxMenuItem(MenuItem18, ID_MENUITEM16, _("Timing"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem24);
+    MenuItem25 = new wxMenuItem(MenuItem18, ID_MENUITEM17, _("Effect Dropper"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem25);
+    MenuItem18->AppendSeparator();
+    MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem26);
+    Menu5->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
+    MenuBar1->Append(Menu5, _("View"));
     Menu2 = new wxMenu();
     MenuItem8 = new wxMenuItem(Menu2, ID_EXPORT_ALL, _("Export All"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem8);
@@ -1419,6 +1472,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuDelList,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemDelListSelected);
     Connect(ID_MENUITEM1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRefreshSelected);
     Connect(idCustomScript,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCustomScriptSelected);
+    Connect(ID_MENUITEM_VIEW_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
+    Connect(ID_MENUITEM_VIEW_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
+    Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
+    Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_XML_CONVERSION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuXmlConversionSettings);
     Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -2425,6 +2482,7 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 break;
             }
             case 't':
+            case 'T':
                 if(mTextEntryContext == TEXT_ENTRY_TIMING)
                 {
                     InsertTimingMarkFromRange();
@@ -2433,6 +2491,9 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 {
                     retval = false;
                 }
+                break;
+            case WXK_DELETE:
+                DeleteAllSelectedEffects();
                 break;
             default:
                 break;
@@ -2698,4 +2759,3 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
         mainSequencer->PanelTimeLine->ZoomOut();
     }
 }
-

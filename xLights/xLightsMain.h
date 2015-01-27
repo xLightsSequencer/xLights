@@ -97,6 +97,7 @@
 #include "TopEffectsPanel.h"
 #include "TimingPanel.h"
 #include "ColorPanel.h"
+#include "PerspectivesPanel.h"
 
 #include "wx/aui/aui.h"
 
@@ -209,6 +210,10 @@ wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
+wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
+
 
 
 static wxCriticalSection gs_xoutCriticalSection;
@@ -559,6 +564,8 @@ private:
     void OnAuiToolBarItemStopClick(wxCommandEvent& event);
     void OnAuiToolBarItemZoominClick(wxCommandEvent& event);
     void OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event);
+    void OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event);
+    void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -790,6 +797,20 @@ private:
     static const long idMenuDelList;
     static const long ID_MENUITEM1;
     static const long idCustomScript;
+    static const long ID_MENUITEM_VIEW_ZOOM_IN;
+    static const long ID_MENUITEM_VIEW_ZOOM_OUT;
+    static const long ID_MENUITEM_SAVE_PERSPECTIVE;
+    static const long ID_MENUITEM_LOAD_PERSPECTIVE;
+    static const long ID_MENUITEM7;
+    static const long ID_MENUITEM11;
+    static const long ID_MENUITEM12;
+    static const long ID_MENUITEM13;
+    static const long ID_MENUITEM14;
+    static const long ID_MENUITEM15;
+    static const long ID_MENUITEM16;
+    static const long ID_MENUITEM17;
+    static const long ID_MENUITEM_WINDOWS_PERSPECTIVE;
+    static const long ID_MENUITEM10;
     static const long ID_EXPORT_ALL;
     static const long ID_EXPORT_MODEL;
     static const long ID_XML_CONVERSION;
@@ -834,6 +855,7 @@ private:
     wxSlider* SliderFgColorC;
     wxRadioButton* RadioButtonRgbCycleMixed;
     wxButton* Button_papagayo_output_sequence;
+    wxMenu* MenuItem18;
     wxTextCtrl* TextCtrl_PgoAutoFade;
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
@@ -842,6 +864,7 @@ private:
     wxStaticText* StaticText68;
     wxButton* Button_CoroGroupDelete;
     wxStaticText* StaticText32;
+    wxMenuItem* MenuItemLoadEditPerspective;
     wxStaticText* StaticText36;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
@@ -849,12 +872,14 @@ private:
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxStaticText* StaticText27;
     wxButton* ButtonAddE131;
+    wxMenuItem* MenuItem23;
     wxTextCtrl* TextCtrlFilename;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxCheckBox* CheckBoxLightOutput;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
+    wxMenuItem* MenuItem_ViewZoomOut;
     wxPanel* PanelPapagayo;
     wxRadioButton* RadioButtonChase3;
     wxRadioButton* RadioButtonChase4;
@@ -868,12 +893,14 @@ private:
     wxButton* ButtonChooseFile;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
+    wxMenuItem* MenuItem22;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
     wxCheckBox* MapLORChannelsWithNoNetwork;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
+    wxMenuItem* MenuItem20;
     wxButton* ButtonStopNow;
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
@@ -882,6 +909,7 @@ private:
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
     wxPanel* PanelSequencer;
+    wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     wxButton* ButtonSelectModelGroups;
@@ -912,11 +940,13 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonDim;
+    wxMenu* MenuItem15;
     wxButton* ButtonUpdateShow;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
+    wxMenuItem* MenuItem21;
     wxStaticText* StaticText_PgoOutputType;
     wxAuiToolBar* EffectToolBar;
     wxPanel* PanelSetup;
@@ -941,6 +971,7 @@ private:
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
     wxMenuItem* ThreadedSaveMenuItem;
+    wxMenuItem* MenuItem19;
     wxStaticText* StaticTextPreviewRotation;
     wxSlider* SliderFgIntensity;
     wxSplitterWindow* SplitterWindow1;
@@ -956,6 +987,7 @@ private:
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxChoice* Choice_PgoGroupName;
+    wxMenuItem* MenuItem24;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxMenu* MenuItem3;
     wxMenuItem* MenuItem6;
@@ -976,6 +1008,7 @@ private:
     wxMenuItem* MenuItem9;
     wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
     wxMenuItem* Menu4;
@@ -988,9 +1021,11 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
+    wxMenu* Menu5;
     wxStaticText* StaticText15;
     wxStaticText* StaticText26;
     wxStaticText* StaticText8;
+    wxMenuItem* MenuItem26;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText30;
@@ -1024,6 +1059,7 @@ private:
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxMenuItem* MenuItem25;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
@@ -1344,6 +1380,7 @@ protected:
     wxXmlNode* ModelsNode;
     wxXmlNode* PalettesNode;
     wxXmlNode* ViewsNode;
+    wxXmlNode* PerspectivesNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* SettingsNode;
 
@@ -1415,6 +1452,7 @@ protected:
     int m_bound_end_y;
     int m_over_handle;
     int m_previous_mouse_x, m_previous_mouse_y;
+    wxXmlNode* mCurrentPerpective;
 
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
@@ -1424,6 +1462,7 @@ protected:
     SequencePreview* sPreview1;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
+    PerspectivesPanel* perspectivePanel;
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     // Methods
@@ -1440,11 +1479,16 @@ protected:
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
+    void ForceSequencerRefresh(wxCommandEvent& event);
+    void LoadPerspective(wxCommandEvent& event);
+    void PerspectivesChanged(wxCommandEvent& event);
+
+
     void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
                        const wxString mediaFile,int sequenceLengthMS);
 
-
-
+    void CheckForAndCreateDefaultPerpective();
+    void DeleteAllSelectedEffects();
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);

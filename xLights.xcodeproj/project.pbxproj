@@ -135,6 +135,7 @@
 		67D8F4591A1A584400522413 /* TabTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425A17F0D23E00F4BC76 /* TabTest.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
+		67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */; };
 		67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B117C459B800FE40EA /* RenderCurtain.cpp */; };
 		67E5B9E71A19AC860044D685 /* RenderStrobe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */; };
 		67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C7969017B5791700CEE775 /* TabConvert.cpp */; };
@@ -314,6 +315,7 @@
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
+		67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectivesPanel.cpp; sourceTree = "<group>"; };
 		67E491B117C459B800FE40EA /* RenderCurtain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCurtain.cpp; sourceTree = "<group>"; };
 		67E491B317C45BAF00FE40EA /* TabSequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabSequence.cpp; sourceTree = "<group>"; };
 		67E5B9E61A19AC860044D685 /* RenderStrobe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderStrobe.cpp; sourceTree = "<group>"; };
@@ -432,6 +434,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
 				677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
@@ -705,6 +708,7 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				67C6488719E3396C006526CD /* RenderCoroFaces.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
 				67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,

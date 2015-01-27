@@ -20,6 +20,11 @@ const long XmlConversionDialog::ID_STATICTEXT_Xml_Filename = wxNewId();
 const long XmlConversionDialog::ID_CHOICE_Xml_Settings_Filename = wxNewId();
 const long XmlConversionDialog::ID_BITMAPBUTTON_Change_Dir = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Work_Dir = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Xml_Seq_Type = wxNewId();
+const long XmlConversionDialog::ID_CHOICE_Xml_Seq_Type = wxNewId();
+const long XmlConversionDialog::ID_STATICTEXT_Xml_MediaFile = wxNewId();
+const long XmlConversionDialog::ID_TEXTCTRL_Xml_Media_File = wxNewId();
+const long XmlConversionDialog::ID_BITMAPBUTTON_Xml_Media_File = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_XML_Type_Version = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_XML_Version = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Num_Models_Label = wxNewId();
@@ -41,8 +46,7 @@ const long XmlConversionDialog::ID_TEXTCTRL_Xml_Music_Url = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Comment = wxNewId();
 const long XmlConversionDialog::ID_TEXTCTRL_Xml_Comment = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
-const long XmlConversionDialog::ID_TEXTCTRL_Xml_Total_Length = wxNewId();
-const long XmlConversionDialog::ID_BUTTON_Extract_Song_Info = wxNewId();
+const long XmlConversionDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Settings_Save = wxNewId();
 const long XmlConversionDialog::ID_BUTTON_Xml_Close_Dialog = wxNewId();
 const long XmlConversionDialog::ID_STATICTEXT_Xml_Timing = wxNewId();
@@ -70,6 +74,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	wxFlexGridSizer* FlexGridSizer4;
 	wxStaticBoxSizer* StaticBoxSizer_File_Info;
 	wxStaticBoxSizer* StaticBoxSizer_Xml_Header;
+	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxGridBagSizer* GridBagSizer2;
 	wxFlexGridSizer* FlexGridSizer5;
@@ -95,18 +100,36 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	StaticText_Xml_Filename = new wxStaticText(this, ID_STATICTEXT_Xml_Filename, _("XML Filename:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Filename"));
 	GridBagSizer2->Add(StaticText_Xml_Filename, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Xml_Settings_Filename = new wxChoice(this, ID_CHOICE_Xml_Settings_Filename, wxDefaultPosition, wxSize(238,21), 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE_Xml_Settings_Filename"));
-	GridBagSizer2->Add(Choice_Xml_Settings_Filename, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(Choice_Xml_Settings_Filename, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Change_Dir = new wxBitmapButton(this, ID_BITMAPBUTTON_Change_Dir, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_MENU), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Change_Dir"));
-	GridBagSizer2->Add(BitmapButton_Change_Dir, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(BitmapButton_Change_Dir, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Work_Dir = new wxStaticText(this, ID_STATICTEXT_Work_Dir, _("Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Work_Dir"));
 	GridBagSizer2->Add(StaticText_Work_Dir, wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Xml_Seq_Type = new wxStaticText(this, ID_STATICTEXT_Xml_Seq_Type, _("Sequence Type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Seq_Type"));
+	GridBagSizer2->Add(StaticText_Xml_Seq_Type, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Xml_Seq_Type = new wxChoice(this, ID_CHOICE_Xml_Seq_Type, wxDefaultPosition, wxSize(125,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Xml_Seq_Type"));
+	Choice_Xml_Seq_Type->Append(_("Media"));
+	Choice_Xml_Seq_Type->Append(_("Animation"));
+	Choice_Xml_Seq_Type->Disable();
+	GridBagSizer2->Add(Choice_Xml_Seq_Type, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText_Xml_MediaFile = new wxStaticText(this, ID_STATICTEXT_Xml_MediaFile, _("Media:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_MediaFile"));
+	FlexGridSizer10->Add(StaticText_Xml_MediaFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Xml_Media_File = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Media_File, wxEmptyString, wxDefaultPosition, wxSize(258,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Media_File"));
+	TextCtrl_Xml_Media_File->Disable();
+	FlexGridSizer10->Add(TextCtrl_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_Xml_Media_File = new wxBitmapButton(this, ID_BITMAPBUTTON_Xml_Media_File, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CDROM")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Xml_Media_File"));
+	BitmapButton_Xml_Media_File->Disable();
+	FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer2->Add(FlexGridSizer10, wxGBPosition(3, 0), wxGBSpan(1, 4), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(GridBagSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_File_Info = new wxStaticBoxSizer(wxHORIZONTAL, this, _("File Information:"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 5, 0, 0);
 	StaticText_XML_Type_Version = new wxStaticText(this, ID_STATICTEXT_XML_Type_Version, _("XML Version:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_XML_Type_Version"));
 	FlexGridSizer5->Add(StaticText_XML_Type_Version, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_XML_Version = new wxStaticText(this, ID_STATICTEXT_XML_Version, wxEmptyString, wxDefaultPosition, wxSize(70,-1), 0, _T("ID_STATICTEXT_XML_Version"));
 	FlexGridSizer5->Add(StaticText_XML_Version, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(40,20,1, wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Num_Models_Label = new wxStaticText(this, ID_STATICTEXT_Num_Models_Label, _("# Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Num_Models_Label"));
 	FlexGridSizer5->Add(StaticText_Num_Models_Label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Num_Models = new wxStaticText(this, ID_STATICTEXT_Num_Models, wxEmptyString, wxDefaultPosition, wxSize(70,-1), 0, _T("ID_STATICTEXT_Num_Models"));
@@ -147,14 +170,10 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	FlexGridSizer3->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Comment = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
 	FlexGridSizer3->Add(TextCtrl_Xml_Comment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText_Xml_Total_Length = new wxStaticText(this, ID_STATICTEXT_Xml_Total_Length, _("Total Length:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
+	StaticText_Xml_Total_Length = new wxStaticText(this, ID_STATICTEXT_Xml_Total_Length, _("Seq. Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
 	FlexGridSizer3->Add(StaticText_Xml_Total_Length, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Xml_Total_Length = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Total_Length, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Total_Length"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Total_Length, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Extract_Song_Info = new wxButton(this, ID_BUTTON_Extract_Song_Info, _("Extract Song Info from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Extract_Song_Info"));
-	Button_Extract_Song_Info->Disable();
-	FlexGridSizer3->Add(Button_Extract_Song_Info, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Xml_Seq_Duration = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Seq_Duration, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Seq_Duration"));
+	FlexGridSizer3->Add(TextCtrl_Xml_Seq_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer_Xml_Header->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6->Add(StaticBoxSizer_Xml_Header, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -191,16 +210,18 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	StaticBoxSizer_Xml_Song_Timings->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7->Add(StaticBoxSizer_Xml_Song_Timings, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Message Log:"));
-	TextCtrl_Xml_Log = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Log, wxEmptyString, wxDefaultPosition, wxSize(293,238), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Log"));
+	TextCtrl_Xml_Log = new wxTextCtrl(this, ID_TEXTCTRL_Xml_Log, wxEmptyString, wxDefaultPosition, wxSize(293,320), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Log"));
 	StaticBoxSizer1->Add(TextCtrl_Xml_Log, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7->Add(StaticBoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
 	Connect(ID_CHOICE_Xml_Settings_Filename,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Settings_FilenameSelect);
 	Connect(ID_BITMAPBUTTON_Change_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnBitmapButton_Change_DirClick);
+	Connect(ID_CHOICE_Xml_Seq_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Seq_TypeSelect);
+	Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnBitmapButton_Xml_Media_FileClick);
 	Connect(ID_TEXTCTRL_Xml_Author,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_AuthorText);
 	Connect(ID_TEXTCTRL_Xml_Author_Email,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Author_EmailText);
 	Connect(ID_TEXTCTRL_Xml_Website,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_WebsiteText);
@@ -209,8 +230,7 @@ XmlConversionDialog::XmlConversionDialog(wxWindow* parent, xLightsXmlFile* file_
 	Connect(ID_TEXTCTRL_Xml_Album,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_AlbumText);
 	Connect(ID_TEXTCTRL_Xml_Music_Url,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Music_UrlText);
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_CommentText);
-	Connect(ID_TEXTCTRL_Xml_Total_Length,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Total_LengthText);
-	Connect(ID_BUTTON_Extract_Song_Info,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Extract_Song_InfoClick);
+	Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&XmlConversionDialog::OnTextCtrl_Xml_Seq_DurationText);
 	Connect(ID_BUTTON_Xml_Settings_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Settings_SaveClick);
 	Connect(ID_BUTTON_Xml_Close_Dialog,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&XmlConversionDialog::OnButton_Xml_Close_DialogClick);
 	Connect(ID_CHOICE_Xml_Song_Timings,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect);
@@ -308,7 +328,7 @@ void XmlConversionDialog::Clear()
     TextCtrl_Xml_Album->SetValue(_(""));
     TextCtrl_Xml_Music_Url->SetValue(_(""));
     TextCtrl_Xml_Comment->SetValue(_(""));
-    TextCtrl_Xml_Total_Length->SetValue(_(""));
+    TextCtrl_Xml_Seq_Duration->SetValue(_(""));
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
 }
@@ -323,13 +343,13 @@ void XmlConversionDialog::SetWindowState(bool value)
     TextCtrl_Xml_Album->Enable(value);
     TextCtrl_Xml_Music_Url->Enable(value);
     TextCtrl_Xml_Comment->Enable(value);
-    TextCtrl_Xml_Total_Length->Enable(value);
+    TextCtrl_Xml_Seq_Duration->Enable(value);
     Button_Xml_New_Timing->Enable(value);
     Button_Xml_Import_Timing->Enable(value);
     Button_Xml_Delete_Timing->Enable(value);
     Button_Xml_Rename_Timing->Enable(value);
     Choice_Xml_Song_Timings->Enable(value);
-    Button_Extract_Song_Info->Enable(value);
+    Choice_Xml_Seq_Type->Enable(value);
 }
 
 void XmlConversionDialog::ProcessSelectedFile()
@@ -346,7 +366,9 @@ void XmlConversionDialog::ProcessSelectedFile()
         TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
         TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
         TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
-        TextCtrl_Xml_Total_Length->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::TOTAL_LENGTH));
+        Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_TYPE)));
+        TextCtrl_Xml_Media_File->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::MEDIA_FILE));
+        TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_DURATION));
         PopulateSongTimings();
     }
     if( xml_file->IsLoaded() )
@@ -356,10 +378,12 @@ void XmlConversionDialog::ProcessSelectedFile()
             SetWindowState(false);
             Button_Xml_Settings_Save->Enable(true);
             Button_Xml_Settings_Save->SetLabel(_("Convert"));
+            Choice_Xml_Seq_Type->SetSelection(0);
         }
         else
         {
             SetWindowState(true);
+            ProcessSequenceType();
             Button_Xml_Settings_Save->Enable(false);
         }
     }
@@ -393,7 +417,10 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
     info.push_back(TextCtrl_Xml_Album->GetValue());
     info.push_back(TextCtrl_Xml_Music_Url->GetValue());
     info.push_back(TextCtrl_Xml_Comment->GetValue());
-    info.push_back(TextCtrl_Xml_Total_Length->GetValue());
+    info.push_back(Choice_Xml_Seq_Type->GetString(Choice_Xml_Seq_Type->GetSelection()));
+    info.push_back(TextCtrl_Xml_Media_File->GetValue());
+    info.push_back(TextCtrl_Xml_Seq_Duration->GetValue());
+
     xml_file->SetHeaderInfo(info);
     bool reload = xml_file->NeedsConversion();
     xml_file->Save(TextCtrl_Xml_Log);
@@ -403,7 +430,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
         PopulateFiles();
         xml_file->Load();
     }
-    TextCtrl_Xml_Total_Length->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::TOTAL_LENGTH));
+    TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_DURATION));
     PopulateSongTimings();
     SetWindowState(true);
     Button_Xml_Settings_Save->Enable(false);
@@ -475,13 +502,12 @@ void XmlConversionDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
     }
 }
 
-void XmlConversionDialog::OnTextCtrl_Xml_Total_LengthText(wxCommandEvent& event)
+void XmlConversionDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
     if( xml_file->IsLoaded() )
     {
         Button_Xml_Settings_Save->Enable(true);
     }
-
 }
 
 void XmlConversionDialog::OnBitmapButton_Change_DirClick(wxCommandEvent& event)
@@ -559,25 +585,6 @@ void XmlConversionDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
         Button_Xml_Settings_Save->Enable(true);
     }
     dialog.Destroy();
-}
-
-void XmlConversionDialog::OnButton_Extract_Song_InfoClick(wxCommandEvent& event)
-{
-    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
-    wxString fDir;
-    if (OpenDialog->ShowModal() == wxID_OK)
-    {
-        fDir =	OpenDialog->GetDirectory();
-        wxString filename = OpenDialog->GetFilename();
-        wxFileName name_and_path(filename);
-        name_and_path.SetPath(xLightsFrame::CurrentDir);
-        if( ExtractMetaTagsFromMP3(name_and_path.GetFullPath()) )
-        {
-            Button_Xml_Settings_Save->Enable(true);
-        }
-    }
-
-    OpenDialog->Destroy();
 }
 
 void XmlConversionDialog::OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event)
@@ -669,4 +676,39 @@ bool XmlConversionDialog::ExtractMetaTagsFromMP3(wxString filename)
     mpg123_exit();
 
     return modified;
+}
+
+void XmlConversionDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
+{
+    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
+    wxString fDir;
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fDir = OpenDialog->GetDirectory();
+        wxString filename = OpenDialog->GetFilename();
+        wxFileName name_and_path(filename);
+        name_and_path.SetPath(fDir);
+        TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
+        ExtractMetaTagsFromMP3(name_and_path.GetFullPath());
+        int length_ms = Waveform::GetLengthOfMusicFileInMS(name_and_path.GetFullPath());
+        double length = length_ms / 1000.0f;
+        TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
+        Button_Xml_Settings_Save->Enable(true);
+    }
+
+    OpenDialog->Destroy();
+}
+
+void XmlConversionDialog::ProcessSequenceType()
+{
+    wxString type = xml_file->GetSequenceType();
+    BitmapButton_Xml_Media_File->Enable((type == wxT("Media")));
+}
+
+void XmlConversionDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
+{
+    int selection = Choice_Xml_Seq_Type->GetSelection();
+    wxString type = Choice_Xml_Seq_Type->GetString(selection);
+    xml_file->SetSequenceType(type);
+    ProcessSequenceType();
 }
