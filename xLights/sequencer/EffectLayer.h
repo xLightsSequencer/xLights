@@ -43,6 +43,9 @@ class EffectLayer
 
         bool HitTestEffect(int position,int &index, int &result);
         int GetEffectIndexThatContainsPosition(int position,int &selectionType);
+        Effect* GetEffectBeforePosition(int position);
+        Effect* GetEffectAfterPosition(int position);
+
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
         void UnSelectAllEffects();
