@@ -834,7 +834,17 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 {
     wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
     mCurrentPerpective = perspective;
+    wxString name = perspective->GetAttribute("name");
     wxString settings = perspective->GetAttribute("settings");
+    PerspectivesNode->DeleteAttribute("current");
+    PerspectivesNode->AddAttribute("current",name);
+    SaveEffectsFile();
+    if(settings.size()==0)
+    {
+        settings = m_mgr->SavePerspective();
+        mCurrentPerpective->DeleteAttribute("settings");
+        mCurrentPerpective->AddAttribute("settings",settings);
+    }
     bool success = m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
     m_mgr->Update();
@@ -856,6 +866,8 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 {
+    m_mgr->GetPane(wxT("Perspectives")).Show(true);
+    m_mgr->Update();
 }
 
 

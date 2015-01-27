@@ -74,9 +74,13 @@ void PerspectivesPanel::OnButtonAddPerspectiveClick(wxCommandEvent& event)
     wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
     if(name.size()>0)
     {
-        ListBoxPerspectives->Append(name);
+
+        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        p->AddAttribute("name", name);
+        p->AddAttribute("settings","");
+        mPerspectivesNode->AddChild(p);
+        ListBoxPerspectives->Append(name,p);
     }
-    wxMessageBox(name);
 }
 
 void PerspectivesPanel::OnPaint(wxPaintEvent& event)
