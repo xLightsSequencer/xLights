@@ -151,6 +151,10 @@
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
 
+#include "../include/effects.xpm"
+#include "../include/colors.xpm"
+#include "../include/layers.xpm"
+
 #ifndef __WXOSX__
 #include "../include/select_show_folder-24.xpm"
 #include "../include/save-24.xpm"
@@ -572,6 +576,7 @@ private:
     static const long ID_AUITOOLBAR_OPEN;
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
+    static const long ID_AUITOOLBARITEM1;
     static const long ID_AUITOOLBAR_MAIN;
     static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
@@ -580,6 +585,10 @@ private:
     static const long ID_AUITOOLBARITEM4;
     static const long ID_AUITOOLBARITEM7;
     static const long ID_AUITOOLBAR_PLAY;
+    static const long ID_AUITOOLBARITEM2;
+    static const long ID_AUITOOLBARITEM5;
+    static const long ID_AUITOOLBARITEM3;
+    static const long ID_AUITOOLBAR1;
     static const long ID_AUITOOLBARITEM10;
     static const long ID_AUITOOLBARITEM_ZOOM_IN;
     static const long ID_AUITOOLBARITEM_ZOOM_OUT;
@@ -909,6 +918,7 @@ private:
     wxButton* ButtonSetPreviewSize;
     wxStaticText* StaticText16;
     wxStaticText* StaticText_PgoOutputType;
+    wxAuiToolBar* EffectToolBar;
     wxPanel* PanelSetup;
     wxButton* ButtonSaveLog;
     wxStaticText* StaticText43;

@@ -1,5 +1,5 @@
 /* XPM */
-static char *select_show_folder_24[] = {
+static const char *select_show_folder_24_xpm[] = {
 "24 24 8 1 1 1",
 "  c #8DA5B8",
 "! c #AFC0CD",

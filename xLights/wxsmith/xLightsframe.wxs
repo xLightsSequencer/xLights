@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>XL4 ALPHA (Ver 4.0.0) Jan26</title>
+		<title>XL4 ALPHA (Ver 4.0.0) Jan27</title>
 		<size>1100,800</size>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
@@ -50,6 +50,13 @@
 						</object>
 						<label>Save As</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItem1" member="yes">
+							<bitmap code="eye_open_24_xpm" />
+							<shorthelp>Search</shorthelp>
+						</object>
+						<label>Item label</label>
+					</object>
 				</object>
 				<name>Main Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
@@ -94,14 +101,14 @@
 						<label>Stop</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarItem5" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarFirstFrame" member="yes">
 							<bitmap code="backward_24_xpm" />
 							<shorthelp>First Frame</shorthelp>
 						</object>
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarItem3" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarLastFrame" member="yes">
 							<bitmap code="forward_24_xpm" />
 							<shorthelp>Last Frame</shorthelp>
 						</object>
@@ -125,6 +132,50 @@
 				<closebutton>0</closebutton>
 				<layer>10</layer>
 				<position>11</position>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR1" variable="EffectToolBar" member="yes">
+					<pos>227,1</pos>
+					<size>110,27</size>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
+							<bitmap code="effects_xpm" />
+							<shorthelp>Effects</shorthelp>
+							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
+						</object>
+						<label>Effects</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
+							<bitmap code="colors_xpm" />
+							<shorthelp>Effect Colors</shorthelp>
+							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
+						</object>
+						<label>Effect Colors</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
+							<bitmap code="layers_xpm" />
+							<shorthelp>Effect Layering</shorthelp>
+							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
+						</object>
+						<label>Effect Layering</label>
+					</object>
+				</object>
+				<name>PaneName</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>Pane caption</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<layer>10</layer>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>

@@ -87,6 +87,7 @@ const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
@@ -95,6 +96,10 @@ const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR1 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_IN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_OUT = wxNewId();
@@ -471,7 +476,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer26;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("XL4 ALPHA (Ver 4.0.0) Jan26"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("XL4 ALPHA (Ver 4.0.0) Jan27"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1100,800));
     SetToolTip(_("Export only Channels associated with one model"));
     MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
@@ -481,6 +486,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), folder_xpm, wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), save_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), save_as_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
     PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -492,6 +498,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PlayToolBar->AddTool(ID_AUITOOLBARITEM7, _("Item label"), replay_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
+    EffectToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR1, wxPoint(227,1), wxSize(110,27), wxAUI_TB_DEFAULT_STYLE);
+    EffectToolBar->AddTool(ID_AUITOOLBARITEM2, _("Effects"), effects_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
+    EffectToolBar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), colors_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Colors"), wxEmptyString, NULL);
+    EffectToolBar->AddTool(ID_AUITOOLBARITEM3, _("Effect Layering"), layers_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Layering"), wxEmptyString, NULL);
+    EffectToolBar->Realize();
+    MainAuiManager->AddPane(EffectToolBar, wxAuiPaneInfo().Name(_T("PaneName")).ToolbarPane().Caption(_("Pane caption")).Layer(10).Top().BestSize(wxSize(110,27)).Gripper());
     AuiToolBarView = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM10, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM_ZOOM_IN, _("Zoom In"), zoom_in_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
@@ -1292,6 +1304,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_PLAY_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPlayButtonClick);
     Connect(ID_AUITOOLBAR_PAUSE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPauseButtonClick);
     Connect(ID_AUITOOLBAR_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemStopClick);
+    Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
+    Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
+    Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
