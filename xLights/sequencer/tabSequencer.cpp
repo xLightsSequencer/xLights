@@ -114,8 +114,10 @@ void xLightsFrame::InitSequencer()
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
 
-    int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
-    LoadSequencer("media",BASEPATH + "v4.xml",BASEPATH + "4.mp3",mediaLengthMS);
+    if (wxFile::Exists(BASEPATH + "4.mp3")) {
+        int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
+        LoadSequencer("media",BASEPATH + "v4.xml",BASEPATH + "4.mp3",mediaLengthMS);
+    }
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()

@@ -13,7 +13,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_ADD_PERSPECTIVE" variable="ButtonAddPerspective" member="yes">
 							<label>+</label>
-							<size>20,20</size>
+							<size>24,24</size>
 							<tooltip>Add Perspective</tooltip>
 							<handler function="OnButtonAddPerspectiveClick" entry="EVT_BUTTON" />
 						</object>
@@ -24,7 +24,7 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="D_BUTTON_DELETE_PERSPECTIVE" variable="ButtonDeletePerspective" member="yes">
 							<label>-</label>
-							<size>20,20</size>
+							<size>24,24</size>
 							<tooltip>Delete Perspective</tooltip>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -34,12 +34,12 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_RENAME_PERSPECTIVE" variable="ButtonRenamePerspective" member="yes">
 							<label>Rename</label>
-							<size>50,20</size>
+							<size>70,24</size>
 							<tooltip>Rename Perspective</tooltip>
 							<handler function="OnButtonRenamePerspectiveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
+						<border>1</border>
 						<option>1</option>
 					</object>
 				</object>
