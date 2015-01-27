@@ -13,6 +13,7 @@
 
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 
 class PerspectivesPanel: public wxPanel
 {
@@ -46,6 +47,7 @@ class PerspectivesPanel: public wxPanel
 		void OnButtonAddPerspectiveClick(wxCommandEvent& event);
 		void OnPaint(wxPaintEvent& event);
 		void OnListBoxPerspectivesDClick(wxCommandEvent& event);
+		void OnButtonRenamePerspectiveClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

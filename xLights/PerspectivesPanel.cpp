@@ -57,6 +57,7 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_ADD_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonAddPerspectiveClick);
+	Connect(ID_BUTTON_RENAME_PERSPECTIVE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnButtonRenamePerspectiveClick);
 	Connect(ID_LISTBOX_PERSPECTIVES,wxEVT_COMMAND_LISTBOX_DOUBLECLICKED,(wxObjectEventFunction)&PerspectivesPanel::OnListBoxPerspectivesDClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&PerspectivesPanel::OnPaint);
 	//*)
@@ -80,6 +81,9 @@ void PerspectivesPanel::OnButtonAddPerspectiveClick(wxCommandEvent& event)
         p->AddAttribute("settings","");
         mPerspectivesNode->AddChild(p);
         ListBoxPerspectives->Append(name,p);
+        wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
+        wxPostEvent(GetParent(), eventPerspectivesChanged);
+
     }
 }
 
@@ -115,5 +119,20 @@ void PerspectivesPanel::OnListBoxPerspectivesDClick(wxCommandEvent& event)
 
     eventLoadPerspective.SetClientData(p);
     wxPostEvent(GetParent(), eventLoadPerspective);
+}
 
+void PerspectivesPanel::OnButtonRenamePerspectiveClick(wxCommandEvent& event)
+{
+    wxString name = wxGetTextFromUser("Enter new name for perspective","Rename Perspective ");
+    if(name.size()>0)
+    {
+        wxXmlNode* p = (wxXmlNode*)(ListBoxPerspectives->GetClientData(ListBoxPerspectives->GetSelection()));
+        p->DeleteAttribute("name");
+        p->AddAttribute("name", name);
+        ListBoxPerspectives->SetString(ListBoxPerspectives->GetSelection(),name);
+
+        wxCommandEvent eventPerspectivesChanged(EVT_PERSPECTIVES_CHANGED);
+        wxPostEvent(GetParent(), eventPerspectivesChanged);
+
+    }
 }

@@ -36,6 +36,7 @@
 							<label>Rename</label>
 							<size>50,20</size>
 							<tooltip>Rename Perspective</tooltip>
+							<handler function="OnButtonRenamePerspectiveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

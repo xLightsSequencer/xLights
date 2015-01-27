@@ -208,6 +208,7 @@ wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 
 
 
@@ -1470,6 +1471,8 @@ protected:
     void UpdateEffect(wxCommandEvent& event);
     void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadPerspective(wxCommandEvent& event);
+    void PerspectivesChanged(wxCommandEvent& event);
+
 
     void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
                        const wxString mediaFile,int sequenceLengthMS);

@@ -863,6 +863,11 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
+{
+    SaveEffectsFile();
+}
+
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 {
