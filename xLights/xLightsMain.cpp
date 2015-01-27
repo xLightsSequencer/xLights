@@ -2410,6 +2410,7 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 break;
             }
             case 't':
+            case 'T':
                 if(mTextEntryContext == TEXT_ENTRY_TIMING)
                 {
                     InsertTimingMarkFromRange();
