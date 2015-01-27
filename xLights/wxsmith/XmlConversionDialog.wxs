@@ -48,6 +48,7 @@
 									<style>wxCB_SORT</style>
 									<handler function="OnChoice_Xml_Settings_FilenameSelect" entry="EVT_CHOICE" />
 								</object>
+								<colspan>2</colspan>
 								<col>1</col>
 								<row>0</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -60,7 +61,7 @@
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnBitmapButton_Change_DirClick" entry="EVT_BUTTON" />
 								</object>
-								<col>2</col>
+								<col>3</col>
 								<row>0</row>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -77,6 +78,70 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_Xml_Seq_Type" variable="StaticText_Xml_Seq_Type" member="yes">
+									<label>Sequence Type:</label>
+								</object>
+								<col>0</col>
+								<row>2</row>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE_Xml_Seq_Type" variable="Choice_Xml_Seq_Type" member="yes">
+									<content>
+										<item>Media</item>
+										<item>Animation</item>
+									</content>
+									<size>125,21</size>
+									<enabled>0</enabled>
+									<handler function="OnChoice_Xml_Seq_TypeSelect" entry="EVT_CHOICE" />
+								</object>
+								<col>1</col>
+								<row>2</row>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+									<cols>3</cols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT_Xml_MediaFile" variable="StaticText_Xml_MediaFile" member="yes">
+											<label>Media:</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Media_File" variable="TextCtrl_Xml_Media_File" member="yes">
+											<size>258,21</size>
+											<enabled>0</enabled>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Xml_Media_File" variable="BitmapButton_Xml_Media_File" member="yes">
+											<bitmap stock_id="wxART_CDROM" stock_client="wxART_BUTTON" />
+											<enabled>0</enabled>
+											<handler function="OnBitmapButton_Xml_Media_FileClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<colspan>4</colspan>
+								<col>0</col>
+								<row>3</row>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
@@ -87,7 +152,7 @@
 							<label>File Information:</label>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-									<cols>4</cols>
+									<cols>5</cols>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_XML_Type_Version" variable="StaticText_XML_Type_Version" member="yes">
 											<label>XML Version:</label>
@@ -104,6 +169,12 @@
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+										<size>40,20</size>
 									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_Num_Models_Label" variable="StaticText_Num_Models_Label" member="yes">
@@ -276,31 +347,16 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_Xml_Total_Length" variable="StaticText_Xml_Total_Length" member="yes">
-											<label>Total Length:</label>
+											<label>Seq. Duration:</label>
 										</object>
 										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Total_Length" variable="TextCtrl_Xml_Total_Length" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Seq_Duration" variable="TextCtrl_Xml_Seq_Duration" member="yes">
 											<size>250,21</size>
-											<handler function="OnTextCtrl_Xml_Total_LengthText" entry="EVT_TEXT" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="spacer">
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_Extract_Song_Info" variable="Button_Extract_Song_Info" member="yes">
-											<label>Extract Song Info from File</label>
-											<enabled>0</enabled>
-											<handler function="OnButton_Extract_Song_InfoClick" entry="EVT_BUTTON" />
+											<handler function="OnTextCtrl_Xml_Seq_DurationText" entry="EVT_TEXT" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -449,7 +505,7 @@
 							<label>Message Log:</label>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Log" variable="TextCtrl_Xml_Log" member="yes">
-									<size>293,238</size>
+									<size>293,320</size>
 									<style>wxTE_MULTILINE|wxTE_READONLY</style>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -462,7 +518,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

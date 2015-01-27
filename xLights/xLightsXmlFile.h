@@ -22,7 +22,9 @@ class xLightsXmlFile : public wxFileName
             ALBUM,
             URL,
             COMMENT,
-            TOTAL_LENGTH,
+            SEQ_TYPE,
+            MEDIA_FILE,
+            SEQ_DURATION,
             NUM_TYPES
         };
         bool Load();
@@ -41,8 +43,12 @@ class xLightsXmlFile : public wxFileName
         bool NeedsConversion() { return needs_conversion; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
         void FixVersionDifferences();
-        double GetTotalLength() { return total_length; }
-        void SetTotalLength(double length);
+        double GetSequenceDuration() { return seq_duration; }
+        void SetSequenceDuration(double length);
+        const wxString GetSequenceType() { return seq_type; }
+        void SetSequenceType( const wxString& type );
+        const wxString GetMediaFile() { return media_file; }
+        void SetMediaFile( const wxString& filename );
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
         void FreeMemory();
     protected:
@@ -62,13 +68,16 @@ class xLightsXmlFile : public wxFileName
         wxString version_string;
         wxString latest_version;
         wxString last_time;
-        double total_length;
+        double seq_duration;
+        wxString media_file;
+        wxString seq_type;
         bool has_audio_media;
 
         void Init();
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
+        void SetNodeContent(wxXmlNode* node, const wxString& content);
         void FreeNode(wxXmlNode* node);
         void StoreEndTime(wxString end_time);
         wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);

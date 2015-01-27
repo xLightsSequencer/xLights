@@ -23,7 +23,7 @@ xLightsXmlFile::~xLightsXmlFile()
 
 void xLightsXmlFile::Init()
 {
-    total_length = 0.0;
+    seq_duration = 0.0;
     has_audio_media = false;
     Clear();
     latest_version = _("4.0.0");
@@ -55,6 +55,56 @@ void xLightsXmlFile::FreeMemory()
     Clear();
     wxXmlNode* root=seqDocument.GetRoot();
     FreeNode(root);
+}
+
+void xLightsXmlFile::SetSequenceType( const wxString& type )
+{
+    seq_type = type;
+    header_info[SEQ_TYPE] = type;
+
+    if( !is_loaded ) // conversion process will take care of writing this info
+        return;
+
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "sequenceType")
+                {
+                    SetNodeContent(element, type);
+                }
+            }
+       }
+    }
+}
+
+void xLightsXmlFile::SetMediaFile( const wxString& filename )
+{
+    media_file = filename;
+    header_info[MEDIA_FILE] = filename;
+
+    if( !is_loaded ) // conversion process will take care of writing this info
+        return;
+
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "mediaFile")
+                {
+                    SetNodeContent(element, filename);
+                }
+            }
+       }
+    }
 }
 
 static wxString SubstituteV3toV4tags(const wxString& effect_string)
@@ -156,7 +206,7 @@ void xLightsXmlFile::Clear()
     timing_list.Clear();
 }
 
-static void SetNodeContent(wxXmlNode* node, const wxString& content)
+void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
 {
     wxXmlNode* element=node->GetChildren();
     if(element != NULL)
@@ -216,13 +266,23 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
                 {
                     SetNodeContent(element, header_info[COMMENT]);
                 }
-                else if( element->GetName() == "total_length")
+                else if( element->GetName() == "sequenceType")
+                {
+                    SetNodeContent(element, header_info[SEQ_TYPE]);
+                    seq_type = header_info[SEQ_TYPE];
+                }
+                else if( element->GetName() == "mediaFile")
+                {
+                    SetNodeContent(element, header_info[MEDIA_FILE]);
+                    media_file = header_info[MEDIA_FILE];
+                }
+                else if( element->GetName() == "sequenceDuration")
                 {
                     // try to correct bad formatted length
-                    header_info[TOTAL_LENGTH].ToDouble(&total_length);
-                    last_time = string_format("%.3f", total_length);
+                    header_info[SEQ_DURATION].ToDouble(&seq_duration);
+                    last_time = string_format("%.3f", seq_duration);
                     SetNodeContent(element, last_time);
-                    header_info[TOTAL_LENGTH] = last_time;
+                    header_info[SEQ_DURATION] = last_time;
                 }
             }
        }
@@ -446,9 +506,19 @@ bool xLightsXmlFile::Load()
                     {
                         header_info[COMMENT] = element->GetNodeContent();
                     }
-                    else if( element->GetName() == "total_length")
+                    else if( element->GetName() == "sequenceType")
                     {
-                        header_info[TOTAL_LENGTH] = element->GetNodeContent();
+                        header_info[SEQ_TYPE] = element->GetNodeContent();
+                        seq_type = header_info[SEQ_TYPE];
+                    }
+                    else if( element->GetName() == "mediaFile")
+                    {
+                        header_info[MEDIA_FILE] = element->GetNodeContent();
+                        media_file = header_info[MEDIA_FILE];
+                    }
+                    else if( element->GetName() == "sequenceDuration")
+                    {
+                        header_info[SEQ_DURATION] = element->GetNodeContent();
                     }
                 }
            }
@@ -500,12 +570,12 @@ void xLightsXmlFile::StoreEndTime(wxString end_time)
     }
 }
 
-void xLightsXmlFile::SetTotalLength(double length)
+void xLightsXmlFile::SetSequenceDuration(double length)
 {
     // try to correct bad formatted length
     last_time = string_format("%.3f", length);
-    total_length = length;
-    header_info[TOTAL_LENGTH] = last_time;
+    seq_duration = length;
+    header_info[SEQ_DURATION] = last_time;
 
     wxXmlNode* root=seqDocument.GetRoot();
 
@@ -515,9 +585,9 @@ void xLightsXmlFile::SetTotalLength(double length)
        {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
-                if( element->GetName() == "total_length")
+                if( element->GetName() == "sequenceDuration")
                 {
-                    SetNodeContent(element, header_info[TOTAL_LENGTH]);
+                    SetNodeContent(element, header_info[SEQ_DURATION]);
                 }
             }
        }
@@ -558,7 +628,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
         AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
-        wxXmlNode* length = AddChildXmlNode(node, wxT("total_length"), header_info[HEADER_INFO_TYPES::TOTAL_LENGTH]);
+        AddChildXmlNode(node, wxT("sequenceType"), header_info[HEADER_INFO_TYPES::SEQ_TYPE]);
+        AddChildXmlNode(node, wxT("mediaFile"), header_info[HEADER_INFO_TYPES::MEDIA_FILE]);
+        wxXmlNode* length = AddChildXmlNode(node, wxT("sequenceDuration"), header_info[HEADER_INFO_TYPES::SEQ_DURATION]);
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
         AddTimingAttributes(node, wxT("Song Timing"), wxT("1"), wxT("1"));
@@ -741,9 +813,9 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
         // store off total length
-        last_time.ToDouble(&total_length);
+        last_time.ToDouble(&seq_duration);
         SetNodeContent(length, last_time);
-        header_info[HEADER_INFO_TYPES::TOTAL_LENGTH] = last_time;
+        header_info[HEADER_INFO_TYPES::SEQ_DURATION] = last_time;
 
         // write converted XML file to xLights directory
         doc->Save(GetFullPath());
