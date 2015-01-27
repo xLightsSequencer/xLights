@@ -78,12 +78,19 @@ void xLightsFrame::CreateSequencer()
     colorPanel = new ColorPanel(PanelSequencer);
     timingPanel = new TimingPanel(PanelSequencer);
 
+    perspectivePanel = new PerspectivesPanel(PanelSequencer);
+
+
+
     EffectIconPanel* effectIconPanel1 = new EffectIconPanel(PanelSequencer);
 
-    m_mgr->AddPane(effectIconPanel1,wxAuiPaneInfo().Name(wxT("EffectIcons1")).Caption(wxT("Effects")).
+    m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).
+                   BestSize(wxSize(175,175)).Left());
+
+    m_mgr->AddPane(effectIconPanel1,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).
                    BestSize(wxSize(150,150)).MinSize(wxSize(150,150)).Left());
 
-    m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effects")).
+    m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).
                    BestSize(wxSize(175,175)).MinSize(wxSize(175,175)).Left());
 
     m_mgr->AddPane(colorPanel,wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).
@@ -102,8 +109,54 @@ void xLightsFrame::InitSequencer()
     {
         return;
     }
+    // Load perspectives
+    CheckForAndCreateDefaultPerpective();
+    perspectivePanel->SetPerspectives(PerspectivesNode);
+
     int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
     LoadSequencer("media",BASEPATH + "v4.xml",BASEPATH + "4.mp3",mediaLengthMS);
+}
+
+void xLightsFrame::CheckForAndCreateDefaultPerpective()
+{
+    wxXmlNode* prospectives = PerspectivesNode->GetChildren();
+    mCurrentPerpective = NULL;
+    if (prospectives==NULL)
+    {
+        if(PerspectivesNode->HasAttribute("current"))
+        {
+            PerspectivesNode->DeleteAttribute("current");
+        }
+        PerspectivesNode->AddAttribute("current","Default Perspective");
+        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        p->AddAttribute("name", "Default Perspective");
+        p->AddAttribute("settings",m_mgr->SavePerspective());
+        PerspectivesNode->AddChild(p);
+        mCurrentPerpective = p;
+        SaveEffectsFile();
+    }
+    else
+    {
+        wxString currentName = PerspectivesNode->GetAttribute("current");
+        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=NULL; p=p->GetNext())
+        {
+            if (p->GetName() == "perspective")
+            {
+                wxString name=p->GetAttribute("name");
+                if (!name.IsEmpty() && currentName == name)
+                {
+                    mCurrentPerpective = p;
+                }
+            }
+        }
+    }
+
+    if(mCurrentPerpective!=NULL)
+    {
+        wxString settings = mCurrentPerpective->GetAttribute("settings");
+        m_mgr->LoadPerspective(settings);
+    }
+
 }
 
 void xLightsFrame::LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
@@ -138,8 +191,8 @@ void xLightsFrame::LoadSequencer(const wxString sequenceType, const wxString seq
         mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
         mainSequencer->PanelWaveForm->Refresh();
         mainSequencer->PanelEffectGrid->Refresh();
-        m_mgr->Update();
         sPreview1->Refresh();
+        m_mgr->Update();
 }
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)
@@ -776,3 +829,34 @@ void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
+
+void xLightsFrame::LoadPerspective(wxCommandEvent& event)
+{
+    wxXmlNode* perspective = (wxXmlNode*)(event.GetClientData());
+    mCurrentPerpective = perspective;
+    wxString settings = perspective->GetAttribute("settings");
+    bool success = m_mgr->LoadPerspective(settings,true);
+    sPreview1->Refresh(false);
+    m_mgr->Update();
+}
+
+void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
+{
+    if(mCurrentPerpective!=NULL)
+    {
+        if(mCurrentPerpective->HasAttribute("settings"))
+        {
+            mCurrentPerpective->DeleteAttribute("settings");
+        }
+        mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
+        SaveEffectsFile();
+    }
+}
+
+
+void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
+{
+}
+
+
+
