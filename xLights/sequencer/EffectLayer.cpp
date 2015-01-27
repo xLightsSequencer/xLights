@@ -201,6 +201,47 @@ int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionT
     return index;
 }
 
+Effect* EffectLayer::GetEffectBeforePosition(int position)
+{
+    int i;
+    for(i=0; i<mEffects.size();i++)
+    {
+        if(mEffects[i].GetStartPosition()>position)
+        {
+            break;
+        }
+    }
+    if(i==0)
+    {
+        return nullptr;
+    }
+    else
+    {
+        return &mEffects[i-1];
+    }
+}
+
+Effect* EffectLayer::GetEffectAfterPosition(int position)
+{
+    int i;
+    for(i=0; i<mEffects.size();i++)
+    {
+        if(mEffects[i].GetEndPosition()<position)
+        {
+            break;
+        }
+    }
+    if(i==mEffects.size()-1)
+    {
+        return nullptr;
+    }
+    else
+    {
+        return &mEffects[i+1];
+    }
+}
+
+
 void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
 {
     bool FirstSelectedFound = false;
@@ -426,6 +467,4 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
             mEffects[i].SetEndTime( mEffects[i].GetEndTime()+ delta);
         }
     }
-
 }
-

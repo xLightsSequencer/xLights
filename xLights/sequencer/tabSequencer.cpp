@@ -2,11 +2,14 @@
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
 #include <wx/filename.h>
+#include <wx/tipwin.h>
 #include "../xLightsMain.h"
 #include "../SequencePreview.h"
 #include "SequenceElements.h"
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
+#include "Element.h"
+#include "Effect.h"
 
 
 #ifdef __WXMSW__
@@ -189,6 +192,8 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
     UpdateEffectGridHorizontalScrollBar();
+    // Set text entry to timing for "T" insertion
+    mTextEntryContext = TEXT_ENTRY_TIMING;
     delete tla;
 }
 
@@ -692,3 +697,65 @@ wxString xLightsFrame::GetEffectTextFromWindows()
     return effectText;
 }
 
+void xLightsFrame::InsertTimingMarkFromRange()
+{
+    int x1,x2;
+    mainSequencer->PanelWaveForm->GetShadedRegion(&x1,&x2);
+    int selectedTiming = mSequenceElements.GetSelectedTimingRow();
+    if(selectedTiming >= 0)
+    {
+        if(x1!=x2)
+        {
+            //Force x1 the smaller of two positions
+            int tmp = x1;
+            x1=x1<x2?x1:x2;
+            x2=tmp<x2?x2:tmp;
+            Element* e = mSequenceElements.GetRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements.GetRowInformation(selectedTiming)->layerIndex);
+            int index,result;
+            if(!el->HitTestEffect(x1,index,result) && !el->HitTestEffect(x2,index,result))
+            {
+                double t1 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x1);
+                double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                wxString name,settings;
+                el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+            else
+            {
+                wxMessageBox("Timing exist already in the selected region","Timing placement error");
+            }
+        }
+        else
+        {
+            // x1 and x2 are the same. Insert from end time of timing to the left to x2
+            Element* e = mSequenceElements.GetRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements.GetRowInformation(selectedTiming)->layerIndex);
+            int index,result;
+            if(!el->HitTestEffect(x2,index,result))
+            {
+                // if there is an effect to left
+                wxString name,settings;
+               Effect* effect = el->GetEffectBeforePosition(x2);
+                if(effect!=nullptr)
+                {
+                    double t1 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(effect->GetEndPosition());
+                    double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                    el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                }
+                // No effect to left start at time = 0
+                else
+                {
+                    double t1 = 0;
+                    double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                    el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                }
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+            else
+            {
+                wxMessageBox("Timing exist already in the selected region","Timing placement error");
+            }
+        }
+    }
+}

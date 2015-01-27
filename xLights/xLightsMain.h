@@ -191,6 +191,9 @@ class EffectTreeDialog;
 #define OVER_R_BOTTOM_HANDLE        4
 #define OVER_ROTATE_HANDLE          5
 
+#define TEXT_ENTRY_TIMING           0
+#define TEXT_ENTRY_EFFECT           1
+
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
@@ -1405,6 +1408,7 @@ protected:
 
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
+    int mTextEntryContext;
 
     MainSequencer* mainSequencer;
     SequencePreview* sPreview1;
@@ -1439,6 +1443,7 @@ protected:
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
     wxString GetEffectTextFromWindows();
+    void InsertTimingMarkFromRange();
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels

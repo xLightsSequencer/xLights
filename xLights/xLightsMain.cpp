@@ -2409,8 +2409,18 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 wxPostEvent(this, eventEffectUpdated);
                 break;
             }
+            case 't':
+                if(mTextEntryContext == TEXT_ENTRY_TIMING)
+                {
+                    InsertTimingMarkFromRange();
+                }
+                else
+                {
+                    retval = false;
+                }
+                break;
             default:
-                retval = false;
+                break;
         }
 
     }
