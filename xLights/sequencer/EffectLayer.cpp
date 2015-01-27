@@ -1,5 +1,6 @@
 #include "EffectLayer.h"
 #include <algorithm>
+#include <vector>
 #include "EffectsGrid.h"
 
 
@@ -467,4 +468,15 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
             mEffects[i].SetEndTime( mEffects[i].GetEndTime()+ delta);
         }
     }
+}
+
+void EffectLayer::DeleteSelectedEffects()
+{
+    mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDelete),mEffects.end());
+}
+
+
+bool EffectLayer::ShouldDelete(Effect eff)
+{
+    return eff.GetSelected() != EFFECT_NOT_SELECTED;
 }

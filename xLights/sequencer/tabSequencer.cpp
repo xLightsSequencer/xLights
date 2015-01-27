@@ -759,3 +759,14 @@ void xLightsFrame::InsertTimingMarkFromRange()
         }
     }
 }
+
+void xLightsFrame::DeleteAllSelectedEffects()
+{
+    for(int i=0;i<mSequenceElements.GetRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements.GetRowInformation(i)->element;
+        EffectLayer* el = element->GetEffectLayer(mSequenceElements.GetRowInformation(i)->layerIndex);
+        el->DeleteSelectedEffects();
+    }
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+}

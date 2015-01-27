@@ -1434,7 +1434,7 @@ protected:
                        const wxString mediaFile,int sequenceLengthMS);
 
 
-
+    void DeleteAllSelectedEffects();
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);

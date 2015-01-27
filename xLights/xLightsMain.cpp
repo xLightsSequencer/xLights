@@ -2419,6 +2419,9 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                     retval = false;
                 }
                 break;
+            case WXK_DELETE:
+                DeleteAllSelectedEffects();
+                break;
             default:
                 break;
         }
