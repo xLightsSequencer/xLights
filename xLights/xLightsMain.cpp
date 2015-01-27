@@ -499,7 +499,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM14, _("Item label"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     AuiToolBarView->AddTool(ID_AUITOOLBARITEM11, _("Item label"), home_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Home"), wxEmptyString, NULL);
     AuiToolBarView->Realize();
-    MainAuiManager->AddPane(AuiToolBarView, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).Layer(10).Top().Gripper());
+    MainAuiManager->AddPane(AuiToolBarView, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     BitmapButtonTabInfo = new wxBitmapButton(OutputToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
     BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
@@ -514,7 +514,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     OutputToolBar->AddControl(ButtonLightsOff, wxEmptyString);
     OutputToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
     OutputToolBar->Realize();
-    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
+    MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(15).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TAB_SPLIT|wxAUI_NB_TAB_MOVE|wxAUI_NB_TAB_EXTERNAL_MOVE|wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxNO_BORDER);
     PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
     FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);

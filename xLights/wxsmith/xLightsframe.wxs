@@ -179,7 +179,9 @@
 				<minimizebutton>0</minimizebutton>
 				<maximizebutton>0</maximizebutton>
 				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
 				<layer>10</layer>
+				<position>12</position>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>
@@ -231,7 +233,7 @@
 				<pinbutton>0</pinbutton>
 				<closebutton>0</closebutton>
 				<layer>10</layer>
-				<position>12</position>
+				<position>15</position>
 				<dockfixed>0</dockfixed>
 				<dockabledirection></dockabledirection>
 				<resizable>0</resizable>
