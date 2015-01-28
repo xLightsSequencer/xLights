@@ -73,6 +73,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
     //wxMenu mnu;
     wxMenu *mnuLayer;
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+    if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
+        return;
+    }
     Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
     if(element->GetType()=="model" || element->GetType()=="view")
     {
