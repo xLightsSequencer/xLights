@@ -87,10 +87,19 @@ Waveform::~Waveform()
     if (tmrScrollRight) delete tmrScrollRight;
 }
 
+void Waveform::CloseMediaFile()
+{
+    mIsInitialized = false;
+    views.clear();
+}
+
+
+
 void Waveform::OnIdle(wxIdleEvent &event)
 {
     // It will only repaint on idle for 5 times
     // mPaintOnIdleCounter is reset to "0".
+    if(!mIsInitialized){return;}
     if(mPaintOnIdleCounter < 5)
     {
         Refresh(false);
@@ -105,6 +114,7 @@ void Waveform::SetTimeline(TimeLine* timeLine)
 
 void Waveform::OnLeftDClick(wxMouseEvent& event)
 {
+    if(!mIsInitialized){return;}
     // Zoom on double click
     wxCommandEvent eventZoom(EVT_ZOOM);
 
@@ -116,6 +126,7 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
 
 void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
 {
+    if(!mIsInitialized){return;}
     wxCommandEvent eventWaveMoved(EVT_WAVE_FORM_MOVED);
     int offset = SetStartPixelOffset(mStartPixelOffset+25);
     eventWaveMoved.SetInt(offset);
@@ -125,6 +136,7 @@ void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
 
 void Waveform::OnWaveScrollRight(wxTimerEvent& event)
 {
+    if(!mIsInitialized){return;}
     wxCommandEvent eventWaveMoved(EVT_WAVE_FORM_MOVED);
     int offset = SetStartPixelOffset(mStartPixelOffset-25);
     eventWaveMoved.SetInt(offset);
@@ -163,7 +175,8 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
 
 void Waveform::mouseMoved( wxMouseEvent& event)
 {
-    if (mIsInitialized && m_dragging)
+    if(!mIsInitialized){return;}
+    if (m_dragging)
     {
         m_shaded_region_x2 = event.GetPosition().x;
 
@@ -200,6 +213,8 @@ void Waveform::StopScrolling()
 
 void Waveform::ScrollWaveLeft(int xBasedSpeed)
 {
+    if(!mIsInitialized){return;}
+
     m_scrolling = true;
     if(tmrScrollLeft->IsRunning())
         tmrScrollLeft->Stop();
@@ -208,6 +223,8 @@ void Waveform::ScrollWaveLeft(int xBasedSpeed)
 
 void Waveform::ScrollWaveRight(int xBasedSpeed)
 {
+    if(!mIsInitialized){return;}
+
     m_scrolling = true;
     if(tmrScrollRight->IsRunning())
         tmrScrollRight->Stop();
@@ -348,8 +365,8 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 
 void Waveform::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized)
-        return;
+    if(!mIsInitialized){return;}
+
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -514,6 +531,8 @@ int Waveform::getHeight()
 
 void Waveform::SetZoomLevel(int level)
 {
+    if(!mIsInitialized){return;}
+
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel = level;
     for(int i=0;i<views.size();i++)

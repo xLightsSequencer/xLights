@@ -175,14 +175,22 @@ void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
         mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
         bool success = mSequenceElements.LoadSequencerFile(xml_file);
 
+        mMediaLengthMS = (int)(xml_file.GetSequenceDuration()*1000);
+
+        mainSequencer->PanelWaveForm->CloseMediaFile();
         if(xml_file.GetSequenceType()=="Media")
         {
-            mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
+            int musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
+            if(musicLength <=0)
+            {
+                wxMessageBox("Invalid Media File");
+            }
             mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
-            mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
-            PlayerDlg->MediaCtrl->Load(xml_file.GetMediaFile());
         }
 
+        wxString s = wxString::Format("Length=%d",mMediaLengthMS);
+        wxMessageBox(s);
+        mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
         mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
         mainSequencer->PanelTimeLine->Initialize();
         mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);

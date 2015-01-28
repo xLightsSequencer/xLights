@@ -28,6 +28,7 @@ class Waveform : public wxGLCanvas
         static int GetTrackSize(mpg123_handle *mh,int bits, int channels);
 
         int OpenfileMediaFile(const char* filename);
+        void CloseMediaFile();
         void SetCanvasSize(int width,int height);
 
         void SetZoomLevel(int level);
