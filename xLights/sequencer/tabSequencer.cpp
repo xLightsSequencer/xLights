@@ -428,6 +428,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
        mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
                                    mSequenceElements.GetSelectedRange(i)->StartTime,
                                    mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
+        
+        
+        playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
+        playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
+        playStartMS = -1;
+        RenderEffectForModel(mSequenceElements.GetSelectedRange(i)->Layer->GetParentElement()->GetName(),playStartTime,playEndTime);
+
     }
 
     mainSequencer->PanelEffectGrid->Refresh(false);
@@ -469,6 +476,12 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     el->GetEffect(j)->SetSettings(effectText);
                     el->GetEffect(j)->SetEffectIndex(effectIndex);
                     el->GetEffect(j)->SetEffectName(effectName);
+                    
+                    playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
+                    playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
+                    playStartMS = -1;
+                    RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
+
                 }
             }
         }

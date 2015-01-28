@@ -1030,6 +1030,9 @@ void EffectsGrid::RaiseEffectDropped(int x, int y)
 {
     //Store Effect Layer to add effect to
     int row = GetRow(y);
+    if (row >= mSequenceElements->GetRowInformationSize()) {
+        return;
+    }
     Element* e = mSequenceElements->GetRowInformation(row)->element;
     EffectLayer* effectLayer = e->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
 
