@@ -47,6 +47,7 @@ class SequenceElements
         Element* GetElement(const wxString &name);
         Row_Information_Struct* GetRowInformation(int index);
         int GetRowInformationSize();
+        void DeleteElement(wxString name);
 
         // Selected Ranges
         int GetSelectedRangeCount();

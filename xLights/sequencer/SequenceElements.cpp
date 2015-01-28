@@ -70,6 +70,16 @@ Element* SequenceElements::GetElement(const wxString &name)
     return NULL;
 }
 
+void SequenceElements::DeleteElement(wxString name)
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(name == mElements[i].GetName())
+        {
+            mElements.erase(mElements.begin()+i);
+        }
+    }
+}
 
 Row_Information_Struct* SequenceElements::GetRowInformation(int index)
 {

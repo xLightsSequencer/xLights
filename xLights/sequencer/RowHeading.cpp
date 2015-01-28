@@ -23,6 +23,10 @@ END_EVENT_TABLE()
 const long RowHeading::ID_ROW_MNU_ADD_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
+// Timing Track popup menu
+const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 
 
 RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
@@ -70,12 +74,12 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 void RowHeading::rightClick( wxMouseEvent& event)
 {
-    //wxMenu mnu;
-    wxMenu *mnuLayer;
-    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
         return;
     }
+    wxMenu *mnuLayer;
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
+
     Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
     if(element->GetType()=="model" || element->GetType()=="view")
     {
@@ -88,18 +92,28 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
         PopupMenu(mnuLayer);
     }
+    else
+    {
+        mnuLayer = new wxMenu();
+        mnuLayer->Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
+        mnuLayer->Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
+        mnuLayer->Append(ID_ROW_MNU_IMPORT_TIMING_TRACK,"Import Timing Track");
+        mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
+        PopupMenu(mnuLayer);
+    }
 }
 
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
     Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
-    if (event.GetId() == ID_ROW_MNU_ADD_LAYER)
+    int id = event.GetId();
+    if(id == ID_ROW_MNU_ADD_LAYER)
     {
         element->AddEffectLayer();
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
-    else if (event.GetId() == ID_ROW_MNU_DELETE_LAYER)
+    else if(id == ID_ROW_MNU_DELETE_LAYER)
     {
         int layerIndex = mSequenceElements->GetRowInformation(mSelectedRow)->layerIndex;
         wxString prompt = wxString::Format("Delete 'Layer %d' of '%s'?",
@@ -114,10 +128,29 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     }
+    else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
+    {
+    }
+    else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)
+    {
+        wxString prompt = wxString::Format("Delete 'Timing Track '%s'?",element->GetName());
+        wxString caption = "Comfirm Timing Track Deletion";
+
+        int answer = wxMessageBox(prompt,caption,wxYES_NO);
+        if(answer == wxYES)
+        {
+            mSequenceElements->DeleteElement(element->GetName());
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
+    else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK)
+    {
+    }
+
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
-
 }
 
 
