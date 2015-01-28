@@ -48,6 +48,7 @@ class EffectLayer
 
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
+        void SelectEffectsInTimeRange(double startTime,int endTime);
         void UnSelectAllEffects();
 
         Element* GetParentElement();
@@ -55,7 +56,7 @@ class EffectLayer
         int GetSelectedEffectCount();
         void MoveAllSelectedEffects(double delta);
         void DeleteSelectedEffects();
-        static bool ShouldDelete(Effect eff);
+        static bool ShouldDeleteSelected(Effect eff);
     protected:
     private:
 

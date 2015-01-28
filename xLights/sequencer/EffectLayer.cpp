@@ -328,6 +328,23 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
     }
 }
 
+void EffectLayer::SelectEffectsInTimeRange(double startTime,int endTime)
+{
+    for(int i=0;i<mEffects.size();i++)
+    {
+        if(mEffects[i].GetStartTime() >= startTime &&  mEffects[i].GetStartTime() < endTime)
+        {
+            mEffects[i].SetSelected(EFFECT_SELECTED);
+        }
+
+        if(mEffects[i].GetEndTime() <= endTime &&  mEffects[i].GetEndTime() > startTime)
+        {
+            mEffects[i].SetSelected(EFFECT_SELECTED);
+        }
+    }
+}
+
+
 void EffectLayer::UnSelectAllEffects()
 {
     for(int i=0;i<mEffects.size();i++)
@@ -472,11 +489,10 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
 
 void EffectLayer::DeleteSelectedEffects()
 {
-    mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDelete),mEffects.end());
+    mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
 }
 
-
-bool EffectLayer::ShouldDelete(Effect eff)
+bool EffectLayer::ShouldDeleteSelected(Effect eff)
 {
     return eff.GetSelected() != EFFECT_NOT_SELECTED;
 }

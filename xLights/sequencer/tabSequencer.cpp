@@ -188,8 +188,9 @@ void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
             mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
         }
 
-        wxString s = wxString::Format("Length=%d",mMediaLengthMS);
-        wxMessageBox(s);
+//        wxString s = wxString::Format("Length=%d",mMediaLengthMS);
+//        wxMessageBox(s);
+        //mainSequencer->PanelTimeLine->SetTimeLength(230000);
         mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
         mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
         mainSequencer->PanelTimeLine->Initialize();
@@ -435,16 +436,20 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString settings = GetEffectTextFromWindows();
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
-       mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
-                                   mSequenceElements.GetSelectedRange(i)->StartTime,
-                                   mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
-
+        EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        // Delete Effects that are in same time range as dropped effect
+        el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
+                                     mSequenceElements.GetSelectedRange(i)->EndTime);
+        el->DeleteSelectedEffects();
+        // Add dropped effect
+        el->AddEffect(0,effectIndex,name,settings,
+                      mSequenceElements.GetSelectedRange(i)->StartTime,
+                      mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
 
         playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
         playStartMS = -1;
-        RenderEffectForModel(mSequenceElements.GetSelectedRange(i)->Layer->GetParentElement()->GetName(),playStartTime,playEndTime);
-
+        RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
     }
 
     mainSequencer->PanelEffectGrid->Refresh(false);
