@@ -643,13 +643,13 @@ bool XmlConversionDialog::ExtractMetaTagsFromMP3(wxString filename)
 
             if( v2 != NULL ) // "ID3V2 tag found"
             {
-                title = v2->title->p;
-                artist = v2->artist->p;
-                album = v2->album->p;
+                title = v2->title == NULL ? "" : v2->title->p;
+                artist = v2->artist == NULL ? "" : v2->artist->p;
+                album = v2->album == NULL ? "" : v2->album->p;
                 modified = true;
             }
 
-            else if( v1 != NULL ) // "ID3V2 tag found"
+            else if( v1 != NULL ) // "ID3V1 tag found"
             {
                 title = v1->title[0];
                 artist = v1->artist[0];

@@ -26,6 +26,10 @@ class JobPool
     wxCondition signal;
     std::vector<JobPoolWorker*> threads;
     std::deque<Job*> queue;
+    int numThreads;
+    int maxNumThreads;
+    int threadPriority;
+    volatile int idleThreads;
     
 public:
     JobPool();

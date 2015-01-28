@@ -37,10 +37,12 @@ public:
         : Job(), rowToRender(row), nextLock(), nextSignal(nextLock), seqData(data), xLights(xframe) {
         previousFrameDone = -1;
         if (row != NULL) {
+            name = row->GetName();
             buffer = new PixelBufferClass();
             buffer->InitBuffer(modelNode, rowToRender->GetEffectLayerCount(), seqData.FrameTime(), false);
         } else {
             buffer = NULL;
+            name = "";
         }
         startFrame = 0;
         next = NULL;
@@ -66,6 +68,8 @@ public:
     }
     
     virtual void Process() {
+        //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
+
         int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
@@ -120,6 +124,7 @@ public:
             next->setPreviousFrameDone(endFrame);
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
         }
+        //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
     void waitForFrame(int frame) {
         wxMutexLocker lock(nextLock);
@@ -144,7 +149,7 @@ private:
         updateFitToTimeFromMap(layer, settingsMap);
         
         if (el != NULL) {
-            buffer->SetTimes(layer, el->GetStartTime(), el->GetEndTime());
+            buffer->SetTimes(layer, el->GetStartTime() * 1000, el->GetEndTime() * 1000);
         }
 
         int freq=wxAtoi(settingsMap["SLIDER_SparkleFrequency"]);
@@ -222,7 +227,7 @@ private:
     
     Element *rowToRender;
     volatile long previousFrameDone;
-    
+    wxString name;
     int startFrame;
     int endFrame;
     PixelBufferClass *buffer;
@@ -248,27 +253,29 @@ void xLightsFrame::RenderGridToSeqData() {
     RenderJob **jobs = new RenderJob*[numRows];
     RenderJob wait(NULL, NULL, SeqData, this);
     RenderJob *last = NULL;
+    Element *lastRowEl = NULL;
+    int count = 0;
     for (int row = 0; row < mSequenceElements.GetRowInformationSize(); row++) {
         Row_Information_Struct* rowInfo = mSequenceElements.GetRowInformation(row);
         Element *rowEl = rowInfo->element;
-        if (rowEl->GetType() == "model") {
+        if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
+            lastRowEl = rowEl;
             wxXmlNode *modelNode = GetModelNode(rowEl->GetName());
-            jobs[row] = new RenderJob(rowEl, modelNode, SeqData, this);
-            jobs[row]->setRenderRange(0, SeqData.NumFrames());
+            jobs[count] = new RenderJob(rowEl, modelNode, SeqData, this);
+            jobs[count]->setRenderRange(0, SeqData.NumFrames());
             if (last == NULL) {
-                jobs[row]->setPreviousFrameDone(SeqData.NumFrames() + 1);
+                jobs[count]->setPreviousFrameDone(SeqData.NumFrames() + 1);
             } else {
-                last->setNext(jobs[row]);
+                last->setNext(jobs[count]);
             }
-            last = jobs[row];
-        } else {
-            jobs[row] = NULL;
+            last = jobs[count];
+            count++;
         }
     }
     if (last) {
         last->setNext(&wait);
     }
-    for (int row = 0; row < numRows; row++) {
+    for (int row = 0; row < count; row++) {
         if (jobs[row]) {
             jobPool.PushJob(jobs[row]);
         }

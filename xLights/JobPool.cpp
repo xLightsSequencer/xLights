@@ -10,10 +10,11 @@ class JobPoolWorker : public wxThread
 {
     wxMutex *lock;
     wxCondition *signal;
+    volatile int &idleThreads;
     std::deque<Job*> *queue;
     
 public:
-    JobPoolWorker(wxMutex *l, wxCondition *signal, std::deque<Job*> *queue);
+    JobPoolWorker(wxMutex *l, wxCondition *signal, std::deque<Job*> *queue, volatile int &idleThreadPtr);
     virtual ~JobPoolWorker();
     
     void Stop();
@@ -25,8 +26,8 @@ public:
     virtual void ProcessJob(Job *job);
 };
 
-JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue)
+JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue, volatile int &idleThreadPtr)
+: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr)
 {
 }
 
@@ -56,7 +57,9 @@ Job *JobPoolWorker::GetJob()
     wxMutexLocker mutLock(*lock);
     Job *req(NULL);
     if (queue->empty()) {
+        idleThreads++;
         signal->WaitTimeout(100);
+        idleThreads--;
     }
     if ( !queue->empty() ) {
         req = queue->front();
@@ -92,6 +95,9 @@ void JobPoolWorker::ProcessJob(Job *job)
 
 JobPool::JobPool() : lock(), signal(lock), queue()
 {
+    idleThreads = 0;
+    numThreads = 0;
+    maxNumThreads = 8;
 }
 
 JobPool::~JobPool()
@@ -109,19 +115,23 @@ JobPool::~JobPool()
 void JobPool::PushJob(Job *job)
 {
     wxMutexLocker locker(lock);
+    if (idleThreads == 0 && numThreads < maxNumThreads) {
+        numThreads++;
+        
+        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads);
+        worker->Start(threadPriority);
+        threads.push_back(worker);
+    }
     queue.push_back(job);
     signal.Broadcast();
 }
 
 void JobPool::Start(size_t poolSize, int priority)
 {
-    size_t maxPoolSize = poolSize > 250 ? 250 : poolSize;
-    for(size_t i=0; i<maxPoolSize; i++) {
-        //create new thread
-        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue);
-        worker->Start(priority);
-        threads.push_back(worker);
-    }
+    maxNumThreads = poolSize > 250 ? 250 : poolSize;
+    threadPriority = priority;
+    idleThreads = 0;
+    numThreads = 0;
 }
 
 void JobPool::Stop()

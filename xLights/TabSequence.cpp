@@ -119,19 +119,13 @@ void xLightsFrame::OpenSequence()
         SeqData.init(NetInfo.GetTotChannels(), 0, ms);
 
         if (!SeqLoadXlightsFile(dialog.ChoiceSeqXMLFiles->GetStringSelection(), true)) {
-            StatusBar1->SetStatusText(wxString::Format(_("Failed to load: '%s'."), dialog.ChoiceSeqBinaryFiles->GetStringSelection()));
+            StatusBar1->SetStatusText(wxString::Format(_("Failed to load: '%s'."), filename));
             return;
         }
-        int len = 0;
-        if (mediaFilename.IsEmpty()) {
-            //FIXME - prompt for media name
-        } else {
-            //FIXME - calc length from media
-        }
-        SeqData.init(NetInfo.GetTotChannels(), len, ms);
+        SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);
         Timer1.Start(SeqData.FrameTime());
         float elapsedTime = sw.Time()/1000.0; //msec => sec
-        StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), dialog.ChoiceSeqBinaryFiles->GetStringSelection(), elapsedTime));
+        StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
     }
 }
 
@@ -336,6 +330,7 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
     if (xml_file.NeedsConversion())
     {
         XmlConversionDialog dialog(this, &xml_file);
+        dialog.SetMP3File(mediaFilename);
         dialog.Fit();
         if (dialog.ShowModal() != wxOK)
         {
