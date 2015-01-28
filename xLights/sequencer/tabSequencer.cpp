@@ -411,7 +411,8 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
         Effect* effect = (Effect*)event.GetClientData();
         SetEffectControls(effect->GetEffectName(),effect->GetSettings());
     }
-    effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection()));
+    wxString tooltip;
+    effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
     effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
 }
 
@@ -638,106 +639,137 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
     ResetEffectStates(playResetEffectState);
 }
 
-const char** xLightsFrame::GetIconBuffer(int effectID)
+const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
 {
     const char** p_XPM;
     switch(effectID)
     {
         case xLightsFrame::RGB_EFFECTS_e::eff_OFF:
             p_XPM = Off;
+            toolTip = "Off";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_ON:
             p_XPM = On;
+            toolTip = "On";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
             p_XPM = bars;
+            toolTip = "Bars";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY:
             p_XPM = butterfly;
+            toolTip = "Butterfly";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
             p_XPM = circles;
+            toolTip = "Circles";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
             p_XPM = ColorWash;
+            toolTip = "ColorWash";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_COROFACES:
             p_XPM = corofaces;
+            toolTip = "Coro Faces";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
             p_XPM = curtain;
+            toolTip = "Curtain";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
             p_XPM = faces;
+            toolTip = "Matrix Faces";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
             p_XPM = fire;
+            toolTip = "Fire";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS:
             p_XPM = fireworks;
+            toolTip = "Fireworks";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS:
             p_XPM = garlands;
+            toolTip = "Garlands";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR:
             p_XPM = glediator;
+            toolTip = "Glediator";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_LIFE:
             p_XPM = life;
+            toolTip = "Life";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_METEORS:
             p_XPM = meteors;
+            toolTip = "Meteors";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PIANO:
+//~ Fix this missing "piano" xpm
             p_XPM = pinwheel;
+            toolTip = "Piano";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
 //~ Fix this missing "pictures" xpm
             p_XPM = Off;
+            toolTip = "Pictures";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
             p_XPM = pinwheel;
+            toolTip = "Pinwheel";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE:
             p_XPM = ripple;
+            toolTip = "Ripple";
             break;
 //~ Fix this missing "shimmer" xpm
         case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
             p_XPM = Off;
+            toolTip = "Shimmer";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND:
             p_XPM = singleStrand;
+            toolTip = "Single Strand";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES:
             p_XPM = snowflakes;
+            toolTip = "Snow Flakes";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM:
             p_XPM = snowstorm;
+            toolTip = "Snow Storm";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
             p_XPM = spirals;
+            toolTip = "Spirals";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
             p_XPM = spirograph;
+            toolTip = "Spirograph";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
-  //         p_XPM = Off;
-          p_XPM = strobe;
+            p_XPM = strobe;
+            toolTip = "Strobe";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
             p_XPM = text;
+            toolTip = "Text";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
             p_XPM = tree;
+            toolTip = "Tree";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
             p_XPM = twinkle;
+            toolTip = "Twinkle";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_WAVE:
             p_XPM = wave;
+            toolTip = "Wave";
             break;
         default:
             p_XPM = Off;
+            toolTip = "Off";
             break;
     }
     return p_XPM;

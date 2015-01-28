@@ -155,6 +155,9 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
+    if (mSequenceElements == NULL) {
+        return;
+    }
     int FirstSelected;
     if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
     {
@@ -848,7 +851,8 @@ void EffectsGrid::CreateEffectIconTextures()
     const char** p_XPM;
     for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
-        p_XPM = xLightsFrame::GetIconBuffer(effectID);
+        wxString tooltip;
+        p_XPM = xLightsFrame::GetIconBuffer(effectID, tooltip);
         CreateOrUpdateTexture((char**)p_XPM,&m_EffectTextures[effectID]);
     }
 }

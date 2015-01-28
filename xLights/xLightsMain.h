@@ -333,7 +333,7 @@ public:
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
-    static const char** GetIconBuffer(int effectID);
+    static const char** GetIconBuffer(int effectID, wxString &toolTip);
 
 
      enum RGB_EFFECTS_e

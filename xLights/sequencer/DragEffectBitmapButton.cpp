@@ -15,7 +15,9 @@ DragEffectBitmapButton::~DragEffectBitmapButton()
 
 void DragEffectBitmapButton::SetEffectIndex(int index)
 {
-    SetBitmap(xLightsFrame::GetIconBuffer(index));
+    wxString tooltip;
+    SetBitmap(xLightsFrame::GetIconBuffer(index, tooltip));
+    SetToolTip(tooltip);
     mEffectIndex = index;
 }
 
