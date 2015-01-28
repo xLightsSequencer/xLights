@@ -116,7 +116,11 @@ void xLightsFrame::InitSequencer()
 
     if (wxFile::Exists(BASEPATH + "4.mp3")) {
         int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
-        LoadSequencer("media",BASEPATH + "v4.xml",BASEPATH + "4.mp3",mediaLengthMS);
+        xLightsXmlFile xml_file(BASEPATH + "v4.xml");
+        xml_file.SetSequenceType(wxT("Media"));
+        xml_file.SetSequenceDurationMS(mediaLengthMS);
+        xml_file.SetMediaFile(BASEPATH + "4.mp3");
+        LoadSequencer(xml_file);
     }
 }
 
@@ -163,22 +167,18 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 
 }
 
-void xLightsFrame::LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
-                                 const wxString mediaFile,int sequenceLengthMS)
+void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
 {
         mSequencerInitialize = true;
         mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-        wxFileName filename(sequenceFile);
-        xLightsXmlFile default_xml(filename);
-        default_xml.Load();
-        bool success = mSequenceElements.LoadSequencerFile(default_xml);
+        bool success = mSequenceElements.LoadSequencerFile(xml_file);
 
-        if(sequenceType=="media")
+        if(xml_file.GetSequenceType()=="Media")
         {
-            mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(mediaFile);
+            mMediaLengthMS = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
             mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
             mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
-            PlayerDlg->MediaCtrl->Load(mediaFile);
+            PlayerDlg->MediaCtrl->Load(xml_file.GetMediaFile());
         }
 
         mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);

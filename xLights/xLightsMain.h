@@ -1545,7 +1545,7 @@ protected:
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
 
-
+    void LoadSequencer(const xLightsXmlFile& xml_file);
     void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
                        const wxString mediaFile,int sequenceLengthMS);
 

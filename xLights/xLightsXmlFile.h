@@ -43,11 +43,13 @@ class xLightsXmlFile : public wxFileName
         bool NeedsConversion() { return needs_conversion; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
         void FixVersionDifferences();
-        double GetSequenceDuration() { return seq_duration; }
+        int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
+        double GetSequenceDuration() const { return seq_duration; }
+        void SetSequenceDurationMS(int length);
         void SetSequenceDuration(double length);
-        const wxString GetSequenceType() { return seq_type; }
+        const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
-        const wxString GetMediaFile() { return media_file; }
+        const wxString GetMediaFile() const { return media_file; }
         void SetMediaFile( const wxString& filename );
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
         void FreeMemory();

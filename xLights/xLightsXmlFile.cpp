@@ -570,6 +570,11 @@ void xLightsXmlFile::StoreEndTime(wxString end_time)
     }
 }
 
+void xLightsXmlFile::SetSequenceDurationMS(int length)
+{
+    SetSequenceDuration(length / 1000.0f);
+}
+
 void xLightsXmlFile::SetSequenceDuration(double length)
 {
     // try to correct bad formatted length
