@@ -349,12 +349,11 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
 
     if( xml_file.IsLoaded() )
     {
-        loaded = true;
-        mSequenceElements.SetViewsNode(ViewsNode);
-        mSequenceElements.SetFrequency(1000 / SeqData.FrameTime());
+        //mSequenceElements.SetViewsNode(ViewsNode);
+        //mSequenceElements.SetFrequency(1000 / SeqData.FrameTime());
         LoadSequencer(xml_file);
         //loaded = mSequenceElements.LoadSequencerFile(xml_file);
-
+        loaded = true;
     }
     return loaded;
 }

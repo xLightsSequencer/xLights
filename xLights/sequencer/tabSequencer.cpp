@@ -117,9 +117,11 @@ void xLightsFrame::InitSequencer()
     if (wxFile::Exists(BASEPATH + "4.mp3")) {
         int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
         xLightsXmlFile xml_file(BASEPATH + "v4.xml");
+        xml_file.Load();
         xml_file.SetSequenceType(wxT("Media"));
         xml_file.SetSequenceDurationMS(mediaLengthMS);
         xml_file.SetMediaFile(BASEPATH + "4.mp3");
+        xml_file.Save();
         LoadSequencer(xml_file);
     }
 }
@@ -428,8 +430,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
        mSequenceElements.GetSelectedRange(i)->Layer->AddEffect(0,effectIndex,name,settings,
                                    mSequenceElements.GetSelectedRange(i)->StartTime,
                                    mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
-        
-        
+
+
         playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
         playStartMS = -1;
@@ -476,7 +478,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     el->GetEffect(j)->SetSettings(effectText);
                     el->GetEffect(j)->SetEffectIndex(effectIndex);
                     el->GetEffect(j)->SetEffectName(effectName);
-                    
+
                     playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
                     playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
                     playStartMS = -1;

@@ -59,6 +59,7 @@ void xLightsXmlFile::FreeMemory()
 
 void xLightsXmlFile::SetSequenceType( const wxString& type )
 {
+    bool found = false;
     seq_type = type;
     header_info[SEQ_TYPE] = type;
 
@@ -66,24 +67,32 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
         return;
 
     wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
+            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
                 if( element->GetName() == "sequenceType")
                 {
                     SetNodeContent(element, type);
+                    found = true;
                 }
             }
        }
+    }
+    if( !found )
+    {
+        AddChildXmlNode(head, wxT("sequenceType"), header_info[HEADER_INFO_TYPES::SEQ_TYPE]);
     }
 }
 
 void xLightsXmlFile::SetMediaFile( const wxString& filename )
 {
+    bool found = false;
     media_file = filename;
     header_info[MEDIA_FILE] = filename;
 
@@ -91,19 +100,26 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
         return;
 
     wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
+            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
                 if( element->GetName() == "mediaFile")
                 {
                     SetNodeContent(element, filename);
+                    found = true;
                 }
             }
        }
+    }
+    if( !found )
+    {
+        AddChildXmlNode(head, wxT("mediaFile"), header_info[HEADER_INFO_TYPES::MEDIA_FILE]);
     }
 }
 
@@ -577,25 +593,33 @@ void xLightsXmlFile::SetSequenceDurationMS(int length)
 
 void xLightsXmlFile::SetSequenceDuration(double length)
 {
+    bool found = false;
     // try to correct bad formatted length
     last_time = string_format("%.3f", length);
     seq_duration = length;
     header_info[SEQ_DURATION] = last_time;
 
     wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "head")
        {
+            head = e;
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
                 if( element->GetName() == "sequenceDuration")
                 {
                     SetNodeContent(element, header_info[SEQ_DURATION]);
+                    found = true;
                 }
             }
        }
+    }
+    if( !found )
+    {
+        wxXmlNode* length = AddChildXmlNode(head, wxT("sequenceDuration"), header_info[SEQ_DURATION]);
     }
 }
 

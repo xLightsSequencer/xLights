@@ -433,6 +433,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
     TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_DURATION));
     PopulateSongTimings();
     SetWindowState(true);
+    ProcessSequenceType();
     Button_Xml_Settings_Save->Enable(false);
     Button_Xml_Settings_Save->SetLabel(_("Save"));
     SetSelectionToXMLFile();
