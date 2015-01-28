@@ -180,10 +180,15 @@ void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
         mainSequencer->PanelWaveForm->CloseMediaFile();
         if(xml_file.GetSequenceType()=="Media")
         {
+            mediaFilename = xml_file.GetMediaFile();
+            PlayerDlg->Load(mediaFilename);
             int musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
             if(musicLength <=0)
             {
                 wxMessageBox("Invalid Media File");
+            }
+            if (mMediaLengthMS == 0) {
+                mMediaLengthMS = musicLength;
             }
             mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
         }
