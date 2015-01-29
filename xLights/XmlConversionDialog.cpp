@@ -270,6 +270,7 @@ XmlConversionDialog::~XmlConversionDialog()
 void XmlConversionDialog::SetMP3File(wxString mp3_file)
 {
     ExtractMetaTagsFromMP3(mp3_file);
+    TextCtrl_Xml_Media_File->SetValue(mp3_file);
 }
 
 void XmlConversionDialog::PopulateFiles()
