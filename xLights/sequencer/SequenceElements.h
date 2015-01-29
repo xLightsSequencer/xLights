@@ -43,7 +43,7 @@ class SequenceElements
         virtual ~SequenceElements();
         bool LoadSequencerFile(xLightsXmlFile xml_file);
         bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
-        void AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active);
+        void AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const wxString &name);
         Element* GetElement(int index);
         int GetElementCount();
@@ -73,6 +73,7 @@ class SequenceElements
         void SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected);
         Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
+        void UnSelectAllElements();
     protected:
     private:
     std::vector<Element> mElements;

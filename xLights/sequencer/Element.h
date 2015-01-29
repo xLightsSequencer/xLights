@@ -17,7 +17,7 @@ enum ElementType
 class Element
 {
     public:
-        Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active);
+        Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected);
         virtual ~Element();
 
         wxString GetName();
@@ -31,6 +31,10 @@ class Element
 
         bool GetActive();
         void SetActive(bool active);
+
+        bool GetSelected();
+        void SetSelected(bool selected);
+
 
         wxString GetType();
         void SetType(wxString &type);
@@ -54,6 +58,7 @@ class Element
         bool mVisible;
         bool mCollapsed;
         bool mActive;
+        bool mSelected;
         std::vector<EffectLayer> mEffectLayers;
 
 };

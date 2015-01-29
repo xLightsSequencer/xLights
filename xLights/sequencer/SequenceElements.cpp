@@ -18,11 +18,11 @@ SequenceElements::~SequenceElements()
 }
 
 
-void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active)
+void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
 {
     if(!ElementExists(name))
     {
-        Element e(name,type,visible,collapsed,active);
+        Element e(name,type,visible,collapsed,active,selected);
         mElements.push_back(e);
     }
 }
@@ -161,6 +161,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
                 bool active=false;
+                bool selected=false;
                 bool collapsed=false;
                 wxString name = element->GetAttribute("name");
                 wxString type = element->GetAttribute("type");
@@ -174,7 +175,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
-                AddElement(name,type,visible,collapsed,active);
+                AddElement(name,type,visible,collapsed,active,selected);
                 // Add models for each view
                 if(type=="view")
                 {
@@ -186,7 +187,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
                         {
                            wxString modelName =  model[m];
                            wxString elementType = "model";
-                           AddElement(modelName,elementType,false,false,false);
+                           AddElement(modelName,elementType,false,false,false,false);
                         }
                     }
                 }
@@ -434,6 +435,14 @@ void SequenceElements::UnSelectAllEffects()
     {
         EffectLayer* effectLayer = mRowInformation[i].element->GetEffectLayer(mRowInformation[i].layerIndex);
         effectLayer->UnSelectAllEffects();
+    }
+}
+
+void SequenceElements::UnSelectAllElements()
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        mElements[i].SetSelected(false);
     }
 }
 

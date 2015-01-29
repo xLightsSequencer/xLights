@@ -42,6 +42,7 @@ class RowHeading : public wxWindow
         const wxColour * mHeaderColorModel;
         const wxColour * mHeaderColorView;
         const wxColour * mHeaderColorTiming;
+        const wxColour * mHeaderSelectedColor;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;

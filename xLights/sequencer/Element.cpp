@@ -1,6 +1,6 @@
 #include "Element.h"
 
-Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active)
+Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
 :mEffectLayers()
 {
     mName = name;
@@ -8,7 +8,7 @@ Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, boo
     mVisible = visible;
     mCollapsed = collapsed;
     mActive = active;
-
+    mSelected = selected;
 }
 
 Element::~Element()
@@ -50,6 +50,17 @@ bool Element::GetActive()
 {
     return mActive;
 }
+
+void Element::SetSelected(bool active)
+{
+    mSelected = active;
+}
+
+bool Element::GetSelected()
+{
+    return mSelected;
+}
+
 
 void Element::SetCollapsed(bool collapsed)
 {

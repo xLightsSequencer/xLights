@@ -34,9 +34,10 @@ RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &p
                        wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     DOUBLE_BUFFER(this);
-    mHeaderColorModel = new wxColour(212,208,200);
-    mHeaderColorView = new wxColour(159,157,152);
-    mHeaderColorTiming = new wxColour(130,178,207);
+    mHeaderColorModel = new wxColour(212,208,200,30);
+    mHeaderColorView = new wxColour(159,157,152,30);
+    mHeaderColorTiming = new wxColour(130,178,207,30);
+    mHeaderSelectedColor = new wxColour(130,178,207,30);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
 
 }
@@ -51,9 +52,15 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
     if(rowIndex < mSequenceElements->GetRowInformationSize())
     {
         bool result;
+        Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
+        if(e->GetType()=="model")
+        {
+            mSequenceElements->UnSelectAllElements();
+            e->SetSelected(true);
+            Refresh(false);
+        }
         if(HitTestCollapseExpand(rowIndex,event.GetX(),&result))
         {
-            Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
             e->SetCollapsed(!result);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -61,7 +68,6 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         else if(HitTestTimingActive(rowIndex,event.GetX(),&result))
         {
             mSequenceElements->DeactivateAllTimingElements();
-            Element* e = mSequenceElements->GetRowInformation(rowIndex)->element;
             e->SetActive(!result);
             // Set the selected timing row.
             int selectedTimingRow = result?rowIndex:-1;
@@ -210,6 +216,7 @@ void RowHeading::render( wxPaintEvent& event )
         dc.SetBrush(brush);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
+        dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
         if(mSequenceElements->GetRowInformation(i)->layerIndex>0)   // If effect layer = 0
         {
@@ -283,6 +290,8 @@ void RowHeading::render( wxPaintEvent& event )
         }
         row++;
     }
+    wxBrush b(*mHeaderColorModel,wxBRUSHSTYLE_SOLID);
+    dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
 
 }
@@ -297,7 +306,14 @@ const wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
         }
         else
         {
-            return mHeaderColorModel;
+            if (info->element->GetSelected())
+            {
+                return  mHeaderSelectedColor;
+            }
+            else
+            {
+                return mHeaderColorModel;
+            }
         }
     }
     else if (info->element->GetType() == "view")
