@@ -22,6 +22,9 @@ class SeqSettingsDialog: public wxDialog
 
 		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_);
 		virtual ~SeqSettingsDialog();
+    
+        void SetMediaFilename(const wxString &filename);
+    
 
 		//(*Declarations(SeqSettingsDialog)
 		wxStaticText* StaticText_Xml_Author_Email;

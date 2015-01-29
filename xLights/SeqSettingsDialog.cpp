@@ -253,6 +253,18 @@ SeqSettingsDialog::~SeqSettingsDialog()
 	//*)
 }
 
+void SeqSettingsDialog::SetMediaFilename(const wxString &filename) {
+    ExtractMetaTagsFromMP3(filename);
+    BitmapButton_Xml_Media_File->Enable(true);
+    TextCtrl_Xml_Media_File->SetValue(filename);
+    Choice_Xml_Seq_Type->SetStringSelection("Media");
+    if( "Media" != xml_file->GetSequenceType() )
+    {
+        xml_file->SetSequenceType("Media");
+    }
+}
+
+
 void SeqSettingsDialog::ProcessSequenceType()
 {
     wxString type = xml_file->GetSequenceType();

@@ -342,6 +342,9 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
             return false;
         }
         SeqSettingsDialog setting_dlg(this, &xml_file);
+        if ("" != mediaFilename) {
+            setting_dlg.SetMediaFilename(mediaFilename);
+        }
         setting_dlg.Fit();
         setting_dlg.ShowModal();
     }
