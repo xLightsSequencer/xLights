@@ -253,10 +253,7 @@
 											</object>
 											<object class="sizeritem">
 												<object class="wxSlider" name="ID_SLIDER_SparkleFrequency" variable="Slider_SparkleFrequency" member="yes">
-													<value>200</value>
-													<min>10</min>
 													<max>200</max>
-													<style>wxSL_INVERSE</style>
 													<handler function="OnSlider_SparkleFrequencyCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 												</object>
 												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

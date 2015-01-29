@@ -123,6 +123,16 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
     }
 }
 
+static wxString remapV3Value(const wxString &st) {
+    if (st.Contains("SparkleFrequency")) {
+        wxString val = st.AfterLast('=');
+        wxString key = st.BeforeLast('=');
+        int i = 200 - atoi(val);
+        return key + "=" + wxString::Format("%d", i);
+    }
+    return st;
+}
+
 static wxString SubstituteV3toV4tags(const wxString& effect_string)
 {
     wxString new_string = effect_string;
@@ -138,7 +148,6 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
     new_string.Replace(wxString("E2_CHECKBOX_FitToTime"), wxString("T_CHECKBOX_FitToTime"));
     new_string.Replace(wxString("E1_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
     new_string.Replace(wxString("E2_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
-    new_string.Replace(wxString("ID_SLIDER_SparkleFrequency=200"), wxString("C_SLIDER_SparkleFrequency=0"));
     new_string.Replace(wxString("ID_SLIDER_SparkleFrequency"), wxString("C_SLIDER_SparkleFrequency"));
     new_string.Replace(wxString("ID_SLIDER_Brightness"), wxString("C_SLIDER_Brightness"));
     new_string.Replace(wxString("ID_SLIDER_Contrast"), wxString("C_SLIDER_Contrast"));
@@ -717,11 +726,11 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
                             break;
                         default:
                             if (before.StartsWith("E1_")) {
-                                eff1 += "," + before;
-                            } else if (before.StartsWith("E1_")) {
-                                eff2 += "," + before;
+                                eff1 += "," + remapV3Value(before);
+                            } else if (before.StartsWith("E2_")) {
+                                eff2 += "," + remapV3Value(before);
                             } else {
-                                prefix += "," + before;
+                                prefix += "," + remapV3Value(before);
                             }
                             break;
                         }

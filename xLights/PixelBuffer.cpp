@@ -422,7 +422,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
 
             // add sparkles
             if (sparkle_count[0] > 0 && color.GetRGB() != 0) {
-                switch (Nodes[i]->sparkle % sparkle_count[0]) {
+                switch (Nodes[i]->sparkle % (208 - sparkle_count[0])) {
                 case 1:
                 case 7:
                     // too dim
