@@ -1544,6 +1544,7 @@ protected:
     void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
+    void CheckForValidModels();
 
     void LoadSequencer(const xLightsXmlFile& xml_file);
     void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,

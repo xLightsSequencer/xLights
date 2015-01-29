@@ -27,6 +27,11 @@ void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,boo
     }
 }
 
+int SequenceElements::GetElementCount()
+{
+    return mElements.size();
+}
+
 bool SequenceElements::ElementExists(wxString elementName)
 {
     for(int i=0;i<mElements.size();i++)
@@ -69,6 +74,19 @@ Element* SequenceElements::GetElement(const wxString &name)
     }
     return NULL;
 }
+
+Element* SequenceElements::GetElement(int index)
+{
+    if(index < mElements.size())
+    {
+        return &mElements[index]
+;    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 
 void SequenceElements::DeleteElement(wxString name)
 {

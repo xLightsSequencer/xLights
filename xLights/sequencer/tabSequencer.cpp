@@ -169,20 +169,17 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 
 }
 
-void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
+
+
+void xLightsFrame::CheckForValidModels()
 {
-    mSequencerInitialize = true;
-    mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    bool success = mSequenceElements.LoadSequencerFile(xml_file);
-    
     wxArrayString ModelNames;
     GetModelNames(ModelNames);
     SeqElementMismatchDialog dialog(this);
     dialog.ChoiceModels->Set(ModelNames);
-    for (int x = mSequenceElements.GetRowInformationSize(); x > 0; x--) {
-        Row_Information_Struct *ris = mSequenceElements.GetRowInformation(x - 1);
-        if ("model" == ris->element->GetType()) {
-            wxString name = ris->element->GetName();
+    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+        if ("model" == mSequenceElements.GetElement(x)->GetType()) {
+            wxString name = mSequenceElements.GetElement(x)->GetName();
             if (ModelNames.Index(name) == wxNOT_FOUND) {
                 dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
                 dialog.Fit();
@@ -191,19 +188,21 @@ void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
                 } else if (dialog.RadioButtonDelete->GetValue()) {
                     mSequenceElements.DeleteElement(name);
                 } else {
-                    while (name == ris->element->GetName()) {
-                        wxString newName = dialog.ChoiceModels->GetStringSelection();
-                        ris->element->SetName(newName);
-                        //get all the rows that used this model name
-                        x--;
-                        ris = mSequenceElements.GetRowInformation(x - 1);
-                    }
-                    x++;
+                    wxString newName = dialog.ChoiceModels->GetStringSelection();
+                    mSequenceElements.GetElement(x)->SetName(newName);
                 }
             }
         }
     }
-    
+}
+
+void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
+{
+    mSequencerInitialize = true;
+    mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+    bool success = mSequenceElements.LoadSequencerFile(xml_file);
+
+    CheckForValidModels();
 
     mMediaLengthMS = (int)(xml_file.GetSequenceDuration()*1000);
 
