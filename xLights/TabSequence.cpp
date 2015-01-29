@@ -7,7 +7,7 @@
 #include "SeqOpenDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
-#include "XmlConversionDialog.h"
+#include "SeqSettingsDialog.h"
 
 bool isXmlSequence(wxFileName &fname) {
     char buf[1024];
@@ -313,9 +313,16 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
-    xLightsXmlFile xml_file(filename);
-    xml_file.SetExt(wxT("xml"));
-    return SeqLoadXlightsFile(xml_file, ChooseModels);
+    if( wxFileName::FileExists(filename) )
+    {
+        xLightsFrame::CurrentSeqXmlFile = new xLightsXmlFile(filename);
+        xLightsFrame::CurrentSeqXmlFile->SetExt(wxT("xml"));
+        return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, ChooseModels);
+    }
+    else
+    {
+        // FIXME handle error
+    }
 }
 
 // Load the xml file containing effects for a particular sequence
@@ -329,15 +336,17 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
     xml_file.Load();
     if (xml_file.NeedsConversion())
     {
-        XmlConversionDialog dialog(this, &xml_file);
-        dialog.SetMP3File(mediaFilename);
-        dialog.Fit();
-        if (dialog.ShowModal() != wxOK)
+        if( !xml_file.Convert() )
         {
+            // FIXME error dialog
             return false;
         }
+        SeqSettingsDialog setting_dlg(this, &xml_file);
+        setting_dlg.Fit();
+        setting_dlg.ShowModal();
     }
-    
+
+
     if( xml_file.HasAudioMedia() )
     {
         // FIXME - load audio

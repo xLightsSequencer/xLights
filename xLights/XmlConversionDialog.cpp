@@ -424,7 +424,7 @@ void XmlConversionDialog::OnButton_Xml_Settings_SaveClick(wxCommandEvent& event)
 
     xml_file->SetHeaderInfo(info);
     bool reload = xml_file->NeedsConversion();
-    xml_file->Save(TextCtrl_Xml_Log);
+    xml_file->Save();
     StaticText_XML_Version->SetLabelText(xml_file->GetVersion());
     if( reload )
     {

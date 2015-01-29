@@ -3052,15 +3052,12 @@
 					<label>Export Model</label>
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu3" member="yes">
-				<label>&amp;Utilities</label>
-				<object class="wxMenuItem" name="ID_XML_CONVERSION" variable="Menu4" member="yes">
-					<label>XML Conversion and Settings</label>
-					<handler function="OnMenuXmlConversionSettings" entry="EVT_MENU" />
-				</object>
-			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
 				<label>&amp;Settings</label>
+				<object class="wxMenuItem" name="ID_SEQ_SETTINGS" variable="Menu_Settings_Sequence" member="yes">
+					<label>Sequence Settings</label>
+					<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_NO_THREADED_SAVE" variable="ThreadedSaveMenuItem" member="yes">
 					<label>Disable Threaded Save</label>
 					<handler function="ToggleThreadedSave" entry="EVT_MENU" />

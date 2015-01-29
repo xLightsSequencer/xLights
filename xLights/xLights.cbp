@@ -372,6 +372,8 @@
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />
 		<Unit filename="SeqParmsDialog.h" />
+		<Unit filename="SeqSettingsDialog.cpp" />
+		<Unit filename="SeqSettingsDialog.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
 		<Unit filename="SequencePreview.cpp" />
@@ -400,8 +402,6 @@
 		<Unit filename="WholeHouseModelNameDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
-		<Unit filename="XmlConversionDialog.cpp" />
-		<Unit filename="XmlConversionDialog.h" />
 		<Unit filename="djdebug.cpp" />
 		<Unit filename="dlgPreviewSize.cpp" />
 		<Unit filename="dlgPreviewSize.h" />
@@ -472,11 +472,11 @@
 		<Unit filename="wxsmith/SeqExportDialog.wxs" />
 		<Unit filename="wxsmith/SeqOpenDialog.wxs" />
 		<Unit filename="wxsmith/SeqParmsDialog.wxs" />
+		<Unit filename="wxsmith/SeqSettingsDialog.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
 		<Unit filename="wxsmith/TopEffectsPanel.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/WholeHouseModelNameDialog.wxs" />
-		<Unit filename="wxsmith/XmlConversionDialog.wxs" />
 		<Unit filename="wxsmith/dlgPreviewSize.wxs" />
 		<Unit filename="wxsmith/xLightsframe.wxs" />
 		<Unit filename="xLightsApp.cpp" />
@@ -530,6 +530,7 @@
 					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

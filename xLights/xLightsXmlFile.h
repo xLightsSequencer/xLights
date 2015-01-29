@@ -27,32 +27,43 @@ class xLightsXmlFile : public wxFileName
             SEQ_DURATION,
             NUM_TYPES
         };
+
         bool Load();
-        void Save(wxTextCtrl* log = NULL, bool rename_v3_file = true);
-        void SetHeaderInfo(wxArrayString info);
-        void SetTimingSectionName(wxString section, wxString name);
-        void DeleteTimingSection(wxString section);
-        void AddFixedTimingSection(wxString interval_name);
-        wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
+        bool Convert();
+        void Save();
         void Clear();
-        bool IsLoaded() { return is_loaded; }
-        bool HasAudioMedia() { return has_audio_media; }
-        int GetNumModels() { return models.GetCount(); }
-        wxArrayString GetTimingList() { return timing_list; }
-        const wxString GetVersion() { return version_string; };
+        void FreeMemory();
+        wxXmlDocument& GetXmlDocument() { return seqDocument; }
+
         bool NeedsConversion() { return needs_conversion; }
-        void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
-        void FixVersionDifferences();
+
+        const wxString GetVersion() { return version_string; };
+
         int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
         double GetSequenceDuration() const { return seq_duration; }
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(double length);
+
         const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
+
         const wxString GetMediaFile() const { return media_file; }
         void SetMediaFile( const wxString& filename );
-        wxXmlDocument& GetXmlDocument() { return seqDocument; }
-        void FreeMemory();
+
+        wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
+        void SetHeaderInfo(wxArrayString info);
+
+        void AddFixedTimingSection(wxString interval_name);
+        void DeleteTimingSection(wxString section);
+        void SetTimingSectionName(wxString section, wxString name);
+        wxArrayString GetTimingList() { return timing_list; }
+        void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
+
+        bool IsLoaded() { return is_loaded; }
+        bool HasAudioMedia() { return has_audio_media; }
+        int GetNumModels() { return models.GetCount(); }
+        void FixVersionDifferences();
+
     protected:
     private:
         wxArrayString models;

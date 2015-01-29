@@ -57,6 +57,23 @@ void xLightsXmlFile::FreeMemory()
     FreeNode(root);
 }
 
+bool xLightsXmlFile::Convert()
+{
+    if( !needs_conversion ) return false;
+
+    wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + wxT("ArchiveV3");
+    if( wxDir::Exists(archive_dir) == false)
+    {
+        if( !wxDir::Make(archive_dir) ) return false;
+    }
+
+    wxRenameFile(GetFullPath(), archive_dir + GetPathSeparators() + GetFullName());
+
+    Save();
+
+    return true;
+}
+
 void xLightsXmlFile::SetSequenceType( const wxString& type )
 {
     bool found = false;
@@ -633,18 +650,14 @@ void xLightsXmlFile::SetSequenceDuration(double length)
     }
 }
 
-void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
+
+void xLightsXmlFile::Save()
 {
     if( needs_conversion )
     {
-        if( rename_v3_file )
-        {
-            wxString new_filename = GetPathWithSep() + GetName() + "_v3." + GetExt();
-            if (log) log->AppendText(string_format("Renaming: %s to %s\n", GetFullPath(), new_filename));
-            wxRenameFile(GetFullPath(), new_filename);
-        }
+        // assumes you have made a backup of the original file
 
-        if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
+        //if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
 
         // construct the new XML file
         wxXmlDocument *doc = new wxXmlDocument();
@@ -685,7 +698,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
             child->AddAttribute(wxT("visible"),wxT("1"));
         }
 
-        if (log) log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
+        //if (log) log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
 
         node = AddChildXmlNode(root, wxT("ElementEffects"));
         int num_effects = timing.GetCount();
@@ -693,7 +706,7 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
-            if (log) log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
+            //if (log) log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
             child = AddChildXmlNode(node, wxT("Element"));
             child->AddAttribute(wxT("type"),wxT("model"));
             child->AddAttribute(wxT("name"),models[i]);
@@ -863,14 +876,15 @@ void xLightsXmlFile::Save(wxTextCtrl* log, bool rename_v3_file)
         FreeNode(root);
         delete doc;
         version_string = latest_version;
+        Load();
     }
     else
     {
-        if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
+        //if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
         seqDocument.Save(GetFullPath());
     }
     needs_conversion = false;
-    if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
+    //if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
 }
 
 void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames)

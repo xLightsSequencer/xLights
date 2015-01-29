@@ -29,7 +29,7 @@
 #ifndef FPP
 
 #include "xLightsMain.h"
-#include "XmlConversionDialog.h"
+#include "SeqSettingsDialog.h"
 
 #define FRAMECLASS xLightsFrame::
 
@@ -2619,9 +2619,14 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
         v3File.SetFullName(Filename);
         v3File.Load();
         if (v3File.NeedsConversion()) {
-            XmlConversionDialog dialog(this, &v3File);
-            dialog.Fit();
-            dialog.ShowModal();
+            if( !v3File.Convert() )
+            {
+                ConversionError(wxString("Failed to convert V3 file!"));
+                return;
+            }
+            SeqSettingsDialog setting_dlg(this, &v3File);
+            setting_dlg.Fit();
+            setting_dlg.ShowModal();
         }
     }
     else

@@ -19,7 +19,7 @@
 #include <wx/clipbrd.h>
 #include "xLightsApp.h" //global app run-time flags
 #include "heartbeat.h" //DJ
-#include "XmlConversionDialog.h"
+#include "SeqSettingsDialog.h"
 
 // scripting language
 #include "xLightsBasic.cpp"
@@ -348,7 +348,7 @@ const long xLightsFrame::ID_MENUITEM_WINDOWS_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
-const long xLightsFrame::ID_XML_CONVERSION = wxNewId();
+const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_NO_THREADED_SAVE = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
@@ -1536,11 +1536,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem9 = new wxMenuItem(Menu2, ID_EXPORT_MODEL, _("Export Model"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem9);
     MenuBar1->Append(Menu2, _("&Export"));
-    Menu3 = new wxMenu();
-    Menu4 = new wxMenuItem(Menu3, ID_XML_CONVERSION, _("XML Conversion and Settings"), wxEmptyString, wxITEM_NORMAL);
-    Menu3->Append(Menu4);
-    MenuBar1->Append(Menu3, _("&Utilities"));
     Menu1 = new wxMenu();
+    Menu_Settings_Sequence = new wxMenuItem(Menu1, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(Menu_Settings_Sequence);
     ThreadedSaveMenuItem = new wxMenuItem(Menu1, ID_NO_THREADED_SAVE, _("Disable Threaded Save"), wxEmptyString, wxITEM_CHECK);
     Menu1->Append(ThreadedSaveMenuItem);
     MenuBar1->Append(Menu1, _("&Settings"));
@@ -1690,7 +1688,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_VIEW_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
-    Connect(ID_XML_CONVERSION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuXmlConversionSettings);
+    Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -1775,7 +1773,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     threadedSave = config->ReadBool("ThreadedSave", true);
     ThreadedSaveMenuItem->Check(!threadedSave);
-    
+
     MainAuiManager->LoadPerspective(config->Read("ToolbarLocations"));
 
 
@@ -2022,7 +2020,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 
     jobPool.Start(wxThread::GetCPUCount() * 2);
-    
+
 }
 
 xLightsFrame::~xLightsFrame()
@@ -2457,6 +2455,7 @@ wxString xLightsFrame::CurrentDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
 std::vector<ModelClassPtr> xLightsFrame::PreviewModels, xLightsFrame::OtherModels;
+xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = NULL;
 
 void xLightsFrame::OnButtonSaveScheduleClick(wxCommandEvent& event)
 {
@@ -2917,10 +2916,11 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 }
 
 
-void xLightsFrame::OnMenuXmlConversionSettings(wxCommandEvent& event)
+void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {
+    if( xLightsFrame::CurrentSeqXmlFile == NULL ) return;
     // populate dialog
-    XmlConversionDialog dialog(this, NULL);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile);
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 }
@@ -2981,3 +2981,4 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
         mainSequencer->PanelTimeLine->ZoomOut();
     }
 }
+

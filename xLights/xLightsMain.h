@@ -388,6 +388,7 @@ public:
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
+    static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
 
 private:
 
@@ -566,6 +567,7 @@ private:
     void OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event);
     void OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event);
     void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
+    void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -844,7 +846,7 @@ private:
     static const long ID_MENUITEM10;
     static const long ID_EXPORT_ALL;
     static const long ID_EXPORT_MODEL;
-    static const long ID_XML_CONVERSION;
+    static const long ID_SEQ_SETTINGS;
     static const long ID_NO_THREADED_SAVE;
     static const long idMenuHelpContent;
     static const long idMenuAbout;
@@ -1067,12 +1069,10 @@ private:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
-    wxMenuItem* Menu4;
     wxCheckBox* CheckBoxRunSchedule;
     wxStaticText* fseqDirectoryLabel;
     wxBitmapButton* BitmapButtonMoveNetworkUp;
     wxBitmapButton* bbStop;
-    wxMenu* Menu3;
     wxBitmapButton* bbPlayPause;
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
@@ -1091,6 +1091,7 @@ private:
     wxSlider* SliderRgbCycleSpeed;
     DragEffectBitmapButton* BitmapButton5;
     wxButton* ButtonNetworkDelete;
+    wxMenuItem* Menu_Settings_Sequence;
     DragEffectBitmapButton* BitmapButton22;
     wxSlider* SliderPreviewScale;
     wxButton* ButtonTestLoad;
