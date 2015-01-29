@@ -337,6 +337,7 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
             return false;
         }
     }
+    
     if( xml_file.HasAudioMedia() )
     {
         // FIXME - load audio
@@ -705,9 +706,21 @@ void xLightsFrame::SaveSequence()
 }
 
 
-
-
-
+void xLightsFrame::GetModelNames(wxArrayString& a)
+{
+    wxString name;
+    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "model")
+        {
+            name=e->GetAttribute("name");
+            if (!name.IsEmpty())
+            {
+                a.Add(name);
+            }
+        }
+    }
+}
 
 
 
@@ -2156,21 +2169,7 @@ void xLightsFrame::GetSeqModelNames(wxArrayString& a)
     }
 }
 
-void xLightsFrame::GetModelNames(wxArrayString& a)
-{
-    wxString name;
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=NULL; e=e->GetNext() )
-    {
-        if (e->GetName() == "model")
-        {
-            name=e->GetAttribute("name");
-            if (!name.IsEmpty())
-            {
-                a.Add(name);
-            }
-        }
-    }
-}
+
 
 void xLightsFrame::GetGridColumnLabels(wxArrayString& a)
 {

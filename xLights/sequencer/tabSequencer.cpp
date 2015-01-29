@@ -171,11 +171,41 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
 
 void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
 {
-        mSequencerInitialize = true;
-        mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-        bool success = mSequenceElements.LoadSequencerFile(xml_file);
+    mSequencerInitialize = true;
+    mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
+    bool success = mSequenceElements.LoadSequencerFile(xml_file);
+    
+    wxArrayString ModelNames;
+    GetModelNames(ModelNames);
+    SeqElementMismatchDialog dialog(this);
+    dialog.ChoiceModels->Set(ModelNames);
+    for (int x = mSequenceElements.GetRowInformationSize(); x > 0; x--) {
+        Row_Information_Struct *ris = mSequenceElements.GetRowInformation(x - 1);
+        if ("model" == ris->element->GetType()) {
+            wxString name = ris->element->GetName();
+            if (ModelNames.Index(name) == wxNOT_FOUND) {
+                dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
+                dialog.Fit();
+                dialog.ShowModal();
+                if (dialog.RadioButtonAdd->GetValue()) {
+                } else if (dialog.RadioButtonDelete->GetValue()) {
+                    mSequenceElements.DeleteElement(name);
+                } else {
+                    while (name == ris->element->GetName()) {
+                        wxString newName = dialog.ChoiceModels->GetStringSelection();
+                        ris->element->SetName(newName);
+                        //get all the rows that used this model name
+                        x--;
+                        ris = mSequenceElements.GetRowInformation(x - 1);
+                    }
+                    x++;
+                }
+            }
+        }
+    }
+    
 
-        mMediaLengthMS = (int)(xml_file.GetSequenceDuration()*1000);
+    mMediaLengthMS = (int)(xml_file.GetSequenceDuration()*1000);
 
         mainSequencer->PanelWaveForm->CloseMediaFile();
         if(xml_file.GetSequenceType()=="Media")
