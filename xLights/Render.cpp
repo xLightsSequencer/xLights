@@ -249,15 +249,14 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 }
 
 void xLightsFrame::RenderGridToSeqData() {
-    int numRows = mSequenceElements.GetRowInformationSize();
+    int numRows = mSequenceElements.GetElementCount();
     RenderJob **jobs = new RenderJob*[numRows];
     RenderJob wait(NULL, NULL, SeqData, this);
     RenderJob *last = NULL;
     Element *lastRowEl = NULL;
     int count = 0;
-    for (int row = 0; row < mSequenceElements.GetRowInformationSize(); row++) {
-        Row_Information_Struct* rowInfo = mSequenceElements.GetRowInformation(row);
-        Element *rowEl = rowInfo->element;
+    for (int row = 0; row < mSequenceElements.GetElementCount(); row++) {
+        Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
             wxXmlNode *modelNode = GetModelNode(rowEl->GetName());
