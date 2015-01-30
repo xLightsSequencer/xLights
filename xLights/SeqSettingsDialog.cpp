@@ -212,7 +212,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Album,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_AlbumText);
 	Connect(ID_TEXTCTRL_Xml_Music_Url,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Music_UrlText);
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
-	Connect(ID_CHOICE_Xml_Song_Timings,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Song_TimingsSelect);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
 	Connect(ID_BUTTON_Xml_Rename_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Rename_TimingClick);
@@ -347,20 +346,6 @@ void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
     Button_Save->Enable(true);
-}
-
-void SeqSettingsDialog::OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event)
-{
-    if( Choice_Xml_Song_Timings->GetString(Choice_Xml_Song_Timings->GetSelection()) == _("Song Timing"))
-    {
-        Button_Xml_Delete_Timing->Enable(false);
-        Button_Xml_Rename_Timing->Enable(false);
-    }
-    else
-    {
-        Button_Xml_Delete_Timing->Enable(true);
-        Button_Xml_Rename_Timing->Enable(true);
-    }
 }
 
 void SeqSettingsDialog::PopulateSongTimings()

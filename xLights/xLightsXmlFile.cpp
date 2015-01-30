@@ -4,6 +4,8 @@
 
 #define string_format wxString::Format
 
+static const wxString xml_dev_ver = wxT("4.0.0a");
+
 xLightsXmlFile::xLightsXmlFile()
 {
     Init();
@@ -26,7 +28,7 @@ void xLightsXmlFile::Init()
     seq_duration = 0.0;
     has_audio_media = false;
     Clear();
-    latest_version = _("4.0.0a");
+    latest_version = xml_dev_ver;
     for(int i = 0; i < NUM_TYPES; ++i )
     {
         header_info.push_back(_(""));
@@ -138,6 +140,23 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
     {
         AddChildXmlNode(head, wxT("mediaFile"), header_info[HEADER_INFO_TYPES::MEDIA_FILE]);
     }
+}
+
+static wxString GetSetting(const wxString& setting, const wxString& text)
+{
+    wxString settings = text;
+    wxString before;
+    while (!settings.IsEmpty())
+    {
+        before=settings.BeforeFirst(',');
+        if (before.Contains(setting))
+        {
+            wxString val = before.AfterLast('=');
+            return val;
+        }
+        settings=settings.AfterFirst(',');
+    }
+    return wxT("");
 }
 
 static wxString remapV3Value(const wxString &st) {
@@ -676,7 +695,7 @@ void xLightsXmlFile::Save()
         wxXmlNode* node;
         wxXmlNode* child;
         node = AddChildXmlNode(root, wxT("head"));
-        AddChildXmlNode(node, wxT("version"), wxT("4.0.0"));
+        AddChildXmlNode(node, wxT("version"), xml_dev_ver);
         AddChildXmlNode(node, wxT("author"), header_info[HEADER_INFO_TYPES::AUTHOR]);
         AddChildXmlNode(node, wxT("author-email"), header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
         AddChildXmlNode(node, wxT("author-website"), header_info[HEADER_INFO_TYPES::WEBSITE]);
@@ -690,9 +709,7 @@ void xLightsXmlFile::Save()
         wxXmlNode* length = AddChildXmlNode(node, wxT("sequenceDuration"), header_info[HEADER_INFO_TYPES::SEQ_DURATION]);
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
-        AddTimingAttributes(node, wxT("Song Timing"), wxT("1"), wxT("1"));
-        AddTimingAttributes(node, wxT("t1"), wxT("1"), wxT("0"));
-        AddTimingAttributes(node, wxT("t2"), wxT("1"), wxT("0"));
+        AddTimingAttributes(node, wxT("Imported Timing"), wxT("1"), wxT("1"));
 
         for(int i = 0; i < models.GetCount(); ++i)
         {
@@ -816,6 +833,46 @@ void xLightsXmlFile::Save()
             }
         }
 
+        // remove Effect 1 and slider is 0 , then delete effect 2
+        // remove Effect 2 and slider is 100 , then delete effect 1
+        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            wxXmlNode* layer1 = e->GetChildren();
+            if( layer1 == NULL ) continue;
+            wxXmlNode* layer2 = layer1->GetNext();
+            wxXmlNode* effect1 = layer1->GetChildren();
+            wxXmlNode* effect2 = layer2->GetChildren();
+
+            while(effect1 != NULL && effect2 != NULL )
+            {
+                    wxString layer_effect_name;
+                    effect1->GetAttribute("name", &layer_effect_name);
+                // Capture next effects now in case we delete
+                wxXmlNode* next_effect1 = effect1->GetNext();
+                wxXmlNode* next_effect2 = effect2->GetNext();
+
+                wxString content1 = effect1->GetNodeContent();
+
+                wxString combine = GetSetting(wxT("T_CHOICE_LayerMethod"), content1);
+                wxString morph = GetSetting(wxT("T_CHECKBOX_LayerMorph"), content1);
+                wxString mix = GetSetting(wxT("T_SLIDER_EffectLayerMix"), content1);
+
+                if( combine == "Effect 1" && morph == "0" && mix == "0" )
+                {
+                    layer2->RemoveChild(effect2);
+                    delete effect2;
+                }
+                else if( combine == "Effect 2" && morph == "0" && mix == "100" )
+                {
+                    layer1->RemoveChild(effect1);
+                    delete effect1;
+                }
+
+                effect1 = next_effect1;
+                effect2 = next_effect2;
+            }
+        }
+
         // remove "None" effects
         for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
         {
@@ -840,10 +897,30 @@ void xLightsXmlFile::Save()
             }
         }
 
-        // create Song Timing elements
+        // remove empty layers
+        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; )
+            {
+                wxXmlNode* child = layer->GetChildren();
+                if( child == NULL )
+                {
+                    wxXmlNode* node_to_delete = layer;
+                    layer = layer->GetNext();
+                    e->RemoveChild(node_to_delete);
+                    delete node_to_delete;
+                }
+                else
+                {
+                    layer = layer->GetNext();
+                }
+            }
+        }
+
+        // create Imported Timing elements
         child = AddChildXmlNode(node, wxT("Element"));
         child->AddAttribute(wxT("type"),wxT("timing"));
-        child->AddAttribute(wxT("name"),wxT("Song Timing"));
+        child->AddAttribute(wxT("name"),wxT("Imported Timing"));
         wxXmlNode* layer = AddChildXmlNode(child, wxT("EffectLayer"));
         for(int j = 0; j < num_effects; ++j)
         {
@@ -854,18 +931,6 @@ void xLightsXmlFile::Save()
             effect->AddAttribute(wxT("startTime"), timing[j]);
             effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
         }
-
-        // create t1 elements
-        child = AddChildXmlNode(node, wxT("Element"));
-        child->AddAttribute(wxT("type"),wxT("timing"));
-        child->AddAttribute(wxT("name"),wxT("t1"));
-        layer = AddChildXmlNode(child, wxT("EffectLayer"));
-
-        // create t2 elements
-        child = AddChildXmlNode(node, wxT("Element"));
-        child->AddAttribute(wxT("type"),wxT("timing"));
-        child->AddAttribute(wxT("name"),wxT("t2"));
-        layer = AddChildXmlNode(child, wxT("EffectLayer"));
 
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 

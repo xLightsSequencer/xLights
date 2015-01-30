@@ -346,7 +346,6 @@
 										<object class="sizeritem">
 											<object class="wxChoice" name="ID_CHOICE_Xml_Song_Timings" variable="Choice_Xml_Song_Timings" member="yes">
 												<size>238,21</size>
-												<handler function="OnChoice_Xml_Song_TimingsSelect" entry="EVT_CHOICE" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
