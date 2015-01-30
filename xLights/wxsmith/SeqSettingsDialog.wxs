@@ -416,9 +416,8 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_Conversion_Warning" variable="StaticText_Conversion_Warning" member="yes">
-					<label>Your XML file has been converted!</label>
-					<size>235,13</size>
+				<object class="wxStaticText" name="ID_STATICTEXT_Warning" variable="StaticText_Warning" member="yes">
+					<label>Show Warning Here</label>
 					<hidden>1</hidden>
 					<fg>#FF0000</fg>
 					<font>

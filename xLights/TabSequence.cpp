@@ -321,7 +321,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
     }
     else
     {
-        // FIXME handle error
+        wxMessageBox(wxString::Format("Failed to open file: %s", filename),"Error");
     }
 }
 
@@ -341,8 +341,8 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
             wxMessageBox(wxString::Format("Failed to convert XML file: %s", xml_file.GetFullPath()),"Error");
             return false;
         }
-        SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory);
-        if ("" != mediaFilename) {
+        SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Your XML file has been converted!"));
+        if( mediaFilename != wxEmptyString ) {
             setting_dlg.SetMediaFilename(mediaFilename);
         }
         setting_dlg.Fit();

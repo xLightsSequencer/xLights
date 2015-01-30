@@ -53,7 +53,7 @@ const long SeqSettingsDialog::ID_BUTTON_Xml_Rename_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Delete_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
-const long SeqSettingsDialog::ID_STATICTEXT_Conversion_Warning = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Save = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
@@ -65,7 +65,7 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning)
 :   xml_file(file_to_handle_),
     media_directory(media_dir)
 {
@@ -193,12 +193,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Notebook_Seq_Settings->AddPage(Panel1, _("Meta Data"), false);
 	Notebook_Seq_Settings->AddPage(Panel2, _("Timings"), false);
 	FlexGridSizer1->Add(Notebook_Seq_Settings, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText_Conversion_Warning = new wxStaticText(this, ID_STATICTEXT_Conversion_Warning, _("Your XML file has been converted!"), wxDefaultPosition, wxSize(235,13), 0, _T("ID_STATICTEXT_Conversion_Warning"));
-	StaticText_Conversion_Warning->Hide();
-	StaticText_Conversion_Warning->SetForegroundColour(wxColour(255,0,0));
-	wxFont StaticText_Conversion_WarningFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
-	StaticText_Conversion_Warning->SetFont(StaticText_Conversion_WarningFont);
-	FlexGridSizer1->Add(StaticText_Conversion_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Warning = new wxStaticText(this, ID_STATICTEXT_Warning, _("Show Warning Here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warning"));
+	StaticText_Warning->Hide();
+	StaticText_Warning->SetForegroundColour(wxColour(255,0,0));
+	wxFont StaticText_WarningFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText_Warning->SetFont(StaticText_WarningFont);
+	FlexGridSizer1->Add(StaticText_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Save = new wxButton(this, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
 	Button_Save->Disable();
@@ -231,10 +231,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	//*)
 
 	if( !xml_file->IsLoaded() ) xml_file->Load();
-	if( xml_file->WasConverted() )
+	if( warning != wxEmptyString )
     {
-        StaticText_Conversion_Warning->Show();
-        xml_file->ConversionAcknowledged();
+        StaticText_Warning->SetLabelText(warning);
+        StaticText_Warning->Show();
     }
 
 	StaticText_Filename->SetLabelText(xml_file->GetFullPath());
@@ -299,10 +299,9 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3 ; OGG files (*.ogg)|*.ogg"), wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
-    wxMessageBox(wxString::Format("Media Dir: %s", media_directory), _("Error"));
-    OpenDialog->SetPath(media_directory);
+    OpenDialog->SetDirectory(media_directory);
     if (OpenDialog->ShowModal() == wxID_OK)
     {
         fDir = OpenDialog->GetDirectory();
@@ -314,6 +313,8 @@ void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event
         int length_ms = Waveform::GetLengthOfMusicFileInMS(name_and_path.GetFullPath());
         double length = length_ms / 1000.0f;
         TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
+        StaticText_Warning->Hide();
+        Fit();
         Button_Save->Enable(true);
     }
 
@@ -517,6 +518,8 @@ void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
     xml_file->SetHeaderInfo(info);
     xml_file->Save();
     Button_Save->Enable(false);
+    StaticText_Warning->Hide();
+    Fit();
 }
 
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)

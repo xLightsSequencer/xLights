@@ -10,7 +10,7 @@
 #include "../EffectIconPanel.h"
 #include "Element.h"
 #include "Effect.h"
-
+#include "../SeqSettingsDialog.h"
 
 #ifdef __WXMSW__
 #define BASEPATH wxString("c:\\temp\\")
@@ -196,7 +196,7 @@ void xLightsFrame::CheckForValidModels()
     }
 }
 
-void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
+void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     mSequencerInitialize = true;
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
@@ -209,12 +209,27 @@ void xLightsFrame::LoadSequencer(const xLightsXmlFile& xml_file)
         mainSequencer->PanelWaveForm->CloseMediaFile();
         if(xml_file.GetSequenceType()=="Media")
         {
+            int musicLength = 0;
             mediaFilename = xml_file.GetMediaFile();
-            PlayerDlg->Load(mediaFilename);
-            int musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
-            if(musicLength <=0)
+            if( mediaFilename == wxEmptyString )
             {
-                wxMessageBox("Invalid Media File");
+                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
+                setting_dlg.Fit();
+                setting_dlg.ShowModal();
+                mediaFilename = xml_file.GetMediaFile();
+            }
+            if( mediaFilename != wxEmptyString )
+            {
+                PlayerDlg->Load(mediaFilename);
+                musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
+                if(musicLength <=0)
+                {
+                    wxMessageBox("Invalid Media File");
+                }
+            }
+            else
+            {
+               wxMessageBox("Media File must be specified");
             }
             if (mMediaLengthMS == 0) {
                 mMediaLengthMS = musicLength;

@@ -20,7 +20,7 @@ class SeqSettingsDialog: public wxDialog
 {
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning);
 		virtual ~SeqSettingsDialog();
 
         void SetMediaFilename(const wxString &filename);
@@ -35,6 +35,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_MediaFile;
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxStaticText* StaticText_Xml_Artist;
+		wxStaticText* StaticText_Warning;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
 		wxButton* Button_Save;
@@ -52,7 +53,6 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* Button_Xml_Delete_Timing;
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
-		wxStaticText* StaticText_Conversion_Warning;
 		wxStaticText* StaticText_Xml_Timing;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
@@ -113,7 +113,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BUTTON_Xml_Delete_Timing;
 		static const long ID_PANEL2;
 		static const long ID_NOTEBOOK_Seq_Settings;
-		static const long ID_STATICTEXT_Conversion_Warning;
+		static const long ID_STATICTEXT_Warning;
 		static const long ID_BUTTON_Save;
 		static const long ID_BUTTON_Close;
 		//*)

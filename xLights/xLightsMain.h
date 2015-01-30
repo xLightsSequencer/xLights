@@ -1547,9 +1547,7 @@ protected:
     void PerspectivesChanged(wxCommandEvent& event);
     void CheckForValidModels();
 
-    void LoadSequencer(const xLightsXmlFile& xml_file);
-    void LoadSequencer(const wxString sequenceType, const wxString sequenceFile,
-                       const wxString mediaFile,int sequenceLengthMS);
+    void LoadSequencer(xLightsXmlFile& xml_file);
 
     void CheckForAndCreateDefaultPerpective();
     void DeleteAllSelectedEffects();

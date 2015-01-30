@@ -2920,7 +2920,7 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {
     if( xLightsFrame::CurrentSeqXmlFile == NULL ) return;
     // populate dialog
-    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory);
+    SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
     dialog.Fit();
     if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
 }
