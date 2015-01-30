@@ -7,6 +7,7 @@
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
+#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
@@ -52,6 +53,7 @@ const long SeqSettingsDialog::ID_BUTTON_Xml_Rename_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Delete_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT_Conversion_Warning = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Save = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
@@ -63,8 +65,9 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_)
-:   xml_file(file_to_handle_)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir)
+:   xml_file(file_to_handle_),
+    media_directory(media_dir)
 {
 	//(*Initialize(SeqSettingsDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -190,13 +193,19 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Notebook_Seq_Settings->AddPage(Panel1, _("Meta Data"), false);
 	Notebook_Seq_Settings->AddPage(Panel2, _("Timings"), false);
 	FlexGridSizer1->Add(Notebook_Seq_Settings, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Conversion_Warning = new wxStaticText(this, ID_STATICTEXT_Conversion_Warning, _("Your XML file has been converted!"), wxDefaultPosition, wxSize(235,13), 0, _T("ID_STATICTEXT_Conversion_Warning"));
+	StaticText_Conversion_Warning->Hide();
+	StaticText_Conversion_Warning->SetForegroundColour(wxColour(255,0,0));
+	wxFont StaticText_Conversion_WarningFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText_Conversion_Warning->SetFont(StaticText_Conversion_WarningFont);
+	FlexGridSizer1->Add(StaticText_Conversion_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Save = new wxButton(this, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
 	Button_Save->Disable();
 	FlexGridSizer7->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Close = new wxButton(this, ID_BUTTON_Close, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
 	FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer7, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -222,11 +231,17 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	//*)
 
 	if( !xml_file->IsLoaded() ) xml_file->Load();
+	if( xml_file->WasConverted() )
+    {
+        StaticText_Conversion_Warning->Show();
+        xml_file->ConversionAcknowledged();
+    }
+
 	StaticText_Filename->SetLabelText(xml_file->GetFullPath());
 	PopulateSongTimings();
     if( xml_file->GetSequenceType() != wxT("Media") && xml_file->GetSequenceType() != wxT("Animation")  )
     {
-        xml_file->SetSequenceType(wxT("Animation"));
+        xml_file->SetSequenceType(wxT("Media"));
         xml_file->Save();
     }
 	ProcessSequenceType();
@@ -284,8 +299,10 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3 ; OGG files (*.ogg)|*.ogg"), wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
+    wxMessageBox(wxString::Format("Media Dir: %s", media_directory), _("Error"));
+    OpenDialog->SetPath(media_directory);
     if (OpenDialog->ShowModal() == wxID_OK)
     {
         fDir = OpenDialog->GetDirectory();

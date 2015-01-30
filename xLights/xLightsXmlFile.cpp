@@ -27,6 +27,7 @@ void xLightsXmlFile::Init()
 {
     seq_duration = 0.0;
     has_audio_media = false;
+    was_converted = false;
     Clear();
     latest_version = xml_dev_ver;
     for(int i = 0; i < NUM_TYPES; ++i )
@@ -72,6 +73,8 @@ bool xLightsXmlFile::Convert()
     wxRenameFile(GetFullPath(), archive_dir + GetPathSeparators() + GetFullName());
 
     Save();
+
+    was_converted = true;
 
     return true;
 }

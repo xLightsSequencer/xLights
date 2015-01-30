@@ -2624,7 +2624,7 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
                 ConversionError(wxString("Failed to convert V3 file!"));
                 return;
             }
-            SeqSettingsDialog setting_dlg(this, &v3File);
+            SeqSettingsDialog setting_dlg(this, &v3File, mediaDirectory);
             setting_dlg.Fit();
             setting_dlg.ShowModal();
         }

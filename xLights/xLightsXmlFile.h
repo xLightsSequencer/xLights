@@ -61,6 +61,8 @@ class xLightsXmlFile : public wxFileName
 
         bool IsLoaded() { return is_loaded; }
         bool HasAudioMedia() { return has_audio_media; }
+        bool WasConverted() { return was_converted; }
+        void ConversionAcknowledged() { was_converted = false; }
         int GetNumModels() { return models.GetCount(); }
         void FixVersionDifferences();
 
@@ -85,6 +87,7 @@ class xLightsXmlFile : public wxFileName
         wxString media_file;
         wxString seq_type;
         bool has_audio_media;
+        bool was_converted;
 
         void Init();
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
