@@ -41,7 +41,6 @@ class xLightsXmlFile : public wxFileName
         wxString GetSequenceDurationString() const;
 
         void SetSequenceDurationMS(int length);
-        void SetSequenceDuration(double length);
         void SetSequenceDuration(const wxString& length);
 
         const wxString GetSequenceType() const { return seq_type; }
@@ -93,6 +92,8 @@ class xLightsXmlFile : public wxFileName
         void FreeNode(wxXmlNode* node);
         wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
         void SearchForMedia();
+        void SetSequenceDuration(const wxString& length, wxXmlNode* node);
+        void SetSequenceDuration(double length);
 
 };
 

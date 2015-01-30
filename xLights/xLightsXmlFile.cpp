@@ -622,13 +622,26 @@ void xLightsXmlFile::SetSequenceDurationMS(int length)
 
 void xLightsXmlFile::SetSequenceDuration(double length)
 {
+    SetSequenceDuration(string_format("%.3f",length), NULL);
+}
+
+void xLightsXmlFile::SetSequenceDuration(const wxString& length, wxXmlNode* node)
+{
     bool found = false;
-    // try to correct bad formatted length
-    seq_duration = length;
+
+    length.ToDouble(&seq_duration);
 
     if( needs_conversion ) return;
 
-    wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* root;
+    if( node == NULL )
+    {
+        root=seqDocument.GetRoot();
+    }
+    else
+    {
+        root = node;
+    }
     wxXmlNode* head;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
@@ -646,12 +659,11 @@ void xLightsXmlFile::SetSequenceDuration(double length)
             }
        }
     }
-    if( !found )
+    if( !found && head != NULL)
     {
         wxXmlNode* length = AddChildXmlNode(head, wxT("sequenceDuration"), GetSequenceDurationString());
     }
 }
-
 
 void xLightsXmlFile::Save()
 {
@@ -929,7 +941,7 @@ void xLightsXmlFile::Save()
 
         if( compute_time )
         {
-           SetSequenceDuration(last_time);
+           SetSequenceDuration(last_time, root);
         }
 
         // write converted XML file to xLights directory
