@@ -204,7 +204,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     CheckForValidModels();
 
-    mMediaLengthMS = (int)(xml_file.GetSequenceDuration()*1000);
+    mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
         mainSequencer->PanelWaveForm->CloseMediaFile();
         if(xml_file.GetSequenceType()=="Media")
@@ -213,7 +213,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
             mediaFilename = xml_file.GetMediaFile();
             if( mediaFilename == wxEmptyString )
             {
-                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
+                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"), false);
                 setting_dlg.Fit();
                 setting_dlg.ShowModal();
                 mediaFilename = xml_file.GetMediaFile();

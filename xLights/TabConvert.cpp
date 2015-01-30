@@ -2613,22 +2613,6 @@ void FRAMECLASS DoConversion(const wxString& Filename, const wxString& OutputFor
         }
         ReadLorFile(Filename, i);
     }
-    else if(ext == wxString("xml"))
-    {
-        xLightsXmlFile v3File;
-        v3File.SetFullName(Filename);
-        v3File.Load();
-        if (v3File.NeedsConversion()) {
-            if( !v3File.Convert() )
-            {
-                ConversionError(wxString("Failed to convert V3 file!"));
-                return;
-            }
-            SeqSettingsDialog setting_dlg(this, &v3File, mediaDirectory, wxT("Your XML file has been converted!"));
-            setting_dlg.Fit();
-            setting_dlg.ShowModal();
-        }
-    }
     else
     {
         ConversionError(wxString("Unknown sequence file extension"));

@@ -65,7 +65,7 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool search_for_media)
 :   xml_file(file_to_handle_),
     media_directory(media_dir)
 {
@@ -255,9 +255,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
     TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
     TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
-    Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_TYPE)));
-    TextCtrl_Xml_Media_File->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::MEDIA_FILE));
-    TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SEQ_DURATION));
+    Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
+    TextCtrl_Xml_Media_File->SetValue(xml_file->GetMediaFile());
+    TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetSequenceDurationString());
     Button_Save->Enable(false);
 }
 
@@ -267,8 +267,10 @@ SeqSettingsDialog::~SeqSettingsDialog()
 	//*)
 }
 
-void SeqSettingsDialog::SetMediaFilename(const wxString &filename) {
-    ExtractMetaTagsFromMP3(filename);
+void SeqSettingsDialog::SetMediaFilename(const wxString &filename, bool overwrite_tags) {
+    if( overwrite_tags) {
+        ExtractMetaTagsFromMP3(filename);
+    }
     BitmapButton_Xml_Media_File->Enable(true);
     TextCtrl_Xml_Media_File->SetValue(filename);
     Choice_Xml_Seq_Type->SetStringSelection("Media");
@@ -478,15 +480,15 @@ bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
                 modified = true;
             }
 
-            if( title != wxT("") )
+            if( title != wxEmptyString )
             {
                 TextCtrl_Xml_Song->SetValue(title);
             }
-            if( artist != wxT("") )
+            if( artist != wxEmptyString )
             {
                 TextCtrl_Xml_Artist->SetValue(artist);
             }
-            if( album != wxT("") )
+            if( album != wxEmptyString )
             {
                 TextCtrl_Xml_Album->SetValue(album);
             }
@@ -511,9 +513,9 @@ void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
     info.push_back(TextCtrl_Xml_Album->GetValue());
     info.push_back(TextCtrl_Xml_Music_Url->GetValue());
     info.push_back(TextCtrl_Xml_Comment->GetValue());
-    info.push_back(Choice_Xml_Seq_Type->GetString(Choice_Xml_Seq_Type->GetSelection()));
-    info.push_back(TextCtrl_Xml_Media_File->GetValue());
-    info.push_back(TextCtrl_Xml_Seq_Duration->GetValue());
+    xml_file->SetSequenceType(Choice_Xml_Seq_Type->GetString(Choice_Xml_Seq_Type->GetSelection()));
+    xml_file->SetMediaFile(TextCtrl_Xml_Media_File->GetValue());
+    xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
 
     xml_file->SetHeaderInfo(info);
     xml_file->Save();

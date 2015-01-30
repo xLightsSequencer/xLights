@@ -80,7 +80,6 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
 {
     bool found = false;
     seq_type = type;
-    header_info[SEQ_TYPE] = type;
 
     if( !is_loaded ) // conversion process will take care of writing this info
         return;
@@ -105,7 +104,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     }
     if( !found )
     {
-        AddChildXmlNode(head, wxT("sequenceType"), header_info[HEADER_INFO_TYPES::SEQ_TYPE]);
+        AddChildXmlNode(head, wxT("sequenceType"), seq_type);
     }
 }
 
@@ -113,7 +112,6 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
 {
     bool found = false;
     media_file = filename;
-    header_info[MEDIA_FILE] = filename;
 
     if( !is_loaded ) // conversion process will take care of writing this info
         return;
@@ -138,7 +136,7 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
     }
     if( !found )
     {
-        AddChildXmlNode(head, wxT("mediaFile"), header_info[HEADER_INFO_TYPES::MEDIA_FILE]);
+        AddChildXmlNode(head, wxT("mediaFile"), media_file);
     }
 }
 
@@ -255,8 +253,7 @@ void xLightsXmlFile::Clear()
 {
     is_loaded = false;
     needs_conversion = true;
-    version_string = _("");
-    last_time = _("0.0");
+    version_string = wxEmptyString;
     models.Clear();
     timing_protection.Clear();
     timing.Clear();
@@ -327,24 +324,6 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
                 else if( element->GetName() == "comment")
                 {
                     SetNodeContent(element, header_info[COMMENT]);
-                }
-                else if( element->GetName() == "sequenceType")
-                {
-                    SetNodeContent(element, header_info[SEQ_TYPE]);
-                    seq_type = header_info[SEQ_TYPE];
-                }
-                else if( element->GetName() == "mediaFile")
-                {
-                    SetNodeContent(element, header_info[MEDIA_FILE]);
-                    media_file = header_info[MEDIA_FILE];
-                }
-                else if( element->GetName() == "sequenceDuration")
-                {
-                    // try to correct bad formatted length
-                    header_info[SEQ_DURATION].ToDouble(&seq_duration);
-                    last_time = string_format("%.3f", seq_duration);
-                    SetNodeContent(element, last_time);
-                    header_info[SEQ_DURATION] = last_time;
                 }
             }
        }
@@ -575,17 +554,15 @@ bool xLightsXmlFile::Load()
                     }
                     else if( element->GetName() == "sequenceType")
                     {
-                        header_info[SEQ_TYPE] = element->GetNodeContent();
-                        seq_type = header_info[SEQ_TYPE];
+                        seq_type = element->GetNodeContent();
                     }
                     else if( element->GetName() == "mediaFile")
                     {
-                        header_info[MEDIA_FILE] = element->GetNodeContent();
-                        media_file = header_info[MEDIA_FILE];
+                        media_file = element->GetNodeContent();
                     }
                     else if( element->GetName() == "sequenceDuration")
                     {
-                        header_info[SEQ_DURATION] = element->GetNodeContent();
+                        SetSequenceDuration(element->GetNodeContent());
                     }
                 }
            }
@@ -626,15 +603,16 @@ bool xLightsXmlFile::Load()
     return success;  // note that we return false for a v3 file since XML data is not populated until a Save is executed.
 }
 
-void xLightsXmlFile::StoreEndTime(wxString end_time)
+wxString xLightsXmlFile::GetSequenceDurationString() const
 {
-    double time1, time2;
-    end_time.ToDouble(&time1);
-    last_time.ToDouble(&time2);
-    if( time1 > time2 )
-    {
-        last_time = end_time;
-    }
+    return string_format("%.3f", seq_duration);
+}
+
+void xLightsXmlFile::SetSequenceDuration(const wxString& length)
+{
+    double len;
+    length.ToDouble(&len);
+    SetSequenceDuration(len);
 }
 
 void xLightsXmlFile::SetSequenceDurationMS(int length)
@@ -646,9 +624,9 @@ void xLightsXmlFile::SetSequenceDuration(double length)
 {
     bool found = false;
     // try to correct bad formatted length
-    last_time = string_format("%.3f", length);
     seq_duration = length;
-    header_info[SEQ_DURATION] = last_time;
+
+    if( needs_conversion ) return;
 
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* head;
@@ -662,7 +640,7 @@ void xLightsXmlFile::SetSequenceDuration(double length)
             {
                 if( element->GetName() == "sequenceDuration")
                 {
-                    SetNodeContent(element, header_info[SEQ_DURATION]);
+                    SetNodeContent(element, GetSequenceDurationString());
                     found = true;
                 }
             }
@@ -670,7 +648,7 @@ void xLightsXmlFile::SetSequenceDuration(double length)
     }
     if( !found )
     {
-        wxXmlNode* length = AddChildXmlNode(head, wxT("sequenceDuration"), header_info[SEQ_DURATION]);
+        wxXmlNode* length = AddChildXmlNode(head, wxT("sequenceDuration"), GetSequenceDurationString());
     }
 }
 
@@ -680,6 +658,11 @@ void xLightsXmlFile::Save()
     if( needs_conversion )
     {
         // assumes you have made a backup of the original file
+
+        wxString end_time;
+        wxString last_time = wxT("0.0");
+        bool compute_time = (GetSequenceDurationMS() <= 0);
+        double time1, time2;
 
         //if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
 
@@ -704,9 +687,9 @@ void xLightsXmlFile::Save()
         AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
         AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
-        AddChildXmlNode(node, wxT("sequenceType"), header_info[HEADER_INFO_TYPES::SEQ_TYPE]);
-        AddChildXmlNode(node, wxT("mediaFile"), header_info[HEADER_INFO_TYPES::MEDIA_FILE]);
-        wxXmlNode* length = AddChildXmlNode(node, wxT("sequenceDuration"), header_info[HEADER_INFO_TYPES::SEQ_DURATION]);
+        AddChildXmlNode(node, wxT("sequenceType"), seq_type);
+        AddChildXmlNode(node, wxT("mediaFile"), media_file);
+        AddChildXmlNode(node, wxT("sequenceDuration"), GetSequenceDurationString());
 
         node = AddChildXmlNode(root, wxT("DisplayElements"));
         AddTimingAttributes(node, wxT("Imported Timing"), wxT("1"), wxT("1"));
@@ -793,7 +776,15 @@ void xLightsXmlFile::Save()
                     effect->AddAttribute(wxT("startTime"), timing[j]);
                     effect->AddAttribute(wxT("endTime"), end_time);
 
-                    StoreEndTime(end_time);
+                    if( compute_time )
+                    {
+                        end_time.ToDouble(&time1);
+                        last_time.ToDouble(&time2);
+                        if( time1 > time2 )
+                        {
+                            last_time = end_time;
+                        }
+                    }
 
                     effect_id++;
                 }
@@ -934,10 +925,12 @@ void xLightsXmlFile::Save()
 
         node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
 
-        // store off total length
-        last_time.ToDouble(&seq_duration);
-        SetNodeContent(length, last_time);
-        header_info[HEADER_INFO_TYPES::SEQ_DURATION] = last_time;
+        needs_conversion = false;
+
+        if( compute_time )
+        {
+           SetSequenceDuration(last_time);
+        }
 
         // write converted XML file to xLights directory
         doc->Save(GetFullPath());
@@ -953,7 +946,7 @@ void xLightsXmlFile::Save()
         //if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
         seqDocument.Save(GetFullPath());
     }
-    needs_conversion = false;
+
     //if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
 }
 

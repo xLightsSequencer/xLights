@@ -22,9 +22,6 @@ class xLightsXmlFile : public wxFileName
             ALBUM,
             URL,
             COMMENT,
-            SEQ_TYPE,
-            MEDIA_FILE,
-            SEQ_DURATION,
             NUM_TYPES
         };
 
@@ -40,9 +37,12 @@ class xLightsXmlFile : public wxFileName
         const wxString GetVersion() { return version_string; };
 
         int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
-        double GetSequenceDuration() const { return seq_duration; }
+        double GetSequenceDurationDouble() const { return seq_duration; }
+        wxString GetSequenceDurationString() const;
+
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(double length);
+        void SetSequenceDuration(const wxString& length);
 
         const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
@@ -80,7 +80,6 @@ class xLightsXmlFile : public wxFileName
         bool needs_conversion;
         wxString version_string;
         wxString latest_version;
-        wxString last_time;
         double seq_duration;
         wxString media_file;
         wxString seq_type;
@@ -92,8 +91,8 @@ class xLightsXmlFile : public wxFileName
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void SetNodeContent(wxXmlNode* node, const wxString& content);
         void FreeNode(wxXmlNode* node);
-        void StoreEndTime(wxString end_time);
         wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
+        void SearchForMedia();
 
 };
 
