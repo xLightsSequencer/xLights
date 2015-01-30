@@ -26,7 +26,7 @@ void xLightsXmlFile::Init()
     seq_duration = 0.0;
     has_audio_media = false;
     Clear();
-    latest_version = _("4.0.0");
+    latest_version = _("4.0.0a");
     for(int i = 0; i < NUM_TYPES; ++i )
     {
         header_info.push_back(_(""));
@@ -516,6 +516,11 @@ bool xLightsXmlFile::Load()
                     if( element->GetName() == "version")
                     {
                         version_string = element->GetNodeContent();
+                        // temporary reminder to developer when they need to re-convert
+                        if( version_string != latest_version )
+                        {
+                            wxMessageBox("Your XML was converted with a previous v4 build...please re-convert original file to avoid errors!","Developer Warning");
+                        }
                     }
                     else if( element->GetName() == "author")
                     {
