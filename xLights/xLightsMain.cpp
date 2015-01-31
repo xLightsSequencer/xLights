@@ -2022,8 +2022,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 //    ConnectOnChar(PaneNutcracker);
 //    ConnectOnChar(Panel1); //add hot keys to upper panel as well -DJ
 
-    jobPool.Start(wxThread::GetCPUCount() * 2);
-
+  jobPool.Start(wxThread::GetCPUCount() * 4);
+ //   jobPool.Start(24);
 }
 
 xLightsFrame::~xLightsFrame()
