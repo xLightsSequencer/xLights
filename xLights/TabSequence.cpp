@@ -663,6 +663,8 @@ void xLightsFrame::SaveSequence()
     }
     if (xlightsFilename.IsEmpty())
     {
+        int saved_text_entry_context = mTextEntryContext;
+        mTextEntryContext = TEXT_ENTRY_DIALOG;
         wxString NewFilename;
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
         bool ok = false;
@@ -690,6 +692,7 @@ void xLightsFrame::SaveSequence()
 
         oName.SetExt("xml");
         SeqXmlFileName=oName.GetFullPath();
+        mTextEntryContext = saved_text_entry_context;
     }
 
     EnableSequenceControls(false);
@@ -702,6 +705,7 @@ void xLightsFrame::SaveSequence()
 
     RenderGridToSeqData();
     WriteFalconPiFile(xlightsFilename);
+    CurrentSeqXmlFile->Save(mSequenceElements);
     UnsavedChanges = false;
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);

@@ -8,6 +8,7 @@
 #include <vector>
 #include "wx/xml/xml.h"
 
+class xLightsXmlFile;  // forward declaration needed due to circular dependency
 
 struct Row_Information_Struct
 {
@@ -41,7 +42,7 @@ class SequenceElements
     public:
         SequenceElements();
         virtual ~SequenceElements();
-        bool LoadSequencerFile(xLightsXmlFile xml_file);
+        bool LoadSequencerFile(xLightsXmlFile& xml_file);
         bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
         void AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const wxString &name);
