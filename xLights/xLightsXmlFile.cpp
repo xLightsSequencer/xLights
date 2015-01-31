@@ -35,28 +35,9 @@ void xLightsXmlFile::Init()
     }
 }
 
-void xLightsXmlFile::FreeNode(wxXmlNode* node)
-{
-    if( node != NULL )
-    {
-        wxXmlNode* next_node = node->GetNext();
-        if( next_node != NULL )
-        {
-            FreeNode(next_node);
-            for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext())
-            {
-                FreeNode(e);
-            }
-            delete node;
-       }
-    }
-}
-
 void xLightsXmlFile::FreeMemory()
 {
     Clear();
-    wxXmlNode* root=seqDocument.GetRoot();
-    FreeNode(root);
 }
 
 bool xLightsXmlFile::Convert()
@@ -421,8 +402,8 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                         if( attr == section )
                         {
                             e->RemoveChild(element);
-                            timing_list.Remove(section);
                             delete element;
+                            timing_list.Remove(section);
                             found = true;
                         }
                     }
@@ -948,8 +929,8 @@ void xLightsXmlFile::Save()
         doc->Save(GetFullPath());
 
         // release memory
-        FreeNode(root);
         delete doc;
+
         version_string = latest_version;
         Load();
     }
@@ -1032,6 +1013,94 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         timing_list.push_back(filename);
     }
 
+    seqDocument.Save(GetFullPath());
+}
+
+void xLightsXmlFile::Save( SequenceElements& seq_elements)
+{
+    wxXmlNode* root = seqDocument.GetRoot();
+
+    // Delete nodes that will be replaced
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; )
+    {
+        if( e->GetName() == "DisplayElements" ||
+            e->GetName() == "ElementEffects" )
+        {
+            wxXmlNode* node_to_delete = e;
+            e = e->GetNext();
+            root->RemoveChild(node_to_delete);
+            delete node_to_delete;
+        }
+        else
+        {
+            e=e->GetNext();
+        }
+    }
+
+    // Now add new elements to our xml document
+    wxXmlNode* display_node = AddChildXmlNode(root, wxT("DisplayElements"));
+    wxXmlNode* elements_node = AddChildXmlNode(root, wxT("ElementEffects"));
+
+    int num_elements = seq_elements.GetElementCount();
+    for(int i = 0; i < num_elements; ++i)
+    {
+        Element* element = seq_elements.GetElement(i);
+
+        // Add display elements
+        wxXmlNode* display_element_node = AddChildXmlNode(display_node, wxT("Element"));
+        display_element_node->AddAttribute(wxT("collapsed"), string_format("%d", element->GetCollapsed()));
+        display_element_node->AddAttribute(wxT("type"), element->GetType());
+        display_element_node->AddAttribute(wxT("name"), element->GetName());
+        display_element_node->AddAttribute(wxT("visible"), string_format("%d", element->GetVisible()));
+        display_element_node->AddAttribute(wxT("active"), string_format("%d", element->GetActive()));
+
+        // Add element node to ElementEffects
+        wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, wxT("Element"));
+        element_effects_node->AddAttribute(wxT("type"), element->GetType());
+        element_effects_node->AddAttribute(wxT("name"), element->GetName());
+
+        // Add effect layers
+        int num_layers = element->GetEffectLayerCount();
+        for(int j = 0; j < num_layers; ++j)
+        {
+            EffectLayer* layer = element->GetEffectLayer(j);
+
+            // Add layer node
+            wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, wxT("EffectLayer"));
+
+            // Add effects
+            int num_effects = layer->GetEffectCount();
+            for(int k = 0; k < num_effects; ++k)
+            {
+                Effect* effect = layer->GetEffect(k);
+
+                // Add effect node
+                wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, wxT("Effect"), effect->GetSettings());
+
+                if( element->GetType() == "model" )
+                {
+                    effect_node->AddAttribute(wxT("name"), effect->GetEffectName());
+                    effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
+                    effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
+                    effect_node->AddAttribute(wxT("id"), string_format("%d", effect->GetID()));
+                    effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
+                    effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                }
+                else if( element->GetType() == "timing" )
+                {
+                    effect_node->AddAttribute(wxT("label"), effect->GetEffectName());
+                    effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
+                    effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
+                    effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
+                    effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                }
+                else if( element->GetType() == "view" )
+                {
+
+                }
+            }
+        }
+    }
     seqDocument.Save(GetFullPath());
 }
 

@@ -198,6 +198,7 @@ class EffectTreeDialog;
 
 #define TEXT_ENTRY_TIMING           0
 #define TEXT_ENTRY_EFFECT           1
+#define TEXT_ENTRY_DIALOG           2
 
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);

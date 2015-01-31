@@ -145,7 +145,7 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 }
 
 
-bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
+bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
 {
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
 
@@ -237,6 +237,12 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile xml_file)
                                             id = wxAtoi(effect->GetAttribute("id"));
                                             effectIndex = Effect::GetEffectIndex(effectName);
                                             settings = effect->GetNodeContent();
+                                        }
+                                        else
+                                        {
+                                            // store timing labels in name attribute
+                                            effectName = effect->GetAttribute("label");
+
                                         }
                                         effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                     }

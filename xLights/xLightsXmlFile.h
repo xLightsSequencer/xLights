@@ -4,6 +4,9 @@
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include <wx/textctrl.h>
+#include "sequencer/SequenceElements.h"
+
+class SequenceElements;  // forward declaration needed due to circular dependency
 
 class xLightsXmlFile : public wxFileName
 {
@@ -28,6 +31,7 @@ class xLightsXmlFile : public wxFileName
         bool Load();
         bool Convert();
         void Save();
+        void Save( SequenceElements& elements);
         void Clear();
         void FreeMemory();
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
@@ -89,7 +93,6 @@ class xLightsXmlFile : public wxFileName
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void SetNodeContent(wxXmlNode* node, const wxString& content);
-        void FreeNode(wxXmlNode* node);
         wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
         void SearchForMedia();
         void SetSequenceDuration(const wxString& length, wxXmlNode* node);
