@@ -1060,43 +1060,52 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         element_effects_node->AddAttribute(wxT("name"), element->GetName());
 
         // Add effect layers
-        int num_layers = element->GetEffectLayerCount();
-        for(int j = 0; j < num_layers; ++j)
+        if( element->GetFixedTiming() )
         {
-            EffectLayer* layer = element->GetEffectLayer(j);
-
-            // Add layer node
+            element_effects_node->AddAttribute(wxT("fixed"), string_format( "%d", element->GetFixedTiming()));
+            // Add empty layer node
             wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, wxT("EffectLayer"));
-
-            // Add effects
-            int num_effects = layer->GetEffectCount();
-            for(int k = 0; k < num_effects; ++k)
+        }
+        else
+        {
+            int num_layers = element->GetEffectLayerCount();
+            for(int j = 0; j < num_layers; ++j)
             {
-                Effect* effect = layer->GetEffect(k);
+                EffectLayer* layer = element->GetEffectLayer(j);
 
-                // Add effect node
-                wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, wxT("Effect"), effect->GetSettings());
+                // Add layer node
+                wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, wxT("EffectLayer"));
 
-                if( element->GetType() == "model" )
+                // Add effects
+                int num_effects = layer->GetEffectCount();
+                for(int k = 0; k < num_effects; ++k)
                 {
-                    effect_node->AddAttribute(wxT("name"), effect->GetEffectName());
-                    effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
-                    effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
-                    effect_node->AddAttribute(wxT("id"), string_format("%d", effect->GetID()));
-                    effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
-                    effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
-                }
-                else if( element->GetType() == "timing" )
-                {
-                    effect_node->AddAttribute(wxT("label"), effect->GetEffectName());
-                    effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
-                    effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
-                    effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
-                    effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
-                }
-                else if( element->GetType() == "view" )
-                {
+                    Effect* effect = layer->GetEffect(k);
 
+                    // Add effect node
+                    wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, wxT("Effect"), effect->GetSettings());
+
+                    if( element->GetType() == "model" )
+                    {
+                        effect_node->AddAttribute(wxT("name"), effect->GetEffectName());
+                        effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
+                        effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
+                        effect_node->AddAttribute(wxT("id"), string_format("%d", effect->GetID()));
+                        effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
+                        effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                    }
+                    else if( element->GetType() == "timing" )
+                    {
+                        effect_node->AddAttribute(wxT("label"), effect->GetEffectName());
+                        effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
+                        effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
+                        effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
+                        effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                    }
+                    else if( element->GetType() == "view" )
+                    {
+
+                    }
                 }
             }
         }
@@ -1110,8 +1119,13 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
         return;
 
     double interval;
-    int ms = wxAtoi(interval_name);
-    interval = ms / 1000;
+    int ms;
+
+    if( interval_name != "Empty" )
+    {
+        ms = wxAtoi(interval_name);
+        interval = ms / 1000;
+    }
 
     bool found = false;
     wxXmlNode* root=seqDocument.GetRoot();
@@ -1131,7 +1145,10 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
             child = AddChildXmlNode(e, wxT("Element"));
             child->AddAttribute(wxT("type"),wxT("timing"));
             child->AddAttribute(wxT("name"),interval_name);
-            child->AddAttribute(wxT("fixed"),string_format("%d",ms));
+            if( interval_name != "Empty" )
+            {
+                child->AddAttribute(wxT("fixed"),string_format("%d",ms));
+            }
             layer = AddChildXmlNode(child, wxT("EffectLayer"));
         }
     }

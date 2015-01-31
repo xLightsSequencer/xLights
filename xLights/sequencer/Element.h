@@ -35,6 +35,8 @@ class Element
         bool GetSelected();
         void SetSelected(bool selected);
 
+        int GetFixedTiming();
+        void SetFixedTiming(int fixed);
 
         wxString GetType();
         void SetType(wxString &type);
@@ -59,6 +61,7 @@ class Element
         bool mCollapsed;
         bool mActive;
         bool mSelected;
+        int mFixed;
         std::vector<EffectLayer> mEffectLayers;
 
 };

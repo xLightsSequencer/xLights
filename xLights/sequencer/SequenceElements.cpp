@@ -202,53 +202,80 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                     Element* element = GetElement(elementNode->GetAttribute("name"));
                     if (element !=NULL)
                     {
-                        int layerIndex=0;
-                        for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
+                        // check for fixed timing interval
+                        double interval = 0.0;
+                        if( elementNode->GetAttribute("type") == "timing" )
                         {
-                            if (effectLayerNode->GetName() == "EffectLayer")
+                            elementNode->GetAttribute("fixed").ToDouble(&interval);
+                        }
+                        if( interval > 0.0 )
+                        {
+                            element->SetFixedTiming((int)interval);
+                            interval /= 1000.0;
+                            element->AddEffectLayer();
+                            EffectLayer* effectLayer = element->GetEffectLayer(0);
+                            double time = 0.0;
+                            double end_time = xml_file.GetSequenceDurationDouble();
+                            double startTime, endTime, next_time;
+                            while( time <= end_time )
                             {
-                                element->AddEffectLayer();
-                                EffectLayer* effectLayer = element->GetEffectLayer(layerIndex);
-                                for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
+                                next_time = (time + interval <= end_time) ? time + interval : end_time;
+                                startTime = TimeLine::RoundToMultipleOfPeriod(time,mFrequency);
+                                endTime = TimeLine::RoundToMultipleOfPeriod(next_time,mFrequency);
+                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                time += interval;
+                            }
+                        }
+                        else
+                        {
+                            int layerIndex=0;
+                            for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
+                            {
+                                if (effectLayerNode->GetName() == "EffectLayer")
                                 {
-                                    if (effect->GetName() == "Effect")
+                                    element->AddEffectLayer();
+                                    EffectLayer* effectLayer = element->GetEffectLayer(layerIndex);
+                                    for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
                                     {
-                                        wxString effectName;
-                                        wxString settings;
-                                        int id;
-                                        int effectIndex;
-                                        bool bProtected=false;
-
-                                        // Start time
-                                        double startTime;
-                                        effect->GetAttribute("startTime").ToDouble(&startTime);
-                                        startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
-                                        // End time
-                                        double endTime;
-                                        effect->GetAttribute("endTime").ToDouble(&endTime);
-                                        endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
-                                        // Protected
-                                        bProtected = effect->GetAttribute("protected")=='1'?true:false;
-                                        if(elementNode->GetAttribute("type") != "timing")
+                                        if (effect->GetName() == "Effect")
                                         {
-                                            // Name
-                                            effectName = effect->GetAttribute("name");
-                                            // ID
-                                            id = wxAtoi(effect->GetAttribute("id"));
-                                            effectIndex = Effect::GetEffectIndex(effectName);
-                                            settings = effect->GetNodeContent();
-                                        }
-                                        else
-                                        {
-                                            // store timing labels in name attribute
-                                            effectName = effect->GetAttribute("label");
+                                            wxString effectName;
+                                            wxString settings;
+                                            int id;
+                                            int effectIndex;
+                                            bool bProtected=false;
 
+                                            // Start time
+                                            double startTime;
+                                            effect->GetAttribute("startTime").ToDouble(&startTime);
+                                            startTime = TimeLine::RoundToMultipleOfPeriod(startTime,mFrequency);
+                                            // End time
+                                            double endTime;
+                                            effect->GetAttribute("endTime").ToDouble(&endTime);
+                                            endTime = TimeLine::RoundToMultipleOfPeriod(endTime,mFrequency);
+                                            // Protected
+                                            bProtected = effect->GetAttribute("protected")=='1'?true:false;
+                                            if(elementNode->GetAttribute("type") != "timing")
+                                            {
+                                                // Name
+                                                effectName = effect->GetAttribute("name");
+                                                // ID
+                                                id = wxAtoi(effect->GetAttribute("id"));
+                                                effectIndex = Effect::GetEffectIndex(effectName);
+                                                settings = effect->GetNodeContent();
+                                            }
+                                            else
+                                            {
+                                                // store timing labels in name attribute
+                                                effectName = effect->GetAttribute("label");
+
+                                            }
+                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                         }
-                                        effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                     }
                                 }
+                                layerIndex++;
                             }
-                            layerIndex++;
                         }
                     }
                 }

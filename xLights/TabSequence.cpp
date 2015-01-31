@@ -667,6 +667,7 @@ void xLightsFrame::SaveSequence()
         mTextEntryContext = TEXT_ENTRY_DIALOG;
         wxString NewFilename;
         wxTextEntryDialog dialog(this,"Enter a name for the sequence:","Save As");
+        dialog.SetValue(CurrentSeqXmlFile->GetName());
         bool ok = false;
         do
         {

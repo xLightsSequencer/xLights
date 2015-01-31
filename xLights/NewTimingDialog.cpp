@@ -32,6 +32,7 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Choice_New_Fixed_Timing->Append(_("25ms"));
 	Choice_New_Fixed_Timing->SetSelection( Choice_New_Fixed_Timing->Append(_("50ms")) );
 	Choice_New_Fixed_Timing->Append(_("100ms"));
+	Choice_New_Fixed_Timing->Append(_("Empty"));
 	FlexGridSizer1->Add(Choice_New_Fixed_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));

@@ -1,14 +1,15 @@
 #include "Element.h"
 
 Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, bool active, bool selected)
-:mEffectLayers()
+:   mEffectLayers(),
+    mName(name),
+    mElementType(type),
+    mVisible(visible),
+    mCollapsed(collapsed),
+    mActive(active),
+    mSelected(selected),
+    mFixed(0)
 {
-    mName = name;
-    mElementType = type;
-    mVisible = visible;
-    mCollapsed = collapsed;
-    mActive = active;
-    mSelected = selected;
 }
 
 Element::~Element()
@@ -61,6 +62,15 @@ bool Element::GetSelected()
     return mSelected;
 }
 
+int Element::GetFixedTiming()
+{
+    return mFixed;
+}
+
+void Element::SetFixedTiming(int fixed)
+{
+    mFixed = fixed;
+}
 
 void Element::SetCollapsed(bool collapsed)
 {
