@@ -69,6 +69,7 @@ public:
     
     virtual void Process() {
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
+        int maxFrameBeforeCheck = -1;
 
         int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
@@ -84,7 +85,9 @@ public:
         for (int frame = startFrame; frame < endFrame; frame++) {
             bool validLayers[numLayers];
             //make sure we can do this frame
-            waitForFrame(frame);
+            if (frame >= maxFrameBeforeCheck) {
+                maxFrameBeforeCheck = waitForFrame(frame);
+            }
             bool effectsToUpdate = false;
             for (int layer = 0; layer < numLayers; layer++) {
                 Effect *el = findEffectForFrame(layer, frame);
@@ -126,11 +129,12 @@ public:
         }
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
-    void waitForFrame(int frame) {
+    int waitForFrame(int frame) {
         wxMutexLocker lock(nextLock);
         while (frame >= previousFrameDone) {
             nextSignal.WaitTimeout(5);
         }
+        return previousFrameDone;
     }
     bool checkIfDone(int frame, int timeout = 5) {
         wxMutexLocker lock(nextLock);
