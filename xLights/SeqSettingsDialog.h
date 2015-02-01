@@ -2,6 +2,7 @@
 #define SEQSETTINGSDIALOG_H
 
 #include "xLightsXmlFile.h"
+#include "tmGridCell.h"
 
 //(*Headers(SeqSettingsDialog)
 #include <wx/notebook.h>
@@ -30,7 +31,6 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
 		wxStaticText* StaticText_Xml_Seq_Type;
-		wxChoice* Choice_Xml_Song_Timings;
 		wxStaticText* StaticText_XML_Version;
 		wxStaticText* StaticText_Xml_MediaFile;
 		wxTextCtrl* TextCtrl_Xml_Album;
@@ -50,14 +50,11 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Author;
 		wxStaticText* StaticText_Xml_Album;
 		wxStaticText* StaticText_XML_Type_Version;
-		wxButton* Button_Xml_Delete_Timing;
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
-		wxStaticText* StaticText_Xml_Timing;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxStaticText* StaticText_Filename;
-		wxButton* Button_Xml_Rename_Timing;
 		wxTextCtrl* TextCtrl_Xml_Comment;
 		wxStaticText* StaticText_Xml_Comment;
 		wxTextCtrl* TextCtrl_Xml_Author;
@@ -70,6 +67,8 @@ class SeqSettingsDialog: public wxDialog
 		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxButton* Button_Xml_New_Timing;
 		//*)
+
+		tmGrid* Grid_Timing;
 
 	protected:
 
@@ -105,18 +104,16 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_STATICTEXT_Xml_Comment;
 		static const long ID_TEXTCTRL_Xml_Comment;
 		static const long ID_PANEL1;
-		static const long ID_STATICTEXT_Xml_Timing;
-		static const long ID_CHOICE_Xml_Song_Timings;
 		static const long ID_BUTTON_Xml_New_Timing;
 		static const long ID_BUTTON_Xml_Import_Timing;
-		static const long ID_BUTTON_Xml_Rename_Timing;
-		static const long ID_BUTTON_Xml_Delete_Timing;
 		static const long ID_PANEL2;
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
 		static const long ID_BUTTON_Save;
 		static const long ID_BUTTON_Close;
 		//*)
+
+		static const long ID_GRID_TIMING;
 
 	private:
 
@@ -137,21 +134,24 @@ class SeqSettingsDialog: public wxDialog
 		void OnChoice_Xml_Song_TimingsSelect(wxCommandEvent& event);
 		void OnButton_Xml_New_TimingClick(wxCommandEvent& event);
 		void OnButton_Xml_Import_TimingClick(wxCommandEvent& event);
-		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
-		void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
 		void OnButton_SaveClick(wxCommandEvent& event);
 		void OnButton_CloseClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		//*)
 
-		DECLARE_EVENT_TABLE()
+		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
+        void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
+
+        DECLARE_EVENT_TABLE()
 
         xLightsXmlFile* xml_file;
         wxString& media_directory;
+        std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
         void ProcessSequenceType();
-        void PopulateSongTimings();
+        void PopulateTimingGrid();
         bool ExtractMetaTagsFromMP3(wxString filename);
+        void AddTimingCell(const wxString& name);
 };
 
 #endif

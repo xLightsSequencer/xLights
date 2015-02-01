@@ -45,12 +45,8 @@ const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Music_Url = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Comment = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Comment = wxNewId();
 const long SeqSettingsDialog::ID_PANEL1 = wxNewId();
-const long SeqSettingsDialog::ID_STATICTEXT_Xml_Timing = wxNewId();
-const long SeqSettingsDialog::ID_CHOICE_Xml_Song_Timings = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_New_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
-const long SeqSettingsDialog::ID_BUTTON_Xml_Rename_Timing = wxNewId();
-const long SeqSettingsDialog::ID_BUTTON_Xml_Delete_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
@@ -58,9 +54,16 @@ const long SeqSettingsDialog::ID_BUTTON_Save = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
+const long SeqSettingsDialog::ID_GRID_TIMING = wxNewId();
+
+wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
+wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(SeqSettingsDialog,wxDialog)
 	//(*EventTable(SeqSettingsDialog)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_NAME_CHANGE, SeqSettingsDialog::OnButton_Xml_Rename_TimingClick)
+    EVT_COMMAND(wxID_ANY, EVT_DELETE_ROW, SeqSettingsDialog::OnButton_Xml_Delete_TimingClick)
 END_EVENT_TABLE()
 
 #define string_format wxString::Format
@@ -73,14 +76,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFlexGridSizer* FlexGridSizer4;
 	wxGridBagSizer* GridBagSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
+	wxFlexGridSizer* FlexGridSizer_Timing_Page;
 
 	Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -130,62 +133,53 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer4->Fit(Panel3);
 	FlexGridSizer4->SetSizeHints(Panel3);
 	Panel1 = new wxPanel(Notebook_Seq_Settings, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer_Timing_Page = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText_Xml_Author = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Author, _("Author:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Author"));
-	FlexGridSizer3->Add(StaticText_Xml_Author, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Author, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Author = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Author, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Author"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Author, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Author, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Author_Email = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Author_Email, _("Email:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Author_Email"));
-	FlexGridSizer3->Add(StaticText_Xml_Author_Email, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Author_Email, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Author_Email = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Author_Email, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Author_Email"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Author_Email, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Author_Email, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Website = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Website, _("Website:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Website"));
-	FlexGridSizer3->Add(StaticText_Xml_Website, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Website, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Website = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Website, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Website"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Website, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Website, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Song = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Song, _("Song:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Song"));
-	FlexGridSizer3->Add(StaticText_Xml_Song, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Song, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Song = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Song, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Song"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Song, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Song, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Artist = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Artist, _("Artist:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Artist"));
-	FlexGridSizer3->Add(StaticText_Xml_Artist, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Artist, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Artist = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Artist, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Artist"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Artist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Artist, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Album = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Album, _("Album:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Album"));
-	FlexGridSizer3->Add(StaticText_Xml_Album, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Album, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Album = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Album, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Album"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Album, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Album, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Music_Url = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Music_Url, _("Music URL:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Music_Url"));
-	FlexGridSizer3->Add(StaticText_Xml_Music_Url, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Music_Url, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Music_Url = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Music_Url, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Music_Url"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Music_Url, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Music_Url, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Xml_Comment = new wxStaticText(Panel1, ID_STATICTEXT_Xml_Comment, _("Comment:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Comment"));
-	FlexGridSizer3->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Timing_Page->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Comment = new wxTextCtrl(Panel1, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxSize(250,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
-	FlexGridSizer3->Add(TextCtrl_Xml_Comment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Panel1->SetSizer(FlexGridSizer3);
-	FlexGridSizer3->Fit(Panel1);
-	FlexGridSizer3->SetSizeHints(Panel1);
+	FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Comment, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel1->SetSizer(FlexGridSizer_Timing_Page);
+	FlexGridSizer_Timing_Page->Fit(Panel1);
+	FlexGridSizer_Timing_Page->SetSizeHints(Panel1);
 	Panel2 = new wxPanel(Notebook_Seq_Settings, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticText_Xml_Timing = new wxStaticText(Panel2, ID_STATICTEXT_Xml_Timing, _("Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Timing"));
-	FlexGridSizer9->Add(StaticText_Xml_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Xml_Song_Timings = new wxChoice(Panel2, ID_CHOICE_Xml_Song_Timings, wxDefaultPosition, wxSize(238,21), 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Xml_Song_Timings"));
-	FlexGridSizer9->Add(Choice_Xml_Song_Timings, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer8->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer_Timing_Grid = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer8->Add(FlexGridSizer_Timing_Grid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Xml_New_Timing = new wxButton(Panel2, ID_BUTTON_Xml_New_Timing, _("New"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Xml_New_Timing"));
 	FlexGridSizer2->Add(Button_Xml_New_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Xml_Import_Timing = new wxButton(Panel2, ID_BUTTON_Xml_Import_Timing, _("Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Import_Timing"));
 	FlexGridSizer2->Add(Button_Xml_Import_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Xml_Rename_Timing = new wxButton(Panel2, ID_BUTTON_Xml_Rename_Timing, _("Rename"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Rename_Timing"));
-	Button_Xml_Rename_Timing->Disable();
-	FlexGridSizer2->Add(Button_Xml_Rename_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Xml_Delete_Timing = new wxButton(Panel2, ID_BUTTON_Xml_Delete_Timing, _("Delete"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Xml_Delete_Timing"));
-	Button_Xml_Delete_Timing->Disable();
-	FlexGridSizer2->Add(Button_Xml_Delete_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(412,20,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel2->SetSizer(FlexGridSizer8);
 	FlexGridSizer8->Fit(Panel2);
 	FlexGridSizer8->SetSizeHints(Panel2);
@@ -223,28 +217,48 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
-	Connect(ID_BUTTON_Xml_Rename_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Rename_TimingClick);
-	Connect(ID_BUTTON_Xml_Delete_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Delete_TimingClick);
 	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_SaveClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&SeqSettingsDialog::OnClose);
 	//*)
 
 	if( !xml_file->IsLoaded() ) xml_file->Load();
-	if( warning != wxEmptyString )
+	if( warning != "" )
     {
         StaticText_Warning->SetLabelText(warning);
         StaticText_Warning->Show();
     }
 
 	StaticText_Filename->SetLabelText(xml_file->GetFullPath());
-	PopulateSongTimings();
-    if( xml_file->GetSequenceType() != wxT("Media") && xml_file->GetSequenceType() != wxT("Animation")  )
+    if( xml_file->GetSequenceType() != "Media" && xml_file->GetSequenceType() != "Animation"  )
     {
-        xml_file->SetSequenceType(wxT("Media"));
+        xml_file->SetSequenceType("Media");
         xml_file->Save();
     }
 	ProcessSequenceType();
+
+	// Setup Grid
+	Grid_Timing = new tmGrid(Panel2, ID_GRID_TIMING, wxDefaultPosition, wxSize(390,150), wxBORDER_SIMPLE, _T("ID_GRID_TIMING"));
+	FlexGridSizer_Timing_Grid->Add(Grid_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 15);
+
+	FlexGridSizer8->Fit(Panel2);
+	FlexGridSizer8->SetSizeHints(Panel2);
+	Grid_Timing->DisableDragGridSize();
+	Grid_Timing->DisableDragRowSize();
+	Grid_Timing->DisableDragColSize();
+    Grid_Timing->CreateGrid(0, 2);
+	int total_width = Grid_Timing->GetSize().GetWidth();
+	Grid_Timing->HideRowLabels();
+	Grid_Timing->SetDefaultRowSize(25, true);
+
+	Grid_Timing->SetColumnWidth(0, 342);
+	Grid_Timing->SetColumnWidth(1, 25);
+	//wxGridCellButtonRenderer* btn1 = new wxGridCellButtonRenderer("");
+	//Grid_Timing->SetCellRenderer(0,0, btn1);
+	Grid_Timing->SetColLabelValue(0, "Timing Grids");
+	Grid_Timing->SetColLabelValue(1, "");
+	PopulateTimingGrid();
+
     StaticText_XML_Version->SetLabelText(xml_file->GetVersion());
     StaticText_Num_Models->SetLabelText(string_format("%d",xml_file->GetNumModels()));
     TextCtrl_Xml_Author->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::AUTHOR));
@@ -280,11 +294,20 @@ void SeqSettingsDialog::SetMediaFilename(const wxString &filename, bool overwrit
     }
 }
 
+void SeqSettingsDialog::AddTimingCell(const wxString& name)
+{
+	wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("");
+	mCellRenderers.push_back(new_renderer);
+	int num_rows = Grid_Timing->GetNumberRows();
+	Grid_Timing->AppendRows();
+	Grid_Timing->SetCellRenderer(num_rows,1, new_renderer);
+    Grid_Timing->SetCellValue(num_rows, 0, name);
+}
 
 void SeqSettingsDialog::ProcessSequenceType()
 {
     wxString type = xml_file->GetSequenceType();
-    BitmapButton_Xml_Media_File->Enable((type == wxT("Media")));
+    BitmapButton_Xml_Media_File->Enable((type == "Media"));
 }
 
 void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
@@ -301,7 +324,7 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audio file"), wxEmptyString, wxEmptyString, _("MP3 files (*.mp3)|*.mp3"), wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audio file", wxEmptyString, wxEmptyString, "MP3 files (*.mp3)|*.mp3", wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
     OpenDialog->SetDirectory(media_directory);
     if (OpenDialog->ShowModal() == wxID_OK)
@@ -368,14 +391,13 @@ void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
     Button_Save->Enable(true);
 }
 
-void SeqSettingsDialog::PopulateSongTimings()
+void SeqSettingsDialog::PopulateTimingGrid()
 {
-    Choice_Xml_Song_Timings->Clear();
-    Choice_Xml_Song_Timings->Set(xml_file->GetTimingList());
-    Button_Xml_Import_Timing->Enable(true);
-    Button_Xml_Delete_Timing->Enable(true);
-    Button_Xml_Rename_Timing->Enable(true);
-    Choice_Xml_Song_Timings->SetSelection(0);
+    wxArrayString timings = xml_file->GetTimingList();
+    for(int i = 0; i < timings.GetCount(); ++i)
+    {
+        AddTimingCell(timings[i]);
+    }
 }
 
 void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
@@ -386,7 +408,8 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     {
         wxString selected_timing = dialog.GetTiming();
         xml_file->AddFixedTimingSection(selected_timing);
-        PopulateSongTimings();
+        AddTimingCell(selected_timing);
+        //PopulateSongTimings();
         Button_Save->Enable(true);
     }
     dialog.Destroy();
@@ -394,7 +417,7 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, _("Choose Audacity timing file(s)"), wxEmptyString, wxEmptyString, _("Text files (*.txt)|*.txt"), wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audacity timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
     {
@@ -402,41 +425,35 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
         wxArrayString filenames;
         OpenDialog->GetFilenames(filenames);
         xml_file->ProcessAudacityTimingFiles(fDir, filenames);
+        for(int i = 0; i < filenames.GetCount(); ++i)
+        {
+            AddTimingCell(filenames[i]);
+        }
     }
 
     OpenDialog->Destroy();
-    PopulateSongTimings();
     Button_Save->Enable(true);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 {
-    int selection = Choice_Xml_Song_Timings->GetSelection();
+    int selection = event.GetId();
     wxArrayString timing_list = xml_file->GetTimingList();
-    RenameTextDialog dialog(this);
-    dialog.SetRenameText(timing_list[selection]);
-    dialog.Fit();
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        xml_file->SetTimingSectionName(timing_list[selection], dialog.GetRenameText());
-        PopulateSongTimings();
-        Button_Save->Enable(true);
-    }
-    dialog.Destroy();
+    xml_file->SetTimingSectionName(timing_list[selection], Grid_Timing->GetCellValue(selection, 0));
+    Button_Save->Enable(true);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 {
-    int selection = Choice_Xml_Song_Timings->GetSelection();
-    wxArrayString timing_list = xml_file->GetTimingList();
-    xml_file->DeleteTimingSection(timing_list[selection]);
-    PopulateSongTimings();
-    if( timing_list.Count() <= 1 )
+    if( Grid_Timing->GetGridCursorCol() == 1 )
     {
-        Button_Xml_Delete_Timing->Enable(false);
-        Button_Xml_Rename_Timing->Enable(false);
+        int row = Grid_Timing->GetGridCursorRow();
+        wxArrayString timing_list = xml_file->GetTimingList();
+        xml_file->DeleteTimingSection(timing_list[row]);
+        Grid_Timing->DeleteRows(row);
+        Button_Save->Enable(true);
+        Refresh();
     }
-    Button_Save->Enable(true);
 }
 
 bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
@@ -460,9 +477,9 @@ bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
 
         if( meta == MPG123_ID3 && mpg123_id3(mh, &v1, &v2) == MPG123_OK )
         {
-            wxString title = wxT("");
-            wxString artist = wxT("");
-            wxString album = wxT("");
+            wxString title = "";
+            wxString artist = "";
+            wxString album = "";
 
             if( v2 != NULL ) // "ID3V2 tag found"
             {
@@ -480,15 +497,16 @@ bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
                 modified = true;
             }
 
-            if( title != wxEmptyString )
+            if( title != "" )
             {
                 TextCtrl_Xml_Song->SetValue(title);
             }
-            if( artist != wxEmptyString )
+            if( artist != "" )
             {
                 TextCtrl_Xml_Artist->SetValue(artist);
             }
-            if( album != wxEmptyString )
+            if( album != ""
+                )
             {
                 TextCtrl_Xml_Album->SetValue(album);
             }

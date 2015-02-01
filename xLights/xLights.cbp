@@ -534,6 +534,8 @@
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="tmGridCell.cpp" />
+		<Unit filename="tmGridCell.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />

@@ -388,8 +388,8 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
     {
-       if (e->GetName() == "ElementEffects")
-       {
+        if (e->GetName() == "DisplayElements")
+        {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL && !found; element=element->GetNext() )
             {
                 if (element->GetName() == "Element")
@@ -409,7 +409,32 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                     }
                 }
             }
-       }
+        }
+    }
+    found = false;
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
+    {
+        if (e->GetName() == "ElementEffects")
+        {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL && !found; element=element->GetNext() )
+            {
+                if (element->GetName() == "Element")
+                {
+                    wxString attr;
+                    element->GetAttribute("type", &attr);
+                    if( attr == _("timing"))
+                    {
+                        element->GetAttribute("name", &attr);
+                        if( attr == section )
+                        {
+                            e->RemoveChild(element);
+                            delete element;
+                            found = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
