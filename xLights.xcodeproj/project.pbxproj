@@ -13,7 +13,6 @@
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671D815A1A673CC4005819EA /* NewSequenceDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */; };
 		671D815B1A673CC4005819EA /* TopEffectsPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */; };
-		671D815C1A673CC4005819EA /* XmlConversionDialog.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */; };
 		671D815D1A673CC4005819EA /* ColorPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81501A673CC4005819EA /* ColorPanel.wxs */; };
 		671D815E1A673CC4005819EA /* MainSequencer.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81511A673CC4005819EA /* MainSequencer.wxs */; };
 		671D815F1A673CC4005819EA /* TimingPanel.wxs in Resources */ = {isa = PBXBuildFile; fileRef = 671D81521A673CC4005819EA /* TimingPanel.wxs */; };
@@ -28,7 +27,6 @@
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
-		674A74A21A6315B000D2B0E6 /* XmlConversionDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674A74A11A6315B000D2B0E6 /* XmlConversionDialog.cpp */; };
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
@@ -133,6 +131,7 @@
 		67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */; };
 		67C7968F17B578B100CEE775 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 67C7968E17B578B100CEE775 /* icon.icns */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
+		67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D678FC1A7E628400421B05 /* tmGridCell.cpp */; };
 		67D8F4591A1A584400522413 /* TabTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425A17F0D23E00F4BC76 /* TabTest.cpp */; };
 		67D8F45A1A1A584400522413 /* TabSequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E491B317C45BAF00FE40EA /* TabSequence.cpp */; };
 		67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */; };
@@ -153,7 +152,6 @@
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NewSequenceDialog.wxs; sourceTree = "<group>"; };
 		671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TopEffectsPanel.wxs; sourceTree = "<group>"; };
-		671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = XmlConversionDialog.wxs; sourceTree = "<group>"; };
 		671D81501A673CC4005819EA /* ColorPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ColorPanel.wxs; sourceTree = "<group>"; };
 		671D81511A673CC4005819EA /* MainSequencer.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = MainSequencer.wxs; sourceTree = "<group>"; };
 		671D81521A673CC4005819EA /* TimingPanel.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TimingPanel.wxs; sourceTree = "<group>"; };
@@ -170,7 +168,6 @@
 		672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsXmlFile.h; sourceTree = "<group>"; };
 		672F95101A7A6619005FF8BF /* EffectIconPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectIconPanel.h; sourceTree = "<group>"; };
 		672F95111A7A6619005FF8BF /* PerspectivesPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerspectivesPanel.h; sourceTree = "<group>"; };
-		672F95121A7A6619005FF8BF /* XmlConversionDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlConversionDialog.h; sourceTree = "<group>"; };
 		672F95131A7A6619005FF8BF /* ColorPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorPanel.h; sourceTree = "<group>"; };
 		672F95141A7A6619005FF8BF /* TimingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimingPanel.h; sourceTree = "<group>"; };
 		672F95151A7A6619005FF8BF /* TopEffectsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopEffectsPanel.h; sourceTree = "<group>"; };
@@ -195,7 +192,6 @@
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
 		673E425A17F0D23E00F4BC76 /* TabTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabTest.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
-		674A74A11A6315B000D2B0E6 /* XmlConversionDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlConversionDialog.cpp; sourceTree = "<group>"; };
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
@@ -340,6 +336,7 @@
 		67C7969017B5791700CEE775 /* TabConvert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabConvert.cpp; sourceTree = "<group>"; };
 		67CA857E18BE86B800A6268C /* heartbeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heartbeat.cpp; sourceTree = "<group>"; };
 		67CA857F18BE86B800A6268C /* heartbeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = heartbeat.h; sourceTree = "<group>"; };
+		67D678FC1A7E628400421B05 /* tmGridCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tmGridCell.cpp; sourceTree = "<group>"; };
 		67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTreeDialog.cpp; sourceTree = "<group>"; };
 		67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PerspectivesPanel.cpp; sourceTree = "<group>"; };
 		67E491B117C459B800FE40EA /* RenderCurtain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCurtain.cpp; sourceTree = "<group>"; };
@@ -376,7 +373,6 @@
 				67A61A0B17B51C0F008E95BB /* ChannelLayoutDialog.wxs */,
 				671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */,
 				671D814E1A673CC4005819EA /* TopEffectsPanel.wxs */,
-				671D814F1A673CC4005819EA /* XmlConversionDialog.wxs */,
 				671D81501A673CC4005819EA /* ColorPanel.wxs */,
 				671D81511A673CC4005819EA /* MainSequencer.wxs */,
 				671D81521A673CC4005819EA /* TimingPanel.wxs */,
@@ -460,6 +456,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
@@ -560,7 +557,6 @@
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67A61A2417B51C0F008E95BB /* xLightsMain.cpp */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
-				674A74A11A6315B000D2B0E6 /* XmlConversionDialog.cpp */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -626,7 +622,6 @@
 				672F95251A7A6619005FF8BF /* XlightsDrawable.h */,
 				67A61A2517B51C0F008E95BB /* xLightsMain.h */,
 				672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */,
-				672F95121A7A6619005FF8BF /* XmlConversionDialog.h */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -714,7 +709,6 @@
 				67A61A6B17B51C0F008E95BB /* ShowDatesDialog.wxs in Resources */,
 				67A61A6C17B51C0F008E95BB /* xLightsframe.wxs in Resources */,
 				671D815E1A673CC4005819EA /* MainSequencer.wxs in Resources */,
-				671D815C1A673CC4005819EA /* XmlConversionDialog.wxs in Resources */,
 				671D815F1A673CC4005819EA /* TimingPanel.wxs in Resources */,
 				67C7968F17B578B100CEE775 /* icon.icns in Resources */,
 			);
@@ -779,6 +773,7 @@
 				67694F1D1A069BBE0030D020 /* SequencePreview.cpp in Sources */,
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
+				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
 				67C6FE9519FE72A8003232DF /* ViewsDialog.cpp in Sources */,
 				6784F92E1A5653670018EC0C /* SequenceElements.cpp in Sources */,
 				67A61A3F17B51C0F008E95BB /* RenderPiano.cpp in Sources */,
@@ -826,7 +821,6 @@
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				67E491B217C459B800FE40EA /* RenderCurtain.cpp in Sources */,
-				674A74A21A6315B000D2B0E6 /* XmlConversionDialog.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
