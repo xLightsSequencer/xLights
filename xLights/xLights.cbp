@@ -609,7 +609,6 @@
 					<wxPanel wxs="wxsmith/ColorPanel.wxs" src="ColorPanel.cpp" hdr="ColorPanel.h" fwddecl="0" i18n="1" name="ColorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TimingPanel.wxs" src="TimingPanel.cpp" hdr="TimingPanel.h" fwddecl="0" i18n="1" name="TimingPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/TopEffectsPanel.wxs" src="TopEffectsPanel.cpp" hdr="TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/XmlConversionDialog.wxs" src="XmlConversionDialog.cpp" hdr="XmlConversionDialog.h" fwddecl="0" i18n="1" name="XmlConversionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NewSequenceDialog.wxs" src="NewSequenceDialog.cpp" hdr="NewSequenceDialog.h" fwddecl="0" i18n="1" name="NewSequenceDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/RenameTextDialog.wxs" src="RenameTextDialog.cpp" hdr="RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NewTimingDialog.wxs" src="NewTimingDialog.cpp" hdr="NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />

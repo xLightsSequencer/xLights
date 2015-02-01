@@ -27,6 +27,7 @@ const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
+const long SeqSettingsDialog::ID_CHOICE_Xml_Seq_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL3 = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Author = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Author = wxNewId();
@@ -76,6 +77,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFlexGridSizer* FlexGridSizer4;
 	wxGridBagSizer* GridBagSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxStaticText* StaticText_Xml_Seq_Timing;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
@@ -124,11 +127,20 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
-	StaticText_Xml_Total_Length = new wxStaticText(Panel3, ID_STATICTEXT_Xml_Total_Length, _("Seq. Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
+	StaticText_Xml_Total_Length = new wxStaticText(Panel3, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
 	FlexGridSizer6->Add(StaticText_Xml_Total_Length, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Seq_Duration = new wxTextCtrl(Panel3, ID_TEXTCTRL_Xml_Seq_Duration, wxEmptyString, wxDefaultPosition, wxSize(81,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Seq_Duration"));
 	FlexGridSizer6->Add(TextCtrl_Xml_Seq_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	StaticText_Xml_Seq_Timing = new wxStaticText(Panel3, wxID_ANY, _("Sequence Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer3->Add(StaticText_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_Xml_Seq_Timing = new wxChoice(Panel3, ID_CHOICE_Xml_Seq_Timing, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Xml_Seq_Timing"));
+	Choice_Xml_Seq_Timing->Append(_("25 ms"));
+	Choice_Xml_Seq_Timing->SetSelection( Choice_Xml_Seq_Timing->Append(_("50 ms")) );
+	Choice_Xml_Seq_Timing->Append(_("100 ms"));
+	FlexGridSizer3->Add(Choice_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel3);
 	FlexGridSizer4->SetSizeHints(Panel3);
@@ -207,6 +219,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_CHOICE_Xml_Seq_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect);
 	Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
 	Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
+	Connect(ID_CHOICE_Xml_Seq_Timing,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect);
 	Connect(ID_TEXTCTRL_Xml_Author,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_AuthorText);
 	Connect(ID_TEXTCTRL_Xml_Author_Email,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Author_EmailText);
 	Connect(ID_TEXTCTRL_Xml_Website,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_WebsiteText);
@@ -270,6 +283,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::URL));
     TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::COMMENT));
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
+    Choice_Xml_Seq_Timing->SetSelection(Choice_Xml_Seq_Timing->FindString(xml_file->GetSequenceTiming()));
     TextCtrl_Xml_Media_File->SetValue(xml_file->GetMediaFile());
     TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetSequenceDurationString());
     Button_Save->Enable(false);
@@ -520,7 +534,7 @@ bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
     return modified;
 }
 
-void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
+void SeqSettingsDialog::SaveAll()
 {
     wxArrayString info;
     info.push_back(TextCtrl_Xml_Author->GetValue());
@@ -534,10 +548,15 @@ void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
     xml_file->SetSequenceType(Choice_Xml_Seq_Type->GetString(Choice_Xml_Seq_Type->GetSelection()));
     xml_file->SetMediaFile(TextCtrl_Xml_Media_File->GetValue());
     xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
-
+    xml_file->SetSequenceTiming(Choice_Xml_Seq_Timing->GetString(Choice_Xml_Seq_Timing->GetSelection()));
     xml_file->SetHeaderInfo(info);
     xml_file->Save();
     Button_Save->Enable(false);
+}
+
+void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
+{
+    SaveAll();
     StaticText_Warning->Hide();
     Fit();
 }
@@ -559,4 +578,8 @@ void SeqSettingsDialog::OnClose(wxCloseEvent& event)
     }
     EndModal(Button_Save->IsEnabled() ? wxCANCEL : wxOK);
     Destroy();
+}
+
+void SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event)
+{
 }

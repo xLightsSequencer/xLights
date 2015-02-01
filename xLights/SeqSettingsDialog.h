@@ -25,7 +25,7 @@ class SeqSettingsDialog: public wxDialog
 		virtual ~SeqSettingsDialog();
 
         void SetMediaFilename(const wxString &filename, bool overwrite_tags);
-
+        void SaveAll();
 
 		//(*Declarations(SeqSettingsDialog)
 		wxStaticText* StaticText_Xml_Author_Email;
@@ -33,6 +33,7 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Seq_Type;
 		wxStaticText* StaticText_XML_Version;
 		wxStaticText* StaticText_Xml_MediaFile;
+		wxChoice* Choice_Xml_Seq_Timing;
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxStaticText* StaticText_Xml_Artist;
 		wxStaticText* StaticText_Warning;
@@ -86,6 +87,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BITMAPBUTTON_Xml_Media_File;
 		static const long ID_STATICTEXT_Xml_Total_Length;
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
+		static const long ID_CHOICE_Xml_Seq_Timing;
 		static const long ID_PANEL3;
 		static const long ID_STATICTEXT_Xml_Author;
 		static const long ID_TEXTCTRL_Xml_Author;
@@ -137,6 +139,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_SaveClick(wxCommandEvent& event);
 		void OnButton_CloseClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
+		void OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

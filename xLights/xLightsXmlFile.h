@@ -29,6 +29,7 @@ class xLightsXmlFile : public wxFileName
         };
 
         bool Load();
+        void New();
         bool Convert();
         void Save();
         void Save( SequenceElements& elements);
@@ -46,6 +47,9 @@ class xLightsXmlFile : public wxFileName
 
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(const wxString& length);
+
+        const wxString GetSequenceTiming() const { return seq_timing; }
+        void SetSequenceTiming(  const wxString& timing );
 
         const wxString GetSequenceType() const { return seq_type; }
         void SetSequenceType( const wxString& type );
@@ -86,6 +90,7 @@ class xLightsXmlFile : public wxFileName
         double seq_duration;
         wxString media_file;
         wxString seq_type;
+        wxString seq_timing;
         bool has_audio_media;
 
         void Init();

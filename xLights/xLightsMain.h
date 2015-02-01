@@ -1522,6 +1522,9 @@ protected:
     SequenceElements mSequenceElements;
     int mTextEntryContext;
 
+    void PreviewOpenStart();
+    void PreviewOpenFinish();
+
     MainSequencer* mainSequencer;
     SequencePreview* sPreview1;
     ColorPanel* colorPanel;

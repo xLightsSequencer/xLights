@@ -26,6 +26,8 @@ xLightsXmlFile::~xLightsXmlFile()
 void xLightsXmlFile::Init()
 {
     seq_duration = 0.0;
+    seq_timing = "50 ms";
+    seq_type = "Media";
     has_audio_media = false;
     Clear();
     latest_version = xml_dev_ver;
@@ -77,7 +79,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
             {
                 if( element->GetName() == "sequenceType")
                 {
-                    SetNodeContent(element, type);
+                    SetNodeContent(element, seq_type);
                     found = true;
                 }
             }
@@ -86,6 +88,38 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     if( !found )
     {
         AddChildXmlNode(head, wxT("sequenceType"), seq_type);
+    }
+}
+
+void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
+{
+    bool found = false;
+    seq_timing = timing;
+
+    if( !is_loaded ) // conversion process will take care of writing this info
+        return;
+
+    wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* head;
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            head = e;
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "sequenceTiming")
+                {
+                    SetNodeContent(element, seq_timing);
+                    found = true;
+                }
+            }
+       }
+    }
+    if( !found )
+    {
+        AddChildXmlNode(head, wxT("sequenceTiming"), seq_timing);
     }
 }
 
@@ -438,6 +472,45 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
     }
 }
 
+void xLightsXmlFile::New()
+{
+    // construct the new XML file
+    wxXmlDocument *doc = new wxXmlDocument();
+    wxXmlNode* root=doc->GetRoot();
+    root = new wxXmlNode(wxXML_ELEMENT_NODE,wxT("xsequence"));
+    root->AddAttribute(wxT("BaseChannel"),wxT("0"));
+    root->AddAttribute(wxT("ChanCtrlBasic"),wxT("0"));
+    root->AddAttribute(wxT("ChanCtrlColor"),wxT("0"));
+    doc->SetRoot(root);
+
+    wxXmlNode* node;
+    node = AddChildXmlNode(root, wxT("head"));
+    AddChildXmlNode(node, wxT("version"), xml_dev_ver);
+    AddChildXmlNode(node, wxT("author"), header_info[HEADER_INFO_TYPES::AUTHOR]);
+    AddChildXmlNode(node, wxT("author-email"), header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
+    AddChildXmlNode(node, wxT("author-website"), header_info[HEADER_INFO_TYPES::WEBSITE]);
+    AddChildXmlNode(node, wxT("song"), header_info[HEADER_INFO_TYPES::SONG]);
+    AddChildXmlNode(node, wxT("artist"),header_info[HEADER_INFO_TYPES::ARTIST]);
+    AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
+    AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
+    AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
+    AddChildXmlNode(node, wxT("sequenceTiming"), seq_timing);
+    AddChildXmlNode(node, wxT("sequenceType"), seq_type);
+    AddChildXmlNode(node, wxT("mediaFile"), media_file);
+    AddChildXmlNode(node, wxT("sequenceDuration"), GetSequenceDurationString());
+    AddChildXmlNode(root, wxT("DisplayElements"));
+    AddChildXmlNode(root, wxT("ElementEffects"));
+
+    version_string = latest_version;
+    needs_conversion = false;
+
+    // write converted XML file to xLights directory
+    doc->Save(GetFullPath());
+
+    // release memory
+    delete doc;
+}
+
 bool xLightsXmlFile::Load()
 {
     bool success = false;
@@ -557,6 +630,10 @@ bool xLightsXmlFile::Load()
                     else if( element->GetName() == "comment")
                     {
                         header_info[COMMENT] = element->GetNodeContent();
+                    }
+                    else if( element->GetName() == "sequenceTiming")
+                    {
+                        seq_timing = element->GetNodeContent();
                     }
                     else if( element->GetName() == "sequenceType")
                     {
@@ -705,6 +782,7 @@ void xLightsXmlFile::Save()
         AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
         AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
         AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
+        AddChildXmlNode(node, wxT("sequenceTiming"), seq_timing);
         AddChildXmlNode(node, wxT("sequenceType"), seq_type);
         AddChildXmlNode(node, wxT("mediaFile"), media_file);
         AddChildXmlNode(node, wxT("sequenceDuration"), GetSequenceDurationString());
