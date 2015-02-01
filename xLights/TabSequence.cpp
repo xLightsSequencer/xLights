@@ -82,6 +82,7 @@ void xLightsFrame::OpenSequence()
     {
         dialog.ChoiceSeqXMLFiles->Set(xmlFiles);
         dialog.ChoiceSeqXMLFiles->SetSelection(0);
+        dialog.ChoiceSeqXMLFiles->Enable(false);
     }
     else
     {
