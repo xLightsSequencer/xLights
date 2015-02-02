@@ -569,6 +569,8 @@ private:
     void OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event);
     void OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event);
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
+    void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
+    void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -967,7 +969,6 @@ private:
     wxSlider* Slider_BackgroundBrightness;
     wxStaticText* StaticText10;
     wxButton* ButtonBuildWholeHouseModel;
-    wxMenuItem* MenuItem7;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
     wxChoice* ChoiceOutputFormat;
@@ -1057,7 +1058,6 @@ private:
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
     wxStaticText* StaticTextShowEnd;
-    wxMenuItem* MenuItem10;
     wxFileDialog* FileDialogPgoImage;
     wxMenu* Menu1;
     DragEffectBitmapButton* BitmapButton8;
@@ -1079,6 +1079,7 @@ private:
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
     wxMenu* Menu5;
+    wxMenuItem* MenuItem_File_Open_Sequence;
     wxStaticText* StaticText15;
     wxStaticText* StaticText26;
     wxStaticText* StaticText8;
@@ -1111,6 +1112,7 @@ private:
     wxButton* ButtonAddDongle;
     wxSplitterWindow* SplitterWindow3;
     wxRadioButton* RadioButtonChase;
+    wxMenuItem* MenuItem_File_Save_Sequence;
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButtonTabInfo;
