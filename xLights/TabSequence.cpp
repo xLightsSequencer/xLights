@@ -62,6 +62,7 @@ void xLightsFrame::OpenSequence()
         else if( selected_file.GetExt() == "fseq" )
         {
             // search for matching xml file
+            bool save_media = false;
             xlightsFilename = selected_file.GetFullPath();
             SeqLoadXlightsXSEQ(xlightsFilename);
             wxFileName xml_file(filename);
@@ -73,7 +74,22 @@ void xLightsFrame::OpenSequence()
                 CurrentSeqXmlFile->SetFullName(xml_file.GetFullPath());
                 CurrentSeqXmlFile->New();
                 SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("XML created for your FSEQ file. Select Media."), true);
-                if( mediaFilename != wxEmptyString ) {
+                if( mediaFilename != wxEmptyString )
+                {
+                    save_media = true;
+                }
+                else
+                {
+                    wxFileName detect_media(selected_file.GetFullPath());
+                    detect_media.SetExt("mp3");
+                    if( detect_media.FileExists() )
+                    {
+                        mediaFilename = detect_media.GetFullPath();
+                        save_media = true;
+                    }
+                }
+                if( save_media )
+                {
                     setting_dlg.SetMediaFilename(mediaFilename, true);
                     setting_dlg.SaveAll();
                 }
@@ -406,6 +422,8 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
     bool loaded = false;
+    bool save_media = false;
+
     SeqXmlFileName=xml_file.GetFullPath();
 
     // read xml
@@ -418,7 +436,22 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
             return false;
         }
         SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Your XML file has been converted!"), true);
-        if( mediaFilename != wxEmptyString ) {
+        if( mediaFilename != wxEmptyString )
+        {
+            save_media = true;
+        }
+        else
+        {
+            wxFileName detect_media(xml_file.GetFullPath());
+            detect_media.SetExt("mp3");
+            if( detect_media.FileExists() )
+            {
+                mediaFilename = detect_media.GetFullPath();
+                save_media = true;
+            }
+        }
+        if( save_media )
+        {
             setting_dlg.SetMediaFilename(mediaFilename, true);
             setting_dlg.SaveAll();
         }
