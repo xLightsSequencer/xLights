@@ -80,11 +80,11 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
 
 void RowHeading::rightClick( wxMouseEvent& event)
 {
+    wxMenu *mnuLayer;
+    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow >= mSequenceElements->GetRowInformationSize()) {
         return;
     }
-    wxMenu *mnuLayer;
-    mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
 
     Element* element = mSequenceElements->GetRowInformation(mSelectedRow)->element;
     if(element->GetType()=="model" || element->GetType()=="view")

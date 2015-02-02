@@ -475,6 +475,7 @@ int EffectsGrid::getHeight()
 void EffectsGrid::SetCanvasSize(int w, int h)
 {
     SetSize(wxSize(w,h));
+    SetMaxSize(wxSize(w,h));
     SetMinSize(wxSize(w,h));
     mPaintOnIdleCounter= 0;
 }
