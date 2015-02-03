@@ -472,7 +472,7 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
     }
 }
 
-void xLightsXmlFile::New()
+void xLightsXmlFile::CreateNew()
 {
     // construct the new XML file
     wxXmlDocument *doc = new wxXmlDocument();

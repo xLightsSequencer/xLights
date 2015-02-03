@@ -449,6 +449,7 @@
 		<Unit filename="SeqElementMismatchDialog.h" />
 		<Unit filename="SeqExportDialog.cpp" />
 		<Unit filename="SeqExportDialog.h" />
+		<Unit filename="SeqFileUtilities.cpp" />
 		<Unit filename="SeqOpenDialog.cpp" />
 		<Unit filename="SeqOpenDialog.h" />
 		<Unit filename="SeqParmsDialog.cpp" />

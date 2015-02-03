@@ -7,18 +7,6 @@
 #include "SeqOpenDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
-#include "SeqSettingsDialog.h"
-
-bool isXmlSequence(wxFileName &fname) {
-    char buf[1024];
-    wxFile file(fname.GetFullPath());
-    int i = file.Read(buf, 1024);
-    file.Close();
-    if (wxString(buf, 0 , i).Contains("<xsequence")) {
-        return true;
-    }
-    return false;
-}
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -28,100 +16,6 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
     bbPlayPause->Enable(EnableButtons);
     bbStop->Enable(EnableButtons);
     StatusBar1->SetStatusText(filename, 1);
-}
-
-void xLightsFrame::OpenSequence()
-{
-    bool loaded_xml = false;
-    wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
-    wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    if ( !filename.empty() )
-    {
-        mediaFilename.Clear();
-        PreviewOpenStart();
-        changedRow = 99999;
-        changedColumn = 99999;
-
-        wxStopWatch sw; // start a stopwatch timer
-
-        wxFileName selected_file(filename);
-        wxFileName fseq_file;
-
-        if( selected_file.GetExt() == "xml" )
-        {
-            // search for matching fseq file
-            wxFileName fseq_file(filename);
-            fseq_file.SetExt("fseq");
-            if( fseq_file.FileExists() )
-            {
-                xlightsFilename = fseq_file.GetFullPath();
-                SeqLoadXlightsXSEQ(xlightsFilename);
-            }
-            loaded_xml = SeqLoadXlightsFile(filename, true);
-        }
-        else if( selected_file.GetExt() == "fseq" )
-        {
-            // search for matching xml file
-            bool save_media = false;
-            xlightsFilename = selected_file.GetFullPath();
-            SeqLoadXlightsXSEQ(xlightsFilename);
-            wxFileName xml_file(filename);
-            xml_file.SetExt("xml");
-            if( !xml_file.FileExists() )
-            {
-                delete CurrentSeqXmlFile;
-                CurrentSeqXmlFile = new xLightsXmlFile();
-                CurrentSeqXmlFile->SetFullName(xml_file.GetFullPath());
-                CurrentSeqXmlFile->New();
-                SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("XML created for your FSEQ file. Select Media."), true);
-                if( mediaFilename != wxEmptyString )
-                {
-                    save_media = true;
-                }
-                else
-                {
-                    wxFileName detect_media(selected_file.GetFullPath());
-                    detect_media.SetExt("mp3");
-                    if( detect_media.FileExists() )
-                    {
-                        mediaFilename = detect_media.GetFullPath();
-                        save_media = true;
-                    }
-                }
-                if( save_media )
-                {
-                    setting_dlg.SetMediaFilename(mediaFilename, true);
-                    setting_dlg.SaveAll();
-                }
-                else
-                {
-                    setting_dlg.Fit();
-                    setting_dlg.ShowModal();
-                }
-                loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
-            }
-            else
-            {
-                loaded_xml = SeqLoadXlightsFile(xml_file.GetFullPath(), true);
-            }
-        }
-
-        if( loaded_xml )
-        {
-           /* wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = atoi(mss.c_str());
-            SeqData.init(NetInfo.GetTotChannels(), 0, ms);
-            SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);*/
-            PreviewOpenFinish();
-            Timer1.Start(SeqData.FrameTime());
-            float elapsedTime = sw.Time()/1000.0; //msec => sec
-            StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
-        }
-    }
-    if( !loaded_xml )
-    {
-        StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
-    }
 }
 
 /*void xLightsFrame::OpenSequence()
@@ -405,69 +299,6 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
                                   SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
 
 }
-
-bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
-{
-    if( wxFileName::FileExists(filename) )
-    {
-        delete xLightsFrame::CurrentSeqXmlFile;
-        xLightsFrame::CurrentSeqXmlFile = new xLightsXmlFile(filename);
-        xLightsFrame::CurrentSeqXmlFile->SetExt(wxT("xml"));
-        return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, ChooseModels);
-    }
-}
-
-// Load the xml file containing effects for a particular sequence
-// Returns true if file exists and was read successfully
-bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
-{
-    bool loaded = false;
-    bool save_media = false;
-
-    SeqXmlFileName=xml_file.GetFullPath();
-
-    // read xml
-    xml_file.Load();
-    if (xml_file.NeedsConversion())
-    {
-        if( !xml_file.Convert() )
-        {
-            wxMessageBox(wxString::Format("Failed to convert XML file: %s", xml_file.GetFullPath()),"Error");
-            return false;
-        }
-        SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Your XML file has been converted!"), true);
-        if( mediaFilename != wxEmptyString )
-        {
-            save_media = true;
-        }
-        else
-        {
-            wxFileName detect_media(xml_file.GetFullPath());
-            detect_media.SetExt("mp3");
-            if( detect_media.FileExists() )
-            {
-                mediaFilename = detect_media.GetFullPath();
-                save_media = true;
-            }
-        }
-        if( save_media )
-        {
-            setting_dlg.SetMediaFilename(mediaFilename, true);
-            setting_dlg.SaveAll();
-        }
-        setting_dlg.Fit();
-        setting_dlg.ShowModal();
-    }
-
-    if( xml_file.IsLoaded() )
-    {
-        LoadSequencer(xml_file);
-        Menu_Settings_Sequence->Enable(true);
-        loaded = true;
-    }
-    return loaded;
-}
-
 
 // load the specified .xseq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
@@ -813,6 +644,7 @@ void xLightsFrame::SaveSequence()
     RenderGridToSeqData();
     WriteFalconPiFile(xlightsFilename);
     CurrentSeqXmlFile->Save(mSequenceElements);
+    DisplayXlightsFilename(xlightsFilename);
     UnsavedChanges = false;
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);

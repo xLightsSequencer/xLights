@@ -1207,6 +1207,8 @@ private:
     wxString mBackgroundImage;
     int mBackgroundBrightness;
 
+    // Sequence File Support functions
+    void LoadFSEQ(const wxString& FileName, wxFileName& media_file);
 
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
@@ -1523,9 +1525,6 @@ protected:
     // New Sequencer variables and methods
     SequenceElements mSequenceElements;
     int mTextEntryContext;
-
-    void PreviewOpenStart();
-    void PreviewOpenFinish();
 
     MainSequencer* mainSequencer;
     SequencePreview* sPreview1;

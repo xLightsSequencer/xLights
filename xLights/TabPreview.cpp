@@ -14,22 +14,6 @@ void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
     StatusBar1->SetStatusText(_("Preview layout saved"));
 }
 
-void xLightsFrame::PreviewOpenStart()
-{
-    previewLoaded = false;
-    previewPlaying = false;
-    ResetTimer(NO_SEQ);
-    ResetSequenceGrid();
-}
-
-void xLightsFrame::PreviewOpenFinish()
-{
-    bbPlayPause->SetBitmap(playIcon);
-    SliderPreviewTime->SetValue(0);
-    TextCtrlPreviewTime->Clear();
-    CompareMyDisplayToSeq();
-}
-
 void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
 {
     wxArrayString SeqFiles;
@@ -42,11 +26,17 @@ void xLightsFrame::OnButtonPreviewOpenClick(wxCommandEvent& event)
     }
     wxSingleChoiceDialog dialog(this,_("Select file"),_("Open xLights Sequence"),SeqFiles);
     if (dialog.ShowModal() != wxID_OK) return;
-    PreviewOpenStart();
+    previewLoaded = false;
+    previewPlaying = false;
+    ResetTimer(NO_SEQ);
+    ResetSequenceGrid();
     wxString filename=dialog.GetStringSelection();
     SeqLoadXlightsXSEQ(filename);
     SeqLoadXlightsFile(filename, false);
-    PreviewOpenFinish();
+    bbPlayPause->SetBitmap(playIcon);
+    SliderPreviewTime->SetValue(0);
+    TextCtrlPreviewTime->Clear();
+    CompareMyDisplayToSeq();
 }
 
 // ask user if they want to reset MyDisplay flags to match sequence

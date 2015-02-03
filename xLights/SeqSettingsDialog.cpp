@@ -69,7 +69,7 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
-SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool search_for_media)
+SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning)
 :   xml_file(file_to_handle_),
     media_directory(media_dir)
 {

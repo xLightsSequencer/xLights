@@ -213,7 +213,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
             mediaFilename = xml_file.GetMediaFile();
             if( mediaFilename == wxEmptyString )
             {
-                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"), false);
+                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
                 setting_dlg.Fit();
                 setting_dlg.ShowModal();
                 mediaFilename = xml_file.GetMediaFile();

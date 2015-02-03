@@ -21,7 +21,7 @@ class SeqSettingsDialog: public wxDialog
 {
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool search_for_media);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning);
 		virtual ~SeqSettingsDialog();
 
         void SetMediaFilename(const wxString &filename, bool overwrite_tags);

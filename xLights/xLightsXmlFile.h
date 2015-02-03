@@ -29,7 +29,7 @@ class xLightsXmlFile : public wxFileName
         };
 
         bool Load();
-        void New();
+        void CreateNew();
         bool Convert();
         void Save();
         void Save( SequenceElements& elements);
