@@ -214,6 +214,8 @@ wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 
 
@@ -1550,6 +1552,9 @@ protected:
     void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
+    void PlayModel(wxCommandEvent& event);
+    void ExportModel(wxCommandEvent& event);
+
     void CheckForValidModels();
 
     void LoadSequencer(xLightsXmlFile& xml_file);
@@ -1584,7 +1589,6 @@ protected:
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
-    friend class xLightsRenderThread;
 public:
     static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);

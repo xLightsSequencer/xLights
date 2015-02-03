@@ -212,7 +212,7 @@ private:
 
     typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
-    void InitVMatrix();
+    void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
     void InitLine();
     void InitFrame();

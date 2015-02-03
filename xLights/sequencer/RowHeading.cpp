@@ -23,6 +23,9 @@ END_EVENT_TABLE()
 const long RowHeading::ID_ROW_MNU_ADD_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_LAYER = wxNewId();
 const long RowHeading::ID_ROW_MNU_LAYER = wxNewId();
+const long RowHeading::ID_ROW_MNU_PLAY_MODEL = wxNewId();
+const long RowHeading::ID_ROW_MNU_EXPORT_MODEL = wxNewId();
+
 // Timing Track popup menu
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
@@ -92,9 +95,15 @@ void RowHeading::rightClick( wxMouseEvent& event)
         mnuLayer = new wxMenu();
         mnuLayer->Append(ID_ROW_MNU_ADD_LAYER,"Add Layer");
         if(element->GetEffectLayerCount() > 1)
-       {
+        {
             mnuLayer->Append(ID_ROW_MNU_DELETE_LAYER,"Delete Layer");
-       }
+        }
+        if (element->GetType()=="model") {
+            mnuLayer->AppendSeparator();
+            mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
+            mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
+        }
+        
         mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
         PopupMenu(mnuLayer);
     }
@@ -149,10 +158,18 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
+    } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
+        
+    } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
+        wxCommandEvent playEvent(EVT_EXPORT_MODEL);
+        playEvent.SetString(element->GetName());
+        wxPostEvent(GetParent(), playEvent);
+    } else if (id == ID_ROW_MNU_PLAY_MODEL) {
+        wxCommandEvent playEvent(EVT_PLAY_MODEL);
+        playEvent.SetString(element->GetName());
+        wxPostEvent(GetParent(), playEvent);
     }
-    else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK)
-    {
-    }
+    
 
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);

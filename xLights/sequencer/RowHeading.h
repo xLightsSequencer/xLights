@@ -50,6 +50,8 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_ADD_LAYER;
         static const long ID_ROW_MNU_DELETE_LAYER;
         static const long ID_ROW_MNU_LAYER;
+        static const long ID_ROW_MNU_PLAY_MODEL;
+        static const long ID_ROW_MNU_EXPORT_MODEL;
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;

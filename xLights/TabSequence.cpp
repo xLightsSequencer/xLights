@@ -672,15 +672,6 @@ void xLightsFrame::GetModelNames(wxArrayString& a)
 
 
 
-
-
-
-
-
-
-
-
-
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
     //Button_PlayEffect->Enable(/*enable &&*/ Choice_Models->GetCount() > 0); //leave this one enabled -DJ

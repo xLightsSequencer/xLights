@@ -504,6 +504,9 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->Refresh(false);
 }
 
+void xLightsFrame::PlayModel(wxCommandEvent& event)
+{
+}
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
     EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();

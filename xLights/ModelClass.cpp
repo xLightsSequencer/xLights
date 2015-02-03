@@ -241,7 +241,15 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     }
     else if (token == "Tree")
     {
-        InitVMatrix();
+        int firstStrand = 0;
+        if (zeroBased && ModelNode->GetAttribute("exportFirstStrand") != "")
+        {
+            firstStrand = wxAtoi(ModelNode->GetAttribute("exportFirstStrand")) - 1;
+        }
+        if (firstStrand < 0) {
+            firstStrand = 0;
+        }
+        InitVMatrix(firstStrand);
         token = tkz.GetNextToken();
         token.ToLong(&degrees);
         SetTreeCoord(degrees);
@@ -364,7 +372,7 @@ int ModelClass::GetPreviewRotation()
 // parm1=NumStrings
 // parm2=PixelsPerString
 // parm3=StrandsPerString
-void ModelClass::InitVMatrix()
+void ModelClass::InitVMatrix(int firstExportStrand)
 {
     int y,x,idx,stringnum,segmentnum,yincr;
     int NumStrands=parm1*parm3;
@@ -373,7 +381,7 @@ void ModelClass::InitVMatrix()
     SetBufferSize(PixelsPerStrand,NumStrands);
     SetNodeCount(parm1,PixelsPerString);
     SetRenderSize(PixelsPerStrand,NumStrands);
-
+    
     // create output mapping
     if (SingleNode)
     {
@@ -399,14 +407,30 @@ void ModelClass::InitVMatrix()
     }
     else
     {
-        for (x=0; x < NumStrands; x++)
-        {
-            stringnum=x / parm3;
-            segmentnum=x % parm3;
-            for(y=0; y < PixelsPerStrand; y++)
-            {
+        StartChannelVector_t strandStartChan;
+        strandStartChan.clear();
+        strandStartChan.resize(NumStrands);
+        for (int x = 0; x < NumStrands; x++) {
+            stringnum = x / parm3;
+            segmentnum = x % parm3;
+            strandStartChan[x] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * 3;
+        }
+        if (firstExportStrand > 0 && firstExportStrand < NumStrands) {
+            int offset = strandStartChan[firstExportStrand];
+            for (int x = 0; x < NumStrands; x++) {
+                strandStartChan[x] = strandStartChan[x] - offset;
+                if (strandStartChan[x] < 0) {
+                    strandStartChan[x] += (PixelsPerStrand * NumStrands * 3);
+                }
+            }
+        }
+
+        for (x=0; x < NumStrands; x++) {
+            stringnum = x / parm3;
+            segmentnum = x % parm3;
+            for(y=0; y < PixelsPerStrand; y++) {
                 idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
-                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * PixelsPerStrand*3 + y*3;
+                Nodes[idx]->ActChan = strandStartChan[x] + y*3;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
                 Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
                 Nodes[idx]->StringNum=stringnum;

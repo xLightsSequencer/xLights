@@ -397,7 +397,8 @@ wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FORCE_SEQUENCER_REFRESH, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
-
+wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
@@ -416,8 +417,8 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_FORCE_SEQUENCER_REFRESH, xLightsFrame::ForceSequencerRefresh)
     EVT_COMMAND(wxID_ANY, EVT_LOAD_PERSPECTIVE, xLightsFrame::LoadPerspective)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
-
-
+    EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
+    EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
 
 END_EVENT_TABLE()
 
