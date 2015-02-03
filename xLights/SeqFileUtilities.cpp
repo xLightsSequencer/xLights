@@ -204,61 +204,7 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
 
 void xLightsFrame::LoadFSEQ(const wxString& FileName, wxFileName& media_file)
 {
-    wxUint16 fixedHeaderLength = 28;
-    wxFile f;
-    size_t readcnt;
-    int seqStepTime = 0;
-	int falconPeriods = 0;
-    int periodsRead = 0;
-    int i = 0;
-    char *tmpBuf = NULL;
-
-    ConversionInit();
-    if (!f.Open(FileName.c_str()))
-    {
-        PlayerError(wxString("Unable to load sequence:\n")+FileName);
-        return;
-    }
-    unsigned char hdr[1024];
-    f.Read(hdr,fixedHeaderLength);
-
-    int dataOffset = hdr[4] + (hdr[5] << 8);
-    if (dataOffset < 1024) {
-        f.Seek(0);
-        f.Read(hdr, dataOffset);
-    }
-    int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
-    seqStepTime = hdr[18] + (hdr[19] << 8);
-    if (dataOffset > 28 && hdr[30] == 'm' && hdr[31] == 'f') {
-        media_file = ((char *)&hdr[32]);
-    }
-
-    falconPeriods = (f.Length() - dataOffset) / numChannels;
-
-    SeqData.init(numChannels, falconPeriods, seqStepTime);
-
-    f.Seek(dataOffset);
-    tmpBuf = new char[numChannels];
-    while (periodsRead < falconPeriods)
-    {
-        readcnt = f.Read(tmpBuf, numChannels);
-        if (readcnt < numChannels)
-        {
-            PlayerError(wxString("Unable to read all event data from:\n")+FileName);
-        }
-
-        for (i = 0; i < numChannels; i++)
-        {
-            SeqData[periodsRead][i] = tmpBuf[i];
-        }
-
-        periodsRead++;
-    }
-    delete []tmpBuf;
-
-#ifndef NDEBUG
-    AppendConvertLog(wxString::Format(wxString("ReadFalconFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),SeqData.NumFrames(),SeqData.NumChannels()));
-#endif
-
-    f.Close();
+    wxString mf;
+    ReadFalconFile(FileName, &mf);
+    media_file = mf;
 }

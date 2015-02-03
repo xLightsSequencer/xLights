@@ -1218,7 +1218,7 @@ private:
     void ReadLorFile(const wxString& filename, int LORImportInterval);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName);
-    void ReadFalconFile(const wxString& FileName);
+    void ReadFalconFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
     void SetMediaFilename(const wxString& filename);

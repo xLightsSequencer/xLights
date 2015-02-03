@@ -449,7 +449,7 @@ void FRAMECLASS WriteHLSFile(const wxString& filename)
 }
 
 
-void FRAMECLASS ReadFalconFile(const wxString& FileName)
+void FRAMECLASS ReadFalconFile(const wxString& FileName, wxString *mediaFilename)
 {
     wxUint16 fixedHeaderLength = 28;
     wxFile f;
@@ -476,10 +476,14 @@ void FRAMECLASS ReadFalconFile(const wxString& FileName)
     }
     int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
     seqStepTime = hdr[18] + (hdr[19] << 8);
+    wxString mf = "";
     if (dataOffset > 28 && hdr[30] == 'm' && hdr[31] == 'f') {
-        SetMediaFilename((char *)&hdr[32]);
+        mf = (char *)&hdr[32];
+    }
+    if (mediaFilename) {
+        *mediaFilename = mf;
     } else {
-        SetMediaFilename("");
+        SetMediaFilename(mf);
     }
 
     falconPeriods = (f.Length() - dataOffset) / numChannels;
