@@ -11,10 +11,15 @@ class JobPoolWorker : public wxThread
     wxMutex *lock;
     wxCondition *signal;
     volatile int &idleThreads;
+    volatile int &numThreads;
     std::deque<Job*> *queue;
     
 public:
-    JobPoolWorker(wxMutex *l, wxCondition *signal, std::deque<Job*> *queue, volatile int &idleThreadPtr);
+    JobPoolWorker(wxMutex *l,
+                  wxCondition *signal,
+                  std::deque<Job*> *queue,
+                  volatile int &idleThreadPtr,
+                  volatile int &numThreadsPtr);
     virtual ~JobPoolWorker();
     
     void Stop();
@@ -26,8 +31,9 @@ public:
     virtual void ProcessJob(Job *job);
 };
 
-JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue, volatile int &idleThreadPtr)
-: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr)
+JobPoolWorker::JobPoolWorker(wxMutex *l, wxCondition *s, std::deque<Job*> *queue,
+                             volatile int &idleThreadPtr, volatile int &numThreadsPtr)
+: wxThread(wxTHREAD_JOINABLE), lock(l) ,signal(s), queue(queue), idleThreads(idleThreadPtr), numThreads(numThreadsPtr)
 {
 }
 
@@ -81,8 +87,15 @@ void* JobPoolWorker::Entry()
             ProcessJob(job);
             delete job;
             job = NULL;
+        } else {
+            wxMutexLocker mutLock(*lock);
+            if (idleThreads > 5) {
+                break;
+            }
         }
     }
+    wxMutexLocker mutLock(*lock);
+    numThreads--;
     return NULL;
 }
 
@@ -118,7 +131,7 @@ void JobPool::PushJob(Job *job)
     if (idleThreads == 0 && numThreads < maxNumThreads) {
         numThreads++;
         
-        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads);
+        JobPoolWorker *worker = new JobPoolWorker(&lock, &signal, &queue, idleThreads, numThreads);
         worker->Start(threadPriority);
         threads.push_back(worker);
     }

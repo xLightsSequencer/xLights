@@ -306,6 +306,9 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         Nodes[i]->sparkle = rand() % 10000;
     }
 }
+int ModelClass::GetAbsoluteChannel(size_t nodenum, wxByte chidx) {
+    return Nodes[nodenum]->GetAbsoluteChannel(chidx);
+}
 
 void ModelClass::GetChanIntensity(size_t nodenum, wxByte chidx, size_t *absChNum, uint8_t *intensity)
 {

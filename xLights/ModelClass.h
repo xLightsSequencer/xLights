@@ -99,6 +99,10 @@ private:
             c[2]=b;
         }
 
+        int GetAbsoluteChannel(wxByte chnum) {
+            return ActChan + chnum;
+        }
+        
         void GetChanIntensity(wxByte chnum, wxByte rgbindex, size_t *absChNum, uint8_t *intensity)
         {
             *absChNum=ActChan+chnum;
@@ -316,6 +320,7 @@ public:
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum);
+    int GetAbsoluteChannel(size_t nodenum, wxByte chidx);
     void GetChanIntensity(size_t nodenum,wxByte chidx, size_t *absChNum, uint8_t *intensity);
     void SetChanIntensity(size_t nodenum,wxByte chidx, uint8_t intensity);
     void SetChanIntensityAll(size_t nodenum, uint8_t intensity);

@@ -94,14 +94,12 @@ void RgbEffects::SnowstormAdvance(SnowstormClass& ssItem)
     ssItem.points.push_back(xy);
 }
 
-void RgbEffects::RenderSnowstorm(int Count, int Length)
+void RgbEffects::RenderSnowstorm(int Count, int TailLength)
 {
     // create new meteors
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
-    Count=BufferWi * BufferHt * Count / 2000 + 1;
-    int TailLength=BufferWi * BufferHt * Length / 2000 + 2;
     SnowstormClass ssItem;
     wxPoint xy;
     int r;

@@ -31,11 +31,75 @@ public:
 };
 
 
-class RenderJob: public Job {
+class NextRenderer {
+public:
+    NextRenderer() : nextLock(), nextSignal(nextLock) {
+        previousFrameDone = -1;
+        next = NULL;
+    }
+    void setNext(NextRenderer *n) {
+        next = n;
+    }
+    NextRenderer *getNext() {
+        return next;
+    }
+    virtual void setPreviousFrameDone(int i) {
+        wxMutexLocker lock(nextLock);
+        previousFrameDone = i;
+        nextSignal.Broadcast();
+    }
+    int waitForFrame(int frame) {
+        wxMutexLocker lock(nextLock);
+        while (frame >= previousFrameDone) {
+            nextSignal.WaitTimeout(5);
+        }
+        return previousFrameDone;
+    }
+    bool checkIfDone(int frame, int timeout = 5) {
+        wxMutexLocker lock(nextLock);
+        return previousFrameDone >= frame;
+    }
+protected:
+    wxMutex nextLock;
+    wxCondition nextSignal;
+    volatile long previousFrameDone;
+    NextRenderer *next;
+};
+
+class AggregatorRenderer: public NextRenderer {
+public:
+    AggregatorRenderer(int numFrames) : NextRenderer() {
+        data = new int[numFrames + 20];
+        for (int x = 0; x < (numFrames + 20); x++) {
+            data[x] = 0;
+        }
+        max = 0;
+    }
+    ~AggregatorRenderer() {
+        delete [] data;
+    }
+    void incNumAggregated() {
+        max++;
+    }
+    virtual void setPreviousFrameDone(int i) {
+        wxMutexLocker lock(nextLock);
+        data[i]++;
+        if (data[i] == max) {
+            previousFrameDone = i;
+            if (next != NULL) {
+                next->setPreviousFrameDone(previousFrameDone);
+            }
+        }
+    }
+private:
+    int *data;
+    int max;
+};
+
+class RenderJob: public Job, public NextRenderer {
 public:
     RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
-        : Job(), rowToRender(row), nextLock(), nextSignal(nextLock), seqData(data), xLights(xframe) {
-        previousFrameDone = -1;
+        : Job(), NextRenderer(), rowToRender(row), seqData(data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
             buffer = new PixelBufferClass();
@@ -45,7 +109,6 @@ public:
             name = "";
         }
         startFrame = 0;
-        next = NULL;
     }
     
     virtual ~RenderJob() {
@@ -66,14 +129,6 @@ public:
     void setRenderRange(int start, int end) {
         startFrame = start;
         endFrame = end;
-    }
-    void setPreviousFrameDone(int i) {
-        wxMutexLocker lock(nextLock);
-        previousFrameDone = i;
-        nextSignal.Broadcast();
-    }
-    void setNext(RenderJob *n) {
-        next = n;
     }
     
     virtual void Process() {
@@ -137,17 +192,6 @@ public:
             xLights->CallAfter(&xLightsFrame::SetStatusText, wxString("Done Rendering " + rowToRender->GetName()));
         }
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
-    }
-    int waitForFrame(int frame) {
-        wxMutexLocker lock(nextLock);
-        while (frame >= previousFrameDone) {
-            nextSignal.WaitTimeout(5);
-        }
-        return previousFrameDone;
-    }
-    bool checkIfDone(int frame, int timeout = 5) {
-        wxMutexLocker lock(nextLock);
-        return previousFrameDone >= frame;
     }
     
 private:
@@ -239,17 +283,13 @@ private:
 
     
     Element *rowToRender;
-    volatile long previousFrameDone;
     wxString name;
     int startFrame;
     int endFrame;
     PixelBufferClass *buffer;
     xLightsFrame *xLights;
-    RenderJob *next;
     SequenceData &seqData;
     
-    wxMutex nextLock;
-    wxCondition nextSignal;
 };
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
@@ -263,33 +303,71 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 
 void xLightsFrame::RenderGridToSeqData() {
     int numRows = mSequenceElements.GetElementCount();
-    RenderJob **jobs = new RenderJob*[numRows];
-    RenderJob wait(NULL, NULL, SeqData, this);
-    RenderJob *last = NULL;
+    RenderJob **noDepJobs = new RenderJob*[numRows];
+    RenderJob **depJobs = new RenderJob*[numRows];
+    NextRenderer wait;
     Element *lastRowEl = NULL;
-    int count = 0;
+    AggregatorRenderer aggregator(SeqData.NumFrames());
+    bool *channelsRendered = new bool[SeqData.NumChannels()];
+    for (int x = 0; x < SeqData.NumChannels(); x++) {
+        channelsRendered[x] = false;
+    }
+    
+    int noDepsCount = 0;
+    int depsCount = 0;
+    aggregator.setNext(&wait);
+    
+
     for (int row = 0; row < mSequenceElements.GetElementCount(); row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
         if (rowEl->GetType() == "model" && rowEl != lastRowEl) {
             lastRowEl = rowEl;
             wxXmlNode *modelNode = GetModelNode(rowEl->GetName());
-            jobs[count] = new RenderJob(rowEl, modelNode, SeqData, this);
-            jobs[count]->setRenderRange(0, SeqData.NumFrames());
-            if (last == NULL) {
-                jobs[count]->setPreviousFrameDone(SeqData.NumFrames() + 1);
-            } else {
-                last->setNext(jobs[count]);
+            RenderJob *job = new RenderJob(rowEl, modelNode, SeqData, this);
+            job->setRenderRange(0, SeqData.NumFrames());
+            
+            bool hasDep = false;
+            PixelBufferClass *buffer = job->getBuffer();
+            size_t cn = playBuffer.ChannelsPerNode();
+            for (int node = 0; node < buffer->GetNodeCount(); node++) {
+                for (int c = 0; c < cn; c++) {
+                    int cnum = buffer->GetAbsoluteChannel(node, c);
+                    if (channelsRendered[cnum]) {
+                        hasDep = true;
+                    } else {
+                        channelsRendered[cnum] = true;
+                    }
+                }
             }
-            last = jobs[count];
-            count++;
+            if (!hasDep) {
+                //does not depend on anything above it, reorder to the beginning and let it render at full
+                //speed with no waits
+                noDepJobs[noDepsCount] = job;
+                noDepsCount++;
+                job->setPreviousFrameDone(SeqData.NumFrames());
+                job->setNext(&aggregator);
+                aggregator.incNumAggregated();
+            } else {
+                depJobs[depsCount] = job;
+                job->setNext(&wait);
+                if (depsCount > 0) {
+                    depJobs[depsCount - 1]->setNext(depJobs[depsCount]);
+                } else {
+                    aggregator.setNext(job);
+                }
+                depsCount++;
+            }
+
         }
     }
-    if (last) {
-        last->setNext(&wait);
+    for (int row = 0; row < noDepsCount; row++) {
+        if (noDepJobs[row]) {
+            jobPool.PushJob(noDepJobs[row]);
+        }
     }
-    for (int row = 0; row < count; row++) {
-        if (jobs[row]) {
-            jobPool.PushJob(jobs[row]);
+    for (int row = 0; row < depsCount; row++) {
+        if (depJobs[row]) {
+            jobPool.PushJob(depJobs[row]);
         }
     }
     //wait to complete
@@ -297,7 +375,9 @@ void xLightsFrame::RenderGridToSeqData() {
         wxYield();
     }
     
-    delete []jobs;
+    delete []channelsRendered;
+    delete []depJobs;
+    delete []noDepJobs;
 }
 
 void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms) {
@@ -360,7 +440,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     
     wxXmlNode *modelNode = GetModelNode(model);
     Element * el = mSequenceElements.GetElement(model);
-    RenderJob wait(NULL, NULL, SeqData, this);
+    NextRenderer wait;
     RenderJob *job = new RenderJob(el, modelNode, SeqData, this, true);
     SequenceData *data = job->createExportBuffer();
     job->setRenderRange(0, SeqData.NumFrames());
