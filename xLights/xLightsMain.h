@@ -1249,7 +1249,6 @@ private:
 
     wxString base64_encode();
 
-    SeqDataType* RenderModelToData(wxXmlNode *modelNode, PixelBufferClass &buffer);
     wxXmlNode* SelectModelToExport();
 
     JobPool jobPool;
@@ -1336,9 +1335,6 @@ private:
     void SetPreviewSize(int width,int height);
     void SetXmlSetting(const wxString& settingName,const wxString& value);
     wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
-    // Functions for update state of sequence grid
-    void AllRowsAreUpdated();
-    void SwapCols(int a, int b);
 
     wxString CreateEffectString();
     void OpenPaletteDialog(const wxString& id1, const wxString& id2, wxSizer* PrimarySizer,wxSizer* SecondarySizer);
@@ -1359,12 +1355,9 @@ private:
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
     int UpdateEffectDuration(bool new_effect_starts, int startRow, PixelBufferClass &buffer, int playCol);
     void ResetEffectDuration(PixelBufferClass &buffer);
-    void UpdateBufferPalette(EffectsPanel* panel, int layer, PixelBufferClass &buffer);
-    void UpdateBufferPaletteFromMap(int PaletteNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
-
-    void UpdateBuffersForNewMap(MapStringString& SettingsMap, PixelBufferClass &buffer);
 
 public:
+    void RenderGridToSeqData();
     bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
@@ -1374,17 +1367,10 @@ public:
 
 
 protected:
-    bool RenderEffectFromMap(int period, MapStringString& SettingsMap,
-                             PixelBufferClass &buffer, bool *ResetEffectState,
-                             bool &bufferClear,
-                             bool bgThread = false);
-    void UpdateBufferFadesFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
-    void UpdateFitToTimeFromMap(int effectNum, MapStringString& SettingsMap, PixelBufferClass &buffer);
     void ClearEffectWindow();
     void ResetEffectStates(bool *ResetEffectState);
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
-    void RenderGridToSeqData();
     void ResetEffectsXml();
     void ImportAudacityTimings();
     void ProcessAudacityTimingFile(const wxString& filename);
