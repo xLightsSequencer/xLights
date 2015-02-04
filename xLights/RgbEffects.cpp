@@ -202,25 +202,32 @@ void RgbEffects::DrawCircle(int xc, int yc, int r, const xlColor& rgb)
     } else if (r > 40) {
         inc = 0.5;
     }
-    for (degrees=0.0; degrees<360.0; degrees+=inc)
+    for (degrees=0.0; degrees <= 90; degrees+=inc)
     {
         radian = degrees * (M_PI/180.0);
-        x = round(r * cos(radian)) + xc;
-        y = round(r * sin(radian)) + yc;
-        while (x < 0) {
-            x += BufferWi;
-        }
-        while (y < 0) {
-            y += BufferHt;
-        }
-        while (x > BufferWi) {
-            x -= BufferWi;
-        }
-        while (y > BufferHt) {
-            y -= BufferHt;
-        }
-        SetPixel(x,y,rgb);
+        int xoff = round(r * cos(radian));
+        int yoff = round(r * sin(radian));
+        SetPixel(xc + xoff, yc + yoff, rgb);
+        SetPixel(xc - xoff, yc + yoff, rgb);
+        SetPixel(xc + xoff, yc - yoff, rgb);
+        SetPixel(xc - xoff, yc - yoff, rgb);
     }
+}
+
+void RgbEffects::SetPixelWrap(int x, int y, const xlColor &rgb) {
+    while (x < 0) {
+        x += BufferWi;
+    }
+    while (y < 0) {
+        y += BufferHt;
+    }
+    while (x > BufferWi) {
+        x -= BufferWi;
+    }
+    while (y > BufferHt) {
+        y -= BufferHt;
+    }
+    SetPixel(x,y,rgb);
 }
 
 void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv)
@@ -236,12 +243,15 @@ void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValu
     } else if (r > 40) {
         inc = 0.5;
     }
-    for (degrees=0.0; degrees<360.0; degrees+=inc)
+    for (degrees=0.0; degrees <= 90.0; degrees+=inc)
     {
         radian = degrees * (M_PI/180.0);
-        x = round(r * cos(radian)) + xc;
-        y = round(r * sin(radian)) + yc;
-        SetPixel(x,y,rgb); // Turn pixel
+        x = round(r * cos(radian));
+        y = round(r * sin(radian));
+        SetPixel(xc + x, yc + y,rgb); // Turn pixel
+        SetPixel(xc - x, yc + y,rgb); // Turn pixel
+        SetPixel(xc + x, yc - y,rgb); // Turn pixel
+        SetPixel(xc - x, yc - y,rgb); // Turn pixel
     }
 }
 

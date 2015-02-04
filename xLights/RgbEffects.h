@@ -475,6 +475,7 @@ protected:
 
     void SetPixel(int x, int y, const xlColor &color);
     void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
+    void SetPixelWrap(int x, int y, const xlColor &color); //wrap around the buffer if x/y > buffer size
     void CopyPixel(int srcx, int srcy, int destx, int desty); //-DJ
     void SetTempPixel(int x, int y, const xlColor &color);
     void GetTempPixel(int x, int y, xlColor &color);
