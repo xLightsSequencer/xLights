@@ -1697,6 +1697,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
 
     CreateSequencer();
@@ -2997,4 +2998,8 @@ void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
 {
     SaveSequence();
+}
+
+void xLightsFrame::OnResize(wxSizeEvent& event)
+{
 }

@@ -13,14 +13,14 @@ const long MainSequencer::ID_PANEL1 = wxNewId();
 const long MainSequencer::ID_PANEL3 = wxNewId();
 const long MainSequencer::ID_PANEL6 = wxNewId();
 const long MainSequencer::ID_PANEL2 = wxNewId();
-const long MainSequencer::ID_SCROLLEDWINDOW2 = wxNewId();
+const long MainSequencer::ID_SCROLLBAR_EFFECTS_VERTICAL = wxNewId();
 const long MainSequencer::ID_PANEL_EFFECT_SCROLLBAR_SPACER = wxNewId();
 const long MainSequencer::ID_SCROLLBAR_EFFECT_GRID_HORZ = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
-	//(*EventTable(MainSequencer)
-	//*)
+    EVT_MOUSEWHEEL(MainSequencer::mouseWheelMoved)
+
 END_EVENT_TABLE()
 
 
@@ -31,8 +31,8 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer15;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer14;
@@ -62,24 +62,23 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer12->Add(FlexGridSizer4, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	FlexGridSizer6->Add(FlexGridSizer12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	ScrolledEffectsGrid = new wxScrolledWindow(this, ID_SCROLLEDWINDOW2, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_SCROLLEDWINDOW2"));
-	FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer13 = new wxFlexGridSizer(0, 1, 0, 0);
-	PanelRowHeadings = new RowHeading(ScrolledEffectsGrid, ID_PANEL6, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+	PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
 	PanelRowHeadings->SetMinSize(wxSize(-1,-1));
 	PanelRowHeadings->SetMaxSize(wxSize(-1,-1));
 	FlexGridSizer13->Add(PanelRowHeadings, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
-	FlexGridSizer9->Add(FlexGridSizer13, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
+	FlexGridSizer5->Add(FlexGridSizer13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer14 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer14->AddGrowableRow(0);
-	PanelEffectGrid = new EffectsGrid(ScrolledEffectsGrid, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
+	PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
 	FlexGridSizer14->Add(PanelEffectGrid, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer9->Add(FlexGridSizer14, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
-	ScrolledEffectsGrid->SetSizer(FlexGridSizer9);
-	FlexGridSizer9->Fit(ScrolledEffectsGrid);
-	FlexGridSizer9->SetSizeHints(ScrolledEffectsGrid);
-	FlexGridSizer5->Add(ScrolledEffectsGrid, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer5->Add(FlexGridSizer14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
+	ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
+	ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
+	FlexGridSizer7->Add(ScrollBarEffectsVertical, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer5->Add(FlexGridSizer7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer5, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -96,6 +95,9 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollChanged);
 	//*)
@@ -106,6 +108,21 @@ MainSequencer::~MainSequencer()
 {
 	//(*Destroy(MainSequencer)
 	//*)
+}
+
+void MainSequencer::SetSequenceElements(SequenceElements* elements)
+{
+    mSequenceElements = elements;
+}
+
+void MainSequencer::UpdateEffectGridVerticalScrollBar()
+{
+    int position = mSequenceElements->GetFirstVisibleModelRow();
+    int range = mSequenceElements->GetMaxModelsDisplayed();
+    int pageSize = 1;
+    int thumbSize = 1;
+    ScrollBarEffectsVertical->SetScrollbar(position,thumbSize,range,pageSize);
+    ScrollBarEffectsVertical->Refresh();
 }
 
 
@@ -142,5 +159,39 @@ void MainSequencer::OnResize(wxSizeEvent& event)
     wxCommandEvent eventWindowResized(EVT_WINDOW_RESIZED);
     wxPostEvent(GetParent(), eventWindowResized);
     Refresh();
+}
 
+void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event)
+{
+    int position = ScrollBarEffectsVertical->GetThumbPosition();
+    mSequenceElements->SetFirstVisibleModelRow(position);
+    Refresh();
+}
+
+void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
+{
+    int i = event.GetWheelRotation();
+    int position = ScrollBarEffectsVertical->GetThumbPosition();
+    if(i<0)
+    {
+        if(position < ScrollBarEffectsVertical->GetRange()-1)
+        {
+            position++;
+            ScrollBarEffectsVertical->SetThumbPosition(position);
+            mSequenceElements->SetFirstVisibleModelRow(position);
+        }
+
+    }
+    else
+    {
+        if(position > 0)
+        {
+            position--;
+            ScrollBarEffectsVertical->SetThumbPosition(position);
+            mSequenceElements->SetFirstVisibleModelRow(position);
+        }
+    }
+    mSequenceElements->PopulateVisibleRowInformation();
+    PanelEffectGrid->Refresh();
+    PanelRowHeadings->Refresh();
 }

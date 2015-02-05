@@ -11,6 +11,9 @@
 SequenceElements::SequenceElements()
 {
     mSelectedTimingRow = -1;
+    mTimingRowCount = 0;
+    mMaxRowsDisplayed = 0;
+    mFirstVisibleModelRow = 0;
 }
 
 SequenceElements::~SequenceElements()
@@ -101,9 +104,9 @@ void SequenceElements::DeleteElement(wxString name)
 
 Row_Information_Struct* SequenceElements::GetRowInformation(int index)
 {
-    if(index < mRowInformation.size())
+    if(index < mVisibleRowInformation.size())
     {
-        return &mRowInformation[index];
+        return &mVisibleRowInformation[index];
     }
     else
     {
@@ -113,12 +116,12 @@ Row_Information_Struct* SequenceElements::GetRowInformation(int index)
 
 int SequenceElements::GetRowInformationSize()
 {
-    return mRowInformation.size();
+    return mVisibleRowInformation.size();
 }
 
 void SequenceElements::SortElements()
 {
-    if (mRowInformation.size()>1)
+    if (mElements.size()>1)
         std::sort(mElements.begin(),mElements.end(),SortElementsByIndex);
 }
 
@@ -283,6 +286,8 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
         }
     }
     PopulateRowInformation();
+    // Set to the first model/view
+    mFirstVisibleModelRow = 0;
     return true;
 }
 
@@ -309,6 +314,7 @@ void SequenceElements::PopulateRowInformation()
     int timingColorIndex=0;
     mSelectedTimingRow = -1;
     mRowInformation.clear();
+    mTimingRowCount = 0;
     for(int i=0;i<mElements.size();i++)
     {
         if(mElements[i].GetVisible())
@@ -360,7 +366,7 @@ void SequenceElements::PopulateRowInformation()
                 ri.Index = rowIndex++;
                 mRowInformation.push_back(ri);
                 timingColorIndex++;
-
+                mTimingRowCount++;
             }
             else        // View
             {
@@ -416,7 +422,69 @@ void SequenceElements::PopulateRowInformation()
             }
         }
     }
+    PopulateVisibleRowInformation();
 }
+
+void SequenceElements::PopulateVisibleRowInformation()
+{
+    if(mRowInformation.size()==0){return;}
+    int row=0;
+    mVisibleRowInformation.clear();
+    // Add all timing element rows. They should always be first in the list
+    for(row=0;row<mTimingRowCount;row++)
+    {
+        if(row<mMaxRowsDisplayed)
+        {
+            mVisibleRowInformation.push_back(mRowInformation[row]);
+        }
+    }
+
+    for(;row<mMaxRowsDisplayed && row+mFirstVisibleModelRow<mRowInformation.size();row++)
+    {
+        mVisibleRowInformation.push_back(mRowInformation[row+mFirstVisibleModelRow]);
+    }
+}
+
+void SequenceElements::SetFirstVisibleModelRow(int row)
+{
+    // They all fit on screen. So set to first model element.
+    if(mRowInformation.size() <= mMaxRowsDisplayed)
+    {
+        mFirstVisibleModelRow = 0;
+    }
+    else
+    {
+        int maxModelRowsThatCanBeDisplayed = mMaxRowsDisplayed - mTimingRowCount;
+        int totalModelRowsToDisplay = mRowInformation.size() - mTimingRowCount;
+
+        int leastRowToDisplay = (totalModelRowsToDisplay - maxModelRowsThatCanBeDisplayed);
+        if(row > leastRowToDisplay)
+        {
+            mFirstVisibleModelRow = leastRowToDisplay;
+        }
+        else
+        {
+            mFirstVisibleModelRow = row;
+        }
+        for(int i=mFirstVisibleModelRow;i<mRowInformation.size();i++)
+        {
+            // Make sure the first visible row is a layer 0 row.
+            // We want the first row to always be a layer 0
+            if(mRowInformation[i+mTimingRowCount].layerIndex == 0)
+            {
+                mFirstVisibleModelRow = i;
+                break;
+            }
+        }
+    }
+    PopulateVisibleRowInformation();
+}
+
+int SequenceElements::GetNumberOfTimingRows()
+{
+    return mTimingRowCount;
+}
+
 
 void SequenceElements::DeactivateAllTimingElements()
 {
@@ -431,15 +499,15 @@ void SequenceElements::DeactivateAllTimingElements()
 
 void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endRow, int startX,int endX, int &FirstSelected)
 {
-    if(startRow<mRowInformation.size())
+    if(startRow<mVisibleRowInformation.size())
     {
-        if(endRow>=mRowInformation.size())
+        if(endRow>=mVisibleRowInformation.size())
         {
-            endRow = mRowInformation.size()-1;
+            endRow = mVisibleRowInformation.size()-1;
         }
         for(int i=startRow;i<=endRow;i++)
         {
-            EffectLayer* effectLayer = mRowInformation[i].element->GetEffectLayer(mRowInformation[i].layerIndex);
+            EffectLayer* effectLayer = mVisibleRowInformation[i].element->GetEffectLayer(mVisibleRowInformation[i].layerIndex);
             effectLayer->SelectEffectsInPositionRange(startX,endX,FirstSelected);
         }
     }
@@ -447,7 +515,7 @@ void SequenceElements::SelectEffectsInRowAndPositionRange(int startRow, int endR
 
 Effect* SequenceElements::GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType)
 {
-    EffectLayer* effectLayer = mRowInformation[row].element->GetEffectLayer(mRowInformation[row].layerIndex);
+    EffectLayer* effectLayer = mVisibleRowInformation[row].element->GetEffectLayer(mVisibleRowInformation[row].layerIndex);
 
     index = effectLayer->GetEffectIndexThatContainsPosition(x,selectionType);
     if(index<0)
@@ -507,4 +575,20 @@ void SequenceElements::ClearSelectedRanges()
 {
     mSelectedRanges.clear();
 }
+
+void SequenceElements::SetMaxRowsDisplayed(int maxRows)
+{
+    mMaxRowsDisplayed = maxRows;
+}
+
+int SequenceElements::GetMaxModelsDisplayed()
+{
+    return mMaxRowsDisplayed - mTimingRowCount;
+}
+
+int SequenceElements::GetFirstVisibleModelRow()
+{
+    return mFirstVisibleModelRow;
+}
+
 

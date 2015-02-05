@@ -573,6 +573,7 @@ private:
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
+    void OnResize(wxSizeEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1530,6 +1531,7 @@ protected:
     void RowHeadingsChanged( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
+    void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
@@ -1554,6 +1556,7 @@ protected:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
+    void UpdateEffectGridVerticalScrollBar();
     wxString GetEffectTextFromWindows();
     void InsertTimingMarkFromRange();
 

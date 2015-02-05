@@ -3116,6 +3116,7 @@ void EffectsPanel::OnBitmapButton_Eff_On_ColorClick(wxCommandEvent& event)
 
 void EffectsPanel::OnResize(wxSizeEvent& event)
 {
+
 }
 
 void EffectsPanel::OnPaint1(wxPaintEvent& event)

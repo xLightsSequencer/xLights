@@ -50,7 +50,17 @@ class SequenceElements
         int GetElementCount();
         Row_Information_Struct* GetRowInformation(int index);
         int GetRowInformationSize();
+        int GetMaxModelsDisplayed();
+        int GetFirstVisibleModelRow();
+
+        void SetMaxRowsDisplayed(int maxRows);
+
+        void SetFirstVisibleModelRow(int row);
+
         void DeleteElement(wxString name);
+
+        void PopulateRowInformation();
+        void PopulateVisibleRowInformation();
 
         // Selected Ranges
         int GetSelectedRangeCount();
@@ -62,12 +72,13 @@ class SequenceElements
         int GetSelectedTimingRow();
         void SetSelectedTimingRow(int row);
 
+        int GetNumberOfTimingRows();
+
         void SetViewsNode(wxXmlNode* viewsNode);
         wxString GetViewModels(wxString viewName);
 
         void SortElements();
         void MoveElement(int index,int destinationIndex);
-        void PopulateRowInformation();
 
         void DeactivateAllTimingElements();
         void SetFrequency(double frequency);
@@ -77,19 +88,33 @@ class SequenceElements
         void UnSelectAllElements();
     protected:
     private:
-    std::vector<Element> mElements;
-    std::vector<Row_Information_Struct> mRowInformation;
-    std::vector<EffectRange> mSelectedRanges;
-    int mSelectedTimingRow;
-    bool ElementExists(wxString elementName);
-    wxXmlNode* mViewsNode;
-    double mFrequency;
 
-    static bool SortElementsByIndex(const Element &element1,const Element &element2)
-    {
-        return (element1.Index<element2.Index);
-    }
+        static bool SortElementsByIndex(const Element &element1,const Element &element2)
+        {
+            return (element1.Index<element2.Index);
+        }
 
+        std::vector<Element> mElements;
+
+        // A vector of all the visible elements that may not be on screen
+        // because they all do not fit. The timing elements will always
+        // be the first in this list.
+        std::vector<Row_Information_Struct> mRowInformation;
+        // A vector of the visible elements that are in shown current window view
+        // Scrolling up/down changes this vector. The timing elements will always
+        // be the first in this list.
+        std::vector<Row_Information_Struct> mVisibleRowInformation;
+
+        std::vector<EffectRange> mSelectedRanges;
+        int mSelectedTimingRow;
+        bool ElementExists(wxString elementName);
+        wxXmlNode* mViewsNode;
+        double mFrequency;
+        int mTimingRowCount;
+        int mMaxRowsDisplayed;
+
+        // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
+        int mFirstVisibleModelRow;
 
 };
 

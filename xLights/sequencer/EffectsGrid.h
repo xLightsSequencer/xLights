@@ -31,11 +31,13 @@ wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 
 struct EffectDropData;
 
+class MainSequencer;
+
 class EffectsGrid : public wxGLCanvas
 {
 
 public:
-	EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
+	EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
 
 	virtual ~EffectsGrid();

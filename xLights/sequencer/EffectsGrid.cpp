@@ -38,7 +38,7 @@ END_EVENT_TABLE()
 int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 //EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
-EffectsGrid::EffectsGrid(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name):wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     mIsInitialized = false;
@@ -120,7 +120,7 @@ void EffectsGrid::OnDrop(int x, int y)
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event)
 {
-    if (mSequenceElements == NULL) {
+    if (!mIsInitialized || mSequenceElements == NULL) {
         return;
     }
     int rowIndex = GetRow(event.GetY());
@@ -998,7 +998,7 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event)
     }
     else
     {
-        wxPostEvent(GetGrandParent()->GetEventHandler(), event);
+        wxPostEvent(GetParent()->GetEventHandler(), event);
         event.Skip();
     }
 }

@@ -32,7 +32,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 
 
-RowHeading::RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
+RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name):
                        wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
@@ -103,7 +103,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer->Append(ID_ROW_MNU_PLAY_MODEL,"Play Model");
             mnuLayer->Append(ID_ROW_MNU_EXPORT_MODEL,"Export Model");
         }
-        
+
         mnuLayer->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, NULL, this);
         PopupMenu(mnuLayer);
     }
@@ -159,7 +159,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
-        
+
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
         playEvent.SetString(element->GetName());
@@ -169,7 +169,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         playEvent.SetString(element->GetName());
         wxPostEvent(GetParent(), playEvent);
     }
-    
+
 
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -215,6 +215,11 @@ void RowHeading::SetCanvasSize(int width,int height)
     SetMinSize(s);
 }
 
+int RowHeading::GetMaxRows()
+{
+    int max = (int)(getHeight()/DEFAULT_ROW_HEADING_HEIGHT);
+    return max;
+}
 
 void RowHeading::render( wxPaintEvent& event )
 {

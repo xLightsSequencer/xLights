@@ -12,12 +12,13 @@
 #define INDENT_ROW_HEADING_MARGIN   24
 
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
+class MainSequencer;
 
 class RowHeading : public wxWindow
 {
     public:
         //RowHeading(wxScrolledWindow* parent);
-        RowHeading(wxScrolledWindow* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize,
+        RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize,
                        long style=0, const wxString &name=wxPanelNameStr);
         virtual ~RowHeading();
 
@@ -27,6 +28,7 @@ class RowHeading : public wxWindow
         static const wxColour* GetTimingColor(int index);
         int getWidth();
         int getHeight();
+        int GetMaxRows();
 
     protected:
     private:

@@ -19,11 +19,14 @@ class MainSequencer: public wxPanel
 
 		MainSequencer(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~MainSequencer();
+		void SetSequenceElements(SequenceElements* elements);
+        void UpdateEffectGridVerticalScrollBar();
+
 
 		//(*Declarations(MainSequencer)
 		wxPanel* panelEffectScrollBarSpacer;
+		wxScrollBar* ScrollBarEffectsVertical;
 		EffectsGrid* PanelEffectGrid;
-		wxScrolledWindow* ScrolledEffectsGrid;
 		wxScrollBar* ScrollBarEffectGridHorz;
 		RowHeading* PanelRowHeadings;
 		wxPanel* PanelPlayControls;
@@ -39,7 +42,7 @@ class MainSequencer: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_PANEL6;
 		static const long ID_PANEL2;
-		static const long ID_SCROLLEDWINDOW2;
+		static const long ID_SCROLLBAR_EFFECTS_VERTICAL;
 		static const long ID_PANEL_EFFECT_SCROLLBAR_SPACER;
 		static const long ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
@@ -53,10 +56,15 @@ class MainSequencer: public wxPanel
 		void OnResize(wxSizeEvent& event);
 		void OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event);
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
+		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
+
+        void mouseWheelMoved(wxMouseEvent& event);
         void TimeLineChanged( wxCommandEvent& event);
+
         wxWindow *mParent;
+        SequenceElements* mSequenceElements;
 };
 
 #endif
