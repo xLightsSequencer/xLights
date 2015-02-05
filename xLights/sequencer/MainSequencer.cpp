@@ -118,9 +118,9 @@ void MainSequencer::SetSequenceElements(SequenceElements* elements)
 void MainSequencer::UpdateEffectGridVerticalScrollBar()
 {
     int position = mSequenceElements->GetFirstVisibleModelRow();
-    int range = mSequenceElements->GetMaxModelsDisplayed();
-    int pageSize = 1;
-    int thumbSize = 1;
+    int range = mSequenceElements->GetTotalNumberOfModelRows();
+    int pageSize = mSequenceElements->GetMaxModelsDisplayed();
+    int thumbSize = mSequenceElements->GetMaxModelsDisplayed();
     ScrollBarEffectsVertical->SetScrollbar(position,thumbSize,range,pageSize);
     ScrollBarEffectsVertical->Refresh();
 }

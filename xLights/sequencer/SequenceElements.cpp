@@ -586,6 +586,11 @@ int SequenceElements::GetMaxModelsDisplayed()
     return mMaxRowsDisplayed - mTimingRowCount;
 }
 
+int SequenceElements::GetTotalNumberOfModelRows()
+{
+    return mRowInformation.size() - mTimingRowCount;
+}
+
 int SequenceElements::GetFirstVisibleModelRow()
 {
     return mFirstVisibleModelRow;
