@@ -24,7 +24,6 @@ class MainSequencer: public wxPanel
 
 
 		//(*Declarations(MainSequencer)
-		wxPanel* panelEffectScrollBarSpacer;
 		wxScrollBar* ScrollBarEffectsVertical;
 		EffectsGrid* PanelEffectGrid;
 		wxScrollBar* ScrollBarEffectGridHorz;
@@ -43,7 +42,6 @@ class MainSequencer: public wxPanel
 		static const long ID_PANEL6;
 		static const long ID_PANEL2;
 		static const long ID_SCROLLBAR_EFFECTS_VERTICAL;
-		static const long ID_PANEL_EFFECT_SCROLLBAR_SPACER;
 		static const long ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
 

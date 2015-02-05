@@ -41,7 +41,6 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 {
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
-    SetCanvasSize(1000,25);
     mIsInitialized=false;
     mStartPixelOffset = 0;
     mFrequency = 40;
