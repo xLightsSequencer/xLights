@@ -286,7 +286,7 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    int position = mainSequencer->ScrollBarEffectGridHorz->GetThumbPosition();
+    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
     int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
 
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
@@ -326,7 +326,7 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
         int range = mainSequencer->PanelTimeLine->GetSize().x;
         int pageSize =range;
         int thumbSize = range;
-        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(0,thumbSize,range,pageSize);
+        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
     }
     else
     {
@@ -339,10 +339,10 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
         int thumbSize = (int)(diff*(double)1000);
         int pageSize = thumbSize;
         int position = (int)(startTime * (double)1000);
-        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(position,thumbSize,range,pageSize);
+        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
     }
 
-    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+    mainSequencer->ScrollBarEffectsHorizontal->Refresh();
 }
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
@@ -447,7 +447,7 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
 //    mainSequencer->panelEffectScrollBarSpacer->Refresh();
-    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+    mainSequencer->ScrollBarEffectsHorizontal->Refresh();
     mainSequencer->ScrollBarEffectsVertical->Refresh();
 
     colorPanel->Refresh();
@@ -457,7 +457,7 @@ void xLightsFrame::ResizeMainSequencer()
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
-    mainSequencer->ScrollBarEffectGridHorz->Update();
+    mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
 void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)

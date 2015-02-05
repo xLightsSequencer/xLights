@@ -56,20 +56,32 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
 	FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ScrollBarEffectGridHorz = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
-	ScrollBarEffectGridHorz->SetScrollbar(0, 1, 100, 1);
-	FlexGridSizer1->Add(ScrollBarEffectGridHorz, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
+	ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
+	FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
 	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
 	Connect(ID_SCROLLBAR_EFFECTS_VERTICAL,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScrollChanged);
-	Connect(wxEVT_SIZE,(wxObjectEventFunction)&MainSequencer::OnResize);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	//*)
 
     mParent = parent;
@@ -102,32 +114,10 @@ void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
 }
 
 
-void MainSequencer::OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event)
-{
-    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    wxPostEvent(mParent, eventScroll);
-}
-
-void MainSequencer::OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event)
-{
-    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-    wxPostEvent(mParent, eventScroll);
-}
-
 void MainSequencer::OnScrollBarEffectGridHorzScroll(wxScrollEvent& event)
 {
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     wxPostEvent(mParent, eventScroll);
-}
-
-void MainSequencer::OnPaint(wxPaintEvent& event)
-{
-
-}
-
-void MainSequencer::OnResize(wxSizeEvent& event)
-{
-    Layout();
 }
 
 void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event)
@@ -140,27 +130,47 @@ void MainSequencer::OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event
 void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 {
     int i = event.GetWheelRotation();
-    int position = ScrollBarEffectsVertical->GetThumbPosition();
-    if(i<0)
-    {
-        if(position < ScrollBarEffectsVertical->GetRange()-1)
-        {
-            position++;
-            ScrollBarEffectsVertical->SetThumbPosition(position);
-            mSequenceElements->SetFirstVisibleModelRow(position);
+    if (event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
+        int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+        int ts = ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+        if (ts ==0) {
+            ts = 1;
         }
-
-    }
-    else
-    {
-        if(position > 0)
-        {
-            position--;
-            ScrollBarEffectsVertical->SetThumbPosition(position);
-            mSequenceElements->SetFirstVisibleModelRow(position);
+        if (i < 0) {
+            if (position > 0) {
+                position -= ts;
+            }
+        } else {
+            position += ts;
+            if (position >= ScrollBarEffectsHorizontal->GetRange()) {
+                position = ScrollBarEffectsHorizontal->GetRange() - 1;
+            }
         }
+        ScrollBarEffectsHorizontal->SetThumbPosition(position);
+        wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+        wxPostEvent(mParent, eventScroll);
+    } else {
+        int position = ScrollBarEffectsVertical->GetThumbPosition();
+        if(i<0)
+        {
+            if(position < ScrollBarEffectsVertical->GetRange()-1)
+            {
+                position++;
+                ScrollBarEffectsVertical->SetThumbPosition(position);
+                mSequenceElements->SetFirstVisibleModelRow(position);
+            }
+        }
+        else
+        {
+            if(position > 0)
+            {
+                position--;
+                ScrollBarEffectsVertical->SetThumbPosition(position);
+                mSequenceElements->SetFirstVisibleModelRow(position);
+            }
+        }
+        mSequenceElements->PopulateVisibleRowInformation();
+        PanelEffectGrid->Refresh();
+        PanelRowHeadings->Refresh();
     }
-    mSequenceElements->PopulateVisibleRowInformation();
-    PanelEffectGrid->Refresh();
-    PanelRowHeadings->Refresh();
 }
