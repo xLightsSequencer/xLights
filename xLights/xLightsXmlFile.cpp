@@ -48,7 +48,8 @@ bool xLightsXmlFile::IsXmlSequence(wxFileName &fname)
     wxFile file(fname.GetFullPath());
     int i = file.Read(buf, 1024);
     file.Close();
-    if (wxString(buf, 0 , i).Contains("<xsequence")) {
+    wxString bufs(buf, i);
+    if (bufs.Contains("<xsequence")) {
         return true;
     }
     return false;
@@ -60,8 +61,8 @@ bool xLightsXmlFile::IsV3Sequence()
     wxFile file(GetFullPath());
     int i = file.Read(buf, 1024);
     file.Close();
-    if( (wxString(buf, 0 , i).Contains("<xsequence")) &&
-        (wxString(buf, 0 , i).Contains("<tr>"))) {
+    if( (wxString(buf, i).Contains("<xsequence")) &&
+        (wxString(buf, i).Contains("<tr>"))) {
         return true;
     }
     return false;
