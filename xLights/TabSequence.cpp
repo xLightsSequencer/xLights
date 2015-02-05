@@ -540,14 +540,14 @@ void xLightsFrame::SaveSequence()
     wxStopWatch sw; // start a stopwatch timer
     StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
 
+    CurrentSeqXmlFile->Save(mSequenceElements);
     RenderGridToSeqData();
     WriteFalconPiFile(xlightsFilename);
-    CurrentSeqXmlFile->Save(mSequenceElements);
     DisplayXlightsFilename(xlightsFilename);
     UnsavedChanges = false;
     float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-    StatusBar1->SetStatusText(displayBuff);
+    CallAfter(&xLightsFrame::SetStatusText, displayBuff);
     EnableSequenceControls(true);
 }
 
