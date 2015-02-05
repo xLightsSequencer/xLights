@@ -221,7 +221,25 @@ wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 static wxCriticalSection gs_xoutCriticalSection;
 
-typedef std::map<wxString,wxString> MapStringString;
+class MapStringString: public std::map<wxString,wxString> {
+public:
+    MapStringString(): std::map<wxString,wxString>() {
+    }
+    const wxString &operator[](const wxString &key) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return notFound;
+        }
+        return i->second;
+    }
+    wxString &operator[](const wxString &key) {
+        return std::map<wxString, wxString>::operator[](key);
+    }
+private:
+    wxString notFound;
+};
+
+
 typedef SequenceData SeqDataType;
 
 enum play_modes
@@ -573,6 +591,7 @@ private:
     void OnMenu_Settings_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
+    void OnResize(wxSizeEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -1358,7 +1377,7 @@ private:
 
 public:
     void RenderGridToSeqData();
-    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+    bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
@@ -1530,6 +1549,7 @@ protected:
     void RowHeadingsChanged( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
+    void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
@@ -1554,6 +1574,7 @@ protected:
     void ResizeAndMakeEffectsScroll();
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
+    void UpdateEffectGridVerticalScrollBar();
     wxString GetEffectTextFromWindows();
     void InsertTimingMarkFromRange();
 

@@ -2,150 +2,94 @@
 <wxsmith>
 	<object class="wxPanel" name="MainSequencer">
 		<id_arg>0</id_arg>
+		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>1</cols>
+			<cols>3</cols>
+			<rows>3</rows>
+			<growablecols>1</growablecols>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-							<cols>3</cols>
-							<object class="sizeritem">
-								<object class="wxPanel" name="ID_PANEL5" variable="PanelPlayControls" member="yes" />
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
-							<cols>3</cols>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-									<cols>1</cols>
-									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-											<cols>3</cols>
-											<object class="sizeritem">
-												<object class="wxPanel" name="ID_PANEL1" subclass="TimeLine" variable="PanelTimeLine" member="yes" />
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<option>1</option>
-											</object>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-											<cols>3</cols>
-											<object class="sizeritem">
-												<object class="wxPanel" name="ID_PANEL3" subclass="Waveform" variable="PanelWaveForm" member="yes" />
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-												<option>1</option>
-											</object>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<option>1</option>
-									</object>
-								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW2" variable="ScrolledEffectsGrid" member="yes">
-							<style>wxVSCROLL</style>
-							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-								<cols>2</cols>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
-										<cols>1</cols>
-										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL6" subclass="RowHeading" variable="PanelRowHeadings" member="yes">
-												<size>-1,-1</size>
-												<minsize>-1,-1</minsize>
-												<maxsize>-1,-1</maxsize>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer14" member="no">
-										<cols>1</cols>
-										<rows>2</rows>
-										<growablerows>0</growablerows>
-										<object class="sizeritem">
-											<object class="wxPanel" name="ID_PANEL2" subclass="EffectsGrid" variable="PanelEffectGrid" member="yes">
-												<style>wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE</style>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<option>1</option>
-					</object>
+				<object class="wxPanel" name="ID_PANEL5" variable="PanelPlayControls" member="yes">
+					<size>175,100</size>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-					<cols>3</cols>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<rows>2</rows>
+					<growablecols>0</growablecols>
+					<growablerows>1</growablerows>
 					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-							<cols>3</cols>
-							<object class="sizeritem">
-								<object class="wxPanel" name="ID_PANEL_EFFECT_SCROLLBAR_SPACER" variable="panelEffectScrollBarSpacer" member="yes" />
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<option>1</option>
-							</object>
+						<object class="wxPanel" name="ID_PANEL1" subclass="TimeLine" variable="PanelTimeLine" member="yes">
+							<minsize>-1,25</minsize>
+							<maxsize>-1,25</maxsize>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
-							<cols>3</cols>
-							<object class="sizeritem">
-								<object class="wxScrollBar" name="ID_SCROLLBAR_EFFECT_GRID_HORZ" variable="ScrollBarEffectGridHorz" member="yes">
-									<thumbsize>1</thumbsize>
-									<range>100</range>
-									<pagesize>1</pagesize>
-									<style>wxSB_HORIZONTAL|wxALWAYS_SHOW_SB</style>
-									<handler function="OnScrollBarEffectGridHorzScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
-									<handler function="OnScrollBarEffectGridHorzScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
-								</object>
-								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-								<option>1</option>
-							</object>
+						<object class="wxPanel" name="ID_PANEL3" subclass="Waveform" variable="PanelWaveForm" member="yes">
+							<minsize>-1,75</minsize>
+							<maxsize>-1,75</maxsize>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL6" subclass="RowHeading" variable="PanelRowHeadings" member="yes" />
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL2" subclass="EffectsGrid" variable="PanelEffectGrid" member="yes">
+					<style>wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE</style>
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxScrollBar" name="ID_SCROLLBAR_EFFECTS_VERTICAL" variable="ScrollBarEffectsVertical" member="yes">
+					<thumbsize>1</thumbsize>
+					<range>10</range>
+					<pagesize>1</pagesize>
+					<style>wxSB_VERTICAL|wxALWAYS_SHOW_SB</style>
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxScrollBar" name="ID_SCROLLBAR_EFFECT_GRID_HORZ" variable="ScrollBarEffectGridHorz" member="yes">
+					<thumbsize>1</thumbsize>
+					<range>100</range>
+					<pagesize>1</pagesize>
+					<style>wxSB_HORIZONTAL|wxALWAYS_SHOW_SB</style>
+					<handler function="OnScrollBarEffectGridHorzScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+					<handler function="OnScrollBarEffectGridHorzScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+				</object>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>

@@ -110,18 +110,7 @@ void RgbEffects::RenderCircles(int number,int radius, bool bounce, bool collide,
         for (ii=0; ii<number; ii++)
         {
             hsv = balls[ii].hsvcolor;
-            for(int r = balls[ii]._radius; r >= 0; r--)
-            {
-                if(!bounce && !collide)
-                {
-                    DrawCircle(balls[ii]._x, balls[ii]._y, r, hsv);
-                }
-                else
-                {
-                    DrawCircleClipped(balls[ii]._x, balls[ii]._y, r, hsv);
-                }
-                if (bubbles) break; //don't fill
-            }
+            DrawCircle(balls[ii]._x, balls[ii]._y, balls[ii]._radius, hsv, !bubbles, !bounce && !collide);
         }
     }
 }
@@ -150,6 +139,8 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
 
     barht = barht>0?barht:1;
     palette.GetHSV(0,hsv);
+    
+    xlColor lastColor;
     for( ii = maxRadius ; ii >= 0;  ii--)
     {
         n=ii-f_offset+blockHt;
@@ -163,7 +154,11 @@ void RgbEffects::RenderRadial(int x, int y,int thickness, int colorCnt,int numbe
             hsv.saturation=1.0;
             hsv.value=1.0;
         }
-        DrawCircleClipped(x, y, ii, hsv);
+        xlColor color(hsv);
+        if (lastColor != color) {
+            DrawCircle(x, y, ii, hsv, true);
+            lastColor = color;
+        }
     }
 }
 

@@ -162,8 +162,22 @@ void RgbEffects::GetMultiColorBlend(double n, bool circular, xlColour &color)
 
 
 // 0,0 is lower left
-void RgbEffects::SetPixel(int x, int y, const xlColour &color)
+void RgbEffects::SetPixel(int x, int y, const xlColour &color, bool wrap)
 {
+    if (wrap) {
+        while (x < 0) {
+            x += BufferWi;
+        }
+        while (y < 0) {
+            y += BufferHt;
+        }
+        while (x > BufferWi) {
+            x -= BufferWi;
+        }
+        while (y > BufferHt) {
+            y -= BufferHt;
+        }
+    }
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         pixels[y*BufferWi+x] = color;
@@ -171,8 +185,22 @@ void RgbEffects::SetPixel(int x, int y, const xlColour &color)
 }
 
 // 0,0 is lower left
-void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv)
+void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap)
 {
+    if (wrap) {
+        while (x < 0) {
+            x += BufferWi;
+        }
+        while (y < 0) {
+            y += BufferHt;
+        }
+        while (x > BufferWi) {
+            x -= BufferWi;
+        }
+        while (y > BufferHt) {
+            y -= BufferHt;
+        }
+    }
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
     {
         pixels[y*BufferWi+x] = hsv;
@@ -180,7 +208,6 @@ void RgbEffects::SetPixel(int x, int y, const wxImage::HSVValue& hsv)
 }
 
 //copy src to dest: -DJ
-//TODO: use GDI+ functions?  (this would pull in a lot more functionality for free, on Windows at least)
 void RgbEffects::CopyPixel(int srcx, int srcy, int destx, int desty)
 {
     if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt))
@@ -188,72 +215,77 @@ void RgbEffects::CopyPixel(int srcx, int srcy, int destx, int desty)
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
 }
 
-void RgbEffects::DrawCircle(int xc, int yc, int r, const xlColor& rgb)
-{
-    int x, y, p;
-    x=0;y=r;
-    p=1-r;
-    
-    
-    double degrees, radian;
-    double inc = 1.0;
-    if (r > 80) {
-        inc = 0.25;
-    } else if (r > 40) {
-        inc = 0.5;
+void RgbEffects::DrawHLine(int y, int xstart, int xend, const xlColor &color, bool wrap) {
+    if (xstart > xend) {
+        int i = xstart;
+        xstart = xend;
+        xend = i;
     }
-    for (degrees=0.0; degrees <= 90; degrees+=inc)
-    {
-        radian = degrees * (M_PI/180.0);
-        int xoff = round(r * cos(radian));
-        int yoff = round(r * sin(radian));
-        SetPixel(xc + xoff, yc + yoff, rgb);
-        SetPixel(xc - xoff, yc + yoff, rgb);
-        SetPixel(xc + xoff, yc - yoff, rgb);
-        SetPixel(xc - xoff, yc - yoff, rgb);
+    for (int x = xstart; x <= xend; x++) {
+        SetPixel(x, y, color, wrap);
+    }
+}
+void RgbEffects::DrawVLine(int x, int ystart, int yend, const xlColor &color, bool wrap) {
+    if (ystart > yend) {
+        int i = ystart;
+        ystart = yend;
+        yend = i;
+    }
+    for (int y = ystart; y <= yend; y++) {
+        SetPixel(x, y, color, wrap);
+    }
+}
+void RgbEffects::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap) {
+    if (y1 > y2) {
+        int i = y1;
+        y1 = y2;
+        y2 = i;
+    }
+    if (x1 > x2) {
+        int i = x1;
+        x1 = x2;
+        x2 = i;
+    }
+    for (int x = x1; x <= x2; x++) {
+        for (int y = y1; y <= y2; y++) {
+            SetPixel(x, y, color, wrap);
+        }
     }
 }
 
-void RgbEffects::SetPixelWrap(int x, int y, const xlColor &rgb) {
-    while (x < 0) {
-        x += BufferWi;
+
+void RgbEffects::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bool filled, bool wrap)
+{
+    int x = radius;
+    int y = 0;
+    int radiusError = 1 - x;
+
+    while(x >= y) {
+        if (!filled) {
+            SetPixel(x + x0, y + y0, rgb, wrap);
+            SetPixel(y + x0, x + y0, rgb, wrap);
+            SetPixel(-x + x0, y + y0, rgb, wrap);
+            SetPixel(-y + x0, x + y0, rgb, wrap);
+            SetPixel(-x + x0, -y + y0, rgb, wrap);
+            SetPixel(-y + x0, -x + y0, rgb, wrap);
+            SetPixel(x + x0, -y + y0, rgb, wrap);
+            SetPixel(y + x0, -x + y0, rgb, wrap);
+        } else {
+            DrawVLine(x0 - x, y0 - y, y0 + y, rgb, wrap);
+            DrawVLine(x0 + x, y0 - y, y0 + y, rgb, wrap);
+            DrawVLine(x0 - y, y0 - x, y0 + x, rgb, wrap);
+            DrawVLine(x0 + y, y0 - x, y0 + x, rgb, wrap);
+        }
+        y++;
+        if (radiusError<0) {
+            radiusError += 2 * y + 1;
+        } else {
+            x--;
+            radiusError += 2 * (y - x) + 1;
+        }
     }
-    while (y < 0) {
-        y += BufferHt;
-    }
-    while (x > BufferWi) {
-        x -= BufferWi;
-    }
-    while (y > BufferHt) {
-        y -= BufferHt;
-    }
-    SetPixel(x,y,rgb);
 }
 
-void RgbEffects::DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv)
-{
-    int x, y;
-    xlColor rgb(hsv);
-    x=0;y=r;
-    
-    double degrees, radian;
-    double inc = 1.0;
-    if (r > 80) {
-        inc = 0.25;
-    } else if (r > 40) {
-        inc = 0.5;
-    }
-    for (degrees=0.0; degrees <= 90.0; degrees+=inc)
-    {
-        radian = degrees * (M_PI/180.0);
-        x = round(r * cos(radian));
-        y = round(r * sin(radian));
-        SetPixel(xc + x, yc + y,rgb); // Turn pixel
-        SetPixel(xc - x, yc + y,rgb); // Turn pixel
-        SetPixel(xc + x, yc - y,rgb); // Turn pixel
-        SetPixel(xc - x, yc - y,rgb); // Turn pixel
-    }
-}
 
 // 0,0 is lower left
 void RgbEffects::GetPixel(int x, int y, xlColour &color)

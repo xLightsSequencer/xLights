@@ -28,6 +28,7 @@ void xLightsFrame::CreateSequencer()
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
     mainSequencer = new MainSequencer(PanelSequencer);
+    mainSequencer->SetSequenceElements(&mSequenceElements);
 
     DOUBLE_BUFFER(mainSequencer);
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
@@ -35,26 +36,26 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
-    mainSequencer->PanelRowHeadings->SetCanvasSize(175,2200);
+//    mainSequencer->PanelRowHeadings->SetCanvasSize(175,2200);
 
-    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
-    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,2200));
+//    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
+//    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,20));
+    mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
-    mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
-    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(1200,2200));
+//    mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
+//    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(20,20));
 
-    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(1525,700));
-    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 100, 0, 10);
+//    mainSequencer->ScrollBarEffectsVertical->SetSize(20,2200);
+//    mainSequencer->ScrollBarEffectsVertical->SetMinSize(wxSize(20,2200));
+//    mainSequencer->ScrollBarEffectsVertical->SetMaxSize(wxSize(20,2200));
 
-    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
-    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
-    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
+//    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
+//    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
+//    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
 
-    mainSequencer->ScrollBarEffectGridHorz->SetSize(1200,20);
-    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
-    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
+//    mainSequencer->ScrollBarEffectGridHorz->SetSize(1200,20);
+ //   mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
+  //  mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
 
 
     sPreview1 = new SequencePreview(PanelSequencer,args);
@@ -101,6 +102,8 @@ void xLightsFrame::CreateSequencer()
                    BestSize(wxSize(175,175)).Left());
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
+    
+    mainSequencer->Layout();
     m_mgr->Update();
 }
 
@@ -234,16 +237,16 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
             if (mMediaLengthMS == 0) {
                 mMediaLengthMS = musicLength;
             }
-            mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
+            //mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
         }
 
 //        wxString s = wxString::Format("Length=%d",mMediaLengthMS);
 //        wxMessageBox(s);
         //mainSequencer->PanelTimeLine->SetTimeLength(230000);
         mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
-        mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
+        //mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
         mainSequencer->PanelTimeLine->Initialize();
-        mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
+        //mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
         mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
         mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
         mainSequencer->PanelEffectGrid->InitializeGrid();
@@ -283,7 +286,6 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
-
     int position = mainSequencer->ScrollBarEffectGridHorz->GetThumbPosition();
     int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
 
@@ -407,46 +409,50 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
     // Wave Form and Timeline
-    mainSequencer->PanelWaveForm->SetCanvasSize(w-175,75);
-    mainSequencer->PanelTimeLine->SetCanvasSize(w-175,25);
+    //mainSequencer->PanelWaveForm->SetCanvasSize(w-175,75);
+    //mainSequencer->PanelTimeLine->SetCanvasSize(w-175,25);
 
-    int effectHeight = mSequenceElements.GetRowInformationSize()* DEFAULT_ROW_HEADING_HEIGHT > h-120?
-                       mSequenceElements.GetRowInformationSize()* DEFAULT_ROW_HEADING_HEIGHT:h-120;
-    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,effectHeight));
-    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,effectHeight));
-    mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,effectHeight));
+    int effectHeight = h-120;
 
-    mainSequencer->PanelEffectGrid->SetSize(wxSize(w-175,effectHeight));
-    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(w-175,effectHeight));
-    mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(w-175,effectHeight));
+    int effectWidth = w-20; // Width - vertical scrollbar width
 
-    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
-    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
-    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
+    //mainSequencer->PanelRowHeadings->SetSize(wxSize(175,effectHeight));
+    //mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,effectHeight));
+    //mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,effectHeight));
+    
+    // Set max rows to determine correct row information size
+    mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
-    mainSequencer->ScrollBarEffectGridHorz->SetSize(w-175,20);
-    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(w-175,20));
-    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(w-175,20));
 
-    mainSequencer->ScrolledEffectsGrid->SetSize(wxSize(w,h-120));
-    mainSequencer->ScrolledEffectsGrid->SetMinSize(wxSize(w,h-120));
-    mainSequencer->ScrolledEffectsGrid->SetMaxSize(wxSize(w,h-120));
-    mainSequencer->ScrolledEffectsGrid->SetScrollbars(0, 10, 0, 2);
-    mainSequencer->ScrolledEffectsGrid->FitInside();
 
-    //colorPanel->SetSize(wxSize(50,50));
-    //colorPanel->SetSize(wxSize(50,50));
-    //colorPanel->SetSize(wxSize(50,50));
+    //mainSequencer->PanelEffectGrid->SetSize(wxSize(effectWidth-175,effectHeight));
+    //mainSequencer->PanelEffectGrid->SetMinSize(wxSize(effectWidth-175,effectHeight));
+    //mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(effectWidth-175,effectHeight));
+
+//    mainSequencer->ScrollBarEffectsVertical->SetSize(20,effectHeight);
+//    mainSequencer->ScrollBarEffectsVertical->SetMinSize(wxSize(20,effectHeight));
+//    mainSequencer->ScrollBarEffectsVertical->SetMaxSize(wxSize(20,effectHeight));
+
+//    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
+//    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
+//    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
+
+//    mainSequencer->ScrollBarEffectGridHorz->SetSize(w-175,20);
+//    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(w-175,20));
+//    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(w-175,20));
+
 
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelTimeLine->Refresh();
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
-    mainSequencer->panelEffectScrollBarSpacer->Refresh();
+//    mainSequencer->panelEffectScrollBarSpacer->Refresh();
     mainSequencer->ScrollBarEffectGridHorz->Refresh();
-    mainSequencer->ScrolledEffectsGrid->Refresh();
+    mainSequencer->ScrollBarEffectsVertical->Refresh();
+
     colorPanel->Refresh();
     colorPanel->ColorScrollWindow->Refresh();
+    mainSequencer->UpdateEffectGridVerticalScrollBar();
 }
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)

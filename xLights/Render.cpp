@@ -10,12 +10,11 @@
 class RenderEvent
 {
 public:
-    RenderEvent(int l, int p, MapStringString& sm,
-                PixelBufferClass &b, bool *res) : mutex(), signal(mutex)
+    RenderEvent(int l, int p, const MapStringString& sm,
+                PixelBufferClass &b, bool *res) : mutex(), signal(mutex), SettingsMap(sm)
     {
         layer = l;
         period = p;
-        SettingsMap = &sm;
         buffer = &b;
         ResetEffectState = res;
     }
@@ -24,7 +23,7 @@ public:
     volatile bool done = false;
     int layer;
     int period;
-    MapStringString *SettingsMap;
+    const MapStringString &SettingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
     bool returnVal = false;
@@ -74,6 +73,7 @@ public:
             data[x] = 0;
         }
         max = 0;
+        maxFrameSoFar = 0;
     }
     ~AggregatorRenderer() {
         delete [] data;
@@ -82,7 +82,13 @@ public:
         max++;
     }
     virtual void setPreviousFrameDone(int i) {
+        if (i % 10 != 0 && i < maxFrameSoFar) {
+            return;
+        }
         wxMutexLocker lock(nextLock);
+        if (i > maxFrameSoFar) {
+            maxFrameSoFar = i;
+        }
         data[i]++;
         if (data[i] == max) {
             previousFrameDone = i;
@@ -94,6 +100,7 @@ public:
 private:
     int *data;
     int max;
+    int maxFrameSoFar;
 };
 
 class RenderJob: public Job, public NextRenderer {
@@ -295,7 +302,7 @@ private:
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     wxMutexLocker(ev->mutex);
     ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
-                                        *ev->SettingsMap,
+                                        ev->SettingsMap,
                                         *ev->buffer, *ev->ResetEffectState, false);
     ev->done = true;
     ev->signal.Broadcast();
@@ -487,10 +494,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 }
 
 
-
-
-
-bool xLightsFrame::RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread) {
     bool retval=true;

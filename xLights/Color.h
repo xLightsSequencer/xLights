@@ -54,6 +54,16 @@ public:
     xlColor&operator=(const wxImage::RGBValue& rgb) {
         return operator=(rgb);
     }
+    bool operator==(const xlColor &rgb) const {
+        return (red == rgb.red)
+            && (blue == rgb.blue)
+            && (green == rgb.green);
+    }
+    bool operator!=(const xlColor &rgb) const {
+        return (red != rgb.red)
+            || (blue != rgb.blue)
+            || (green != rgb.green);
+    }
     wxColor asWxColor() const {
         return wxColor(red, green, blue);
     }
