@@ -327,9 +327,8 @@ void xLightsFrame::LoadEffectsFile()
     wxString version=EffectsNode->GetAttribute("version", "0000");
     if (version < XLIGHTS_RGBEFFECTS_VERSION)
     {
-        // convert file
-        xLightsXmlFile xml_file(filename);
-        xml_file.FixVersionDifferences();
+        // fix tags
+        xLightsXmlFile::FixVersionDifferences(filename);
 
         // load converted file
         LoadEffectsFileNoCheck();

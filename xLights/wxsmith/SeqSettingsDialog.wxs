@@ -3,7 +3,6 @@
 	<object class="wxDialog" name="SeqSettingsDialog">
 		<title>Sequence Settings</title>
 		<id_arg>0</id_arg>
-		<handler function="OnClose" entry="EVT_CLOSE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<object class="sizeritem">
@@ -134,7 +133,7 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Media_File" variable="TextCtrl_Xml_Media_File" member="yes">
 												<size>326,21</size>
-												<enabled>0</enabled>
+												<style>wxTE_READONLY</style>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -157,7 +156,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-										<cols>3</cols>
+										<cols>4</cols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Xml_Total_Length" variable="StaticText_Xml_Total_Length" member="yes">
 												<label>Sequence Duration:</label>
@@ -170,6 +169,20 @@
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Seq_Duration" variable="TextCtrl_Xml_Seq_Duration" member="yes">
 												<size>81,21</size>
 												<handler function="OnTextCtrl_Xml_Seq_DurationText" entry="EVT_TEXT" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+											<size>72,20</size>
+										</object>
+										<object class="sizeritem">
+											<object class="wxCheckBox" name="ID_CHECKBOX_Overwrite_Tags" variable="CheckBox_Overwrite_Tags" member="yes">
+												<label>Overwrite Media Tags</label>
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
@@ -199,6 +212,7 @@
 													<item>100 ms</item>
 												</content>
 												<selection>1</selection>
+												<enabled>0</enabled>
 												<handler function="OnChoice_Xml_Seq_TimingSelect" entry="EVT_CHOICE" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -429,16 +443,6 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 					<cols>2</cols>
-					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Save" variable="Button_Save" member="yes">
-							<label>Save</label>
-							<enabled>0</enabled>
-							<handler function="OnButton_SaveClick" entry="EVT_BUTTON" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_Close" variable="Button_Close" member="yes">
 							<label>Close</label>

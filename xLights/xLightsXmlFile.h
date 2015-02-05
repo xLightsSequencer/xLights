@@ -11,7 +11,7 @@ class SequenceElements;  // forward declaration needed due to circular dependenc
 class xLightsXmlFile : public wxFileName
 {
     public:
-        xLightsXmlFile();
+        //xLightsXmlFile();
         xLightsXmlFile(const wxFileName &filename);
         virtual ~xLightsXmlFile();
 
@@ -28,16 +28,22 @@ class xLightsXmlFile : public wxFileName
             NUM_TYPES
         };
 
-        bool Load();
-        void CreateNew();
-        bool Convert();
-        void Save();
-        void Save( SequenceElements& elements);
-        void Clear();
-        void FreeMemory();
-        wxXmlDocument& GetXmlDocument() { return seqDocument; }
+        const wxString HEADER_STRINGS[NUM_TYPES] =
+        {
+            "author",
+            "author-email",
+            "author-website",
+            "song",
+            "artist",
+            "album",
+            "MusicURL",
+            "comment"
+        };
 
-        bool NeedsConversion() { return needs_conversion; }
+        bool Open();
+
+        void Save( SequenceElements& elements);
+        wxXmlDocument& GetXmlDocument() { return seqDocument; }
 
         const wxString GetVersion() { return version_string; };
 
@@ -47,6 +53,7 @@ class xLightsXmlFile : public wxFileName
 
         void SetSequenceDurationMS(int length);
         void SetSequenceDuration(const wxString& length);
+        void SetSequenceDuration(double length);
 
         const wxString GetSequenceTiming() const { return seq_timing; }
         void SetSequenceTiming(  const wxString& timing );
@@ -55,10 +62,10 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceType( const wxString& type );
 
         const wxString GetMediaFile() const { return media_file; }
-        void SetMediaFile( const wxString& filename );
+        void SetMediaFile( const wxString& filename, bool overwrite_tags );
 
-        wxString GetHeaderInfo(HEADER_INFO_TYPES val) { return header_info[val]; }
-        void SetHeaderInfo(wxArrayString info);
+        wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
+        void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
         void AddFixedTimingSection(wxString interval_name);
         void DeleteTimingSection(wxString section);
@@ -66,43 +73,50 @@ class xLightsXmlFile : public wxFileName
         wxArrayString GetTimingList() { return timing_list; }
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
 
-        bool IsLoaded() { return is_loaded; }
+        bool IsOpen() { return is_open; }
         bool HasAudioMedia() { return has_audio_media; }
         int GetNumModels() { return models.GetCount(); }
-        void FixVersionDifferences();
+        bool WasConverted() { return was_converted; }
+        void AcknowledgeConversion() { was_converted = false; }  // called to turn off conversion warning
+        bool IsV3Sequence();
+        bool ExtractMetaTagsFromMP3(wxString filename);
+
+        // static methods
+        static void FixVersionDifferences(const wxString& filename);
+        static bool IsXmlSequence(wxFileName &fname);
 
     protected:
     private:
-        wxArrayString models;
-        wxArrayString timing_protection;
-        wxArrayString timing;
-        wxArrayString label_protection;
-        wxArrayString labels;
-        wxArrayString effect_protection;
-        wxArrayString effects;
         wxXmlDocument seqDocument;
+        wxArrayString models;
         wxArrayString header_info;
         wxArrayString timing_list;
-        bool is_loaded;
-        bool needs_conversion;
         wxString version_string;
-        wxString latest_version;
         double seq_duration;
         wxString media_file;
         wxString seq_type;
         wxString seq_timing;
+        bool is_open;
         bool has_audio_media;
+        bool was_converted;
 
-        void Init();
+        void CreateNew();
+        bool LoadSequence();
+        bool LoadV3Sequence();
+        bool Save();
+        bool SaveCopy();
+        bool NotOpen();  // used to ensure file is open
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
         void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
         void SetNodeContent(wxXmlNode* node, const wxString& content);
-        wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
-        void SearchForMedia();
-        void SetSequenceDuration(const wxString& length, wxXmlNode* node);
-        void SetSequenceDuration(double length);
 
+
+        void FixVersionDifferences();
+
+        void SetSequenceDuration(const wxString& length, wxXmlNode* node);
+
+        static wxString InsertMissing(wxString str, wxString missing_array, bool INSERT);
 };
 
 #endif // XLIGHTSXMLFILE_H

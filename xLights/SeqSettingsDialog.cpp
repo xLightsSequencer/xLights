@@ -3,6 +3,7 @@
 #include "RenameTextDialog.h"
 #include "NewTimingDialog.h"
 #include "xLightsMain.h"
+#include "xLightsXmlFile.h"
 
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
@@ -27,6 +28,7 @@ const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_Xml_Media_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Total_Length = wxNewId();
 const long SeqSettingsDialog::ID_TEXTCTRL_Xml_Seq_Duration = wxNewId();
+const long SeqSettingsDialog::ID_CHECKBOX_Overwrite_Tags = wxNewId();
 const long SeqSettingsDialog::ID_CHOICE_Xml_Seq_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL3 = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Xml_Author = wxNewId();
@@ -51,7 +53,6 @@ const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
-const long SeqSettingsDialog::ID_BUTTON_Save = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
@@ -119,18 +120,21 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer10 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText_Xml_MediaFile = new wxStaticText(Panel3, ID_STATICTEXT_Xml_MediaFile, _("Media:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_MediaFile"));
 	FlexGridSizer10->Add(StaticText_Xml_MediaFile, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Xml_Media_File = new wxTextCtrl(Panel3, ID_TEXTCTRL_Xml_Media_File, wxEmptyString, wxDefaultPosition, wxSize(326,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Media_File"));
-	TextCtrl_Xml_Media_File->Disable();
+	TextCtrl_Xml_Media_File = new wxTextCtrl(Panel3, ID_TEXTCTRL_Xml_Media_File, wxEmptyString, wxDefaultPosition, wxSize(326,21), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Media_File"));
 	FlexGridSizer10->Add(TextCtrl_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Xml_Media_File = new wxBitmapButton(Panel3, ID_BITMAPBUTTON_Xml_Media_File, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_CDROM")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_Xml_Media_File"));
 	BitmapButton_Xml_Media_File->Disable();
 	FlexGridSizer10->Add(BitmapButton_Xml_Media_File, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText_Xml_Total_Length = new wxStaticText(Panel3, ID_STATICTEXT_Xml_Total_Length, _("Sequence Duration:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Xml_Total_Length"));
 	FlexGridSizer6->Add(StaticText_Xml_Total_Length, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Xml_Seq_Duration = new wxTextCtrl(Panel3, ID_TEXTCTRL_Xml_Seq_Duration, wxEmptyString, wxDefaultPosition, wxSize(81,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Seq_Duration"));
 	FlexGridSizer6->Add(TextCtrl_Xml_Seq_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(72,20,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Overwrite_Tags = new wxCheckBox(Panel3, ID_CHECKBOX_Overwrite_Tags, _("Overwrite Media Tags"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Overwrite_Tags"));
+	CheckBox_Overwrite_Tags->SetValue(false);
+	FlexGridSizer6->Add(CheckBox_Overwrite_Tags, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	StaticText_Xml_Seq_Timing = new wxStaticText(Panel3, wxID_ANY, _("Sequence Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -139,6 +143,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Choice_Xml_Seq_Timing->Append(_("25 ms"));
 	Choice_Xml_Seq_Timing->SetSelection( Choice_Xml_Seq_Timing->Append(_("50 ms")) );
 	Choice_Xml_Seq_Timing->Append(_("100 ms"));
+	Choice_Xml_Seq_Timing->Disable();
 	FlexGridSizer3->Add(Choice_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel3->SetSizer(FlexGridSizer4);
@@ -206,9 +211,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	StaticText_Warning->SetFont(StaticText_WarningFont);
 	FlexGridSizer1->Add(StaticText_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
-	Button_Save = new wxButton(this, ID_BUTTON_Save, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Save"));
-	Button_Save->Disable();
-	FlexGridSizer7->Add(Button_Save, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Close = new wxButton(this, ID_BUTTON_Close, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
 	FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -230,24 +232,18 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
-	Connect(ID_BUTTON_Save,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_SaveClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
-	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&SeqSettingsDialog::OnClose);
 	//*)
 
-	if( !xml_file->IsLoaded() ) xml_file->Load();
 	if( warning != "" )
     {
         StaticText_Warning->SetLabelText(warning);
         StaticText_Warning->Show();
     }
 
+    xml_file->AcknowledgeConversion();
+
 	StaticText_Filename->SetLabelText(xml_file->GetFullPath());
-    if( xml_file->GetSequenceType() != "Media" && xml_file->GetSequenceType() != "Animation"  )
-    {
-        xml_file->SetSequenceType("Media");
-        xml_file->Save();
-    }
 	ProcessSequenceType();
 
 	// Setup Grid
@@ -286,26 +282,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Choice_Xml_Seq_Timing->SetSelection(Choice_Xml_Seq_Timing->FindString(xml_file->GetSequenceTiming()));
     TextCtrl_Xml_Media_File->SetValue(xml_file->GetMediaFile());
     TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetSequenceDurationString());
-    Button_Save->Enable(false);
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
 {
 	//(*Destroy(SeqSettingsDialog)
 	//*)
-}
-
-void SeqSettingsDialog::SetMediaFilename(const wxString &filename, bool overwrite_tags) {
-    if( overwrite_tags) {
-        ExtractMetaTagsFromMP3(filename);
-    }
-    BitmapButton_Xml_Media_File->Enable(true);
-    TextCtrl_Xml_Media_File->SetValue(filename);
-    Choice_Xml_Seq_Type->SetStringSelection("Media");
-    if( "Media" != xml_file->GetSequenceType() )
-    {
-        xml_file->SetSequenceType("Media");
-    }
 }
 
 void SeqSettingsDialog::AddTimingCell(const wxString& name)
@@ -332,7 +314,6 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
     {
         xml_file->SetSequenceType(type);
         ProcessSequenceType();
-        Button_Save->Enable(true);
     }
 }
 
@@ -347,14 +328,17 @@ void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event
         wxString filename = OpenDialog->GetFilename();
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
+        xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
         TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
-        ExtractMetaTagsFromMP3(name_and_path.GetFullPath());
+        TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
+        TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
+        TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
         int length_ms = Waveform::GetLengthOfMusicFileInMS(name_and_path.GetFullPath());
         double length = length_ms / 1000.0f;
+        xml_file->SetSequenceDuration(length);
         TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
         StaticText_Warning->Hide();
         Fit();
-        Button_Save->Enable(true);
     }
 
     OpenDialog->Destroy();
@@ -362,47 +346,47 @@ void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::AUTHOR, TextCtrl_Xml_Author->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_Author_EmailText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::AUTHOR_EMAIL, TextCtrl_Xml_Author_Email->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_WebsiteText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::WEBSITE, TextCtrl_Xml_Website->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_SongText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::SONG, TextCtrl_Xml_Song->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_ArtistText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::ARTIST, TextCtrl_Xml_Artist->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AlbumText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::ALBUM, TextCtrl_Xml_Album->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::URL, TextCtrl_Xml_Music_Url->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetHeaderInfo(xLightsXmlFile::COMMENT, TextCtrl_Xml_Comment->GetValue());
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 {
-    Button_Save->Enable(true);
+    xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
 }
 
 void SeqSettingsDialog::PopulateTimingGrid()
@@ -423,8 +407,6 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
         wxString selected_timing = dialog.GetTiming();
         xml_file->AddFixedTimingSection(selected_timing);
         AddTimingCell(selected_timing);
-        //PopulateSongTimings();
-        Button_Save->Enable(true);
     }
     dialog.Destroy();
 }
@@ -446,7 +428,6 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
     }
 
     OpenDialog->Destroy();
-    Button_Save->Enable(true);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
@@ -454,7 +435,6 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     int selection = event.GetId();
     wxArrayString timing_list = xml_file->GetTimingList();
     xml_file->SetTimingSectionName(timing_list[selection], Grid_Timing->GetCellValue(selection, 0));
-    Button_Save->Enable(true);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
@@ -465,119 +445,13 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
         wxArrayString timing_list = xml_file->GetTimingList();
         xml_file->DeleteTimingSection(timing_list[row]);
         Grid_Timing->DeleteRows(row);
-        Button_Save->Enable(true);
         Refresh();
     }
-}
-
-bool SeqSettingsDialog::ExtractMetaTagsFromMP3(wxString filename)
-{
-    bool modified = false;
-    mpg123_handle *mh;
-    mpg123_id3v1 *v1;
-    mpg123_id3v2 *v2;
-    int err;
-
-    mpg123_init();
-    mh = mpg123_new(NULL, &err);
-
-    mpg123_open(mh, filename);
-
-    if( err == MPG123_OK )
-    {
-        // get meta tags
-        mpg123_scan(mh);
-        int meta = mpg123_meta_check(mh);
-
-        if( meta == MPG123_ID3 && mpg123_id3(mh, &v1, &v2) == MPG123_OK )
-        {
-            wxString title = "";
-            wxString artist = "";
-            wxString album = "";
-
-            if( v2 != NULL ) // "ID3V2 tag found"
-            {
-                title = v2->title == NULL ? "" : v2->title->p;
-                artist = v2->artist == NULL ? "" : v2->artist->p;
-                album = v2->album == NULL ? "" : v2->album->p;
-                modified = true;
-            }
-
-            else if( v1 != NULL ) // "ID3V1 tag found"
-            {
-                title = v1->title[0];
-                artist = v1->artist[0];
-                album = v1->album[0];
-                modified = true;
-            }
-
-            if( title != "" )
-            {
-                TextCtrl_Xml_Song->SetValue(title);
-            }
-            if( artist != "" )
-            {
-                TextCtrl_Xml_Artist->SetValue(artist);
-            }
-            if( album != ""
-                )
-            {
-                TextCtrl_Xml_Album->SetValue(album);
-            }
-        }
-    }
-
-    mpg123_close(mh);
-    mpg123_delete(mh);
-    mpg123_exit();
-
-    return modified;
-}
-
-void SeqSettingsDialog::SaveAll()
-{
-    wxArrayString info;
-    info.push_back(TextCtrl_Xml_Author->GetValue());
-    info.push_back(TextCtrl_Xml_Author_Email->GetValue());
-    info.push_back(TextCtrl_Xml_Website->GetValue());
-    info.push_back(TextCtrl_Xml_Song->GetValue());
-    info.push_back(TextCtrl_Xml_Artist->GetValue());
-    info.push_back(TextCtrl_Xml_Album->GetValue());
-    info.push_back(TextCtrl_Xml_Music_Url->GetValue());
-    info.push_back(TextCtrl_Xml_Comment->GetValue());
-    xml_file->SetSequenceType(Choice_Xml_Seq_Type->GetString(Choice_Xml_Seq_Type->GetSelection()));
-    xml_file->SetMediaFile(TextCtrl_Xml_Media_File->GetValue());
-    xml_file->SetSequenceDuration(TextCtrl_Xml_Seq_Duration->GetValue());
-    xml_file->SetSequenceTiming(Choice_Xml_Seq_Timing->GetString(Choice_Xml_Seq_Timing->GetSelection()));
-    xml_file->SetHeaderInfo(info);
-    xml_file->Save();
-    Button_Save->Enable(false);
-}
-
-void SeqSettingsDialog::OnButton_SaveClick(wxCommandEvent& event)
-{
-    SaveAll();
-    StaticText_Warning->Hide();
-    Fit();
 }
 
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     Close();
-}
-
-void SeqSettingsDialog::OnClose(wxCloseEvent& event)
-{
-    if( Button_Save->IsEnabled() && event.CanVeto())
-    {
-        int answer = wxMessageBox("Close without saving XML?", "Confirm", wxYES_NO, this);
-        if (answer != wxYES ) {
-            event.Veto();
-            return;
-        }
-    }
-    EndModal(Button_Save->IsEnabled() ? wxCANCEL : wxOK);
-    Destroy();
 }
 
 void SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event)

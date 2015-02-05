@@ -9,6 +9,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
@@ -24,9 +25,6 @@ class SeqSettingsDialog: public wxDialog
 		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning);
 		virtual ~SeqSettingsDialog();
 
-        void SetMediaFilename(const wxString &filename, bool overwrite_tags);
-        void SaveAll();
-
 		//(*Declarations(SeqSettingsDialog)
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
@@ -39,12 +37,12 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Warning;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
-		wxButton* Button_Save;
 		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Music_Url;
 		wxPanel* Panel1;
 		wxTextCtrl* TextCtrl_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models;
+		wxCheckBox* CheckBox_Overwrite_Tags;
 		wxPanel* Panel3;
 		wxTextCtrl* TextCtrl_Xml_Song;
 		wxStaticText* StaticText_File;
@@ -87,6 +85,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BITMAPBUTTON_Xml_Media_File;
 		static const long ID_STATICTEXT_Xml_Total_Length;
 		static const long ID_TEXTCTRL_Xml_Seq_Duration;
+		static const long ID_CHECKBOX_Overwrite_Tags;
 		static const long ID_CHOICE_Xml_Seq_Timing;
 		static const long ID_PANEL3;
 		static const long ID_STATICTEXT_Xml_Author;
@@ -111,7 +110,6 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_PANEL2;
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
-		static const long ID_BUTTON_Save;
 		static const long ID_BUTTON_Close;
 		//*)
 
@@ -153,7 +151,6 @@ class SeqSettingsDialog: public wxDialog
 
         void ProcessSequenceType();
         void PopulateTimingGrid();
-        bool ExtractMetaTagsFromMP3(wxString filename);
         void AddTimingCell(const wxString& name);
 };
 

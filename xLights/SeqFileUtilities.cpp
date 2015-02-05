@@ -1,17 +1,6 @@
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
 
-static bool isXmlSequence(wxFileName &fname) {
-    char buf[1024];
-    wxFile file(fname.GetFullPath());
-    int i = file.Read(buf, 1024);
-    file.Close();
-    if (wxString(buf, 0 , i).Contains("<xsequence")) {
-        return true;
-    }
-    return false;
-}
-
 void xLightsFrame::OpenSequence()
 {
     bool loaded_xml = false;
@@ -31,36 +20,11 @@ void xLightsFrame::OpenSequence()
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
-        wxFileName fseq_file;
-        wxFileName xml_file;
+        wxFileName fseq_file = selected_file;
+        fseq_file.SetExt("fseq");
+        wxFileName xml_file = selected_file;
+        xml_file.SetExt("xml");
         wxFileName media_file;
-
-        if( selected_file.GetExt() == "xml" )
-        {
-            xml_file = selected_file;
-            if( isXmlSequence(xml_file) ) find_media = false;
-            fseq_file = filename;
-            fseq_file.SetExt("fseq");
-        }
-        else if( selected_file.GetExt() == "fseq" )
-        {
-            fseq_file = selected_file;
-
-            // search for matching xml file
-            xml_file = filename;
-            xml_file.SetExt("xml");
-            if( xml_file.FileExists() )
-            {
-                if( isXmlSequence(xml_file) ) find_media = false;
-            }
-            else
-            {
-                // no xml exists so create a new one
-                xLightsXmlFile new_xml_file;
-                new_xml_file = xml_file;
-                new_xml_file.CreateNew();
-            }
-        }
 
         // load the fseq data file if it exits
         xlightsFilename = fseq_file.GetFullPath();
@@ -101,21 +65,29 @@ void xLightsFrame::OpenSequence()
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
-        if( find_media && media_file.FileExists() )
+        CurrentSeqXmlFile->Open();
+
+        if( CurrentSeqXmlFile->WasConverted() )
         {
-            // this dialog is not going to be displayed we only use the object for the MP3 extract info feature
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, "");
-            setting_dlg.SetMediaFilename(media_file.GetFullPath(), true);
-            setting_dlg.SaveAll();
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("Your XML file has been converted!"));
+            setting_dlg.Fit();
+            setting_dlg.ShowModal();
         }
 
-        // setup media file
-        SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
-        if( find_media && media_file.FileExists() )
+        if( CurrentSeqXmlFile->HasAudioMedia() )  // user may have set audio file in dialog during a conversion
         {
-            CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
-            CurrentSeqXmlFile->Save();
+            SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
         }
+        else
+        {
+            SetMediaFilename(media_file.GetFullPath());
+            if( find_media && media_file.FileExists() )
+            {
+                CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
+                CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
+            }
+        }
+
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
@@ -155,51 +127,14 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 // Returns true if file exists and was read successfully
 bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels )
 {
-    bool loaded = false;
-    bool save_media = false;
-
-    SeqXmlFileName=xml_file.GetFullPath();
-
-    // read xml
-    xml_file.Load();
-    if (xml_file.NeedsConversion())
-    {
-        if( !xml_file.Convert() )
-        {
-            wxMessageBox(wxString::Format("Failed to convert XML file: %s", xml_file.GetFullPath()),"Error");
-            return false;
-        }
-        SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Your XML file has been converted!"));
-        if( mediaFilename != wxEmptyString )
-        {
-            save_media = true;
-        }
-        else
-        {
-            wxFileName detect_media(xml_file.GetFullPath());
-            detect_media.SetExt("mp3");
-            if( detect_media.FileExists() )
-            {
-                mediaFilename = detect_media.GetFullPath();
-                save_media = true;
-            }
-        }
-        if( save_media )
-        {
-            setting_dlg.SetMediaFilename(mediaFilename, true);
-            setting_dlg.SaveAll();
-        }
-        setting_dlg.Fit();
-        setting_dlg.ShowModal();
-    }
-
-    if( xml_file.IsLoaded() )
+    if( xml_file.IsOpen() )
     {
         LoadSequencer(xml_file);
         Menu_Settings_Sequence->Enable(true);
-        loaded = true;
+        return true;
     }
-    return loaded;
+
+    return false;
 }
 
 void xLightsFrame::LoadFSEQ(const wxString& FileName, wxFileName& media_file)

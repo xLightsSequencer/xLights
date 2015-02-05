@@ -4,57 +4,79 @@
 
 #define string_format wxString::Format
 
-static const wxString xml_dev_ver = wxT("4.0.0a");
-
-xLightsXmlFile::xLightsXmlFile()
-{
-    Init();
-    SetPath( xLightsFrame::CurrentDir );
-}
+static const wxString xml_dev_ver = "4.0.0a";
 
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
-: wxFileName(filename)
+: wxFileName(filename),
+    version_string(wxEmptyString),
+    seq_duration(0.0),
+    media_file(wxEmptyString),
+    seq_type("Media"),
+    seq_timing("50 ms"),
+    is_open(false),
+    has_audio_media(false),
+    was_converted(false)
 {
-    Init();
+    for(int i = 0; i < NUM_TYPES; ++i )
+    {
+        header_info.push_back("");
+    }
 }
 
 xLightsXmlFile::~xLightsXmlFile()
 {
-    FreeMemory();
+    models.Clear();
+    header_info.Clear();
+    timing_list.Clear();
+    wxXmlNode* root=seqDocument.GetRoot();
+    delete root;
 }
 
-void xLightsXmlFile::Init()
+bool xLightsXmlFile::NotOpen()
 {
-    seq_duration = 0.0;
-    seq_timing = "50 ms";
-    seq_type = "Media";
-    has_audio_media = false;
-    Clear();
-    latest_version = xml_dev_ver;
-    for(int i = 0; i < NUM_TYPES; ++i )
+    if( !is_open )
     {
-        header_info.push_back(_(""));
+        wxMessageBox("File must be open to call this method!", "Error");
+        return true;
     }
+    return false;
 }
 
-void xLightsXmlFile::FreeMemory()
+bool xLightsXmlFile::IsXmlSequence(wxFileName &fname)
 {
-    Clear();
+    char buf[1024];
+    wxFile file(fname.GetFullPath());
+    int i = file.Read(buf, 1024);
+    file.Close();
+    if (wxString(buf, 0 , i).Contains("<xsequence")) {
+        return true;
+    }
+    return false;
 }
 
-bool xLightsXmlFile::Convert()
+bool xLightsXmlFile::IsV3Sequence()
 {
-    if( !needs_conversion ) return false;
+    char buf[1024];
+    wxFile file(GetFullPath());
+    int i = file.Read(buf, 1024);
+    file.Close();
+    if( (wxString(buf, 0 , i).Contains("<xsequence")) &&
+        (wxString(buf, 0 , i).Contains("<tr>"))) {
+        return true;
+    }
+    return false;
+}
 
-    wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + wxT("ArchiveV3");
+bool xLightsXmlFile::SaveCopy()
+{
+    wxString archive_dir = xLightsFrame::CurrentDir + GetPathSeparators() + "ArchiveV3";
+
     if( wxDir::Exists(archive_dir) == false)
     {
         if( !wxDir::Make(archive_dir) ) return false;
     }
 
     wxRenameFile(GetFullPath(), archive_dir + GetPathSeparators() + GetFullName());
-
-    Save();
 
     return true;
 }
@@ -64,8 +86,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     bool found = false;
     seq_type = type;
 
-    if( !is_loaded ) // conversion process will take care of writing this info
-        return;
+    if( NotOpen() ) return;
 
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* head;
@@ -87,7 +108,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
     }
     if( !found )
     {
-        AddChildXmlNode(head, wxT("sequenceType"), seq_type);
+        AddChildXmlNode(head, "sequenceType", seq_type);
     }
 }
 
@@ -96,8 +117,7 @@ void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
     bool found = false;
     seq_timing = timing;
 
-    if( !is_loaded ) // conversion process will take care of writing this info
-        return;
+    if( NotOpen() ) return;
 
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* head;
@@ -119,17 +139,16 @@ void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
     }
     if( !found )
     {
-        AddChildXmlNode(head, wxT("sequenceTiming"), seq_timing);
+        AddChildXmlNode(head, "sequenceTiming", seq_timing);
     }
 }
 
-void xLightsXmlFile::SetMediaFile( const wxString& filename )
+void xLightsXmlFile::SetMediaFile( const wxString& filename, bool overwrite_tags )
 {
     bool found = false;
     media_file = filename;
 
-    if( !is_loaded ) // conversion process will take care of writing this info
-        return;
+    if( NotOpen() ) return;
 
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* head;
@@ -151,8 +170,14 @@ void xLightsXmlFile::SetMediaFile( const wxString& filename )
     }
     if( !found )
     {
-        AddChildXmlNode(head, wxT("mediaFile"), media_file);
+        AddChildXmlNode(head, "mediaFile", media_file);
     }
+
+    if( overwrite_tags )
+    {
+        ExtractMetaTagsFromMP3(filename);
+    }
+    has_audio_media = true;
 }
 
 static wxString GetSetting(const wxString& setting, const wxString& text)
@@ -169,7 +194,7 @@ static wxString GetSetting(const wxString& setting, const wxString& text)
         }
         settings=settings.AfterFirst(',');
     }
-    return wxT("");
+    return "";
 }
 
 static wxString remapV3Value(const wxString &st) {
@@ -185,49 +210,49 @@ static wxString remapV3Value(const wxString &st) {
 static wxString SubstituteV3toV4tags(const wxString& effect_string)
 {
     wxString new_string = effect_string;
-    new_string.Replace(wxString("ID_CHECKBOX_LayerMorph"), wxString("T_CHECKBOX_LayerMorph"));
-    new_string.Replace(wxString("ID_SLIDER_EffectLayerMix"), wxString("T_SLIDER_EffectLayerMix"));
-    new_string.Replace(wxString("E1_SLIDER_Speed"), wxString("T_SLIDER_Speed"));
-    new_string.Replace(wxString("E2_SLIDER_Speed"), wxString("T_SLIDER_Speed"));
-    new_string.Replace(wxString("E1_TEXTCTRL_Fadeout"), wxString("T_TEXTCTRL_Fadeout"));
-    new_string.Replace(wxString("E2_TEXTCTRL_Fadeout"), wxString("T_TEXTCTRL_Fadeout"));
-    new_string.Replace(wxString("E1_TEXTCTRL_Fadein"), wxString("T_TEXTCTRL_Fadein"));
-    new_string.Replace(wxString("E2_TEXTCTRL_Fadein"), wxString("T_TEXTCTRL_Fadein"));
-    new_string.Replace(wxString("E1_CHECKBOX_FitToTime"), wxString("T_CHECKBOX_FitToTime"));
-    new_string.Replace(wxString("E2_CHECKBOX_FitToTime"), wxString("T_CHECKBOX_FitToTime"));
-    new_string.Replace(wxString("E1_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
-    new_string.Replace(wxString("E2_CHECKBOX_OverlayBkg"), wxString("T_CHECKBOX_OverlayBkg"));
-    new_string.Replace(wxString("ID_SLIDER_SparkleFrequency"), wxString("C_SLIDER_SparkleFrequency"));
-    new_string.Replace(wxString("ID_SLIDER_Brightness"), wxString("C_SLIDER_Brightness"));
-    new_string.Replace(wxString("ID_SLIDER_Contrast"), wxString("C_SLIDER_Contrast"));
-    new_string.Replace(wxString("E1_BUTTON_Palette1"), wxString("C_BUTTON_Palette1"));
-    new_string.Replace(wxString("E1_BUTTON_Palette2"), wxString("C_BUTTON_Palette2"));
-    new_string.Replace(wxString("E1_BUTTON_Palette3"), wxString("C_BUTTON_Palette3"));
-    new_string.Replace(wxString("E1_BUTTON_Palette4"), wxString("C_BUTTON_Palette4"));
-    new_string.Replace(wxString("E1_BUTTON_Palette5"), wxString("C_BUTTON_Palette5"));
-    new_string.Replace(wxString("E1_BUTTON_Palette6"), wxString("C_BUTTON_Palette6"));
-    new_string.Replace(wxString("E2_BUTTON_Palette1"), wxString("C_BUTTON_Palette1"));
-    new_string.Replace(wxString("E2_BUTTON_Palette2"), wxString("C_BUTTON_Palette2"));
-    new_string.Replace(wxString("E2_BUTTON_Palette3"), wxString("C_BUTTON_Palette3"));
-    new_string.Replace(wxString("E2_BUTTON_Palette4"), wxString("C_BUTTON_Palette4"));
-    new_string.Replace(wxString("E2_BUTTON_Palette5"), wxString("C_BUTTON_Palette5"));
-    new_string.Replace(wxString("E2_BUTTON_Palette6"), wxString("C_BUTTON_Palette6"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette1"), wxString("C_CHECKBOX_Palette1"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette2"), wxString("C_CHECKBOX_Palette2"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette3"), wxString("C_CHECKBOX_Palette3"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette4"), wxString("C_CHECKBOX_Palette4"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette5"), wxString("C_CHECKBOX_Palette5"));
-    new_string.Replace(wxString("E1_CHECKBOX_Palette6"), wxString("C_CHECKBOX_Palette6"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette1"), wxString("C_CHECKBOX_Palette1"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette2"), wxString("C_CHECKBOX_Palette2"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette3"), wxString("C_CHECKBOX_Palette3"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette4"), wxString("C_CHECKBOX_Palette4"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette5"), wxString("C_CHECKBOX_Palette5"));
-    new_string.Replace(wxString("E2_CHECKBOX_Palette6"), wxString("C_CHECKBOX_Palette6"));
-    new_string.Replace(wxString("E1"), wxString("E"));
-    new_string.Replace(wxString("E2"), wxString("E"));
+    new_string.Replace("ID_CHECKBOX_LayerMorph", "T_CHECKBOX_LayerMorph");
+    new_string.Replace("ID_SLIDER_EffectLayerMix", "T_SLIDER_EffectLayerMix");
+    new_string.Replace("E1_SLIDER_Speed", "T_SLIDER_Speed");
+    new_string.Replace("E2_SLIDER_Speed", "T_SLIDER_Speed");
+    new_string.Replace("E1_TEXTCTRL_Fadeout", "T_TEXTCTRL_Fadeout");
+    new_string.Replace("E2_TEXTCTRL_Fadeout", "T_TEXTCTRL_Fadeout");
+    new_string.Replace("E1_TEXTCTRL_Fadein", "T_TEXTCTRL_Fadein");
+    new_string.Replace("E2_TEXTCTRL_Fadein", "T_TEXTCTRL_Fadein");
+    new_string.Replace("E1_CHECKBOX_FitToTime", "T_CHECKBOX_FitToTime");
+    new_string.Replace("E2_CHECKBOX_FitToTime", "T_CHECKBOX_FitToTime");
+    new_string.Replace("E1_CHECKBOX_OverlayBkg", "T_CHECKBOX_OverlayBkg");
+    new_string.Replace("E2_CHECKBOX_OverlayBkg", "T_CHECKBOX_OverlayBkg");
+    new_string.Replace("ID_SLIDER_SparkleFrequency", "C_SLIDER_SparkleFrequency");
+    new_string.Replace("ID_SLIDER_Brightness", "C_SLIDER_Brightness");
+    new_string.Replace("ID_SLIDER_Contrast", "C_SLIDER_Contrast");
+    new_string.Replace("E1_BUTTON_Palette1", "C_BUTTON_Palette1");
+    new_string.Replace("E1_BUTTON_Palette2", "C_BUTTON_Palette2");
+    new_string.Replace("E1_BUTTON_Palette3", "C_BUTTON_Palette3");
+    new_string.Replace("E1_BUTTON_Palette4", "C_BUTTON_Palette4");
+    new_string.Replace("E1_BUTTON_Palette5", "C_BUTTON_Palette5");
+    new_string.Replace("E1_BUTTON_Palette6", "C_BUTTON_Palette6");
+    new_string.Replace("E2_BUTTON_Palette1", "C_BUTTON_Palette1");
+    new_string.Replace("E2_BUTTON_Palette2", "C_BUTTON_Palette2");
+    new_string.Replace("E2_BUTTON_Palette3", "C_BUTTON_Palette3");
+    new_string.Replace("E2_BUTTON_Palette4", "C_BUTTON_Palette4");
+    new_string.Replace("E2_BUTTON_Palette5", "C_BUTTON_Palette5");
+    new_string.Replace("E2_BUTTON_Palette6", "C_BUTTON_Palette6");
+    new_string.Replace("E1_CHECKBOX_Palette1", "C_CHECKBOX_Palette1");
+    new_string.Replace("E1_CHECKBOX_Palette2", "C_CHECKBOX_Palette2");
+    new_string.Replace("E1_CHECKBOX_Palette3", "C_CHECKBOX_Palette3");
+    new_string.Replace("E1_CHECKBOX_Palette4", "C_CHECKBOX_Palette4");
+    new_string.Replace("E1_CHECKBOX_Palette5", "C_CHECKBOX_Palette5");
+    new_string.Replace("E1_CHECKBOX_Palette6", "C_CHECKBOX_Palette6");
+    new_string.Replace("E2_CHECKBOX_Palette1", "C_CHECKBOX_Palette1");
+    new_string.Replace("E2_CHECKBOX_Palette2", "C_CHECKBOX_Palette2");
+    new_string.Replace("E2_CHECKBOX_Palette3", "C_CHECKBOX_Palette3");
+    new_string.Replace("E2_CHECKBOX_Palette4", "C_CHECKBOX_Palette4");
+    new_string.Replace("E2_CHECKBOX_Palette5", "C_CHECKBOX_Palette5");
+    new_string.Replace("E2_CHECKBOX_Palette6", "C_CHECKBOX_Palette6");
+    new_string.Replace("E1", "E");
+    new_string.Replace("E2", "E");
 
-    new_string = wxString("T_CHOICE_LayerMethod=") + new_string;
+    new_string = "T_CHOICE_LayerMethod=" + new_string;
 
     return new_string;
 }
@@ -236,7 +261,7 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
 wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
-    wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
+    wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,"",node_data);
     node->AddChild(new_node);
     return new_node;
 }
@@ -256,28 +281,12 @@ void xLightsXmlFile::AddTimingAttributes(wxXmlNode* node, const wxString& name, 
     {
         if( child->GetAttribute("type") != "timing" ) break;
     }
-    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Element"));
-    new_node->AddAttribute(wxT("type"), wxT("timing"));
-    new_node->AddAttribute(wxT("name"), name);
-    new_node->AddAttribute(wxT("visible"), visible);
-    new_node->AddAttribute(wxT("active"), active);
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, "Element");
+    new_node->AddAttribute("type", "timing");
+    new_node->AddAttribute("name", name);
+    new_node->AddAttribute("visible", visible);
+    new_node->AddAttribute("active", active);
     node->InsertChild(new_node, child);
-}
-
-void xLightsXmlFile::Clear()
-{
-    is_loaded = false;
-    needs_conversion = true;
-    version_string = wxEmptyString;
-    models.Clear();
-    timing_protection.Clear();
-    timing.Clear();
-    label_protection.Clear();
-    labels.Clear();
-    effect_protection.Clear();
-    effects.Clear();
-    header_info.Clear();
-    timing_list.Clear();
 }
 
 void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
@@ -289,16 +298,13 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
     }
     else
     {
-        wxXmlNode* data_node = new wxXmlNode(node,wxXML_TEXT_NODE,wxT(""),content);
+        wxXmlNode* data_node = new wxXmlNode(node,wxXML_TEXT_NODE,"",content);
     }
 }
 
-void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
+void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
 {
-    header_info = info;
-
-    if( needs_conversion ) // conversion process will take care of writing this info
-        return;
+    if( NotOpen() ) return;
 
     wxXmlNode* root=seqDocument.GetRoot();
 
@@ -308,37 +314,10 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
        {
             for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
             {
-                if( element->GetName() == "author")
+                if( element->GetName() == HEADER_STRINGS[name_name])
                 {
-                    SetNodeContent(element, header_info[AUTHOR]);
-                }
-                else if( element->GetName() == "author-email")
-                {
-                    SetNodeContent(element, header_info[AUTHOR_EMAIL]);
-                }
-                else if( element->GetName() == "author-website")
-                {
-                    SetNodeContent(element, header_info[WEBSITE]);
-                }
-                else if( element->GetName() == "song")
-                {
-                    SetNodeContent(element, header_info[SONG]);
-                }
-                else if( element->GetName() == "artist")
-                {
-                    SetNodeContent(element, header_info[ARTIST]);
-                }
-                else if( element->GetName() == "album")
-                {
-                    SetNodeContent(element, header_info[ALBUM]);
-                }
-                else if( element->GetName() == "MusicURL")
-                {
-                    SetNodeContent(element, header_info[URL]);
-                }
-                else if( element->GetName() == "comment")
-                {
-                    SetNodeContent(element, header_info[COMMENT]);
+                    SetNodeContent(element, node_value);
+                    header_info[name_name] = node_value;
                 }
             }
        }
@@ -348,6 +327,7 @@ void xLightsXmlFile::SetHeaderInfo(wxArrayString info)
 void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
 {
     bool found = false;
+    if( NotOpen() ) return;
     wxXmlNode* root=seqDocument.GetRoot();
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
@@ -360,7 +340,7 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
                 {
                     wxString name_attr;
                     element->GetAttribute("type", &name_attr);
-                    if( name_attr == _("timing"))
+                    if( name_attr == "timing")
                     {
                         element->GetAttribute("name", &name_attr);
                         if( name_attr == section )
@@ -389,7 +369,7 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
                 {
                     wxString name_attr;
                     element->GetAttribute("type", &name_attr);
-                    if( name_attr == _("timing"))
+                    if( name_attr == "timing")
                     {
                         element->GetAttribute("name", &name_attr);
                         if( name_attr == section )
@@ -414,10 +394,8 @@ void xLightsXmlFile::SetTimingSectionName(wxString section, wxString name)
 
 void xLightsXmlFile::DeleteTimingSection(wxString section)
 {
-    if( needs_conversion ) // conversion process will take care of writing this info
-        return;
-
     bool found = false;
+    if( NotOpen() ) return;
     wxXmlNode* root=seqDocument.GetRoot();
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL && !found; e=e->GetNext() )
@@ -430,7 +408,7 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                 {
                     wxString attr;
                     element->GetAttribute("type", &attr);
-                    if( attr == _("timing"))
+                    if( attr == "timing")
                     {
                         element->GetAttribute("name", &attr);
                         if( attr == section )
@@ -456,7 +434,7 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
                 {
                     wxString attr;
                     element->GetAttribute("type", &attr);
-                    if( attr == _("timing"))
+                    if( attr == "timing")
                     {
                         element->GetAttribute("name", &attr);
                         if( attr == section )
@@ -475,74 +453,73 @@ void xLightsXmlFile::DeleteTimingSection(wxString section)
 void xLightsXmlFile::CreateNew()
 {
     // construct the new XML file
-    wxXmlDocument *doc = new wxXmlDocument();
-    wxXmlNode* root=doc->GetRoot();
-    root = new wxXmlNode(wxXML_ELEMENT_NODE,wxT("xsequence"));
-    root->AddAttribute(wxT("BaseChannel"),wxT("0"));
-    root->AddAttribute(wxT("ChanCtrlBasic"),wxT("0"));
-    root->AddAttribute(wxT("ChanCtrlColor"),wxT("0"));
-    doc->SetRoot(root);
+    wxXmlNode* root=seqDocument.GetRoot();
+    root = new wxXmlNode(wxXML_ELEMENT_NODE,"xsequence");
+    root->AddAttribute("BaseChannel","0");
+    root->AddAttribute("ChanCtrlBasic","0");
+    root->AddAttribute("ChanCtrlColor","0");
+    seqDocument.SetRoot(root);
 
     wxXmlNode* node;
-    node = AddChildXmlNode(root, wxT("head"));
-    AddChildXmlNode(node, wxT("version"), xml_dev_ver);
-    AddChildXmlNode(node, wxT("author"), header_info[HEADER_INFO_TYPES::AUTHOR]);
-    AddChildXmlNode(node, wxT("author-email"), header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
-    AddChildXmlNode(node, wxT("author-website"), header_info[HEADER_INFO_TYPES::WEBSITE]);
-    AddChildXmlNode(node, wxT("song"), header_info[HEADER_INFO_TYPES::SONG]);
-    AddChildXmlNode(node, wxT("artist"),header_info[HEADER_INFO_TYPES::ARTIST]);
-    AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
-    AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
-    AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
-    AddChildXmlNode(node, wxT("sequenceTiming"), seq_timing);
-    AddChildXmlNode(node, wxT("sequenceType"), seq_type);
-    AddChildXmlNode(node, wxT("mediaFile"), media_file);
-    AddChildXmlNode(node, wxT("sequenceDuration"), GetSequenceDurationString());
-    AddChildXmlNode(root, wxT("DisplayElements"));
-    AddChildXmlNode(root, wxT("ElementEffects"));
+    node = AddChildXmlNode(root, "head");
+    AddChildXmlNode(node, "version", xml_dev_ver);
+    AddChildXmlNode(node, "author", header_info[HEADER_INFO_TYPES::AUTHOR]);
+    AddChildXmlNode(node, "author-email", header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
+    AddChildXmlNode(node, "author-website", header_info[HEADER_INFO_TYPES::WEBSITE]);
+    AddChildXmlNode(node, "song", header_info[HEADER_INFO_TYPES::SONG]);
+    AddChildXmlNode(node, "artist",header_info[HEADER_INFO_TYPES::ARTIST]);
+    AddChildXmlNode(node, "album", header_info[HEADER_INFO_TYPES::ALBUM]);
+    AddChildXmlNode(node, "MusicURL", header_info[HEADER_INFO_TYPES::URL]);
+    AddChildXmlNode(node, "comment", header_info[HEADER_INFO_TYPES::COMMENT]);
+    AddChildXmlNode(node, "sequenceTiming", seq_timing);
+    AddChildXmlNode(node, "sequenceType", seq_type);
+    AddChildXmlNode(node, "mediaFile", media_file);
+    AddChildXmlNode(node, "sequenceDuration", GetSequenceDurationString());
+    AddChildXmlNode(root, "DisplayElements");
+    AddChildXmlNode(root, "ElementEffects");
 
-    version_string = latest_version;
-    needs_conversion = false;
-
-    // write converted XML file to xLights directory
-    doc->Save(GetFullPath());
-
-    // release memory
-    delete doc;
+    version_string = xml_dev_ver;
 }
 
-bool xLightsXmlFile::Load()
+bool xLightsXmlFile::Open()
 {
-    bool success = false;
+    if( !FileExists() )
+    {
+        CreateNew();
+        return false;
+    }
+
+    if( IsV3Sequence() )
+    {
+        return LoadV3Sequence();
+    }
+    else if( IsXmlSequence(*this) )
+    {
+        return LoadSequence();
+    }
+    else return false;
+}
+
+bool xLightsXmlFile::LoadV3Sequence()
+{
     bool models_defined = false;
+    wxArrayString timing_protection;
+    wxArrayString timing;
+    wxArrayString label_protection;
+    wxArrayString labels;
+    wxArrayString effect_protection;
+    wxArrayString effects;
 
-    FreeMemory();  // always free current memory usage before a load
+    FixVersionDifferences( GetFullPath() );
 
-    FixVersionDifferences();
+    // read v3 xml file into temporary document
+    wxXmlDocument input_xml;
+    wxString xml_doc = GetFullPath();
+    if( !input_xml.Load(xml_doc) )  return false;
 
-    for(int i = 0; i < NUM_TYPES; ++i )
-    {
-        header_info.push_back(_(""));
-    }
+    wxXmlNode* input_root=input_xml.GetRoot();
 
-    wxString SeqXmlFileName=GetFullPath();
-
-    if (!FileExists())
-    {
-        wxMessageBox(_("File does not exist: ")+SeqXmlFileName);
-        return false;
-    }
-
-    // read xml
-    if (!seqDocument.Load(SeqXmlFileName))
-    {
-        wxMessageBox(_("Error loading: ")+SeqXmlFileName);
-        return false;
-    }
-
-    wxXmlNode* root=seqDocument.GetRoot();
-
-    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    for(wxXmlNode* e=input_root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
        if (e->GetName() == "tr")
        {
@@ -575,115 +552,393 @@ bool xLightsXmlFile::Load()
             }
             models_defined = true;
        }
-       else if(e->GetName() == "head")  // exit loop since file is new format
-       {
-            break;
-       }
     }
 
-    if( !models_defined )  // no <tr> tag was found
+    if( !models_defined )  return false;  // no <tr> tag was found
+
+    wxString end_time;
+    wxString last_time = "0.0";
+    double time1, time2;
+
+    // construct the new XML file
+    wxXmlNode* root=seqDocument.GetRoot();
+    root = new wxXmlNode(wxXML_ELEMENT_NODE,"xsequence");
+    root->AddAttribute("BaseChannel", "0");
+    root->AddAttribute("ChanCtrlBasic","0");
+    root->AddAttribute("ChanCtrlColor","0");
+    seqDocument.SetRoot(root);
+
+    wxXmlNode* node;
+    wxXmlNode* child;
+    node = AddChildXmlNode(root, "head");
+    AddChildXmlNode(node, "version", xml_dev_ver);
+    AddChildXmlNode(node, "author", header_info[HEADER_INFO_TYPES::AUTHOR]);
+    AddChildXmlNode(node, "author-email", header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
+    AddChildXmlNode(node, "author-website", header_info[HEADER_INFO_TYPES::WEBSITE]);
+    AddChildXmlNode(node, "song", header_info[HEADER_INFO_TYPES::SONG]);
+    AddChildXmlNode(node, "artist",header_info[HEADER_INFO_TYPES::ARTIST]);
+    AddChildXmlNode(node, "album", header_info[HEADER_INFO_TYPES::ALBUM]);
+    AddChildXmlNode(node, "MusicURL", header_info[HEADER_INFO_TYPES::URL]);
+    AddChildXmlNode(node, "comment", header_info[HEADER_INFO_TYPES::COMMENT]);
+    AddChildXmlNode(node, "sequenceTiming", seq_timing);
+    AddChildXmlNode(node, "sequenceType", seq_type);
+    AddChildXmlNode(node, "mediaFile", media_file);
+    AddChildXmlNode(node, "sequenceDuration", GetSequenceDurationString());
+
+    node = AddChildXmlNode(root, "DisplayElements");
+    AddTimingAttributes(node, "Imported Timing", "1", "1");
+
+    for(int i = 0; i < models.GetCount(); ++i)
     {
-        needs_conversion = false;
-        for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+        child = AddChildXmlNode(node, "Element");
+        child->AddAttribute("collapsed","0");
+        child->AddAttribute("type","model");
+        child->AddAttribute("name",models[i]);
+        child->AddAttribute("visible","1");
+    }
+
+    node = AddChildXmlNode(root, "ElementEffects");
+    int num_effects = timing.GetCount();
+    int effect_id = 1;
+
+    for(int i = 0; i < models.GetCount(); ++i)
+    {
+        child = AddChildXmlNode(node, "Element");
+        child->AddAttribute("type","model");
+        child->AddAttribute("name",models[i]);
+        wxXmlNode* layer1 = AddChildXmlNode(child, "EffectLayer");
+        wxXmlNode* layer2 = AddChildXmlNode(child, "EffectLayer");
+
+        for(int j = 0; j < num_effects; ++j)
         {
-           if (e->GetName() == "head")
-           {
-                for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
-                {
-                    if( element->GetName() == "version")
+            int next_effect = i+(j*models.GetCount());
+            wxString effect_string = effects[next_effect];
+            if(effect_string.length() > 500)
+            {
+                wxString settings(effect_string);
+                wxString eff1, eff2, prefix;
+                wxString effect1, effect2;
+                wxString before,after;
+                int cnt=0;
+                while (!settings.IsEmpty()) {
+                    before=settings.BeforeFirst(',');
+                    switch (cnt)
                     {
-                        version_string = element->GetNodeContent();
-                        // temporary reminder to developer when they need to re-convert
-                        if( version_string != latest_version )
-                        {
-                            wxMessageBox("Your XML was converted with a previous v4 build...please re-convert original file to avoid errors!","Developer Warning");
+                    case 0:
+                        effect1 = before;
+                        break;
+                    case 1:
+                        effect2 = before;
+                        break;
+                    case 2:
+                        prefix = before;
+                        break;
+                    default:
+                        if (before.StartsWith("E1_")) {
+                            eff1 += "," + remapV3Value(before);
+                        } else if (before.StartsWith("E2_")) {
+                            eff2 += "," + remapV3Value(before);
+                        } else {
+                            prefix += "," + remapV3Value(before);
                         }
+                        break;
                     }
-                    else if( element->GetName() == "author")
-                    {
-                        header_info[AUTHOR] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "author-email")
-                    {
-                        header_info[AUTHOR_EMAIL] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "author-website")
-                    {
-                        header_info[WEBSITE] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "song")
-                    {
-                        header_info[SONG] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "artist")
-                    {
-                        header_info[ARTIST] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "album")
-                    {
-                        header_info[ALBUM] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "MusicURL")
-                    {
-                        header_info[URL] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "comment")
-                    {
-                        header_info[COMMENT] = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "sequenceTiming")
-                    {
-                        seq_timing = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "sequenceType")
-                    {
-                        seq_type = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "mediaFile")
-                    {
-                        media_file = element->GetNodeContent();
-                    }
-                    else if( element->GetName() == "sequenceDuration")
-                    {
-                        SetSequenceDuration(element->GetNodeContent());
-                    }
+                    settings=settings.AfterFirst(',');
+                    cnt++;
                 }
-           }
-           if (e->GetName() == "ElementEffects")
-           {
-                for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+
+                wxString data1 = SubstituteV3toV4tags(prefix + eff1);
+                wxString data2 = SubstituteV3toV4tags(prefix + eff2);
+                wxString end_time = timing[(j+1<num_effects)?j+1:j];
+
+                wxXmlNode* effect = AddChildXmlNode(layer1, "Effect", data1);
+                effect->AddAttribute("name", effect1);
+                effect->AddAttribute("protected", effect_protection[j]);
+                effect->AddAttribute("selected", "0");
+                effect->AddAttribute("id", string_format("%d",effect_id));
+                effect->AddAttribute("startTime", timing[j]);
+                effect->AddAttribute("endTime",end_time);
+
+                effect = AddChildXmlNode(layer2, "Effect", data2);
+                effect->AddAttribute("name", effect2);
+                effect->AddAttribute("protected", effect_protection[j]);
+                effect->AddAttribute("selected", "0");
+                effect->AddAttribute("id", string_format("%d",effect_id));
+                effect->AddAttribute("startTime", timing[j]);
+                effect->AddAttribute("endTime", end_time);
+
+                end_time.ToDouble(&time1);
+                last_time.ToDouble(&time2);
+                if( time1 > time2 )
                 {
-                    if (element->GetName() == "Element")
-                    {
-                        wxString attr;
-                        element->GetAttribute("type", &attr);
-                        if( attr == _("model"))
-                        {
-                            element->GetAttribute("name", &attr);
-                            models.push_back(attr);
-                        }
-                        else if( attr == _("timing"))
-                        {
-                            element->GetAttribute("name", &attr);
-                            timing_list.push_back(attr);
-                            wxXmlNode* layer = element->GetChildren();
-                            for(wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
-                            {
-                                effect->GetAttribute("endTime", &attr);
-                            }
-                        }
-                    }
+                    last_time = end_time;
                 }
-           }
+
+                effect_id++;
+            }
         }
-        success = true;
     }
-    else
+
+    // connect timing gaps
+    for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
     {
-        version_string = _("3.x");
+        for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
+        {
+            wxXmlNode* eff1 = layer->GetChildren();
+            if( eff1 == NULL ) continue;
+            wxXmlNode* eff2 = eff1->GetNext();
+            if( eff2 == NULL ) continue;
+
+            while( eff1 != NULL && eff2 != NULL )
+            {
+                wxString start_time;
+                wxString end_time;
+                eff1->GetAttribute("endTime", &end_time);
+                eff2->GetAttribute("startTime", &start_time);
+                if( end_time != start_time && start_time != "" )
+                {
+                    for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
+                    {
+                        if( attr->GetName() == "endTime" )
+                        {
+                            attr->SetValue(start_time);
+                            break;
+                        }
+                    }
+                }
+                eff1 = eff2;
+                eff2 = eff1->GetNext();
+            }
+        }
     }
-    is_loaded = true;
-    return success;  // note that we return false for a v3 file since XML data is not populated until a Save is executed.
+
+    // remove Effect 1 and slider is 0 , then delete effect 2
+    // remove Effect 2 and slider is 100 , then delete effect 1
+    for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        wxXmlNode* layer1 = e->GetChildren();
+        if( layer1 == NULL ) continue;
+        wxXmlNode* layer2 = layer1->GetNext();
+        wxXmlNode* effect1 = layer1->GetChildren();
+        wxXmlNode* effect2 = layer2->GetChildren();
+
+        while(effect1 != NULL && effect2 != NULL )
+        {
+            wxString layer_effect_name;
+            effect1->GetAttribute("name", &layer_effect_name);
+
+            // Capture next effects now in case we delete
+            wxXmlNode* next_effect1 = effect1->GetNext();
+            wxXmlNode* next_effect2 = effect2->GetNext();
+
+            wxString content1 = effect1->GetNodeContent();
+
+            wxString combine = GetSetting("T_CHOICE_LayerMethod", content1);
+            wxString morph = GetSetting("T_CHECKBOX_LayerMorph", content1);
+            wxString mix = GetSetting("T_SLIDER_EffectLayerMix", content1);
+
+            if( combine == "Effect 1" && morph == "0" && mix == "0" )
+            {
+                layer2->RemoveChild(effect2);
+                delete effect2;
+            }
+            else if( combine == "Effect 2" && morph == "0" && mix == "100" )
+            {
+                layer1->RemoveChild(effect1);
+                delete effect1;
+            }
+
+            effect1 = next_effect1;
+            effect2 = next_effect2;
+        }
+    }
+
+    // remove "None" effects
+    for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
+        {
+            for( wxXmlNode* effect=layer->GetChildren(); effect!=NULL; )
+            {
+                wxString layer_effect_name;
+                effect->GetAttribute("name", &layer_effect_name);
+                if( layer_effect_name == "None" )
+                {
+                    wxXmlNode* node_to_delete = effect;
+                    effect = effect->GetNext();
+                    layer->RemoveChild(node_to_delete);
+                    delete node_to_delete;
+                }
+                else
+                {
+                    effect = effect->GetNext();
+                }
+            }
+        }
+    }
+
+    // remove empty layers
+    for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; )
+        {
+            wxXmlNode* child = layer->GetChildren();
+            if( child == NULL )
+            {
+                wxXmlNode* node_to_delete = layer;
+                layer = layer->GetNext();
+                e->RemoveChild(node_to_delete);
+                delete node_to_delete;
+            }
+            else
+            {
+                layer = layer->GetNext();
+            }
+        }
+    }
+
+    // create Imported Timing elements
+    child = AddChildXmlNode(node, "Element");
+    child->AddAttribute("type","timing");
+    child->AddAttribute("name","Imported Timing");
+    wxXmlNode* layer = AddChildXmlNode(child, "EffectLayer");
+    for(int j = 0; j < num_effects; ++j)
+    {
+        wxXmlNode* effect = AddChildXmlNode(layer, "Effect");
+        effect->AddAttribute("protected", timing_protection[j]);
+        effect->AddAttribute("selected", "0");
+        effect->AddAttribute("label", labels[j]);
+        effect->AddAttribute("startTime", timing[j]);
+        effect->AddAttribute("endTime", timing[(j+1<num_effects)?j+1:j]);
+    }
+
+    node = AddChildXmlNode(root, "nextid", string_format("%d",effect_id));
+
+    is_open = true;
+
+    if( seq_duration <= 0 )
+    {
+        SetSequenceDuration(last_time, root);
+    }
+
+    version_string = xml_dev_ver;
+
+    timing_protection.Clear();
+    timing.Clear();
+    label_protection.Clear();
+    labels.Clear();
+    effect_protection.Clear();
+    effects.Clear();
+
+    SaveCopy();
+    Save();
+
+    was_converted = true;
+
+    return is_open;
+}
+
+bool xLightsXmlFile::LoadSequence()
+{
+    if( !seqDocument.Load(GetFullPath())) return false;
+
+    is_open = true;
+
+    wxXmlNode* root=seqDocument.GetRoot();
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+       if (e->GetName() == "head")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if( element->GetName() == "version")
+                {
+                    version_string = element->GetNodeContent();
+                    // temporary reminder to developer when they need to re-convert
+                    if( version_string != xml_dev_ver )
+                    {
+                        wxMessageBox("Your XML was converted with a previous v4 build...please re-convert original file to avoid errors!","Developer Warning");
+                    }
+                }
+                else if( element->GetName() == "author")
+                {
+                    header_info[AUTHOR] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "author-email")
+                {
+                    header_info[AUTHOR_EMAIL] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "author-website")
+                {
+                    header_info[WEBSITE] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "song")
+                {
+                    header_info[SONG] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "artist")
+                {
+                    header_info[ARTIST] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "album")
+                {
+                    header_info[ALBUM] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "MusicURL")
+                {
+                    header_info[URL] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "comment")
+                {
+                    header_info[COMMENT] = element->GetNodeContent();
+                }
+                else if( element->GetName() == "sequenceTiming")
+                {
+                    seq_timing = element->GetNodeContent();
+                }
+                else if( element->GetName() == "sequenceType")
+                {
+                    seq_type = element->GetNodeContent();
+                }
+                else if( element->GetName() == "mediaFile")
+                {
+                    media_file = element->GetNodeContent();
+                }
+                else if( element->GetName() == "sequenceDuration")
+                {
+                    SetSequenceDuration(element->GetNodeContent());
+                }
+            }
+       }
+       if (e->GetName() == "ElementEffects")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if (element->GetName() == "Element")
+                {
+                    wxString attr;
+                    element->GetAttribute("type", &attr);
+                    if( attr == "model")
+                    {
+                        element->GetAttribute("name", &attr);
+                        models.push_back(attr);
+                    }
+                    else if( attr == "timing")
+                    {
+                        element->GetAttribute("name", &attr);
+                        timing_list.push_back(attr);
+                        wxXmlNode* layer = element->GetChildren();
+                        for(wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
+                        {
+                            effect->GetAttribute("endTime", &attr);
+                        }
+                    }
+                }
+            }
+       }
+    }
+    return is_open;
 }
 
 wxString xLightsXmlFile::GetSequenceDurationString() const
@@ -712,9 +967,9 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length, wxXmlNode* node
 {
     bool found = false;
 
-    length.ToDouble(&seq_duration);
+    if( NotOpen() ) return;
 
-    if( needs_conversion ) return;
+    length.ToDouble(&seq_duration);
 
     wxXmlNode* root;
     if( node == NULL )
@@ -744,298 +999,14 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length, wxXmlNode* node
     }
     if( !found && head != NULL)
     {
-        wxXmlNode* length = AddChildXmlNode(head, wxT("sequenceDuration"), GetSequenceDurationString());
+        wxXmlNode* length = AddChildXmlNode(head, "sequenceDuration", GetSequenceDurationString());
     }
 }
 
-void xLightsXmlFile::Save()
+/*void xLightsXmlFile::Save()
 {
     if( needs_conversion )
     {
-        // assumes you have made a backup of the original file
-
-        wxString end_time;
-        wxString last_time = wxT("0.0");
-        bool compute_time = (GetSequenceDurationMS() <= 0);
-        double time1, time2;
-
-        //if (log) log->AppendText(string_format("Saving XML file: %s\n", GetFullPath()));
-
-        // construct the new XML file
-        wxXmlDocument *doc = new wxXmlDocument();
-        wxXmlNode* root=doc->GetRoot();
-        root = new wxXmlNode(wxXML_ELEMENT_NODE,wxT("xsequence"));
-        root->AddAttribute(wxT("BaseChannel"),wxT("0"));
-        root->AddAttribute(wxT("ChanCtrlBasic"),wxT("0"));
-        root->AddAttribute(wxT("ChanCtrlColor"),wxT("0"));
-        doc->SetRoot(root);
-
-        wxXmlNode* node;
-        wxXmlNode* child;
-        node = AddChildXmlNode(root, wxT("head"));
-        AddChildXmlNode(node, wxT("version"), xml_dev_ver);
-        AddChildXmlNode(node, wxT("author"), header_info[HEADER_INFO_TYPES::AUTHOR]);
-        AddChildXmlNode(node, wxT("author-email"), header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
-        AddChildXmlNode(node, wxT("author-website"), header_info[HEADER_INFO_TYPES::WEBSITE]);
-        AddChildXmlNode(node, wxT("song"), header_info[HEADER_INFO_TYPES::SONG]);
-        AddChildXmlNode(node, wxT("artist"),header_info[HEADER_INFO_TYPES::ARTIST]);
-        AddChildXmlNode(node, wxT("album"), header_info[HEADER_INFO_TYPES::ALBUM]);
-        AddChildXmlNode(node, wxT("MusicURL"), header_info[HEADER_INFO_TYPES::URL]);
-        AddChildXmlNode(node, wxT("comment"), header_info[HEADER_INFO_TYPES::COMMENT]);
-        AddChildXmlNode(node, wxT("sequenceTiming"), seq_timing);
-        AddChildXmlNode(node, wxT("sequenceType"), seq_type);
-        AddChildXmlNode(node, wxT("mediaFile"), media_file);
-        AddChildXmlNode(node, wxT("sequenceDuration"), GetSequenceDurationString());
-
-        node = AddChildXmlNode(root, wxT("DisplayElements"));
-        AddTimingAttributes(node, wxT("Imported Timing"), wxT("1"), wxT("1"));
-
-        for(int i = 0; i < models.GetCount(); ++i)
-        {
-            child = AddChildXmlNode(node, wxT("Element"));
-            child->AddAttribute(wxT("collapsed"),wxT("0"));
-            child->AddAttribute(wxT("type"),wxT("model"));
-            child->AddAttribute(wxT("name"),models[i]);
-            child->AddAttribute(wxT("visible"),wxT("1"));
-        }
-
-        //if (log) log->AppendText(string_format(wxString("Total timings = %d\n"),timing.GetCount()));
-
-        node = AddChildXmlNode(root, wxT("ElementEffects"));
-        int num_effects = timing.GetCount();
-        int effect_id = 1;
-
-        for(int i = 0; i < models.GetCount(); ++i)
-        {
-            //if (log) log->AppendText(string_format(wxString("Processing Model = %s\n"),models[i]));
-            child = AddChildXmlNode(node, wxT("Element"));
-            child->AddAttribute(wxT("type"),wxT("model"));
-            child->AddAttribute(wxT("name"),models[i]);
-            wxXmlNode* layer1 = AddChildXmlNode(child, wxT("EffectLayer"));
-            wxXmlNode* layer2 = AddChildXmlNode(child, wxT("EffectLayer"));
-
-            for(int j = 0; j < num_effects; ++j)
-            {
-                int next_effect = i+(j*models.GetCount());
-                wxString effect_string = effects[next_effect];
-                if(effect_string.length() > 500)
-                {
-                    wxString settings(effect_string);
-                    wxString eff1, eff2, prefix;
-                    wxString effect1, effect2;
-                    wxString before,after;
-                    int cnt=0;
-                    while (!settings.IsEmpty()) {
-                        before=settings.BeforeFirst(',');
-                        switch (cnt)
-                        {
-                        case 0:
-                            effect1 = before;
-                            break;
-                        case 1:
-                            effect2 = before;
-                            break;
-                        case 2:
-                            prefix = before;
-                            break;
-                        default:
-                            if (before.StartsWith("E1_")) {
-                                eff1 += "," + remapV3Value(before);
-                            } else if (before.StartsWith("E2_")) {
-                                eff2 += "," + remapV3Value(before);
-                            } else {
-                                prefix += "," + remapV3Value(before);
-                            }
-                            break;
-                        }
-                        settings=settings.AfterFirst(',');
-                        cnt++;
-                    }
-
-                    wxString data1 = SubstituteV3toV4tags(prefix + eff1);
-                    wxString data2 = SubstituteV3toV4tags(prefix + eff2);
-                    wxString end_time = timing[(j+1<num_effects)?j+1:j];
-
-                    wxXmlNode* effect = AddChildXmlNode(layer1, wxT("Effect"), data1);
-                    effect->AddAttribute(wxT("name"), effect1);
-                    effect->AddAttribute(wxT("protected"), effect_protection[j]);
-                    effect->AddAttribute(wxT("selected"), wxT("0"));
-                    effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
-                    effect->AddAttribute(wxT("startTime"), timing[j]);
-                    effect->AddAttribute(wxT("endTime"),end_time);
-
-                    effect = AddChildXmlNode(layer2, wxT("Effect"), data2);
-                    effect->AddAttribute(wxT("name"), effect2);
-                    effect->AddAttribute(wxT("protected"), effect_protection[j]);
-                    effect->AddAttribute(wxT("selected"), wxT("0"));
-                    effect->AddAttribute(wxT("id"), string_format("%d",effect_id));
-                    effect->AddAttribute(wxT("startTime"), timing[j]);
-                    effect->AddAttribute(wxT("endTime"), end_time);
-
-                    if( compute_time )
-                    {
-                        end_time.ToDouble(&time1);
-                        last_time.ToDouble(&time2);
-                        if( time1 > time2 )
-                        {
-                            last_time = end_time;
-                        }
-                    }
-
-                    effect_id++;
-                }
-            }
-        }
-
-        // connect timing gaps
-        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
-            {
-                wxXmlNode* eff1 = layer->GetChildren();
-                if( eff1 == NULL ) continue;
-                wxXmlNode* eff2 = eff1->GetNext();
-                if( eff2 == NULL ) continue;
-
-                while( eff1 != NULL && eff2 != NULL )
-                {
-                    wxString start_time;
-                    wxString end_time;
-                    eff1->GetAttribute("endTime", &end_time);
-                    eff2->GetAttribute("startTime", &start_time);
-                    if( end_time != start_time && start_time != _("") )
-                    {
-                        for( wxXmlAttribute* attr=eff1->GetAttributes(); attr!=NULL; attr=attr->GetNext() )
-                        {
-                            if( attr->GetName() == "endTime" )
-                            {
-                                attr->SetValue(start_time);
-                                break;
-                            }
-                        }
-                    }
-                    eff1 = eff2;
-                    eff2 = eff1->GetNext();
-                }
-            }
-        }
-
-        // remove Effect 1 and slider is 0 , then delete effect 2
-        // remove Effect 2 and slider is 100 , then delete effect 1
-        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            wxXmlNode* layer1 = e->GetChildren();
-            if( layer1 == NULL ) continue;
-            wxXmlNode* layer2 = layer1->GetNext();
-            wxXmlNode* effect1 = layer1->GetChildren();
-            wxXmlNode* effect2 = layer2->GetChildren();
-
-            while(effect1 != NULL && effect2 != NULL )
-            {
-                    wxString layer_effect_name;
-                    effect1->GetAttribute("name", &layer_effect_name);
-                // Capture next effects now in case we delete
-                wxXmlNode* next_effect1 = effect1->GetNext();
-                wxXmlNode* next_effect2 = effect2->GetNext();
-
-                wxString content1 = effect1->GetNodeContent();
-
-                wxString combine = GetSetting(wxT("T_CHOICE_LayerMethod"), content1);
-                wxString morph = GetSetting(wxT("T_CHECKBOX_LayerMorph"), content1);
-                wxString mix = GetSetting(wxT("T_SLIDER_EffectLayerMix"), content1);
-
-                if( combine == "Effect 1" && morph == "0" && mix == "0" )
-                {
-                    layer2->RemoveChild(effect2);
-                    delete effect2;
-                }
-                else if( combine == "Effect 2" && morph == "0" && mix == "100" )
-                {
-                    layer1->RemoveChild(effect1);
-                    delete effect1;
-                }
-
-                effect1 = next_effect1;
-                effect2 = next_effect2;
-            }
-        }
-
-        // remove "None" effects
-        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; layer=layer->GetNext() )
-            {
-                for( wxXmlNode* effect=layer->GetChildren(); effect!=NULL; )
-                {
-                    wxString layer_effect_name;
-                    effect->GetAttribute("name", &layer_effect_name);
-                    if( layer_effect_name == "None" )
-                    {
-                        wxXmlNode* node_to_delete = effect;
-                        effect = effect->GetNext();
-                        layer->RemoveChild(node_to_delete);
-                        delete node_to_delete;
-                    }
-                    else
-                    {
-                        effect = effect->GetNext();
-                    }
-                }
-            }
-        }
-
-        // remove empty layers
-        for(wxXmlNode* e=node->GetChildren(); e!=NULL; e=e->GetNext() )
-        {
-            for( wxXmlNode* layer=e->GetChildren(); layer!=NULL; )
-            {
-                wxXmlNode* child = layer->GetChildren();
-                if( child == NULL )
-                {
-                    wxXmlNode* node_to_delete = layer;
-                    layer = layer->GetNext();
-                    e->RemoveChild(node_to_delete);
-                    delete node_to_delete;
-                }
-                else
-                {
-                    layer = layer->GetNext();
-                }
-            }
-        }
-
-        // create Imported Timing elements
-        child = AddChildXmlNode(node, wxT("Element"));
-        child->AddAttribute(wxT("type"),wxT("timing"));
-        child->AddAttribute(wxT("name"),wxT("Imported Timing"));
-        wxXmlNode* layer = AddChildXmlNode(child, wxT("EffectLayer"));
-        for(int j = 0; j < num_effects; ++j)
-        {
-            wxXmlNode* effect = AddChildXmlNode(layer, wxT("Effect"));
-            effect->AddAttribute(wxT("protected"), timing_protection[j]);
-            effect->AddAttribute(wxT("selected"), wxT("0"));
-            effect->AddAttribute(wxT("label"), labels[j]);
-            effect->AddAttribute(wxT("startTime"), timing[j]);
-            effect->AddAttribute(wxT("endTime"), timing[(j+1<num_effects)?j+1:j]);
-        }
-
-        node = AddChildXmlNode(root, wxT("nextid"), string_format("%d",effect_id));
-
-        needs_conversion = false;
-
-        if( compute_time )
-        {
-           SetSequenceDuration(last_time, root);
-        }
-
-        // write converted XML file to xLights directory
-        doc->Save(GetFullPath());
-
-        // release memory
-        delete doc;
-
-        version_string = latest_version;
-        Load();
     }
     else
     {
@@ -1043,11 +1014,13 @@ void xLightsXmlFile::Save()
         seqDocument.Save(GetFullPath());
     }
 
-    //if (log) log->AppendText(_("xLights XML saved successfully\n\n"));
-}
+    //if (log) log->AppendText("xLights XML saved successfully\n\n"));
+}*/
 
 void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames)
 {
+    if( NotOpen() ) return;
+
     wxTextFile f;
     wxString line;
     int r;
@@ -1072,21 +1045,21 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         {
             if (e->GetName() == "DisplayElements")
             {
-                AddTimingAttributes(e, filename, wxT("1"), wxT("0"));
+                AddTimingAttributes(e, filename, "1", "0");
             }
             else if (e->GetName() == "ElementEffects")
             {
-                child = AddChildXmlNode(e, wxT("Element"));
-                child->AddAttribute(wxT("type"),wxT("timing"));
-                child->AddAttribute(wxT("name"),filename);
-                layer = AddChildXmlNode(child, wxT("EffectLayer"));
+                child = AddChildXmlNode(e, "Element");
+                child->AddAttribute("type","timing");
+                child->AddAttribute("name",filename);
+                layer = AddChildXmlNode(child, "EffectLayer");
             }
         }
 
         for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
         {
             std::string::size_type ofs;
-            if ((ofs = line.find("#")) != std::string::npos) line.erase(ofs); //remove comments
+            if ((ofs = line.find("#") != std::string::npos)) line.erase(ofs); //remove comments
             while (!line.empty() && (line.Last() == ' ')) line.RemoveLast(); //trim trailing spaces
             if (line.empty())
             {
@@ -1106,12 +1079,12 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
                 label += " " + more;
             }
 
-            child = AddChildXmlNode(layer, wxT("Effect"));
-            child->AddAttribute(wxT("protected"), _("0"));
-            child->AddAttribute(wxT("selected"), wxT("0"));
-            child->AddAttribute(wxT("label"), label);
-            child->AddAttribute(wxT("startTime"), start_time);
-            child->AddAttribute(wxT("endTime"), end_time);
+            child = AddChildXmlNode(layer, "Effect");
+            child->AddAttribute("protected", "0");
+            child->AddAttribute("selected", "0");
+            child->AddAttribute("label", label);
+            child->AddAttribute("startTime", start_time);
+            child->AddAttribute("endTime", end_time);
         }
         timing_list.push_back(filename);
     }
@@ -1119,8 +1092,16 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
     seqDocument.Save(GetFullPath());
 }
 
+bool xLightsXmlFile::Save()
+{
+    return seqDocument.Save(GetFullPath());
+}
+
+// function used to save sequence data
 void xLightsXmlFile::Save( SequenceElements& seq_elements)
 {
+    if( NotOpen() ) return;
+
     wxXmlNode* root = seqDocument.GetRoot();
 
     // Delete nodes that will be replaced
@@ -1141,8 +1122,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     }
 
     // Now add new elements to our xml document
-    wxXmlNode* display_node = AddChildXmlNode(root, wxT("DisplayElements"));
-    wxXmlNode* elements_node = AddChildXmlNode(root, wxT("ElementEffects"));
+    wxXmlNode* display_node = AddChildXmlNode(root, "DisplayElements");
+    wxXmlNode* elements_node = AddChildXmlNode(root, "ElementEffects");
 
     int num_elements = seq_elements.GetElementCount();
     for(int i = 0; i < num_elements; ++i)
@@ -1150,24 +1131,24 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         Element* element = seq_elements.GetElement(i);
 
         // Add display elements
-        wxXmlNode* display_element_node = AddChildXmlNode(display_node, wxT("Element"));
-        display_element_node->AddAttribute(wxT("collapsed"), string_format("%d", element->GetCollapsed()));
-        display_element_node->AddAttribute(wxT("type"), element->GetType());
-        display_element_node->AddAttribute(wxT("name"), element->GetName());
-        display_element_node->AddAttribute(wxT("visible"), string_format("%d", element->GetVisible()));
-        display_element_node->AddAttribute(wxT("active"), string_format("%d", element->GetActive()));
+        wxXmlNode* display_element_node = AddChildXmlNode(display_node, "Element");
+        display_element_node->AddAttribute("collapsed", string_format("%d", element->GetCollapsed()));
+        display_element_node->AddAttribute("type", element->GetType());
+        display_element_node->AddAttribute("name", element->GetName());
+        display_element_node->AddAttribute("visible", string_format("%d", element->GetVisible()));
+        display_element_node->AddAttribute("active", string_format("%d", element->GetActive()));
 
         // Add element node to ElementEffects
-        wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, wxT("Element"));
-        element_effects_node->AddAttribute(wxT("type"), element->GetType());
-        element_effects_node->AddAttribute(wxT("name"), element->GetName());
+        wxXmlNode* element_effects_node = AddChildXmlNode(elements_node, "Element");
+        element_effects_node->AddAttribute("type", element->GetType());
+        element_effects_node->AddAttribute("name", element->GetName());
 
         // Add effect layers
         if( element->GetFixedTiming() )
         {
-            element_effects_node->AddAttribute(wxT("fixed"), string_format( "%d", element->GetFixedTiming()));
+            element_effects_node->AddAttribute("fixed", string_format( "%d", element->GetFixedTiming()));
             // Add empty layer node
-            wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, wxT("EffectLayer"));
+            wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, "EffectLayer");
         }
         else
         {
@@ -1177,7 +1158,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                 EffectLayer* layer = element->GetEffectLayer(j);
 
                 // Add layer node
-                wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, wxT("EffectLayer"));
+                wxXmlNode* effect_layer_node = AddChildXmlNode(element_effects_node, "EffectLayer");
 
                 // Add effects
                 int num_effects = layer->GetEffectCount();
@@ -1186,24 +1167,24 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     Effect* effect = layer->GetEffect(k);
 
                     // Add effect node
-                    wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, wxT("Effect"), effect->GetSettings());
+                    wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettings());
 
                     if( element->GetType() == "model" )
                     {
-                        effect_node->AddAttribute(wxT("name"), effect->GetEffectName());
-                        effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
-                        effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
-                        effect_node->AddAttribute(wxT("id"), string_format("%d", effect->GetID()));
-                        effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
-                        effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                        effect_node->AddAttribute("name", effect->GetEffectName());
+                        effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
+                        effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
+                        effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
+                        effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
+                        effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
                     }
                     else if( element->GetType() == "timing" )
                     {
-                        effect_node->AddAttribute(wxT("label"), effect->GetEffectName());
-                        effect_node->AddAttribute(wxT("protected"), string_format("%d", effect->GetProtected()));
-                        effect_node->AddAttribute(wxT("selected"), string_format("%d", effect->GetSelected()));
-                        effect_node->AddAttribute(wxT("startTime"), string_format("%f", effect->GetStartTime()));
-                        effect_node->AddAttribute(wxT("endTime"), string_format("%f", effect->GetEndTime()));
+                        effect_node->AddAttribute("label", effect->GetEffectName());
+                        effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
+                        effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
+                        effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
+                        effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
                     }
                     else if( element->GetType() == "view" )
                     {
@@ -1218,11 +1199,10 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
 void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
 {
-   if( needs_conversion ) // conversion process will take care of writing this info
-        return;
-
     double interval;
     int ms;
+
+    if( NotOpen() ) return;
 
     if( interval_name != "Empty" )
     {
@@ -1237,7 +1217,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
     {
         if (e->GetName() == "DisplayElements")
         {
-            AddTimingAttributes(e, interval_name, wxT("1"), wxT("0"));
+            AddTimingAttributes(e, interval_name, "1", "0");
             timing_list.push_back(interval_name);
         }
         else if (e->GetName() == "ElementEffects")
@@ -1245,16 +1225,72 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
             wxXmlNode* child;
             wxXmlNode* layer;
             wxXmlNode* effect;
-            child = AddChildXmlNode(e, wxT("Element"));
-            child->AddAttribute(wxT("type"),wxT("timing"));
-            child->AddAttribute(wxT("name"),interval_name);
+            child = AddChildXmlNode(e, "Element");
+            child->AddAttribute("type","timing");
+            child->AddAttribute("name",interval_name);
             if( interval_name != "Empty" )
             {
-                child->AddAttribute(wxT("fixed"),string_format("%d",ms));
+                child->AddAttribute("fixed",string_format("%d",ms));
             }
-            layer = AddChildXmlNode(child, wxT("EffectLayer"));
+            layer = AddChildXmlNode(child, "EffectLayer");
         }
     }
+}
+
+bool xLightsXmlFile::ExtractMetaTagsFromMP3(wxString filename)
+{
+    if( NotOpen() ) return false;
+
+    bool modified = false;
+    mpg123_handle *mh;
+    mpg123_id3v1 *v1;
+    mpg123_id3v2 *v2;
+    int err;
+
+    mpg123_init();
+    mh = mpg123_new(NULL, &err);
+
+    mpg123_open(mh, filename);
+
+    if( err == MPG123_OK )
+    {
+        // get meta tags
+        mpg123_scan(mh);
+        int meta = mpg123_meta_check(mh);
+
+        if( meta == MPG123_ID3 && mpg123_id3(mh, &v1, &v2) == MPG123_OK )
+        {
+            wxString title = "";
+            wxString artist = "";
+            wxString album = "";
+
+            if( v2 != NULL ) // "ID3V2 tag found"
+            {
+                title = v2->title == NULL ? "" : v2->title->p;
+                artist = v2->artist == NULL ? "" : v2->artist->p;
+                album = v2->album == NULL ? "" : v2->album->p;
+                modified = true;
+            }
+
+            else if( v1 != NULL ) // "ID3V1 tag found"
+            {
+                title = v1->title[0];
+                artist = v1->artist[0];
+                album = v1->album[0];
+                modified = true;
+            }
+
+            SetHeaderInfo(SONG, title);
+            SetHeaderInfo(ARTIST, artist);
+            SetHeaderInfo(ALBUM, album);
+        }
+    }
+
+    mpg123_close(mh);
+    mpg123_delete(mh);
+    mpg123_exit();
+
+    return modified;
 }
 
 wxString xLightsXmlFile::InsertMissing(wxString str,wxString missing_array,bool INSERT)
@@ -1284,14 +1320,14 @@ wxString xLightsXmlFile::InsertMissing(wxString str,wxString missing_array,bool 
 
 
 // file should be full path
-void xLightsXmlFile::FixVersionDifferences()
+void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
 {
     wxString        str,fileout;
     wxTextFile      tfile;
     wxFile f;
     bool modified=false;
-    fileout = GetFullPath() + ".out";
-    //wxMessageBox(_("fixing: ")+file);
+    fileout = filename + ".out";
+    //wxMessageBox("fixing: "+file);
     // open the file
     wxString missing     = "xdummy|xdummy";
     wxString replace_str = "xdummy|xdummy";
@@ -1637,7 +1673,7 @@ void xLightsXmlFile::FixVersionDifferences()
         return;
     }
 
-    tfile.Open(GetFullPath()); // open input file
+    tfile.Open(filename); // open input file
     // read the first line
     str =  tfile.GetFirstLine() + "\n";
 
@@ -1733,6 +1769,6 @@ void xLightsXmlFile::FixVersionDifferences()
     }
     tfile.Close();
     f.Close();
-    if(modified) wxCopyFile(fileout,GetFullPath(),true); // if we modified the file, copy over it
+    if(modified) wxCopyFile(fileout,filename,true); // if we modified the file, copy over it
     wxRemoveFile(fileout); // get rid of temporary file
 }
