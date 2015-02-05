@@ -107,7 +107,6 @@ public:
     void Clear(const xlColor& bgColor);
     void SetPalette(xlColourVector& newcolors);
     void SetState(int period, int NewSpeed, bool ResetState, const wxString& model_name);
-    void GetPixel(int x, int y, xlColor &color);
 
     void SetFadeTimes(float fadeIn, float fadeOut );
     void SetEffectDuration(int startMsec, int endMsec);
@@ -117,7 +116,8 @@ public:
     void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod, int& curEffEndPer);  // nobody wants endPer?
 
     void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
-    
+    void GetPixel(int x, int y, xlColor &color);
+
 #include "Effects.h"
 
 protected:
@@ -472,13 +472,17 @@ protected:
 
 
 
+    void SetPixel(int x, int y, const xlColor &color, bool wrap = false);
+    void SetPixel(int x, int y, const wxImage::HSVValue& hsv, bool wrap = false);
 
-    void SetPixel(int x, int y, const xlColor &color);
-    void SetPixel(int x, int y, const wxImage::HSVValue& hsv);
-    void SetPixelWrap(int x, int y, const xlColor &color); //wrap around the buffer if x/y > buffer size
-    void CopyPixel(int srcx, int srcy, int destx, int desty); //-DJ
+    void CopyPixel(int srcx, int srcy, int destx, int desty);
     void SetTempPixel(int x, int y, const xlColor &color);
     void GetTempPixel(int x, int y, xlColor &color);
+
+    void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
+    void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
+    void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
+    void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);    
     
     wxUint32 GetTempPixelRGB(int x, int y);
     void SetFireBuffer(int x, int y, int PaletteIdx);
@@ -488,8 +492,6 @@ protected:
     void SetWaveBuffer2(int x, int y, int value);
     int GetWaveBuffer2(int x, int y);
 
-    void DrawCircle(int xc, int yc, int r, const xlColor& hsv);
-    void DrawCircleClipped(int xc, int yc, int r, const wxImage::HSVValue& hsv);
 
     double rand01();
     wxByte ChannelBlend(wxByte c1, wxByte c2, double ratio);

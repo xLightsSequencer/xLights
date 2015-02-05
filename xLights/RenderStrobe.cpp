@@ -28,20 +28,15 @@
 
 
 
-
-
 class RgbEffects::StrobeHasExpired
 {
-    int TailLength;
 public:
-    StrobeHasExpired(int t)
-        : TailLength(t)
-    {}
+    StrobeHasExpired() {}
 
     // operator() is what's called when you do MeteorHasExpired()
     bool operator()(const StrobeClass& obj)
     {
-        return obj.x + TailLength < 0;
+        return obj.duration < 0;
     }
 };
 
@@ -60,15 +55,13 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
 
     // create new strobe, randomly place a strobe
 
-    for(int i=0; i<Number_Strobes; i++)
+    for(int i = 0; i < Number_Strobes; i++)
     {
         m.x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
         m.y =rand() % BufferHt;
         m.duration = StrobeDuration;
 
         ColorIdx=rand()%colorcnt;
-//       palette.GetHSV(ColorIdx, hsv);
-
         palette.GetHSV(ColorIdx, m.hsv); // take first checked color as color of flash
 
         strobe.push_back(m); // Store this strobe into the list
@@ -76,79 +69,71 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
 
     // render strobe, we go through all storbes and decide if they should be turned on
 
-    int x,y,dy,n=0;
-
-    for (StrobeList::iterator it=strobe.begin(); it!=strobe.end(); ++it)
-    {
+    int x,y,n=0;
+    
+    for (StrobeList::iterator it=strobe.begin(); it!=strobe.end(); ++it) {
         n++;
         hsv=it->hsv;
         x=it->x;
         y=it->y;
-        if(it->duration>0)
+        if(it->duration > 0)
         {
             SetPixel(x,y,hsv);
         }
 
-        int r = rand()%2;
         if(it->duration==1)
         {
-            if(it->duration==1)
+            hsv.value /=2;
+        }
+        else if(it->duration==2)
+        {
+            hsv.value /=1.5;
+        }
+
+        if(Strobe_Type==2)
+        {
+            int r = rand()%2;
+            if(r==0)
             {
-                hsv.value /=2;
+                SetPixel(x,y-1,hsv);
+                SetPixel(x,y+1,hsv);
             }
-            else if(it->duration==2)
+            else
             {
-                hsv.value /=1.5;
+                SetPixel(x-1,y,hsv);
+                SetPixel(x+1,y,hsv);
             }
 
-
-            if(Strobe_Type==2)
-            {
-
-                if(r==0)
-                {
-                    SetPixel(x,y-1,hsv);
-                    SetPixel(x,y+1,hsv);
-                }
-                else
-                {
-                    SetPixel(x-1,y,hsv);
-                    SetPixel(x+1,y,hsv);
-                }
-
-            }
-            if(Strobe_Type==3)
+        }
+        if(Strobe_Type==3)
+        {
+            SetPixel(x,y-1,hsv);
+            SetPixel(x,y+1,hsv);
+            SetPixel(x-1,y,hsv);
+            SetPixel(x+1,y,hsv);
+        }
+        if(Strobe_Type==4)
+        {
+            int r = rand()%2;
+            if(r==0)
             {
                 SetPixel(x,y-1,hsv);
                 SetPixel(x,y+1,hsv);
                 SetPixel(x-1,y,hsv);
                 SetPixel(x+1,y,hsv);
             }
-            if(Strobe_Type==4)
+            else
             {
-
-                if(r==0)
-                {
-                    SetPixel(x,y-1,hsv);
-                    SetPixel(x,y+1,hsv);
-                    SetPixel(x-1,y,hsv);
-                    SetPixel(x+1,y,hsv);
-                }
-                else
-                {
-                    SetPixel(x+1,y-1,hsv);
-                    SetPixel(x+1,y+1,hsv);
-                    SetPixel(x-1,y-1,hsv);
-                    SetPixel(x-1,y+1,hsv);
-                }
+                SetPixel(x+1,y-1,hsv);
+                SetPixel(x+1,y+1,hsv);
+                SetPixel(x-1,y-1,hsv);
+                SetPixel(x-1,y+1,hsv);
             }
         }
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
-
-
-        // delete old strobe
-    //   if(it->duration<1)
-    //         strobe.remove_if(StrobeHasExpired(it->duration));
     }
+    // delete old strobes
+    x = strobe.size();
+    strobe.remove_if(StrobeHasExpired());
 }

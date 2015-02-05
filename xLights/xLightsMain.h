@@ -221,7 +221,25 @@ wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 static wxCriticalSection gs_xoutCriticalSection;
 
-typedef std::map<wxString,wxString> MapStringString;
+class MapStringString: public std::map<wxString,wxString> {
+public:
+    MapStringString(): std::map<wxString,wxString>() {
+    }
+    const wxString &operator[](const wxString &key) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return notFound;
+        }
+        return i->second;
+    }
+    wxString &operator[](const wxString &key) {
+        return std::map<wxString, wxString>::operator[](key);
+    }
+private:
+    wxString notFound;
+};
+
+
 typedef SequenceData SeqDataType;
 
 enum play_modes
@@ -1359,7 +1377,7 @@ private:
 
 public:
     void RenderGridToSeqData();
-    bool RenderEffectFromMap(int layer, int period, MapStringString& SettingsMap,
+    bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
