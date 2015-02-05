@@ -150,7 +150,7 @@ public:
         for (int layer = 0; layer < numLayers; layer++) {
             currentEffects[layer] = findEffectForFrame(layer, startFrame);
             initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer]);
-            effectStates[layer] = false;
+            effectStates[layer] = true;
         }
         
         for (int frame = startFrame; frame < endFrame; frame++) {

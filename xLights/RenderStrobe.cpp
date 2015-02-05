@@ -42,9 +42,13 @@ public:
 
 void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type)
 {
-    if (state == 0) strobe.clear();
-    int mspeed=state/4;
-    state-=mspeed*4;
+    if (state == 0) {
+        strobe.resize(StrobeDuration * Number_Strobes);
+        for (int x = 0; x < strobe.size(); x++) {
+            strobe[x].duration = -1;
+        }
+    }
+    int offset = ((state / speed) % StrobeDuration) * Number_Strobes;
 
     int ColorIdx;
     StrobeClass m;
@@ -57,14 +61,12 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
 
     for(int i = 0; i < Number_Strobes; i++)
     {
-        m.x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
-        m.y =rand() % BufferHt;
-        m.duration = StrobeDuration;
+        strobe[offset + i].x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
+        strobe[offset + i].y =rand() % BufferHt;
+        strobe[offset + i].duration = StrobeDuration;
 
         ColorIdx=rand()%colorcnt;
-        palette.GetHSV(ColorIdx, m.hsv); // take first checked color as color of flash
-
-        strobe.push_back(m); // Store this strobe into the list
+        palette.GetHSV(ColorIdx, strobe[offset + i].hsv); // take first checked color as color of flash
     }
 
     // render strobe, we go through all storbes and decide if they should be turned on
@@ -133,7 +135,4 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
     }
-    // delete old strobes
-    x = strobe.size();
-    strobe.remove_if(StrobeHasExpired());
 }
