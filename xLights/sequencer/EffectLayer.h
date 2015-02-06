@@ -26,7 +26,7 @@ class EffectLayer
         void AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, int Selected, bool Protected);
 
         Effect* GetEffect(int index);
-        Effect* RemoveEffect(int index);
+        void RemoveEffect(int index);
 
         int GetIndex();
         int GetEffectCount();
@@ -56,7 +56,7 @@ class EffectLayer
         int GetSelectedEffectCount();
         void MoveAllSelectedEffects(double delta);
         void DeleteSelectedEffects();
-        static bool ShouldDeleteSelected(Effect eff);
+        static bool ShouldDeleteSelected(Effect *eff);
     protected:
     private:
 
@@ -65,7 +65,7 @@ class EffectLayer
         void GetMaximumRangeOfMovementForEffect(int index, double &toLeft, double &toRight);
         void GetMaximumRangeWithLeftMovement(int index, double &toLeft, double &toRight);
         void GetMaximumRangeWithRightMovement(int index, double &toLeft, double &toRight);
-        std::vector<Effect> mEffects;
+        std::vector<Effect*> mEffects;
         int mIndex;
         Element* mParentElement;
 };

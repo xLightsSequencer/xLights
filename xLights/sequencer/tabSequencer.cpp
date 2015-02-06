@@ -443,7 +443,10 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
-void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
+static wxString selectedEffectString;
+static Effect *selectedEffect;
+
+void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
     if(OnlyChoiceBookPage)
@@ -458,7 +461,9 @@ void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
     else
     {
         Effect* effect = (Effect*)event.GetClientData();
-        SetEffectControls(effect->GetEffectName(),effect->GetSettings());
+        SetEffectControls(effect->GetEffectName(), effect->GetSettings());
+        selectedEffectString = GetEffectTextFromWindows();
+        selectedEffect = effect;
     }
     wxString tooltip;
     effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
@@ -513,7 +518,6 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
-    wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     wxString effectText = GetEffectTextFromWindows();
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
@@ -562,6 +566,22 @@ void xLightsFrame::TimerRgbSeq(long msec)
         playStartMS = -1;
         return;
     }
+    if (selectedEffect != NULL) {
+        wxString effectText = GetEffectTextFromWindows();
+        if (effectText != selectedEffectString) {
+            selectedEffect->SetSettings(effectText);
+            selectedEffectString = effectText;
+            
+            Element *el = selectedEffect->GetParentEffectLayer()->GetParentElement();
+            playStartTime = (int)(selectedEffect->GetStartTime() * 1000);
+            playEndTime = (int)(selectedEffect->GetEndTime() * 1000);
+            playStartMS = -1;
+
+            RenderEffectForModel(el->GetName(),playStartTime,playEndTime);
+            return;
+        }
+    }
+    
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     int nn = playBuffer.GetNodeCount();

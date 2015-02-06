@@ -14,6 +14,9 @@ Element::Element(wxString &name, wxString &type,bool visible,bool collapsed, boo
 
 Element::~Element()
 {
+    for (int x = 0; x < mEffectLayers.size(); x++) {
+        delete mEffectLayers[x];
+    }
 }
 
 
@@ -99,18 +102,19 @@ void Element::SetIndex(int index)
 
 EffectLayer* Element::GetEffectLayer(int index)
 {
-    return &mEffectLayers[index];
+    return mEffectLayers[index];
 }
 
 void Element::AddEffectLayer()
 {
-    EffectLayer el(this);
-    mEffectLayers.push_back(el);
+    mEffectLayers.push_back(new EffectLayer(this));
 }
 
 void Element::RemoveEffectLayer(int index)
 {
+    EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
+    delete l;
 }
 
 int Element::GetEffectLayerCount()
