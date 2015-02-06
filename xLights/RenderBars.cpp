@@ -48,6 +48,7 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
     double position = GetEffectTimeIntervalPosition();
     if(BarCount<1) BarCount=1;
 
+    xlColor color;
 
     if (Direction < 4 || Direction == 8 || Direction == 9)
     {
@@ -67,13 +68,14 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
             palette.GetHSV(ColorIdx, hsv);
             if (Highlight && n % BarHt == 0) hsv.saturation=0.0;
             if (Show3D) hsv.value *= double(BarHt - n%BarHt - 1) / BarHt;
+            color = hsv;
             switch (Direction)
             {
             case 1:
                 // down
                 for (x=0; x<BufferWi; x++)
                 {
-                    SetPixel(x,y,hsv);
+                    SetPixel(x, y, color);
                 }
                 break;
             case 2:
@@ -81,8 +83,8 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 if (y <= HalfHt) {
                     for (x=0; x<BufferWi; x++)
                     {
-                        SetPixel(x,y,hsv);
-                        SetPixel(x,BufferHt-y-1,hsv);
+                        SetPixel(x, y, color);
+                        SetPixel(x, BufferHt-y-1, color);
                     }
                 }
                 break;
@@ -91,8 +93,8 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 if (y >= HalfHt) {
                     for (x=0; x<BufferWi; x++)
                     {
-                        SetPixel(x,y,hsv);
-                        SetPixel(x,BufferHt-y-1,hsv);
+                        SetPixel(x, y, color);
+                        SetPixel(x, BufferHt-y-1, color);
                     }
                 }
                 break;
@@ -100,7 +102,7 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 // up
                 for (x=0; x<BufferWi; x++)
                 {
-                    SetPixel(x,BufferHt-y-1,hsv);
+                    SetPixel(x, BufferHt-y-1, color);
                 }
                 break;
             }
@@ -123,13 +125,14 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
             palette.GetHSV(ColorIdx, hsv);
             if (Highlight && n % BarWi == 0) hsv.saturation=0.0;
             if (Show3D) hsv.value *= double(BarWi - n%BarWi - 1) / BarWi;
+            color = hsv;
             switch (Direction)
             {
             case 5:
                 // right
                 for (y=0; y<BufferHt; y++)
                 {
-                    SetPixel(BufferWi-x-1,y,hsv);
+                    SetPixel(BufferWi-x-1, y, color);
                 }
                 break;
             case 6:
@@ -137,8 +140,8 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 if (x <= HalfWi) {
                     for (y=0; y<BufferHt; y++)
                     {
-                        SetPixel(x,y,hsv);
-                        SetPixel(BufferWi-x-1,y,hsv);
+                        SetPixel(x, y, color);
+                        SetPixel(BufferWi-x-1, y, color);
                     }
                 }
                 break;
@@ -147,8 +150,8 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 if (x >= HalfWi) {
                     for (y=0; y<BufferHt; y++)
                     {
-                        SetPixel(x,y,hsv);
-                        SetPixel(BufferWi-x-1,y,hsv);
+                        SetPixel(x, y, color);
+                        SetPixel(BufferWi-x-1, y, color);
                     }
                 }
                 break;
@@ -156,7 +159,7 @@ void RgbEffects::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bo
                 // left
                 for (y=0; y<BufferHt; y++)
                 {
-                    SetPixel(x,y,hsv);
+                    SetPixel(x, y, color);
                 }
                 break;
             }

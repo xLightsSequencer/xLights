@@ -35,25 +35,32 @@ public:
         for (i=0; i<100; i++)
         {
             hsv.value=double(i)/100.0;
-            firePalette.push_back(xlColor(hsv));
+            firePalette.push_back(hsv);
+            firePaletteColors.push_back(hsv);
         }
         
         // gives 100 hues red to yellow
         hsv.value=1.0;
         for (i=0; i<100; i++)
         {
-            firePalette.push_back(xlColor(hsv));
+            firePalette.push_back(hsv);
+            firePaletteColors.push_back(hsv);
             hsv.hue+=0.00166666;
         }
     }
     int size() const {
         return firePalette.size();
     }
-    const xlColor &operator[](int x) const {
+    const wxImage::HSVValue &operator[](int x) const {
         return firePalette[x];
     }
+    const xlColor &asColor(int x) const {
+        return firePaletteColors[x];
+    }
+
 private:
-    xlColorVector firePalette;
+    hsvVector firePalette;
+    xlColorVector firePaletteColors;
 };
 static const FirePaletteClass FirePalette;
 
@@ -114,10 +121,7 @@ int RgbEffects::GetWaveBuffer2(int x, int y)
 void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
 {
     int x,y,i,r,v1,v2,v3,v4,n,new_index;
-    xlColour color;
     wxImage::HSVValue hsv;
-
-
 
     if(GrowFire) HeightPct+=(state%500)/10;
     if(HeightPct<1) HeightPct=1;
@@ -195,18 +199,14 @@ void RgbEffects::RenderFire(int HeightPct,int HueShift,bool GrowFire)
             //SetPixel(x,y,FirePalette[y]);
             //  first get the calculated color fo normal fire.
 
-            color=FirePalette[GetFireBuffer(x,y)];
-
-            if(HueShift>0)
-            {
-                wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
-                hsv = wxImage::RGBtoHSV(rgb);
+            if (HueShift>0) {
+                hsv = FirePalette[GetFireBuffer(x,y)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
-                rgb = wxImage::HSVtoRGB(hsv);
-                color = xlColor(rgb.red,rgb.green,rgb.blue);
+                SetPixel(x, y, hsv);
+            } else {
+                SetPixel(x, y, FirePalette.asColor(GetFireBuffer(x,y)));
             }
-            SetPixel(x,y,color);
         }
     }
 }

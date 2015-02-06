@@ -61,7 +61,7 @@ int mapDirection(const wxString & d) {
 void RgbEffects::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString & Skips_Direction)
 {
     int x = Skips_StartPos - 1;
-    xlColour color, black(0,0,0);
+    xlColour color;
     int second = 0;
     int max = BufferWi;
     int direction = mapDirection(Skips_Direction);
@@ -138,12 +138,10 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
                                     int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
-    int x,x1,x0,y,i,ColorIdx,chases,width,slow_state;
+    int x,x1,y,i,ColorIdx,chases,width,slow_state;
     int x2=0;
-    int x_2=0;
-    int x2_mod=0;
     int color_index,x1_mod,mod_ChaseDirection;
-    int MaxNodes,xt,Dual_Chases,All_Arches=0;
+    int MaxNodes,Dual_Chases,All_Arches=0;
     int start1,start2,start1_mid,xend,start1_group;
     float dx;
 
@@ -156,9 +154,6 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
     size_t colorcnt=GetColorCount(); // global now set to how many colors have been picked
     y=BufferHt;
     i=0;
-    int state_width = state/BufferWi;
-    int state_col = (state_width*BufferWi) + state%10;
-    int state_ht = state_width%BufferHt; // 0 .. (BufferHt-1)
 
     int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
 
@@ -167,7 +162,6 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
 
 
     if(Chase_Spacing1<1) Chase_Spacing1=1;
-    int ymax=BufferHt;
     if(Chase_Group_All || Chase_Type1==3) MaxNodes= BufferWi*BufferHt;
     else MaxNodes=BufferWi;
 
@@ -210,10 +204,7 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
 
         break;
     }
-    //  we have a global variablal, ChaseDirection, which indicates which way we are moving.
 
-
-    int FIT_TO_TIME=(fitToTime);
     int numberFrames=0;
     if(fitToTime) // is "Fit to Time" checked?
     {

@@ -199,20 +199,28 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
         effectMixThreshold[layer] = 0;
     }
 
+    wxImage::HSVValue hsv0;
+    wxImage::HSVValue hsv1;
     
     xlColour c;
-    wxImage::HSVValue hsv0 = wxImage::RGBtoHSV(c0);
-    wxImage::HSVValue hsv1 = wxImage::RGBtoHSV(c1);
     double emt, emtNot;
     switch (mixType[layer]) {
         case Mix_Effect1:
         case Mix_Effect2:
-            emt = effectMixThreshold[layer];
-            emtNot = 1-effectMixThreshold[layer];
             if (!effectMixVaries[layer]) {
-                //make cross-fade linear; this inverts it? -DJ
-                emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
-                emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+                emt = effectMixThreshold[layer];
+                if ((emt > 0.000001) && (emt < 0.99999)) {
+                    emtNot = 1-effectMixThreshold[layer];
+                    //make cross-fade linear
+                    emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
+                    emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
+                } else {
+                    emtNot = effectMixThreshold[layer];
+                    emt = 1 - effectMixThreshold[layer];
+                }
+            } else {
+                emt = effectMixThreshold[layer];
+                emtNot = 1-effectMixThreshold[layer];
             }
             
             if (mixType[layer] == Mix_Effect2) {
@@ -226,6 +234,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             break;
         case Mix_Mask1:
             // first masks second
+            hsv0 = wxImage::RGBtoHSV(c0);
             if (hsv0.value <= effectMixThreshold[layer]) {
                 // only if effect 1 is black
                 c=c1;  // then show the color of effect 2
@@ -235,6 +244,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             break;
         case Mix_Mask2:
             // second masks first
+            hsv1 = wxImage::RGBtoHSV(c1);
             if (hsv1.value <= effectMixThreshold[layer]) {
                 c=c0;
             } else {
@@ -243,6 +253,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             break;
         case Mix_Unmask1:
             // first unmasks second
+            hsv0 = wxImage::RGBtoHSV(c0);
+            hsv1 = wxImage::RGBtoHSV(c1);
             if (hsv0.value > effectMixThreshold[layer]) {
                 // if effect 1 is non black
                 hsv1.value = hsv0.value;
@@ -253,6 +265,8 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             break;
         case Mix_Unmask2:
             // second unmasks first
+            hsv0 = wxImage::RGBtoHSV(c0);
+            hsv1 = wxImage::RGBtoHSV(c1);
             if (hsv1.value > effectMixThreshold[layer]) {
                 // if effect 2 is non black
                 hsv0.value = hsv1.value;
@@ -262,6 +276,7 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             }
             break;
         case Mix_Layered:
+            hsv1 = wxImage::RGBtoHSV(c1);
             if (hsv1.value <= effectMixThreshold[layer]) {
                 c=c0;
             } else {
@@ -285,9 +300,11 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
             c= x < BufferWi/2 ? c0 : c1;
             break;
         case Mix_1_reveals_2:
+            hsv0 = wxImage::RGBtoHSV(c0);
             c = hsv0.value > effectMixThreshold[layer] ? c0 : c1; // if effect 1 is non black
             break;
         case Mix_2_reveals_1:
+            hsv1 = wxImage::RGBtoHSV(c1);
             c = hsv1.value > effectMixThreshold[layer] ? c1 : c0; // if effect 2 is non black
             break;
     }
@@ -308,9 +325,11 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
         if (validLayers[layer]) {
             effects[layer].GetPixel(x, y, colors[pos]);
             layerIdxs[pos] = layer;
-            hsv = wxImage::RGBtoHSV(colors[pos]);
-            hsv.value *= fadeFactor[layer];
-            colors[pos] = hsv;
+            if (fadeFactor[layer] != 1.0) {
+                hsv = wxImage::RGBtoHSV(colors[pos]);
+                hsv.value *= fadeFactor[layer];
+                colors[pos] = hsv;
+            }
             
             if (pos > 0) {
                 //mix with layer below
@@ -443,29 +462,31 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
                 Nodes[i]->sparkle++;
             }
             // Apply brightness
-            wxImage::RGBValue rgb(color.Red(),color.Green(),color.Blue());
-            hsv = wxImage::RGBtoHSV(rgb);
+            if (ModelBrightness != 0 || brightness[0] != 100 || contrast[0] != 0) {
+                wxImage::RGBValue rgb(color.Red(), color.Green(), color.Blue());
+                hsv = wxImage::RGBtoHSV(rgb);
 
-            float fModelBrightness=((float)ModelBrightness/100) + 1.0;
-            hsv.value = hsv.value * ((double)brightness[0]/(double)100)*fModelBrightness;
+                float fModelBrightness=((float)ModelBrightness/100) + 1.0;
+                hsv.value = hsv.value * ((double)brightness[0]/(double)100)*fModelBrightness;
 
 
-            // Apply Contrast
+                // Apply Contrast
 
-            if (hsv.value< 0.5) {
-                // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                hsv.value = hsv.value - (hsv.value* ((double)contrast[0]/(double)100));
-            } else {
-                hsv.value = hsv.value + (hsv.value* ((double)contrast[0]/(double)100));
+                if (hsv.value< 0.5) {
+                    // reduce brightness when below 0.5 in the V value or increase if > 0.5
+                    hsv.value = hsv.value - (hsv.value* ((double)contrast[0]/(double)100));
+                } else {
+                    hsv.value = hsv.value + (hsv.value* ((double)contrast[0]/(double)100));
+                }
+
+                if (hsv.value < 0.0) hsv.value=0.0;
+                if (hsv.value > 1.0) hsv.value=1.0;
+
+                color = wxImage::HSVtoRGB(hsv);
             }
-
-            if (hsv.value < 0.0) hsv.value=0.0;
-            if (hsv.value > 1.0) hsv.value=1.0;
-
-            rgb = wxImage::HSVtoRGB(hsv);
-
+            
             // set color for physical output
-            Nodes[i]->SetColor(rgb);
+            Nodes[i]->SetColor(color);
         }
     }
 }

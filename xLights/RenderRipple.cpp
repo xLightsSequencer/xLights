@@ -143,36 +143,38 @@ else
 void RgbEffects::Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv)
 {
     int i,x,y;
-
+    xlColor color(hsv);
 
     for (i=0; i<Ripple_Thickness; i++)
     {
-        if(CheckBox_Ripple3D)
+        if (CheckBox_Ripple3D) {
             hsv.value *= 1.0-((float(i)/2.0)/float(Ripple_Thickness)); // we multiply by 1.0 when Ripple_Thickness=0
+            color = hsv;
+        }
         if(Movement==MOVEMENT_EXPLODE)
         {
             for(y=y1+i; y<=y2-i; y++)
             {
-                SetP(x1+i,y,hsv); // Turn pixel
-                SetP(x2-i,y,hsv); // Turn pixel
+                SetPixel(x1+i,y,color); // Turn pixel
+                SetPixel(x2-i,y,color); // Turn pixel
             }
             for(x=x1+i; x<=x2-i; x++)
             {
-                SetP(x,y1+i,hsv); // Turn pixel
-                SetP(x,y2-i,hsv); // Turn pixel
+                SetPixel(x,y1+i,color); // Turn pixel
+                SetPixel(x,y2-i,color); // Turn pixel
             }
         }
         if(Movement==MOVEMENT_IMPLODE)
         {
             for(y=y2+i; y>=y1-i; y--)
             {
-                SetP(x1-i,y,hsv); // Turn pixel
-                SetP(x2+i,y,hsv); // Turn pixel
+                SetPixel(x1-i,y,color); // Turn pixel
+                SetPixel(x2+i,y,color); // Turn pixel
             }
             for(x=x2+i; x>=x1-i; x--)
             {
-                SetP(x,y1-i,hsv); // Turn pixel
-                SetP(x,y2+i,hsv); // Turn pixel
+                SetPixel(x,y1-i,color); // Turn pixel
+                SetPixel(x,y2+i,color); // Turn pixel
             }
         }
     }
@@ -182,11 +184,14 @@ void RgbEffects::Drawcircle(int Movement,int xc,int yc,double radius,wxImage::HS
     double degrees,radian;
     int x,y;
     float i;
+    xlColor color(hsv);
+
     for (i=0; i<Ripple_Thickness; i+=.5)
     {
-        if(CheckBox_Ripple3D)
+        if(CheckBox_Ripple3D) {
             hsv.value *= 1.0-(float(i)/float(Ripple_Thickness)); // we multiply by 1.0 when steps=0
-
+            color = hsv;
+        }
         if(Movement==MOVEMENT_EXPLODE)
         {
             radius = radius - i;
@@ -200,14 +205,9 @@ void RgbEffects::Drawcircle(int Movement,int xc,int yc,double radius,wxImage::HS
             radian = 	degrees * (M_PI/180.0);
             x = radius * cos(radian) + xc;
             y = radius * sin(radian) + yc;
-            SetP(x,y,hsv); // Turn pixel
+            SetPixel(x,y,color); // Turn pixel
         }
     }
 
 }
 
-void RgbEffects::SetP(int x, int y, wxImage::HSVValue hsv)
-{
-    if(x>=0 && x<BufferWi && y>=0 && y<BufferHt)
-        SetPixel(x,y,hsv);
-}

@@ -278,8 +278,9 @@ protected:
     public:
 
         int x,y;
-        wxImage::HSVValue hsv;
         int duration; // How frames strobe light stays on. Will be decremented each frame
+        wxImage::HSVValue hsv;
+        xlColor color;
     };
     typedef std::vector<StrobeClass> StrobeList;
 
