@@ -65,14 +65,14 @@ void xLightsFrame::OpenSequence()
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
-        CurrentSeqXmlFile->Open();
-
-        if( CurrentSeqXmlFile->WasConverted() )
+        if( CurrentSeqXmlFile->IsV3Sequence() )
         {
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("Your XML file has been converted!"));
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("Please check settings before v3 conversion!"));
             setting_dlg.Fit();
             setting_dlg.ShowModal();
         }
+
+        CurrentSeqXmlFile->Open();
 
         if( CurrentSeqXmlFile->HasAudioMedia() )  // user may have set audio file in dialog during a conversion
         {

@@ -2039,26 +2039,6 @@ void mapLORInfo(const LORInfo &info, std::vector<std::vector<int>> *unitSizes)
     }
 }
 
-wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data)
-{
-    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
-    if( node_data != wxString(""))
-    {
-        wxXmlNode* data_node = new wxXmlNode(new_node,wxXML_TEXT_NODE,wxT(""),node_data);
-    }
-    node->AddChild(new_node);
-    return new_node;
-}
-
-void AddTimingAttributes(wxXmlNode* node, const wxString& type, const wxString& name, const wxString& visible, const wxString& active)
-{
-    wxXmlNode* child = AddChildXmlNode(node, wxT("Element"), wxT(""));
-    child->AddAttribute(wxT("type"), type);
-    child->AddAttribute(wxT("name"), name);
-    child->AddAttribute(wxT("visible"), visible);
-    child->AddAttribute(wxT("active"), active);
-}
-
 void FRAMECLASS ReadLorFile(const wxString& filename, int LORImportInterval)
 {
     wxString NodeName,msg,EffectType,ChannelName,deviceType,networkAsString;

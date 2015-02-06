@@ -105,12 +105,28 @@ class xLightsXmlFile : public wxFileName
         bool LoadV3Sequence();
         bool Save();
         bool SaveCopy();
-        bool NotOpen();  // used to ensure file is open
+        void AddDisplayElement( const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active );
+        wxXmlNode* AddElement( const wxString& name, const wxString& type );
+        void AddEffect( wxXmlNode* node,
+                        const wxString& name,
+                        const wxString& data,
+                        const wxString& protection,
+                        const wxString& selected,
+                        const wxString& id,
+                        const wxString& start_time,
+                        const wxString& end_time );
+        void AddTimingEffect( wxXmlNode* node,
+                              const wxString& label,
+                              const wxString& protection,
+                              const wxString& selected,
+                              const wxString& start_time,
+                              const wxString& end_time);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
-        void AddTimingAttributes(wxXmlNode* node, const wxString& name, const wxString& visible, const wxString& active);
+        wxXmlNode* AddFixedTiming( const wxString& name, const wxString& timing );
         void SetNodeContent(wxXmlNode* node, const wxString& content);
-
+        void CleanUpEffects();
+        void UpdateNextId( const wxString& value );
 
         void FixVersionDifferences();
 
