@@ -12,12 +12,6 @@
 #include "Effect.h"
 #include "../SeqSettingsDialog.h"
 
-#ifdef __WXMSW__
-#define BASEPATH wxString("c:\\temp\\")
-#else
-#define BASEPATH wxString("/tmp/")
-#endif
-
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
@@ -114,19 +108,9 @@ void xLightsFrame::InitSequencer()
         return;
     }
     // Load perspectives
+    mSequencerInitialize = true;
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
-
-    /*if (wxFile::Exists(BASEPATH + "4.mp3")) {
-        int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
-        xLightsXmlFile xml_file(BASEPATH + "v4.xml");
-        xml_file.Load();
-        xml_file.SetSequenceType(wxT("Media"));
-        xml_file.SetSequenceDurationMS(mediaLengthMS);
-        xml_file.SetMediaFile(BASEPATH + "4.mp3");
-        xml_file.Save();
-        LoadSequencer(xml_file);
-    }*/
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
@@ -201,9 +185,8 @@ void xLightsFrame::CheckForValidModels()
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
-    mSequencerInitialize = true;
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    bool success = mSequenceElements.LoadSequencerFile(xml_file);
+    mSequenceElements.LoadSequencerFile(xml_file);
 
     CheckForValidModels();
 

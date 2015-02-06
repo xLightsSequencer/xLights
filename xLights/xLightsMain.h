@@ -570,7 +570,6 @@ private:
     void OnChoicebook1PageChanged(wxChoicebookEvent& event);
     void OnGrid1LabelRightClick(wxGridEvent& event);
     void OnGridCoroFacesLabelLeftClick(wxGridEvent& event);
-    void ToggleThreadedSave(wxCommandEvent& event);
     void OnPanelSequencerPaint(wxPaintEvent& event);
     void OnBitmapButton1Click(wxCommandEvent& event);
     void OnBitmapButton3Click(wxCommandEvent& event);
@@ -840,9 +839,7 @@ private:
     static const long ID_BITMAPBUTTON29;
     static const long ID_BITMAPBUTTON30;
     static const long ID_AUITOOLBAR2;
-    static const long ID_NEW_Non_Music_Seq;
-    static const long ID_MENUITEM3;
-    static const long ID_New_Music_Seq;
+    static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
     static const long IS_SAVE_SEQ;
     static const long ID_MENUITEM2;
@@ -871,7 +868,6 @@ private:
     static const long ID_EXPORT_ALL;
     static const long ID_EXPORT_MODEL;
     static const long ID_SEQ_SETTINGS;
-    static const long ID_NO_THREADED_SAVE;
     static const long idMenuHelpContent;
     static const long idMenuAbout;
     static const long ID_STATUSBAR1;
@@ -1048,16 +1044,13 @@ private:
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
-    wxMenuItem* ThreadedSaveMenuItem;
     wxMenuItem* MenuItem19;
     wxStaticText* StaticTextPreviewRotation;
     wxSlider* SliderFgIntensity;
     wxSplitterWindow* SplitterWindow1;
     xlAuiToolBar* MainToolBar;
     wxButton* ButtonLightsOff;
-    wxMenuItem* MenuItem11;
     DragEffectBitmapButton* BitmapButton10;
-    wxMenu* Menu2;
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
@@ -1069,8 +1062,6 @@ private:
     wxChoice* Choice_PgoGroupName;
     wxMenuItem* MenuItem24;
     wxRadioButton* RadioButtonRgbTwinkle05;
-    wxMenu* MenuItem3;
-    wxMenuItem* MenuItem6;
     wxAuiNotebook* Notebook1;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
     wxStaticText* StaticText67;
@@ -1078,9 +1069,9 @@ private:
     wxButton* ButtonTestSave;
     wxChoice* Choice_PgoOutputType;
     wxButton* Button_PgoStitch;
+    wxMenuItem* MenuItem3;
     wxStaticText* StaticTextShowEnd;
     wxFileDialog* FileDialogPgoImage;
-    wxMenu* Menu1;
     DragEffectBitmapButton* BitmapButton8;
     wxStaticText* StaticTextCurrentPreviewSize;
     wxCheckBox* CheckBox_PgoAutoFade;
@@ -1099,7 +1090,6 @@ private:
     wxRadioButton* RadioButtonChase5;
     wxRadioButton* RadioButtonRgbCycleOff;
     wxPanel* PanelCal;
-    wxMenu* Menu5;
     wxMenuItem* MenuItem_File_Open_Sequence;
     wxStaticText* StaticText15;
     wxStaticText* StaticText26;
@@ -1481,7 +1471,6 @@ protected:
     // fast save support
     int changedColumn;
     int changedRow;
-    bool threadedSave = true;
 
 //    std::vector<ModelClassPtr> PreviewModels;
     wxHtmlEasyPrinting* HtmlEasyPrint;
