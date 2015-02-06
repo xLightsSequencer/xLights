@@ -150,7 +150,7 @@ public:
         for (int layer = 0; layer < numLayers; layer++) {
             currentEffects[layer] = findEffectForFrame(layer, startFrame);
             initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer]);
-            effectStates[layer] = false;
+            effectStates[layer] = true;
         }
         
         for (int frame = startFrame; frame < endFrame; frame++) {
@@ -387,7 +387,7 @@ void xLightsFrame::RenderGridToSeqData() {
     delete []noDepJobs;
 }
 
-void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms) {
+void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms, bool clear) {
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);

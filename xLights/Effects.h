@@ -20,11 +20,10 @@ void RenderPiano(int Style, int NumKeys, int NumRows, int KeyPlacement, bool Cli
 void RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20fps);
 void RenderPinwheel(int pinwheel_arms, int pinwheel_twist,int pinwheel_thickness,
                     bool pinwheel_rotation,int pinwheel_3d,int xc_adj, int yc_adj, int pinwheel_armsize);
-void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist,wxImage::HSVValue hsv,
+void Draw_arm(int base_degrees,int max_radius,int pinwheel_twist, const xlColor &rgb,
               int xc_adj, int yc_adj);
 
 void RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D);
-void SetP(int x, int y, wxImage::HSVValue hsv);
 void Drawsquare(int Movement, int x1, int x2, int y1,int y2,int Ripple_Thickness,int CheckBox_Ripple3D,wxImage::HSVValue hsv);
 void Drawcircle(int Movement, int xc,int yc,double radius, wxImage::HSVValue hsv, int Ripple_Thickness,int CheckBox_Ripple3D);
 

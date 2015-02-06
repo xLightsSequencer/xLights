@@ -42,29 +42,30 @@ public:
 
 void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_Type)
 {
-    if (state == 0) strobe.clear();
-    int mspeed=state/4;
-    state-=mspeed*4;
+    if (state == 0) {
+        strobe.resize(StrobeDuration * Number_Strobes);
+        for (int x = 0; x < strobe.size(); x++) {
+            strobe[x].duration = -1;
+        }
+    }
+    int offset = ((state / speed) % StrobeDuration) * Number_Strobes;
 
     int ColorIdx;
     StrobeClass m;
-    wxImage::HSVValue hsv,hsv0,hsv1;
-    palette.GetHSV(0,hsv0);
-    palette.GetHSV(1,hsv1);
+    wxImage::HSVValue hsv;
     size_t colorcnt=GetColorCount();
 
     // create new strobe, randomly place a strobe
 
     for(int i = 0; i < Number_Strobes; i++)
     {
-        m.x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
-        m.y =rand() % BufferHt;
-        m.duration = StrobeDuration;
+        strobe[offset + i].x =rand() % BufferWi; // randomly pick a x,y location for strobe to fire
+        strobe[offset + i].y =rand() % BufferHt;
+        strobe[offset + i].duration = StrobeDuration;
 
         ColorIdx=rand()%colorcnt;
-        palette.GetHSV(ColorIdx, m.hsv); // take first checked color as color of flash
-
-        strobe.push_back(m); // Store this strobe into the list
+        palette.GetHSV(ColorIdx, strobe[offset + i].hsv); // take first checked color as color of flash
+        palette.GetColor(ColorIdx, strobe[offset + i].color); // take first checked color as color of flash
     }
 
     // render strobe, we go through all storbes and decide if they should be turned on
@@ -74,20 +75,23 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
     for (StrobeList::iterator it=strobe.begin(); it!=strobe.end(); ++it) {
         n++;
         hsv=it->hsv;
+        xlColor color(it->color);
         x=it->x;
         y=it->y;
         if(it->duration > 0)
         {
-            SetPixel(x,y,hsv);
+            SetPixel(x,y,color);
         }
 
         if(it->duration==1)
         {
             hsv.value /=2;
+            color = hsv;
         }
         else if(it->duration==2)
         {
             hsv.value /=1.5;
+            color = hsv;
         }
 
         if(Strobe_Type==2)
@@ -95,45 +99,42 @@ void RgbEffects::RenderStrobe(int Number_Strobes, int StrobeDuration,int Strobe_
             int r = rand()%2;
             if(r==0)
             {
-                SetPixel(x,y-1,hsv);
-                SetPixel(x,y+1,hsv);
+                SetPixel(x,y-1,color);
+                SetPixel(x,y+1,color);
             }
             else
             {
-                SetPixel(x-1,y,hsv);
-                SetPixel(x+1,y,hsv);
+                SetPixel(x-1,y,color);
+                SetPixel(x+1,y,color);
             }
 
         }
         if(Strobe_Type==3)
         {
-            SetPixel(x,y-1,hsv);
-            SetPixel(x,y+1,hsv);
-            SetPixel(x-1,y,hsv);
-            SetPixel(x+1,y,hsv);
+            SetPixel(x,y-1,color);
+            SetPixel(x,y+1,color);
+            SetPixel(x-1,y,color);
+            SetPixel(x+1,y,color);
         }
         if(Strobe_Type==4)
         {
             int r = rand()%2;
             if(r==0)
             {
-                SetPixel(x,y-1,hsv);
-                SetPixel(x,y+1,hsv);
-                SetPixel(x-1,y,hsv);
-                SetPixel(x+1,y,hsv);
+                SetPixel(x,y-1,color);
+                SetPixel(x,y+1,color);
+                SetPixel(x-1,y,color);
+                SetPixel(x+1,y,color);
             }
             else
             {
-                SetPixel(x+1,y-1,hsv);
-                SetPixel(x+1,y+1,hsv);
-                SetPixel(x-1,y-1,hsv);
-                SetPixel(x-1,y+1,hsv);
+                SetPixel(x+1,y-1,color);
+                SetPixel(x+1,y+1,color);
+                SetPixel(x-1,y-1,color);
+                SetPixel(x-1,y+1,color);
             }
         }
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
     }
-    // delete old strobes
-    x = strobe.size();
-    strobe.remove_if(StrobeHasExpired());
 }

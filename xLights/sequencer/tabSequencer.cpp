@@ -12,12 +12,6 @@
 #include "Effect.h"
 #include "../SeqSettingsDialog.h"
 
-#ifdef __WXMSW__
-#define BASEPATH wxString("c:\\temp\\")
-#else
-#define BASEPATH wxString("/tmp/")
-#endif
-
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
@@ -114,19 +108,9 @@ void xLightsFrame::InitSequencer()
         return;
     }
     // Load perspectives
+    mSequencerInitialize = true;
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
-
-    /*if (wxFile::Exists(BASEPATH + "4.mp3")) {
-        int mediaLengthMS = Waveform::GetLengthOfMusicFileInMS(BASEPATH + "4.mp3");
-        xLightsXmlFile xml_file(BASEPATH + "v4.xml");
-        xml_file.Load();
-        xml_file.SetSequenceType(wxT("Media"));
-        xml_file.SetSequenceDurationMS(mediaLengthMS);
-        xml_file.SetMediaFile(BASEPATH + "4.mp3");
-        xml_file.Save();
-        LoadSequencer(xml_file);
-    }*/
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
@@ -201,9 +185,8 @@ void xLightsFrame::CheckForValidModels()
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
-    mSequencerInitialize = true;
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
-    bool success = mSequenceElements.LoadSequencerFile(xml_file);
+    mSequenceElements.LoadSequencerFile(xml_file);
 
     CheckForValidModels();
 
@@ -286,7 +269,7 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    int position = mainSequencer->ScrollBarEffectGridHorz->GetThumbPosition();
+    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
     int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
 
     int startTime = (int)(((double)position/(double)timeLength) * (double)timeLength);
@@ -326,7 +309,7 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
         int range = mainSequencer->PanelTimeLine->GetSize().x;
         int pageSize =range;
         int thumbSize = range;
-        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(0,thumbSize,range,pageSize);
+        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(0,thumbSize,range,pageSize);
     }
     else
     {
@@ -339,10 +322,10 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
         int thumbSize = (int)(diff*(double)1000);
         int pageSize = thumbSize;
         int position = (int)(startTime * (double)1000);
-        mainSequencer->ScrollBarEffectGridHorz->SetScrollbar(position,thumbSize,range,pageSize);
+        mainSequencer->ScrollBarEffectsHorizontal->SetScrollbar(position,thumbSize,range,pageSize);
     }
 
-    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+    mainSequencer->ScrollBarEffectsHorizontal->Refresh();
 }
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
@@ -447,7 +430,7 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
 //    mainSequencer->panelEffectScrollBarSpacer->Refresh();
-    mainSequencer->ScrollBarEffectGridHorz->Refresh();
+    mainSequencer->ScrollBarEffectsHorizontal->Refresh();
     mainSequencer->ScrollBarEffectsVertical->Refresh();
 
     colorPanel->Refresh();
@@ -457,7 +440,7 @@ void xLightsFrame::ResizeMainSequencer()
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
-    mainSequencer->ScrollBarEffectGridHorz->Update();
+    mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
 void xLightsFrame::SelectedEffectChanged( wxCommandEvent& event)
@@ -574,6 +557,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (curt > playEndTime) {
         playStartMS = msec;
         curt = (playStartTime + msec - playStartMS);
+    }
+    if (curt < 0) {
+        playStartMS = -1;
+        return;
     }
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData

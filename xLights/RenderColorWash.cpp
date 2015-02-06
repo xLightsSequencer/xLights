@@ -33,21 +33,9 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
     static const int SpeedFactor=200;
     int x,y;
     xlColour color;
-    wxImage::HSVValue hsv,hsv2;
+    wxImage::HSVValue hsv,hsvx;
     size_t colorcnt=GetColorCount();
 
-#if 0 //experimental -DJ
-//NOTE: this helps a little, but there is still degradation somewhere along the render pipeline
-    if ((colorcnt == 1) && !HorizFade && !VertFade) //avoid color degradation; don't convert RGB->HSV->RGB -DJ
-    {
-//        color.Set(Shapes.GetRed(x, y), Shapes.GetGreen(x, y), Shapes.GetBlue(x, y));
-        palette.GetColor(0, color); //use true user-selected RGB color
-        for (x=0; x<BufferWi; x++)
-            for (y=0; y<BufferHt; y++)
-                SetPixel(x, y, color);
-        return;
-    }
-#endif
     if (!fitToTime)
     {
         int CycleLen=colorcnt*SpeedFactor;
@@ -63,19 +51,28 @@ void RgbEffects::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
     else
     {
         double position = GetEffectTimeIntervalPosition();
-        GetMultiColorBlend( position, true, color);
+        GetMultiColorBlend(position, true, color);
     }
-    Color2HSV(color,hsv);
+    if (HorizFade || VertFade) {
+        Color2HSV(color,hsv);
+    }
     double HalfHt=double(BufferHt-1)/2.0;
     double HalfWi=double(BufferWi-1)/2.0;
     for (x=0; x<BufferWi; x++)
     {
+        hsvx=hsv;
+        if (HorizFade) {
+            hsvx.value*=1.0-abs(HalfWi-x)/HalfWi;
+            color = hsvx;
+        }
         for (y=0; y<BufferHt; y++)
         {
-            hsv2=hsv;
-            if (HorizFade) hsv2.value*=1.0-abs(HalfWi-x)/HalfWi;
-            if (VertFade) hsv2.value*=1.0-abs(HalfHt-y)/HalfHt;
-            SetPixel(x,y,hsv2);
+            if (VertFade) {
+                wxImage::HSVValue hsvy = hsvx;
+                hsvy.value*=1.0-abs(HalfHt-y)/HalfHt;
+                color = hsvy;
+            }
+            SetPixel(x, y, color);
         }
     }
 }

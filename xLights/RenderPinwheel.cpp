@@ -22,15 +22,7 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
 
     //
     //  phi = a +b*phi
-    float phi;
     radius = xc/100.0;
-    float PI6 = M_PI*6;
-    float PI2 = M_PI*2;
-    float pi_180 = M_PI/2;
-    float phi_step = PI6/300.0;
-    float calc_phi;
-    int istart=state%1440;
-    int iend = istart+90;
 
     ColorIdx=rand()% colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
@@ -57,31 +49,33 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
         {
             tmax= (pinwheel_thickness/100.0)*degrees_per_arm/2.0;
             hsv1=hsv;
+            xlColor color(hsv1);
             for (t=1; t<=tmax; t++)
             {
                 if(pinwheel_3d==1)
                 {
                     hsv1.value = hsv.value * ((tmax-t)/tmax);
+                    color = hsv1;
                 }
                 else if(pinwheel_3d==2)
                 {
                     hsv1.value = hsv.value * ((t)/tmax);
+                    color = hsv1;
                 }
-                Draw_arm( base_degrees-t, xc*armsize, pinwheel_twist,hsv1,xc_adj,yc_adj);
-                Draw_arm( base_degrees+t, xc*armsize, pinwheel_twist,hsv1,xc_adj,yc_adj);
+                Draw_arm( base_degrees-t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);
+                Draw_arm( base_degrees+t, xc*armsize, pinwheel_twist,color,xc_adj,yc_adj);
             }
         }
     }
 }
 
 void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,
-                           wxImage::HSVValue hsv,int xc_adj,int yc_adj)
+                           const xlColor &rgb,int xc_adj,int yc_adj)
 {
     float r,phi;
     int x,y,xc,yc;
     float pi_180 = M_PI/180;
     int degrees_twist,degrees;
-    size_t colorcnt=GetColorCount();
     xc= (int)(BufferWi/2);
     yc= (int)(BufferHt/2);
     xc = xc + (xc_adj/100.0)*xc; // xc_adj is from -100 to 100
@@ -95,7 +89,7 @@ void RgbEffects::Draw_arm( int base_degrees,int max_radius,int pinwheel_twist,
         phi = degrees * pi_180;
         x = r * cos (phi) + xc;
         y = r * sin (phi) + yc;
-        SetPixel(x,y,hsv);
+        SetPixel(x, y, rgb);
     }
 }
 

@@ -318,9 +318,7 @@ const long xLightsFrame::ID_BITMAPBUTTON28 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON29 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR2 = wxNewId();
-const long xLightsFrame::ID_NEW_Non_Music_Seq = wxNewId();
-const long xLightsFrame::ID_MENUITEM3 = wxNewId();
-const long xLightsFrame::ID_New_Music_Seq = wxNewId();
+const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
@@ -349,7 +347,6 @@ const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
-const long xLightsFrame::ID_NO_THREADED_SAVE = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::idMenuAbout = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
@@ -485,6 +482,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
+    wxMenu* Menu1;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizerCal;
     wxButton* Button2;
@@ -519,6 +517,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer11;
     wxBoxSizer* BoxSizer3;
     wxFlexGridSizer* FlexGridSizer17;
+    wxMenu* Menu2;
     wxFlexGridSizer* FlexGridSizerPapagayo;
     wxFlexGridSizer* FlexGridSizer31;
     wxFlexGridSizer* FlexGridSizer40;
@@ -527,6 +526,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticBoxSizer* StaticBoxSizerBackgroundColor;
     wxMenu* MenuPlaylist;
     wxFlexGridSizer* FlexGridSizer26;
+    wxMenu* Menu5;
     wxFlexGridSizer* FlexGridSizer30;
 
     Create(parent, wxID_ANY, _("XL4 ALPHA (Ver 4.0.0) Feb5"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
@@ -1460,14 +1460,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainAuiManager->Update();
     MenuBar1 = new wxMenuBar();
     MenuFile = new wxMenu();
-    MenuItem3 = new wxMenu();
-    MenuItem6 = new wxMenuItem(MenuItem3, ID_NEW_Non_Music_Seq, _("Music Sequence"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem6->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
-    MenuItem3->Append(MenuItem6);
-    MenuItem11 = new wxMenuItem(MenuItem3, ID_MENUITEM3, _("Animation Sequence"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem11->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER));
-    MenuItem3->Append(MenuItem11);
-    MenuFile->Append(ID_New_Music_Seq, _("New Sequence"), MenuItem3, wxEmptyString);
+    MenuItem3 = new wxMenuItem(MenuFile, ID_NEW_SEQUENCE, _("New Sequence\tCtl-n"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItem3);
     MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCtl-o"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Open_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Open_Sequence);
@@ -1530,7 +1524,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem26 = new wxMenuItem(MenuItem18, ID_MENUITEM_WINDOWS_PERSPECTIVE, _("Perspectives"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem26);
     Menu5->Append(ID_MENUITEM10, _("Windows"), MenuItem18, wxEmptyString);
-    MenuBar1->Append(Menu5, _("View"));
+    MenuBar1->Append(Menu5, _("&View"));
     Menu2 = new wxMenu();
     MenuItem8 = new wxMenuItem(Menu2, ID_EXPORT_ALL, _("Export All"), wxEmptyString, wxITEM_NORMAL);
     Menu2->Append(MenuItem8);
@@ -1540,8 +1534,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Menu1 = new wxMenu();
     Menu_Settings_Sequence = new wxMenuItem(Menu1, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_Settings_Sequence);
-    ThreadedSaveMenuItem = new wxMenuItem(Menu1, ID_NO_THREADED_SAVE, _("Disable Threaded Save"), wxEmptyString, wxITEM_CHECK);
-    Menu1->Append(ThreadedSaveMenuItem);
     MenuBar1->Append(Menu1, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
@@ -1676,6 +1668,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
+    Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_SequenceSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
@@ -1692,7 +1685,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
-    Connect(ID_NO_THREADED_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ToggleThreadedSave);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
@@ -1774,9 +1766,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
         ConvertDir=dir;
     }
     FileDialogConvert->SetDirectory(ConvertDir);
-
-    threadedSave = config->ReadBool("ThreadedSave", true);
-    ThreadedSaveMenuItem->Check(!threadedSave);
 
     MainAuiManager->LoadPerspective(config->Read("ToolbarLocations"));
 
@@ -2873,15 +2862,6 @@ wxString xLightsFrame::GetXmlSetting(const wxString& settingName,const wxString&
 
 void xLightsFrame::OnChoicebook1PageChanged(wxChoicebookEvent& event)
 {
-}
-
-
-void xLightsFrame::ToggleThreadedSave(wxCommandEvent& event)
-{
-    threadedSave = !threadedSave;
-    wxConfigBase* config = wxConfigBase::Get();
-    config->Write("ThreadedSave", threadedSave);
-    ThreadedSaveMenuItem->Check(!threadedSave);
 }
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)

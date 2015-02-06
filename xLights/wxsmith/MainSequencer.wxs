@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxPanel" name="MainSequencer">
 		<id_arg>0</id_arg>
-		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>3</cols>
 			<rows>3</rows>
@@ -64,6 +63,12 @@
 					<pagesize>1</pagesize>
 					<style>wxSB_VERTICAL|wxALWAYS_SHOW_SB</style>
 					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_TOP" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_BOTTOM" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_LINEUP" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_LINEDOWN" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_PAGEUP" />
+					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_PAGEDOWN" />
 					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 					<handler function="OnScrollBarEffectsVerticalScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
 				</object>
@@ -76,13 +81,20 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxScrollBar" name="ID_SCROLLBAR_EFFECT_GRID_HORZ" variable="ScrollBarEffectGridHorz" member="yes">
+				<object class="wxScrollBar" name="ID_SCROLLBAR_EFFECT_GRID_HORZ" variable="ScrollBarEffectsHorizontal" member="yes">
 					<thumbsize>1</thumbsize>
 					<range>100</range>
 					<pagesize>1</pagesize>
 					<style>wxSB_HORIZONTAL|wxALWAYS_SHOW_SB</style>
-					<handler function="OnScrollBarEffectGridHorzScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
-					<handler function="OnScrollBarEffectGridHorzScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_TOP" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_BOTTOM" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_LINEUP" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_LINEDOWN" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_PAGEUP" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_PAGEDOWN" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<option>1</option>

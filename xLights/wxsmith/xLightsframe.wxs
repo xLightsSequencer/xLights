@@ -2924,16 +2924,10 @@
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="MenuFile" member="yes">
 				<label>&amp;File</label>
-				<object class="wxMenu" name="ID_New_Music_Seq" variable="MenuItem3" member="yes">
+				<object class="wxMenuItem" name="ID_NEW_SEQUENCE" variable="MenuItem3" member="yes">
 					<label>New Sequence</label>
-					<object class="wxMenuItem" name="ID_NEW_Non_Music_Seq" variable="MenuItem6" member="yes">
-						<label>Music Sequence</label>
-						<bitmap stock_id="wxART_NEW" />
-					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem11" member="yes">
-						<label>Animation Sequence</label>
-						<bitmap stock_id="wxART_NEW" />
-					</object>
+					<accel>Ctl-n</accel>
+					<handler function="OnButtonNewSequenceClick" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem_File_Open_Sequence" member="yes">
 					<label>Open Sequence</label>
@@ -2995,8 +2989,8 @@
 					<handler function="OnMenuItemCustomScriptSelected" entry="EVT_MENU" />
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu5" member="yes">
-				<label>View</label>
+			<object class="wxMenu" variable="Menu5" member="no">
+				<label>&amp;View</label>
 				<object class="wxMenuItem" name="ID_MENUITEM_VIEW_ZOOM_IN" variable="MenuItem_ViewZoomIn" member="yes">
 					<label>Zoom In</label>
 					<handler function="OnAuiToolBarItemZoominClick" entry="EVT_MENU" />
@@ -3046,7 +3040,7 @@
 					</object>
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu2" member="yes">
+			<object class="wxMenu" variable="Menu2" member="no">
 				<label>&amp;Export</label>
 				<object class="wxMenuItem" name="ID_EXPORT_ALL" variable="MenuItem8" member="yes">
 					<label>Export All</label>
@@ -3055,16 +3049,11 @@
 					<label>Export Model</label>
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu1" member="yes">
+			<object class="wxMenu" variable="Menu1" member="no">
 				<label>&amp;Settings</label>
 				<object class="wxMenuItem" name="ID_SEQ_SETTINGS" variable="Menu_Settings_Sequence" member="yes">
 					<label>Sequence Settings</label>
 					<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="ID_NO_THREADED_SAVE" variable="ThreadedSaveMenuItem" member="yes">
-					<label>Disable Threaded Save</label>
-					<handler function="ToggleThreadedSave" entry="EVT_MENU" />
-					<checkable>1</checkable>
 				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">

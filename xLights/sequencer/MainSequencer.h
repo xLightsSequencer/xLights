@@ -24,9 +24,9 @@ class MainSequencer: public wxPanel
 
 
 		//(*Declarations(MainSequencer)
+		wxScrollBar* ScrollBarEffectsHorizontal;
 		wxScrollBar* ScrollBarEffectsVertical;
 		EffectsGrid* PanelEffectGrid;
-		wxScrollBar* ScrollBarEffectGridHorz;
 		RowHeading* PanelRowHeadings;
 		wxPanel* PanelPlayControls;
 		Waveform* PanelWaveForm;
@@ -49,10 +49,6 @@ class MainSequencer: public wxPanel
 
 		//(*Handlers(MainSequencer)
 		void OnPanelWaveFormPaint(wxPaintEvent& event);
-		void OnScrollBarEffectGridHorzScrollChanged(wxScrollEvent& event);
-		void OnPaint(wxPaintEvent& event);
-		void OnResize(wxSizeEvent& event);
-		void OnScrollBarEffectGridHorzScrollThumbTrack(wxScrollEvent& event);
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
 		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
 		//*)

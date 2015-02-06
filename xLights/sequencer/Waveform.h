@@ -29,7 +29,6 @@ class Waveform : public wxGLCanvas
 
         int OpenfileMediaFile(const char* filename);
         void CloseMediaFile();
-        void SetCanvasSize(int width,int height);
 
         void SetZoomLevel(int level);
         int GetZoomLevel();
@@ -88,7 +87,6 @@ class Waveform : public wxGLCanvas
         wxTimer* tmrScrollRight;
         int m_shaded_region_x1;
         int m_shaded_region_x2;
-        int m_max_wave_ht;
         float* m_left_data;
         float* m_right_data;
         int mSelectedPosition;
@@ -164,7 +162,7 @@ class Waveform : public wxGLCanvas
 
         };
 
-        void DrawWaveView(WaveView wv);
+        void DrawWaveView(const WaveView &wv);
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void StartDrawing(wxDouble pointSize);
         int getWidth();
