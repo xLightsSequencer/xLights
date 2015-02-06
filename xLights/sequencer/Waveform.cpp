@@ -376,7 +376,7 @@ void Waveform::render( wxPaintEvent& event )
     SwapBuffers();
 }
 
-void Waveform::DrawWaveView(WaveView wv)
+void Waveform::DrawWaveView(const WaveView &wv)
 {
     int x,y1,y2,y1_2,y2_2;
     int index;
@@ -387,6 +387,8 @@ void Waveform::DrawWaveView(WaveView wv)
     glVertex2f(getWidth(), getHeight());
     glVertex2f(0,getHeight());
     glEnd();
+
+    int max_wave_ht = getHeight() - VERTICAL_PADDING;
 
 
     // Draw Outside rectangle
@@ -422,8 +424,8 @@ void Waveform::DrawWaveView(WaveView wv)
         index = x+mStartPixelOffset;
         if (index >= 0 && index < wv.MinMaxs.size())
         {
-            y1 = (int)((wv.MinMaxs[index].min * (float)(m_max_wave_ht/2))+ (getHeight()/2));
-            y2 = (int)((wv.MinMaxs[index].max * (float)(m_max_wave_ht/2))+ (getHeight()/2));
+            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (getHeight()/2));
+            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (getHeight()/2));
 
             if(y1 == y2)
             {
@@ -453,14 +455,14 @@ void Waveform::DrawWaveView(WaveView wv)
         index = x + mStartPixelOffset ;
         if (index >= 0 && index < wv.MinMaxs.size())
         {
-            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(m_max_wave_ht/2))+ (getHeight()/2));
-            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(m_max_wave_ht/2))+ (getHeight()/2));
+            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (getHeight()/2));
+            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (getHeight()/2));
             if(y1 != y2)
             {
                 if(x<wv.MinMaxs.size()-1)
                 {
-                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(m_max_wave_ht/2))+ (getHeight()/2));
-                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(m_max_wave_ht/2))+ (getHeight()/2));
+                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (getHeight()/2));
+                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (getHeight()/2));
                     glVertex2f(x, y1);
                     glVertex2f(x+1, y1_2);
 
@@ -482,18 +484,6 @@ void Waveform::DrawWaveView(WaveView wv)
         glVertex2f(m_shaded_region_x2+1,getHeight()-1);
     }
     glEnd();
-}
-
-
-void Waveform::SetCanvasSize(int width,int height)
-{
-    SetSize(width,height);
-    wxSize s;
-    s.SetWidth(width);
-    s.SetHeight(height);
-    //SetMaxSize(s);
-    SetMinSize(s);
-    m_max_wave_ht = height - VERTICAL_PADDING;
 }
 
 void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
