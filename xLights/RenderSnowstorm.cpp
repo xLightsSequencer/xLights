@@ -103,6 +103,9 @@ void RgbEffects::RenderSnowstorm(int Count, int TailLength)
     SnowstormClass ssItem;
     wxPoint xy;
     int r;
+    if (TailLength == 0) {
+        TailLength = 1;
+    }
 
     if (state == 0 || Count != LastSnowstormCount)
     {
