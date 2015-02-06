@@ -575,6 +575,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
         playStartMS = msec;
         curt = (playStartTime + msec - playStartMS);
     }
+    if (curt < 0) {
+        playStartMS = -1;
+        return;
+    }
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     int nn = playBuffer.GetNodeCount();

@@ -1381,7 +1381,7 @@ public:
                              PixelBufferClass &buffer, bool &ResetEffectState,
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
-    void RenderEffectForModel(const wxString &model, int startms, int endms);
+    void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
     void EnableSequenceControls(bool enable);
 
 

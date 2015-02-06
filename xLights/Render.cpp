@@ -387,7 +387,7 @@ void xLightsFrame::RenderGridToSeqData() {
     delete []noDepJobs;
 }
 
-void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms) {
+void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms, bool clear) {
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);
