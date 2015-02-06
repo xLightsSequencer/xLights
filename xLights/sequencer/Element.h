@@ -62,8 +62,7 @@ class Element
         bool mActive;
         bool mSelected;
         int mFixed;
-        std::vector<EffectLayer> mEffectLayers;
-
+        std::vector<EffectLayer*> mEffectLayers;
 };
 
 #endif // ELEMENT_H

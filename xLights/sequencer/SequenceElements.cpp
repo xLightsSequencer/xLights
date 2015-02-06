@@ -18,6 +18,9 @@ SequenceElements::SequenceElements()
 
 SequenceElements::~SequenceElements()
 {
+    for (int x = 0; x < mElements.size(); x++) {
+        delete mElements[x];
+    }
 }
 
 
@@ -25,8 +28,7 @@ void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,boo
 {
     if(!ElementExists(name))
     {
-        Element e(name,type,visible,collapsed,active,selected);
-        mElements.push_back(e);
+        mElements.push_back(new Element(name,type,visible,collapsed,active,selected));
     }
 }
 
@@ -39,7 +41,7 @@ bool SequenceElements::ElementExists(wxString elementName)
 {
     for(int i=0;i<mElements.size();i++)
     {
-        if(mElements[i].GetName() == elementName)
+        if(mElements[i]->GetName() == elementName)
         {
             return true;
         }
@@ -70,9 +72,9 @@ Element* SequenceElements::GetElement(const wxString &name)
 {
     for(int i=0;i<mElements.size();i++)
     {
-        if(name == mElements[i].GetName())
+        if(name == mElements[i]->GetName())
         {
-            return &mElements[i];
+            return mElements[i];
         }
     }
     return NULL;
@@ -82,7 +84,7 @@ Element* SequenceElements::GetElement(int index)
 {
     if(index < mElements.size())
     {
-        return &mElements[index]
+        return mElements[index]
 ;    }
     else
     {
@@ -95,9 +97,11 @@ void SequenceElements::DeleteElement(wxString name)
 {
     for(int i=0;i<mElements.size();i++)
     {
-        if(name == mElements[i].GetName())
+        if(name == mElements[i]->GetName())
         {
+            Element *e = mElements[i];
             mElements.erase(mElements.begin()+i);
+            delete e;
         }
     }
 }
@@ -129,18 +133,18 @@ void SequenceElements::MoveElement(int index,int destinationIndex)
 {
     if(index<destinationIndex)
     {
-        mElements[index].Index = destinationIndex;
+        mElements[index]->Index = destinationIndex;
         for(int i=index+1;i<destinationIndex;i++)
         {
-            mElements[i].Index = i-1;
+            mElements[i]->Index = i-1;
         }
     }
     else
     {
-        mElements[index].Index = destinationIndex;
+        mElements[index]->Index = destinationIndex;
         for(int i=destinationIndex;i<index;i++)
         {
-            mElements[i].Index = i+1;
+            mElements[i]->Index = i+1;
         }
     }
     SortElements();
@@ -317,18 +321,18 @@ void SequenceElements::PopulateRowInformation()
     mTimingRowCount = 0;
     for(int i=0;i<mElements.size();i++)
     {
-        if(mElements[i].GetVisible())
+        if(mElements[i]->GetVisible())
         {
-            if (mElements[i].GetType()=="model")
+            if (mElements[i]->GetType()=="model")
             {
-                if(!mElements[i].GetCollapsed())
+                if(!mElements[i]->GetCollapsed())
                 {
-                    for(int j =0; j<mElements[i].GetEffectLayerCount();j++)
+                    for(int j =0; j<mElements[i]->GetEffectLayerCount();j++)
                     {
                         Row_Information_Struct ri;
-                        ri.element = &mElements[i];
-                        ri.Collapsed = mElements[i].GetCollapsed();
-                        ri.Active = mElements[i].GetActive();
+                        ri.element = mElements[i];
+                        ri.Collapsed = mElements[i]->GetCollapsed();
+                        ri.Active = mElements[i]->GetActive();
                         ri.PartOfView = false;
                         ri.colorIndex = 0;
                         ri.layerIndex = j;
@@ -339,9 +343,9 @@ void SequenceElements::PopulateRowInformation()
                 else
                 {
                     Row_Information_Struct ri;
-                    ri.element = &mElements[i];
-                    ri.Collapsed = mElements[i].GetCollapsed();
-                    ri.Active = mElements[i].GetActive();
+                    ri.element = mElements[i];
+                    ri.Collapsed = mElements[i]->GetCollapsed();
+                    ri.Active = mElements[i]->GetActive();
                     ri.PartOfView = false;
                     ri.colorIndex = 0;
                     ri.layerIndex = 0;
@@ -349,12 +353,12 @@ void SequenceElements::PopulateRowInformation()
                     mRowInformation.push_back(ri);
                 }
             }
-            else if (mElements[i].GetType()=="timing")
+            else if (mElements[i]->GetType()=="timing")
             {
                 Row_Information_Struct ri;
-                ri.element = &mElements[i];
-                ri.Collapsed = mElements[i].GetCollapsed();
-                ri.Active = mElements[i].GetActive();
+                ri.element = mElements[i];
+                ri.Collapsed = mElements[i]->GetCollapsed();
+                ri.Active = mElements[i]->GetActive();
                 ri.PartOfView = false;
                 ri.colorIndex = timingColorIndex;
                 ri.layerIndex = 0;
@@ -371,18 +375,18 @@ void SequenceElements::PopulateRowInformation()
             else        // View
             {
                 Row_Information_Struct ri;
-                ri.element = &mElements[i];
-                ri.Collapsed = mElements[i].GetCollapsed();
-                ri.Active = mElements[i].GetActive();
+                ri.element = mElements[i];
+                ri.Collapsed = mElements[i]->GetCollapsed();
+                ri.Active = mElements[i]->GetActive();
                 ri.PartOfView = false;
                 ri.colorIndex = 0;
                 ri.layerIndex = 0;
                 ri.Index = rowIndex++;
                 mRowInformation.push_back(ri);
-                if(!mElements[i].GetCollapsed())
+                if(!mElements[i]->GetCollapsed())
                 {
                     // Add models/effect layers in view
-                    wxString models = GetViewModels(mElements[i].GetName());
+                    wxString models = GetViewModels(mElements[i]->GetName());
                     if(models.length()> 0)
                     {
                         wxArrayString model=wxSplit(models,',');
@@ -396,7 +400,7 @@ void SequenceElements::PopulateRowInformation()
                                     Row_Information_Struct r;
                                     r.element = element;
                                     r.Collapsed = element->GetCollapsed();
-                                    r.Active = mElements[i].GetActive();
+                                    r.Active = mElements[i]->GetActive();
                                     r.PartOfView = false;
                                     r.colorIndex = 0;
                                     r.layerIndex = j;
@@ -409,7 +413,7 @@ void SequenceElements::PopulateRowInformation()
                                 Row_Information_Struct r;
                                 r.element = element;
                                 r.Collapsed = element->GetCollapsed();
-                                r.Active = mElements[i].GetActive();
+                                r.Active = mElements[i]->GetActive();
                                 r.PartOfView = false;
                                 r.colorIndex = 0;
                                 r.layerIndex = 0;
@@ -490,9 +494,9 @@ void SequenceElements::DeactivateAllTimingElements()
 {
     for(int i=0;i<mElements.size();i++)
     {
-        if(mElements[i].GetType()=="timing")
+        if(mElements[i]->GetType()=="timing")
         {
-            mElements[i].SetActive(false);
+            mElements[i]->SetActive(false);
         }
     }
 }
@@ -543,7 +547,7 @@ void SequenceElements::UnSelectAllElements()
 {
     for(int i=0;i<mElements.size();i++)
     {
-        mElements[i].SetSelected(false);
+        mElements[i]->SetSelected(false);
     }
 }
 

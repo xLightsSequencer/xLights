@@ -14,6 +14,9 @@ EffectLayer::~EffectLayer()
 {
     // Place at bottom of stack
     mIndex = 1000;
+    for (int x = 0; x < mEffects.size(); x++) {
+        delete mEffects[x];
+    }
 }
 
 int EffectLayer::GetIndex()
@@ -31,7 +34,7 @@ Effect* EffectLayer::GetEffect(int index)
 {
     if(index < mEffects.size())
     {
-        return &mEffects[index];
+        return mEffects[index];
     }
     else
     {
@@ -39,25 +42,27 @@ Effect* EffectLayer::GetEffect(int index)
     }
 }
 
-Effect* EffectLayer::RemoveEffect(int index)
+void EffectLayer::RemoveEffect(int index)
 {
     if(index<mEffects.size())
     {
+        Effect *e = mEffects[index];
         mEffects.erase(mEffects.begin()+index);
+        delete e;
     }
 }
 
 void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString settings,double startTime,double endTime, int Selected, bool Protected)
 {
-    Effect e(this);
-    e.SetID(id);
-    e.SetEffectIndex(effectIndex);
-    e.SetEffectName(name);
-    e.SetSettings(settings);
-    e.SetStartTime(startTime);
-    e.SetEndTime(endTime);
-    e.SetProtected(Protected);
-    e.SetSelected(Selected);
+    Effect *e = new Effect(this);
+    e->SetID(id);
+    e->SetEffectIndex(effectIndex);
+    e->SetEffectName(name);
+    e->SetSettings(settings);
+    e->SetStartTime(startTime);
+    e->SetEndTime(endTime);
+    e->SetProtected(Protected);
+    e->SetSelected(Selected);
     mEffects.push_back(e);
     SortEffects();
 }
@@ -72,7 +77,7 @@ bool EffectLayer::IsStartTimeLinked(int index)
 {
     if(index < mEffects.size())
     {
-        return mEffects[index-1].GetEndTime() == mEffects[index].GetStartTime();
+        return mEffects[index-1]->GetEndTime() == mEffects[index]->GetStartTime();
     }
     else
     {
@@ -84,7 +89,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
 {
     if(index < mEffects.size())
     {
-        return mEffects[index].GetEndTime() == mEffects[index+1].GetStartTime();
+        return mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime();
     }
     else
     {
@@ -100,13 +105,13 @@ float EffectLayer::GetMaximumEndTime(int index)
     }
     else
     {
-        if(mEffects[index].GetEndTime() == mEffects[index+1].GetStartTime())
+        if(mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime())
         {
-            return mEffects[index+1].GetEndTime();
+            return mEffects[index+1]->GetEndTime();
         }
         else
         {
-            return mEffects[index+1].GetStartTime();
+            return mEffects[index+1]->GetStartTime();
         }
     }
 }
@@ -119,13 +124,13 @@ float EffectLayer::GetMinimumStartTime(int index)
     }
     else
     {
-        if(mEffects[index-1].GetEndTime() == mEffects[index].GetStartTime())
+        if(mEffects[index-1]->GetEndTime() == mEffects[index]->GetStartTime())
         {
-            return mEffects[index-1].GetStartTime();
+            return mEffects[index-1]->GetStartTime();
         }
         else
         {
-            return mEffects[index-1].GetEndTime();
+            return mEffects[index-1]->GetEndTime();
         }
     }
 }
@@ -143,20 +148,20 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     bool isHit=false;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].GetEndPosition() - mEffects[i].GetStartPosition() > 10)
+        if(mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition() > 10)
         {
-            int s =  mEffects[i].GetStartPosition();
-            int e =  mEffects[i].GetEndPosition();
-            if (position >= mEffects[i].GetStartPosition() &&
-                position <= mEffects[i].GetEndPosition())
+            int s =  mEffects[i]->GetStartPosition();
+            int e =  mEffects[i]->GetEndPosition();
+            if (position >= mEffects[i]->GetStartPosition() &&
+                position <= mEffects[i]->GetEndPosition())
             {
                 isHit = true;
                 index = i;
-                if(position < mEffects[i].GetStartPosition() + 5)
+                if(position < mEffects[i]->GetStartPosition() + 5)
                 {
                     result = HIT_TEST_EFFECT_LT;
                 }
-                else if(position > mEffects[i].GetEndPosition() - 5)
+                else if(position > mEffects[i]->GetEndPosition() - 5)
                 {
                     result = HIT_TEST_EFFECT_RT;
                 }
@@ -177,18 +182,18 @@ int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionT
    selectionType = EFFECT_NOT_SELECTED;
     for(int i=0;i<mEffects.size();i++)
     {
-        int s =  mEffects[i].GetStartPosition();
-        int e =  mEffects[i].GetEndPosition();
-        if (position >= mEffects[i].GetStartPosition() &&
-            position <= mEffects[i].GetEndPosition())
+        int s =  mEffects[i]->GetStartPosition();
+        int e =  mEffects[i]->GetEndPosition();
+        if (position >= mEffects[i]->GetStartPosition() &&
+            position <= mEffects[i]->GetEndPosition())
         {
             index = i;
 
-            if(position < mEffects[i].GetStartPosition() + 5)
+            if(position < mEffects[i]->GetStartPosition() + 5)
             {
                 selectionType = EFFECT_LT_SELECTED;
             }
-            else if(position > mEffects[i].GetEndPosition() - 5)
+            else if(position > mEffects[i]->GetEndPosition() - 5)
             {
                 selectionType = EFFECT_RT_SELECTED;
             }
@@ -207,7 +212,7 @@ Effect* EffectLayer::GetEffectBeforePosition(int position)
     int i;
     for(i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i].GetStartPosition()>position)
+        if(mEffects[i]->GetStartPosition()>position)
         {
             break;
         }
@@ -218,7 +223,7 @@ Effect* EffectLayer::GetEffectBeforePosition(int position)
     }
     else
     {
-        return &mEffects[i-1];
+        return mEffects[i-1];
     }
 }
 
@@ -227,7 +232,7 @@ Effect* EffectLayer::GetEffectAfterPosition(int position)
     int i;
     for(i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i].GetEndPosition()<position)
+        if(mEffects[i]->GetEndPosition()<position)
         {
             break;
         }
@@ -238,7 +243,7 @@ Effect* EffectLayer::GetEffectAfterPosition(int position)
     }
     else
     {
-        return &mEffects[i+1];
+        return mEffects[i+1];
     }
 }
 
@@ -249,21 +254,21 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
     FirstSelected = -1;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].GetStartPosition() < 0 &&
-           mEffects[i].GetEndPosition() < 0)
+        if(mEffects[i]->GetStartPosition() < 0 &&
+           mEffects[i]->GetEndPosition() < 0)
         {
             continue;
         }
-        int center = mEffects[i].GetStartPosition() + ((mEffects[i].GetEndPosition() - mEffects[i].GetStartPosition())/2);
+        int center = mEffects[i]->GetStartPosition() + ((mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition())/2);
         int squareWidth =  center<MINIMUM_EFFECT_WIDTH_FOR_ICON?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:EFFECT_ICON_WIDTH;
         int squareLeft = center - (squareWidth/2);
         int squareRight = center + (squareWidth/2);
         // If selection around icon/square
         if (startX>squareLeft && endX < squareRight)
         {
-            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
+            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].SetSelected(EFFECT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -272,14 +277,14 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             }
             else
             {
-                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         else if (startX<squareLeft && endX > squareRight)
         {
-            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
+            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].SetSelected(EFFECT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -288,15 +293,15 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             }
             else
             {
-                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on left side
-        else if (endX>mEffects[i].GetStartPosition() && endX<squareLeft)
+        else if (endX>mEffects[i]->GetStartPosition() && endX<squareLeft)
         {
-            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
+            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].SetSelected(EFFECT_LT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_LT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -305,15 +310,15 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             }
             else
             {
-                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
         // If selection on right side
-        else if (startX > squareRight && startX < mEffects[i].GetEndPosition())
+        else if (startX > squareRight && startX < mEffects[i]->GetEndPosition())
         {
-            if(mEffects[i].GetSelected()==EFFECT_NOT_SELECTED)
+            if(mEffects[i]->GetSelected()==EFFECT_NOT_SELECTED)
             {
-                mEffects[i].SetSelected(EFFECT_RT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_RT_SELECTED);
                 if(!FirstSelectedFound)
                 {
                     FirstSelectedFound = true;
@@ -322,7 +327,7 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             }
             else
             {
-                mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
+                mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
             }
         }
     }
@@ -332,14 +337,14 @@ void EffectLayer::SelectEffectsInTimeRange(double startTime,int endTime)
 {
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].GetStartTime() >= startTime &&  mEffects[i].GetStartTime() < endTime)
+        if(mEffects[i]->GetStartTime() >= startTime &&  mEffects[i]->GetStartTime() < endTime)
         {
-            mEffects[i].SetSelected(EFFECT_SELECTED);
+            mEffects[i]->SetSelected(EFFECT_SELECTED);
         }
 
-        if(mEffects[i].GetEndTime() <= endTime &&  mEffects[i].GetEndTime() > startTime)
+        if(mEffects[i]->GetEndTime() <= endTime &&  mEffects[i]->GetEndTime() > startTime)
         {
-            mEffects[i].SetSelected(EFFECT_SELECTED);
+            mEffects[i]->SetSelected(EFFECT_SELECTED);
         }
     }
 }
@@ -349,7 +354,7 @@ void EffectLayer::UnSelectAllEffects()
 {
     for(int i=0;i<mEffects.size();i++)
     {
-        mEffects[i].SetSelected(EFFECT_NOT_SELECTED);
+        mEffects[i]->SetSelected(EFFECT_NOT_SELECTED);
     }
 }
 
@@ -372,7 +377,7 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,dou
     double effectMax = 0;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i].GetSelected() != EFFECT_NOT_SELECTED)
+        if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
         {
             double l,r;
             GetMaximumRangeOfMovementForEffect(i,l,r);
@@ -385,7 +390,7 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,dou
 
 void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, double &toLeft, double &toRight)
 {
-    switch(mEffects[index].GetSelected())
+    switch(mEffects[index]->GetSelected())
     {
         case EFFECT_LT_SELECTED:
             GetMaximumRangeWithLeftMovement(index,toLeft,toRight);
@@ -407,32 +412,32 @@ void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, double &toLeft, 
 
 void EffectLayer::GetMaximumRangeWithLeftMovement(int index, double &toLeft, double &toRight)
 {
-    toRight = mEffects[index].GetEndTime() - mEffects[index].GetStartTime();
+    toRight = mEffects[index]->GetEndTime() - mEffects[index]->GetStartTime();
     if(index == 0)
     {
-       toLeft = mEffects[index].GetStartTime();
+       toLeft = mEffects[index]->GetStartTime();
     }
     else
     {
-       if(mEffects[index-1].GetSelected() == EFFECT_NOT_SELECTED)
+       if(mEffects[index-1]->GetSelected() == EFFECT_NOT_SELECTED)
        {
-          toLeft = mEffects[index].GetStartTime() - mEffects[index-1].GetEndTime();
+          toLeft = mEffects[index]->GetStartTime() - mEffects[index-1]->GetEndTime();
        }
-       else if(mEffects[index-1].GetSelected() == EFFECT_RT_SELECTED)
+       else if(mEffects[index-1]->GetSelected() == EFFECT_RT_SELECTED)
        {
-          toLeft = mEffects[index].GetStartTime() - mEffects[index-1].GetStartTime();
+          toLeft = mEffects[index]->GetStartTime() - mEffects[index-1]->GetStartTime();
        }
-       else if(mEffects[index-1].GetSelected() == EFFECT_SELECTED)
+       else if(mEffects[index-1]->GetSelected() == EFFECT_SELECTED)
        {
            // Do not know so set to maximum. Let the effects to left decide
-          toLeft = mEffects[index].GetStartTime();
+          toLeft = mEffects[index]->GetStartTime();
        }
     }
 }
 
 void EffectLayer::GetMaximumRangeWithRightMovement(int index, double &toLeft, double &toRight)
 {
-    toLeft = mEffects[index].GetEndTime() - mEffects[index].GetStartTime();
+    toLeft = mEffects[index]->GetEndTime() - mEffects[index]->GetStartTime();
     // Last effect, nothing to right to stop movement other then edge of screen.
     // Let grid take care of screen boundary so set to huge number
     if(index == mEffects.size()-1)
@@ -441,15 +446,15 @@ void EffectLayer::GetMaximumRangeWithRightMovement(int index, double &toLeft, do
     }
     else
     {
-       if(mEffects[index+1].GetSelected() == EFFECT_NOT_SELECTED)
+       if(mEffects[index+1]->GetSelected() == EFFECT_NOT_SELECTED)
        {
-          toRight = mEffects[index+1].GetStartTime() - mEffects[index].GetEndTime();
+          toRight = mEffects[index+1]->GetStartTime() - mEffects[index]->GetEndTime();
        }
-       else if(mEffects[index+1].GetSelected() == EFFECT_LT_SELECTED)
+       else if(mEffects[index+1]->GetSelected() == EFFECT_LT_SELECTED)
        {
-          toRight = mEffects[index+1].GetEndTime() - mEffects[index].GetEndTime();
+          toRight = mEffects[index+1]->GetEndTime() - mEffects[index]->GetEndTime();
        }
-       else if(mEffects[index+1].GetSelected() == EFFECT_SELECTED)
+       else if(mEffects[index+1]->GetSelected() == EFFECT_SELECTED)
        {
            // Do not know so set to maximum. Let the effects to right decide
           toRight = NO_MAX;
@@ -463,7 +468,7 @@ int EffectLayer::GetSelectedEffectCount()
     int count=0;
     for(int i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i].GetSelected() != EFFECT_NOT_SELECTED)
+        if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
         {
            count++;
         }
@@ -475,14 +480,14 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
 {
     for(int i=0; i<mEffects.size();i++)
     {
-        if(mEffects[i].GetSelected() == EFFECT_LT_SELECTED || mEffects[i].GetSelected() == EFFECT_SELECTED)
+        if(mEffects[i]->GetSelected() == EFFECT_LT_SELECTED || mEffects[i]->GetSelected() == EFFECT_SELECTED)
         {
-            mEffects[i].SetStartTime( mEffects[i].GetStartTime()+ delta);
+            mEffects[i]->SetStartTime( mEffects[i]->GetStartTime()+ delta);
         }
 
-        if(mEffects[i].GetSelected() == EFFECT_RT_SELECTED || mEffects[i].GetSelected() == EFFECT_SELECTED)
+        if(mEffects[i]->GetSelected() == EFFECT_RT_SELECTED || mEffects[i]->GetSelected() == EFFECT_SELECTED)
         {
-            mEffects[i].SetEndTime( mEffects[i].GetEndTime()+ delta);
+            mEffects[i]->SetEndTime( mEffects[i]->GetEndTime()+ delta);
         }
     }
 }
@@ -492,7 +497,7 @@ void EffectLayer::DeleteSelectedEffects()
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
 }
 
-bool EffectLayer::ShouldDeleteSelected(Effect eff)
+bool EffectLayer::ShouldDeleteSelected(Effect *eff)
 {
-    return eff.GetSelected() != EFFECT_NOT_SELECTED;
+    return eff->GetSelected() != EFFECT_NOT_SELECTED;
 }

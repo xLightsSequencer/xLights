@@ -89,12 +89,12 @@ class SequenceElements
     protected:
     private:
 
-        static bool SortElementsByIndex(const Element &element1,const Element &element2)
+        static bool SortElementsByIndex(const Element *element1,const Element *element2)
         {
-            return (element1.Index<element2.Index);
+            return (element1->Index<element2->Index);
         }
 
-        std::vector<Element> mElements;
+        std::vector<Element*> mElements;
 
         // A vector of all the visible elements that may not be on screen
         // because they all do not fit. The timing elements will always
