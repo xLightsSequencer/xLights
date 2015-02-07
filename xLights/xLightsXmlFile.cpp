@@ -790,6 +790,11 @@ bool xLightsXmlFile::LoadSequence()
                 else if( element->GetName() == "mediaFile")
                 {
                     media_file = element->GetNodeContent();
+                    wxFileName mf = media_file;
+                    if( mf.FileExists() )
+                    {
+                        has_audio_media = true;
+                    }
                 }
                 else if( element->GetName() == "sequenceDuration")
                 {

@@ -441,6 +441,19 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_Warn_No_Media" variable="StaticText_Warn_No_Media" member="yes">
+					<label>Media File must be selected or change to animation!</label>
+					<hidden>1</hidden>
+					<fg>#FF0000</fg>
+					<font>
+						<weight>bold</weight>
+					</font>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 					<cols>2</cols>
 					<object class="sizeritem">

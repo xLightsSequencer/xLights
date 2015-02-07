@@ -57,6 +57,7 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Comment;
 		wxStaticText* StaticText_Xml_Comment;
 		wxTextCtrl* TextCtrl_Xml_Author;
+		wxStaticText* StaticText_Warn_No_Media;
 		wxStaticText* StaticText_Xml_Song;
 		wxPanel* Panel2;
 		wxChoice* Choice_Xml_Seq_Type;
@@ -110,6 +111,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_PANEL2;
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
+		static const long ID_STATICTEXT_Warn_No_Media;
 		static const long ID_BUTTON_Close;
 		//*)
 

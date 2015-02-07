@@ -26,16 +26,71 @@ void xLightsFrame::OpenSequence()
         xml_file.SetExt("xml");
         wxFileName media_file;
 
-        // load the fseq data file if it exits
+        // load the fseq data file if it exists
         xlightsFilename = fseq_file.GetFullPath();
         if( fseq_file.FileExists() )
         {
-            xlightsFilename = fseq_file.GetFullPath();
-            LoadFSEQ(xlightsFilename, media_file);
+            wxString mf;
+            ReadFalconFile(xlightsFilename, &mf);
+            if( mf != "" )
+            {
+                media_file = mf;
+                find_media = false;
+            }
             DisplayXlightsFilename(xlightsFilename);
             SeqBaseChannel=1;
             SeqChanCtrlBasic=false;
             SeqChanCtrlColor=false;
+        }
+
+        // assign global xml file object
+        delete CurrentSeqXmlFile;
+        CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+
+        // open the xml file so we can see if it has media
+        CurrentSeqXmlFile->Open();
+
+        // if fseq didn't have media check xml
+        if( CurrentSeqXmlFile->HasAudioMedia() )
+        {
+            media_file = CurrentSeqXmlFile->GetMediaFile();
+            find_media = false;
+        }
+
+        // still no media file?  look for an XSEQ file and load if found
+        if( find_media )
+        {
+            wxFileName xseq_file = selected_file;
+            xseq_file.SetExt("xseq");
+            if( xseq_file.FileExists() )
+            {
+                wxString mf;
+                ReadXlightsFile(xseq_file.GetFullPath(), &mf);
+                if( mf != "" )
+                {
+                    media_file = mf;
+                    find_media = false;
+                }
+                DisplayXlightsFilename(xlightsFilename);
+                SeqBaseChannel=1;
+                SeqChanCtrlBasic=false;
+                SeqChanCtrlColor=false;
+            }
+        }
+
+        // if fseq or xseq had media update xml
+        if( !CurrentSeqXmlFile->HasAudioMedia() && !find_media )
+        {
+            CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
+            CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
+        }
+
+        if( CurrentSeqXmlFile->WasConverted() )
+        {
+            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
+            setting_dlg.Fit();
+            setting_dlg.ShowModal();
+            if( CurrentSeqXmlFile->HasAudioMedia() )  find_media = false;  // user may have set audio file in dialog
         }
 
         // search for missing media file
@@ -58,36 +113,19 @@ void xLightsFrame::OpenSequence()
                     detect_media.SetPath(selected_file.GetPath());
                     if( detect_media.FileExists() ) media_file = detect_media;
                 }
+                if( media_file.FileExists() )  // if media was found update xml data
+                {
+                    CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
+                    CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
+                }
             }
         }
 
-        // assign global xml file object
-        delete CurrentSeqXmlFile;
-        CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
-
-        if( CurrentSeqXmlFile->IsV3Sequence() )
-        {
-            SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("Please check settings before v3 conversion!"));
-            setting_dlg.Fit();
-            setting_dlg.ShowModal();
-        }
-
-        CurrentSeqXmlFile->Open();
-
-        if( CurrentSeqXmlFile->HasAudioMedia() )  // user may have set audio file in dialog during a conversion
+        // load media if available
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
         {
             SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
         }
-        else
-        {
-            SetMediaFilename(media_file.GetFullPath());
-            if( find_media && media_file.FileExists() )
-            {
-                CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
-                CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
-            }
-        }
-
 
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
@@ -135,11 +173,4 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
     }
 
     return false;
-}
-
-void xLightsFrame::LoadFSEQ(const wxString& FileName, wxFileName& media_file)
-{
-    wxString mf;
-    ReadFalconFile(FileName, &mf);
-    media_file = mf;
 }

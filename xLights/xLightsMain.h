@@ -1218,15 +1218,12 @@ private:
     wxString mBackgroundImage;
     int mBackgroundBrightness;
 
-    // Sequence File Support functions
-    void LoadFSEQ(const wxString& FileName, wxFileName& media_file);
-
     // convert
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const wxString& filename);
     void ReadLorFile(const wxString& filename, int LORImportInterval);
     void ReadHLSFile(const wxString& filename);
-    void ReadXlightsFile(const wxString& FileName);
+    void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadFalconFile(const wxString& FileName, wxString *mediaFilename = NULL);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
