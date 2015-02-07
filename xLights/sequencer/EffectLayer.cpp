@@ -87,7 +87,7 @@ bool EffectLayer::IsStartTimeLinked(int index)
 
 bool EffectLayer::IsEndTimeLinked(int index)
 {
-    if(index < mEffects.size())
+    if(index < mEffects.size()-1)
     {
         return mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime();
     }
