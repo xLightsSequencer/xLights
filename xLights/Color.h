@@ -52,7 +52,10 @@ public:
         return *this;
     }
     xlColor&operator=(const wxImage::RGBValue& rgb) {
-        return operator=(rgb);
+        red = rgb.red;
+        blue = rgb.blue;
+        green = rgb.green;
+        return *this;
     }
     bool operator==(const xlColor &rgb) const {
         return (red == rgb.red)
