@@ -2028,6 +2028,9 @@ xLightsFrame::~xLightsFrame()
     //must call these or the app will crash on exit
     m_mgr->UnInit();
     MainAuiManager->UnInit();
+    
+    delete CurrentSeqXmlFile;
+    CurrentSeqXmlFile = NULL;
 
     //(*Destroy(xLightsFrame)
     //*)

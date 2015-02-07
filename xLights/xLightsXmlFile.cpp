@@ -29,8 +29,6 @@ xLightsXmlFile::~xLightsXmlFile()
     models.Clear();
     header_info.Clear();
     timing_list.Clear();
-    wxXmlNode* root=seqDocument.GetRoot();
-    delete root;
 }
 
 bool xLightsXmlFile::IsXmlSequence(wxFileName &fname)
