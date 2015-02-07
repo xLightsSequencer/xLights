@@ -315,9 +315,9 @@ void xLightsFrame::RenderGridToSeqData() {
     NextRenderer wait;
     Element *lastRowEl = NULL;
     AggregatorRenderer aggregator(SeqData.NumFrames());
-    bool *channelsRendered = new bool[SeqData.NumChannels()];
+    int *channelsRendered = new int[SeqData.NumChannels()];
     for (int x = 0; x < SeqData.NumChannels(); x++) {
-        channelsRendered[x] = false;
+        channelsRendered[x] = -1;
     }
     
     int noDepsCount = 0;
@@ -339,10 +339,11 @@ void xLightsFrame::RenderGridToSeqData() {
             for (int node = 0; node < buffer->GetNodeCount(); node++) {
                 for (int c = 0; c < cn; c++) {
                     int cnum = buffer->GetAbsoluteChannel(node, c);
-                    if (channelsRendered[cnum]) {
+                    if (channelsRendered[cnum] >= 0
+                        && channelsRendered[cnum] != row) {
                         hasDep = true;
                     } else {
-                        channelsRendered[cnum] = true;
+                        channelsRendered[cnum] = row;
                     }
                 }
             }
