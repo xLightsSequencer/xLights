@@ -29,6 +29,7 @@
 
 class EffectLayer;
 
+
 class Effect
 {
     public:
@@ -94,6 +95,8 @@ class Effect
 };
 
 bool operator<(const Effect &e1, const Effect &e2);
+
+
 
 
 #endif // EFFECT_H
