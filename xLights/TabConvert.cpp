@@ -1334,7 +1334,7 @@ void FRAMECLASS ReadConductorFile(const wxString& FileName)
 }
 #endif
 
-void FRAMECLASS ReadXlightsFile(const wxString& FileName)
+void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilename)
 {
     wxFile f;
     char hdr[512],filetype[10];
@@ -1358,7 +1358,11 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName)
         SeqData.init(numch, numper, 50);
         char * buf = new char[numper];
         wxString filename=FromAscii(hdr+32);
-        SetMediaFilename(filename);
+        if (mediaFilename) {
+            *mediaFilename = filename;
+        } else {
+            SetMediaFilename(filename);
+        }
         for (int x = 0; x < numch; x++) {
             readcnt = f.Read(buf, numper);
             if (readcnt < numper)

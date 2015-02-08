@@ -57,6 +57,7 @@ class EffectLayer
         void MoveAllSelectedEffects(double delta);
         void DeleteSelectedEffects();
         static bool ShouldDeleteSelected(Effect *eff);
+        static bool SortEffectByStartTime(Effect* e1,Effect* e2);
     protected:
     private:
 
@@ -69,6 +70,7 @@ class EffectLayer
         int mIndex;
         Element* mParentElement;
 };
+
 
 #endif // EFFECTLAYER_H
 

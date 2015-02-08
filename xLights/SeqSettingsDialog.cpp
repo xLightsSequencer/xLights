@@ -53,6 +53,7 @@ const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
+const long SeqSettingsDialog::ID_STATICTEXT_Warn_No_Media = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
@@ -210,6 +211,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFont StaticText_WarningFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
 	StaticText_Warning->SetFont(StaticText_WarningFont);
 	FlexGridSizer1->Add(StaticText_Warning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Warn_No_Media = new wxStaticText(this, ID_STATICTEXT_Warn_No_Media, _("Media File must be selected or change to animation!"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warn_No_Media"));
+	StaticText_Warn_No_Media->Hide();
+	StaticText_Warn_No_Media->SetForegroundColour(wxColour(255,0,0));
+	wxFont StaticText_Warn_No_MediaFont(wxDEFAULT,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+	StaticText_Warn_No_Media->SetFont(StaticText_Warn_No_MediaFont);
+	FlexGridSizer1->Add(StaticText_Warn_No_Media, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
 	Button_Close = new wxButton(this, ID_BUTTON_Close, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
 	FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -304,6 +311,16 @@ void SeqSettingsDialog::ProcessSequenceType()
 {
     wxString type = xml_file->GetSequenceType();
     BitmapButton_Xml_Media_File->Enable((type == "Media"));
+    TextCtrl_Xml_Media_File->Enable((type == "Media"));
+    if( type == "Media" && !xml_file->HasAudioMedia() )
+    {
+        StaticText_Warn_No_Media->Show();
+    }
+    else
+    {
+        StaticText_Warn_No_Media->Hide();
+    }
+    Fit();
 }
 
 void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
@@ -338,7 +355,7 @@ void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event
         xml_file->SetSequenceDuration(length);
         TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
         StaticText_Warning->Hide();
-        Fit();
+        ProcessSequenceType();
     }
 
     OpenDialog->Destroy();

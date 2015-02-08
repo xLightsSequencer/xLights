@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include "EffectsGrid.h"
+#include "Effect.h"
 
 
 
@@ -70,7 +71,7 @@ void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString set
 
 void EffectLayer::SortEffects()
 {
-    std::sort(mEffects.begin(),mEffects.end());
+    std::sort(mEffects.begin(),mEffects.end(),SortEffectByStartTime);
 }
 
 bool EffectLayer::IsStartTimeLinked(int index)
@@ -87,7 +88,7 @@ bool EffectLayer::IsStartTimeLinked(int index)
 
 bool EffectLayer::IsEndTimeLinked(int index)
 {
-    if(index < mEffects.size())
+    if(index < mEffects.size()-1)
     {
         return mEffects[index]->GetEndTime() == mEffects[index+1]->GetStartTime();
     }
@@ -501,3 +502,9 @@ bool EffectLayer::ShouldDeleteSelected(Effect *eff)
 {
     return eff->GetSelected() != EFFECT_NOT_SELECTED;
 }
+
+bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
+{
+    return e1->GetStartTime() < e2->GetStartTime();
+}
+
