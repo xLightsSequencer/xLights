@@ -25,8 +25,7 @@
 #include <wx/image.h>
 #include <wx/tokenzr.h>
 
-PixelBufferClass::PixelBufferClass()
-{
+PixelBufferClass::PixelBufferClass() {
     numLayers = 0;
     effects = NULL;
     sparkle_count = NULL;
@@ -38,8 +37,7 @@ PixelBufferClass::PixelBufferClass()
     fadeFactor = NULL;
 }
 
-PixelBufferClass::~PixelBufferClass()
-{
+PixelBufferClass::~PixelBufferClass() {
     if (effects != NULL) {
         delete [] effects;
     }
@@ -66,8 +64,7 @@ PixelBufferClass::~PixelBufferClass()
     }
 }
 
-void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased)
-{
+void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, bool zeroBased) {
     frameTimeInMs = timing;
     if (effects != NULL) {
         delete [] effects;
@@ -108,14 +105,12 @@ void PixelBufferClass::InitBuffer(wxXmlNode* ModelNode, int layers, int timing, 
     fadeFactor = new double[numLayers];
     effectMixVaries = new bool[numLayers]; //allow varying mix threshold -DJ
 
-    for(size_t i = 0; i < numLayers; i++)
-    {
+    for(size_t i = 0; i < numLayers; i++) {
         effects[i].InitBuffer(BufferHt, BufferWi);
     }
 }
 
-void PixelBufferClass::Clear(int which)
-{
+void PixelBufferClass::Clear(int which) {
     xlColour bgColor(0, 0, 0);
     if (which != -1) {
         effects[which].Clear(bgColor); //just clear this one
@@ -128,60 +123,38 @@ void PixelBufferClass::Clear(int which)
 }
 
 // convert MixName to MixType enum
-void PixelBufferClass::SetMixType(int layer, const wxString& MixName)
-{
+void PixelBufferClass::SetMixType(int layer, const wxString& MixName) {
     MixTypes MixType;
-    if (MixName == "Effect 1")
-    {
+    if (MixName == "Effect 1") {
         MixType=Mix_Effect1;
-    }
-    else if (MixName == "Effect 2")
-    {
+    } else if (MixName == "Effect 2") {
         MixType=Mix_Effect2;
-    }
-    else if (MixName == "1 is Mask")
-    {
+    } else if (MixName == "1 is Mask") {
         MixType=Mix_Mask1;
-    }
-    else if (MixName == "2 is Mask")
-    {
+    } else if (MixName == "2 is Mask") {
         MixType=Mix_Mask2;
-    }
-    else if (MixName == "1 is Unmask")
-    {
+    } else if (MixName == "1 is Unmask") {
         MixType=Mix_Unmask1;
-    }
-    else if (MixName == "2 is Unmask")
-    {
+    } else if (MixName == "2 is Unmask") {
         MixType=Mix_Unmask2;
-    }
-    else if (MixName == "1 reveals 2")
-    {
+    } else if (MixName == "1 reveals 2") {
         MixType=Mix_1_reveals_2;
-    }
-    else if (MixName == "2 reveals 1")
-    {
+    } else if (MixName == "2 reveals 1") {
         MixType=Mix_2_reveals_1;
-    }
-    else if (MixName == "Layered")
-    {
+    } else if (MixName == "Shadow 1 on 2") {
+        MixType=Mix_Shadow_1on2;
+    } else if (MixName == "Shadow 2 on 1") {
+        MixType=Mix_Shadow_2on1;
+    } else if (MixName == "Layered") {
         MixType=Mix_Layered;
-    }
-    else if (MixName == "Average")
-    {
+    } else if (MixName == "Average") {
         MixType=Mix_Average;
-    }
-    else if (MixName == "Bottom-Top")
-    {
+    } else if (MixName == "Bottom-Top") {
         MixType=Mix_BottomTop;
-    }
-    else if (MixName == "Left-Right")
-    {
+    } else if (MixName == "Left-Right") {
         MixType=Mix_LeftRight;
-    }
-    else
-    {
-         MixType=Mix_Effect1;
+    } else {
+        MixType=Mix_Effect1;
     }
     mixType[layer] = MixType;
 }
@@ -189,7 +162,7 @@ void PixelBufferClass::SetMixType(int layer, const wxString& MixName)
 
 xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer) {
     static const int n = 0;  //increase to change the curve of the crossfade
-    
+
     float svthresh = effectMixThreshold[layer];
     if (effectMixVaries[layer]) {
         //vary mix threshold gradually during effect interval -DJ
@@ -201,112 +174,134 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
 
     wxImage::HSVValue hsv0;
     wxImage::HSVValue hsv1;
-    
+
     xlColour c;
     double emt, emtNot;
     switch (mixType[layer]) {
-        case Mix_Effect1:
-        case Mix_Effect2:
-            if (!effectMixVaries[layer]) {
-                emt = effectMixThreshold[layer];
-                if ((emt > 0.000001) && (emt < 0.99999)) {
-                    emtNot = 1-effectMixThreshold[layer];
-                    //make cross-fade linear
-                    emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
-                    emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
-                } else {
-                    emtNot = effectMixThreshold[layer];
-                    emt = 1 - effectMixThreshold[layer];
-                }
-            } else {
-                emt = effectMixThreshold[layer];
+    case Mix_Effect1:
+    case Mix_Effect2:
+        if (!effectMixVaries[layer]) {
+            emt = effectMixThreshold[layer];
+            if ((emt > 0.000001) && (emt < 0.99999)) {
                 emtNot = 1-effectMixThreshold[layer];
-            }
-            
-            if (mixType[layer] == Mix_Effect2) {
-                c0.Set(c0.Red()*(emtNot) ,c0.Green()*(emtNot), c0.Blue()*(emtNot));
-                c1.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
+                //make cross-fade linear
+                emt = cos((M_PI/4)*(pow(2*emt-1,2*n+1)+1));
+                emtNot = cos((M_PI/4)*(pow(2*emtNot-1,2*n+1)+1));
             } else {
-                c0.Set(c0.Red()*(emt) ,c0.Green()*(emt), c0.Blue()*(emt));
-                c1.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
+                emtNot = effectMixThreshold[layer];
+                emt = 1 - effectMixThreshold[layer];
             }
-            c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
-            break;
-        case Mix_Mask1:
-            // first masks second
-            hsv0 = wxImage::RGBtoHSV(c0);
-            if (hsv0.value <= effectMixThreshold[layer]) {
-                // only if effect 1 is black
-                c=c1;  // then show the color of effect 2
-            } else {
-                c.Set(0, 0, 0);
-            }
-            break;
-        case Mix_Mask2:
-            // second masks first
-            hsv1 = wxImage::RGBtoHSV(c1);
-            if (hsv1.value <= effectMixThreshold[layer]) {
-                c=c0;
-            } else {
-                c.Set(0, 0, 0);
-            }
-            break;
-        case Mix_Unmask1:
-            // first unmasks second
-            hsv0 = wxImage::RGBtoHSV(c0);
-            hsv1 = wxImage::RGBtoHSV(c1);
-            if (hsv0.value > effectMixThreshold[layer]) {
-                // if effect 1 is non black
-                hsv1.value = hsv0.value;
-                c = hsv1;
-            } else {
-                c.Set(0, 0, 0);
-            }
-            break;
-        case Mix_Unmask2:
-            // second unmasks first
-            hsv0 = wxImage::RGBtoHSV(c0);
-            hsv1 = wxImage::RGBtoHSV(c1);
-            if (hsv1.value > effectMixThreshold[layer]) {
-                // if effect 2 is non black
-                hsv0.value = hsv1.value;
-                c = hsv0;
-            } else {
-                c.Set(0, 0, 0);
-            }
-            break;
-        case Mix_Layered:
-            hsv1 = wxImage::RGBtoHSV(c1);
-            if (hsv1.value <= effectMixThreshold[layer]) {
-                c=c0;
-            } else {
-                c=c1;
-            }
-            break;
-        case Mix_Average:
-            // only average when both colors are non-black
-            if (c0.GetRGB() == 0) {
-                c=c1;
-            } else if (c1.GetRGB() == 0) {
-                c=c0;
-            } else {
-                c.Set( (c0.Red()+c1.Red())/2, (c0.Green()+c1.Green())/2, (c0.Blue()+c1.Blue())/2 );
-            }
-            break;
-        case Mix_BottomTop:
-            c= y < BufferHt/2 ? c0 : c1;
-            break;
-        case Mix_LeftRight:
-            c= x < BufferWi/2 ? c0 : c1;
-            break;
-        case Mix_1_reveals_2:
-            hsv0 = wxImage::RGBtoHSV(c0);
-            c = hsv0.value > effectMixThreshold[layer] ? c0 : c1; // if effect 1 is non black
-            break;
-        case Mix_2_reveals_1:
-            hsv1 = wxImage::RGBtoHSV(c1);
-            c = hsv1.value > effectMixThreshold[layer] ? c1 : c0; // if effect 2 is non black
-            break;
+        } else {
+            emt = effectMixThreshold[layer];
+            emtNot = 1-effectMixThreshold[layer];
+        }
+
+        if (mixType[layer] == Mix_Effect2) {
+            c0.Set(c0.Red()*(emtNot) ,c0.Green()*(emtNot), c0.Blue()*(emtNot));
+            c1.Set(c1.Red()*(emt) ,c1.Green()*(emt), c1.Blue()*(emt));
+        } else {
+            c0.Set(c0.Red()*(emt) ,c0.Green()*(emt), c0.Blue()*(emt));
+            c1.Set(c1.Red()*(emtNot) ,c1.Green()*(emtNot), c1.Blue()*(emtNot));
+        }
+        c.Set(c0.Red()+c1.Red(), c0.Green()+c1.Green(), c0.Blue()+c1.Blue());
+        break;
+    case Mix_Mask1:
+        // first masks second
+        hsv0 = wxImage::RGBtoHSV(c0);
+        if (hsv0.value <= effectMixThreshold[layer]) {
+            // only if effect 1 is black
+            c=c1;  // then show the color of effect 2
+        } else {
+            c.Set(0, 0, 0);
+        }
+        break;
+    case Mix_Mask2:
+        // second masks first
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv1.value <= effectMixThreshold[layer]) {
+            c=c0;
+        } else {
+            c.Set(0, 0, 0);
+        }
+        break;
+    case Mix_Unmask1:
+        // first unmasks second
+        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv0.value > effectMixThreshold[layer]) {
+            // if effect 1 is non black
+            hsv1.value = hsv0.value;
+            c = hsv1;
+        } else {
+            c.Set(0, 0, 0);
+        }
+        break;
+    case Mix_Unmask2:
+        // second unmasks first
+        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv1.value > effectMixThreshold[layer]) {
+            // if effect 2 is non black
+            hsv0.value = hsv1.value;
+            c = hsv0;
+        } else {
+            c.Set(0, 0, 0);
+        }
+        break;
+    case Mix_Shadow_1on2:
+        // Effect 1 shadows onto effect 2
+        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv0.value > effectMixThreshold[layer]) {
+            // if effect 1 is non black
+            hsv1.value = hsv0.value;
+            hsv1.saturation = hsv0.saturation;
+            c = hsv1;
+        }
+        break;
+    case Mix_Shadow_2on1:
+        // Effect 2 shadows onto effect 1
+        hsv0 = wxImage::RGBtoHSV(c0);
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv1.value > effectMixThreshold[layer]) {
+            // if effect 1 is non black
+            hsv0.value = hsv1.value;
+            hsv0.saturation = hsv1.saturation;
+            c = hsv0;
+        }
+        break;
+    case Mix_Layered:
+        hsv1 = wxImage::RGBtoHSV(c1);
+        if (hsv1.value <= effectMixThreshold[layer]) {
+            c=c0;
+        } else {
+            c=c1;
+        }
+        break;
+    case Mix_Average:
+        // only average when both colors are non-black
+        if (c0.GetRGB() == 0) {
+            c=c1;
+        } else if (c1.GetRGB() == 0) {
+            c=c0;
+        } else {
+            c.Set( (c0.Red()+c1.Red())/2, (c0.Green()+c1.Green())/2, (c0.Blue()+c1.Blue())/2 );
+        }
+        break;
+    case Mix_BottomTop:
+        c= y < BufferHt/2 ? c0 : c1;
+        break;
+    case Mix_LeftRight:
+        c= x < BufferWi/2 ? c0 : c1;
+        break;
+    case Mix_1_reveals_2:
+        hsv0 = wxImage::RGBtoHSV(c0);
+        c = hsv0.value > effectMixThreshold[layer] ? c0 : c1; // if effect 1 is non black
+        break;
+    case Mix_2_reveals_1:
+        hsv1 = wxImage::RGBtoHSV(c1);
+        c = hsv1.value > effectMixThreshold[layer] ? c1 : c0; // if effect 2 is non black
+        break;
     }
     if (effectMixVaries[layer]) {
         effectMixThreshold[layer] = svthresh; //put it back afterwards in case next row didn't change it
@@ -314,11 +309,10 @@ xlColour PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColou
     return c;
 }
 
-void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[])
-{
+void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]) {
     xlColour *colors = new xlColour[numLayers];
     int layerIdxs[numLayers];
-    
+
     wxImage::HSVValue hsv;
     int pos = 0;
     for (int layer = 0; layer < numLayers; layer++) {
@@ -330,7 +324,7 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
                 hsv.value *= fadeFactor[layer];
                 colors[pos] = hsv;
             }
-            
+
             if (pos > 0) {
                 //mix with layer below
                 colors[pos] = mixColors(x, y, colors[pos - 1], colors[pos], layerIdxs[pos - 1]);
@@ -341,58 +335,47 @@ void PixelBufferClass::GetMixedColor(const wxCoord &x, const wxCoord &y, xlColou
     c = colors[pos - 1];
     delete [] colors;
 }
-void PixelBufferClass::SetPalette(int layer, xlColourVector& newcolors)
-{
+void PixelBufferClass::SetPalette(int layer, xlColourVector& newcolors) {
     effects[layer].SetPalette(newcolors);
 }
 
 // 10-200 or so, or 0 for no sparkle
-void PixelBufferClass::SetSparkle(int layer, int freq)
-{
+void PixelBufferClass::SetSparkle(int layer, int freq) {
     sparkle_count[layer]=freq;
 }
 
-void PixelBufferClass::SetBrightness(int layer, int value)
-{
+void PixelBufferClass::SetBrightness(int layer, int value) {
     brightness[layer]=value;
 }
 
-void PixelBufferClass::SetModelBrightness(int value)
-{
+void PixelBufferClass::SetModelBrightness(int value) {
     ModelBrightness=value;
 }
 
-void PixelBufferClass::SetContrast(int layer, int value)
-{
+void PixelBufferClass::SetContrast(int layer, int value) {
     contrast[layer]=value;
 }
 
-void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies)
-{
+void PixelBufferClass::SetMixThreshold(int layer, int value, bool varies) {
     effectMixThreshold[layer] = (float)value/100.0;
     effectMixVaries[layer] = varies;
 }
 
-void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool resetState)
-{
+void PixelBufferClass::SetLayer(int newlayer, int period, int speed, bool resetState) {
     CurrentLayer=newlayer;
     effects[CurrentLayer].SetState(period, speed, resetState, name);
 }
-void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime)
-{
+void PixelBufferClass::SetFadeTimes(int layer, float inTime, float outTime) {
     effects[layer].SetFadeTimes(inTime, outTime);
 }
-void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
-{
+void PixelBufferClass::SetTimes(int layer, int startTime, int endTime) {
     effects[layer].SetEffectDuration(startTime, endTime);
 }
-void PixelBufferClass::SetFitToTime(int layer, bool fit)
-{
+void PixelBufferClass::SetFitToTime(int layer, bool fit) {
     effects[layer].SetFitToTime(fit);
 }
 
-void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
-{
+void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[]) {
     xlColor color;
     wxImage::HSVValue hsv;
     int curStep, fadeInSteps, fadeOutSteps;
@@ -405,26 +388,19 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
         if( fadeInSteps > 0 || fadeOutSteps > 0) {
             int effStartPer, effNextPer, effEndPer;
             effects[ii].GetEffectPeriods( effStartPer, effNextPer, effEndPer);
-            if (EffectPeriod < (effStartPer)+fadeInSteps)
-            {
+            if (EffectPeriod < (effStartPer)+fadeInSteps) {
                 curStep = EffectPeriod - effStartPer;
                 fadeInFactor = (double)curStep/(double)fadeInSteps;
             }
-            if (EffectPeriod > (effNextPer)-fadeOutSteps)
-            {
+            if (EffectPeriod > (effNextPer)-fadeOutSteps) {
                 curStep = EffectPeriod - (effNextPer-fadeOutSteps);
                 fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
             }
-            if(fadeInFactor < 1 && fadeOutFactor < 1)
-            {
+            if(fadeInFactor < 1 && fadeOutFactor < 1) {
                 fadeFactor[ii] = (fadeInFactor+fadeOutFactor)/(double)2.0;
-            }
-            else if (fadeInFactor<1)
-            {
+            } else if (fadeInFactor<1) {
                 fadeFactor[ii] = fadeInFactor;
-            }
-            else
-            {
+            } else {
                 fadeFactor[ii] = fadeOutFactor;
             }
         }
@@ -484,174 +460,143 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[])
 
                 color = wxImage::HSVtoRGB(hsv);
             }
-            
+
             // set color for physical output
             Nodes[i]->SetColor(color);
         }
     }
 }
 
-void PixelBufferClass::RenderOff(void)
-{
+void PixelBufferClass::RenderOff(void) {
     effects[CurrentLayer].RenderOff();
 }
 
-void PixelBufferClass::RenderOn(int red, int green, int blue)
-{
+void PixelBufferClass::RenderOn(int red, int green, int blue) {
     effects[CurrentLayer].RenderOn(red, green, blue);
 }
 
-void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D)
-{
+void PixelBufferClass::RenderBars(int PaletteRepeat, int Direction, bool Highlight, bool Show3D) {
     effects[CurrentLayer].RenderBars(PaletteRepeat,Direction,Highlight,Show3D);
 }
 
-void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection)
-{
+void PixelBufferClass::RenderButterfly(int ColorScheme, int Style, int Chunks, int Skip, int ButterflyDirection) {
     effects[CurrentLayer].RenderButterfly(ColorScheme,Style,Chunks,Skip, ButterflyDirection);
 }
 
 void PixelBufferClass::RenderCircles(int number,int radius, bool bounce, bool collide, bool random,
-                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma)
-{
+                                     bool radial, bool radial_3D, bool bubbles, int start_x, int start_y, bool plasma) {
     effects[CurrentLayer].RenderCircles(number, radius, bounce, collide, random, radial, radial_3D, bubbles, start_x, start_y, plasma);
 }
 
-void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount)
-{
+void PixelBufferClass::RenderColorWash(bool HorizFade, bool VertFade, int RepeatCount) {
     effects[CurrentLayer].RenderColorWash(HorizFade,VertFade,RepeatCount);
 }
 
-void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat)
-{
+void PixelBufferClass::RenderCurtain(int edge, int effect, int swag, bool repeat) {
     effects[CurrentLayer].RenderCurtain(edge,effect,swag,repeat);
 }
 
-void PixelBufferClass::RenderFaces(int Phoneme)
-{
+void PixelBufferClass::RenderFaces(int Phoneme) {
     effects[CurrentLayer].RenderFaces(Phoneme);
 }
 //void PixelBufferClass::RenderCoroFaces(int Phoneme, const wxString& x_y, const wxString& Outline_x_y, const wxString& Eyes_x_y/*, const wxString& parsed_xy*/)
-void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline)
-{
+void PixelBufferClass::RenderCoroFaces(const wxString& Phoneme, const wxString& eyes, bool face_outline) {
 //    effects[CurrentLayer].RenderCoroFaces(Phoneme,x_y,Outline_x_y,Eyes_x_y/*, parsed_xy*/);
     effects[CurrentLayer].RenderCoroFaces(Phoneme, eyes, face_outline);
 }
 
 
-void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire)
-{
+void PixelBufferClass::RenderFire(int HeightPct,int HueShift,bool GrowFire) {
     effects[CurrentLayer].RenderFire(HeightPct,HueShift,GrowFire);
 }
 
-void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade)
-{
+void PixelBufferClass::RenderFireworks(int Number_Explosions,int Count,float Velocity,int Fade) {
     effects[CurrentLayer].RenderFireworks(Number_Explosions,Count,Velocity,Fade);
 }
 
-void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing)
-{
+void PixelBufferClass::RenderGarlands(int GarlandType, int Spacing) {
     effects[CurrentLayer].RenderGarlands(GarlandType,Spacing);
 }
 
-void PixelBufferClass::RenderGlediator( const wxString& NewPictureName)
-{
+void PixelBufferClass::RenderGlediator( const wxString& NewPictureName) {
     effects[CurrentLayer].RenderGlediator(NewPictureName);
 }
 
 
-void PixelBufferClass::RenderLife(int Count, int Seed)
-{
+void PixelBufferClass::RenderLife(int Count, int Seed) {
     effects[CurrentLayer].RenderLife(Count,Seed);
 }
 
-void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity)
-{
+void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int MeteorsEffect, int SwirlIntensity) {
     effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
-void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) //added more controls -DJ
-{
+void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) { //added more controls -DJ
     effects[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }
 
-void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20FPS)
-{
+void PixelBufferClass::RenderPictures(int dir, const wxString& NewPictureName,int GifSpeed, bool is20FPS) {
     effects[CurrentLayer].RenderPictures(dir,NewPictureName,GifSpeed, is20FPS);
 }
 void PixelBufferClass::RenderPinwheel(int pinwheel_arms,int pinwheel_twist,int pinwheel_thickness,
-                                      bool pinwheel_rotation,int pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize)
-{
+                                      bool pinwheel_rotation,int pinwheel_3D,int xc_adj, int yc_adj, int pinwheel_armsize) {
     effects[CurrentLayer].RenderPinwheel(pinwheel_arms,pinwheel_twist,
-                                        pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
+                                         pinwheel_thickness,pinwheel_rotation,pinwheel_3D,xc_adj,yc_adj,pinwheel_armsize);
 }
-void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D)
-{
+void PixelBufferClass::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D) {
     effects[CurrentLayer].RenderRipple( Object_To_Draw,  Movement, Ripple_Thickness, CheckBox_Ripple3D);
 }
-void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
-{
+void PixelBufferClass::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row) {
     effects[CurrentLayer].RenderShimmer(Duty_Factor,Use_All_Colors,Blink_Timing,Blinks_Per_Row );
 }
 void PixelBufferClass::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int Color_Mix1,
-        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All)
-{
+        int Chase_Spacing1,int Chase_Type1,bool Chase_3dFade1,bool Chase_Group_All) {
     effects[CurrentLayer].RenderSingleStrandChase( ColorScheme,Number_Chases, Color_Mix1,
             Chase_Spacing1,Chase_Type1, Chase_3dFade1,Chase_Group_All);
 }
-void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction)
-{
+void PixelBufferClass::RenderSingleStrandSkips(int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos, const wxString &Skips_Direction) {
     effects[CurrentLayer].RenderSingleStrandSkips(Skips_BandSize,  Skips_SkipSize,  Skips_StartPos,  Skips_Direction);
 }
 
-void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType)
-{
+void PixelBufferClass::RenderSnowflakes(int Count, int SnowflakeType) {
     effects[CurrentLayer].RenderSnowflakes(Count,SnowflakeType);
 }
 
-void PixelBufferClass::RenderSnowstorm(int Count, int Length)
-{
+void PixelBufferClass::RenderSnowstorm(int Count, int Length) {
     effects[CurrentLayer].RenderSnowstorm(Count,Length);
 }
 
 void PixelBufferClass::RenderSpirals(int PaletteRepeat, int Direction, int Rotation, int Thickness,
-                                     bool Blend, bool Show3D, bool grow, bool shrink)
-{
+                                     bool Blend, bool Show3D, bool grow, bool shrink) {
     effects[CurrentLayer].RenderSpirals(PaletteRepeat,Direction,Rotation,Thickness,Blend,Show3D,grow,shrink);
 }
 
-void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate)
-{
+void PixelBufferClass::RenderSpirograph(int R, int r, int d, bool Animate) {
     effects[CurrentLayer].RenderSpirograph( R,  r,  d, Animate);
 }
-void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration,int Strobe_Type)
-{
+void PixelBufferClass::RenderStrobe(int Number_Strobes,int StrobeDuration,int Strobe_Type) {
     effects[CurrentLayer].RenderStrobe(Number_Strobes,StrobeDuration,Strobe_Type);
 }
 
 void PixelBufferClass::RenderText(int Position1, const wxString& Line1, const wxString& FontString1,int dir1,bool center1,int Effect1,int Countdown1,
                                   int Position2, const wxString& Line2, const wxString& FontString2,int dir2,bool center2,int Effect2,int Countdown2,
                                   int Position3, const wxString& Line3, const wxString& FontString3,int dir3,bool center3,int Effect3,int Countdown3,
-                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4)
-{
+                                  int Position4, const wxString& Line4, const wxString& FontString4,int dir4,bool center4,int Effect4,int Countdown4) {
     effects[CurrentLayer].RenderText(Position1,Line1,FontString1,dir1,center1,Effect1,Countdown1,
-                                    Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,
-                                    Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,
-                                    Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4);
+                                     Position2,Line2,FontString2,dir2,center2,Effect2,Countdown2,
+                                     Position3,Line3,FontString3,dir3,center3,Effect3,Countdown3,
+                                     Position4,Line4,FontString4,dir4,center4,Effect4,Countdown4);
 }
 
-void PixelBufferClass::RenderTree(int Branches)
-{
+void PixelBufferClass::RenderTree(int Branches) {
     effects[CurrentLayer].RenderTree(Branches);
 }
 
-void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe)
-{
+void PixelBufferClass::RenderTwinkle(int Count,int Steps,bool Strobe) {
     effects[CurrentLayer].RenderTwinkle(Count,Steps,Strobe);
 }
 
 void PixelBufferClass::RenderWave(int WaveType,int FillColor,bool MirrorWave,int NumberWaves,int ThicknessWave,
-                                  int WaveHeight, int WaveDirection)
-{
+                                  int WaveHeight, int WaveDirection) {
     effects[CurrentLayer].RenderWave(WaveType, FillColor, MirrorWave, NumberWaves, ThicknessWave, WaveHeight, WaveDirection);
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
-		<title>XL4 ALPHA (Ver 4.0.0) Feb5</title>
+		<title>XL4 ALPHA (Ver 4.0.0) Feb8</title>
 		<size>1100,800</size>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>

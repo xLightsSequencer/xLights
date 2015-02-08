@@ -46,7 +46,9 @@ enum MixTypes
     Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */
     Mix_Average, /**<  Average color value between effects per pixel */
     Mix_BottomTop,
-    Mix_LeftRight
+    Mix_LeftRight,
+    Mix_Shadow_1on2, /**< Take value and saturation from Effect 1 and put them onto effect 2, leave hue alone on effect 2 */
+    Mix_Shadow_2on1 /**< Take value and saturation from Effect 3 and put them onto effect 2, leave hue alone on effect 1 */
 
 };
 
@@ -69,7 +71,7 @@ private:
     MixTypes *mixType;
     float *effectMixThreshold;
     bool *effectMixVaries; //allow varying mix threshold -DJ
-    
+
     void GetMixedColor(const wxCoord &x, const wxCoord &y, xlColour& c, bool validLayers[]);
     xlColour mixColors(const wxCoord &x, const wxCoord &y, xlColour &c0, xlColour &c1, int layer);
     void SetModelBrightness(int value);
@@ -89,7 +91,7 @@ public:
     void SetBrightness(int layer, int value);
     void SetContrast(int layer, int value);
     void SetMixThreshold(int layer, int value, bool varies);
-    
+
     void CalcOutput(int EffectPeriod, bool validLayers[]);
 
 #include "Effects.h"

@@ -529,7 +529,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenu* Menu5;
     wxFlexGridSizer* FlexGridSizer30;
 
-    Create(parent, wxID_ANY, _("XL4 ALPHA (Ver 4.0.0) Feb5"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("XL4 ALPHA (Ver 4.0.0) Feb8"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1100,800));
     SetToolTip(_("Export only Channels associated with one model"));
     MainAuiManager = new wxAuiManager(this, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
