@@ -24,11 +24,21 @@ SequenceElements::~SequenceElements()
 }
 
 
-void SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
+Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
 {
     if(!ElementExists(name))
     {
         mElements.push_back(new Element(name,type,visible,collapsed,active,selected));
+        return mElements[mElements.size()];
+    }
+}
+
+Element* SequenceElements::AddElement(int index,wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
+{
+    if(!ElementExists(name) && index <= mElements.size())
+    {
+        mElements.insert(mElements.begin()+index,new Element(name,type,visible,collapsed,active,selected));
+        return mElements[index];
     }
 }
 
@@ -182,7 +192,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
-                AddElement(name,type,visible,collapsed,active,selected);
+                Element* e = AddElement(name,type,visible,collapsed,active,selected);
                 // Add models for each view
                 if(type=="view")
                 {
@@ -194,7 +204,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         {
                            wxString modelName =  model[m];
                            wxString elementType = "model";
-                           AddElement(modelName,elementType,false,false,false,false);
+                           Element* e = AddElement(modelName,elementType,false,false,false,false);
                         }
                     }
                 }

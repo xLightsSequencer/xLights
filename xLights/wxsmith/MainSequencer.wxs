@@ -10,6 +10,10 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL5" variable="PanelPlayControls" member="yes">
 					<size>175,100</size>
+					<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+						<label>Label</label>
+						<pos>80,64</pos>
+					</object>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
 				<option>1</option>

@@ -8,6 +8,7 @@
 //*)
 
 //(*IdInit(MainSequencer)
+const long MainSequencer::ID_STATICTEXT1 = wxNewId();
 const long MainSequencer::ID_PANEL5 = wxNewId();
 const long MainSequencer::ID_PANEL1 = wxNewId();
 const long MainSequencer::ID_PANEL3 = wxNewId();
@@ -34,6 +35,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(1);
 	PanelPlayControls = new wxPanel(this, ID_PANEL5, wxDefaultPosition, wxSize(175,100), wxTAB_TRAVERSAL, _T("ID_PANEL5"));
+	StaticText1 = new wxStaticText(PanelPlayControls, ID_STATICTEXT1, _("Label"), wxPoint(80,64), wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(PanelPlayControls, 1, wxALL|wxALIGN_LEFT|wxALIGN_TOP, 0);
 	FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);

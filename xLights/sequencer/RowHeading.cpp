@@ -145,6 +145,18 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
+        wxString name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name");
+        if(name.size()>0)
+        {
+            // Deactivate active timing mark so new one is selected;
+            mSequenceElements->DeactivateAllTimingElements();
+            int timingCount = mSequenceElements->GetNumberOfTimingRows();
+            wxString type = "timing";
+            Element* e = mSequenceElements->AddElement(timingCount,name,type,true,false,true,false);
+            e->AddEffectLayer();
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
     }
     else if(id == ID_ROW_MNU_DELETE_TIMING_TRACK)
     {

@@ -26,6 +26,7 @@ class MainSequencer: public wxPanel
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
 		wxScrollBar* ScrollBarEffectsVertical;
+		wxStaticText* StaticText1;
 		EffectsGrid* PanelEffectGrid;
 		RowHeading* PanelRowHeadings;
 		wxPanel* PanelPlayControls;
@@ -36,6 +37,7 @@ class MainSequencer: public wxPanel
 	protected:
 
 		//(*Identifiers(MainSequencer)
+		static const long ID_STATICTEXT1;
 		static const long ID_PANEL5;
 		static const long ID_PANEL1;
 		static const long ID_PANEL3;
