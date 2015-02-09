@@ -30,6 +30,7 @@
 		674D34C71918238E00A993C7 /* RenderFaces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C51918238E00A993C7 /* RenderFaces.cpp */; };
 		674D34C81918238E00A993C7 /* RenderWave.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674D34C61918238E00A993C7 /* RenderWave.cpp */; };
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
+		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
@@ -196,6 +197,8 @@
 		674D34C51918238E00A993C7 /* RenderFaces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderFaces.cpp; sourceTree = "<group>"; };
 		674D34C61918238E00A993C7 /* RenderWave.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderWave.cpp; sourceTree = "<group>"; };
 		675006771923EBBD00875D45 /* RenderGlediator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderGlediator.cpp; sourceTree = "<group>"; };
+		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
+		675878DA1A89297200205A75 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabPapagayo.cpp; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
@@ -458,13 +461,12 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */,
-				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
 				67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */,
 				67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */,
 				67A619C017B51C0F008E95BB /* ChannelMapDialog.cpp */,
 				67B797171A5AE343008D5921 /* ColorPanel.cpp */,
 				67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */,
+				675878D91A89297200205A75 /* DataLayer.cpp */,
 				67043A4B1A07D17F00C09B71 /* dlgPreviewSize.cpp */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
 				67A619C417B51C0F008E95BB /* E131Dialog.cpp */,
@@ -532,6 +534,7 @@
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
 				67A619F217B51C0F008E95BB /* SeqElementMismatchDialog.cpp */,
 				67A619F417B51C0F008E95BB /* SeqExportDialog.cpp */,
+				67E9389C1A80FC5A00937772 /* SeqFileUtilities.cpp */,
 				67A619F617B51C0F008E95BB /* SeqOpenDialog.cpp */,
 				67A619F817B51C0F008E95BB /* SeqParmsDialog.cpp */,
 				672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */,
@@ -550,6 +553,7 @@
 				673E425917F0D23E00F4BC76 /* TabSetup.cpp */,
 				6784F9271A5653670018EC0C /* TimeLine.cpp */,
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
+				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
 				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
@@ -573,6 +577,7 @@
 				672F95181A7A6619005FF8BF /* Color.h */,
 				672F95131A7A6619005FF8BF /* ColorPanel.h */,
 				672F951C1A7A6619005FF8BF /* CurrentPreviewModels.h */,
+				675878DA1A89297200205A75 /* DataLayer.h */,
 				67A619C517B51C0F008E95BB /* E131Dialog.h */,
 				672F95101A7A6619005FF8BF /* EffectIconPanel.h */,
 				67A619C917B51C0F008E95BB /* EffectListDialog.h */,
@@ -763,6 +768,7 @@
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
 				67A61A3717B51C0F008E95BB /* RenderButterfly.cpp in Sources */,
+				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
 				671D81681A67408D005819EA /* NewSequenceDialog.cpp in Sources */,
 				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
