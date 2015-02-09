@@ -141,7 +141,7 @@ public:
     virtual void Process() {
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
-
+        int origChangeCount = rowToRender->getChangeCount();
         int numLayers = rowToRender->GetEffectLayerCount();
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
@@ -154,6 +154,9 @@ public:
         }
         
         for (int frame = startFrame; frame < endFrame; frame++) {
+            if (origChangeCount != rowToRender->getChangeCount()) {
+                break;
+            }
             bool validLayers[numLayers];
             //make sure we can do this frame
             if (frame >= maxFrameBeforeCheck) {

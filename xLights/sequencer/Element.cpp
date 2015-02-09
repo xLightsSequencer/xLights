@@ -108,6 +108,7 @@ EffectLayer* Element::GetEffectLayer(int index)
 void Element::AddEffectLayer()
 {
     mEffectLayers.push_back(new EffectLayer(this));
+    IncrementChangeCount();
 }
 
 void Element::RemoveEffectLayer(int index)
@@ -115,11 +116,18 @@ void Element::RemoveEffectLayer(int index)
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     delete l;
+    IncrementChangeCount();
 }
 
 int Element::GetEffectLayerCount()
 {
     return mEffectLayers.size();
+}
+
+
+void Element::IncrementChangeCount()
+{
+    changeCount++;
 }
 
 

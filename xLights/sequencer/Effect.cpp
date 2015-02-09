@@ -185,6 +185,7 @@ void Effect::SetParentEffectLayer(EffectLayer* parent)
 
 void Effect::IncrementChangeCount()
 {
+    mParentLayer->IncrementChangeCount();
     changeCount++;
 }
 

@@ -75,11 +75,11 @@ class Effect
         void SetParentEffectLayer(EffectLayer* parent);
 
         void IncrementChangeCount();
-
-        volatile int changeCount;
+        int getChangeCount() const { return changeCount; }
 
     protected:
     private:
+        volatile int changeCount;
         int mID;
         int mEffectIndex;
         wxString mName;

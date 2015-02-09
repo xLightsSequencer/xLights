@@ -50,6 +50,7 @@ void EffectLayer::RemoveEffect(int index)
         Effect *e = mEffects[index];
         mEffects.erase(mEffects.begin()+index);
         delete e;
+        IncrementChangeCount();
     }
 }
 
@@ -66,6 +67,7 @@ void EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString set
     e->SetSelected(Selected);
     mEffects.push_back(e);
     SortEffects();
+    IncrementChangeCount();
 }
 
 
@@ -496,6 +498,7 @@ void EffectLayer::MoveAllSelectedEffects(double delta)
 void EffectLayer::DeleteSelectedEffects()
 {
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(),ShouldDeleteSelected),mEffects.end());
+    IncrementChangeCount();
 }
 
 bool EffectLayer::ShouldDeleteSelected(Effect *eff)
@@ -508,3 +511,8 @@ bool EffectLayer::SortEffectByStartTime(Effect *e1,Effect *e2)
     return e1->GetStartTime() < e2->GetStartTime();
 }
 
+void EffectLayer::IncrementChangeCount()
+{
+    mParentElement->IncrementChangeCount();
+    changeCount++;
+}

@@ -58,8 +58,13 @@ class EffectLayer
         void DeleteSelectedEffects();
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
+    
+        void IncrementChangeCount();
+        int getChangeCount() const { return changeCount; }
+
     protected:
     private:
+        volatile int changeCount;
 
         int EffectToLeftEndTime(int index);
         int EffectToRightStartTime(int index);

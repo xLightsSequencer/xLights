@@ -51,9 +51,15 @@ class Element
         void SetIndex(int index);
 
         int Index;
+    
+        void IncrementChangeCount();
+        int getChangeCount() const { return changeCount; }
+
 
     protected:
     private:
+        volatile int changeCount;
+
         int mIndex;
         wxString mName;
         wxString mElementType;
