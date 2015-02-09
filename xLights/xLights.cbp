@@ -364,6 +364,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="CurrentPreviewModels.cpp" />
 		<Unit filename="CurrentPreviewModels.h" />
+		<Unit filename="DataLayer.cpp" />
+		<Unit filename="DataLayer.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectIconPanel.cpp" />

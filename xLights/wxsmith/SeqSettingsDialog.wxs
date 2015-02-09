@@ -422,6 +422,61 @@
 						</object>
 						<label>Timings</label>
 					</object>
+					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+								<cols>1</cols>
+								<object class="sizeritem">
+									<object class="wxTreeCtrl" name="ID_TREECTRL_Data_Layers" variable="TreeCtrl_Data_Layers" member="yes">
+										<image_list>&lt;none&gt;</image_list>
+										<tree_items>
+											<item>TreeCtrl_Data_Layers</item>
+											<item>&lt;none&gt;</item>
+											<item>0,#000000,0,-1,-1,-1,-1,Layers to Render</item>
+										</tree_items>
+										<items_text>
+											<item2>TreeCtrl_Data_Layers</item2>
+											<item2>&lt;none&gt;</item2>
+											<item2>0,#000000,0,-1,-1,-1,-1,Layers to Render</item2>
+										</items_text>
+										<size>413,167</size>
+										<handler function="OnTreeCtrl_Data_LayersBeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_Layer_Import" variable="Button_Layer_Import" member="yes">
+												<label>Import</label>
+												<size>60,23</size>
+												<handler function="OnButton_Layer_ImportClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_Layer_Delete" variable="Button_Layer_Delete" member="yes">
+												<label>Delete</label>
+												<size>60,23</size>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Data Layers</label>
+					</object>
 				</object>
 				<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>

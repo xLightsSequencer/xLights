@@ -5,6 +5,7 @@
 #include <wx/xml/xml.h>
 #include <wx/textctrl.h>
 #include "sequencer/SequenceElements.h"
+#include "DataLayer.h"
 
 class SequenceElements;  // forward declaration needed due to circular dependency
 
@@ -44,6 +45,7 @@ class xLightsXmlFile : public wxFileName
 
         void Save( SequenceElements& elements);
         wxXmlDocument& GetXmlDocument() { return seqDocument; }
+        DataLayerSet& GetDataLayers() { return mDataLayers; }
 
         const wxString GetVersion() { return version_string; };
 
@@ -99,6 +101,7 @@ class xLightsXmlFile : public wxFileName
         bool is_open;
         bool has_audio_media;
         bool was_converted;
+        DataLayerSet mDataLayers;
 
         void CreateNew();
         bool LoadSequence();

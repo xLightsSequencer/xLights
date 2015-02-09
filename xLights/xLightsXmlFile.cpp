@@ -530,6 +530,8 @@ void xLightsXmlFile::CreateNew()
     AddChildXmlNode(node, "sequenceType", seq_type);
     AddChildXmlNode(node, "mediaFile", media_file);
     AddChildXmlNode(node, "sequenceDuration", GetSequenceDurationString());
+    wxXmlNode* data_layer = AddChildXmlNode(root, "dataLayers");
+    mDataLayers.AddDataLayer("Nutcracker", "Auto-generated");
     AddChildXmlNode(root, "DisplayElements");
     AddChildXmlNode(root, "ElementEffects");
     AddChildXmlNode(root, "nextid", "1");
@@ -539,7 +541,8 @@ void xLightsXmlFile::CreateNew()
 
 bool xLightsXmlFile::Open()
 {
-    if( !FileExists() ) return false;
+    if( !FileExists() )
+        return false;
 
     if( IsV3Sequence() )
     {
@@ -828,7 +831,25 @@ bool xLightsXmlFile::LoadSequence()
                 }
             }
        }
+       if (e->GetName() == "dataLayers")
+       {
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                if (element->GetName() == "DataLayer")
+                {
+                    wxString name, source, order;
+                    element->GetAttribute("name", &name);
+                    element->GetAttribute("source", &source);
+                    element->GetAttribute("order", &order);
+                    if( name != "Nutcracker" )
+                    {
+                        mDataLayers.AddDataLayer(name, source, order);
+                    }
+                }
+            }
+       }
     }
+    mDataLayers.SortLayers();
     return is_open;
 }
 

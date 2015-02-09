@@ -5,6 +5,7 @@
 #include "tmGridCell.h"
 
 //(*Headers(SeqSettingsDialog)
+#include <wx/treectrl.h>
 #include <wx/notebook.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -26,15 +27,18 @@ class SeqSettingsDialog: public wxDialog
 		virtual ~SeqSettingsDialog();
 
 		//(*Declarations(SeqSettingsDialog)
+		wxButton* Button_Layer_Import;
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
 		wxStaticText* StaticText_Xml_Seq_Type;
 		wxStaticText* StaticText_XML_Version;
 		wxStaticText* StaticText_Xml_MediaFile;
+		wxTreeCtrl* TreeCtrl_Data_Layers;
 		wxChoice* Choice_Xml_Seq_Timing;
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxStaticText* StaticText_Xml_Artist;
 		wxStaticText* StaticText_Warning;
+		wxPanel* Panel4;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
 		wxStaticText* StaticText_Xml_Total_Length;
@@ -45,6 +49,7 @@ class SeqSettingsDialog: public wxDialog
 		wxCheckBox* CheckBox_Overwrite_Tags;
 		wxPanel* Panel3;
 		wxTextCtrl* TextCtrl_Xml_Song;
+		wxButton* Button_Layer_Delete;
 		wxStaticText* StaticText_File;
 		wxStaticText* StaticText_Xml_Author;
 		wxStaticText* StaticText_Xml_Album;
@@ -109,6 +114,10 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_BUTTON_Xml_New_Timing;
 		static const long ID_BUTTON_Xml_Import_Timing;
 		static const long ID_PANEL2;
+		static const long ID_TREECTRL_Data_Layers;
+		static const long ID_BUTTON_Layer_Import;
+		static const long ID_BUTTON_Layer_Delete;
+		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
 		static const long ID_STATICTEXT_Warn_No_Media;
@@ -140,6 +149,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_CloseClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event);
+		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);
+		void OnButton_Layer_ImportClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);

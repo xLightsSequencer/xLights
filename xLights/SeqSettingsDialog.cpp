@@ -4,6 +4,8 @@
 #include "NewTimingDialog.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
+#include "DataLayer.h"
+#include <wx/treectrl.h>
 
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
@@ -51,6 +53,10 @@ const long SeqSettingsDialog::ID_PANEL1 = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_New_Timing = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
 const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
+const long SeqSettingsDialog::ID_TREECTRL_Data_Layers = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_Layer_Import = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_Layer_Delete = wxNewId();
+const long SeqSettingsDialog::ID_PANEL4 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warn_No_Media = wxNewId();
@@ -82,11 +88,13 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText_Xml_Seq_Timing;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer9;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer_Timing_Grid;
 	wxFlexGridSizer* FlexGridSizer_Timing_Page;
 
@@ -201,9 +209,24 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Panel2->SetSizer(FlexGridSizer8);
 	FlexGridSizer8->Fit(Panel2);
 	FlexGridSizer8->SetSizeHints(Panel2);
+	Panel4 = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
+	TreeCtrl_Data_Layers = new wxTreeCtrl(Panel4, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxSize(413,167), wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
+	wxTreeItemId TreeCtrl_Data_Layers_Item1 = TreeCtrl_Data_Layers->AddRoot(_T("Layers to Render"));
+	FlexGridSizer9->Add(TreeCtrl_Data_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_Layer_Import = new wxButton(Panel4, ID_BUTTON_Layer_Import, _("Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Import"));
+	FlexGridSizer11->Add(Button_Layer_Import, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Layer_Delete = new wxButton(Panel4, ID_BUTTON_Layer_Delete, _("Delete"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Delete"));
+	FlexGridSizer11->Add(Button_Layer_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Panel4->SetSizer(FlexGridSizer9);
+	FlexGridSizer9->Fit(Panel4);
+	FlexGridSizer9->SetSizeHints(Panel4);
 	Notebook_Seq_Settings->AddPage(Panel3, _("Info / Media"), false);
 	Notebook_Seq_Settings->AddPage(Panel1, _("Meta Data"), false);
 	Notebook_Seq_Settings->AddPage(Panel2, _("Timings"), false);
+	Notebook_Seq_Settings->AddPage(Panel4, _("Data Layers"), false);
 	FlexGridSizer1->Add(Notebook_Seq_Settings, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Warning = new wxStaticText(this, ID_STATICTEXT_Warning, _("Show Warning Here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warning"));
 	StaticText_Warning->Hide();
@@ -239,6 +262,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_TEXTCTRL_Xml_Comment,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
+	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag);
+	Connect(ID_BUTTON_Layer_Import,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Layer_ImportClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
 
@@ -289,6 +314,20 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Choice_Xml_Seq_Timing->SetSelection(Choice_Xml_Seq_Timing->FindString(xml_file->GetSequenceTiming()));
     TextCtrl_Xml_Media_File->SetValue(xml_file->GetMediaFile());
     TextCtrl_Xml_Seq_Duration->SetValue(xml_file->GetSequenceDurationString());
+
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
+
+    for( int i = 0; i < data_layers.GetNumLayers(); ++i )
+    {
+        DataLayer* layer = data_layers.GetDataLayer(i);
+        if( layer != nullptr )
+        {
+            wxTreeItemId branch = TreeCtrl_Data_Layers->AppendItem(root, layer->GetName());
+            TreeCtrl_Data_Layers->AppendItem(branch, layer->GetSource());
+        }
+    }
+    TreeCtrl_Data_Layers->Expand(root);
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -466,6 +505,26 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
     }
 }
 
+void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
+{
+    wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, "FSEQ files (*.fseq)|*.fseq", wxFD_OPEN, wxDefaultPosition);
+    wxString fDir;
+    if (ImportDialog->ShowModal() == wxID_OK)
+    {
+        fDir =	ImportDialog->GetDirectory();
+        wxString filename = ImportDialog->GetFilename();
+        wxFileName full_name(filename);
+        full_name.SetPath(fDir);
+        DataLayerSet& data_layers = xml_file->GetDataLayers();
+        data_layers.AddDataLayer(filename, full_name.GetFullPath());
+        wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
+        wxTreeItemId branch = TreeCtrl_Data_Layers->AppendItem(root, filename);
+        TreeCtrl_Data_Layers->AppendItem(branch, full_name.GetFullPath());
+    }
+
+    ImportDialog->Destroy();
+}
+
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     Close();
@@ -474,3 +533,8 @@ void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event)
 {
 }
+
+void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event)
+{
+}
+

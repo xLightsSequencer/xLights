@@ -4,6 +4,7 @@
 void xLightsFrame::OpenSequence()
 {
     bool loaded_xml = false;
+    bool loaded_fseq = false;
     bool find_media = true;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
     wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
@@ -41,6 +42,7 @@ void xLightsFrame::OpenSequence()
             SeqBaseChannel=1;
             SeqChanCtrlBasic=false;
             SeqChanCtrlColor=false;
+            loaded_fseq = true;
         }
 
         // assign global xml file object
@@ -137,7 +139,7 @@ void xLightsFrame::OpenSequence()
             SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);
         }
 
-        if( loaded_xml )
+        if( loaded_fseq )
         {
             bbPlayPause->SetBitmap(playIcon);
             SliderPreviewTime->SetValue(0);
@@ -147,7 +149,7 @@ void xLightsFrame::OpenSequence()
             float elapsedTime = sw.Time()/1000.0; //msec => sec
             StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
         }
-        else
+        else if( !loaded_xml )
         {
             StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
         }
