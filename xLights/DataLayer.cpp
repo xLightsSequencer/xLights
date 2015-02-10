@@ -38,14 +38,7 @@ void DataLayerSet::RemoveDataLayer(int index)
 
 void DataLayerSet::AddDataLayer( wxString name, wxString source)
 {
-    DataLayer* layer = new DataLayer(name, source, mDataLayers.size());
-    mDataLayers.push_back(layer);
-}
-
-void DataLayerSet::AddDataLayer( wxString name, wxString source, wxString order)
-{
-    int value = atoi(order.c_str());
-    DataLayer* layer = new DataLayer(name, source, value);
+    DataLayer* layer = new DataLayer(name, source);
     mDataLayers.push_back(layer);
 }
 
@@ -53,9 +46,9 @@ void DataLayerSet::MoveLayerUp( int index )
 {
     if( index > 0 )
     {
-        mDataLayers[index]->SetOrder(index-1);
-        mDataLayers[index-1]->SetOrder(index);
-        SortLayers();
+        DataLayer* tmp = mDataLayers[index-1];
+        mDataLayers[index-1] = mDataLayers[index];
+        mDataLayers[index] = tmp;
     }
 }
 
@@ -63,18 +56,8 @@ void DataLayerSet::MoveLayerDown( int index )
 {
     if( index <  mDataLayers.size()-1 )
     {
-        mDataLayers[index]->SetOrder(index+1);
-        mDataLayers[index+1]->SetOrder(index);
-        SortLayers();
+        DataLayer* tmp = mDataLayers[index+1];
+        mDataLayers[index+1] = mDataLayers[index];
+        mDataLayers[index] = tmp;
     }
-}
-
-void DataLayerSet::SortLayers()
-{
-    std::sort(mDataLayers.begin(),mDataLayers.end(),SortDataLayersByOrder);
-}
-
-bool DataLayerSet::SortDataLayersByOrder(DataLayer* layer1, DataLayer* layer2)
-{
-    return layer1->GetOrder() < layer2->GetOrder();
 }

@@ -840,16 +840,14 @@ bool xLightsXmlFile::LoadSequence()
                     wxString name, source, order;
                     element->GetAttribute("name", &name);
                     element->GetAttribute("source", &source);
-                    element->GetAttribute("order", &order);
                     if( name != "Nutcracker" )
                     {
-                        mDataLayers.AddDataLayer(name, source, order);
+                        mDataLayers.AddDataLayer(name, source);
                     }
                 }
             }
        }
     }
-    mDataLayers.SortLayers();
     return is_open;
 }
 
