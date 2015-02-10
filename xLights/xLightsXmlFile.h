@@ -108,6 +108,7 @@ class xLightsXmlFile : public wxFileName
         bool LoadV3Sequence();
         bool Save();
         bool SaveCopy();
+        void AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active );
         void AddDisplayElement( const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active );
         wxXmlNode* AddElement( const wxString& name, const wxString& type );
         void AddEffect( wxXmlNode* node,
@@ -126,6 +127,7 @@ class xLightsXmlFile : public wxFileName
                               const wxString& end_time);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name, const wxString& node_data);
         wxXmlNode* AddChildXmlNode(wxXmlNode* node, const wxString& node_name);
+        wxXmlNode* InsertChildXmlNode(wxXmlNode* node, wxXmlNode* following_node, const wxString& node_name);
         wxXmlNode* AddFixedTiming( const wxString& name, const wxString& timing );
         void SetNodeContent(wxXmlNode* node, const wxString& content);
         void CleanUpEffects();

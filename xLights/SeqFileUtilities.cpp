@@ -80,11 +80,37 @@ void xLightsFrame::OpenSequence()
             }
         }
 
+        // search for missing media file in media directory and show directory
+        if( find_media )
+        {
+            wxFileName detect_media(selected_file);
+            detect_media.SetExt("mp3");
+
+            // search media directory
+            detect_media.SetPath(mediaDirectory);
+            if( detect_media.FileExists() )
+            {
+                media_file = detect_media;
+                find_media = false;
+            }
+            else
+            {
+                // search selected file directory
+                detect_media.SetPath(selected_file.GetPath());
+                if( detect_media.FileExists() )
+                {
+                    media_file = detect_media;
+                    find_media = false;
+                }
+            }
+        }
+
         // if fseq or xseq had media update xml
         if( !CurrentSeqXmlFile->HasAudioMedia() && !find_media )
         {
             CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
-            CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
+            int length_ms = Waveform::GetLengthOfMusicFileInMS(media_file.GetFullPath());
+            CurrentSeqXmlFile->SetSequenceDurationMS(length_ms);
         }
 
         if( CurrentSeqXmlFile->WasConverted() )
@@ -92,35 +118,6 @@ void xLightsFrame::OpenSequence()
             SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT("V3 file was converted. Please check settings!"));
             setting_dlg.Fit();
             setting_dlg.ShowModal();
-            if( CurrentSeqXmlFile->HasAudioMedia() )  find_media = false;  // user may have set audio file in dialog
-        }
-
-        // search for missing media file
-        if( find_media )
-        {
-            if( !media_file.FileExists() )
-            {
-                wxFileName detect_media(selected_file);
-                detect_media.SetExt("mp3");
-
-                // search media directory
-                detect_media.SetPath(mediaDirectory);
-                if( detect_media.FileExists() )
-                {
-                    media_file = detect_media;
-                }
-                else
-                {
-                    // search selected file directory
-                    detect_media.SetPath(selected_file.GetPath());
-                    if( detect_media.FileExists() ) media_file = detect_media;
-                }
-                if( media_file.FileExists() )  // if media was found update xml data
-                {
-                    CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
-                    CurrentSeqXmlFile->SetSequenceDurationMS(mMediaLengthMS);
-                }
-            }
         }
 
         // load media if available

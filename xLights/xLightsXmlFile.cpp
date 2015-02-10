@@ -156,13 +156,61 @@ void xLightsXmlFile::AddDisplayElement( const wxString& name, const wxString& ty
        if (e->GetName() == "DisplayElements")
        {
             child = AddChildXmlNode(e, "Element");
-            if( type != "timing" ) child->AddAttribute("collapsed", collapsed);
+            child->AddAttribute("collapsed", collapsed);
             child->AddAttribute("active", active);
             child->AddAttribute("visible", visible);
             child->AddAttribute("type", type);
             child->AddAttribute("name", name);
             break;
        }
+    }
+
+}
+
+void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active )
+{
+    wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* child;
+
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "DisplayElements")
+        {
+            wxXmlNode* insert_node = NULL;
+            for(wxXmlNode* element=e->GetChildren(); element!=NULL; element=element->GetNext() )
+            {
+                wxString attr;
+                element->GetAttribute("type", &attr);
+                if( attr != "timing" )
+                {
+                    insert_node = element;
+                    break;
+                }
+            }
+            wxXmlNode* child;
+            if( insert_node != NULL )
+            {
+                child = InsertChildXmlNode(e, insert_node, "Element");
+            }
+            else
+            {
+                wxXmlNode* first_child = e->GetChildren();
+                if( first_child != NULL )
+                {
+                    child = InsertChildXmlNode(e, first_child, "Element");
+                }
+                else
+                {
+                    child = AddChildXmlNode(e, "Element");
+                }
+            }
+            child->AddAttribute("active", active);
+            child->AddAttribute("visible", visible);
+            child->AddAttribute("type", "timing");
+            child->AddAttribute("name", name);
+            timing_list.push_back(name);
+            break;
+        }
     }
 
 }
@@ -345,6 +393,13 @@ wxXmlNode* xLightsXmlFile::AddChildXmlNode(wxXmlNode* node, const wxString& node
 {
     wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
     node->AddChild(new_node);
+    return new_node;
+}
+
+wxXmlNode* xLightsXmlFile::InsertChildXmlNode(wxXmlNode* node, wxXmlNode* following_node, const wxString& node_name)
+{
+    wxXmlNode* new_node = new wxXmlNode(wxXML_ELEMENT_NODE, node_name);
+    node->InsertChild(new_node, following_node);
     return new_node;
 }
 
@@ -616,7 +671,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     double time1, time2;
 
     // load the XML file
-    AddDisplayElement( "Imported Timing", "timing", "1", "0", "1" );
+    AddTimingDisplayElement( "Imported Timing", "1", "1" );
 
     for(int i = 0; i < models.GetCount(); ++i)
     {
@@ -822,11 +877,6 @@ bool xLightsXmlFile::LoadSequence()
                     {
                         element->GetAttribute("name", &attr);
                         timing_list.push_back(attr);
-                        wxXmlNode* layer = element->GetChildren();
-                        for(wxXmlNode* effect=layer->GetChildren(); effect!=NULL; effect=effect->GetNext() )
-                        {
-                            effect->GetAttribute("endTime", &attr);
-                        }
                     }
                 }
             }
@@ -1040,6 +1090,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         wxString filename = next_file.GetName();
 
+        AddTimingDisplayElement(filename, "1", "0" );
         wxXmlNode*  node = AddElement( filename, "timing" );
         wxXmlNode* layer = AddChildXmlNode(node, "EffectLayer");
 
@@ -1068,7 +1119,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             AddTimingEffect(layer, label, "0", "0", start_time, end_time);
         }
-        timing_list.push_back(filename);
     }
 
     seqDocument.Save(GetFullPath());
@@ -1179,9 +1229,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
 void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
 {
-
-    timing_list.push_back(interval_name);
-    AddDisplayElement( interval_name, "timing", "1", "0", "0" );
+    AddTimingDisplayElement( interval_name, "1", "0" );
     wxXmlNode* node;
 
     if( interval_name == "Empty" )
