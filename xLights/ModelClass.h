@@ -44,6 +44,7 @@
 typedef std::vector<long> StartChannelVector_t;
 
 #define NODE_RGB_CHAN_CNT           3
+#define NODE_RGBW_CHAN_CNT          4
 #define NODE_SINGLE_COLOR_CHAN_CNT  1
 #define RECT_HANDLE_WIDTH           6
 #define BOUNDING_RECT_OFFSET        8
@@ -65,6 +66,8 @@ private:
     protected:
         // color values in rgb order
         uint8_t c[3];
+        // color channel offsets, rgb would be 0,1,2
+        uint8_t offsets[3];
         int chanCnt;
 
     public:
@@ -75,6 +78,35 @@ private:
         std::vector<CoordStruct> Coords;
         std::vector<CoordStruct> OrigCoords;
 
+        NodeBaseClass()
+        {
+            chanCnt=NODE_RGB_CHAN_CNT;
+            offsets[0] = 0;
+            offsets[1] = 1;
+            offsets[2] = 2;
+        }
+        
+        NodeBaseClass(int StringNumber, size_t NodesPerString)
+        {
+            StringNum=StringNumber;
+            Coords.resize(NodesPerString);
+            chanCnt=NODE_RGB_CHAN_CNT;
+            offsets[0] = 0;
+            offsets[1] = 1;
+            offsets[2] = 2;
+        }
+        NodeBaseClass(int StringNumber, size_t NodesPerString, const wxString &rgbOrder)
+        {
+            StringNum=StringNumber;
+            Coords.resize(NodesPerString);
+            chanCnt=NODE_RGB_CHAN_CNT;
+            offsets[0]=rgbOrder.Find('R');
+            offsets[1]=rgbOrder.Find('G');
+            offsets[2]=rgbOrder.Find('B');
+        }
+        void setRGBOrder(const wxString &order) {
+            
+        }
 
         // only for use in initializing the custom model
         void AddBufCoord(wxCoord x, wxCoord y)
@@ -85,7 +117,7 @@ private:
             Coords.push_back(c);
         }
 
-        void SetColor(const wxImage::RGBValue& color)
+        void SetColor(const xlColor& color)
         {
             c[0]=color.red;
             c[1]=color.green;
@@ -98,29 +130,22 @@ private:
             c[1]=g;
             c[2]=b;
         }
-
-        int GetAbsoluteChannel(wxByte chnum) {
-            return ActChan + chnum;
+        
+        virtual void SetFromChannels(const unsigned char *buf) {
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                    c[x] = buf[offsets[x]];
+                }
+            }
+        }
+        virtual void GetForChannels(unsigned char *buf) {
+            for (int x = 0; x < 3; x++) {
+                if (offsets[x] != 255) {
+                     buf[offsets[x]] = c[x];
+                }
+            }
         }
         
-        void GetChanIntensity(wxByte chnum, wxByte rgbindex, size_t *absChNum, uint8_t *intensity)
-        {
-            *absChNum=ActChan+chnum;
-            *intensity=c[rgbindex];
-        }
-
-        void SetChanIntensity(wxByte rgbindex, uint8_t intensity)
-        {
-            c[rgbindex]=intensity;
-        }
-
-        void SetChanIntensityAll(uint8_t intensity)
-        {
-            c[0]=intensity;
-            c[1]=intensity;
-            c[2]=intensity;
-        }
-
         int GetChanCount()
         {
             return chanCnt;
@@ -130,17 +155,6 @@ private:
             return Coords.size() > 0;
         }
 
-        NodeBaseClass()
-        {
-            chanCnt=NODE_RGB_CHAN_CNT;
-        }
-
-        NodeBaseClass(int StringNumber, size_t NodesPerString)
-        {
-            StringNum=StringNumber;
-            Coords.resize(NodesPerString);
-            chanCnt=NODE_RGB_CHAN_CNT;
-        }
         bool OrigCoordsSaved()
         {
             return Coords.size() == OrigCoords.size();
@@ -166,6 +180,8 @@ private:
         NodeClassRed(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+            offsets[0] = 0;
+            offsets[1] = offsets[2] = 255;
         }
         virtual void GetColor(xlColor& color)
         {
@@ -179,6 +195,8 @@ private:
         NodeClassGreen(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+            offsets[1] = 0;
+            offsets[0] = offsets[2] = 255;
         }
         virtual void GetColor(xlColor& color)
         {
@@ -192,6 +210,8 @@ private:
         NodeClassBlue(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
         {
             chanCnt = NODE_SINGLE_COLOR_CHAN_CNT;
+            offsets[2] = 0;
+            offsets[0] = offsets[1] = 255;
         }
         virtual void GetColor(xlColor& color)
         {
@@ -212,6 +232,43 @@ private:
             uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
             color.Set(cmin,cmin,cmin);
         }
+        virtual void SetFromChannels(const char *buf) {
+            c[0] = c[1] = c[2] = buf[0];
+        }
+        virtual void GetForChannels(char *buf) {
+            buf[0] = std::min(c[0],std::min(c[1],c[2]));
+        }
+    };
+    class NodeClassRGBW : public NodeBaseClass
+    {
+    public:
+        NodeClassRGBW(int StringNumber, size_t NodesPerString) : NodeBaseClass(StringNumber,NodesPerString)
+        {
+            chanCnt = NODE_RGBW_CHAN_CNT;
+        }
+        virtual void SetFromChannels(const char *buf) {
+            if (buf[3] != 0) {
+                c[0] = c[1] = c[2] = buf[3];
+            } else {
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        c[x] = buf[offsets[x]];
+                    }
+                }
+            }
+        }
+        virtual void GetForChannels(char *buf) {
+            if (c[0] == c[1] && c[1] == c[2]) {
+                buf[0] = buf[1] = buf[2] = 0;
+                buf[3] = c[0];
+            } else {
+                for (int x = 0; x < 3; x++) {
+                    if (offsets[x] != 255) {
+                        c[x] = buf[offsets[x]];
+                    }
+                }
+            }
+        }
     };
 
     typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
@@ -226,7 +283,7 @@ private:
 
     void SetBufferSize(int NewHt, int NewWi);
     void SetRenderSize(int NewHt, int NewWi);
-    void SetNodeCount(size_t NumStrings, size_t NodesPerString);
+    void SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder);
     void CopyBufCoord2ScreenCoord();
     void SetTreeCoord(long degrees);
     void SetLineCoord();
@@ -267,12 +324,7 @@ private:
     int mLastResizeX;
     StartChannelVector_t stringStartChan;
     wxXmlNode* ModelXml;
-    wxByte rgbidx[3]; // records the order in which the color values are sent to the physical device
-    // rgbidx entries should be 0-2
-    // for rgb order, set: 0,1,2
-    // for grb order, set: 1,0,2
-    // for brg order, set: 2,0,1
-
+    wxString rgbOrder;
 
 protected:
     std::vector<NodeBaseClassPtr> Nodes;
@@ -320,12 +372,12 @@ public:
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum);
-    int GetAbsoluteChannel(size_t nodenum, wxByte chidx);
-    void GetChanIntensity(size_t nodenum,wxByte chidx, size_t *absChNum, uint8_t *intensity);
-    void SetChanIntensity(size_t nodenum,wxByte chidx, uint8_t intensity);
-    void SetChanIntensityAll(size_t nodenum, uint8_t intensity);
-    wxString ChannelLayoutHtml();
+    
+    void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
+    void SetNodeChannelValues(size_t nodenum, unsigned char *buf);
     wxChar GetChannelColorLetter(wxByte chidx);
+    
+    wxString ChannelLayoutHtml();
 //    int FindChannelAt(int x, int y);
 //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces
     bool IsCustom(void);

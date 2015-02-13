@@ -585,22 +585,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     int nn = playBuffer.GetNodeCount();
-    unsigned char intensity;
-    size_t chnum;
-    size_t cn = playBuffer.ChannelsPerNode();
     for (int node = 0; node < nn; node++) {
-        if (cn == 1) {
-            playBuffer.GetChanIntensity(node, 0, &chnum, &intensity);
-            intensity = SeqData[frame][chnum];
-            playBuffer.SetChanIntensityAll(node, intensity);
-        } else {
-            for(size_t c = 0; c < cn; c++)
-            {
-                playBuffer.GetChanIntensity(node, c, &chnum, &intensity);
-                intensity = SeqData[frame][chnum];
-                playBuffer.SetChanIntensity(node, c, intensity);
-            }
-        }
+        int start = playBuffer.NodeStartChannel(node);
+        playBuffer.SetNodeChannelValues(node, &SeqData[frame][start]);
     }
 
     playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);

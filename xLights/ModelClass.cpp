@@ -46,7 +46,7 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
         data[0].ToLong(&actChn);
         data[1].ToLong(&xCoord);
         data[2].ToLong(&yCoord);
-        SetNodeCount(1,1);
+        SetNodeCount(1,1,rgbOrder);
         Nodes.back()->StringNum = 0;
         Nodes.back()->ActChan = actChn;
         Nodes.back()->Coords[0].bufX = xCoord;
@@ -60,7 +60,7 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData)
             data[2].ToLong(&yCoord);
             if(actChn != lastActChn)
             {
-                SetNodeCount(1,0);
+                SetNodeCount(1,0,rgbOrder);
                 Nodes.back()->StringNum = 0;
                 Nodes.back()->ActChan = actChn;
             }
@@ -77,7 +77,7 @@ wxXmlNode* ModelClass::GetModelXml()
 void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
 {
     wxString tempstr,channelstr;
-    wxString customModel,RGBorder,WholeHouseData;
+    wxString customModel,WholeHouseData;
     long degrees, StartChannel, channel;
     size_t i;
     long i2;
@@ -101,10 +101,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
     }
     SingleNode=HasSingleNode(StringType);
     SingleChannel=HasSingleChannel(StringType);
-    RGBorder=SingleNode ? "RGB" : RGBorder=StringType.Left(3);
-    rgbidx[0]=std::max(RGBorder.Find('R'),0);
-    rgbidx[1]=std::max(RGBorder.Find('G'),0);
-    rgbidx[2]=std::max(RGBorder.Find('B'),0);
+    rgbOrder = SingleNode ? "RGB" : StringType.Left(3);
 
     if(ModelNode->HasAttribute("versionNumber"))
     {
@@ -306,30 +303,19 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased)
         Nodes[i]->sparkle = rand() % 10000;
     }
 }
-int ModelClass::GetAbsoluteChannel(size_t nodenum, wxByte chidx) {
-    return Nodes[nodenum]->GetAbsoluteChannel(chidx);
+
+void ModelClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
+    Nodes[nodenum]->GetForChannels(buf);
+}
+void ModelClass::SetNodeChannelValues(size_t nodenum, unsigned char *buf) {
+    Nodes[nodenum]->SetFromChannels(buf);
 }
 
-void ModelClass::GetChanIntensity(size_t nodenum, wxByte chidx, size_t *absChNum, uint8_t *intensity)
-{
-    Nodes[nodenum]->GetChanIntensity(chidx,rgbidx[chidx],absChNum,intensity);
-}
-
-void ModelClass::SetChanIntensity(size_t nodenum, wxByte chidx, uint8_t intensity)
-{
-    Nodes[nodenum]->SetChanIntensity(rgbidx[chidx],intensity);
-}
-
-void ModelClass::SetChanIntensityAll(size_t nodenum, uint8_t intensity)
-{
-    Nodes[nodenum]->SetChanIntensityAll(intensity);
-}
 
 // only valid for rgb nodes and dumb strings (not traditional strings)
 wxChar ModelClass::GetChannelColorLetter(wxByte chidx)
 {
-    wxString rgb="RGB";
-    return rgb[rgbidx[chidx]];
+    return rgbOrder.GetChar(chidx);
 }
 
 int ModelClass::GetLastChannel()
@@ -382,7 +368,7 @@ void ModelClass::InitVMatrix(int firstExportStrand)
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
-    SetNodeCount(parm1,PixelsPerString);
+    SetNodeCount(parm1,PixelsPerString, rgbOrder);
     SetRenderSize(PixelsPerStrand,NumStrands);
     
     // create output mapping
@@ -453,7 +439,7 @@ void ModelClass::InitHMatrix()
     int PixelsPerStrand=parm2/parm3;
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(NumStrands,PixelsPerStrand);
-    SetNodeCount(parm1,PixelsPerString);
+    SetNodeCount(parm1,PixelsPerString,rgbOrder);
     SetRenderSize(NumStrands,PixelsPerStrand);
 
     // create output mapping
@@ -555,7 +541,7 @@ void ModelClass::InitCustomMatrix(const wxString& customModel)
                 {
                     // unmapped - so add a node
                     nodemap[idx]=Nodes.size();
-                    SetNodeCount(1,0);  // this creates a node of the correct class
+                    SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
                     Nodes.back()->StringNum= SingleNode ? idx : 0;
                     Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
                     Nodes.back()->AddBufCoord(col,height - row - 1);
@@ -622,7 +608,7 @@ void ModelClass::SetTreeCoord(long degrees)
 void ModelClass::InitLine()
 {
     int numLights = parm1 * parm2;
-    SetNodeCount(parm1,parm2);
+    SetNodeCount(parm1,parm2,rgbOrder);
     SetBufferSize(1,numLights);
     int LastStringNum=-1;
     int chan = 0,idx;
@@ -654,7 +640,7 @@ void ModelClass::InitLine()
 void ModelClass::InitStar()
 {
     if (parm3 < 2) parm3=2; // need at least 2 arms
-    SetNodeCount(parm1,parm2);
+    SetNodeCount(parm1,parm2,rgbOrder);
 
     int maxLights = 0;
     int numlights=parm1*parm2;
@@ -763,7 +749,7 @@ void ModelClass::InitStar()
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 void ModelClass::InitWreath()
 {
-    SetNodeCount(parm1,parm2);
+    SetNodeCount(parm1,parm2,rgbOrder);
     int numlights=parm1*parm2;
     SetBufferSize(numlights+1,numlights+1);
     int LastStringNum=-1;
@@ -855,7 +841,7 @@ void ModelClass::SetArchCoord()
 void ModelClass::InitFrame()
 {
     int x,y,newx,newy;
-    SetNodeCount(1,parm1+2*parm2+parm3);
+    SetNodeCount(1,parm1+2*parm2+parm3,rgbOrder);
     int FrameWidth=std::max(parm1,parm3)+2;
     SetBufferSize(parm2,FrameWidth);   // treat as outside of matrix
     //SetBufferSize(1,Nodes.size());   // treat as single string
@@ -958,7 +944,7 @@ int ModelClass::ChannelsPerNode()
 }
 
 // set size of Nodes vector and each Node's Coords vector
-void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
+void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder)
 {
     size_t n;
     if (SingleNode)
@@ -989,6 +975,11 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
             for(n=0; n<NumStrings; n++)
                 Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString)));
         }
+        else if (StringType=="4 Channel RGBW")
+        {
+            for(n=0; n<NumStrings; n++)
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString)));
+        }
         else
         {
             // 3 Channel RGB
@@ -1004,7 +995,7 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString)
     {
         size_t numnodes=NumStrings*NodesPerString;
         for(n=0; n<numnodes; n++)
-            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1)));
+            Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder)));
     }
 }
 
@@ -1444,7 +1435,6 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
 
-    double scrx,scry;
     for(size_t n=0; n<NodeCount; n++)
     {
         size_t CoordCount=GetCoordCount(n);
@@ -1928,7 +1918,6 @@ void ModelClass::ResizeWithHandles(ModelPreview* preview,int mouseX,int mouseY)
 void ModelClass::RotateWithHandles(ModelPreview* preview, bool ShiftKeyPressed, int mouseX,int mouseY)
 {
     int w, h;
-    float newScale;
     preview->GetSize(&w, &h);
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);

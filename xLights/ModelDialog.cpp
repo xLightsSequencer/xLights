@@ -109,6 +109,7 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_StringType->Append(_("BRG Nodes"));
     Choice_StringType->Append(_("BGR Nodes"));
     Choice_StringType->Append(_("3 Channel RGB"));
+    Choice_StringType->Append(_("4 Channel RGBW"));
     Choice_StringType->Append(_("Single Color Red"));
     Choice_StringType->Append(_("Single Color Green"));
     Choice_StringType->Append(_("Single Color Blue"));

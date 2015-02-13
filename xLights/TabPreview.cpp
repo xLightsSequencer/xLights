@@ -843,21 +843,10 @@ void xLightsFrame::PreviewOutput(int period)
     for (m=0; m<PreviewModels.size(); m++)
     {
         NodeCnt=PreviewModels[m]->GetNodeCount();
-        size_t cn=PreviewModels[m]->ChannelsPerNode();
         for(n=0; n<NodeCnt; n++)
         {
-            if (cn==1) {
-                PreviewModels[m]->GetChanIntensity(n,0,&chnum,&intensity);
-                intensity = SeqData[period][chnum];
-                PreviewModels[m]->SetChanIntensityAll(n,intensity);
-            } else {
-                for(size_t c=0; c<cn; c++)
-                {
-                    PreviewModels[m]->GetChanIntensity(n,c,&chnum,&intensity);
-                    intensity = SeqData[period][chnum];
-                    PreviewModels[m]->SetChanIntensity(n,c,intensity);
-                }
-            }
+            int start = PreviewModels[m]->NodeStartChannel(n);
+            PreviewModels[m]->SetNodeChannelValues(n, &SeqData[period][start]);
         }
         PreviewModels[m]->DisplayModelOnWindow(modelPreview);
     }
