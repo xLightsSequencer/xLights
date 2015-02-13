@@ -104,9 +104,6 @@ private:
             offsets[1]=rgbOrder.Find('G');
             offsets[2]=rgbOrder.Find('B');
         }
-        void setRGBOrder(const wxString &order) {
-            
-        }
 
         // only for use in initializing the custom model
         void AddBufCoord(wxCoord x, wxCoord y)
