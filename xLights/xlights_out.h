@@ -81,6 +81,7 @@ public:
     int GetChannelCount(size_t netnum);
     wxString GetNetworkDesc(size_t netnum);
     void SetIntensity (size_t absChNum, wxByte intensity);
+    void SetIntensities(size_t startChannel, unsigned char *buffer, size_t count);
     void off (size_t absChNum);
     void alloff ();
     size_t TotalChannelCount();

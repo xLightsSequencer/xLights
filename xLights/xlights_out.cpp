@@ -32,8 +32,6 @@
 #include <vector> //-DJ
 #include "serial.h"
 
-bool xNetwork_E131_changed = false;
-
 // ***********************
 // * xNetwork (base class)
 // ***********************
@@ -239,11 +237,12 @@ protected:
     int SkipCount;
     wxIPV4address remoteAddr;
     wxDatagramSocket *datagram;
+    bool changed;
 
     void SetIntensity(size_t chindex, wxByte intensity)
     {
         data[chindex+126]=intensity;
-        xNetwork_E131_changed=true;
+        changed=true;
     };
 
 public:
@@ -251,6 +250,7 @@ public:
     {
         datagram=0;
         memset(data,0,sizeof(data));
+        changed = false;
     };
 
     ~xNetwork_E131()
@@ -472,12 +472,13 @@ public:
     void TimerEnd()
     {
         // skipping would cause ECG-DR4 (firmware version 1.30) to timeout
-        if (xNetwork_E131_changed || SkipCount > 10)
+        if (changed || SkipCount > 10)
         {
             data[111]=SequenceNum;
             datagram->SendTo(remoteAddr, data, E131_PACKET_LEN - (512 - num_channels));
             SequenceNum= SequenceNum==255 ? 0 : SequenceNum+1;
             SkipCount=0;
+            changed = false;
         }
         else
         {
@@ -890,6 +891,13 @@ void xOutput::SetIntensity (size_t absChNum, wxByte intensity)
         networks[channels[absChNum].first]->SetIntensity(channels[absChNum].second, intensity);
 }
 
+void xOutput::SetIntensities(size_t startChannel, unsigned char *buffer, size_t count) {
+    for (int x = 0; x < count; x++) {
+        SetIntensity(startChannel + count, buffer[count]);
+    }
+}
+
+
 // convenience function to turn a single channel off
 void xOutput::off (size_t absChNum)
 {
@@ -937,7 +945,6 @@ void xOutput::ResetTimer()
 
 void xOutput::TimerStart(long msec)
 {
-    xNetwork_E131_changed=false;
     for(size_t i=0; i < networks.GetCount(); ++i)
     {
         networks[i]->TimerStart(msec);
