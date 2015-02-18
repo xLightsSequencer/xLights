@@ -566,6 +566,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         playStartMS = -1;
         return;
     }
+    
     if (selectedEffect != NULL) {
         wxString effectText = GetEffectTextFromWindows();
         if (effectText != selectedEffectString) {
@@ -582,24 +583,16 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
     }
     
+    bool output = CheckBoxLightOutput->IsChecked() && xout;
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     int nn = playBuffer.GetNodeCount();
-    unsigned char intensity;
-    size_t chnum;
-    size_t cn = playBuffer.ChannelsPerNode();
+    size_t cn=playBuffer.ChannelsPerNode();
     for (int node = 0; node < nn; node++) {
-        if (cn == 1) {
-            playBuffer.GetChanIntensity(node, 0, &chnum, &intensity);
-            intensity = SeqData[frame][chnum];
-            playBuffer.SetChanIntensityAll(node, intensity);
-        } else {
-            for(size_t c = 0; c < cn; c++)
-            {
-                playBuffer.GetChanIntensity(node, c, &chnum, &intensity);
-                intensity = SeqData[frame][chnum];
-                playBuffer.SetChanIntensity(node, c, intensity);
-            }
+        int start = playBuffer.NodeStartChannel(node);
+        playBuffer.SetNodeChannelValues(node, &SeqData[frame][start]);
+        if (output) {
+            xout->SetIntensities(start,&SeqData[frame][start],cn);
         }
     }
 

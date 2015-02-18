@@ -181,15 +181,10 @@ public:
             
             if (effectsToUpdate) {
                 buffer->CalcOutput(frame, validLayers);
-                size_t chnum;
-                wxByte intensity;
                 size_t nodeCnt = buffer->GetNodeCount();
-                size_t cn = buffer->ChannelsPerNode();
                 for(size_t n = 0; n < nodeCnt; n++) {
-                    for(size_t c = 0; c < cn; c++) {
-                        buffer->GetChanIntensity(n, c, &chnum, &intensity);
-                        seqData[frame][chnum]=intensity;
-                    }
+                    int start = buffer->NodeStartChannel(n);
+                    buffer->GetNodeChannelValues(n, &seqData[frame][start]);
                 }
             }
             if (next) {
@@ -340,8 +335,9 @@ void xLightsFrame::RenderGridToSeqData() {
             PixelBufferClass *buffer = job->getBuffer();
             size_t cn = playBuffer.ChannelsPerNode();
             for (int node = 0; node < buffer->GetNodeCount(); node++) {
+                int start = buffer->NodeStartChannel(node);
                 for (int c = 0; c < cn; c++) {
-                    int cnum = buffer->GetAbsoluteChannel(node, c);
+                    int cnum = start + c;
                     if (channelsRendered[cnum] >= 0
                         && channelsRendered[cnum] != row) {
                         hasDep = true;
