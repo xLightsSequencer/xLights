@@ -2,9 +2,10 @@
 #include "SeqSettingsDialog.h"
 #include "RenameTextDialog.h"
 #include "NewTimingDialog.h"
-#include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "DataLayer.h"
+#include "FileConverter.h"
+#include "LorConvertDialog.h"
 #include <wx/treectrl.h>
 
 //(*InternalHeaders(SeqSettingsDialog)
@@ -56,6 +57,9 @@ const long SeqSettingsDialog::ID_PANEL2 = wxNewId();
 const long SeqSettingsDialog::ID_TREECTRL_Data_Layers = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Import = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Layer_Delete = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_Move_Up = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_Move_Down = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_Reimport = wxNewId();
 const long SeqSettingsDialog::ID_PANEL4 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
@@ -77,9 +81,22 @@ END_EVENT_TABLE()
 
 #define string_format wxString::Format
 
+class LayerTreeItemData : public wxTreeItemData
+{
+public:
+    LayerTreeItemData(DataLayer* layer_) : layer(layer_) { }
+
+    DataLayer* GetLayer() const { return layer; }
+
+private:
+    DataLayer* layer;
+};
+
 SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning)
 :   xml_file(file_to_handle_),
-    media_directory(media_dir)
+    media_directory(media_dir),
+    xLightsParent((xLightsFrame*)parent),
+    selected_branch_index(-1)
 {
 	//(*Initialize(SeqSettingsDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -211,14 +228,24 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	FlexGridSizer8->SetSizeHints(Panel2);
 	Panel4 = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
 	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-	TreeCtrl_Data_Layers = new wxTreeCtrl(Panel4, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxSize(413,167), wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
+	TreeCtrl_Data_Layers = new wxTreeCtrl(Panel4, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxSize(413,158), wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
 	wxTreeItemId TreeCtrl_Data_Layers_Item1 = TreeCtrl_Data_Layers->AddRoot(_T("Layers to Render"));
 	FlexGridSizer9->Add(TreeCtrl_Data_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer11 = new wxFlexGridSizer(0, 4, 0, 0);
 	Button_Layer_Import = new wxButton(Panel4, ID_BUTTON_Layer_Import, _("Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Import"));
 	FlexGridSizer11->Add(Button_Layer_Import, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Layer_Delete = new wxButton(Panel4, ID_BUTTON_Layer_Delete, _("Delete"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Delete"));
+	Button_Layer_Delete->Disable();
 	FlexGridSizer11->Add(Button_Layer_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Move_Up = new wxButton(Panel4, ID_BUTTON_Move_Up, _("Move Up"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Up"));
+	Button_Move_Up->Disable();
+	FlexGridSizer11->Add(Button_Move_Up, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Move_Down = new wxButton(Panel4, ID_BUTTON_Move_Down, _("Move Down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Down"));
+	Button_Move_Down->Disable();
+	FlexGridSizer11->Add(Button_Move_Down, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Reimport = new wxButton(Panel4, ID_BUTTON_Reimport, _("Re-Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Reimport"));
+	Button_Reimport->Disable();
+	FlexGridSizer11->Add(Button_Reimport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel4->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel4);
@@ -263,7 +290,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BUTTON_Xml_New_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
 	Connect(ID_BUTTON_Xml_Import_Timing,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
 	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_DRAG,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag);
+	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit);
+	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_END_LABEL_EDIT,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit);
+	Connect(ID_TREECTRL_Data_Layers,wxEVT_COMMAND_TREE_SEL_CHANGED,(wxObjectEventFunction)&SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged);
 	Connect(ID_BUTTON_Layer_Import,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Layer_ImportClick);
+	Connect(ID_BUTTON_Layer_Delete,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Layer_DeleteClick);
+	Connect(ID_BUTTON_Move_Up,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Move_UpClick);
+	Connect(ID_BUTTON_Move_Down,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Move_DownClick);
+	Connect(ID_BUTTON_Reimport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ReimportClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
 
@@ -321,13 +355,15 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     for( int i = 0; i < data_layers.GetNumLayers(); ++i )
     {
         DataLayer* layer = data_layers.GetDataLayer(i);
-        if( layer != nullptr )
-        {
-            wxTreeItemId branch = TreeCtrl_Data_Layers->AppendItem(root, layer->GetName());
-            TreeCtrl_Data_Layers->AppendItem(branch, layer->GetSource());
-        }
+        wxTreeItemId branch = TreeCtrl_Data_Layers->AppendItem(root, layer->GetName(), -1, -1, new LayerTreeItemData(layer));
+        TreeCtrl_Data_Layers->AppendItem(branch, "Source: " + layer->GetSource());
+        TreeCtrl_Data_Layers->AppendItem(branch, "Data: " + layer->GetDataSource());
+        TreeCtrl_Data_Layers->AppendItem(branch, wxString::Format("Number of Channels: %d", layer->GetNumChannels()));
+        TreeCtrl_Data_Layers->AppendItem(branch, wxString::Format("Channel Offset: %d", layer->GetChannelOffset()));
     }
     TreeCtrl_Data_Layers->Expand(root);
+
+    UpdateDataLayer();
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -507,29 +543,162 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
 {
-    wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, "FSEQ files (*.fseq)|*.fseq", wxFD_OPEN, wxDefaultPosition);
+    wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, strSupportedFileTypes, wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
     if (ImportDialog->ShowModal() == wxID_OK)
     {
         fDir =	ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
         wxFileName full_name(filename);
+        if( full_name.GetExt() == "las" ||
+            full_name.GetExt() == "hlsIdata" ||
+            full_name.GetExt() == "vix" ||
+            full_name.GetExt() == "gled" ||
+            full_name.GetExt() == "seq" ||
+            full_name.GetExt() == "xseq" )
+        {
+            wxMessageBox("Filetype will be supported soon!", "Info");
+            return;
+        }
         full_name.SetPath(fDir);
+        wxFileName data_file(full_name);
+        data_file.SetExt("iseq");
         DataLayerSet& data_layers = xml_file->GetDataLayers();
-        data_layers.AddDataLayer(filename, full_name.GetFullPath());
+        DataLayer* new_data_layer = data_layers.AddDataLayer(full_name.GetName(), full_name.GetFullPath(), data_file.GetFullPath() );
         wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
-        wxTreeItemId branch = TreeCtrl_Data_Layers->AppendItem(root, filename);
-        TreeCtrl_Data_Layers->AppendItem(branch, full_name.GetFullPath());
+        wxTreeItemId branch1 = TreeCtrl_Data_Layers->AppendItem(root, filename, -1, -1, new LayerTreeItemData(new_data_layer) );
+        TreeCtrl_Data_Layers->AppendItem(branch1, "Source: " + full_name.GetFullPath());
+        data_file.SetPath(xLightsParent->GetFseqDirectory());
+        wxTreeItemId branch_data = TreeCtrl_Data_Layers->AppendItem(branch1, "Data: <waiting for file conversion>");
+        wxTreeItemId branch_num_channels = TreeCtrl_Data_Layers->AppendItem(branch1, "Number of Channels: <waiting for file conversion>");
+        TreeCtrl_Data_Layers->AppendItem(branch1, "Channel Offset: 0");
+        TreeCtrl_Data_Layers->Expand(branch1);
+        if( full_name.GetExt() == "lms" )
+        {
+            LorConvertDialog* lor_dialog = new LorConvertDialog(this);
+            lor_dialog->ShowModal();
+            bool param1 = lor_dialog->CheckBoxOffAtEnd->IsChecked();
+            bool param2 = lor_dialog->CheckBoxMapEmptyChannels->IsChecked();
+            bool param3 = lor_dialog->MapLORChannelsWithNoNetwork->IsChecked();
+            new_data_layer->SetLORConvertParams( param1 | (param2 << 1) | (param3 << 2) );
+            wxString media_filename;
+            ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
+                                          new_data_layer->GetSequenceData(),                        // sequence data object
+                                          xLightsParent->GetNetInfo(),                              // global network info
+                                          ConvertParameters::READ_MODE_NORMAL,                      // file read mode
+                                          xLightsParent,                                            // xLights main frame
+                                          &media_filename,                                          // media filename
+                                          new_data_layer,                                           // data layer to fill in header info
+                                          xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
+                                          data_file.GetFullPath(),                                  // output filename
+                                          atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
+                                          param1,                                                   // turn off all channels at end
+                                          param2,                                                   // map empty channels (mainly LOR)
+                                          param3 );                                                 // map no network channels (mainly LOR)
+            FileConverter::ReadLorFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
+        {
+            // we read only the header to fill in the channel count info
+            ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
+                                          new_data_layer->GetSequenceData(),                         // sequence data object
+                                          xLightsParent->GetNetInfo(),                              // global network info
+                                          ConvertParameters::READ_MODE_HEADER_ONLY,                 // file read mode
+                                          xLightsParent,                                            // xLights main frame
+                                          nullptr,                                                  // media filename
+                                          new_data_layer );                                        // data layer to fill in header info
+            FileConverter::ReadFalconFile(conv_params);
+        }
+        TreeCtrl_Data_Layers->SetItemText(branch_data, "Data: " + data_file.GetFullPath());
+        TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));
+        UpdateDataLayer();
     }
 
     ImportDialog->Destroy();
 }
 
-void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
+void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
 {
-    Close();
+    LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
+    DataLayer* layer = data->GetLayer();
+    wxString media_filename;
+    wxFileName full_name(layer->GetSource());
+    if( full_name.GetExt() == "lms" )
+    {
+        ConvertParameters conv_params(layer->GetSource(),                                       // input filename
+                                      layer->GetSequenceData(),                                 // sequence data object
+                                      xLightsParent->GetNetInfo(),                              // global network info
+                                      ConvertParameters::READ_MODE_NORMAL,                      // file read mode
+                                      xLightsParent,                                            // xLights main frame
+                                      &media_filename,                                          // media filename
+                                      layer,                                                    // data layer to fill in header info
+                                      xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
+                                      layer->GetDataSource(),                                   // output filename
+                                      atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
+                                      layer->GetLORConvertParams() & 0x1,                       // turn off all channels at end
+                                      (layer->GetLORConvertParams() >> 1) & 0x1,                // map empty channels (mainly LOR)
+                                      (layer->GetLORConvertParams() >> 2) & 0x1 );              // map no network channels (mainly LOR)
+        FileConverter::ReadLorFile(conv_params);
+        FileConverter::WriteFalconPiFile( conv_params );
+    }
+    else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
+    {
+        // we read only the header to fill in the channel count info
+        ConvertParameters conv_params(layer->GetSource(),                                       // input filename
+                                      layer->GetSequenceData(),                                 // sequence data object
+                                      xLightsParent->GetNetInfo(),                              // global network info
+                                      ConvertParameters::READ_MODE_HEADER_ONLY,                 // file read mode
+                                      xLightsParent,                                            // xLights main frame
+                                      nullptr,                                                  // media filename
+                                      layer );                                                  // data layer to fill in header info
+        FileConverter::ReadFalconFile(conv_params);
+    }
+    // TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));  FIXME update in case channel number changes
 }
 
+void SeqSettingsDialog::UpdateDataLayer()
+{
+    // update buttons
+    Button_Layer_Delete->Enable(false);
+    Button_Reimport->Enable(false);
+    Button_Move_Up->Enable(false);
+    Button_Move_Down->Enable(false);
+    wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
+    int num_layers = TreeCtrl_Data_Layers->GetChildrenCount(root, false);
+    selected_branch = TreeCtrl_Data_Layers->GetFocusedItem();
+    if( !selected_branch.IsOk() ) return;
+    wxTreeItemIdValue cookie;
+    wxString selected_branch_name = TreeCtrl_Data_Layers->GetItemText(selected_branch);
+    bool valid_branch = false;
+    int num_branches = 0;
+    for(wxTreeItemId branch = TreeCtrl_Data_Layers->GetFirstChild(root, cookie); branch.IsOk(); branch = TreeCtrl_Data_Layers->GetNextChild(root, cookie) )
+    {
+        num_branches++;
+        if( branch == selected_branch )
+        {
+            valid_branch = true;
+            selected_branch_index = num_branches-1;
+        }
+    }
+
+    if( valid_branch )
+    {
+        if( selected_branch_name != "Nutcracker" )
+        {
+            Button_Layer_Delete->Enable(true);
+            Button_Reimport->Enable(true);
+        }
+        if( selected_branch_index > 0 )
+        {
+            Button_Move_Up->Enable(true);
+        }
+        else if( selected_branch_index < num_branches-1 )
+        {
+            Button_Move_Down->Enable(true);
+        }
+    }
+}
 void SeqSettingsDialog::OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event)
 {
 }
@@ -538,3 +707,93 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event)
 {
 }
 
+void SeqSettingsDialog::OnButton_Layer_DeleteClick(wxCommandEvent& event)
+{
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    data_layers.RemoveDataLayer(selected_branch_index);
+    TreeCtrl_Data_Layers->Delete(selected_branch);
+    UpdateDataLayer();
+}
+
+void SeqSettingsDialog::OnButton_Move_UpClick(wxCommandEvent& event)
+{
+    LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(selected_branch);
+    DataLayer* selected_layer = data->GetLayer();
+    wxTreeItemId prev_item = TreeCtrl_Data_Layers->GetPrevSibling(selected_branch);
+    bool prev_expanded = TreeCtrl_Data_Layers->IsExpanded(prev_item);
+    wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
+    wxTreeItemId new_branch = TreeCtrl_Data_Layers->InsertItem(root, selected_branch, TreeCtrl_Data_Layers->GetItemText(prev_item), -1, -1, new LayerTreeItemData(selected_layer));
+    wxTreeItemIdValue cookie;
+    for( wxTreeItemId node = TreeCtrl_Data_Layers->GetFirstChild(prev_item, cookie); node.IsOk(); node = TreeCtrl_Data_Layers->GetNextChild(prev_item, cookie))
+    {
+        TreeCtrl_Data_Layers->AppendItem(new_branch, TreeCtrl_Data_Layers->GetItemText(node));
+    }
+    TreeCtrl_Data_Layers->Delete(prev_item);
+    if( prev_expanded ) TreeCtrl_Data_Layers->Expand(new_branch);
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    data_layers.MoveLayerUp(selected_branch_index);
+    UpdateDataLayer();
+}
+
+void SeqSettingsDialog::OnButton_Move_DownClick(wxCommandEvent& event)
+{
+    wxTreeItemId next_item = TreeCtrl_Data_Layers->GetNextSibling(selected_branch);
+    LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(next_item);
+    DataLayer* next_item_layer = data->GetLayer();
+    bool sel_expanded = TreeCtrl_Data_Layers->IsExpanded(selected_branch);
+    wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
+    wxTreeItemId new_branch = TreeCtrl_Data_Layers->InsertItem(root, next_item, TreeCtrl_Data_Layers->GetItemText(selected_branch), -1, -1, new LayerTreeItemData(next_item_layer));
+    wxTreeItemIdValue cookie;
+    for( wxTreeItemId node = TreeCtrl_Data_Layers->GetFirstChild(selected_branch, cookie); node.IsOk(); node = TreeCtrl_Data_Layers->GetNextChild(selected_branch, cookie))
+    {
+        TreeCtrl_Data_Layers->AppendItem(new_branch, TreeCtrl_Data_Layers->GetItemText(node));
+    }
+    TreeCtrl_Data_Layers->Delete(selected_branch);
+    if( sel_expanded ) TreeCtrl_Data_Layers->Expand(new_branch);
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    data_layers.MoveLayerDown(selected_branch_index);
+    UpdateDataLayer();
+}
+
+void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& event)
+{
+    UpdateDataLayer();
+}
+
+void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
+{
+    Close();
+}
+
+void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
+{
+    wxTreeItemId itemId = event.GetItem();
+    wxString item_text = TreeCtrl_Data_Layers->GetItemText(itemId);
+
+    if( !item_text.Contains("Channel Offset:") )
+    {
+        event.Veto();
+    }
+}
+
+void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
+{
+    wxTreeItemId itemId = event.GetItem();
+    wxString item_text = event.GetLabel();
+    wxString val = item_text.AfterLast(' ');
+
+    try
+    {
+        int channel_offset = atoi(val.c_str());
+        wxTreeItemId parent = TreeCtrl_Data_Layers->GetItemParent(itemId);
+        LayerTreeItemData* data = (LayerTreeItemData*)TreeCtrl_Data_Layers->GetItemData(parent);
+        DataLayer* layer = data->GetLayer();
+        layer->SetChannelOffset(channel_offset);
+        TreeCtrl_Data_Layers->SetItemText(itemId, wxString::Format("Channel Offset: %d", channel_offset));
+        event.Veto();  // text was overwritten with original change if not vetoed
+    }
+    catch(...)
+    {
+        event.Veto();
+    }
+}

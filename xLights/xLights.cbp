@@ -34,6 +34,7 @@
 					<Add directory="$(#wxvc)/include" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -102,6 +103,7 @@
 					<Add directory="$(#wxvc)/include" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wxvc)/include" />
@@ -160,6 +162,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -200,6 +203,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -237,6 +241,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lmpg123 " />
@@ -259,6 +264,7 @@
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -286,6 +292,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -327,6 +334,7 @@
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
+					<Add directory="../xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -379,12 +387,16 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FileConverter.cpp" />
+		<Unit filename="FileConverter.h" />
 		<Unit filename="Image.cpp" />
 		<Unit filename="Image.h" />
 		<Unit filename="Image_Loader.cpp" />
 		<Unit filename="Image_Loader.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
+		<Unit filename="LorConvertDialog.cpp" />
+		<Unit filename="LorConvertDialog.h" />
 		<Unit filename="ModelClass.cpp" />
 		<Unit filename="ModelClass.h" />
 		<Unit filename="ModelDialog.cpp" />
@@ -547,6 +559,7 @@
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
+		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/NewSequenceDialog.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
@@ -618,6 +631,7 @@
 					<wxPanel wxs="wxsmith/EffectIconPanel.wxs" src="EffectIconPanel.cpp" hdr="EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -1,6 +1,7 @@
 #ifndef SEQSETTINGSDIALOG_H
 #define SEQSETTINGSDIALOG_H
 
+#include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "tmGridCell.h"
 
@@ -60,6 +61,7 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxStaticText* StaticText_Filename;
 		wxTextCtrl* TextCtrl_Xml_Comment;
+		wxButton* Button_Reimport;
 		wxStaticText* StaticText_Xml_Comment;
 		wxTextCtrl* TextCtrl_Xml_Author;
 		wxStaticText* StaticText_Warn_No_Media;
@@ -68,7 +70,9 @@ class SeqSettingsDialog: public wxDialog
 		wxChoice* Choice_Xml_Seq_Type;
 		wxTextCtrl* TextCtrl_Xml_Website;
 		wxButton* Button_Close;
+		wxButton* Button_Move_Down;
 		wxTextCtrl* TextCtrl_Xml_Artist;
+		wxButton* Button_Move_Up;
 		wxBitmapButton* BitmapButton_Xml_Media_File;
 		wxButton* Button_Xml_New_Timing;
 		//*)
@@ -117,6 +121,9 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_TREECTRL_Data_Layers;
 		static const long ID_BUTTON_Layer_Import;
 		static const long ID_BUTTON_Layer_Delete;
+		static const long ID_BUTTON_Move_Up;
+		static const long ID_BUTTON_Move_Down;
+		static const long ID_BUTTON_Reimport;
 		static const long ID_PANEL4;
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
@@ -151,6 +158,13 @@ class SeqSettingsDialog: public wxDialog
 		void OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event);
 		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);
 		void OnButton_Layer_ImportClick(wxCommandEvent& event);
+		void OnButton_Layer_DeleteClick(wxCommandEvent& event);
+		void OnButton_Move_UpClick(wxCommandEvent& event);
+		void OnButton_Move_DownClick(wxCommandEvent& event);
+		void OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& event);
+		void OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event);
+		void OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event);
+		void OnButton_ReimportClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -160,11 +174,16 @@ class SeqSettingsDialog: public wxDialog
 
         xLightsXmlFile* xml_file;
         wxString& media_directory;
+        xLightsFrame* xLightsParent;
+        int selected_branch_index;
+        wxTreeItemId selected_branch;
+
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
         void ProcessSequenceType();
         void PopulateTimingGrid();
         void AddTimingCell(const wxString& name);
+        void UpdateDataLayer();
 };
 
 #endif

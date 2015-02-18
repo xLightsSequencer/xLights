@@ -541,7 +541,9 @@ void xLightsFrame::SaveSequence()
     StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
 
     CurrentSeqXmlFile->Save(mSequenceElements);
+    RenderIseqData(true); // render ISEQ layers below the Nutcracker layer
     RenderGridToSeqData();
+    RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
     WriteFalconPiFile(xlightsFilename);
     DisplayXlightsFilename(xlightsFilename);
     UnsavedChanges = false;

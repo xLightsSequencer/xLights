@@ -1,6 +1,16 @@
 #include "DataLayer.h"
 #include <algorithm>
 
+DataLayer::DataLayer(wxString name, wxString source, wxString data_source)
+: mName(name),
+  mSource(source),
+  mDataSource(data_source),
+  num_channels(0),
+  num_frames(0),
+  channel_offset(0)
+{
+}
+
 DataLayerSet::DataLayerSet()
 {
 
@@ -25,7 +35,7 @@ DataLayer* DataLayerSet::GetDataLayer(int index)
         nullptr;
     }
 }
-
+#include <wx/msgdlg.h>
 void DataLayerSet::RemoveDataLayer(int index)
 {
     if(index<mDataLayers.size())
@@ -36,10 +46,11 @@ void DataLayerSet::RemoveDataLayer(int index)
     }
 }
 
-void DataLayerSet::AddDataLayer( wxString name, wxString source)
+DataLayer* DataLayerSet::AddDataLayer( wxString name, wxString source, wxString data_source)
 {
-    DataLayer* layer = new DataLayer(name, source);
+    DataLayer* layer = new DataLayer(name, source, data_source);
     mDataLayers.push_back(layer);
+    return layer;
 }
 
 void DataLayerSet::MoveLayerUp( int index )

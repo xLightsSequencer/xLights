@@ -218,6 +218,7 @@ wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 
+static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 
 static wxCriticalSection gs_xoutCriticalSection;
 
@@ -410,6 +411,17 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
+    wxString GetFseqDirectory() { return fseqDirectory; }
+    NetInfoClass& GetNetInfo() { return NetInfo; }
+    wxCheckListBox* GetCheckListBoxTestChannels() { return CheckListBoxTestChannels; }
+    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
+    void ConversionInit();
+    void ConversionError(const wxString& msg);
+    void PlayerError(const wxString& msg);
+    void SetMediaFilename(const wxString& filename);
+    void AppendConvertLog(const wxString& msg);
+    void RenderIseqData(bool bottom_layers);
+    void ClearSequenceData();
 
 private:
 
@@ -1219,15 +1231,19 @@ private:
     int mBackgroundBrightness;
 
     // convert
+public:
+    void ReadLorFile(const wxString& filename, int LORImportInterval);
+    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
+
+private:
+
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const wxString& filename);
-    void ReadLorFile(const wxString& filename, int LORImportInterval);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
-    void ReadFalconFile(const wxString& FileName, wxString *mediaFilename = NULL);
+    void ReadFalconFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
-    void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
     bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
     void WriteVirFile(const wxString& filename);
@@ -1241,15 +1257,10 @@ private:
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf,int cpn);  //      LSP UserPatterns.xml
-    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
     void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void ClearLastPeriod();
-    void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
-    void ConversionError(const wxString& msg);
-    void AppendConvertLog(const wxString& msg);
-    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
 
@@ -1296,7 +1307,6 @@ private:
     wxString CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random);
     bool PlayCurrentXlightsFile();
     void RunPlaylist(int nbidx, wxString& script);
-    void PlayerError(const wxString& msg);
     void SendToLogAndStatusBar(const wxString& msg);
     void ScanForFiles();
     long DiffSeconds(wxString& strTime, wxTimeSpan& tsCurrent);
