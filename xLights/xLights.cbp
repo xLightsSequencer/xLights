@@ -393,6 +393,7 @@
 		<Unit filename="Image.h" />
 		<Unit filename="Image_Loader.cpp" />
 		<Unit filename="Image_Loader.h" />
+		<Unit filename="Images_png.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
 		<Unit filename="LorConvertDialog.cpp" />

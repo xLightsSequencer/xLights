@@ -8,6 +8,57 @@
 			<object class="sizeritem">
 				<object class="wxNotebook" name="ID_NOTEBOOK_Seq_Settings" variable="Notebook_Seq_Settings" member="yes">
 					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Wizard" variable="Panel_Wizard" member="yes">
+							<object class="wxGridBagSizer" variable="GridBagSizer2" member="no">
+								<object class="spacer">
+									<col>0</col>
+									<row>0</row>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+									<size>493,16</size>
+								</object>
+								<object class="sizeritem">
+									<object class="wxGridSizer" variable="GridSizer1" member="no">
+										<cols>1</cols>
+										<rows>2</rows>
+										<vgap>10</vgap>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Wiz_Music" variable="BitmapButton_Wiz_Music" member="yes">
+												<bitmap code="music_seq" />
+												<selected code="music_seq_pressed" />
+												<size>268,90</size>
+												<style>wxNO_BORDER</style>
+												<handler function="OnBitmapButton_Wiz_MusicClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Wiz_Anim" variable="BitmapButton_Wiz_Anim" member="yes">
+												<bitmap code="animation_seq" />
+												<selected code="animation_pressed" />
+												<size>268,90</size>
+												<style>wxNO_BORDER</style>
+												<handler function="OnBitmapButton_Wiz_AnimClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<col>0</col>
+									<row>1</row>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Wizard</label>
+					</object>
+					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 								<cols>1</cols>

@@ -24,7 +24,7 @@ class SeqSettingsDialog: public wxDialog
 {
 	public:
 
-		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning);
+		SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_handle_, wxString& media_dir, const wxString& warning, bool wizard_active_ = false);
 		virtual ~SeqSettingsDialog();
 
 		//(*Declarations(SeqSettingsDialog)
@@ -32,8 +32,10 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
 		wxStaticText* StaticText_Xml_Seq_Type;
+		wxBitmapButton* BitmapButton_Wiz_Anim;
 		wxStaticText* StaticText_XML_Version;
 		wxStaticText* StaticText_Xml_MediaFile;
+		wxBitmapButton* BitmapButton_Wiz_Music;
 		wxTreeCtrl* TreeCtrl_Data_Layers;
 		wxChoice* Choice_Xml_Seq_Timing;
 		wxTextCtrl* TextCtrl_Xml_Album;
@@ -42,6 +44,7 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* Panel4;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
+		wxPanel* Panel_Wizard;
 		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Music_Url;
 		wxPanel* Panel1;
@@ -82,6 +85,9 @@ class SeqSettingsDialog: public wxDialog
 	protected:
 
 		//(*Identifiers(SeqSettingsDialog)
+		static const long ID_BITMAPBUTTON_Wiz_Music;
+		static const long ID_BITMAPBUTTON_Wiz_Anim;
+		static const long ID_PANEL_Wizard;
 		static const long ID_STATICTEXT_File;
 		static const long ID_STATICTEXT_Filename;
 		static const long ID_STATICTEXT_XML_Type_Version;
@@ -165,6 +171,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event);
 		void OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event);
 		void OnButton_ReimportClick(wxCommandEvent& event);
+		void OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event);
+		void OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -177,6 +185,7 @@ class SeqSettingsDialog: public wxDialog
         xLightsFrame* xLightsParent;
         int selected_branch_index;
         wxTreeItemId selected_branch;
+        bool wizard_active;
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 

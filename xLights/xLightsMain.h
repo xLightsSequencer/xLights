@@ -1388,13 +1388,10 @@ protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
-    void ImportAudacityTimings();
-    void ProcessAudacityTimingFile(const wxString& filename);
-    void ImportxLightsXMLTimings();
-    void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
     wxString CreateEffectStringRandom();
     void BackupDirectory(wxString targetDirName);
+    void NewSequence();
     void OpenSequence();
     void SaveSequence();
     void InsertRow();

@@ -3,6 +3,57 @@
 #include "FileConverter.h"
 #include "DataLayer.h"
 
+
+
+void xLightsFrame::NewSequence()
+{
+    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    {
+        return;
+    }
+
+    // clear everything to prepare for new sequence
+    mediaFilename.Clear();
+    previewLoaded = false;
+    previewPlaying = false;
+    ResetTimer(NO_SEQ);
+    ResetSequenceGrid();
+    changedRow = 99999;
+    changedColumn = 99999;
+
+    // assign global xml file object
+    wxFileName xml_file;
+    delete CurrentSeqXmlFile;
+    CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
+
+    SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
+    setting_dlg.Fit();
+    setting_dlg.ShowModal();
+
+    // load media if available
+    if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
+    {
+        SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
+    }
+
+    wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+    int ms = atoi(mss.c_str());
+    //SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
+    LoadSequencer(*CurrentSeqXmlFile);
+    Menu_Settings_Sequence->Enable(true);
+
+    if( (NetInfo.GetTotChannels() > SeqData.NumChannels()) ||
+        (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
+    {
+        SeqData.init(NetInfo.GetTotChannels(), mMediaLengthMS / ms, ms);
+    }
+    else
+    {
+        SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+    }
+}
+
 void xLightsFrame::OpenSequence()
 {
     bool loaded_xml = false;

@@ -5,6 +5,7 @@
 #include "heartbeat.h"
 
 #include "SeqOpenDialog.h"
+#include "SeqSettingsDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
 
@@ -24,6 +25,11 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 }
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
+{
+    NewSequence();
+}
+
+/*void xLightsFrame::OnButtonNewSequenceClickOld(wxCommandEvent& event)
 {
     wxArrayString LorFiles,MediaFiles;
 
@@ -108,18 +114,16 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
         bool xmlFileLoaded=SeqLoadXlightsFile(filename, true);
         if (!xmlFileLoaded)
         {
-            /*
-            // No xml file, so put LOR timing into grid
-            Grid1->AppendRows(LorTimingList.size());
-            int r=0;
-            for (std::set<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
-            {
-                int period=*it;
-                float seconds=(float)period*SeqData.FrameTime()/1000.0;
-                Grid1->SetCellValue(r, 0, wxString::Format("%5.3f",seconds));
-                r++;
-            }
-             */
+//            // No xml file, so put LOR timing into grid
+//            Grid1->AppendRows(LorTimingList.size());
+//            int r=0;
+//            for (std::set<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
+//            {
+//                int period=*it;
+//                float seconds=(float)period*SeqData.FrameTime()/1000.0;
+//                Grid1->SetCellValue(r, 0, wxString::Format("%5.3f",seconds));
+//                r++;
+//            }
             wxMessageBox("Created new grid based on LOR effect timing");
         }
         return;
@@ -176,7 +180,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
         double f_duration;
         if(!s_duration.ToDouble(&f_duration))
         {
-            /* error! */
+            // error!
         }
 
         DisplayXlightsFilename("");
@@ -198,7 +202,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
                                   SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
 
-}
+}*/
 
 // load the specified .xseq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
@@ -379,7 +383,7 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
     return NULL;
 }
 
-void xLightsFrame::ImportAudacityTimings()
+/*void xLightsFrame::ImportAudacityTimings()
 {
     wxFileDialog* OpenDialog = new wxFileDialog(
                                                 this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
@@ -410,6 +414,7 @@ void xLightsFrame::ImportxLightsXMLTimings()
         SeqLoadXlightsFile(fName, true);
     }
 }
+*/
 
 void xLightsFrame::ShowModelsDialog()
 {
@@ -625,12 +630,6 @@ void xLightsFrame::ResetEffectStates(bool *ResetEffectState)
 void xLightsFrame::ResetSequenceGrid()
 {
 }
-void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
-{
-}
-
-
-
 
 
 #if 0
@@ -1759,13 +1758,6 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 #endif // 1
     }
 }
-
-
-void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
-{
-
-}
-
 
 
 void xLightsFrame::ResetSequenceGrid()
