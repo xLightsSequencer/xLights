@@ -122,6 +122,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
              */
             wxMessageBox("Created new grid based on LOR effect timing");
         }
+        EnableSequenceControls(true);
         return;
     }
     else if (dialog.RadioButtonNewMusic->GetValue())
@@ -197,7 +198,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
     nSeconds%=60;
     wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
                                   SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
-
+    EnableSequenceControls(true);
 }
 
 // load the specified .xseq binary file
@@ -569,27 +570,48 @@ void xLightsFrame::GetModelNames(wxArrayString& a)
 }
 
 
-
+static void enableAllChildControls(wxWindow *parent, bool enable) {
+    wxWindowList &ChildList = parent->GetChildren();
+    for ( wxWindowList::Node *node = ChildList.GetFirst(); node; node = node->GetNext()) {
+        wxWindow *ChildWin = (wxWindow *)node->GetData();
+        ChildWin->Enable(enable);
+    }
+}
+static void enableAllToolbarControls(wxAuiToolBar *parent, bool enable) {
+    enableAllChildControls((wxWindow *)parent, enable);
+    for (int x = 0; x < parent->GetToolCount(); x++) {
+        wxAuiToolBarItem * item = parent->FindToolByIndex(x);
+        parent->EnableTool(item->GetId(), enable);
+    }
+    parent->Refresh();
+}
+static void enableAllMenubarControls(wxMenuBar *parent, bool enable) {
+    for (int x = 0; x < parent->GetMenuCount(); x++) {
+        wxMenu * menu = parent->GetMenu(x);
+        for (int y = 0; y < menu->GetMenuItemCount(); y++) {
+            wxMenuItem *item = menu->FindItemByPosition(y);
+            menu->Enable(item->GetId(), enable);
+        }
+    }
+    parent->Refresh();
+}
 
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
-    //Button_PlayEffect->Enable(/*enable &&*/ Choice_Models->GetCount() > 0); //leave this one enabled -DJ
-    //Button_PlayRgbSeq->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
-    //Button_Models->Enable(enable && ModelsNode);
-    //Button_Presets->Enable(enable && EffectsNode);
-    //Button_UpdateGrid->Enable(enable);
-    //Choice_Models->Enable(enable);
-    EffectsPanel1->Button_Pictures_Filename->Enable(enable);
-    EffectsPanel1->TextCtrl_Pictures_Filename->Enable(enable);
-    EffectsPanel1->TextCtrl_Glediator_Filename->Enable(enable);
-    //ButtonSeqExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
-    //ButtonModelExport->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
-    //BitmapButtonOpenSeq->Enable(enable);
-    //BitmapButtonSaveSeq->Enable(enable);
-    //BitmapButtonInsertRow->Enable(enable);
-    //BitmapButtonDeleteRow->Enable(enable);
-    //ButtonDisplayElements->Enable(enable && ModelsNode);
-    //Button_CreateRandom->Enable(enable && Grid1->GetNumberCols() > XLIGHTS_SEQ_STATIC_COLUMNS);
+    enableAllToolbarControls(MainToolBar, enable);
+    enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(EffectToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(EffectPaletteToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(ViewToolBar, enable);
+    enableAllToolbarControls(OutputToolBar, enable);
+    
+    enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0);
+    enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);
+    
+    enableAllMenubarControls(MenuBar, enable);
 }
 
 
@@ -679,7 +701,6 @@ void xLightsFrame::PlayRgbSequence()
     playBuffer.InitBuffer(ModelXml);
     ClearEffectWindow();
     StatusBar1->SetStatusText(_("Playback: RGB sequence"));
-    EnableSequenceControls(false);
     PlayCurrentXlightsFile();
     Button_PlayRgbSeq->SetLabel("Stop (F4)");
     Button_PlayRgbSeq->Enable();

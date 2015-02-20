@@ -78,12 +78,12 @@ void xLightsFrame::CreateSequencer()
 
 
 
-    EffectIconPanel* effectIconPanel1 = new EffectIconPanel(PanelSequencer);
+    effectPalettePanel = new EffectIconPanel(PanelSequencer);
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).
                    BestSize(wxSize(175,175)).Left());
 
-    m_mgr->AddPane(effectIconPanel1,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).
+    m_mgr->AddPane(effectPalettePanel,wxAuiPaneInfo().Name(wxT("EffectDropper")).Caption(wxT("Effects")).
                    BestSize(wxSize(150,150)).MinSize(wxSize(150,150)).Left());
 
     m_mgr->AddPane(effectsPnl,wxAuiPaneInfo().Name(wxT("Effect")).Caption(wxT("Effect Settings")).

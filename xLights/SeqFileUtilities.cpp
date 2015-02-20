@@ -151,6 +151,7 @@ void xLightsFrame::OpenSequence()
             StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
         }
     }
+    EnableSequenceControls(true);
 }
 
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)

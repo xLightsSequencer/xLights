@@ -186,7 +186,7 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" variable="AuiToolBarView" member="yes">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItem9" member="yes">
 							<bitmap code="eye_open_24_xpm" />
@@ -2571,7 +2571,7 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUITOOLBAR2" variable="AuiToolBar1" member="yes">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR2" variable="EffectPaletteToolBar" member="yes">
 					<pos>993,6</pos>
 					<object class="AuiToolBarItem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" subclass="DragEffectBitmapButton" variable="BitmapButton1" member="yes">
@@ -2921,7 +2921,7 @@
 				<firstadd>0</firstadd>
 			</object>
 		</object>
-		<object class="wxMenuBar" variable="MenuBar1" member="no">
+		<object class="wxMenuBar" variable="MenuBar" member="yes">
 			<object class="wxMenu" variable="MenuFile" member="yes">
 				<label>&amp;File</label>
 				<object class="wxMenuItem" name="ID_NEW_SEQUENCE" variable="MenuItem3" member="yes">

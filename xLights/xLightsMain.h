@@ -98,6 +98,7 @@
 #include "TimingPanel.h"
 #include "ColorPanel.h"
 #include "PerspectivesPanel.h"
+#include "EffectIconPanel.h"
 
 #include "wx/aui/aui.h"
 
@@ -280,8 +281,29 @@ enum SeqPlayerStates
     PLAYING_EFFECT
 };
 
-class xlAuiToolBar;
 class RenderEvent;
+
+class xlAuiToolBar : public wxAuiToolBar {
+public:
+    xlAuiToolBar(wxWindow* parent,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 long style = wxAUI_TB_DEFAULT_STYLE) :
+    wxAuiToolBar(parent, id, pos, size, style)
+    {
+    }
+    virtual ~xlAuiToolBar() {
+        
+    }
+    
+    wxSize &GetAbsoluteMinSize() {
+        return m_absoluteMinSize;
+    }
+    wxSize GetMinSize() {
+        return m_absoluteMinSize;
+    }
+};
 
 class SchedTreeData : public wxTreeItemData
 {
@@ -973,7 +995,6 @@ private:
     wxPanel* PanelConvert;
     wxTextCtrl* TextCtrl_PgoMinRest;
     wxButton* ButtonSaveSetup;
-    wxAuiToolBar* AuiToolBarView;
     DragEffectBitmapButton* BitmapButton20;
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
@@ -991,6 +1012,7 @@ private:
     wxButton* ButtonBuildWholeHouseModel;
     wxTextCtrl* TextCtrlPreviewElementSize;
     wxStaticText* StaticText35;
+    wxMenuBar* MenuBar;
     wxChoice* ChoiceOutputFormat;
     DragEffectBitmapButton* BitmapButton12;
     wxDirDialog* DirDialog1;
@@ -1013,6 +1035,7 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonDim;
+    wxAuiToolBar* ViewToolBar;
     wxMenu* MenuItem15;
     wxButton* ButtonUpdateShow;
     wxStaticText* StaticText7;
@@ -1054,6 +1077,7 @@ private:
     xlAuiToolBar* MainToolBar;
     wxButton* ButtonLightsOff;
     DragEffectBitmapButton* BitmapButton10;
+    wxAuiToolBar* EffectPaletteToolBar;
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
     wxButton* ButtonStartPapagayo;
@@ -1136,7 +1160,6 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
-    wxAuiToolBar* AuiToolBar1;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxMenuItem* MenuItem25;
     wxStaticText* StaticTextPreviewFileName;
@@ -1528,6 +1551,8 @@ protected:
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
+    EffectIconPanel *effectPalettePanel;
+    
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
     // Methods
