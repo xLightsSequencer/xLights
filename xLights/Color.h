@@ -72,7 +72,10 @@ public:
     }
     wxUint32 GetRGB() const
     { return Red() | (Green() << 8) | (Blue() << 16); }
-    
+
+    operator wxString() const {
+        return wxString::Format("#%02x%02x%02x", red, green, blue);
+    }
     void SetFromString(const wxString &str) {
         if (str.empty()) {
             red = blue = green = 0;

@@ -666,6 +666,7 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
         }
         else
         {
+            settings=after;
             continue;
             //efPanel = NULL;
             //ContextWin=SeqPanelLeft;

@@ -23,13 +23,32 @@
 
 #include "RgbEffects.h"
 
-void RgbEffects::RenderOn(int red, int green, int blue)
+void RgbEffects::RenderOn(int start, int end)
 {
     int x,y;
 
-    xlColor color(red, green, blue);
+    xlColor color;
+    if (start == 100 && end == 100) {
+        palette.GetColor(0, color);
+    } else {
+        wxImage::HSVValue hsv;
+        palette.GetHSV(0,hsv);
+        double d;
+        if (!fitToTime) {
+            d = state/200.0;
+            while (d > 1.0) {
+                d -= 1.0;
+            }
+        } else {
+            d = GetEffectTimeIntervalPosition();
+        }
+        start = start + (end - start) * d;
+        d = start / 100.0;
+        hsv.value = hsv.value * d;
+        color = hsv;
+    }
 
-//  Every Node, every frame set to selected color
+    //Every Node, every frame set to selected color
     for (x=0; x<BufferWi; x++)
     {
         for (y=0; y<BufferHt; y++)

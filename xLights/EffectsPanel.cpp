@@ -81,16 +81,10 @@ const long EffectsPanel::ID_STATICTEXT120 = wxNewId();
 const long EffectsPanel::ID_PANEL19 = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON21 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT75 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_EFF_ON_COLOR = wxNewId();
-const long EffectsPanel::ID_STATICTEXT115 = wxNewId();
-const long EffectsPanel::ID_SLIDER_Eff_On_Red = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_EFF_ON_RED = wxNewId();
-const long EffectsPanel::ID_STATICTEXT116 = wxNewId();
-const long EffectsPanel::ID_SLIDER_Eff_On_Grn = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_EFF_ON_GRN = wxNewId();
-const long EffectsPanel::ID_STATICTEXT117 = wxNewId();
-const long EffectsPanel::ID_SLIDER_Eff_On_Blu = wxNewId();
-const long EffectsPanel::ID_TEXTCTRL_EFF_ON_BLU = wxNewId();
+const long EffectsPanel::ID_SLIDER_Eff_On_Start = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_EFF_ON_START = wxNewId();
+const long EffectsPanel::ID_SLIDER_Eff_On_End = wxNewId();
+const long EffectsPanel::ID_TEXTCTRL_EFF_ON_END = wxNewId();
 const long EffectsPanel::ID_PANEL25 = wxNewId();
 const long EffectsPanel::ID_STATICTEXT25 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Bars_BarCount = wxNewId();
@@ -582,6 +576,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer25;
     wxFlexGridSizer* FlexGridSizer5;
+    wxStaticText* StaticText114;
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer62;
@@ -598,6 +593,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer97;
     wxFlexGridSizer* FlexGridSizer74;
     wxFlexGridSizer* FlexGridSizer57;
+    wxStaticText* StaticText113;
     wxFlexGridSizer* FlexGridSizer52;
     wxFlexGridSizer* FlexGridSizer61;
     wxFlexGridSizer* FlexGridSizer29;
@@ -649,7 +645,6 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer30;
     wxFlexGridSizer* FlexGridSizer67;
     wxFlexGridSizer* FlexGridSizer101;
-    wxFlexGridSizer* FlexGridSizer94;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxSize(150,150), wxTAB_TRAVERSAL, _T("wxID_ANY"));
     SetMinSize(wxSize(150,150));
@@ -680,30 +675,19 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     FlexGridSizer96->Add(StaticText73, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer92->Add(FlexGridSizer96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer93 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer94 = new wxFlexGridSizer(0, 3, 0, 0);
-    BitmapButton_Eff_On_Color = new wxBitmapButton(Panel1_On, ID_BITMAPBUTTON_EFF_ON_COLOR, wxNullBitmap, wxDefaultPosition, wxSize(34,35), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_EFF_ON_COLOR"));
-    BitmapButton_Eff_On_Color->SetForegroundColour(wxColour(255,255,255));
-    FlexGridSizer94->Add(BitmapButton_Eff_On_Color, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer93->Add(FlexGridSizer94, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer95 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText113 = new wxStaticText(Panel1_On, ID_STATICTEXT115, _("Red"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT115"));
+    StaticText113 = new wxStaticText(Panel1_On, wxID_ANY, _("Start Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer95->Add(StaticText113, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Eff_On_Red = new wxSlider(Panel1_On, ID_SLIDER_Eff_On_Red, 255, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Eff_On_Red"));
-    FlexGridSizer95->Add(Slider_Eff_On_Red, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Eff_On_Red = new wxTextCtrl(Panel1_On, ID_TEXTCTRL_EFF_ON_RED, _("255"), wxDefaultPosition, wxSize(30,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EFF_ON_RED"));
-    FlexGridSizer95->Add(TextCtrl_Eff_On_Red, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText114 = new wxStaticText(Panel1_On, ID_STATICTEXT116, _("Green"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT116"));
+    Slider_Eff_On_Start = new wxSlider(Panel1_On, ID_SLIDER_Eff_On_Start, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Eff_On_Start"));
+    FlexGridSizer95->Add(Slider_Eff_On_Start, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl_Eff_On_Start = new wxTextCtrl(Panel1_On, ID_TEXTCTRL_EFF_ON_START, _("100"), wxDefaultPosition, wxSize(30,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EFF_ON_START"));
+    FlexGridSizer95->Add(TextCtrl_Eff_On_Start, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText114 = new wxStaticText(Panel1_On, wxID_ANY, _("End Intensity"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer95->Add(StaticText114, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Eff_On_Grn = new wxSlider(Panel1_On, ID_SLIDER_Eff_On_Grn, 255, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Eff_On_Grn"));
-    FlexGridSizer95->Add(Slider_Eff_On_Grn, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Eff_On_Grn = new wxTextCtrl(Panel1_On, ID_TEXTCTRL_EFF_ON_GRN, _("255"), wxDefaultPosition, wxSize(30,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EFF_ON_GRN"));
-    FlexGridSizer95->Add(TextCtrl_Eff_On_Grn, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    StaticText115 = new wxStaticText(Panel1_On, ID_STATICTEXT117, _("Blue"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT117"));
-    FlexGridSizer95->Add(StaticText115, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-    Slider_Eff_On_Blu = new wxSlider(Panel1_On, ID_SLIDER_Eff_On_Blu, 255, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Eff_On_Blu"));
-    FlexGridSizer95->Add(Slider_Eff_On_Blu, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    TextCtrl_Eff_On_Blu = new wxTextCtrl(Panel1_On, ID_TEXTCTRL_EFF_ON_BLU, _("255"), wxDefaultPosition, wxSize(30,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EFF_ON_BLU"));
-    FlexGridSizer95->Add(TextCtrl_Eff_On_Blu, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    Slider_Eff_On_End = new wxSlider(Panel1_On, ID_SLIDER_Eff_On_End, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Eff_On_End"));
+    FlexGridSizer95->Add(Slider_Eff_On_End, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    TextCtrl_Eff_On_End = new wxTextCtrl(Panel1_On, ID_TEXTCTRL_EFF_ON_END, _("100"), wxDefaultPosition, wxSize(30,21), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_EFF_ON_END"));
+    FlexGridSizer95->Add(TextCtrl_Eff_On_End, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer93->Add(FlexGridSizer95, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer92->Add(FlexGridSizer93, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Panel1_On->SetSizer(FlexGridSizer92);
@@ -2234,13 +2218,10 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     SetSizer(FlexGridSizer1);
     Layout();
 
-    Connect(ID_BITMAPBUTTON_EFF_ON_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_Eff_On_ColorClick);
-    Connect(ID_SLIDER_Eff_On_Red,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_RedCmdScroll);
-    Connect(ID_TEXTCTRL_EFF_ON_RED,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_RedText);
-    Connect(ID_SLIDER_Eff_On_Grn,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_GrnCmdScroll);
-    Connect(ID_TEXTCTRL_EFF_ON_GRN,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_GrnText);
-    Connect(ID_SLIDER_Eff_On_Blu,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_BluCmdScroll);
-    Connect(ID_TEXTCTRL_EFF_ON_BLU,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_BluText);
+    Connect(ID_SLIDER_Eff_On_Start,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_StartCmdScroll);
+    Connect(ID_TEXTCTRL_EFF_ON_START,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_StartText);
+    Connect(ID_SLIDER_Eff_On_End,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnSlider_Eff_On_EndCmdScroll);
+    Connect(ID_TEXTCTRL_EFF_ON_END,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&EffectsPanel::OnTextCtrl_Eff_On_EndText);
     Connect(ID_BITMAPBUTTON_SLIDER_Bars_BarCount,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_PaletteRepClick);
     Connect(ID_CHOICE_Bars_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&EffectsPanel::OnChoice_Bars_DirectionSelect);
     Connect(ID_BITMAPBUTTON_CHOICE_Bars_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnBitmapButton_DirectionClick);
@@ -3020,97 +3001,43 @@ void EffectsPanel::OnSlider_Skips_SkipSizeCmdScroll(wxScrollEvent& event)
 {
 }
 
-void EffectsPanel::UpdateEffOnColor()
+
+void EffectsPanel::OnSlider_Eff_On_StartCmdScroll(wxScrollEvent& event)
 {
-    int red =  wxAtoi(wxString::Format("%d",Slider_Eff_On_Red->GetValue()));
-    int green =  wxAtoi(wxString::Format("%d",Slider_Eff_On_Grn->GetValue()));
-    int blue =  wxAtoi(wxString::Format("%d",Slider_Eff_On_Blu->GetValue()));
-    wxColour color(red, green, blue);
-//~    SetButtonColor( BitmapButton_Eff_On_Color, &color);
+    TextCtrl_Eff_On_Start->SetValue(wxString::Format("%d",Slider_Eff_On_Start->GetValue()));
 }
 
-void EffectsPanel::OnSlider_Eff_On_RedCmdScroll(wxScrollEvent& event)
+void EffectsPanel::OnSlider_Eff_On_EndCmdScroll(wxScrollEvent& event)
 {
-    TextCtrl_Eff_On_Red->SetValue(wxString::Format("%d",Slider_Eff_On_Red->GetValue()));
-    UpdateEffOnColor();
+    TextCtrl_Eff_On_End->SetValue(wxString::Format("%d",Slider_Eff_On_End->GetValue()));
 }
 
-void EffectsPanel::OnSlider_Eff_On_GrnCmdScroll(wxScrollEvent& event)
+void EffectsPanel::OnTextCtrl_Eff_On_StartText(wxCommandEvent& event)
 {
-    TextCtrl_Eff_On_Grn->SetValue(wxString::Format("%d",Slider_Eff_On_Grn->GetValue()));
-    UpdateEffOnColor();
+    int value = wxAtoi(TextCtrl_Eff_On_Start->GetValue());
+    if( value < Slider_Eff_On_Start->GetMin() )
+    {
+        value = Slider_Eff_On_Start->GetMin();
+    }
+    else if( value > Slider_Eff_On_Start->GetMax() )
+    {
+        value = Slider_Eff_On_Start->GetMax();
+    }
+    Slider_Eff_On_Start->SetValue(value);
 }
 
-void EffectsPanel::OnSlider_Eff_On_BluCmdScroll(wxScrollEvent& event)
+void EffectsPanel::OnTextCtrl_Eff_On_EndText(wxCommandEvent& event)
 {
-    TextCtrl_Eff_On_Blu->SetValue(wxString::Format("%d",Slider_Eff_On_Blu->GetValue()));
-    UpdateEffOnColor();
-}
-
-void EffectsPanel::OnTextCtrl_Eff_On_RedText(wxCommandEvent& event)
-{
-    int value = wxAtoi(TextCtrl_Eff_On_Red->GetValue());
-    if( value < Slider_Eff_On_Red->GetMin() )
+    int value = wxAtoi(TextCtrl_Eff_On_End->GetValue());
+    if( value < Slider_Eff_On_End->GetMin() )
     {
-        value = Slider_Eff_On_Red->GetMin();
+        value = Slider_Eff_On_End->GetMin();
     }
-    else if( value > Slider_Eff_On_Red->GetMax() )
+    else if( value > Slider_Eff_On_End->GetMax() )
     {
-        value = Slider_Eff_On_Red->GetMax();
+        value = Slider_Eff_On_End->GetMax();
     }
-    Slider_Eff_On_Red->SetValue(value);
-    UpdateEffOnColor();
-}
-
-void EffectsPanel::OnTextCtrl_Eff_On_GrnText(wxCommandEvent& event)
-{
-    int value = wxAtoi(TextCtrl_Eff_On_Grn->GetValue());
-    if( value < Slider_Eff_On_Grn->GetMin() )
-    {
-        value = Slider_Eff_On_Grn->GetMin();
-    }
-    else if( value > Slider_Eff_On_Grn->GetMax() )
-    {
-        value = Slider_Eff_On_Grn->GetMax();
-    }
-    Slider_Eff_On_Grn->SetValue(value);
-    UpdateEffOnColor();
-}
-
-void EffectsPanel::OnTextCtrl_Eff_On_BluText(wxCommandEvent& event)
-{
-    int value = wxAtoi(TextCtrl_Eff_On_Blu->GetValue());
-    if( value < Slider_Eff_On_Blu->GetMin() )
-    {
-        value = Slider_Eff_On_Blu->GetMin();
-    }
-    else if( value > Slider_Eff_On_Blu->GetMax() )
-    {
-        value = Slider_Eff_On_Blu->GetMax();
-    }
-    Slider_Eff_On_Blu->SetValue(value);
-    UpdateEffOnColor();
-}
-
-void EffectsPanel::OnBitmapButton_Eff_On_ColorClick(wxCommandEvent& event)
-{
-    wxButton* w=(wxButton*)event.GetEventObject();
-    wxColour color = w->GetBackgroundColour();
-    colorData.SetColour(color);
-    wxColourDialog dialog(this, &colorData);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxColourData retData = dialog.GetColourData();
-        wxColour color = retData.GetColour();
-//~        SetButtonColor(w, &color);
-        TextCtrl_Eff_On_Red->SetValue(wxString::Format("%d",color.Red()));
-        TextCtrl_Eff_On_Grn->SetValue(wxString::Format("%d",color.Green()));
-        TextCtrl_Eff_On_Blu->SetValue(wxString::Format("%d",color.Blue()));
-        Slider_Eff_On_Red->SetValue(color.Red());
-        Slider_Eff_On_Grn->SetValue(color.Green());
-        Slider_Eff_On_Blu->SetValue(color.Blue());
-        //PaletteChanged=true;
-    }
+    Slider_Eff_On_End->SetValue(value);
 }
 
 

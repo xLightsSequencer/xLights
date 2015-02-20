@@ -388,6 +388,43 @@ static wxString GetSetting(const wxString& setting, const wxString& text)
     }
     return "";
 }
+//deletes the setting from "text" and returns what the value was
+static wxString DeleteSetting(const wxString& setting, wxString& text)
+{
+    wxString settings = text;
+    wxString before;
+    while (!settings.IsEmpty())
+    {
+        before=settings.BeforeFirst(',');
+        if (before.Contains(setting))
+        {
+            wxString val = before.AfterLast('=');
+            text.Replace(before, "");
+            text.Replace(",,", ",");
+            return val;
+        }
+        settings=settings.AfterFirst(',');
+    }
+    return "";
+}
+//replaces the setting from "text" and returns what the value was
+static wxString ReplaceSetting(const wxString& setting, wxString& text, const wxString &newData)
+{
+    wxString settings = text;
+    wxString before;
+    while (!settings.IsEmpty())
+    {
+        before=settings.BeforeFirst(',');
+        if (before.Contains(setting))
+        {
+            wxString val = before.AfterLast('=');
+            text.Replace(before, setting + "=" + newData);
+            return val;
+        }
+        settings=settings.AfterFirst(',');
+    }
+    return "";
+}
 
 static wxString remapV3Value(const wxString &st) {
     if (st.Contains("SparkleFrequency")) {
@@ -397,6 +434,26 @@ static wxString remapV3Value(const wxString &st) {
         return key + "=" + wxString::Format("%d", i);
     }
     return st;
+}
+
+static wxString AdjustV3Effect(const wxString &effect, const wxString &data) {
+    if (effect == "On") {
+        //On effect in v4 uses the first entry of the palette.
+        wxString newData(data);
+        
+        int r = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_RED", newData));
+        int g = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_GRN", newData));
+        int b = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_BLU", newData));
+        xlColor color(r, g, b);
+        DeleteSetting("E_SLIDER_Eff_On_Red", newData);
+        DeleteSetting("E_SLIDER_Eff_On_Grn", newData);
+        DeleteSetting("E_SLIDER_Eff_On_Blu", newData);
+        ReplaceSetting("C_BUTTON_Palette1", newData, color);
+        ReplaceSetting("C_CHECKBOX_Palette1", newData, "1");
+        newData += ",E_SLIDER_Eff_On_Start=100,E_SLIDER_Eff_On_End=100";
+        return newData;
+    }
+    return data;
 }
 
 static wxString SubstituteV3toV4tags(const wxString& effect_string)
@@ -798,6 +855,8 @@ bool xLightsXmlFile::LoadV3Sequence()
 
                 wxString data1 = SubstituteV3toV4tags(prefix + eff1);
                 wxString data2 = SubstituteV3toV4tags(prefix + eff2);
+                data1 = AdjustV3Effect(effect1, data1);
+                data2 = AdjustV3Effect(effect2, data2);
                 wxString end_time = (j+1<num_effects) ? timing[j+1] : GetSequenceDurationString();
 
                 AddEffect( layer1, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );

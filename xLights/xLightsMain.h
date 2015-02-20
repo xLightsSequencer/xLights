@@ -226,14 +226,17 @@ public:
     MapStringString(): std::map<wxString,wxString>() {
     }
     const wxString &operator[](const wxString &key) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
-        if (i == end()) {
-            return notFound;
-        }
-        return i->second;
+        return Get(key, notFound);
     }
     wxString &operator[](const wxString &key) {
         return std::map<wxString, wxString>::operator[](key);
+    }
+    const wxString &Get(const wxString &key, const wxString &def) const {
+        std::map<wxString,wxString>::const_iterator i(find(key));
+        if (i == end()) {
+            return def;
+        }
+        return i->second;
     }
 private:
     wxString notFound;
