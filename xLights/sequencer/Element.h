@@ -54,8 +54,6 @@ class Element
     
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
-
-
     protected:
     private:
         volatile int changeCount;

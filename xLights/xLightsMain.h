@@ -349,7 +349,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(wxString name, wxString settings);
+    void SetEffectControls(const wxString &name, const wxString &settings, int palette);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
@@ -1336,7 +1336,7 @@ private:
     void LoadSizerControlsToAttr(wxSizer* sizer,wxXmlNode* x);
     void PlayRgbEffect(int EffectPeriod, MapStringString &SettingsMap);
     void TimerRgbSeq(long msec);
-    void SetChoicebook(wxChoicebook* cb, wxString& PageName);
+    void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
     void UpdateGrid();
     void SetPreviewSize(int width,int height);
     void SetXmlSetting(const wxString& settingName,const wxString& value);
@@ -1369,6 +1369,7 @@ public:
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
+    const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
 
 
@@ -1561,7 +1562,7 @@ protected:
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
     void UpdateEffectGridVerticalScrollBar();
-    wxString GetEffectTextFromWindows();
+    wxString GetEffectTextFromWindows(int &palette);
     void InsertTimingMarkFromRange();
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);

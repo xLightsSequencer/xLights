@@ -77,6 +77,9 @@ class Effect
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
 
+        int GetPalette() const { return mPalette;}
+        void SetPalette(int i) { mPalette = i; IncrementChangeCount(); }
+
     protected:
     private:
         volatile int changeCount;
@@ -91,6 +94,7 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         bool mDirty;
+        int mPalette;
         EffectLayer* mParentLayer;
 };
 

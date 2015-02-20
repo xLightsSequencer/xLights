@@ -202,9 +202,11 @@ public:
 private:
     void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap) {
         if (el == NULL) {
-            loadSettingsMap("None", "", settingsMap);
+            loadSettingsMap("None", "", "", settingsMap);
         } else {
-            loadSettingsMap(el->GetEffectName(), el->GetSettings(), settingsMap);
+            loadSettingsMap(el->GetEffectName(), el->GetSettings(),
+                            xLights->GetColorPalette(el->GetPalette()),
+                            settingsMap);
         }
         updateBufferPaletteFromMap(layer, settingsMap);
         updateBufferFadesFromMap(layer, settingsMap);
@@ -268,10 +270,15 @@ private:
         }
         return NULL;
     }
-    void loadSettingsMap(const wxString &effectName, wxString settings, MapStringString& settingsMap) {
+    void loadSettingsMap(const wxString &effectName, wxString settings,
+                         const wxString &colorPalette,
+                         MapStringString& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-
+        
+        if (!colorPalette.IsEmpty()) {
+            settings = colorPalette + "," + settings;
+        }
         wxString before,after,name,value;
         while (!settings.IsEmpty()) {
             before=settings.BeforeFirst(',');

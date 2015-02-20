@@ -111,6 +111,7 @@ class xLightsXmlFile : public wxFileName
         void AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active );
         void AddDisplayElement( const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active );
         wxXmlNode* AddElement( const wxString& name, const wxString& type );
+        int AddColorPalette(const wxString &palette);
         void AddEffect( wxXmlNode* node,
                         const wxString& name,
                         const wxString& data,

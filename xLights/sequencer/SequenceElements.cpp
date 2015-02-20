@@ -210,6 +210,17 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 }
             }
        }
+       else if (e->GetName() == "ColorPalettes")
+       {
+           colorPalettes.clear();
+           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
+           {
+               if(elementNode->GetName()=="ColorPalette")
+               {
+                   colorPalettes.push_back(elementNode->GetNodeContent());
+               }
+           }
+       }
        else if (e->GetName() == "ElementEffects")
         {
             for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
@@ -239,7 +250,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                                 startTime = TimeLine::RoundToMultipleOfPeriod(time,mFrequency);
                                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time,mFrequency);
-                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 time += interval;
                             }
                         }
@@ -258,8 +269,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                         {
                                             wxString effectName;
                                             wxString settings;
-                                            int id;
-                                            int effectIndex;
+                                            int id = 0;
+                                            int effectIndex = 0;
+                                            long palette = -1;
                                             bool bProtected=false;
 
                                             // Start time
@@ -280,6 +292,11 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                                 id = wxAtoi(effect->GetAttribute("id"));
                                                 effectIndex = Effect::GetEffectIndex(effectName);
                                                 settings = effect->GetNodeContent();
+                                                
+                                                wxString tmp;
+                                                if (effect->GetAttribute("palette", &tmp)) {
+                                                    tmp.ToLong(&palette);
+                                                }
                                             }
                                             else
                                             {
@@ -287,7 +304,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                                 effectName = effect->GetAttribute("label");
 
                                             }
-                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
+                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,palette,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                         }
                                     }
                                 }
@@ -608,6 +625,27 @@ int SequenceElements::GetTotalNumberOfModelRows()
 int SequenceElements::GetFirstVisibleModelRow()
 {
     return mFirstVisibleModelRow;
+}
+
+
+int SequenceElements::getPaletteIndex(const wxString &p) {
+    for (int x = 0; x < colorPalettes.size(); x++) {
+        if (p == colorPalettes[x]) {
+            return x;
+        }
+    }
+    colorPalettes.push_back(p);
+    return colorPalettes.size() - 1;
+}
+static const wxString EMPTY_STRING;
+const wxString& SequenceElements::getPalette(int i) {
+    if (i == -1) {
+        return EMPTY_STRING;
+    }
+    return colorPalettes[i];
+}
+int SequenceElements::getNumberOfPalettes() {
+    return colorPalettes.size();
 }
 
 

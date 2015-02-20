@@ -445,7 +445,7 @@ void xLightsFrame::ShowModelsDialog()
     UpdateChannelNames();
 }
 
-void xLightsFrame::SetChoicebook(wxChoicebook* cb, wxString& PageName)
+void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
 {
     for(size_t i=0; i<cb->GetPageCount(); i++)
     {

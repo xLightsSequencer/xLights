@@ -87,6 +87,11 @@ class SequenceElements
         Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
         void UnSelectAllElements();
+    
+        int getPaletteIndex(const wxString &p);
+        const wxString& getPalette(int i);
+        int getNumberOfPalettes();
+    
     protected:
     private:
 
@@ -116,6 +121,8 @@ class SequenceElements
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
+    
+    std::vector<wxString> colorPalettes;
 
 };
 

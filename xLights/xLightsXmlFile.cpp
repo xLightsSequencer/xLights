@@ -214,6 +214,46 @@ void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxStri
     }
 
 }
+static wxString GetContent(wxXmlNode *node) {
+    wxString s = node->GetContent();
+    if (s.IsEmpty()) {
+        node = node->GetChildren();
+        while (node != NULL) {
+            s = node->GetContent();
+            if (!s.IsEmpty()) {
+                return s;
+            }
+            node = node->GetNext();
+        }
+    }
+    return s;
+}
+
+int xLightsXmlFile::AddColorPalette(const wxString &palette) {
+    int cnt = 0;
+    wxXmlNode* root=seqDocument.GetRoot();
+    wxXmlNode* child;
+    
+    for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+    {
+        if (e->GetName() == "ColorPalettes")
+        {
+            for(wxXmlNode* cp=e->GetChildren(); cp!=NULL; cp=cp->GetNext() )
+            {
+                if (cp->GetName() == "ColorPalette" && cp->GetNodeContent() == palette) {
+                    return cnt;
+                }
+                cnt++;
+            }
+            AddChildXmlNode(e, "ColorPalette", palette);
+            return cnt;
+        }
+    }
+    child = AddChildXmlNode(root, "ColorPalettes");
+    AddChildXmlNode(child, "ColorPalette", palette);
+    return cnt;
+}
+
 
 wxXmlNode* xLightsXmlFile::AddElement( const wxString& name, const wxString& type )
 {
@@ -254,15 +294,43 @@ wxXmlNode* xLightsXmlFile::AddFixedTiming( const wxString& name, const wxString&
     return child;
 }
 
+static wxString SplitPalette(wxString &data)
+{
+    wxString settings = data;
+    data = "";
+    
+    wxString color;
+    wxString before,after;
+    while (!settings.IsEmpty()) {
+        before=settings.BeforeFirst(',');
+        settings=settings.AfterFirst(',');
+        if (before.StartsWith("C_")) {
+            color += "," + before;
+        } else {
+            data += "," + before;
+        }
+    }
+    if (!color.IsEmpty()) {
+        color = color.AfterFirst(',');
+    }
+    if (!data.IsEmpty()) {
+        data = data.AfterFirst(',');
+    }
+    return color;
+}
+
 void xLightsXmlFile::AddEffect( wxXmlNode* node,
                                 const wxString& name,
-                                const wxString& data,
+                                const wxString& d,
                                 const wxString& protection,
                                 const wxString& selected,
                                 const wxString& id,
                                 const wxString& start_time,
                                 const wxString& end_time )
 {
+    wxString data = d;
+    wxString palette = SplitPalette(data);
+    int p = AddColorPalette(palette);
     wxXmlNode* effect = AddChildXmlNode(node, "Effect", data);
     effect->AddAttribute("name", name);
     effect->AddAttribute("protected", protection);
@@ -270,6 +338,7 @@ void xLightsXmlFile::AddEffect( wxXmlNode* node,
     effect->AddAttribute("id", id);
     effect->AddAttribute("startTime", start_time);
     effect->AddAttribute("endTime", end_time);
+    effect->AddAttribute("palette", string_format("%d", p));
 }
 
 void xLightsXmlFile::AddTimingEffect( wxXmlNode* node,
@@ -587,6 +656,7 @@ void xLightsXmlFile::CreateNew()
     AddChildXmlNode(node, "sequenceDuration", GetSequenceDurationString());
     wxXmlNode* data_layer = AddChildXmlNode(root, "dataLayers");
     mDataLayers.AddDataLayer("Nutcracker", "Auto-generated");
+    AddChildXmlNode(root, "ColorPalettes");
     AddChildXmlNode(root, "DisplayElements");
     AddChildXmlNode(root, "ElementEffects");
     AddChildXmlNode(root, "nextid", "1");
@@ -692,7 +762,7 @@ bool xLightsXmlFile::LoadV3Sequence()
         {
             int next_effect = i+(j*models.GetCount());
             wxString effect_string = effects[next_effect];
-            if(effect_string.length() > 500)
+            if(effect_string.length() > 100)
             {
                 wxString settings(effect_string);
                 wxString eff1, eff2, prefix;
@@ -1138,7 +1208,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; )
     {
         if( e->GetName() == "DisplayElements" ||
-            e->GetName() == "ElementEffects" )
+            e->GetName() == "ElementEffects"  ||
+            e->GetName() == "ColorPalettes")
         {
             wxXmlNode* node_to_delete = e;
             e = e->GetNext();
@@ -1149,6 +1220,11 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         {
             e=e->GetNext();
         }
+    }
+
+    wxXmlNode* colorPalette_node = AddChildXmlNode(root, "ColorPalettes");
+    for (int x = 0; x < seq_elements.getNumberOfPalettes(); x++) {
+        AddChildXmlNode(colorPalette_node, "ColorPalette", seq_elements.getPalette(x));
     }
 
     // Now add new elements to our xml document
@@ -1207,6 +1283,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
                         effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
                         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
+                        if (effect->GetPalette() != -1) {
+                            effect_node->AddAttribute("palette", string_format("%d", effect->GetPalette()));
+                        }
                     }
                     else if( element->GetType() == "timing" )
                     {

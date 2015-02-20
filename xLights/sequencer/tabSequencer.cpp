@@ -438,12 +438,17 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->UpdateEffectGridVerticalScrollBar();
 }
 
+const wxString& xLightsFrame::GetColorPalette(int i) {
+    return mSequenceElements.getPalette(i);
+}
+
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
 static wxString selectedEffectString;
+static int selectedEffectPalette;
 static Effect *selectedEffect;
 
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
@@ -461,8 +466,8 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     else
     {
         Effect* effect = (Effect*)event.GetClientData();
-        SetEffectControls(effect->GetEffectName(), effect->GetSettings());
-        selectedEffectString = GetEffectTextFromWindows();
+        SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPalette());
+        selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
     }
     wxString tooltip;
@@ -472,11 +477,11 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 {
-    Effect* effect;
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     mSequenceElements.UnSelectAllEffects();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
-    wxString settings = GetEffectTextFromWindows();
+    int palette;
+    wxString settings = GetEffectTextFromWindows(palette);
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
@@ -485,9 +490,10 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
         el->DeleteSelectedEffects();
         // Add dropped effect
-        el->AddEffect(0,effectIndex,name,settings,
+        el->AddEffect(0,effectIndex,name,settings,palette,
                       mSequenceElements.GetSelectedRange(i)->StartTime,
-                      mSequenceElements.GetSelectedRange(i)->EndTime,EFFECT_SELECTED,false);
+                      mSequenceElements.GetSelectedRange(i)->EndTime,
+                      EFFECT_SELECTED,false);
 
         playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
@@ -518,7 +524,8 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
-    wxString effectText = GetEffectTextFromWindows();
+    int palette = -1;
+    wxString effectText = GetEffectTextFromWindows(palette);
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
 
@@ -536,6 +543,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     el->GetEffect(j)->SetSettings(effectText);
                     el->GetEffect(j)->SetEffectIndex(effectIndex);
                     el->GetEffect(j)->SetEffectName(effectName);
+                    el->GetEffect(j)->SetPalette(palette);
 
                     playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
                     playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
@@ -568,10 +576,15 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
     
     if (selectedEffect != NULL) {
-        wxString effectText = GetEffectTextFromWindows();
-        if (effectText != selectedEffectString) {
+        int palette = -1;
+        wxString effectText = GetEffectTextFromWindows(palette);
+        if (effectText != selectedEffectString
+            || palette != selectedEffectPalette) {
             selectedEffect->SetSettings(effectText);
+            selectedEffect->SetPalette(palette);
+            
             selectedEffectString = effectText;
+            selectedEffectPalette = palette;
             
             Element *el = selectedEffect->GetParentEffectLayer()->GetParentElement();
             playStartTime = (int)(selectedEffect->GetStartTime() * 1000);
@@ -600,7 +613,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 }
 
 
-void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
+void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, int palette)
 {
     long TempLong;
     wxColour color;
@@ -608,6 +621,11 @@ void xLightsFrame::SetEffectControls(wxString effectName, wxString settings)
     wxString before,after,name,value;
     wxPanel *efPanel;
     int cnt=0;
+    
+    wxString settings(origSettings);
+    if (palette != -1) {
+        settings += "," + mSequenceElements.getPalette(palette);
+    }
 
     SetChoicebook(EffectsPanel1->Choicebook1, effectName);
 //NOTE: the settings loop after this section does not initialize controls.
@@ -862,13 +880,15 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
 }
 
 
-wxString xLightsFrame::GetEffectTextFromWindows()
+wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
     wxString comma = EffectsPanel1->GetEffectStringFromWindow(window).size()>0?",":"";
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + comma +
-                          colorPanel->GetColorString() + "," + timingPanel->GetTimingString();
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + comma
+                        + timingPanel->GetTimingString();
+    wxString colorString = colorPanel->GetColorString();
+    palette = mSequenceElements.getPaletteIndex(colorString);
     return effectText;
 }
 
@@ -893,7 +913,7 @@ void xLightsFrame::InsertTimingMarkFromRange()
                 double t1 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x1);
                 double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
                 wxString name,settings;
-                el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
                 mainSequencer->PanelEffectGrid->ForceRefresh();
             }
             else
@@ -916,14 +936,14 @@ void xLightsFrame::InsertTimingMarkFromRange()
                 {
                     double t1 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(effect->GetEndPosition());
                     double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
-                    el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
                 }
                 // No effect to left start at time = 0
                 else
                 {
                     double t1 = 0;
                     double t2 = mainSequencer->PanelTimeLine->GetAbsoluteTimefromPosition(x2);
-                    el->AddEffect(0,0,name,settings,t1,t2,false,false);
+                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
                 }
                 mainSequencer->PanelEffectGrid->ForceRefresh();
             }
