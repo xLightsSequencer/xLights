@@ -1,15 +1,21 @@
 #include "FileConverter.h"
 
-#include <wx/app.h>
-#include <wx/arrstr.h>
-#include <wx/file.h>
 #include <algorithm>
 #include <map>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 
+#ifndef FPP
+
+#include <wx/app.h>
+#include <wx/arrstr.h>
+#include <wx/file.h>
 #include "xLightsMain.h"
+
+#define string_format wxString::Format
+
+#endif
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
@@ -20,7 +26,6 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
                                       xLightsFrame* xLightsParent_,
                                       wxString* media_filename_,
                                       DataLayer* data_layer_,
-                                      wxCheckListBox* CheckListBoxTestChannels_,
                                       wxString out_filename_,
                                       int sequence_interval_,
                                       bool channels_off_at_end_,
@@ -32,7 +37,6 @@ ConvertParameters::ConvertParameters( wxString inp_filename_,
   seq_data(seq_data_),
   NetInfo(NetInfo_),
   media_filename(media_filename_),
-  CheckListBoxTestChannels(CheckListBoxTestChannels_),
   data_layer(data_layer_),
   channels_off_at_end(channels_off_at_end_),
   map_empty_channels(map_empty_channels_),
@@ -258,8 +262,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
     }
     params.seq_data.init(0, 0, params.sequence_interval);
 
-    params.xLightsParent->AppendConvertStatus(wxString::Format("Reading LOR sequence: %s\n", params.inp_filename));
-    params.xLightsParent->SetStatusText(wxString::Format("Reading LOR sequence: %s\n", params.inp_filename));
+    params.xLightsParent->AppendConvertStatus(string_format("Reading LOR sequence: %s\n", params.inp_filename));
+    params.xLightsParent->SetStatusText(string_format("Reading LOR sequence: %s\n", params.inp_filename));
 
     int centisec = -1;
     int nodecnt=0;
@@ -318,8 +322,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Channels found so far: %d\n"),channelCount));
-                        params.xLightsParent->SetStatusText(wxString::Format(wxString("Channels found so far: %d"),channelCount));
+                        params.xLightsParent->AppendConvertStatus (string_format(wxString("Channels found so far: %d\n"),channelCount));
+                        params.xLightsParent->SetStatusText(string_format(wxString("Channels found so far: %d"),channelCount));
                     }
 
                     deviceType = FromAscii( stagEvent->getAttrValue("deviceType") );
@@ -388,7 +392,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         }
     }
     delete parser;
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Track 1 length = %d centiseconds\n"),centisec), false);
 
     if (centisec > 0)
     {
@@ -412,7 +416,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         {
             cnt += lorUnitSizes[network][u];
         }
-        params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("LOR Network %d:  %d channels\n"),network,cnt), false);
+        params.xLightsParent->AppendConvertStatus (string_format(wxString("LOR Network %d:  %d channels\n"),network,cnt), false);
     }
     for (network = 1; network < dmxUnitSizes.size(); network++)
     {
@@ -423,9 +427,9 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                 cnt = dmxUnitSizes[network][u];
             }
         }
-        params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("DMX Network %d:  %d channels\n"),network,cnt), false);
+        params.xLightsParent->AppendConvertStatus (string_format(wxString("DMX Network %d:  %d channels\n"),network,cnt), false);
     }
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Total channels = %d\n"),channelCount));
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Total channels = %d\n"),channelCount));
 
     cnt = 0;
     context.clear();
@@ -493,7 +497,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     nodecnt=0;
                     wxYield();
                 }
-                //msg=wxString("Element: ") + NodeName + wxString::Format(wxString(" (%ld)\n"),cnt);
+                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
                 //AppendConvertStatus (msg);
                 if (NodeName == wxString("sequence"))
                 {
@@ -505,8 +509,8 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     channelCount++;
                     if ((channelCount % 1000) == 0)
                     {
-                        params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Channels converted so far: %d\n"),channelCount));
-                        params.xLightsParent->SetStatusText(wxString::Format(wxString("Channels converted so far: %d"),channelCount));
+                        params.xLightsParent->AppendConvertStatus (string_format(wxString("Channels converted so far: %d\n"),channelCount));
+                        params.xLightsParent->SetStatusText(string_format(wxString("Channels converted so far: %d"),channelCount));
                     }
 
                     deviceType = getAttributeValueSafe(stagEvent, "deviceType");
@@ -558,10 +562,10 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
                     }
                     if (curchannel >= 0)
                     {
-                        //params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("curchannel %d\n"),curchannel));
+                        //params.xLightsParent->AppendConvertStatus (string_format(wxString("curchannel %d\n"),curchannel));
                         if (ChannelNames[curchannel].size() != 0)
                         {
-                           params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("WARNING: ")+ChannelNames[curchannel]+wxString(" and ")
+                           params.xLightsParent->AppendConvertStatus (string_format(wxString("WARNING: ")+ChannelNames[curchannel]+wxString(" and ")
                                                                                        +ChannelName+wxString(" map to the same channel %d\n"), curchannel));
                         }
                         MappedChannelCnt++;
@@ -705,11 +709,11 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         ClearLastPeriod(params.seq_data);
     }
 
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of effects=%d\n"),EffectCnt), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("# of effects=%d\n"),EffectCnt), false);
     if( params.media_filename )
         params.xLightsParent->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("New # of time periods=%ld\n"),params.seq_data.NumFrames()), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("New # of time periods=%ld\n"),params.seq_data.NumFrames()), false);
     params.xLightsParent->SetStatusText(wxString("LOR sequence converted successfully"));
 
     wxYield();
@@ -771,7 +775,7 @@ void FileConverter::ReadXlightsFile(ConvertParameters& params)
         }
         delete [] buf;
 #ifndef NDEBUG
-        params.xLightsParent->AppendConvertLog (wxString::Format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+        params.xLightsParent->AppendConvertLog (string_format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
     }
     f.Close();
@@ -933,13 +937,13 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         int i = map[tmp + 1];
         int orig = params.NetInfo.GetNumChannels(tmp / 2);
         if (i < orig) {
-            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            params.xLightsParent->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
             i = orig;
         } else if (i > orig) {
-            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
-            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            params.xLightsParent->AppendConvertStatus (string_format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
+            params.xLightsParent->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
         } else {
-            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
+            params.xLightsParent->AppendConvertStatus (string_format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
         }
 
 
@@ -947,9 +951,9 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
         channels += i;
     }
 
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("TimeCells = %d\n"), timeCells), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("msPerCell = %d ms\n"), msPerCell), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Channels = %d\n"), channels), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("TimeCells = %d\n"), timeCells), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("msPerCell = %d ms\n"), msPerCell), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Channels = %d\n"), channels), false);
     if (channels == 0)
     {
         return;
@@ -1077,7 +1081,7 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                             ChannelColors[channels] = 0x00FFFFFF;
                         }
                         wxString o2 = params.NetInfo.GetChannelName(channels);
-                        params.xLightsParent->AppendConvertStatus (wxString::Format("Map %s -> %s (%s)\n",
+                        params.xLightsParent->AppendConvertStatus (string_format("Map %s -> %s (%s)\n",
                                                            ChannelNames[channels].c_str(),
                                                            origName.c_str(),
                                                            o2.c_str()), false);
@@ -1242,7 +1246,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                 NodeName = FromAscii( stagEvent->getName() );
                 context.push_back(NodeName);
                 cnt++;
-                //msg=wxString("Element: ") + NodeName + wxString::Format(wxString(" (%ld)\n"),cnt);
+                //msg=wxString("Element: ") + NodeName + string_format(wxString(" (%ld)\n"),cnt);
                 //AppendConvertStatus (msg);
                 if (cnt == 2 && (NodeName == wxString("Audio") || NodeName == wxString("Song")))
                 {
@@ -1278,7 +1282,7 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
                     }
                     else if (context[1] == wxString("EventValues"))
                     {
-                        //AppendConvertStatus(wxString::Format(wxString("Chunk Size=%d\n"), NodeValue.size()));
+                        //AppendConvertStatus(string_format(wxString("Chunk Size=%d\n"), NodeValue.size()));
                         if (carryOver.size() > 0) {
                             NodeValue.insert(0, carryOver);
                         }
@@ -1349,16 +1353,16 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     {
         numChannels = 0;
     }
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of Channels=%ld\n"),params.seq_data.NumChannels()), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix data len=%ld\n"),VixDataLen), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),params.seq_data.NumChannels()), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
     if (params.seq_data.NumChannels() == 0)
     {
         return;
     }
     long VixNumPeriods = VixDataLen / VixChannels.size();
-    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
     params.xLightsParent->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
     if (VixNumPeriods == 0) {
         return;
@@ -1410,7 +1414,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     size_t fileLength;
     int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     unsigned int ch,byte,byte1,byte2;
-    //wxString filename=wxString::Format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
+    //wxString filename=string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
     long TotChannels=params.NetInfo.GetTotChannels();
@@ -1479,7 +1483,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
     }
 
 #ifndef NDEBUG
-    params.xLightsParent->AppendConvertLog (wxString::Format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.xLightsParent->AppendConvertLog (string_format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     wxYield();
@@ -1652,7 +1656,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete []tmpBuf;
 
 #ifndef NDEBUG
-    params.xLightsParent->AppendConvertLog(wxString::Format(wxString("Read ISEQ File SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+    params.xLightsParent->AppendConvertLog(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
 #endif
 
     f.Close();

@@ -1,8 +1,9 @@
 #ifndef FILECONVERTER_H
 #define FILECONVERTER_H
 
+#ifndef FPP
 #include <wx/string.h>
-#include <wx/checklst.h>
+#endif
 #include "NetInfo.h"
 #include "DataLayer.h"
 #include "SequenceData.h"
@@ -25,7 +26,6 @@ public:
     int sequence_interval;
     SequenceData& seq_data;
     NetInfoClass& NetInfo;
-    wxCheckListBox* CheckListBoxTestChannels;
     DataLayer* data_layer;
     wxString* media_filename;
     xLightsFrame* xLightsParent;
@@ -41,7 +41,6 @@ public:
                        xLightsFrame* xLightsParent_,
                        wxString* media_filename_ = nullptr,
                        DataLayer* data_layer_ = nullptr,
-                       wxCheckListBox* CheckListBoxTestChannels_ = nullptr,
                        wxString out_filename_ = wxEmptyString,
                        int sequence_interval_ = 50,
                        bool channels_off_at_end_ = false,

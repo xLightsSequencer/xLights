@@ -397,6 +397,11 @@ SeqSettingsDialog::~SeqSettingsDialog()
 
 void SeqSettingsDialog::RemoveWizard()
 {
+    Disconnect(ID_BITMAPBUTTON_Wiz_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick);
+    Disconnect(ID_BITMAPBUTTON_Wiz_Anim,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick);
+    Disconnect(ID_BITMAPBUTTON_25ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_25msClick);
+    Disconnect(ID_BITMAPBUTTON_50ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_50msClick);
+    Disconnect(ID_BITMAPBUTTON_100ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_100msClick);
     Notebook_Seq_Settings->RemovePage(0);
     Fit();
 }
@@ -627,7 +632,6 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
                                       xLightsParent,                                            // xLights main frame
                                       &media_filename,                                          // media filename
                                       new_data_layer,                                           // data layer to fill in header info
-                                      xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
                                       data_file.GetFullPath(),                                  // output filename
                                       atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
                                       false,                                                    // turn off all channels at end
@@ -712,7 +716,6 @@ void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
                                       xLightsParent,                                            // xLights main frame
                                       &media_filename,                                          // media filename
                                       layer,                                                    // data layer to fill in header info
-                                      xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
                                       layer->GetDataSource(),                                   // output filename
                                       atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
                                       layer->GetLORConvertParams() & 0x1,                       // turn off all channels at end
@@ -922,6 +925,8 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
     Choice_Xml_Seq_Type->SetSelection(1);
     xml_file->SetSequenceType("Animation");
     wizard_active = false;
+    TextCtrl_Xml_Seq_Duration->SetValue("30.0");
+    xml_file->SetSequenceDuration(30.0);
     ProcessSequenceType();
     RemoveWizard();
 }
@@ -929,17 +934,17 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Timing->SetSelection(0);
-    Notebook_Seq_Settings->RemovePage(0);
+    RemoveWizard();
 }
 
 void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Timing->SetSelection(1);
-    Notebook_Seq_Settings->RemovePage(0);
+    RemoveWizard();
 }
 
 void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Timing->SetSelection(2);
-    Notebook_Seq_Settings->RemovePage(0);
+    RemoveWizard();
 }
