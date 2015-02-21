@@ -885,9 +885,11 @@ wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
-    wxString comma = EffectsPanel1->GetEffectStringFromWindow(window).size()>0?",":"";
-    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window) + comma
-                        + timingPanel->GetTimingString();
+    wxString effectText = EffectsPanel1->GetEffectStringFromWindow(window);
+    if (effectText.size() > 0) {
+        effectText += ",";
+    }
+    effectText += timingPanel->GetTimingString();
     wxString colorString = colorPanel->GetColorString();
     palette = mSequenceElements.getPaletteIndex(colorString);
     return effectText;

@@ -450,7 +450,7 @@ static wxString AdjustV3Effect(const wxString &effect, const wxString &data) {
         DeleteSetting("E_SLIDER_Eff_On_Blu", newData);
         ReplaceSetting("C_BUTTON_Palette1", newData, color);
         ReplaceSetting("C_CHECKBOX_Palette1", newData, "1");
-        newData += ",E_SLIDER_Eff_On_Start=100,E_SLIDER_Eff_On_End=100";
+        newData += ",E_TEXTCTRL_Eff_On_Start=100,E_TEXTCTRL_Eff_On_End=100";
         return newData;
     }
     return data;
@@ -1354,8 +1354,12 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect");
                         effect_node->AddAttribute("ref", string_format("%d", ref));
                         effect_node->AddAttribute("name", effect->GetEffectName());
-                        effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
-                        effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
+                        if (effect->GetProtected()) {
+                            effect_node->AddAttribute("protected", "1");
+                        }
+                        if (effect->GetSelected()) {
+                            effect_node->AddAttribute("selected", "1");
+                        }
                         effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
                         effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
                         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
@@ -1370,7 +1374,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
                         effect_node->AddAttribute("label", effect->GetEffectName());
                         effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
-                        effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
+                        if (effect->GetSelected()) {
+                            effect_node->AddAttribute("selected", "1");
+                        }
                         effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
                         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
                     }

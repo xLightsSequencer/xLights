@@ -512,10 +512,10 @@ protected:
     static const long ID_PANEL19;
     static const long ID_BITMAPBUTTON21;
     static const long ID_STATICTEXT75;
-    static const long ID_SLIDER_Eff_On_Start;
-    static const long ID_TEXTCTRL_EFF_ON_START;
-    static const long ID_SLIDER_Eff_On_End;
-    static const long ID_TEXTCTRL_EFF_ON_END;
+    static const long IDN_SLIDER_Eff_On_Start;
+    static const long ID_TEXTCTRL_Eff_On_Start;
+    static const long IDN_SLIDER_Eff_On_End;
+    static const long ID_TEXTCTRL_Eff_On_End;
     static const long ID_PANEL25;
     static const long ID_STATICTEXT25;
     static const long ID_SLIDER_Bars_BarCount;

@@ -99,7 +99,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_Eff_On_Start" variable="Slider_Eff_On_Start" member="yes">
+													<object class="wxSlider" name="IDN_SLIDER_Eff_On_Start" variable="Slider_Eff_On_Start" member="yes">
 														<value>100</value>
 														<handler function="OnSlider_Eff_On_StartCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -108,7 +108,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_EFF_ON_START" variable="TextCtrl_Eff_On_Start" member="yes">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" variable="TextCtrl_Eff_On_Start" member="yes">
 														<value>100</value>
 														<size>30,21</size>
 														<style>wxTE_PROCESS_ENTER</style>
@@ -127,7 +127,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxSlider" name="ID_SLIDER_Eff_On_End" variable="Slider_Eff_On_End" member="yes">
+													<object class="wxSlider" name="IDN_SLIDER_Eff_On_End" variable="Slider_Eff_On_End" member="yes">
 														<value>100</value>
 														<handler function="OnSlider_Eff_On_EndCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
@@ -136,7 +136,7 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxTextCtrl" name="ID_TEXTCTRL_EFF_ON_END" variable="TextCtrl_Eff_On_End" member="yes">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" variable="TextCtrl_Eff_On_End" member="yes">
 														<value>100</value>
 														<size>30,21</size>
 														<style>wxTE_PROCESS_ENTER</style>
