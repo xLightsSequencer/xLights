@@ -88,6 +88,7 @@ const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM_RenderAll = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
@@ -540,6 +541,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), save_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), save_as_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBARITEM_RenderAll, _("Render All"), green_gear_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
     PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1559,6 +1561,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_OPEN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
     Connect(ID_AUITOOLBAR_SAVE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_AUITOOLBAR_SAVEAS,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClickSaveAs);
+    Connect(ID_AUITOOLBARITEM_RenderAll,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemRenderAllClick);
     Connect(ID_AUITOOLBAR_PLAY_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPlayButtonClick);
     Connect(ID_AUITOOLBAR_PAUSE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPauseButtonClick);
     Connect(ID_AUITOOLBAR_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemStopClick);
@@ -2028,7 +2031,7 @@ xLightsFrame::~xLightsFrame()
     //must call these or the app will crash on exit
     m_mgr->UnInit();
     MainAuiManager->UnInit();
-    
+
     delete CurrentSeqXmlFile;
     CurrentSeqXmlFile = NULL;
 
@@ -2984,5 +2987,9 @@ void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)
+{
+}
+
+void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
 {
 }

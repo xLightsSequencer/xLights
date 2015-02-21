@@ -95,6 +95,80 @@ static wxString getAttributeValueSafe(SP_XmlStartTagEvent * stagEvent, const cha
     return FromAscii(val);
 }
 
+static void ClearLastPeriod( SequenceData& seq_data)
+{
+    int LastPer = seq_data.NumFrames()-1;
+    for (size_t ch=0; ch < seq_data.NumChannels(); ch++)
+    {
+        seq_data[LastPer][ch] = 0;
+    }
+}
+
+static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static inline bool is_base64(unsigned char c)
+{
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+//returns number of chars at the end that couldn't be decoded
+static int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data)
+{
+    size_t in_len = encoded_string.size();
+    int i = 0;
+    int j = 0;
+    int in_ = 0;
+    unsigned char char_array_4[4], char_array_3[3];
+
+    while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
+    {
+        char_array_4[i++] = encoded_string[in_];
+        in_++;
+        if (i ==4)
+        {
+            for (i = 0; i <4; i++)
+            {
+                char_array_4[i] = base64_chars.find(char_array_4[i]);
+            }
+
+            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+            for (i = 0; (i < 3); i++)
+            {
+                data.resize(data.size() + 1);
+                data[data.size() - 1] = char_array_3[i];
+            }
+            i = 0;
+        }
+    }
+
+    if (i && encoded_string[in_] == '=')
+    {
+        for (j = i; j <4; j++)
+        {
+            char_array_4[j] = 0;
+        }
+
+        for (j = 0; j <4; j++)
+        {
+            char_array_4[j] = base64_chars.find(char_array_4[j]);
+        }
+
+        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+        for (j = 0; (j < i - 1); j++)
+        {
+            data.resize(data.size() + 1);
+            data[data.size() - 1] = char_array_3[j];
+        }
+    }
+    return i;
+}
+
 class LORInfo
 {
 public:
@@ -626,12 +700,704 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
         params.data_layer->SetNumChannels(MappedChannelCnt);
     }
 
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+
     params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of mapped channels with effects=%d\n"),MappedChannelCnt), false);
     params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of effects=%d\n"),EffectCnt), false);
     if( params.media_filename )
         params.xLightsParent->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
     params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("New # of time periods=%ld\n"),params.seq_data.NumFrames()), false);
     params.xLightsParent->SetStatusText(wxString("LOR sequence converted successfully"));
+
+    wxYield();
+}
+
+void FileConverter::ReadXlightsFile(ConvertParameters& params)
+{
+    wxFile f;
+    char hdr[512],filetype[10];
+    int fileversion,numch,numper,scancnt;
+    size_t readcnt;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
+    long TotChannels=params.NetInfo.GetTotChannels();
+    for (int x = 0; x < TotChannels; x++) {
+        ChannelColors.push_back(0);
+        ChannelNames.push_back("");
+    }
+    params.seq_data.init(0, 0, params.sequence_interval);
+
+    wxFile file(params.inp_filename);
+
+    if (!f.Open(params.inp_filename.c_str()))
+    {
+        params.xLightsParent->PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        return;
+    }
+
+    f.Read(hdr,512);
+    scancnt=sscanf(hdr,"%8s %2d %8d %8d",filetype,&fileversion,&numch,&numper);
+    if (scancnt != 4 || strncmp(filetype,"xLights",7) != 0 || numch <= 0 || numper <= 0)
+    {
+        params.xLightsParent->PlayerError(wxString("Invalid file header:\n")+params.inp_filename);
+    }
+    else
+    {
+        params.seq_data.init(numch, numper, 50);
+        char * buf = new char[numper];
+        wxString filename=FromAscii(hdr+32);
+
+        if( params.media_filename ) {
+            *params.media_filename = filename;
+        }
+
+        if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+            params.xLightsParent->SetMediaFilename(filename);
+        }
+
+        for (int x = 0; x < numch; x++) {
+            readcnt = f.Read(buf, numper);
+            if (readcnt < numper)
+            {
+                params.xLightsParent->PlayerError(wxString("Unable to read all event data from:\n")+params.inp_filename);
+            }
+            for (int p = 0; p < numper; p++) {
+                params.seq_data[p][x] = buf[p];
+            }
+        }
+        delete [] buf;
+#ifndef NDEBUG
+        params.xLightsParent->AppendConvertLog (wxString::Format(wxString("ReadXlightsFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+#endif
+    }
+    f.Close();
+
+    if( params.data_layer != nullptr )
+    {
+        params.data_layer->SetNumFrames(params.seq_data.NumFrames());
+        params.data_layer->SetNumChannels(params.seq_data.NumChannels());
+    }
+
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+
+    wxYield();
+
+}
+
+void FileConverter::ReadHLSFile(ConvertParameters& params)
+{
+    long timeCells = 0;
+    long msPerCell = 50;
+    long channels = 0;
+    long cnt = 0;
+    long tmp;
+    long universe = 0;
+    long channelsInUniverse = 0;
+    wxString NodeName, NodeValue, Data, ChannelName;
+    wxArrayString context;
+    wxArrayInt map;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    wxFile file(params.inp_filename);
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+    parser->append(bytes, read);
+
+    // pass one, get the metadata
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done)
+    {
+        if (!event)
+        {
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+            if (read == 0)
+            {
+                done = true;
+            }
+            else
+            {
+                parser->append(bytes, read);
+            }
+        }
+        else
+        {
+            switch(event -> getEventType())
+            {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag:
+            {
+                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                NodeName = FromAscii( stagEvent->getName() );
+                context.push_back(NodeName);
+                cnt++;
+                break;
+            }
+            case SP_XmlPullEvent::eCData:
+            {
+                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                if (cnt > 0)
+                {
+                    NodeName = context[cnt - 1];
+                    NodeValue = FromAscii( stagEvent -> getText());
+
+                    if (NodeName == wxString("MilliSecPerTimeUnit"))
+                    {
+                        msPerCell = atol(NodeValue.c_str());
+                    }
+                    if (NodeName == wxString("NumberOfTimeCells"))
+                    {
+                        timeCells = atol(NodeValue.c_str());
+                    }
+                    if (NodeName == wxString("AudioSourcePcmFile"))
+                    {
+                        *params.media_filename = NodeValue;
+                        if (Right(*params.media_filename, 4) == ".PCM")
+                        {
+                            //nothing can deal with PCM files, we'll assume this came from an mp3
+                            *params.media_filename = Left(*params.media_filename, (*params.media_filename).size() - 4);
+                            *params.media_filename += ".mp3";
+                        }
+                    }
+                    if (NodeName == wxString("ChannelsInUniverse"))
+                    {
+                        channelsInUniverse = atol(NodeValue.c_str());
+                        channels += channelsInUniverse;
+                    }
+                    if (NodeName == wxString("UniverseNumber"))
+                    {
+                        tmp = atol(NodeValue.c_str());
+                        universe = tmp;
+                    }
+                }
+                break;
+            }
+            case SP_XmlPullEvent::eEndTag:
+            {
+                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                if (cnt > 0)
+                {
+                    NodeName = context[cnt - 1];
+                    if (NodeName == wxString("Universe"))
+                    {
+                        map.push_back(universe);
+                        map.push_back(channelsInUniverse);
+                        for (tmp = map.size() - 2; tmp > 0; tmp -= 2)
+                        {
+                            if (map[tmp] < map[tmp - 2])
+                            {
+                                long t1 = map[tmp];
+                                long t2 = map[tmp + 1];
+                                map[tmp] = map[tmp - 2];
+                                map[tmp + 1] = map[tmp - 1];
+                                map[tmp - 2] = t1;
+                                map[tmp - 1] = t2;
+                            }
+                        }
+                    }
+
+                    RemoveAt(context, cnt-1);
+                }
+                cnt = context.size();
+                break;
+            }
+            }
+            delete event;
+        }
+        if (!done)
+        {
+            event = parser->getNext();
+        }
+    }
+    delete parser;
+
+    file.Seek(0);
+
+
+
+    channels = 0;
+
+    for (tmp = 0; tmp < map.size(); tmp += 2)
+    {
+        int i = map[tmp + 1];
+        int orig = params.NetInfo.GetNumChannels(tmp / 2);
+        if (i < orig) {
+            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+            i = orig;
+        } else if (i > orig) {
+            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("WARNING Universe: %ld contains more channels than you have configured.\n"), map[tmp]), false);
+            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld   Configured: %d\n"), map[tmp], i, orig), false);
+        } else {
+            params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Found Universe: %ld   Channels in Seq: %ld\n"), map[tmp], i, orig), false);
+        }
+
+
+        map[tmp + 1] = channels;
+        channels += i;
+    }
+
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("TimeCells = %d\n"), timeCells), false);
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("msPerCell = %d ms\n"), msPerCell), false);
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Channels = %d\n"), channels), false);
+    if (channels == 0)
+    {
+        return;
+    }
+    if (timeCells == 0)
+    {
+        return;
+    }
+    params.seq_data.init(channels, timeCells, msPerCell);
+
+    ChannelNames.resize(channels);
+    ChannelColors.resize(channels);
+
+    channels = 0;
+
+    wxYield();
+
+    parser = new SP_XmlPullParser();
+    read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+    parser->append(bytes, read);
+
+
+    event = parser->getNext();
+    done = 0;
+    int nodecnt = 0;
+    while (!done)
+    {
+        if (!event)
+        {
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+            if (read == 0)
+            {
+                done = true;
+            }
+            else
+            {
+                parser->append(bytes, read);
+            }
+        }
+        else
+        {
+            switch(event -> getEventType())
+            {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag:
+            {
+                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                NodeName = FromAscii( stagEvent->getName() );
+                context.push_back(NodeName);
+                cnt++;
+                break;
+            }
+            case SP_XmlPullEvent::eCData:
+            {
+                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                if (cnt > 0)
+                {
+                    NodeName = context[cnt - 1];
+                    NodeValue = FromAscii( stagEvent -> getText());
+
+                    if (NodeName == wxString("ChanInfo"))
+                    {
+                        //channel name and type
+                        ChannelName = NodeValue;
+                    }
+                    if (NodeName == wxString("Block"))
+                    {
+                        int idx = NodeValue.find("-");
+                        Data.append(NodeValue.substr(idx + 1));
+                    }
+                    if (NodeName == wxString("UniverseNumber"))
+                    {
+                        tmp = atol(NodeValue.c_str());
+                        universe = tmp;
+                        for (tmp = 0; tmp < map.size() ; tmp += 2)
+                        {
+                            if (universe == map[tmp])
+                            {
+                                channels = map[tmp + 1];
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case SP_XmlPullEvent::eEndTag:
+            {
+                if (nodecnt > 1000)
+                {
+                    nodecnt=0;
+                    wxYield();
+                }
+                nodecnt++;
+                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
+                if (cnt > 0)
+                {
+                    NodeName = context[cnt - 1];
+                    if (NodeName == wxString("ChannelData"))
+                    {
+
+                        //finished reading this channel, map the data
+                        int idx = ChannelName.find(", ");
+                        wxString type = ChannelName.substr(idx + 2);
+                        wxString origName = ChannelNames[channels];
+                        if (type == wxString("RGB-R"))
+                        {
+                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-R");
+                            ChannelColors[channels] = 0x000000FF;
+                        }
+                        else if (type == wxString("RGB-G"))
+                        {
+                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-G");
+                            ChannelColors[channels] = 0x0000FF00;
+                        }
+                        else if (type == wxString("RGB-B"))
+                        {
+                            ChannelNames[channels] = Left(ChannelName, idx) + wxString("-B");
+                            ChannelColors[channels] = 0x00FF0000;
+                        }
+                        else
+                        {
+                            ChannelNames[channels] = Left(ChannelName, idx);
+                            ChannelColors[channels] = 0x00FFFFFF;
+                        }
+                        wxString o2 = params.NetInfo.GetChannelName(channels);
+                        params.xLightsParent->AppendConvertStatus (wxString::Format("Map %s -> %s (%s)\n",
+                                                           ChannelNames[channels].c_str(),
+                                                           origName.c_str(),
+                                                           o2.c_str()), false);
+                        for (long newper = 0; newper < params.seq_data.NumFrames(); newper++)
+                        {
+                            long intensity;
+                            intensity = strtoul(Data.substr(newper * 3, 2).c_str(), NULL, 16);
+                            params.seq_data[newper][channels] = intensity;
+                        }
+                        Data.clear();
+                        channels++;
+                    }
+
+                    RemoveAt(context, cnt-1);
+                }
+                cnt = context.size();
+                break;
+            }
+            }
+            delete event;
+        }
+        if (!done)
+        {
+            event = parser->getNext();
+        }
+    }
+    delete [] bytes;
+    delete parser;
+    file.Close();
+
+    if( params.data_layer != nullptr )
+    {
+        params.data_layer->SetNumFrames(params.seq_data.NumFrames());
+        params.data_layer->SetNumChannels(params.seq_data.NumChannels());
+    }
+
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+    wxYield();
+}
+
+// return true on success
+#ifndef FPP
+static bool LoadVixenProfile(ConvertParameters& params, const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString& VixChannelNames)
+{
+    wxString tag,tempstr;
+    long OutputChannel;
+    wxFileName fn;
+    fn.AssignDir(params.xLightsParent->CurrentDir);
+    fn.SetFullName(ProfileName + ".pro");
+    if (!fn.FileExists())
+    {
+        params.xLightsParent->ConversionError(wxString("Unable to find Vixen profile: ")+fn.GetFullPath()+wxString("\n\nMake sure a copy is in your xLights directory"));
+        return false;
+    }
+    wxXmlDocument doc( fn.GetFullPath() );
+    if (doc.IsOk())
+    {
+        VixChannels.clear();
+        wxXmlNode* root=doc.GetRoot();
+        for( wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
+        {
+            tag = e->GetName();
+            if (tag == wxString("ChannelObjects"))
+            {
+                for( wxXmlNode* p=e->GetChildren(); p!=NULL; p=p->GetNext() )
+                {
+                    if (p->GetName() == wxString("Channel"))
+                    {
+                        if (p->HasAttribute("output"))
+                        {
+                            tempstr=p->GetAttribute("output", "0");
+                            OutputChannel = atol(tempstr.c_str());
+                            VixChannels.push_back(OutputChannel);
+                        }
+                        if (p->HasAttribute("name"))
+                        {
+                            VixChannelNames.push_back(p->GetAttribute("name"));
+                        }
+                        else
+                        {
+                            if (p->GetChildren() != NULL) {
+                                VixChannelNames.push_back(p->GetChildren()->GetContent());
+                            } else {
+                                VixChannelNames.push_back(p->GetContent());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    else
+    {
+        params.xLightsParent->ConversionError(wxString("Unable to load Vixen profile: ")+ProfileName);
+    }
+    return false;
+}
+#endif
+
+void FileConverter::ReadVixFile(ConvertParameters& params)
+{
+    wxString NodeName,NodeValue,msg;
+    std::vector<unsigned char> VixSeqData;
+    wxArrayInt VixChannels;
+    wxArrayString VixChannelNames;
+    long cnt = 0;
+    wxArrayString context;
+    long VixEventPeriod=-1;
+    long MaxIntensity = 255;
+    int OutputChannel;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
+    long TotChannels=params.NetInfo.GetTotChannels();
+    for (int x = 0; x < TotChannels; x++) {
+        ChannelColors.push_back(0);
+        ChannelNames.push_back("");
+    }
+    params.seq_data.init(0, 0, params.sequence_interval);
+
+    params.xLightsParent->AppendConvertStatus (wxString("Reading Vixen sequence\n"));
+
+    SP_XmlPullParser *parser = new SP_XmlPullParser();
+    parser->setMaxTextSize(MAX_READ_BLOCK_SIZE / 2);
+    wxFile file(params.inp_filename);
+    char *bytes = new char[MAX_READ_BLOCK_SIZE];
+    size_t read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+    parser->append(bytes, read);
+    wxString carryOver;
+
+    //pass 1, read the length, determine number of networks, units/network, channels per unit
+    SP_XmlPullEvent * event = parser->getNext();
+    int done = 0;
+    while (!done)
+    {
+        if (!event)
+        {
+            read = file.Read(bytes, MAX_READ_BLOCK_SIZE);
+            if (read == 0)
+            {
+                done = true;
+            }
+            else
+            {
+                parser->append(bytes, read);
+            }
+        }
+        else
+        {
+            switch(event -> getEventType())
+            {
+            case SP_XmlPullEvent::eEndDocument:
+                done = true;
+                break;
+            case SP_XmlPullEvent::eStartTag:
+            {
+                SP_XmlStartTagEvent * stagEvent = (SP_XmlStartTagEvent*)event;
+                NodeName = FromAscii( stagEvent->getName() );
+                context.push_back(NodeName);
+                cnt++;
+                //msg=wxString("Element: ") + NodeName + wxString::Format(wxString(" (%ld)\n"),cnt);
+                //AppendConvertStatus (msg);
+                if (cnt == 2 && (NodeName == wxString("Audio") || NodeName == wxString("Song")))
+                {
+                    *params.media_filename = (getAttributeValueSafe(stagEvent, "filename") );
+                }
+                if (cnt > 1 && context[1] == wxString("Channels") && NodeName == wxString("Channel"))
+                {
+                    const char *val = stagEvent -> getAttrValue("output");
+                    if (!val)
+                    {
+                        VixChannels.push_back(VixChannels.size());
+                    }
+                    else
+                    {
+                        VixChannels.push_back(atoi(val));
+                    }
+                }
+            }
+            break;
+            case SP_XmlPullEvent::eCData:
+            {
+                SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
+                if (cnt == 2)
+                {
+                    NodeValue = FromAscii( stagEvent->getText() );
+                    if (context[1] == wxString("MaximumLevel"))
+                    {
+                        MaxIntensity = atol(NodeValue.c_str());
+                    }
+                    else if (context[1] == wxString("EventPeriodInMilliseconds"))
+                    {
+                        VixEventPeriod = atol(NodeValue.c_str());
+                    }
+                    else if (context[1] == wxString("EventValues"))
+                    {
+                        //AppendConvertStatus(wxString::Format(wxString("Chunk Size=%d\n"), NodeValue.size()));
+                        if (carryOver.size() > 0) {
+                            NodeValue.insert(0, carryOver);
+                        }
+                        int i = base64_decode(NodeValue, VixSeqData);
+                        if (i != 0) {
+                            int start = NodeValue.size() - i - 1;
+                            carryOver = NodeValue.substr(start, start + i);
+                        } else {
+                            carryOver.clear();
+                        }
+                    }
+                    else if (context[1] == wxString("Profile"))
+                    {
+#ifndef FPP
+                        LoadVixenProfile(params, NodeValue,VixChannels,VixChannelNames);
+#endif
+                    }
+                    else if (context[1] == wxString("Channels") && context[2] == wxString("Channel"))
+                    {
+                        while (VixChannelNames.size() < VixChannels.size())
+                        {
+                            VixChannelNames.push_back("");
+                        }
+                        VixChannelNames[VixChannels.size() - 1] = NodeValue;
+                    }
+                }
+                break;
+            }
+            case SP_XmlPullEvent::eEndTag:
+            {
+                if (cnt > 0)
+                {
+                    RemoveAt(context, cnt-1);
+                }
+                cnt = context.size();
+                break;
+            }
+            }
+            delete event;
+        }
+        if (!done)
+        {
+            event = parser->getNext();
+        }
+    }
+    delete [] bytes;
+    delete parser;
+    file.Close();
+
+    int min = 999999;
+    int max = 0;
+    for (int x = 0; x < VixChannels.size(); x++)
+    {
+        int i = VixChannels[x];
+        if (i > max)
+        {
+            max = i;
+        }
+        if (i < min)
+        {
+            min = i;
+        }
+    }
+
+    long VixDataLen = VixSeqData.size();
+    int numChannels = (max - min) + 1;
+    if (numChannels < 0)
+    {
+        numChannels = 0;
+    }
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("# of Channels=%ld\n"),params.seq_data.NumChannels()), false);
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix data len=%ld\n"),VixDataLen), false);
+    if (params.seq_data.NumChannels() == 0)
+    {
+        return;
+    }
+    long VixNumPeriods = VixDataLen / VixChannels.size();
+    params.xLightsParent->AppendConvertStatus (wxString::Format(wxString("Vix # of time periods=%ld\n"),VixNumPeriods), false);
+    params.xLightsParent->AppendConvertStatus (wxString("Media file=")+*params.media_filename+wxString("\n"), false);
+    if (VixNumPeriods == 0) {
+        return;
+    }
+    params.seq_data.init(numChannels, VixNumPeriods, VixEventPeriod);
+
+    // reorder channels according to output number, scale so that max intensity is 255
+    int newper,intensity;
+    size_t ch;
+    for (ch=0; ch < params.seq_data.NumChannels(); ch++)
+    {
+        OutputChannel = VixChannels[ch] - min;
+        if (ch < VixChannelNames.size())
+        {
+            ChannelNames[OutputChannel] = VixChannelNames[ch];
+        }
+        for (newper=0; newper < params.seq_data.NumFrames(); newper++)
+        {
+            intensity=VixSeqData[ch*VixNumPeriods+newper];
+            if (MaxIntensity != 255)
+            {
+                intensity=intensity * 255 / MaxIntensity;
+            }
+            params.seq_data[newper][OutputChannel] = intensity;
+        }
+    }
+
+    if( params.data_layer != nullptr )
+    {
+        params.data_layer->SetNumFrames(params.seq_data.NumFrames());
+        params.data_layer->SetNumChannels(params.seq_data.NumChannels());
+    }
+
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+
+    wxYield();
 }
 
 void FileConverter::WriteFalconPiFile( ConvertParameters& params )

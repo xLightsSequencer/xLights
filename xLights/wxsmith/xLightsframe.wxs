@@ -58,6 +58,14 @@
 						</object>
 						<label>Item label</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_RenderAll" variable="AuiToolBarItemRenderAll" member="yes">
+							<bitmap code="green_gear_24_xpm" />
+							<shorthelp>Render All</shorthelp>
+							<handler function="OnAuiToolBarItemRenderAllClick" entry="EVT_TOOL" />
+						</object>
+						<label>Render All</label>
+					</object>
 				</object>
 				<name>Main Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

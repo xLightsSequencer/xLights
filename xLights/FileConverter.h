@@ -47,6 +47,7 @@ public:
                        bool channels_off_at_end_ = false,
                        bool map_empty_channels_= false,
                        bool map_no_network_channels_ = false);
+
 };
 
 class FileConverter
@@ -55,6 +56,9 @@ class FileConverter
         FileConverter();
 
         static void ReadLorFile(ConvertParameters& params);
+        static void ReadXlightsFile(ConvertParameters& params);
+        static void ReadHLSFile(ConvertParameters& params);
+        static void ReadVixFile(ConvertParameters& params);
         static void ReadFalconFile(ConvertParameters& params);
         static void WriteFalconPiFile(ConvertParameters& params);
 

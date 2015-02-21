@@ -581,69 +581,87 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
 {
     wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, strSupportedFileTypes, wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
+    Button_Close->Enable(false);
+    Button_Layer_Import->Enable(false);
     if (ImportDialog->ShowModal() == wxID_OK)
     {
         fDir =	ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
         wxFileName full_name(filename);
-        if( full_name.GetExt() == "las" ||
-            full_name.GetExt() == "hlsIdata" ||
-            full_name.GetExt() == "vix" ||
-            full_name.GetExt() == "gled" ||
-            full_name.GetExt() == "seq" ||
-            full_name.GetExt() == "xseq" )
+        if( full_name.GetExt() == "gled" ||
+            full_name.GetExt() == "seq" )
         {
             wxMessageBox("Filetype will be supported soon!", "Info");
+            Button_Close->Enable(true);
+            Button_Layer_Import->Enable(true);
             return;
         }
         full_name.SetPath(fDir);
         wxFileName data_file(full_name);
         data_file.SetExt("iseq");
+        data_file.SetPath(xLightsParent->GetFseqDirectory());
         DataLayerSet& data_layers = xml_file->GetDataLayers();
         DataLayer* new_data_layer = data_layers.AddDataLayer(full_name.GetName(), full_name.GetFullPath(), data_file.GetFullPath() );
         wxTreeItemId root = TreeCtrl_Data_Layers->GetRootItem();
         wxTreeItemId branch1 = TreeCtrl_Data_Layers->AppendItem(root, filename, -1, -1, new LayerTreeItemData(new_data_layer) );
         TreeCtrl_Data_Layers->AppendItem(branch1, "Source: " + full_name.GetFullPath());
-        data_file.SetPath(xLightsParent->GetFseqDirectory());
         wxTreeItemId branch_data = TreeCtrl_Data_Layers->AppendItem(branch1, "Data: <waiting for file conversion>");
         wxTreeItemId branch_num_channels = TreeCtrl_Data_Layers->AppendItem(branch1, "Number of Channels: <waiting for file conversion>");
         TreeCtrl_Data_Layers->AppendItem(branch1, "Channel Offset: 0");
         TreeCtrl_Data_Layers->Expand(branch1);
-        if( full_name.GetExt() == "lms" )
+
+        wxString media_filename;
+        ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
+                                      new_data_layer->GetSequenceData(),                        // sequence data object
+                                      xLightsParent->GetNetInfo(),                              // global network info
+                                      ConvertParameters::READ_MODE_NORMAL,                      // file read mode
+                                      xLightsParent,                                            // xLights main frame
+                                      &media_filename,                                          // media filename
+                                      new_data_layer,                                           // data layer to fill in header info
+                                      xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
+                                      data_file.GetFullPath(),                                  // output filename
+                                      atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
+                                      false,                                                    // turn off all channels at end
+                                      false,                                                    // map empty channels (mainly LOR)
+                                      false );                                                  // map no network channels (mainly LOR)
+
+        if( full_name.GetExt() == "lms" || full_name.GetExt() == "las" )
         {
             LorConvertDialog* lor_dialog = new LorConvertDialog(this);
             lor_dialog->ShowModal();
-            bool param1 = lor_dialog->CheckBoxOffAtEnd->IsChecked();
-            bool param2 = lor_dialog->CheckBoxMapEmptyChannels->IsChecked();
-            bool param3 = lor_dialog->MapLORChannelsWithNoNetwork->IsChecked();
-            new_data_layer->SetLORConvertParams( param1 | (param2 << 1) | (param3 << 2) );
-            wxString media_filename;
-            ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
-                                          new_data_layer->GetSequenceData(),                        // sequence data object
-                                          xLightsParent->GetNetInfo(),                              // global network info
-                                          ConvertParameters::READ_MODE_NORMAL,                      // file read mode
-                                          xLightsParent,                                            // xLights main frame
-                                          &media_filename,                                          // media filename
-                                          new_data_layer,                                           // data layer to fill in header info
-                                          xLightsParent->GetCheckListBoxTestChannels(),             // test channel list
-                                          data_file.GetFullPath(),                                  // output filename
-                                          atoi(xml_file->GetSequenceTiming().c_str()),              // sequence timing
-                                          param1,                                                   // turn off all channels at end
-                                          param2,                                                   // map empty channels (mainly LOR)
-                                          param3 );                                                 // map no network channels (mainly LOR)
+            conv_params.channels_off_at_end = lor_dialog->CheckBoxOffAtEnd->IsChecked();
+            conv_params.map_empty_channels = lor_dialog->CheckBoxMapEmptyChannels->IsChecked();
+            conv_params.map_no_network_channels = lor_dialog->MapLORChannelsWithNoNetwork->IsChecked();
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end | (conv_params.map_empty_channels << 1) | (conv_params.map_no_network_channels << 2) );
             FileConverter::ReadLorFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "xseq" )
+        {
+            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            FileConverter::ReadXlightsFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "hlsIdata" )
+        {
+            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            FileConverter::ReadHLSFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "vix" )
+        {
+            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            FileConverter::ReadVixFile(conv_params);
             FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
         {
             // we read only the header to fill in the channel count info
-            ConvertParameters conv_params(full_name.GetFullPath(),                                  // input filename
-                                          new_data_layer->GetSequenceData(),                         // sequence data object
-                                          xLightsParent->GetNetInfo(),                              // global network info
-                                          ConvertParameters::READ_MODE_HEADER_ONLY,                 // file read mode
-                                          xLightsParent,                                            // xLights main frame
-                                          nullptr,                                                  // media filename
-                                          new_data_layer );                                        // data layer to fill in header info
+            conv_params.read_mode = ConvertParameters::READ_MODE_HEADER_ONLY;
+            conv_params.media_filename = nullptr;
             FileConverter::ReadFalconFile(conv_params);
         }
         TreeCtrl_Data_Layers->SetItemText(branch_data, "Data: " + data_file.GetFullPath());
@@ -652,6 +670,8 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
     }
 
     ImportDialog->Destroy();
+    Button_Close->Enable(true);
+    Button_Layer_Import->Enable(true);
 }
 
 void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)

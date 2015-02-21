@@ -157,12 +157,14 @@
 #include "../include/layers.xpm"
 
 #ifndef __WXOSX__
+#include "../include/green-gear-24.xpm"
 #include "../include/select_show_folder-24.xpm"
 #include "../include/save-24.xpm"
 #include "../include/save-as-24.xpm"
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
 #else
+#define green_gear_24_xpm          wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")),wxART_OTHER)
 #define select_show_folder_24_xpm  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER)
 #define file_new_24_xpm            wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER)
 #define folder_xpm                 wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER)
@@ -603,6 +605,7 @@ private:
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     void OnResize(wxSizeEvent& event);
+    void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -621,6 +624,7 @@ private:
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
     static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBARITEM_RenderAll;
     static const long ID_AUITOOLBAR_MAIN;
     static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
