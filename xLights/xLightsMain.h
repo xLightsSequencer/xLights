@@ -158,12 +158,14 @@
 #include "../include/layers.xpm"
 
 #ifndef __WXOSX__
+#include "../include/green-gear-24.xpm"
 #include "../include/select_show_folder-24.xpm"
 #include "../include/save-24.xpm"
 #include "../include/save-as-24.xpm"
 #include "../include/folder.xpm"
 #include "../include/file_new-24.xpm"
 #else
+#define green_gear_24_xpm          wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")),wxART_OTHER)
 #define select_show_folder_24_xpm  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER)
 #define file_new_24_xpm            wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER)
 #define folder_xpm                 wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER)
@@ -219,6 +221,7 @@ wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 
 
+static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 
 static wxCriticalSection gs_xoutCriticalSection;
 
@@ -435,6 +438,17 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
+    wxString GetFseqDirectory() { return fseqDirectory; }
+    NetInfoClass& GetNetInfo() { return NetInfo; }
+    wxCheckListBox* GetCheckListBoxTestChannels() { return CheckListBoxTestChannels; }
+    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
+    void ConversionInit();
+    void ConversionError(const wxString& msg);
+    void PlayerError(const wxString& msg);
+    void SetMediaFilename(const wxString& filename);
+    void AppendConvertLog(const wxString& msg);
+    void RenderIseqData(bool bottom_layers);
+    void ClearSequenceData();
 
 private:
 
@@ -616,6 +630,7 @@ private:
     void OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     void OnResize(wxSizeEvent& event);
+    void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -634,6 +649,7 @@ private:
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
     static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBARITEM_RenderAll;
     static const long ID_AUITOOLBAR_MAIN;
     static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
@@ -1245,15 +1261,19 @@ private:
     int mBackgroundBrightness;
 
     // convert
+public:
+    void ReadLorFile(const wxString& filename, int LORImportInterval);
+    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
+
+private:
+
     bool LoadVixenProfile(const wxString& ProfileName, wxArrayInt& VixChannels, wxArrayString &VixChannelNames);
     void ReadVixFile(const wxString& filename);
-    void ReadLorFile(const wxString& filename, int LORImportInterval);
     void ReadHLSFile(const wxString& filename);
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = NULL);
-    void ReadFalconFile(const wxString& FileName, wxString *mediaFilename = NULL);
+    void ReadFalconFile(const wxString& FileName);
     void ReadGlediatorFile(const wxString& FileName);
     void ReadConductorFile(const wxString& FileName);
-    void SetMediaFilename(const wxString& filename);
     int GetLorTrack1Length(const char* filename);
     bool WriteVixenFile(const wxString& filename); //     Vixen *.vix
     void WriteVirFile(const wxString& filename);
@@ -1267,15 +1287,10 @@ private:
     void WriteConductorFile(const wxString& filename); // Conductor *.seq
     void WriteLSPFile(const wxString& filename);  //      LSP UserPatterns.xml
     void WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf,int cpn);  //      LSP UserPatterns.xml
-    void WriteLorFile(const wxString& filename);  //      LOR *.lms, *.las
     void WriteLcbFile(const wxString& filename);  //      LOR *.lcb
     void WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf);  //      LOR *.lcb
     void ClearLastPeriod();
-    void ConversionInit();
     void DoConversion(const wxString& FileName, const wxString& OutputFormat);
-    void ConversionError(const wxString& msg);
-    void AppendConvertLog(const wxString& msg);
-    void AppendConvertStatus(const wxString &msg, bool flushBuffer = true);
     bool mapEmptyChannels();
     bool isSetOffAtEnd();
 
@@ -1322,7 +1337,6 @@ private:
     wxString CreateScript(wxString ListName, bool Repeat, bool FirstItemOnce, bool LastItemOnce, bool LightsOff, bool Random);
     bool PlayCurrentXlightsFile();
     void RunPlaylist(int nbidx, wxString& script);
-    void PlayerError(const wxString& msg);
     void SendToLogAndStatusBar(const wxString& msg);
     void ScanForFiles();
     long DiffSeconds(wxString& strTime, wxTimeSpan& tsCurrent);
@@ -1405,13 +1419,10 @@ protected:
     bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
-    void ImportAudacityTimings();
-    void ProcessAudacityTimingFile(const wxString& filename);
-    void ImportxLightsXMLTimings();
-    void ProcessxLightsXMLTimingsFile(const wxString& filename);
     void SeqLoadXlightsXSEQ(const wxString& filename);
     wxString CreateEffectStringRandom();
     void BackupDirectory(wxString targetDirName);
+    void NewSequence();
     void OpenSequence();
     void SaveSequence();
     void InsertRow();

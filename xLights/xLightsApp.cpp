@@ -203,6 +203,8 @@ bool xLightsApp::OnInit()
     //*)
     topFrame = (xLightsFrame* )GetTopWindow();
 
+    wxImage::AddHandler(new wxPNGHandler);
+
     return wxsOK;
 }
 
