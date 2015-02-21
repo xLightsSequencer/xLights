@@ -391,7 +391,7 @@ void RgbEffects::SetEffectDuration(int startMsec, int endMsec)
     curEffEndPer = endMsec / frameTimeInMs;
 }
 
-void RgbEffects::GetEffectPeriods( int& start, int& next, int& endp)
+void RgbEffects::GetEffectPeriods( int& start, int& endp)
 {
     start = curEffStartPer;
     endp = curEffEndPer;

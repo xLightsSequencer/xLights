@@ -386,14 +386,14 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, bool validLayers[]) {
         fadeFactor[ii] = 1.0;
         effects[ii].GetFadeSteps( fadeInSteps, fadeOutSteps);
         if( fadeInSteps > 0 || fadeOutSteps > 0) {
-            int effStartPer, effNextPer, effEndPer;
-            effects[ii].GetEffectPeriods( effStartPer, effNextPer, effEndPer);
+            int effStartPer, effEndPer;
+            effects[ii].GetEffectPeriods( effStartPer, effEndPer);
             if (EffectPeriod < (effStartPer)+fadeInSteps) {
                 curStep = EffectPeriod - effStartPer;
                 fadeInFactor = (double)curStep/(double)fadeInSteps;
             }
-            if (EffectPeriod > (effNextPer)-fadeOutSteps) {
-                curStep = EffectPeriod - (effNextPer-fadeOutSteps);
+            if (EffectPeriod > (effEndPer)-fadeOutSteps) {
+                curStep = EffectPeriod - (effEndPer-fadeOutSteps);
                 fadeOutFactor = 1-(double)curStep/(double)fadeOutSteps;
             }
             if(fadeInFactor < 1 && fadeOutFactor < 1) {

@@ -113,7 +113,7 @@ public:
     void SetFitToTime(bool fit);
 
     void GetFadeSteps( int& fadeInSteps, int& fadeOutSteps);
-    void GetEffectPeriods( int& curEffStartPer, int& nextEffTimePeriod, int& curEffEndPer);  // nobody wants endPer?
+    void GetEffectPeriods( int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
 
     void SetFrameTimeInMs(int i) { frameTimeInMs = i;};
     void GetPixel(int x, int y, xlColor &color);

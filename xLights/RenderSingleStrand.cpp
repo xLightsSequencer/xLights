@@ -155,9 +155,9 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
     y=BufferHt;
     i=0;
 
-    int curEffStartPer, curEffEndPer,  nextEffTimePeriod;
+    int curEffStartPer, curEffEndPer;
 
-    GetEffectPeriods( curEffStartPer, nextEffTimePeriod, curEffEndPer);
+    GetEffectPeriods( curEffStartPer, curEffEndPer);
     double rtval = GetEffectTimeIntervalPosition();
 
 
@@ -208,7 +208,7 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
     int numberFrames=0;
     if(fitToTime) // is "Fit to Time" checked?
     {
-        numberFrames=nextEffTimePeriod-nextEffTimePeriod;
+        numberFrames=curEffEndPer-curEffStartPer + 1;
         //   GetEffectPeriods( nextEffTimePeriod, nextEffTimePeriod, curEffEndPer);
 //    double rtval = GetEffectTimeIntervalPosition();
 //  rtval 0 to 1.0. This indicates how far we are through this row on the grid.
