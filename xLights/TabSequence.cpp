@@ -5,6 +5,7 @@
 #include "heartbeat.h"
 
 #include "SeqOpenDialog.h"
+#include "SeqSettingsDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
 
@@ -25,181 +26,10 @@ void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 {
-    wxArrayString LorFiles,MediaFiles;
-
-    // get list of media files
-    wxFileName oName;
-    wxString filename;
-    oName.AssignDir( CurrentDir );
-    wxDir dir(CurrentDir);
-
-    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
-    {
-        return;
-    }
-
-    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
-    while ( cont )
-    {
-        oName.SetFullName(filename);
-        switch (ExtType(oName.GetExt()))
-        {
-            case 'a':
-            case 'v':
-                MediaFiles.Add(oName.GetFullPath());
-                break;
-            case 'L':
-                LorFiles.Add(oName.GetFullPath());
-                break;
-        }
-        cont = dir.GetNext(&filename);
-    }
-
-    // populate dialog
-    NewSequenceDialog dialog(this);
-    if (LorFiles.Count() > 0)
-    {
-        dialog.ChoiceLorFiles->Set(LorFiles);
-        dialog.ChoiceLorFiles->SetSelection(0);
-    }
-    else
-    {
-        dialog.RadioButtonLor->Enable(false);
-        dialog.ChoiceLorFiles->Enable(false);
-    }
-    if (MediaFiles.Count() > 0)
-    {
-        dialog.ChoiceMediaFiles->Set(MediaFiles);
-        dialog.ChoiceMediaFiles->SetSelection(0);
-    }
-    else
-    {
-        dialog.RadioButtonNewMusic->Enable(false);
-        dialog.ChoiceMediaFiles->Enable(false);
-        dialog.RadioBoxTimingChoice->Disable();
-        dialog.RadioButtonNewAnim->SetValue(true);
-    }
-    dialog.Fit();
-    if (dialog.ShowModal() != wxID_OK) return;  // user pressed cancel
-
-    mediaFilename.Clear();
-    ResetSequenceGrid();
-    ResetTimer(NO_SEQ);
-    previewLoaded = false;
-    previewPlaying = false;
-    changedRow = 99999;
-    changedColumn = 99999;
-
-    long duration = 0;
-    if (dialog.RadioButtonLor->GetValue())
-    {
-        filename=dialog.ChoiceLorFiles->GetStringSelection();
-        ReadLorFile(filename, 50);  //FIXME - query time
-        Timer1.Start(SeqData.FrameTime());
-        oName.SetFullName( filename );
-        oName.SetExt("fseq");
-        DisplayXlightsFilename(oName.GetFullPath());
-        oName.SetExt("xml");
-        SeqXmlFileName=oName.GetFullPath();
-        SeqBaseChannel=1;
-        SeqChanCtrlBasic=false;
-        SeqChanCtrlColor=false;
-        bool xmlFileLoaded=SeqLoadXlightsFile(filename, true);
-        if (!xmlFileLoaded)
-        {
-            /*
-            // No xml file, so put LOR timing into grid
-            Grid1->AppendRows(LorTimingList.size());
-            int r=0;
-            for (std::set<int>::iterator it=LorTimingList.begin(); it != LorTimingList.end(); ++it)
-            {
-                int period=*it;
-                float seconds=(float)period*SeqData.FrameTime()/1000.0;
-                Grid1->SetCellValue(r, 0, wxString::Format("%5.3f",seconds));
-                r++;
-            }
-             */
-            wxMessageBox("Created new grid based on LOR effect timing");
-        }
-        EnableSequenceControls(true);
-        return;
-    }
-    else if (dialog.RadioButtonNewMusic->GetValue())
-    {
-        UnsavedChanges = true;
-
-        // determine media file length
-        mediaFilename=dialog.ChoiceMediaFiles->GetStringSelection();
-
-        DisplayXlightsFilename("");
-
-        if (!PlayerDlg->Load(mediaFilename))
-        {
-            wxMessageBox("Unable to load:\n"+mediaFilename,"ERROR");
-            return;
-        }
-        for (int cnt=0; cnt < 50; cnt++)
-        {
-            duration=PlayerDlg->MediaCtrl->Length();  // milliseconds
-            if (duration > 0) break;
-            wxYield();
-            wxMilliSleep(100);
-        }
-        if (duration <= 0)
-        {
-            wxMessageBox("Unable to determine the length of:\n"+mediaFilename,"ERROR");
-            return;
-        }
-        switch (dialog.RadioBoxTimingChoice->GetSelection())
-        {
-            case 0:
-                // No Timing mark import selected
-                break;
-            case 1:
-                // Audacity File import
-                ImportAudacityTimings();
-                break;
-            case 2:
-                // Xlights XML timing import
-                ImportxLightsXMLTimings();
-                break;
-        }
-        //Clear xlights filename
-
-    }
-    else if (dialog.RadioButtonNewAnim->GetValue())
-    {
-        UnsavedChanges = true;
-        // duration=dialog.SpinCtrlDuration->GetValue();  // seconds
-        duration=0;
-        wxString s_duration = dialog.SpinCtrlDuration_Float->GetValue(); // <SCM>
-        double f_duration;
-        if(!s_duration.ToDouble(&f_duration))
-        {
-            /* error! */
-        }
-
-        DisplayXlightsFilename("");
-        if (f_duration <= 0.0)
-        {
-            wxMessageBox("Invalid value for duration. Value must be > 0.001","ERROR");
-            return;
-        }
-        //     duration*=1000;  // convert to milliseconds
-        duration=f_duration*1000;  // convert to milliseconds <SCM>
-    }
-    int intervalSize = atoi(dialog.NewSequenceTiming->GetStringSelection().c_str());
-    SeqData.init(NetInfo.GetTotChannels(), duration / intervalSize, intervalSize);
-    Timer1.Start(SeqData.FrameTime());
-
-    int nSeconds=duration/1000;
-    int nMinutes=nSeconds/60;
-    nSeconds%=60;
-    wxMessageBox(wxString::Format("Created empty sequence:\nChannels: %ld\nPeriods: %ld\nEach period is: %d msec\nTotal time: %d:%02d",
-                                  SeqData.NumChannels(),SeqData.NumFrames(),intervalSize,nMinutes,nSeconds));
-    EnableSequenceControls(true);
+    NewSequence();
+	EnableSequenceControls(true);
 }
+
 
 // load the specified .xseq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
@@ -380,38 +210,6 @@ wxXmlNode* xLightsFrame::GetModelNode(const wxString& name)
     return NULL;
 }
 
-void xLightsFrame::ImportAudacityTimings()
-{
-    wxFileDialog* OpenDialog = new wxFileDialog(
-                                                this, _("Choose Audacity timing file"), CurrentDir, wxEmptyString,
-                                                _("Text files (*.txt)|*.txt"),		wxFD_OPEN, wxDefaultPosition);
-    wxString fName;
-    if (OpenDialog->ShowModal() == wxID_OK)
-    {
-        fName =	OpenDialog->GetPath();
-        ProcessAudacityTimingFile(fName);
-    }
-    else
-    {
-
-    }
-
-    // Clean up after ourselves
-    OpenDialog->Destroy();
-}
-void xLightsFrame::ImportxLightsXMLTimings()
-{
-    wxFileDialog OpenDialog(this, _("Choose xLights sequence"), CurrentDir, wxEmptyString,
-                            _("Text files (*.xml)|*.xml"),wxFD_OPEN, wxDefaultPosition);
-    wxString fName;
-
-    if (OpenDialog.ShowModal() == wxID_OK)
-    {
-        fName =	OpenDialog.GetPath();
-        SeqLoadXlightsFile(fName, true);
-    }
-}
-
 void xLightsFrame::ShowModelsDialog()
 {
     ModelListDialog dialog(this);
@@ -542,7 +340,9 @@ void xLightsFrame::SaveSequence()
     StatusBar1->SetStatusText(_("Saving ")+xlightsFilename);
 
     CurrentSeqXmlFile->Save(mSequenceElements);
+    RenderIseqData(true); // render ISEQ layers below the Nutcracker layer
     RenderGridToSeqData();
+    RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
     WriteFalconPiFile(xlightsFilename);
     DisplayXlightsFilename(xlightsFilename);
     UnsavedChanges = false;
@@ -645,12 +445,6 @@ void xLightsFrame::ResetEffectStates(bool *ResetEffectState)
 void xLightsFrame::ResetSequenceGrid()
 {
 }
-void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
-{
-}
-
-
-
 
 
 #if 0
@@ -1778,13 +1572,6 @@ void xLightsFrame::ProcessAudacityTimingFile(const wxString& filename)
 #endif // 1
     }
 }
-
-
-void xLightsFrame::ProcessxLightsXMLTimingsFile(const wxString& filename)
-{
-
-}
-
 
 
 void xLightsFrame::ResetSequenceGrid()
