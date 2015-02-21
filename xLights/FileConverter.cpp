@@ -1400,104 +1400,156 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     wxYield();
 }
 
-void FileConverter::WriteFalconPiFile( ConvertParameters& params )
+void FileConverter::ReadGlediatorFile(ConvertParameters& params)
 {
-    wxUint8 vMinor = 0;
-    wxUint8 vMajor = 1;
-    wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = rountTo4(params.seq_data.NumChannels());
-
-    wxUint16 stepTime = params.seq_data.FrameTime();
-    // Ignored by Pi Player
-    wxUint16 numUniverses = 0;
-    // Ignored by Pi Player
-    wxUint16 universeSize = 0;
-    // Gamma 0=encoded 1=linear
-    wxUint8 gamma = 1;
-    // Gamma 0=unknown 1=mono 2=RGB
-    wxUint8 colorEncoding = 2;
-
     wxFile f;
-    // Step Size must be multiple of 4
-    //wxUint8 buf[stepSize];
+    long xx;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
 
-    size_t ch;
-    if (!f.Create(params.out_filename,true))
+    size_t fileLength;
+    int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
+    unsigned int ch,byte,byte1,byte2;
+    //wxString filename=wxString::Format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
+    size_t readcnt;
+
+    long TotChannels=params.NetInfo.GetTotChannels();
+    for (int x = 0; x < TotChannels; x++) {
+        ChannelColors.push_back(0);
+        ChannelNames.push_back("");
+    }
+    params.seq_data.init(0, 0, params.sequence_interval);
+
+    if (!f.Open(params.inp_filename.c_str()))
     {
-        params.xLightsParent->ConversionError(wxString("Unable to create file: ")+params.out_filename);
+        params.xLightsParent->PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
         return;
     }
 
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
+    fileLength=f.Length();
+    int numChannels=(x_width*3*y_height); // 3072 = 32*32*3
+    char *frameBuffer=new char[params.seq_data.NumChannels()];
 
-    // Header Information
-    // Format Identifier
-    buf[0] = 'P';
-    buf[1] = 'S';
-    buf[2] = 'E';
-    buf[3] = 'Q';
+    int numFrames=(int)(fileLength/(x_width*3*y_height));
+    //SetMediaFilename(filename);
+    params.seq_data.init(numChannels, numFrames, 50);
 
-    buf[6] = vMinor;
-    buf[7] = vMajor;
-    // Fixed header length
-    buf[8] = (wxUint8)(fixedHeaderLength%256);
-    buf[9] = (wxUint8)(fixedHeaderLength/256);
-    // Step Size
-    buf[10] = (wxUint8)(stepSize & 0xFF);
-    buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
-    buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
-    buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
-    // Number of Steps
-    buf[14] = (wxUint8)(params.seq_data.NumFrames() & 0xFF);
-    buf[15] = (wxUint8)((params.seq_data.NumFrames() >> 8) & 0xFF);
-    buf[16] = (wxUint8)((params.seq_data.NumFrames() >> 16) & 0xFF);
-    buf[17] = (wxUint8)((params.seq_data.NumFrames() >> 24) & 0xFF);
-    // Step time in ms
-    buf[18] = (wxUint8)(stepTime & 0xFF);
-    buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
-    // universe count
-    buf[20] = (wxUint8)(numUniverses & 0xFF);
-    buf[21] = (wxUint8)((numUniverses >> 8) & 0xFF);
-    // universe Size
-    buf[22] = (wxUint8)(universeSize & 0xFF);
-    buf[23] = (wxUint8)((universeSize >> 8) & 0xFF);
-    // universe Size
-    buf[24] = gamma;
-    // universe Size
-    buf[25] = colorEncoding;
-    buf[26] = 0;
-    buf[27] = 0;
+    wxYield();
+    period = 0;
+    while(readcnt=f.Read(frameBuffer,params.seq_data.NumChannels()))   // Read one period of channels
+    {
+        for(j=0; j<readcnt; j++)   // Loop thru all channel.s
+        {
+            params.seq_data[period][j] = frameBuffer[j];
+        }
+        period++;
+    }
 
-    if(params.media_filename) {
-        if((*params.media_filename).length() > 0) {
-            int len = strlen((*params.media_filename).c_str()) + 5;
-            buf[28] = (wxUint8)(len & 0xFF);
-            buf[29] = (wxUint8)((len >> 8) & 0xFF);
-            buf[30] = 'm';
-            buf[31] = 'f';
-            strcpy((char *)&buf[32],(*params.media_filename).c_str());
-            fixedHeaderLength += len;
-            fixedHeaderLength = rountTo4(fixedHeaderLength);
+    /*
+    for(i=0; i<readcnt-2; i++) {
+        params.seq_data[i] = i%256;
+    }
+    for(i=0; i<readcnt-2; i+=3) { // loop thru channels, jump by 3. so this loop is pixel loop
+        period = i/bytes_per_period;
+        p=period * (bytes_per_period); // byte offset for start of each period
+        ch=p+ (y*x_width*3) + x*3; // shows offset into source buffer
+        byte =p+i;
+        byte1=p+i+(1)* (params.seq_data.NumFrames());
+        byte2=p+i+(2)* (params.seq_data.NumFrames());
+        if ( byte2<readcnt) {
+            params.seq_data[byte]  = row[i];
+            params.seq_data[byte1] = row[i+1];
+            params.seq_data[byte2] = row[i+2];
         }
     }
-    // Data offset
-    buf[4] = (wxUint8)(fixedHeaderLength%256);
-    buf[5] = (wxUint8)(fixedHeaderLength/256);
-    f.Write(buf,fixedHeaderLength);
+    //   }
+    */
+    f.Close();
+    delete[] frameBuffer;
 
-
-    for (long period=0; period < params.seq_data.NumFrames(); period++)
+    if( params.data_layer != nullptr )
     {
-        for(ch=0; ch<stepSize; ch++)
+        params.data_layer->SetNumFrames(params.seq_data.NumFrames());
+        params.data_layer->SetNumChannels(params.seq_data.NumChannels());
+    }
+
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+
+#ifndef NDEBUG
+    params.xLightsParent->AppendConvertLog (wxString::Format(wxString("ReadGlediatorFile SeqData.NumFrames()=%ld SeqData.NumChannels()=%ld\n"),params.seq_data.NumFrames(),params.seq_data.NumChannels()));
+#endif
+
+    wxYield();
+}
+
+#ifndef FPP
+void FileConverter::ReadConductorFile(ConvertParameters& params)
+{
+    wxFile f;
+    int i,j,ch;
+    char row[16384];
+    int period=0;
+    wxArrayString ChannelNames;
+    wxArrayInt ChannelColors;
+
+    long TotChannels=params.NetInfo.GetTotChannels();
+    for (int x = 0; x < TotChannels; x++) {
+        ChannelColors.push_back(0);
+        ChannelNames.push_back("");
+    }
+    params.seq_data.init(0, 0, params.sequence_interval);
+
+    if( params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ) {
+        wxFileDialog mediaDialog(params.xLightsParent,wxString("Select associated media file, or cancel if this is an animation"));
+        if (mediaDialog.ShowModal() == wxID_OK)
         {
-            buf[ch] = params.seq_data[period][ch];
+            *params.media_filename = mediaDialog.GetPath();
         }
-        f.Write(buf,stepSize);
+    }
+    if (!f.Open(params.inp_filename.c_str()))
+    {
+        params.xLightsParent->PlayerError(wxString("Unable to load sequence:\n")+params.inp_filename);
+        return;
+    }
+    int numPeriods=f.Length()/16384;
+
+    params.seq_data.init(params.seq_data.NumChannels(),numPeriods,50);
+    while (f.Read(row,16384) == 16384)
+    {
+        wxYield();
+        for (i=0; i < 4096; i++)
+        {
+            for (j=0; j < 4; j++)
+            {
+                ch=j * 4096 + i;
+                if (ch < params.seq_data.NumChannels())
+                {
+                    params.seq_data[period][ch] = row[i*4+j];
+                }
+            }
+        }
+        period++;
     }
     f.Close();
-    free(buf);
+
+    if( params.data_layer != nullptr )
+    {
+        params.data_layer->SetNumFrames(params.seq_data.NumFrames());
+        params.data_layer->SetNumChannels(params.seq_data.NumChannels());
+    }
+
+    if( params.channels_off_at_end )
+    {
+        ClearLastPeriod(params.seq_data);
+    }
+
+    wxYield();
 }
+#endif
+
 
 void FileConverter::ReadFalconFile(ConvertParameters& params)
 {
@@ -1604,5 +1656,104 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 #endif
 
     f.Close();
+}
+
+void FileConverter::WriteFalconPiFile( ConvertParameters& params )
+{
+    wxUint8 vMinor = 0;
+    wxUint8 vMajor = 1;
+    wxUint16 fixedHeaderLength = 28;
+    wxUint32 stepSize = rountTo4(params.seq_data.NumChannels());
+
+    wxUint16 stepTime = params.seq_data.FrameTime();
+    // Ignored by Pi Player
+    wxUint16 numUniverses = 0;
+    // Ignored by Pi Player
+    wxUint16 universeSize = 0;
+    // Gamma 0=encoded 1=linear
+    wxUint8 gamma = 1;
+    // Gamma 0=unknown 1=mono 2=RGB
+    wxUint8 colorEncoding = 2;
+
+    wxFile f;
+    // Step Size must be multiple of 4
+    //wxUint8 buf[stepSize];
+
+    size_t ch;
+    if (!f.Create(params.out_filename,true))
+    {
+        params.xLightsParent->ConversionError(wxString("Unable to create file: ")+params.out_filename);
+        return;
+    }
+
+    wxUint8* buf;
+    buf = (wxUint8 *)calloc(sizeof(wxUint8),stepSize < 1024 ? 1024 : stepSize);
+
+    // Header Information
+    // Format Identifier
+    buf[0] = 'P';
+    buf[1] = 'S';
+    buf[2] = 'E';
+    buf[3] = 'Q';
+
+    buf[6] = vMinor;
+    buf[7] = vMajor;
+    // Fixed header length
+    buf[8] = (wxUint8)(fixedHeaderLength%256);
+    buf[9] = (wxUint8)(fixedHeaderLength/256);
+    // Step Size
+    buf[10] = (wxUint8)(stepSize & 0xFF);
+    buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
+    buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
+    buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
+    // Number of Steps
+    buf[14] = (wxUint8)(params.seq_data.NumFrames() & 0xFF);
+    buf[15] = (wxUint8)((params.seq_data.NumFrames() >> 8) & 0xFF);
+    buf[16] = (wxUint8)((params.seq_data.NumFrames() >> 16) & 0xFF);
+    buf[17] = (wxUint8)((params.seq_data.NumFrames() >> 24) & 0xFF);
+    // Step time in ms
+    buf[18] = (wxUint8)(stepTime & 0xFF);
+    buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
+    // universe count
+    buf[20] = (wxUint8)(numUniverses & 0xFF);
+    buf[21] = (wxUint8)((numUniverses >> 8) & 0xFF);
+    // universe Size
+    buf[22] = (wxUint8)(universeSize & 0xFF);
+    buf[23] = (wxUint8)((universeSize >> 8) & 0xFF);
+    // universe Size
+    buf[24] = gamma;
+    // universe Size
+    buf[25] = colorEncoding;
+    buf[26] = 0;
+    buf[27] = 0;
+
+    if(params.media_filename) {
+        if((*params.media_filename).length() > 0) {
+            int len = strlen((*params.media_filename).c_str()) + 5;
+            buf[28] = (wxUint8)(len & 0xFF);
+            buf[29] = (wxUint8)((len >> 8) & 0xFF);
+            buf[30] = 'm';
+            buf[31] = 'f';
+            strcpy((char *)&buf[32],(*params.media_filename).c_str());
+            fixedHeaderLength += len;
+            fixedHeaderLength = rountTo4(fixedHeaderLength);
+        }
+    }
+    // Data offset
+    buf[4] = (wxUint8)(fixedHeaderLength%256);
+    buf[5] = (wxUint8)(fixedHeaderLength/256);
+    f.Write(buf,fixedHeaderLength);
+
+
+    for (long period=0; period < params.seq_data.NumFrames(); period++)
+    {
+        for(ch=0; ch<stepSize; ch++)
+        {
+            buf[ch] = params.seq_data[period][ch];
+        }
+        f.Write(buf,stepSize);
+    }
+    f.Close();
+    free(buf);
 }
 

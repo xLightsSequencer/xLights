@@ -59,6 +59,8 @@ class FileConverter
         static void ReadXlightsFile(ConvertParameters& params);
         static void ReadHLSFile(ConvertParameters& params);
         static void ReadVixFile(ConvertParameters& params);
+        static void ReadGlediatorFile(ConvertParameters& params);
+        static void ReadConductorFile(ConvertParameters& params);
         static void ReadFalconFile(ConvertParameters& params);
         static void WriteFalconPiFile(ConvertParameters& params);
 

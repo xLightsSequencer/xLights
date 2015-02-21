@@ -588,14 +588,6 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
         fDir =	ImportDialog->GetDirectory();
         wxString filename = ImportDialog->GetFilename();
         wxFileName full_name(filename);
-        if( full_name.GetExt() == "gled" ||
-            full_name.GetExt() == "seq" )
-        {
-            wxMessageBox("Filetype will be supported soon!", "Info");
-            Button_Close->Enable(true);
-            Button_Layer_Import->Enable(true);
-            return;
-        }
         full_name.SetPath(fDir);
         wxFileName data_file(full_name);
         data_file.SetExt("iseq");
@@ -655,6 +647,20 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
             conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
             new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
             FileConverter::ReadVixFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "gled" )
+        {
+            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            FileConverter::ReadGlediatorFile(conv_params);
+            FileConverter::WriteFalconPiFile( conv_params );
+        }
+        else if( full_name.GetExt() == "seq" )
+        {
+            conv_params.channels_off_at_end = (wxYES == wxMessageBox("Turn off all channels at the end?", "Conversion Options", wxICON_QUESTION | wxYES_NO));
+            new_data_layer->SetLORConvertParams( conv_params.channels_off_at_end );
+            FileConverter::ReadConductorFile(conv_params);
             FileConverter::WriteFalconPiFile( conv_params );
         }
         else if( full_name.GetExt() == "iseq" || full_name.GetExt() == "fseq")
