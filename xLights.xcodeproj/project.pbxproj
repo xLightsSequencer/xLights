@@ -36,6 +36,8 @@
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1D1A069BBE0030D020 /* SequencePreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1A1A069BBE0030D020 /* SequencePreview.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
+		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
+		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
 		676F58781A1556210045FA22 /* RenderOff.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676F58771A1556210045FA22 /* RenderOff.cpp */; };
 		677421D41A68AB3E0082DA5B /* Render.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D31A68AB3E0082DA5B /* Render.cpp */; };
 		677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D51A68ACDA0082DA5B /* JobPool.cpp */; };
@@ -204,6 +206,12 @@
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1A1A069BBE0030D020 /* SequencePreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequencePreview.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
+		676DCBF81A98E53800FBA86B /* FileConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileConverter.cpp; sourceTree = "<group>"; };
+		676DCBF91A98E53800FBA86B /* FileConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileConverter.h; sourceTree = "<group>"; };
+		676DCBFA1A98E53800FBA86B /* Images_png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Images_png.h; sourceTree = "<group>"; };
+		676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LorConvertDialog.cpp; sourceTree = "<group>"; };
+		676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LorConvertDialog.h; sourceTree = "<group>"; };
+		676DCBFD1A98E53800FBA86B /* tmGridCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tmGridCell.h; sourceTree = "<group>"; };
 		676F58771A1556210045FA22 /* RenderOff.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderOff.cpp; sourceTree = "<group>"; };
 		677421D31A68AB3E0082DA5B /* Render.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Render.cpp; sourceTree = "<group>"; };
 		677421D51A68ACDA0082DA5B /* JobPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JobPool.cpp; sourceTree = "<group>"; };
@@ -480,10 +488,12 @@
 				67E15F0B17C16A10006F2175 /* EffectTreeDialog.cpp */,
 				6784F9211A5653670018EC0C /* Element.cpp */,
 				67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */,
+				676DCBF81A98E53800FBA86B /* FileConverter.cpp */,
 				67CA857E18BE86B800A6268C /* heartbeat.cpp */,
 				67F4C6131A097A35003E978F /* Image_Loader.cpp */,
 				67F4C6141A097A35003E978F /* Image.cpp */,
 				677421D51A68ACDA0082DA5B /* JobPool.cpp */,
+				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
 				67A619CC17B51C0F008E95BB /* ModelClass.cpp */,
 				67A619CE17B51C0F008E95BB /* ModelDialog.cpp */,
@@ -554,6 +564,7 @@
 				6784F9271A5653670018EC0C /* TimeLine.cpp */,
 				67B797181A5AE343008D5921 /* TimingPanel.cpp */,
 				67D678FC1A7E628400421B05 /* tmGridCell.cpp */,
+				676DCBFD1A98E53800FBA86B /* tmGridCell.h */,
 				67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */,
 				67C6FE9419FE72A8003232DF /* ViewsDialog.cpp */,
 				6784F9281A5653670018EC0C /* Waveform.cpp */,
@@ -571,6 +582,9 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				676DCBF91A98E53800FBA86B /* FileConverter.h */,
+				676DCBFA1A98E53800FBA86B /* Images_png.h */,
+				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
 				67A619BD17B51C0F008E95BB /* AddShowDialog.h */,
 				67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */,
 				67A619C117B51C0F008E95BB /* ChannelMapDialog.h */,
@@ -791,6 +805,7 @@
 				677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */,
 				67B7971C1A5AE343008D5921 /* TopEffectsPanel.cpp in Sources */,
 				67A61A4117B51C0F008E95BB /* RenderSnowflakes.cpp in Sources */,
+				676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */,
 				677421D41A68AB3E0082DA5B /* Render.cpp in Sources */,
 				67A61A4217B51C0F008E95BB /* RenderSnowstorm.cpp in Sources */,
 				67A61A4317B51C0F008E95BB /* RenderSpirals.cpp in Sources */,
@@ -827,6 +842,7 @@
 				67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */,
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
+				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
