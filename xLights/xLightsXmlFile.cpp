@@ -1268,7 +1268,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     {
         if( e->GetName() == "DisplayElements" ||
             e->GetName() == "ElementEffects"  ||
-            e->GetName() == "ColorPalettes")
+            e->GetName() == "ColorPalettes" ||
+            e->GetName() == "EffectDB")
         {
             wxXmlNode* node_to_delete = e;
             e = e->GetNext();
@@ -1285,6 +1286,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     for (int x = 0; x < seq_elements.getNumberOfPalettes(); x++) {
         AddChildXmlNode(colorPalette_node, "ColorPalette", seq_elements.getPalette(x));
     }
+    std::vector<wxString> effectStrings;
+    wxXmlNode* effectDB_Node = AddChildXmlNode(root, "EffectDB");
 
     // Now add new elements to our xml document
     wxXmlNode* display_node = AddChildXmlNode(root, "DisplayElements");
@@ -1331,11 +1334,25 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                 {
                     Effect* effect = layer->GetEffect(k);
 
-                    // Add effect node
-                    wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettings());
 
                     if( element->GetType() == "model" )
                     {
+                        int ref = -1;
+                        for (int x = 0; x < effectStrings.size(); x++) {
+                            if (effectStrings[x] == effect->GetSettings()) {
+                                ref = x;
+                            }
+                        }
+                        if (ref == -1) {
+                            ref = effectStrings.size();
+                            effectStrings.push_back(effect->GetSettings());
+                            AddChildXmlNode(effectDB_Node, "Effect", effect->GetSettings());
+                        }
+                            
+                        
+                        // Add effect node
+                        wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect");
+                        effect_node->AddAttribute("ref", string_format("%d", ref));
                         effect_node->AddAttribute("name", effect->GetEffectName());
                         effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
                         effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
@@ -1348,6 +1365,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     }
                     else if( element->GetType() == "timing" )
                     {
+                        // Add effect node
+                        wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettings());
+
                         effect_node->AddAttribute("label", effect->GetEffectName());
                         effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
                         effect_node->AddAttribute("selected", string_format("%d", effect->GetSelected()));
@@ -1356,6 +1376,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                     }
                     else if( element->GetType() == "view" )
                     {
+                        // Add effect node
+                        wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettings());
 
                     }
                 }

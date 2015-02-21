@@ -169,7 +169,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
     int gridCol;
 
     wxXmlNode* root=seqDocument.GetRoot();
-
+    std::vector<wxString> effectStrings;
     mElements.clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -209,6 +209,17 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                     }
                 }
             }
+       }
+       else if (e->GetName() == "EffectDB")
+       {
+           effectStrings.clear();
+           for(wxXmlNode* elementNode=e->GetChildren(); elementNode!=NULL; elementNode=elementNode->GetNext() )
+           {
+               if(elementNode->GetName()=="Effect")
+               {
+                   effectStrings.push_back(elementNode->GetNodeContent());
+               }
+           }
        }
        else if (e->GetName() == "ColorPalettes")
        {
@@ -288,10 +299,14 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                             {
                                                 // Name
                                                 effectName = effect->GetAttribute("name");
+                                                effectIndex = Effect::GetEffectIndex(effectName);
                                                 // ID
                                                 id = wxAtoi(effect->GetAttribute("id"));
-                                                effectIndex = Effect::GetEffectIndex(effectName);
-                                                settings = effect->GetNodeContent();
+                                                if (effect->GetAttribute("ref") != "") {
+                                                    settings = effectStrings[wxAtoi(effect->GetAttribute("ref"))];
+                                                } else {
+                                                    settings = effect->GetNodeContent();
+                                                }
                                                 
                                                 wxString tmp;
                                                 if (effect->GetAttribute("palette", &tmp)) {
