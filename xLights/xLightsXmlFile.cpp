@@ -4,8 +4,6 @@
 
 #define string_format wxString::Format
 
-static const wxString xml_dev_ver = "4.0.0a";
-
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 : wxFileName(filename),
     version_string(wxEmptyString),
@@ -233,7 +231,7 @@ int xLightsXmlFile::AddColorPalette(const wxString &palette) {
     int cnt = 0;
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* child;
-    
+
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "ColorPalettes")
@@ -298,7 +296,7 @@ static wxString SplitPalette(wxString &data)
 {
     wxString settings = data;
     data = "";
-    
+
     wxString color;
     wxString before,after;
     while (!settings.IsEmpty()) {
@@ -440,7 +438,7 @@ static wxString AdjustV3Effect(const wxString &effect, const wxString &data) {
     if (effect == "On") {
         //On effect in v4 uses the first entry of the palette.
         wxString newData(data);
-        
+
         int r = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_RED", newData));
         int g = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_GRN", newData));
         int b = wxAtoi(DeleteSetting("E_TEXTCTRL_EFF_ON_BLU", newData));
@@ -698,7 +696,7 @@ void xLightsXmlFile::CreateNew()
 
     wxXmlNode* node;
     node = AddChildXmlNode(root, "head");
-    AddChildXmlNode(node, "version", xml_dev_ver);
+    AddChildXmlNode(node, "version", xlights_version_string);
     AddChildXmlNode(node, "author", header_info[HEADER_INFO_TYPES::AUTHOR]);
     AddChildXmlNode(node, "author-email", header_info[HEADER_INFO_TYPES::AUTHOR_EMAIL]);
     AddChildXmlNode(node, "author-website", header_info[HEADER_INFO_TYPES::WEBSITE]);
@@ -718,7 +716,7 @@ void xLightsXmlFile::CreateNew()
     AddChildXmlNode(root, "ElementEffects");
     AddChildXmlNode(root, "nextid", "1");
 
-    version_string = xml_dev_ver;
+    version_string = xlights_version_string;
 }
 
 bool xLightsXmlFile::Open()
@@ -894,7 +892,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     is_open = true;
 
 
-    version_string = xml_dev_ver;
+    version_string = xlights_version_string;
 
     timing_protection.Clear();
     timing.Clear();
@@ -928,11 +926,6 @@ bool xLightsXmlFile::LoadSequence()
                 if( element->GetName() == "version")
                 {
                     version_string = element->GetNodeContent();
-                    // temporary reminder to developer when they need to re-convert
-                    if( version_string != xml_dev_ver )
-                    {
-                        wxMessageBox("Your XML was converted with a previous v4 build...please re-convert original file to avoid errors!","Developer Warning");
-                    }
                 }
                 else if( element->GetName() == "author")
                 {
@@ -1374,8 +1367,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                             effectStrings.push_back(effect->GetSettings());
                             AddChildXmlNode(effectDB_Node, "Effect", effect->GetSettings());
                         }
-                            
-                        
+
+
                         // Add effect node
                         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect");
                         effect_node->AddAttribute("ref", string_format("%d", ref));
