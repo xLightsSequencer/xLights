@@ -252,6 +252,12 @@ void xLightsFrame::RenderIseqData(bool bottom_layers)
 {
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     ConvertParameters::ReadMode read_mode;
+    if (bottom_layers &&  data_layers.GetNumLayers() == 1 &&
+        data_layers.GetDataLayer(0)->GetName() == "Nutcracker") {
+        //Don't clear, v3 workflow of augmenting the existing fseq file
+        return;
+    }
+    
     if( bottom_layers )
     {
         ClearSequenceData();
