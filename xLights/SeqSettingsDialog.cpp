@@ -19,9 +19,6 @@
 //*)
 
 //(*IdInit(SeqSettingsDialog)
-const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Music = wxNewId();
-const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Anim = wxNewId();
-const long SeqSettingsDialog::ID_PANEL_Wizard = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Filename = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_XML_Type_Version = wxNewId();
@@ -72,6 +69,12 @@ const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
 const long SeqSettingsDialog::ID_GRID_TIMING = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Music = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_Wiz_Anim = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_25ms = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_50ms = wxNewId();
+const long SeqSettingsDialog::ID_BITMAPBUTTON_100ms = wxNewId();
+const long SeqSettingsDialog::ID_PANEL_Wizard = wxNewId();
 
 wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
@@ -103,10 +106,16 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     selected_branch_index(-1),
     wizard_active(wizard_active_)
 {
-    wxBitmap music_seq = wxBITMAP_PNG_FROM_DATA(music);
-    wxBitmap music_seq_pressed = wxBITMAP_PNG_FROM_DATA(music_pressed);
-    wxBitmap animation_seq = wxBITMAP_PNG_FROM_DATA(animation);
-    wxBitmap animation_pressed = wxBITMAP_PNG_FROM_DATA(animation_pressed);
+    music_seq = wxBITMAP_PNG_FROM_DATA(music);
+    music_seq_pressed = wxBITMAP_PNG_FROM_DATA(music_pressed);
+    animation_seq = wxBITMAP_PNG_FROM_DATA(animation);
+    animation_pressed = wxBITMAP_PNG_FROM_DATA(animation_pressed);
+    time_div_25ms = wxBITMAP_PNG_FROM_DATA(time_25ms);
+    time_div_25ms_pressed = wxBITMAP_PNG_FROM_DATA(time_25ms_pressed);
+    time_div_50ms = wxBITMAP_PNG_FROM_DATA(time_50ms);
+    time_div_50ms_pressed = wxBITMAP_PNG_FROM_DATA(time_50ms_pressed);
+    time_div_100ms = wxBITMAP_PNG_FROM_DATA(time_100ms);
+    time_div_100ms_pressed = wxBITMAP_PNG_FROM_DATA(time_100ms_pressed);
 
     //(*Initialize(SeqSettingsDialog)
     wxFlexGridSizer* FlexGridSizer4;
@@ -114,12 +123,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer3;
     wxStaticText* StaticText_Xml_Seq_Timing;
-    wxGridBagSizer* GridBagSizer2;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer7;
-    wxGridSizer* GridSizer1;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer1;
@@ -130,20 +137,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Create(parent, wxID_ANY, _("Sequence Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Notebook_Seq_Settings = new wxNotebook(this, ID_NOTEBOOK_Seq_Settings, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_Seq_Settings"));
-    Panel_Wizard = new wxPanel(Notebook_Seq_Settings, ID_PANEL_Wizard, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Wizard"));
-    GridBagSizer2 = new wxGridBagSizer(0, 0);
-    GridBagSizer2->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridSizer1 = new wxGridSizer(2, 1, 10, 0);
-    BitmapButton_Wiz_Music = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
-    BitmapButton_Wiz_Music->SetBitmapSelected(music_seq_pressed);
-    GridSizer1->Add(BitmapButton_Wiz_Music, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Wiz_Anim = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
-    BitmapButton_Wiz_Anim->SetBitmapSelected(animation_pressed);
-    GridSizer1->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer2->Add(GridSizer1, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel_Wizard->SetSizer(GridBagSizer2);
-    GridBagSizer2->Fit(Panel_Wizard);
-    GridBagSizer2->SetSizeHints(Panel_Wizard);
     Panel3 = new wxPanel(Notebook_Seq_Settings, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
     GridBagSizer1 = new wxGridBagSizer(0, 0);
@@ -195,7 +188,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Choice_Xml_Seq_Timing->Append(_("25 ms"));
     Choice_Xml_Seq_Timing->SetSelection( Choice_Xml_Seq_Timing->Append(_("50 ms")) );
     Choice_Xml_Seq_Timing->Append(_("100 ms"));
-    Choice_Xml_Seq_Timing->Disable();
     FlexGridSizer3->Add(Choice_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Panel3->SetSizer(FlexGridSizer4);
@@ -276,7 +268,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Panel4->SetSizer(FlexGridSizer9);
     FlexGridSizer9->Fit(Panel4);
     FlexGridSizer9->SetSizeHints(Panel4);
-    Notebook_Seq_Settings->AddPage(Panel_Wizard, _("Wizard"), false);
     Notebook_Seq_Settings->AddPage(Panel3, _("Info / Media"), false);
     Notebook_Seq_Settings->AddPage(Panel1, _("Meta Data"), false);
     Notebook_Seq_Settings->AddPage(Panel2, _("Timings"), false);
@@ -302,8 +293,6 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_BITMAPBUTTON_Wiz_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick);
-    Connect(ID_BITMAPBUTTON_Wiz_Anim,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick);
     Connect(ID_CHOICE_Xml_Seq_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect);
     Connect(ID_BITMAPBUTTON_Xml_Media_File,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
     Connect(ID_TEXTCTRL_Xml_Seq_Duration,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
@@ -330,10 +319,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
 
-    if( !wizard_active )
+    if( wizard_active )
     {
-        Panel_Wizard->Hide();
-        Notebook_Seq_Settings->RemovePage(0);
+        WizardPage1();
     }
 
 	if( warning != "" )
@@ -407,6 +395,57 @@ SeqSettingsDialog::~SeqSettingsDialog()
 	//*)
 }
 
+void SeqSettingsDialog::RemoveWizard()
+{
+    Notebook_Seq_Settings->RemovePage(0);
+    Fit();
+}
+
+void SeqSettingsDialog::WizardPage1()
+{
+    Panel_Wizard = new wxPanel(Notebook_Seq_Settings, ID_PANEL_Wizard, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Wizard"));
+    Notebook_Seq_Settings->InsertPage(0, Panel_Wizard, _("Wizard"), true);
+    GridBagSizerWizard = new wxGridBagSizer(0, 0);
+    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
+    BitmapButton_Wiz_Music = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, music_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
+    BitmapButton_Wiz_Music->SetBitmapSelected(music_seq_pressed);
+    GridSizerWizButtons->Add(BitmapButton_Wiz_Music, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Wiz_Anim = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxSize(268,90), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
+    BitmapButton_Wiz_Anim->SetBitmapSelected(animation_pressed);
+    GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel_Wizard->SetSizer(GridBagSizerWizard);
+    GridBagSizerWizard->Fit(Panel_Wizard);
+    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Connect(ID_BITMAPBUTTON_Wiz_Music,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick);
+    Connect(ID_BITMAPBUTTON_Wiz_Anim,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick);
+}
+
+void SeqSettingsDialog::WizardPage2()
+{
+    GridBagSizerWizard->Clear();
+    GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
+    BitmapButton_25ms = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_div_25ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
+    BitmapButton_25ms->SetBitmapSelected(time_div_25ms_pressed);
+    GridSizerWizButtons->Add(BitmapButton_25ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_50ms = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_div_50ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
+    BitmapButton_50ms->SetBitmapSelected(time_div_50ms_pressed);
+    GridSizerWizButtons->Add(BitmapButton_50ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_100ms = new wxBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_100ms, time_div_100ms, wxDefaultPosition, wxSize(185,50), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_100ms"));
+    BitmapButton_100ms->SetBitmapSelected(time_div_100ms_pressed);
+    GridSizerWizButtons->Add(BitmapButton_100ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel_Wizard->SetSizer(GridBagSizerWizard);
+    GridBagSizerWizard->Fit(Panel_Wizard);
+    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+
+    Connect(ID_BITMAPBUTTON_25ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_25msClick);
+    Connect(ID_BITMAPBUTTON_50ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_50msClick);
+    Connect(ID_BITMAPBUTTON_100ms,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_100msClick);
+}
+
 void SeqSettingsDialog::AddTimingCell(const wxString& name)
 {
 	wxGridCellButtonRenderer* new_renderer = new wxGridCellButtonRenderer("");
@@ -447,29 +486,7 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audio file", wxEmptyString, wxEmptyString, "MP3 files (*.mp3)|*.mp3", wxFD_OPEN, wxDefaultPosition);
-    wxString fDir;
-    OpenDialog->SetDirectory(media_directory);
-    if (OpenDialog->ShowModal() == wxID_OK)
-    {
-        fDir = OpenDialog->GetDirectory();
-        wxString filename = OpenDialog->GetFilename();
-        wxFileName name_and_path(filename);
-        name_and_path.SetPath(fDir);
-        xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
-        TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
-        TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
-        TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
-        TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
-        int length_ms = Waveform::GetLengthOfMusicFileInMS(name_and_path.GetFullPath());
-        double length = length_ms / 1000.0f;
-        xml_file->SetSequenceDuration(length);
-        TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
-        StaticText_Warning->Hide();
-        ProcessSequenceType();
-    }
-
-    OpenDialog->Destroy();
+    MediaChooser();
 }
 
 void SeqSettingsDialog::OnTextCtrl_Xml_AuthorText(wxCommandEvent& event)
@@ -860,6 +877,33 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
     }
 }
 
+void SeqSettingsDialog::MediaChooser()
+{
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audio file", wxEmptyString, wxEmptyString, "MP3 files (*.mp3)|*.mp3", wxFD_OPEN, wxDefaultPosition);
+    wxString fDir;
+    OpenDialog->SetDirectory(media_directory);
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fDir = OpenDialog->GetDirectory();
+        wxString filename = OpenDialog->GetFilename();
+        wxFileName name_and_path(filename);
+        name_and_path.SetPath(fDir);
+        xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
+        TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
+        TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
+        TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
+        TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
+        int length_ms = Waveform::GetLengthOfMusicFileInMS(name_and_path.GetFullPath());
+        double length = length_ms / 1000.0f;
+        xml_file->SetSequenceDuration(length);
+        TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
+        StaticText_Warning->Hide();
+        ProcessSequenceType();
+    }
+
+    OpenDialog->Destroy();
+}
+
 void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(0);
@@ -868,7 +912,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)
     ProcessSequenceType();
     BitmapButton_Wiz_Music->Hide();
     BitmapButton_Wiz_Anim->Hide();
-    Notebook_Seq_Settings->RemovePage(0);
+    CheckBox_Overwrite_Tags->SetValue(true);
+    MediaChooser();
+    WizardPage2();
 }
 
 void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
@@ -877,7 +923,23 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
     xml_file->SetSequenceType("Animation");
     wizard_active = false;
     ProcessSequenceType();
-    BitmapButton_Wiz_Music->Hide();
-    BitmapButton_Wiz_Anim->Hide();
+    RemoveWizard();
+}
+
+void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
+{
+    Choice_Xml_Seq_Timing->SetSelection(0);
+    Notebook_Seq_Settings->RemovePage(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
+{
+    Choice_Xml_Seq_Timing->SetSelection(1);
+    Notebook_Seq_Settings->RemovePage(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
+{
+    Choice_Xml_Seq_Timing->SetSelection(2);
     Notebook_Seq_Settings->RemovePage(0);
 }

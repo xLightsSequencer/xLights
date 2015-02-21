@@ -32,10 +32,8 @@ class SeqSettingsDialog: public wxDialog
 		wxStaticText* StaticText_Xml_Author_Email;
 		wxStaticText* StaticText_Num_Models_Label;
 		wxStaticText* StaticText_Xml_Seq_Type;
-		wxBitmapButton* BitmapButton_Wiz_Anim;
 		wxStaticText* StaticText_XML_Version;
 		wxStaticText* StaticText_Xml_MediaFile;
-		wxBitmapButton* BitmapButton_Wiz_Music;
 		wxTreeCtrl* TreeCtrl_Data_Layers;
 		wxChoice* Choice_Xml_Seq_Timing;
 		wxTextCtrl* TextCtrl_Xml_Album;
@@ -44,7 +42,6 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* Panel4;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
-		wxPanel* Panel_Wizard;
 		wxStaticText* StaticText_Xml_Total_Length;
 		wxStaticText* StaticText_Xml_Music_Url;
 		wxPanel* Panel1;
@@ -81,13 +78,18 @@ class SeqSettingsDialog: public wxDialog
 		//*)
 
 		tmGrid* Grid_Timing;
+		wxPanel* Panel_Wizard;
+        wxGridBagSizer* GridBagSizerWizard;
+        wxGridSizer* GridSizerWizButtons;
+		wxBitmapButton* BitmapButton_Wiz_Music;
+		wxBitmapButton* BitmapButton_Wiz_Anim;
+		wxBitmapButton* BitmapButton_25ms;
+		wxBitmapButton* BitmapButton_50ms;
+		wxBitmapButton* BitmapButton_100ms;
 
 	protected:
 
 		//(*Identifiers(SeqSettingsDialog)
-		static const long ID_BITMAPBUTTON_Wiz_Music;
-		static const long ID_BITMAPBUTTON_Wiz_Anim;
-		static const long ID_PANEL_Wizard;
 		static const long ID_STATICTEXT_File;
 		static const long ID_STATICTEXT_Filename;
 		static const long ID_STATICTEXT_XML_Type_Version;
@@ -138,6 +140,12 @@ class SeqSettingsDialog: public wxDialog
 		//*)
 
 		static const long ID_GRID_TIMING;
+        static const long ID_BITMAPBUTTON_Wiz_Music;
+        static const long ID_BITMAPBUTTON_Wiz_Anim;
+        static const long ID_BITMAPBUTTON_25ms;
+        static const long ID_BITMAPBUTTON_50ms;
+        static const long ID_BITMAPBUTTON_100ms;
+        static const long ID_PANEL_Wizard;
 
 	private:
 
@@ -173,6 +181,9 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_ReimportClick(wxCommandEvent& event);
 		void OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event);
 		void OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event);
+		void OnBitmapButton_25msClick(wxCommandEvent& event);
+		void OnBitmapButton_50msClick(wxCommandEvent& event);
+		void OnBitmapButton_100msClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -186,6 +197,16 @@ class SeqSettingsDialog: public wxDialog
         int selected_branch_index;
         wxTreeItemId selected_branch;
         bool wizard_active;
+        wxBitmap music_seq;
+        wxBitmap music_seq_pressed;
+        wxBitmap animation_seq;
+        wxBitmap animation_pressed;
+        wxBitmap time_div_25ms;
+        wxBitmap time_div_25ms_pressed;
+        wxBitmap time_div_50ms;
+        wxBitmap time_div_50ms_pressed;
+        wxBitmap time_div_100ms;
+        wxBitmap time_div_100ms_pressed;
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
@@ -193,6 +214,10 @@ class SeqSettingsDialog: public wxDialog
         void PopulateTimingGrid();
         void AddTimingCell(const wxString& name);
         void UpdateDataLayer();
+        void MediaChooser();
+        void RemoveWizard();
+        void WizardPage1();
+        void WizardPage2();
 };
 
 #endif
