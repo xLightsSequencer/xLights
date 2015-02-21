@@ -1373,7 +1373,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         wxXmlNode* effect_node = AddChildXmlNode(effect_layer_node, "Effect", effect->GetSettings());
 
                         effect_node->AddAttribute("label", effect->GetEffectName());
-                        effect_node->AddAttribute("protected", string_format("%d", effect->GetProtected()));
+                        if (effect->GetProtected()) {
+                            effect_node->AddAttribute("protected", "1");
+                        }
                         if (effect->GetSelected()) {
                             effect_node->AddAttribute("selected", "1");
                         }
