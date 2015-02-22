@@ -99,6 +99,7 @@
 #include "ColorPanel.h"
 #include "PerspectivesPanel.h"
 #include "EffectIconPanel.h"
+#include "DisplayElementsPanel.h"
 
 #include "wx/aui/aui.h"
 
@@ -219,6 +220,9 @@ wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
+
+
 
 static const wxString xlights_base_name = "XL4 ALPHA";
 static const wxString xlights_version_string = "4.0.0";
@@ -1566,6 +1570,7 @@ protected:
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;
     EffectIconPanel *effectPalettePanel;
+    DisplayElementsPanel *displayElementsPanel;
 
     int mMediaLengthMS;
     bool mSequencerInitialize = false;
@@ -1589,6 +1594,7 @@ protected:
     void PerspectivesChanged(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
+    void ShowDisplayElements(wxCommandEvent& event);
 
     void CheckForValidModels();
 

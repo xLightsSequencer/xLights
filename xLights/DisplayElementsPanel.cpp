@@ -23,7 +23,8 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-	ListCtrlDisplayElements = new wxCheckedListCtrl(this, ID_LISTCTRL_DISPLAY_ELEMENTS, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_LISTCTRL_DISPLAY_ELEMENTS"));
+	ListCtrlDisplayElements = new wxCheckedListCtrl(this, ID_LISTCTRL_DISPLAY_ELEMENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_DISPLAY_ELEMENTS"));
+	ListCtrlDisplayElements->SetMinSize(wxSize(250,200));
 	FlexGridSizer1->Add(ListCtrlDisplayElements, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);

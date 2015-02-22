@@ -374,6 +374,8 @@
 		<Unit filename="CurrentPreviewModels.h" />
 		<Unit filename="DataLayer.cpp" />
 		<Unit filename="DataLayer.h" />
+		<Unit filename="DisplayElementsPanel.cpp" />
+		<Unit filename="DisplayElementsPanel.h" />
 		<Unit filename="E131Dialog.cpp" />
 		<Unit filename="E131Dialog.h" />
 		<Unit filename="EffectIconPanel.cpp" />
@@ -552,10 +554,13 @@
 		</Unit>
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
+		<Unit filename="wxCheckedListCtrl.cpp" />
+		<Unit filename="wxCheckedListCtrl.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
+		<Unit filename="wxsmith/DisplayElementsPanel.wxs" />
 		<Unit filename="wxsmith/EffectIconPanel.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
@@ -633,6 +638,7 @@
 					<wxPanel wxs="wxsmith/PerspectivesPanel.wxs" src="PerspectivesPanel.cpp" hdr="PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/DisplayElementsPanel.wxs" src="DisplayElementsPanel.cpp" hdr="DisplayElementsPanel.h" fwddecl="0" i18n="1" name="DisplayElementsPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

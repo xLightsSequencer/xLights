@@ -12,6 +12,7 @@
 #define INDENT_ROW_HEADING_MARGIN   24
 
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 class MainSequencer;
 
 class RowHeading : public wxWindow
@@ -54,6 +55,7 @@ class RowHeading : public wxWindow
         static const long ID_ROW_MNU_LAYER;
         static const long ID_ROW_MNU_PLAY_MODEL;
         static const long ID_ROW_MNU_EXPORT_MODEL;
+        static const long ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS;
 
         static const long ID_ROW_MNU_ADD_TIMING_TRACK;
         static const long ID_ROW_MNU_DELETE_TIMING_TRACK;

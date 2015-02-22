@@ -11,6 +11,7 @@
 #include "Element.h"
 #include "Effect.h"
 #include "../SeqSettingsDialog.h"
+#include "../DisplayElementsPanel.h"
 
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
@@ -30,27 +31,7 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
-//    mainSequencer->PanelRowHeadings->SetCanvasSize(175,2200);
-
-//    mainSequencer->PanelRowHeadings->SetSize(wxSize(175,2200));
-//    mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,20));
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
-
-//    mainSequencer->PanelEffectGrid->SetSize(wxSize(1200,2200));
-//    mainSequencer->PanelEffectGrid->SetMinSize(wxSize(20,20));
-
-//    mainSequencer->ScrollBarEffectsVertical->SetSize(20,2200);
-//    mainSequencer->ScrollBarEffectsVertical->SetMinSize(wxSize(20,2200));
-//    mainSequencer->ScrollBarEffectsVertical->SetMaxSize(wxSize(20,2200));
-
-//    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
-//    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
-//    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
-
-//    mainSequencer->ScrollBarEffectGridHorz->SetSize(1200,20);
- //   mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(1200,20));
-  //  mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(1200,20));
-
 
     sPreview1 = new SequencePreview(PanelSequencer,args);
     sPreview1->SetSize(wxSize(200,200));
@@ -61,7 +42,6 @@ void xLightsFrame::CreateSequencer()
     effectsPnl = new TopEffectsPanel(PanelSequencer);
     EffectsPanel1 = new EffectsPanel(effectsPnl->Panel_EffectContainer, ID_PANEL_EFFECTS1, wxPoint(0,0), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_EFFECTS1"));
     effectsPnl->Refresh();
-
 
     wxScrolledWindow* w;
     for(int i =0;i<EffectsPanel1->Choicebook1->GetPageCount();i++)
@@ -76,9 +56,17 @@ void xLightsFrame::CreateSequencer()
 
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
-
-
     effectPalettePanel = new EffectIconPanel(PanelSequencer);
+
+    // DisplayElements Panel
+    displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
+    displayElementsPanel->SetSequenceElements(&mSequenceElements);
+    displayElementsPanel->Initialize();
+    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements")).
+                   BestSize(wxSize(200,250)).Float());
+    // Hide the panel on start.
+    m_mgr->GetPane("DisplayElements").Hide();
+
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).
                    BestSize(wxSize(175,175)).Left());
@@ -96,7 +84,7 @@ void xLightsFrame::CreateSequencer()
                    BestSize(wxSize(175,175)).Left());
 
     m_mgr->AddPane(mainSequencer,wxAuiPaneInfo().Name(_T("Main Sequencer")).CenterPane().Caption(_("Main Sequencer")));
-    
+
     mainSequencer->Layout();
     m_mgr->Update();
 }
@@ -402,7 +390,7 @@ void xLightsFrame::ResizeMainSequencer()
     //mainSequencer->PanelRowHeadings->SetSize(wxSize(175,effectHeight));
     //mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,effectHeight));
     //mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,effectHeight));
-    
+
     // Set max rows to determine correct row information size
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
@@ -574,7 +562,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         playStartMS = -1;
         return;
     }
-    
+
     if (selectedEffect != NULL) {
         int palette = -1;
         wxString effectText = GetEffectTextFromWindows(palette);
@@ -582,10 +570,10 @@ void xLightsFrame::TimerRgbSeq(long msec)
             || palette != selectedEffectPalette) {
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
-            
+
             selectedEffectString = effectText;
             selectedEffectPalette = palette;
-            
+
             Element *el = selectedEffect->GetParentEffectLayer()->GetParentElement();
             playStartTime = (int)(selectedEffect->GetStartTime() * 1000);
             playEndTime = (int)(selectedEffect->GetEndTime() * 1000);
@@ -595,7 +583,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             return;
         }
     }
-    
+
     bool output = CheckBoxLightOutput->IsChecked() && xout;
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
@@ -621,7 +609,7 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
     wxString before,after,name,value;
     wxPanel *efPanel;
     int cnt=0;
-    
+
     wxString settings(origSettings);
     if (palette != -1) {
         settings += "," + mSequenceElements.getPalette(palette);
@@ -938,6 +926,15 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
     SaveEffectsFile();
 }
+
+void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
+{
+    displayElementsPanel->Initialize();
+    m_mgr->GetPane("DisplayElements").Show();
+    m_mgr->Update();
+}
+
+
 
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
