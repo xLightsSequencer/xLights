@@ -352,6 +352,19 @@ void xLightsFrame::SaveSequence()
     EnableSequenceControls(true);
 }
 
+void xLightsFrame::RenderAll()
+{
+    EnableSequenceControls(false);
+    wxStopWatch sw; // start a stopwatch timer
+    StatusBar1->SetStatusText(_("Rendering all layers"));
+    RenderIseqData(true); // render ISEQ layers below the Nutcracker layer
+    RenderGridToSeqData();
+    RenderIseqData(false);  // render ISEQ layers above the Nutcracker layer
+    float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+    wxString displayBuff = wxString::Format(_("Rendered in %7.3f seconds"),elapsedTime);
+    CallAfter(&xLightsFrame::SetStatusText, displayBuff);
+    EnableSequenceControls(true);
+}
 
 void xLightsFrame::GetModelNames(wxArrayString& a)
 {
@@ -404,13 +417,13 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllToolbarControls(EffectPaletteToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
-    
+
     enableAllChildControls(EffectsPanel1, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(timingPanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(perspectivePanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(colorPanel, enable && SeqData.NumFrames() > 0);
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);
-    
+
     enableAllMenubarControls(MenuBar, enable);
 }
 

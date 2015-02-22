@@ -2970,4 +2970,5 @@ void xLightsFrame::OnResize(wxSizeEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
 {
+    RenderAll();
 }

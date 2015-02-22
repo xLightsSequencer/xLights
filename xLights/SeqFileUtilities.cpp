@@ -216,8 +216,8 @@ void xLightsFrame::OpenSequence()
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
+        EnableSequenceControls(true);
     }
-    EnableSequenceControls(true);
 }
 
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
@@ -257,7 +257,7 @@ void xLightsFrame::RenderIseqData(bool bottom_layers)
         //Don't clear, v3 workflow of augmenting the existing fseq file
         return;
     }
-    
+
     if( bottom_layers )
     {
         ClearSequenceData();

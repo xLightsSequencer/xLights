@@ -1427,6 +1427,7 @@ protected:
     void NewSequence();
     void OpenSequence();
     void SaveSequence();
+    void RenderAll();
     void InsertRow();
     void UpdatePreview();
     void BuildWholeHouseModel(wxString modelName);
