@@ -87,7 +87,6 @@ const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_RenderAll = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
@@ -518,7 +517,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), folder_xpm, wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), save_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), save_as_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM1, _("Item label"), eye_open_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Search"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBARITEM_RenderAll, _("Render All"), green_gear_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());

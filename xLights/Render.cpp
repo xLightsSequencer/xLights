@@ -315,6 +315,10 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 
 void xLightsFrame::RenderGridToSeqData() {
     int numRows = mSequenceElements.GetElementCount();
+    if (numRows == 0) {
+        //nothing to do....
+        return;
+    }
     RenderJob **noDepJobs = new RenderJob*[numRows];
     RenderJob **depJobs = new RenderJob*[numRows];
     NextRenderer wait;
@@ -384,9 +388,11 @@ void xLightsFrame::RenderGridToSeqData() {
             jobPool.PushJob(depJobs[row]);
         }
     }
-    //wait to complete
-    while (!wait.checkIfDone(SeqData.NumFrames())) {
-        wxYield();
+    if (depsCount > 0 || noDepsCount > 0) {
+        //wait to complete
+        while (!wait.checkIfDone(SeqData.NumFrames())) {
+            wxYield();
+        }
     }
     
     delete []channelsRendered;

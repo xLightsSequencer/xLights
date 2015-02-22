@@ -52,13 +52,6 @@
 						<label>Save As</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarItem1" member="yes">
-							<bitmap code="eye_open_24_xpm" />
-							<shorthelp>Search</shorthelp>
-						</object>
-						<label>Item label</label>
-					</object>
-					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_RenderAll" variable="AuiToolBarItemRenderAll" member="yes">
 							<bitmap code="green_gear_24_xpm" />
 							<shorthelp>Render All</shorthelp>
