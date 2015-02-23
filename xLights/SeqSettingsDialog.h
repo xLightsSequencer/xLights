@@ -20,6 +20,22 @@
 #include <wx/dialog.h>
 //*)
 
+// create derived wxBitmapButton class to fix flickering issue
+class FlickerFreeBitmapButtonCtrl : public wxBitmapButton {
+  public:
+         FlickerFreeBitmapButtonCtrl(wxWindow* parent,
+                                     wxWindowID id,
+                                     const wxBitmap& bitmap,
+                                     const wxPoint& pos,
+                                     const wxSize& size = wxDefaultSize,
+                                     long style = 0,
+                                     const wxValidator& validator = wxDefaultValidator,
+                                     const wxString& name = "ButtonName" ):
+         wxBitmapButton(parent,id,bitmap,pos,size,style,validator,name){};
+    void OnEraseBackGround(wxEraseEvent& event) {};
+         DECLARE_EVENT_TABLE()
+};
+
 class SeqSettingsDialog: public wxDialog
 {
 	public:
@@ -81,11 +97,18 @@ class SeqSettingsDialog: public wxDialog
 		wxPanel* Panel_Wizard;
         wxGridBagSizer* GridBagSizerWizard;
         wxGridSizer* GridSizerWizButtons;
-		wxBitmapButton* BitmapButton_Wiz_Music;
-		wxBitmapButton* BitmapButton_Wiz_Anim;
-		wxBitmapButton* BitmapButton_25ms;
-		wxBitmapButton* BitmapButton_50ms;
-		wxBitmapButton* BitmapButton_100ms;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_Wiz_Music;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_Wiz_Anim;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_25ms;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_50ms;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_100ms;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_lor;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_vixen;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_gled;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_hls;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_lynx;
+		FlickerFreeBitmapButtonCtrl* BitmapButton_xlights;
+		wxButton* Button_SkipImport;
 
 	protected:
 
@@ -145,6 +168,13 @@ class SeqSettingsDialog: public wxDialog
         static const long ID_BITMAPBUTTON_25ms;
         static const long ID_BITMAPBUTTON_50ms;
         static const long ID_BITMAPBUTTON_100ms;
+        static const long ID_BITMAPBUTTON_lor;
+        static const long ID_BITMAPBUTTON_vixen;
+        static const long ID_BITMAPBUTTON_gled;
+        static const long ID_BITMAPBUTTON_hls;
+        static const long ID_BITMAPBUTTON_lynx;
+        static const long ID_BITMAPBUTTON_xlights;
+        static const long ID_BUTTON_skip_import;
         static const long ID_PANEL_Wizard;
 
 	private:
@@ -207,6 +237,12 @@ class SeqSettingsDialog: public wxDialog
         wxBitmap time_div_50ms_pressed;
         wxBitmap time_div_100ms;
         wxBitmap time_div_100ms_pressed;
+        wxBitmap lightorama;
+        wxBitmap vixen;
+        wxBitmap glediator;
+        wxBitmap hls;
+        wxBitmap lynx;
+        wxBitmap xlights_logo;
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
@@ -218,6 +254,7 @@ class SeqSettingsDialog: public wxDialog
         void RemoveWizard();
         void WizardPage1();
         void WizardPage2();
+        void WizardPage3();
 };
 
 #endif
