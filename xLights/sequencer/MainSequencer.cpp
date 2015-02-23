@@ -30,7 +30,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(1);
@@ -85,6 +85,9 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	//*)
+    
+    
+    Connect(wxEVT_CHAR_HOOK,(wxObjectEventFunction)&MainSequencer::OnChar);
 
     mParent = parent;
 }
@@ -176,3 +179,114 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
         PanelRowHeadings->Refresh();
     }
 }
+
+void MainSequencer::OnChar(wxKeyEvent& event)
+{
+    wxChar uc = event.GetKeyCode();
+    switch(uc)
+    {
+        case '+':
+            PanelTimeLine->ZoomIn();
+            event.StopPropagation();
+            break;
+        case '-':
+            PanelTimeLine->ZoomOut();
+            event.StopPropagation();
+            break;
+            /*
+        case WXK_F5:
+        {
+            wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
+            wxPostEvent(this, eventEffectUpdated);
+            break;
+        }
+             */
+        case 't':
+        case 'T':
+            InsertTimingMarkFromRange();
+            event.StopPropagation();
+            break;
+        case WXK_BACK:
+        case WXK_DELETE:
+            DeleteAllSelectedEffects();
+            event.StopPropagation();
+            break;
+        default:
+            break;
+    }
+}
+void MainSequencer::DeleteAllSelectedEffects()
+{
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        EffectLayer* el = element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
+        el->DeleteSelectedEffects();
+    }
+    PanelEffectGrid->ForceRefresh();
+}
+
+void MainSequencer::InsertTimingMarkFromRange()
+{
+    int x1,x2;
+    PanelWaveForm->GetShadedRegion(&x1,&x2);
+    int selectedTiming = mSequenceElements->GetSelectedTimingRow();
+    if(selectedTiming >= 0)
+    {
+        if(x1!=x2)
+        {
+            //Force x1 the smaller of two positions
+            int tmp = x1;
+            x1=x1<x2?x1:x2;
+            x2=tmp<x2?x2:tmp;
+            Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+            int index,result;
+            if(!el->HitTestEffect(x1,index,result) && !el->HitTestEffect(x2,index,result))
+            {
+                double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
+                double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                wxString name,settings;
+                el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                PanelEffectGrid->ForceRefresh();
+            }
+            else
+            {
+                wxMessageBox("Timing exist already in the selected region","Timing placement error");
+            }
+        }
+        else
+        {
+            // x1 and x2 are the same. Insert from end time of timing to the left to x2
+            Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+            int index,result;
+            if(!el->HitTestEffect(x2,index,result))
+            {
+                // if there is an effect to left
+                wxString name,settings;
+                Effect* effect = el->GetEffectBeforePosition(x2);
+                if(effect!=nullptr)
+                {
+                    double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(effect->GetEndPosition());
+                    double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                }
+                // No effect to left start at time = 0
+                else
+                {
+                    double t1 = 0;
+                    double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                }
+                PanelEffectGrid->ForceRefresh();
+            }
+            else
+            {
+                wxMessageBox("Timing exist already in the selected region","Timing placement error");
+            }
+        }
+    }
+}
+
+

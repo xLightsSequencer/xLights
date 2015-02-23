@@ -1595,7 +1595,6 @@ protected:
     void LoadSequencer(xLightsXmlFile& xml_file);
 
     void CheckForAndCreateDefaultPerpective();
-    void DeleteAllSelectedEffects();
     void ZoomIn();
     void ZoomOut();
     void EffectsResize(wxSizeEvent& event);
@@ -1605,7 +1604,6 @@ protected:
     void UpdateEffectGridHorizontalScrollBar();
     void UpdateEffectGridVerticalScrollBar();
     wxString GetEffectTextFromWindows(int &palette);
-    void InsertTimingMarkFromRange();
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels

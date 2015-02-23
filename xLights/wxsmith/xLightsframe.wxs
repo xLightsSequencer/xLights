@@ -2547,7 +2547,9 @@
 					</object>
 					<object class="AuiNotebookPage">
 						<object class="wxPanel" name="ID_PANEL7" variable="PanelSequencer" member="yes">
+							<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 							<handler function="OnPanelSequencerPaint" entry="EVT_PAINT" />
+							<handler function="OnPaneNutcrackerChar" entry="EVT_CHAR" />
 							<object class="wxAuiManager" variable="m_mgr" member="yes">
 								<style>wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT</style>
 							</object>
@@ -2927,18 +2929,18 @@
 				<label>&amp;File</label>
 				<object class="wxMenuItem" name="ID_NEW_SEQUENCE" variable="MenuItem3" member="yes">
 					<label>New Sequence</label>
-					<accel>Ctl-n</accel>
+					<accel>Ctrl-n</accel>
 					<handler function="OnButtonNewSequenceClick" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_OPEN_SEQUENCE" variable="MenuItem_File_Open_Sequence" member="yes">
 					<label>Open Sequence</label>
-					<accel>Ctl-o</accel>
+					<accel>CTRL-o</accel>
 					<bitmap stock_id="wxART_FILE_OPEN" />
 					<handler function="OnMenuItem_File_Open_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem_File_Save_Sequence" member="yes">
 					<label>Save Sequence</label>
-					<accel>CTL-S</accel>
+					<accel>CTRL-S</accel>
 					<bitmap stock_id="wxART_FILE_SAVE" />
 					<handler function="OnMenuItem_File_Save_SequenceSelected" entry="EVT_MENU" />
 				</object>

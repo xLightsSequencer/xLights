@@ -53,12 +53,15 @@ class MainSequencer: public wxPanel
 		void OnPanelWaveFormPaint(wxPaintEvent& event);
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
 		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
+		void OnChar(wxKeyEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
 
         void mouseWheelMoved(wxMouseEvent& event);
         void TimeLineChanged( wxCommandEvent& event);
-
+        void DeleteAllSelectedEffects();
+        void InsertTimingMarkFromRange();
+    
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
 };

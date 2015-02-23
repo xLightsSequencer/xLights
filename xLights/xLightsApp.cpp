@@ -219,17 +219,3 @@ bool xLightsApp::WantDebug = false;
 bool xLightsApp::RunPrompt = false; //prompt before running schedule (allows override) -DJ
 wxString xLightsApp::DebugPath;
 
-//re-added global keyboard handler: -DJ
-//couldn't get PaneNutcracker keyboard handler to work, so just use a global filter as suggested in
-// http://wiki.wxwidgets.org/Catching_key_events_globally
-//also, there are some issues with controls in other panels
-
-int xLightsApp::FilterEvent(wxEvent& event)
-{
-    if (event.GetEventType() == wxEVT_CHAR)
-    {
-        xLightsFrame* Frame = (xLightsFrame*)GetTopWindow();
-        if (Frame->HotKey((wxKeyEvent&)event)) return Event_Processed; //true;
-    }
-    return Event_Skip; //-1;
-}

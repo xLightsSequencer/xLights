@@ -16,7 +16,6 @@ class xLightsApp : public wxApp
 {
 public:
     virtual bool OnInit();
-    int FilterEvent(wxEvent& event); //global keyboard event handler -DJ
     static bool WantDebug; //debug flag from command-line -DJ
     static bool RunPrompt; //prompt before running schedule (allows override) -DJ
     static wxString DebugPath; //path name for debug log file -DJ

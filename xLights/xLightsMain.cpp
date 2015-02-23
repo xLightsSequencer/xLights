@@ -1242,7 +1242,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PanelPapagayo->SetSizer(FlexGridSizerPapagayo);
     FlexGridSizerPapagayo->Fit(PanelPapagayo);
     FlexGridSizerPapagayo->SetSizeHints(PanelPapagayo);
-    PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL7"));
+    PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelTest, _("Test"));
@@ -1438,12 +1438,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainAuiManager->Update();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
-    MenuItem3 = new wxMenuItem(MenuFile, ID_NEW_SEQUENCE, _("New Sequence\tCtl-n"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem3 = new wxMenuItem(MenuFile, ID_NEW_SEQUENCE, _("New Sequence\tCtrl-n"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem3);
-    MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCtl-o"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_File_Open_Sequence = new wxMenuItem(MenuFile, ID_OPEN_SEQUENCE, _("Open Sequence\tCTRL-o"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Open_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Open_Sequence);
-    MenuItem_File_Save_Sequence = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTL-S"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_File_Save_Sequence = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save_Sequence);
     MenuFile->AppendSeparator();
@@ -1646,6 +1646,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_TEXTCTRL_PgoAutoFade,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnTextCtrl_PgoAutoFadeText);
     Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStartPapagayoClick);
     PanelSequencer->Connect(wxEVT_PAINT,(wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint,0,this);
+    PanelSequencer->Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnPaneNutcrackerChar,0,this);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
@@ -2543,28 +2544,6 @@ void xLightsFrame::BackupDirectory(wxString targetDirName)
     StatusBar1->SetStatusText("All xml files backed up.");
 }
 
-#if 0 //removed
-void xLightsFrame::ConnectOnChar(wxWindow* pclComponent)
-{
-    if(pclComponent)
-    {
-        pclComponent->Connect(wxID_ANY,
-                              wxEVT_CHAR,
-                              wxKeyEventHandler(xLightsFrame::OnPaneNutcrackerChar),
-                              (wxObject*) NULL,
-                              this);
-
-        wxWindowListNode* pclNode = pclComponent->GetChildren().GetFirst();
-        while(pclNode)
-        {
-            wxWindow* pclChild = pclNode->GetData();
-            this->ConnectOnChar(pclChild);
-
-            pclNode = pclNode->GetNext();
-        }
-    }
-}
-#endif //0
 
 
 bool xLightsFrame::HotKey(wxKeyEvent& event)
@@ -2668,13 +2647,17 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
     else*/
     if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
+        printf("%c\n", uc);
+        /*
         switch(uc)
         {
             case '+':
                 mainSequencer->PanelTimeLine->ZoomIn();
+                retval = true;
                 break;
             case '-':
                 mainSequencer->PanelTimeLine->ZoomOut();
+                retval = true;
                 break;
             case WXK_F5:
             {
@@ -2687,6 +2670,7 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 if(mTextEntryContext == TEXT_ENTRY_TIMING)
                 {
                     InsertTimingMarkFromRange();
+                    retval = true;
                 }
                 else
                 {
@@ -2695,10 +2679,12 @@ bool xLightsFrame::HotKey(wxKeyEvent& event)
                 break;
             case WXK_DELETE:
                 DeleteAllSelectedEffects();
+                retval = true;
                 break;
             default:
                 break;
         }
+         */
 
     }
     if (!retval)
