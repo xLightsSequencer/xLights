@@ -5,6 +5,8 @@
 #include <wx/imaglist.h>
 #include <wx/icon.h>
 
+wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
+
 class wxCheckedListCtrl : public wxListCtrl
 {
     public:

@@ -60,9 +60,8 @@ void xLightsFrame::CreateSequencer()
 
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
-    displayElementsPanel->SetSequenceElements(&mSequenceElements);
-    displayElementsPanel->Initialize();
-    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Display Elements")).
+
+    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Sequence Elements")).
                    BestSize(wxSize(200,250)).Float());
     // Hide the panel on start.
     m_mgr->GetPane("DisplayElements").Hide();
@@ -885,6 +884,8 @@ wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
 
 void xLightsFrame::ForceSequencerRefresh(wxCommandEvent& event)
 {
+    mSequenceElements.PopulateRowInformation();
+    mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->ForceRefresh();
 }
 
@@ -929,6 +930,7 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
+    displayElementsPanel->SetSequenceElementsModelsViews(&mSequenceElements,ModelsNode, ViewsNode);
     displayElementsPanel->Initialize();
     m_mgr->GetPane("DisplayElements").Show();
     m_mgr->Update();

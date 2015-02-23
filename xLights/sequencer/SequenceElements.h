@@ -53,6 +53,7 @@ class SequenceElements
         int GetRowInformationSize();
         int GetMaxModelsDisplayed();
         int GetFirstVisibleModelRow();
+        int GetLastViewIndex();
         int GetTotalNumberOfModelRows();
         void SetMaxRowsDisplayed(int maxRows);
 
@@ -74,6 +75,7 @@ class SequenceElements
         void SetSelectedTimingRow(int row);
 
         int GetNumberOfTimingRows();
+        bool ElementExists(wxString elementName);
 
         void SetViewsNode(wxXmlNode* viewsNode);
         wxString GetViewModels(wxString viewName);
@@ -87,11 +89,11 @@ class SequenceElements
         Effect* GetSelectedEffectAtRowAndPosition(int row, int x,int &index, int &selectionType);
         void UnSelectAllEffects();
         void UnSelectAllElements();
-    
+
         int getPaletteIndex(const wxString &p);
         const wxString& getPalette(int i);
         int getNumberOfPalettes();
-    
+
     protected:
     private:
 
@@ -113,7 +115,6 @@ class SequenceElements
 
         std::vector<EffectRange> mSelectedRanges;
         int mSelectedTimingRow;
-        bool ElementExists(wxString elementName);
         wxXmlNode* mViewsNode;
         double mFrequency;
         int mTimingRowCount;
@@ -121,7 +122,7 @@ class SequenceElements
 
         // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
         int mFirstVisibleModelRow;
-    
+
     std::vector<wxString> colorPalettes;
 
 };

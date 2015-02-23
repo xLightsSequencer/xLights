@@ -1,5 +1,8 @@
 #include "wxCheckedListCtrl.h"
 
+wxDEFINE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
+
+
 BEGIN_EVENT_TABLE(wxCheckedListCtrl, wxListCtrl)
   EVT_LEFT_DOWN(wxCheckedListCtrl::OnMouseEvent)
 END_EVENT_TABLE()
@@ -33,6 +36,9 @@ void wxCheckedListCtrl::OnMouseEvent(wxMouseEvent& event)
      if (item > -1 && (flags & wxLIST_HITTEST_ONITEMICON))
      {
          SetChecked(item, !IsChecked(item));
+        wxCommandEvent eventChecked(EVT_LISTITEM_CHECKED);
+        eventChecked.SetClientData((wxClientData*)GetItemData(item));
+        wxPostEvent(GetParent(), eventChecked);
      }
      else
         event.Skip();

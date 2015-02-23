@@ -29,7 +29,7 @@ Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible
     if(!ElementExists(name))
     {
         mElements.push_back(new Element(name,type,visible,collapsed,active,selected));
-        return mElements[mElements.size()];
+        return mElements[mElements.size()-1];
     }
 }
 
@@ -307,7 +307,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                                 } else {
                                                     settings = effect->GetNodeContent();
                                                 }
-                                                
+
                                                 wxString tmp;
                                                 if (effect->GetAttribute("palette", &tmp)) {
                                                     tmp.ToLong(&palette);
@@ -531,6 +531,19 @@ int SequenceElements::GetNumberOfTimingRows()
     return mTimingRowCount;
 }
 
+// Returns the last view index or if no views in vector
+// the last timing index or if no timing in vector returns 0
+int SequenceElements::GetLastViewIndex()
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(mElements[i]->GetType() != "view" && mElements[i]->GetType() != "timing")
+        {
+            return i;
+        }
+    }
+    return 0;
+}
 
 void SequenceElements::DeactivateAllTimingElements()
 {

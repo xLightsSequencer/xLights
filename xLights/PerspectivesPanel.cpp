@@ -65,6 +65,8 @@ PerspectivesPanel::PerspectivesPanel(wxWindow* parent,wxWindowID id,const wxPoin
 
 PerspectivesPanel::~PerspectivesPanel()
 {
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
 	//(*Destroy(PerspectivesPanel)
 	//*)
 }
