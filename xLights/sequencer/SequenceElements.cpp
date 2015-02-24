@@ -676,4 +676,16 @@ int SequenceElements::getNumberOfPalettes() {
     return colorPalettes.size();
 }
 
+void SequenceElements::SetVisibilityForAllModels(bool visibility)
+{
+    for(int i=0;i<GetElementCount();i++)
+    {
+        Element * e = GetElement(i);
+        if(e->GetType() == "model")
+        {
+            e->SetVisible(visibility);
+        }
+    }
+}
+
 

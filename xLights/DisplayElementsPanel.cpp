@@ -62,8 +62,10 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	ButtonAddViews = new wxButton(this, ID_BUTTON_ADD_VIEWS, _("Add Views"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_VIEWS"));
+	ButtonAddViews->Disable();
 	FlexGridSizer3->Add(ButtonAddViews, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonDeleteView = new wxButton(this, ID_BUTTON_DELETE_VIEW, _("Delete View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DELETE_VIEW"));
+	ButtonDeleteView->Disable();
 	FlexGridSizer3->Add(ButtonDeleteView, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer8->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer11->Add(FlexGridSizer8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -102,6 +104,8 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_BUTTON_ADD_VIEWS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddViewsClick);
+	Connect(ID_BUTTON_SHOW_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonShowAllClick);
+	Connect(ID_BUTTON_HIDE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonHideAllClick);
 	Connect(ID_BUTTONADD_MODELS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddModelsClick);
 	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&DisplayElementsPanel::OnLeftUp);
 	//*)
@@ -266,3 +270,19 @@ void DisplayElementsPanel::ListItemChecked(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
+
+void DisplayElementsPanel::OnButtonShowAllClick(wxCommandEvent& event)
+{
+    mSequenceElements->SetVisibilityForAllModels(true);
+    PopulateModels();
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
+}
+
+void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
+{
+    mSequenceElements->SetVisibilityForAllModels(false);
+    PopulateModels();
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
+}

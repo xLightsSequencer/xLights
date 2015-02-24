@@ -56,6 +56,7 @@ class SequenceElements
         int GetLastViewIndex();
         int GetTotalNumberOfModelRows();
         void SetMaxRowsDisplayed(int maxRows);
+        void SetVisibilityForAllModels(bool visibility);
 
         void SetFirstVisibleModelRow(int row);
 

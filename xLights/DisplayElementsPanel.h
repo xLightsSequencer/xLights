@@ -80,6 +80,8 @@ class DisplayElementsPanel: public wxPanel
 		void OnListCtrlModelsColumnClick(wxListEvent& event);
 		void OnListCtrlModelsItemRClick(wxListEvent& event);
 		void OnListCtrlModelsItemSelect(wxListEvent& event);
+		void OnButtonShowAllClick(wxCommandEvent& event);
+		void OnButtonHideAllClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
