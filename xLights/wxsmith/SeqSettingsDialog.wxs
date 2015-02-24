@@ -422,7 +422,7 @@
 						<label>Timings</label>
 					</object>
 					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL4" variable="Panel4" member="yes">
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel_DataLayers" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 								<cols>1</cols>
 								<object class="sizeritem">

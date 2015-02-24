@@ -55,7 +55,6 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Album;
 		wxStaticText* StaticText_Xml_Artist;
 		wxStaticText* StaticText_Warning;
-		wxPanel* Panel4;
 		wxStaticText* StaticText_Xml_Website;
 		wxNotebook* Notebook_Seq_Settings;
 		wxStaticText* StaticText_Xml_Total_Length;
@@ -79,6 +78,7 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Comment;
 		wxButton* Button_Reimport;
 		wxStaticText* StaticText_Xml_Comment;
+		wxPanel* Panel_DataLayers;
 		wxTextCtrl* TextCtrl_Xml_Author;
 		wxStaticText* StaticText_Warn_No_Media;
 		wxStaticText* StaticText_Xml_Song;
@@ -109,6 +109,9 @@ class SeqSettingsDialog: public wxDialog
 		FlickerFreeBitmapButtonCtrl* BitmapButton_lynx;
 		FlickerFreeBitmapButtonCtrl* BitmapButton_xlights;
 		wxButton* Button_SkipImport;
+        wxButton* Button_EditMetadata;
+        wxButton* Button_ImportTimings;
+        wxButton* Button_WizardDone;
 
 	protected:
 
@@ -175,6 +178,9 @@ class SeqSettingsDialog: public wxDialog
         static const long ID_BITMAPBUTTON_lynx;
         static const long ID_BITMAPBUTTON_xlights;
         static const long ID_BUTTON_skip_import;
+        static const long ID_BUTTON_edit_metadata;
+        static const long ID_BUTTON_import_timings;
+        static const long ID_BUTTON_wizard_done;
         static const long ID_PANEL_Wizard;
 
 	private:
@@ -200,7 +206,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_CloseClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event);
-		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);
+		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);		void OnBitmapButton_skip_importClick(wxCommandEvent& event);
+
 		void OnButton_Layer_ImportClick(wxCommandEvent& event);
 		void OnButton_Layer_DeleteClick(wxCommandEvent& event);
 		void OnButton_Move_UpClick(wxCommandEvent& event);
@@ -209,15 +216,26 @@ class SeqSettingsDialog: public wxDialog
 		void OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event);
 		void OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event);
 		void OnButton_ReimportClick(wxCommandEvent& event);
+
+		//*)
+
+		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
+        void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
 		void OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event);
 		void OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event);
 		void OnBitmapButton_25msClick(wxCommandEvent& event);
 		void OnBitmapButton_50msClick(wxCommandEvent& event);
 		void OnBitmapButton_100msClick(wxCommandEvent& event);
-		//*)
-
-		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
-        void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);
+		void OnBitmapButton_lorClick(wxCommandEvent& event);
+		void OnBitmapButton_vixenClick(wxCommandEvent& event);
+		void OnBitmapButton_gledClick(wxCommandEvent& event);
+		void OnBitmapButton_hlsClick(wxCommandEvent& event);
+		void OnBitmapButton_lynxClick(wxCommandEvent& event);
+		void OnBitmapButton_xlightsClick(wxCommandEvent& event);
+		void OnButton_skip_importClick(wxCommandEvent& event);
+		void OnButton_EditMetadataClick(wxCommandEvent& event);
+		void OnButton_ImportTimingsClick(wxCommandEvent& event);
+		void OnButton_Button_WizardDoneClick(wxCommandEvent& event);
 
         DECLARE_EVENT_TABLE()
 
@@ -255,6 +273,8 @@ class SeqSettingsDialog: public wxDialog
         void WizardPage1();
         void WizardPage2();
         void WizardPage3();
+        void WizardPage4();
+        bool ImportDataLayer(const wxString& filetypes);
 };
 
 #endif

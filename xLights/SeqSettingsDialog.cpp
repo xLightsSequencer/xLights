@@ -83,6 +83,9 @@ const long SeqSettingsDialog::ID_BITMAPBUTTON_hls = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_lynx = wxNewId();
 const long SeqSettingsDialog::ID_BITMAPBUTTON_xlights = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_skip_import = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_edit_metadata = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_import_timings = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_wizard_done = wxNewId();
 
 wxDEFINE_EVENT(EVT_DELETE_ROW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_NAME_CHANGE, wxCommandEvent);
@@ -262,34 +265,34 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Panel2->SetSizer(FlexGridSizer8);
     FlexGridSizer8->Fit(Panel2);
     FlexGridSizer8->SetSizeHints(Panel2);
-    Panel4 = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+    Panel_DataLayers = new wxPanel(Notebook_Seq_Settings, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-    TreeCtrl_Data_Layers = new wxTreeCtrl(Panel4, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxSize(413,158), wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
+    TreeCtrl_Data_Layers = new wxTreeCtrl(Panel_DataLayers, ID_TREECTRL_Data_Layers, wxDefaultPosition, wxSize(413,158), wxTR_EDIT_LABELS|wxTR_DEFAULT_STYLE, wxDefaultValidator, _T("ID_TREECTRL_Data_Layers"));
     wxTreeItemId TreeCtrl_Data_Layers_Item1 = TreeCtrl_Data_Layers->AddRoot(_T("Layers to Render"));
     FlexGridSizer9->Add(TreeCtrl_Data_Layers, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer11 = new wxFlexGridSizer(0, 4, 0, 0);
-    Button_Layer_Import = new wxButton(Panel4, ID_BUTTON_Layer_Import, _("Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Import"));
+    Button_Layer_Import = new wxButton(Panel_DataLayers, ID_BUTTON_Layer_Import, _("Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Import"));
     FlexGridSizer11->Add(Button_Layer_Import, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Layer_Delete = new wxButton(Panel4, ID_BUTTON_Layer_Delete, _("Delete"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Delete"));
+    Button_Layer_Delete = new wxButton(Panel_DataLayers, ID_BUTTON_Layer_Delete, _("Delete"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Layer_Delete"));
     Button_Layer_Delete->Disable();
     FlexGridSizer11->Add(Button_Layer_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Move_Up = new wxButton(Panel4, ID_BUTTON_Move_Up, _("Move Up"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Up"));
+    Button_Move_Up = new wxButton(Panel_DataLayers, ID_BUTTON_Move_Up, _("Move Up"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Up"));
     Button_Move_Up->Disable();
     FlexGridSizer11->Add(Button_Move_Up, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Move_Down = new wxButton(Panel4, ID_BUTTON_Move_Down, _("Move Down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Down"));
+    Button_Move_Down = new wxButton(Panel_DataLayers, ID_BUTTON_Move_Down, _("Move Down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Move_Down"));
     Button_Move_Down->Disable();
     FlexGridSizer11->Add(Button_Move_Down, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Reimport = new wxButton(Panel4, ID_BUTTON_Reimport, _("Re-Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Reimport"));
+    Button_Reimport = new wxButton(Panel_DataLayers, ID_BUTTON_Reimport, _("Re-Import"), wxDefaultPosition, wxSize(60,23), 0, wxDefaultValidator, _T("ID_BUTTON_Reimport"));
     Button_Reimport->Disable();
     FlexGridSizer11->Add(Button_Reimport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9->Add(FlexGridSizer11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel4->SetSizer(FlexGridSizer9);
-    FlexGridSizer9->Fit(Panel4);
-    FlexGridSizer9->SetSizeHints(Panel4);
+    Panel_DataLayers->SetSizer(FlexGridSizer9);
+    FlexGridSizer9->Fit(Panel_DataLayers);
+    FlexGridSizer9->SetSizeHints(Panel_DataLayers);
     Notebook_Seq_Settings->AddPage(Panel3, _("Info / Media"), false);
     Notebook_Seq_Settings->AddPage(Panel1, _("Meta Data"), false);
     Notebook_Seq_Settings->AddPage(Panel2, _("Timings"), false);
-    Notebook_Seq_Settings->AddPage(Panel4, _("Data Layers"), false);
+    Notebook_Seq_Settings->AddPage(Panel_DataLayers, _("Data Layers"), false);
     FlexGridSizer1->Add(Notebook_Seq_Settings, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Warning = new wxStaticText(this, ID_STATICTEXT_Warning, _("Show Warning Here"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Warning"));
     StaticText_Warning->Hide();
@@ -500,6 +503,49 @@ void SeqSettingsDialog::WizardPage3()
     Panel_Wizard->SetSizer(GridBagSizerWizard);
     GridBagSizerWizard->Fit(Panel_Wizard);
     GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Connect(ID_BITMAPBUTTON_lor,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_lorClick);
+    Connect(ID_BITMAPBUTTON_vixen,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_vixenClick);
+    Connect(ID_BITMAPBUTTON_gled,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_gledClick);
+    Connect(ID_BITMAPBUTTON_hls,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_hlsClick);
+    Connect(ID_BITMAPBUTTON_lynx,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_lynxClick);
+    Connect(ID_BITMAPBUTTON_xlights,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_xlightsClick);
+    Connect(ID_BUTTON_skip_import,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_skip_importClick);
+    Fit();
+    Refresh();
+}
+
+void SeqSettingsDialog::WizardPage4()
+{
+    GridBagSizerWizard->Clear(true);
+    GridBagSizerWizard->Add(493,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    wxStaticText* StaticText_Page3Optional = new wxStaticText(Panel_Wizard, wxID_ANY, _("Other Optional Tasks:"), wxDefaultPosition, wxDefaultSize, 0, _T(""));
+    wxFont Page3OptionalFont(12,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    StaticText_Page3Optional->SetFont(Page3OptionalFont);
+    GridSizerWizButtons = new wxGridSizer(0, 2, 5, 10);
+    GridSizerWizButtons->Add(StaticText_Page3Optional, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridSizerWizButtons->Add(50,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    Button_EditMetadata = new wxButton(Panel_Wizard, ID_BUTTON_edit_metadata, _("Edit Metadata"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_edit_metadata"));
+    GridSizerWizButtons->Add(Button_EditMetadata, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizerWizButtons->Add(30,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    Button_ImportTimings = new wxButton(Panel_Wizard, ID_BUTTON_import_timings, _("Import Timings"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_import_timings"));
+    GridSizerWizButtons->Add(Button_ImportTimings, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizerWizButtons->Add(30,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridSizerWizButtons->Add(30,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridSizerWizButtons->Add(30,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    GridSizerWizButtons->Add(30,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    Button_WizardDone = new wxButton(Panel_Wizard, ID_BUTTON_wizard_done, _("Done >>"), wxDefaultPosition, wxSize(185,30), 0, wxDefaultValidator, _T("ID_BUTTON_wizard_done"));
+    GridSizerWizButtons->Add(Button_WizardDone, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    wxFont LargerFont(16,wxDEFAULT,wxFONTSTYLE_NORMAL,wxBOLD,false,wxEmptyString,wxFONTENCODING_DEFAULT);
+    Button_EditMetadata->SetFont(LargerFont);
+    Button_ImportTimings->SetFont(LargerFont);
+    Button_WizardDone->SetFont(LargerFont);
+    GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel_Wizard->SetSizer(GridBagSizerWizard);
+    GridBagSizerWizard->Fit(Panel_Wizard);
+    GridBagSizerWizard->SetSizeHints(Panel_Wizard);
+    Connect(ID_BUTTON_edit_metadata,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_EditMetadataClick);
+    Connect(ID_BUTTON_import_timings,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportTimingsClick);
+    Connect(ID_BUTTON_wizard_done,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Button_WizardDoneClick);
     Fit();
     Refresh();
 }
@@ -654,7 +700,13 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
 {
-    wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, strSupportedFileTypes, wxFD_OPEN, wxDefaultPosition);
+    ImportDataLayer(strSupportedFileTypes);
+}
+
+bool SeqSettingsDialog::ImportDataLayer(const wxString& filetypes)
+{
+    bool return_val = false;
+    wxFileDialog* ImportDialog = new wxFileDialog( this, "Choose file to import as data layer", wxEmptyString, wxEmptyString, filetypes, wxFD_OPEN, wxDefaultPosition);
     wxString fDir;
     Button_Close->Enable(false);
     Button_Layer_Import->Enable(false);
@@ -747,11 +799,13 @@ void SeqSettingsDialog::OnButton_Layer_ImportClick(wxCommandEvent& event)
         TreeCtrl_Data_Layers->SetItemText(branch_data, "Data: " + data_file.GetFullPath());
         TreeCtrl_Data_Layers->SetItemText(branch_num_channels, wxString::Format("Number of Channels: %d", new_data_layer->GetNumChannels()));
         UpdateDataLayer();
+        return_val = true;
     }
 
     ImportDialog->Destroy();
     Button_Close->Enable(true);
     Button_Layer_Import->Enable(true);
+    return return_val;
 }
 
 void SeqSettingsDialog::OnButton_ReimportClick(wxCommandEvent& event)
@@ -998,4 +1052,72 @@ void SeqSettingsDialog::OnBitmapButton_100msClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Timing->SetSelection(2);
     WizardPage3();
+}
+
+void SeqSettingsDialog::OnBitmapButton_lorClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "LOR Sequences (*.lms,*.las)|*.lms;*.las";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_vixenClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "Vixen Sequences (*.vix)|*.vix";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_gledClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "Glediator Record File (*.gled)|*.gled";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_hlsClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_lynxClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "Lynx Conductor Sequences (*.seq)|*.seq";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnBitmapButton_xlightsClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(4);
+    const wxString strFileTypes = "xLights Sequences(*.xseq, *.iseq, *.fseq)|*.xseq;*.iseq;*.fseq";
+    if( ImportDataLayer(strFileTypes) ) { WizardPage4(); }
+    Notebook_Seq_Settings->SetSelection(0);
+}
+
+void SeqSettingsDialog::OnButton_skip_importClick(wxCommandEvent& event)
+{
+    WizardPage4();
+}
+
+void SeqSettingsDialog::OnButton_EditMetadataClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(2);
+}
+
+void SeqSettingsDialog::OnButton_ImportTimingsClick(wxCommandEvent& event)
+{
+    Notebook_Seq_Settings->SetSelection(3);
+}
+
+void SeqSettingsDialog::OnButton_Button_WizardDoneClick(wxCommandEvent& event)
+{
+    Close();
 }

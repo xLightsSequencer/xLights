@@ -43,7 +43,7 @@ LorConvertDialog::LorConvertDialog(wxWindow* parent)
 	StaticText31 = new wxStaticText(this, ID_STATICTEXT33, _("Map LMS Channels with no network:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT33"));
 	FlexGridSizer2->Add(StaticText31, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MapLORChannelsWithNoNetwork = new wxCheckBox(this, ID_CHECKBOX_LOR_WITH_NO_CHANNELS, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LOR_WITH_NO_CHANNELS"));
-	MapLORChannelsWithNoNetwork->SetValue(true);
+	MapLORChannelsWithNoNetwork->SetValue(false);
 	FlexGridSizer2->Add(MapLORChannelsWithNoNetwork, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
