@@ -640,7 +640,16 @@ void SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event)
 
 void SeqSettingsDialog::PopulateTimingGrid()
 {
-    wxArrayString timings = xml_file->GetTimingList();
+    wxArrayString timings;
+    if( xml_file->GetSequenceLoaded() )
+    {
+        timings = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
+    }
+    else
+    {
+        timings = xml_file->GetTimingList();
+    }
+
     for(int i = 0; i < timings.GetCount(); ++i)
     {
         AddTimingCell(timings[i]);
@@ -654,8 +663,9 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
-        xml_file->AddFixedTimingSection(selected_timing);
+        xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
         AddTimingCell(selected_timing);
+        xLightsParent->AddTimingElement(selected_timing);
     }
     dialog.Destroy();
 }
@@ -669,7 +679,7 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
         fDir =	OpenDialog->GetDirectory();
         wxArrayString filenames;
         OpenDialog->GetFilenames(filenames);
-        xml_file->ProcessAudacityTimingFiles(fDir, filenames);
+        xml_file->ProcessAudacityTimingFiles(fDir, filenames, xLightsParent);
         for(int i = 0; i < filenames.GetCount(); ++i)
         {
             AddTimingCell(filenames[i]);
@@ -682,8 +692,18 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 {
     int selection = event.GetId();
-    wxArrayString timing_list = xml_file->GetTimingList();
-    xml_file->SetTimingSectionName(timing_list[selection], Grid_Timing->GetCellValue(selection, 0));
+    wxArrayString timing_list;
+    if( xml_file->GetSequenceLoaded() )
+    {
+        timing_list = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
+    }
+    else
+    {
+        timing_list = xml_file->GetTimingList();
+    }
+    wxString new_name = Grid_Timing->GetCellValue(selection, 0);
+    xLightsParent->RenameTimingElement(timing_list[selection], new_name);
+    xml_file->SetTimingSectionName(timing_list[selection], new_name);
 }
 
 void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
@@ -691,7 +711,16 @@ void SeqSettingsDialog::OnButton_Xml_Delete_TimingClick(wxCommandEvent& event)
     if( Grid_Timing->GetGridCursorCol() == 1 )
     {
         int row = Grid_Timing->GetGridCursorRow();
-        wxArrayString timing_list = xml_file->GetTimingList();
+        wxArrayString timing_list;
+        if( xml_file->GetSequenceLoaded() )
+        {
+            timing_list = xml_file->GetTimingList(xLightsParent->GetSequenceElements());
+        }
+        else
+        {
+            timing_list = xml_file->GetTimingList();
+        }
+        xLightsParent->DeleteTimingElement(timing_list[row]);
         xml_file->DeleteTimingSection(timing_list[row]);
         Grid_Timing->DeleteRows(row);
         Refresh();
@@ -999,6 +1028,7 @@ void SeqSettingsDialog::MediaChooser()
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
         xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
+        xLightsParent->SetMediaFilename(name_and_path.GetFullPath());
         TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
         TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
         TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));

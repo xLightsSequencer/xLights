@@ -342,6 +342,11 @@ void SequenceElements::SetFrequency(double frequency)
     mFrequency = frequency;
 }
 
+double SequenceElements::GetFrequency()
+{
+    return mFrequency;
+}
+
 
 void SequenceElements::SetSelectedTimingRow(int row)
 {

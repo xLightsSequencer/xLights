@@ -8,6 +8,7 @@
 #include "DataLayer.h"
 
 class SequenceElements;  // forward declaration needed due to circular dependency
+class xLightsFrame;
 
 class xLightsXmlFile : public wxFileName
 {
@@ -69,11 +70,15 @@ class xLightsXmlFile : public wxFileName
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
         void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);
 
-        void AddFixedTimingSection(wxString interval_name);
+        void SetSequenceLoaded(bool value) { sequence_loaded = value; }
+        bool GetSequenceLoaded() { return sequence_loaded; }
+
+        void AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
         void DeleteTimingSection(wxString section);
         void SetTimingSectionName(wxString section, wxString name);
         wxArrayString GetTimingList() { return timing_list; }
-        void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames);
+        wxArrayString GetTimingList(SequenceElements& seq_elements);
+        void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
 
         bool IsOpen() { return is_open; }
         bool HasAudioMedia() { return has_audio_media; }
@@ -101,6 +106,7 @@ class xLightsXmlFile : public wxFileName
         bool is_open;
         bool has_audio_media;
         bool was_converted;
+        bool sequence_loaded;  // flag to indicate the sequencer has been loaded with this xml data
         DataLayerSet mDataLayers;
 
         void CreateNew();

@@ -234,6 +234,7 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
     if( xml_file.IsOpen() )
     {
         LoadSequencer(xml_file);
+        xml_file.SetSequenceLoaded(true);
         Menu_Settings_Sequence->Enable(true);
         return true;
     }

@@ -13,7 +13,8 @@ xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
     seq_timing("50 ms"),
     is_open(false),
     has_audio_media(false),
-    was_converted(false)
+    was_converted(false),
+    sequence_loaded(false)
 {
     for(int i = 0; i < NUM_TYPES; ++i )
     {
@@ -724,6 +725,7 @@ bool xLightsXmlFile::Open()
     if( !FileExists() )
         return false;
 
+    sequence_loaded = false;
     if( IsV3Sequence() )
     {
         return LoadV3Sequence();
@@ -1203,7 +1205,7 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length)
     }
 }
 
-void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames)
+void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
     wxString line;
@@ -1221,6 +1223,16 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         }
 
         wxString filename = next_file.GetName();
+
+        Element* element;
+        EffectLayer* effectLayer;
+        double startTime, endTime;
+        if( sequence_loaded )
+        {
+            element = xLightsParent->AddTimingElement(filename);
+            element->AddEffectLayer();
+            effectLayer = element->GetEffectLayer(0);
+        }
 
         AddTimingDisplayElement(filename, "1", "0" );
         wxXmlNode*  node = AddElement( filename, "timing" );
@@ -1250,10 +1262,34 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             }
 
             AddTimingEffect(layer, label, "0", "0", start_time, end_time);
+            if( sequence_loaded )
+            {
+                double time = 0.0;
+                start_time.ToDouble(&time);
+                startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                end_time.ToDouble(&time);
+                endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+            }
         }
     }
 
     seqDocument.Save(GetFullPath());
+}
+
+wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
+{
+    timing_list.Clear();
+    int num_elements = seq_elements.GetElementCount();
+    for(int i = 0; i < num_elements; ++i)
+    {
+        Element* element = seq_elements.GetElement(i);
+        if( element->GetType() == "timing" )
+        {
+            timing_list.push_back(element->GetName());
+        }
+    }
+    return timing_list;
 }
 
 bool xLightsXmlFile::Save()
@@ -1414,7 +1450,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     seqDocument.Save(GetFullPath());
 }
 
-void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
+void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
 {
     AddTimingDisplayElement( interval_name, "1", "0" );
     wxXmlNode* node;
@@ -1426,6 +1462,26 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name)
     else
     {
         int ms = wxAtoi(interval_name);;
+        if( sequence_loaded )
+        {
+            double interval = ms;
+            Element* element = xLightsParent->AddTimingElement(interval_name);
+            element->SetFixedTiming((int)interval);
+            interval /= 1000.0;
+            element->AddEffectLayer();
+            EffectLayer* effectLayer = element->GetEffectLayer(0);
+            double time = 0.0;
+            double end_time = GetSequenceDurationDouble();
+            double startTime, endTime, next_time;
+            while( time <= end_time )
+            {
+                next_time = (time + interval <= end_time) ? time + interval : end_time;
+                startTime = TimeLine::RoundToMultipleOfPeriod(time, xLightsParent->GetSequenceElements().GetFrequency());
+                endTime = TimeLine::RoundToMultipleOfPeriod(next_time, xLightsParent->GetSequenceElements().GetFrequency());
+                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                time += interval;
+            }
+        }
         node = AddFixedTiming( interval_name, string_format("%d",ms) );
     }
 

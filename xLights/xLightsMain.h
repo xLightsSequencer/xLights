@@ -1417,7 +1417,10 @@ public:
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
     const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
-
+    SequenceElements& GetSequenceElements() { return mSequenceElements; }
+    Element* AddTimingElement(wxString& name);
+    void DeleteTimingElement(wxString& name);
+    void RenameTimingElement(wxString& old_name, wxString& new_name);
 
 protected:
     void ClearEffectWindow();

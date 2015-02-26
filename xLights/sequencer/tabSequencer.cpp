@@ -936,8 +936,33 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+Element* xLightsFrame::AddTimingElement(wxString& name)
+{
+    // Deactivate active timing mark so new one is selected;
+    mSequenceElements.DeactivateAllTimingElements();
+    int timingCount = mSequenceElements.GetNumberOfTimingRows();
+    wxString type = "timing";
+    Element* e = mSequenceElements.AddElement(timingCount,name,type,true,false,true,false);
+    e->AddEffectLayer();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+    return e;
+}
 
+void xLightsFrame::DeleteTimingElement(wxString& name)
+{
+    mSequenceElements.DeleteElement(name);
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+}
 
+void xLightsFrame::RenameTimingElement(wxString& old_name, wxString& new_name)
+{
+    Element* element = mSequenceElements.GetElement(old_name);
+    if( element ) element->SetName(new_name);
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+}
 
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 {
