@@ -54,6 +54,7 @@ class MainSequencer: public wxPanel
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
 		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
 		void OnChar(wxKeyEvent& event);
+        void OnCharHook(wxKeyEvent& event);
 		//*)
 		DECLARE_EVENT_TABLE()
 
