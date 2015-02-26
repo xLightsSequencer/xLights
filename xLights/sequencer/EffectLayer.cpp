@@ -81,7 +81,7 @@ void EffectLayer::SortEffects()
 
 bool EffectLayer::IsStartTimeLinked(int index)
 {
-    if(index < mEffects.size())
+    if(index < mEffects.size() && index > 0)
     {
         return mEffects[index-1]->GetEndTime() == mEffects[index]->GetStartTime();
     }
