@@ -87,7 +87,7 @@ const long xLightsFrame::ID_AUITOOLBAR_NEWSEQUENCE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_OPEN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_SAVEAS = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM_RenderAll = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_RENDERALL = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
@@ -519,7 +519,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MainToolBar->AddTool(ID_AUITOOLBAR_OPEN, _("Open Sequence"), folder_xpm, wxNullBitmap, wxITEM_NORMAL, _("Open Sequence"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVE, _("Save"), save_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save"), wxEmptyString, NULL);
     MainToolBar->AddTool(ID_AUITOOLBAR_SAVEAS, _("Save As"), save_as_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Save As"), wxEmptyString, NULL);
-    MainToolBar->AddTool(ID_AUITOOLBARITEM_RenderAll, _("Render All"), green_gear_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
+    MainToolBar->AddTool(ID_AUITOOLBAR_RENDERALL, _("Render All"), green_gear_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Render All"), wxEmptyString, NULL);
     MainToolBar->Realize();
     MainAuiManager->AddPane(MainToolBar, wxAuiPaneInfo().Name(_T("Main Tool Bar")).ToolbarPane().Caption(_("Main Tool Bar")).CloseButton(false).Layer(10).Top().Gripper());
     PlayToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_PLAY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1539,7 +1539,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_OPEN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonOpenSeqClick);
     Connect(ID_AUITOOLBAR_SAVE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonSaveSeqClick);
     Connect(ID_AUITOOLBAR_SAVEAS,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonClickSaveAs);
-    Connect(ID_AUITOOLBARITEM_RenderAll,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemRenderAllClick);
+    Connect(ID_AUITOOLBAR_RENDERALL,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemRenderAllClick);
     Connect(ID_AUITOOLBAR_PLAY_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPlayButtonClick);
     Connect(ID_AUITOOLBAR_PAUSE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPauseButtonClick);
     Connect(ID_AUITOOLBAR_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemStopClick);
