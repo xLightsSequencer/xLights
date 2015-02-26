@@ -87,7 +87,8 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	//*)
     
     
-    Connect(wxEVT_CHAR_HOOK,(wxObjectEventFunction)&MainSequencer::OnChar);
+    Connect(wxEVT_CHAR,(wxObjectEventFunction)&MainSequencer::OnChar);
+    Connect(wxEVT_CHAR_HOOK,(wxObjectEventFunction)&MainSequencer::OnCharHook);
 
     mParent = parent;
 }
@@ -180,6 +181,22 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
+void MainSequencer::OnCharHook(wxKeyEvent& event)
+{
+    //for the Delete keys and other special things
+    wxChar uc = event.GetKeyCode();
+    switch(uc)
+    {
+        case WXK_BACK:
+        case WXK_DELETE:
+            DeleteAllSelectedEffects();
+            event.StopPropagation();
+            break;
+        default:
+            event.Skip();
+            break;
+    }
+}
 void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
@@ -205,13 +222,6 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'T':
             InsertTimingMarkFromRange();
             event.StopPropagation();
-            break;
-        case WXK_BACK:
-        case WXK_DELETE:
-            DeleteAllSelectedEffects();
-            event.StopPropagation();
-            break;
-        default:
             break;
     }
 }

@@ -241,8 +241,10 @@ protected:
 
     void SetIntensity(size_t chindex, wxByte intensity)
     {
-        data[chindex+126]=intensity;
-        changed=true;
+        if (data[chindex+126] != intensity) {
+            data[chindex+126] = intensity;
+            changed=true;
+        }
     };
 
 public:

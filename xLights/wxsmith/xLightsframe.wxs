@@ -52,7 +52,7 @@
 						<label>Save As</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_RenderAll" variable="AuiToolBarItemRenderAll" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_RENDERALL" variable="AuiToolBarItemRenderAll" member="no">
 							<bitmap code="green_gear_24_xpm" />
 							<shorthelp>Render All</shorthelp>
 							<handler function="OnAuiToolBarItemRenderAllClick" entry="EVT_TOOL" />

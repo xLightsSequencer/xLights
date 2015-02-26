@@ -655,7 +655,7 @@ private:
     static const long ID_AUITOOLBAR_OPEN;
     static const long ID_AUITOOLBAR_SAVE;
     static const long ID_AUITOOLBAR_SAVEAS;
-    static const long ID_AUITOOLBARITEM_RenderAll;
+    static const long ID_AUITOOLBAR_RENDERALL;
     static const long ID_AUITOOLBAR_MAIN;
     static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
