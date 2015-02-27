@@ -561,7 +561,6 @@ private:
     void OnButtonStopPreviewClick(wxCommandEvent& event);
     void OnSliderPreviewTimeCmdSliderUpdated(wxScrollEvent& event);
     void OnSliderPreviewRotateCmdSliderUpdated(wxScrollEvent& event);
-    void OnPaneNutcrackerChar(wxKeyEvent& event);
     void OnBitmapButton_EffectLayerMixClick(wxCommandEvent& event);
     void OnBitmapButton_SparkleFrequencyClick(wxCommandEvent& event);
     void OnBitmapButton_BrightnessClick(wxCommandEvent& event);
@@ -1455,7 +1454,6 @@ protected:
     void StopNow(void);
     void PlayRgbSequence(void);
     void PlayEffect(void);
-    bool HotKey(wxKeyEvent& event);
     void CutOrCopyToClipboard(bool IsCut);
     void PasteFromClipboard(void);
     bool IsValidEffectString(wxString& s);

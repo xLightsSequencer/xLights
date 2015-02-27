@@ -26,6 +26,36 @@ BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
 END_EVENT_TABLE()
 
 
+void MainSequencer::SetHandlers(wxWindow *window)
+{
+    if (window) {
+        window->Connect(wxID_ANY,
+                        wxEVT_CHAR,
+                        wxKeyEventHandler(MainSequencer::OnChar),
+                        (wxObject*) NULL,
+                        this);
+        window->Connect(wxID_ANY,
+                        wxEVT_CHAR_HOOK,
+                        wxKeyEventHandler(MainSequencer::OnCharHook),
+                        (wxObject*) NULL,
+                        this);
+        window->Connect(wxID_ANY,
+                        wxEVT_KEY_DOWN,
+                        wxKeyEventHandler(MainSequencer::OnKeyDown),
+                        (wxObject*) NULL,
+                        this);
+
+        wxWindowListNode* pclNode = window->GetChildren().GetFirst();
+        while(pclNode) {
+            wxWindow* pclChild = pclNode->GetData();
+            SetHandlers(pclChild);
+            pclNode = pclNode->GetNext();
+        }
+    }
+}
+
+
+
 MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(MainSequencer)
@@ -87,12 +117,9 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	//*)
-    
-    
-    Connect(wxEVT_CHAR,(wxObjectEventFunction)&MainSequencer::OnChar);
-    Connect(wxEVT_CHAR_HOOK,(wxObjectEventFunction)&MainSequencer::OnCharHook);
 
     mParent = parent;
+    SetHandlers(this);
 }
 
 MainSequencer::~MainSequencer()
@@ -185,8 +212,8 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
 
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
-    //for the Delete keys and other special things
     wxChar uc = event.GetKeyCode();
+    //printf("OnCharHook %d   %c\n", uc, uc);
     switch(uc)
     {
         case WXK_BACK:
@@ -199,9 +226,16 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             break;
     }
 }
+void MainSequencer::OnKeyDown(wxKeyEvent& event)
+{
+    //wxChar uc = event.GetUnicodeKey();
+    //printf("OnKeyDown %d   %c\n", uc, uc);
+    event.Skip();
+}
 void MainSequencer::OnChar(wxKeyEvent& event)
 {
-    wxChar uc = event.GetKeyCode();
+    wxChar uc = event.GetUnicodeKey();
+    //printf("OnChar %d   %c\n", uc, uc);
     switch(uc)
     {
         case '+':
