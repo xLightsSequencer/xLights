@@ -331,7 +331,7 @@ void xLightsFrame::SaveSequence()
         DisplayXlightsFilename(oName.GetFullPath());
 
         oName.SetExt("xml");
-        CurrentSeqXmlFile->SetFullName(oName.GetFullPath());
+        CurrentSeqXmlFile->SetFullName(oName.GetFullName());
 
         mTextEntryContext = saved_text_entry_context;
     }
