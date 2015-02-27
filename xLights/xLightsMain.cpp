@@ -2878,11 +2878,13 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     DisplayXlightsFilename(oName.GetFullPath());
 
     oName.SetExt("xml");
-    SeqXmlFileName=oName.GetFullPath();
-
+    CurrentSeqXmlFile->SetFullName(oName.GetFullPath());
     SaveSequence();
 }
 
+wxString xLightsFrame::GetSeqXmlFileName() {
+    return CurrentSeqXmlFile->GetFullPath();
+}
 
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 {

@@ -1502,8 +1502,6 @@ protected:
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
-    wxString SeqXmlFileName;
-
 
     PixelBufferClass playBuffer;
     int playPeriod;
@@ -1514,7 +1512,6 @@ protected:
     wxString selectedEffectString;
     int selectedEffectPalette;
     Effect *selectedEffect;
-
 
     wxString lastPlayEffect;
     bool playResetEffectState[2];
@@ -1643,9 +1640,7 @@ public:
     static std::vector<ModelClassPtr> PreviewModels, OtherModels; //make public and static for easier access -DJ
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
 
-    wxString &GetSeqXmlFileName() {
-        return SeqXmlFileName;
-    }
+    wxString GetSeqXmlFileName();
 };
 
 #endif // XLIGHTSMAIN_H
