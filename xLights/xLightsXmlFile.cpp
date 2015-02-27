@@ -1294,7 +1294,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             if( sequence_loaded )
             {
-                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,0,labels[k],wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
             }
             else
             {
