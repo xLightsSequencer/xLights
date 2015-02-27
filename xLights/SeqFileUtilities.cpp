@@ -26,6 +26,7 @@ void xLightsFrame::NewSequence()
 
     // assign global xml file object
     wxFileName xml_file;
+    xml_file.SetPath(CurrentDir);
     delete CurrentSeqXmlFile;
     CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 

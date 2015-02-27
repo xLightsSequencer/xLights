@@ -2019,7 +2019,7 @@ xLightsFrame::~xLightsFrame()
 {
     Timer1.Stop();
     selectedEffect = NULL;
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ToolbarLocations", MainAuiManager->SavePerspective());
     config->Flush();
@@ -2732,7 +2732,7 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
     DisplayXlightsFilename(oName.GetFullPath());
 
     oName.SetExt("xml");
-    CurrentSeqXmlFile->SetFullName(oName.GetFullPath());
+    CurrentSeqXmlFile->SetFullName(oName.GetFullName());
     SaveSequence();
 }
 
