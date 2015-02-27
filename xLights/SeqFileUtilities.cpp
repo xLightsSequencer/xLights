@@ -14,6 +14,7 @@ void xLightsFrame::NewSequence()
     }
 
     // clear everything to prepare for new sequence
+    xlightsFilename = "";
     mediaFilename.Clear();
     previewLoaded = false;
     previewPlaying = false;
