@@ -2549,7 +2549,6 @@
 						<object class="wxPanel" name="ID_PANEL7" variable="PanelSequencer" member="yes">
 							<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 							<handler function="OnPanelSequencerPaint" entry="EVT_PAINT" />
-							<handler function="OnPaneNutcrackerChar" entry="EVT_CHAR" />
 							<object class="wxAuiManager" variable="m_mgr" member="yes">
 								<style>wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT</style>
 							</object>
