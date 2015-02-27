@@ -693,4 +693,21 @@ void SequenceElements::SetVisibilityForAllModels(bool visibility)
     }
 }
 
+void SequenceElements::MoveSequenceElement(int index, int dest)
+{
+    if(index<mElements.size() && dest<mElements.size())
+    {
+        Element* e = mElements[index];
+        mElements.erase(mElements.begin()+index);
+        if(index >= dest)
+        {
+            mElements.insert(mElements.begin()+dest,e);
+        }
+        else
+        {
+            mElements.insert(mElements.begin()+(dest-1),e);
+        }
+    }
+}
+
 

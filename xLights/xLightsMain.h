@@ -638,6 +638,7 @@ private:
     void OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
+    void OnMenuItemSequenceElementsSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -903,7 +904,7 @@ private:
     static const long ID_MENUITEM_SAVE_PERSPECTIVE;
     static const long ID_MENUITEM_LOAD_PERSPECTIVE;
     static const long ID_MENUITEM7;
-    static const long ID_MENUITEM11;
+    static const long ID_MENUITEM_SEQUENCE_ELEMENTS;
     static const long ID_MENUITEM12;
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM14;
@@ -1092,7 +1093,6 @@ private:
     wxSlider* SliderRgbChaseSpeed;
     wxButton* ButtonSavePreview;
     wxStaticText* StaticText13;
-    wxMenuItem* MenuItem19;
     wxStaticText* StaticTextPreviewRotation;
     wxSlider* SliderFgIntensity;
     wxSplitterWindow* SplitterWindow1;
@@ -1175,6 +1175,7 @@ private:
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
+    wxMenuItem* MenuItemSequenceElements;
     wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;

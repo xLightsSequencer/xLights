@@ -25,7 +25,7 @@
 						<object class="wxListBox" name="ID_LISTBOX_ELEMENTS" variable="ListBoxElements" member="yes">
 							<default>-1</default>
 							<minsize>150,150</minsize>
-							<style>wxLB_MULTIPLE|wxVSCROLL</style>
+							<style>wxLB_MULTIPLE|wxLB_SORT|wxVSCROLL</style>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>

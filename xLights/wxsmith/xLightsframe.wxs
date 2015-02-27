@@ -3016,8 +3016,9 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">
 					<label>Windows</label>
-					<object class="wxMenuItem" name="ID_MENUITEM11" variable="MenuItem19" member="yes">
-						<label>Display Elements</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_SEQUENCE_ELEMENTS" variable="MenuItemSequenceElements" member="yes">
+						<label>Sequence Elements</label>
+						<handler function="OnMenuItemSequenceElementsSelected" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="yes">
 						<label>Models</label>

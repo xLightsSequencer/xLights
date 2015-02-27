@@ -82,6 +82,7 @@ class DisplayElementsPanel: public wxPanel
 		void OnListCtrlModelsItemSelect(wxListEvent& event);
 		void OnButtonShowAllClick(wxCommandEvent& event);
 		void OnButtonHideAllClick(wxCommandEvent& event);
+		void OnButtonMoveUpClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -36,7 +36,7 @@ ModelViewSelector::ModelViewSelector(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer2->AddGrowableCol(0);
 	StaticTextType = new wxStaticText(this, ID_STATICTEXT_TYPE, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_TYPE"));
 	FlexGridSizer2->Add(StaticTextType, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListBoxElements = new wxListBox(this, ID_LISTBOX_ELEMENTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ELEMENTS"));
+	ListBoxElements = new wxListBox(this, ID_LISTBOX_ELEMENTS, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ELEMENTS"));
 	ListBoxElements->SetMinSize(wxSize(150,150));
 	FlexGridSizer2->Add(ListBoxElements, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

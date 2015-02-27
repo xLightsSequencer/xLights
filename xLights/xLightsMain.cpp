@@ -335,7 +335,7 @@ const long xLightsFrame::ID_MENUITEM_VIEW_ZOOM_OUT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM7 = wxNewId();
-const long xLightsFrame::ID_MENUITEM11 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_SEQUENCE_ELEMENTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM12 = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM14 = wxNewId();
@@ -1486,8 +1486,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem15->Append(MenuItemLoadEditPerspective);
     Menu5->Append(ID_MENUITEM7, _("Perspectives"), MenuItem15, wxEmptyString);
     MenuItem18 = new wxMenu();
-    MenuItem19 = new wxMenuItem(MenuItem18, ID_MENUITEM11, _("Display Elements"), wxEmptyString, wxITEM_NORMAL);
-    MenuItem18->Append(MenuItem19);
+    MenuItemSequenceElements = new wxMenuItem(MenuItem18, ID_MENUITEM_SEQUENCE_ELEMENTS, _("Sequence Elements"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItemSequenceElements);
     MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Models"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
     MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
@@ -1666,6 +1666,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_VIEW_ZOOM_OUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
+    Connect(ID_MENUITEM_SEQUENCE_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSequenceElementsSelected);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -2959,4 +2960,13 @@ void xLightsFrame::OnResize(wxSizeEvent& event)
 void xLightsFrame::OnAuiToolBarItemRenderAllClick(wxCommandEvent& event)
 {
     RenderAll();
+}
+
+void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
+{
+    if( xLightsFrame::CurrentSeqXmlFile == NULL ) return;
+    {
+        wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
+        wxPostEvent(this, displayElementEvent);
+    }
 }

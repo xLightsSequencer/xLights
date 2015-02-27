@@ -152,6 +152,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_MOVE_UP" variable="ButtonMoveUp" member="yes">
 															<label>Move Up</label>
+															<handler function="OnButtonMoveUpClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
