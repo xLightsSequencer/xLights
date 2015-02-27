@@ -1761,7 +1761,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     FileDialogConvert->SetDirectory(ConvertDir);
 
-    MainAuiManager->LoadPerspective(config->Read("ToolbarLocations"));
+    wxString tbData = config->Read("ToolbarLocations");
+    //wxMessageBox(tbData);
+    MainAuiManager->LoadPerspective(tbData);
 
 
     // initialize all effect wxChoice lists
