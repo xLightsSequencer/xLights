@@ -1762,7 +1762,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FileDialogConvert->SetDirectory(ConvertDir);
 
     wxString tbData = config->Read("ToolbarLocations");
-    //wxMessageBox(tbData);
+    wxMessageBox(tbData);
     MainAuiManager->LoadPerspective(tbData);
 
 
@@ -2019,7 +2019,7 @@ xLightsFrame::~xLightsFrame()
 {
     Timer1.Stop();
     selectedEffect = NULL;
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ToolbarLocations", MainAuiManager->SavePerspective());
     config->Flush();
