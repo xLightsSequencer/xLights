@@ -173,7 +173,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     } else if(id == ID_ROW_MNU_IMPORT_TIMING_TRACK) {
-
+        wxCommandEvent playEvent(EVT_IMPORT_TIMING);
+        wxPostEvent(GetParent(), playEvent);
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
         playEvent.SetString(element->GetName());

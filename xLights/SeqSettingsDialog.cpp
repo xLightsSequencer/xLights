@@ -672,21 +672,11 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 {
-    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audacity timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
-    wxString fDir;
-    if (OpenDialog->ShowModal() == wxID_OK)
+    wxArrayString new_timings = xLightsParent->ImportTimingElement();
+    for(int i = 0; i < new_timings.GetCount(); ++i)
     {
-        fDir =	OpenDialog->GetDirectory();
-        wxArrayString filenames;
-        OpenDialog->GetFilenames(filenames);
-        xml_file->ProcessAudacityTimingFiles(fDir, filenames, xLightsParent);
-        for(int i = 0; i < filenames.GetCount(); ++i)
-        {
-            AddTimingCell(filenames[i]);
-        }
+        AddTimingCell(new_timings[i]);
     }
-
-    OpenDialog->Destroy();
 }
 
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)

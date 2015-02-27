@@ -960,6 +960,31 @@ void xLightsFrame::RenameTimingElement(wxString& old_name, wxString& new_name)
     wxPostEvent(this, eventRowHeaderChanged);
 }
 
+void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
+    ImportTimingElement();
+}
+
+wxArrayString xLightsFrame::ImportTimingElement()
+{
+    wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Audacity timing file(s)", wxEmptyString, wxEmptyString, "Text files (*.txt)|*.txt", wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
+    wxString fDir;
+    wxArrayString new_timings;
+    if (OpenDialog->ShowModal() == wxID_OK)
+    {
+        fDir =	OpenDialog->GetDirectory();
+        wxArrayString filenames;
+        OpenDialog->GetFilenames(filenames);
+        CurrentSeqXmlFile->ProcessAudacityTimingFiles(fDir, filenames, this);
+        for(int i = 0; i < filenames.GetCount(); ++i)
+        {
+            new_timings.push_back(filenames[i]);
+        }
+    }
+
+    OpenDialog->Destroy();
+    return new_timings;
+}
+
 void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
 {
     m_mgr->GetPane(wxT("Perspectives")).Show(true);

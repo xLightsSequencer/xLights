@@ -222,6 +222,7 @@ wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
 static const wxString xlights_base_name = "XL4 ALPHA";
 static const wxString xlights_version_string = "4.0.0";
@@ -1417,13 +1418,15 @@ public:
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
 
     void RenderRange(RenderCommandEvent &cmd);
-    
+
     const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
     Element* AddTimingElement(wxString& name);
     void DeleteTimingElement(wxString& name);
     void RenameTimingElement(wxString& old_name, wxString& new_name);
+    wxArrayString ImportTimingElement();
+    void ExecuteImportTimingElement(wxCommandEvent &command);
 
 protected:
     void ClearEffectWindow();
@@ -1508,7 +1511,7 @@ protected:
     int playStartMS;
     int playStartTime;
     int playEndTime;
-    
+
     wxString selectedEffectString;
     int selectedEffectPalette;
     Effect *selectedEffect;
