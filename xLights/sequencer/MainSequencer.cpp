@@ -1,4 +1,6 @@
+
 #include "MainSequencer.h"
+#include "RenderCommandEvent.h"
 #include "TimeLine.h"
 #include <wx/event.h>
 
@@ -231,9 +233,27 @@ void MainSequencer::DeleteAllSelectedEffects()
     {
         Element* element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
-        el->DeleteSelectedEffects();
+        double start = 99999999;
+        double end = -1;
+        for (int x = 0; x < el->GetEffectCount(); x++) {
+            Effect *ef = el->GetEffect(x);
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                if (ef->GetStartTime() < start) {
+                    start = ef->GetStartTime();
+                }
+                if (ef->GetEndTime() > end) {
+                    end = ef->GetEndTime();
+                }
+            }
+        }
+        if (end > 0) {
+            RenderCommandEvent event(element->GetName(), start, end, true, true);
+            wxPostEvent(mParent, event);
+            el->DeleteSelectedEffects();
+        }
     }
     PanelEffectGrid->ForceRefresh();
+
 }
 
 void MainSequencer::InsertTimingMarkFromRange()

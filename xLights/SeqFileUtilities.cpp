@@ -21,6 +21,8 @@ void xLightsFrame::NewSequence()
     ResetSequenceGrid();
     changedRow = 99999;
     changedColumn = 99999;
+    playStartTime = playEndTime = 0;
+    selectedEffect = NULL;
 
     // assign global xml file object
     wxFileName xml_file;
@@ -71,6 +73,9 @@ void xLightsFrame::OpenSequence()
         ResetSequenceGrid();
         changedRow = 99999;
         changedColumn = 99999;
+        playStartTime = playEndTime = 0;
+        selectedEffect = NULL;
+
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);

@@ -434,10 +434,6 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
-static wxString selectedEffectString;
-static int selectedEffectPalette;
-static Effect *selectedEffect;
-
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;

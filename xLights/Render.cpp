@@ -5,6 +5,7 @@
 //
 
 #include "xLightsMain.h"
+#include "RenderCommandEvent.h"
 
 
 class RenderEvent
@@ -105,7 +106,7 @@ private:
 
 class RenderJob: public Job, public NextRenderer {
 public:
-    RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false)
+    RenderJob(Element *row, wxXmlNode *modelNode, SequenceData &data, xLightsFrame *xframe, bool zeroBased = false, bool clear = false)
         : Job(), NextRenderer(), rowToRender(row), seqData(data), xLights(xframe) {
         if (row != NULL) {
             name = row->GetName();
@@ -116,6 +117,7 @@ public:
             name = "";
         }
         startFrame = 0;
+        clearAllFrames = clear;
     }
     
     virtual ~RenderJob() {
@@ -146,6 +148,9 @@ public:
         Effect *currentEffects[numLayers];
         MapStringString *settingsMaps = new MapStringString[numLayers];
         bool effectStates[numLayers];
+        if (clearAllFrames) {
+            buffer->Clear(0);
+        }
 
         for (int layer = 0; layer < numLayers; layer++) {
             currentEffects[layer] = findEffectForFrame(layer, startFrame);
@@ -178,7 +183,10 @@ public:
                 validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true);
                 effectsToUpdate |= validLayers[layer];
             }
-            
+            if (!effectsToUpdate && clearAllFrames) {
+                validLayers[0] = true;
+                effectsToUpdate = true;
+            }
             if (effectsToUpdate) {
                 buffer->CalcOutput(frame, validLayers);
                 size_t nodeCnt = buffer->GetNodeCount();
@@ -301,8 +309,18 @@ private:
     PixelBufferClass *buffer;
     xLightsFrame *xLights;
     SequenceData &seqData;
-    
+    bool clearAllFrames;
 };
+
+
+IMPLEMENT_DYNAMIC_CLASS(RenderCommandEvent, wxCommandEvent)
+
+void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
+    if (evt.deleted) {
+        selectedEffect = 0;
+    }
+    RenderEffectForModel(evt.model, evt.start * 1000,  evt.end * 1000, evt.clear);
+}
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     wxMutexLocker(ev->mutex);
@@ -404,7 +422,7 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);
-    job = new RenderJob(el, modelNode, SeqData, this);
+    job = new RenderJob(el, modelNode, SeqData, this, false, clear);
     //account for some rounding by rendering before/after
     int startframe = startms / SeqData.FrameTime() - 1;
     if (startframe < 0) {

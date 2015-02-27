@@ -21,6 +21,9 @@
 #include "heartbeat.h" //DJ
 #include "SeqSettingsDialog.h"
 
+#include "RenderCommandEvent.h"
+
+
 // scripting language
 #include "xLightsBasic.cpp"
 
@@ -397,7 +400,7 @@ wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
-
+wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
 
 BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     //(*EventTable(xLightsFrame)
@@ -418,13 +421,14 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
     EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
-
+    wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
 END_EVENT_TABLE()
 
 
 
 xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 {
+    Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
 
     //(*Initialize(xLightsFrame)
     wxStaticText* StaticText22;
@@ -1677,6 +1681,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
+    selectedEffectPalette = -1;
+    selectedEffect = NULL;
+    playStartTime = playEndTime = 0;
+    
     CreateSequencer();
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};

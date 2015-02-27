@@ -204,6 +204,7 @@ class EffectTreeDialog;
 #define TEXT_ENTRY_EFFECT           1
 #define TEXT_ENTRY_DIALOG           2
 
+class RenderCommandEvent;
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
@@ -221,8 +222,6 @@ wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
-
-
 
 static const wxString xlights_base_name = "XL4 ALPHA";
 static const wxString xlights_version_string = "4.0.0";
@@ -1416,6 +1415,9 @@ public:
                              bool bgThread = false);
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
+
+    void RenderRange(RenderCommandEvent &cmd);
+    
     const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
@@ -1508,6 +1510,10 @@ protected:
     int playStartMS;
     int playStartTime;
     int playEndTime;
+    
+    wxString selectedEffectString;
+    int selectedEffectPalette;
+    Effect *selectedEffect;
 
 
     wxString lastPlayEffect;
