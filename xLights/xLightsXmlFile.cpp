@@ -1226,17 +1226,24 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         Element* element;
         EffectLayer* effectLayer;
-        double startTime, endTime;
+        wxXmlNode* layer;
         if( sequence_loaded )
         {
             element = xLightsParent->AddTimingElement(filename);
             element->AddEffectLayer();
             effectLayer = element->GetEffectLayer(0);
         }
+        else
+        {
+            AddTimingDisplayElement(filename, "1", "0" );
+            wxXmlNode*  node = AddElement( filename, "timing" );
+            layer = AddChildXmlNode(node, "EffectLayer");
+        }
 
-        AddTimingDisplayElement(filename, "1", "0" );
-        wxXmlNode*  node = AddElement( filename, "timing" );
-        wxXmlNode* layer = AddChildXmlNode(node, "EffectLayer");
+
+        wxArrayString start_times;
+        wxArrayString end_times;
+        wxArrayString labels;
 
         for(r=0, line = f.GetFirstLine(); !f.Eof(); line = f.GetNextLine(), r++)
         {
@@ -1250,9 +1257,9 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             }
 
             wxStringTokenizer tkz(line, "\t");
-            wxString start_time = tkz.GetNextToken(); //first column = start time
+            start_times.push_back(tkz.GetNextToken()); //first column = start time
             //pull in lyrics or other label text
-            wxString end_time = tkz.GetNextToken(); //second column = end time;
+            end_times.push_back(tkz.GetNextToken()); //second column = end time;
             wxString label = tkz.GetNextToken(); //third column = label/text
             for (;;) //collect remaining tokens into label
             {
@@ -1260,16 +1267,38 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
                 if (more.empty()) break;
                 label += " " + more;
             }
+            labels.push_back(label); //third column = label/text
 
-            AddTimingEffect(layer, label, "0", "0", start_time, end_time);
+        }
+
+        for( int k = 0; k < start_times.GetCount(); ++k )
+        {
+            double time = 0.0;
+            double startTime, endTime;
+            start_times[k].ToDouble(&time);
+            startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+            end_times[k].ToDouble(&time);
+            endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+            if( startTime == endTime )
+            {
+                if( k == start_times.GetCount()-1 ) // last timing mark
+                {
+                    endTime = startTime + xLightsParent->GetSequenceElements().GetFrequency() / 1000.0;
+                }
+                else
+                {
+                    start_times[k+1].ToDouble(&time);
+                    endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
+                }
+            }
+
             if( sequence_loaded )
             {
-                double time = 0.0;
-                start_time.ToDouble(&time);
-                startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
-                end_time.ToDouble(&time);
-                endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
                 effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+            }
+            else
+            {
+                AddTimingEffect(layer, labels[k], "0", "0", string_format("%f", startTime), string_format("%f", endTime));
             }
         }
     }
