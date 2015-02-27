@@ -2015,6 +2015,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
 xLightsFrame::~xLightsFrame()
 {
+    Timer1.Stop();
+    selectedEffect = NULL;
+    
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("ToolbarLocations", MainAuiManager->SavePerspective());
     config->Flush();
@@ -2032,6 +2035,8 @@ xLightsFrame::~xLightsFrame()
 
 void xLightsFrame::OnQuit(wxCommandEvent& event)
 {
+    Timer1.Stop();
+    selectedEffect = NULL;
     Close();
 }
 

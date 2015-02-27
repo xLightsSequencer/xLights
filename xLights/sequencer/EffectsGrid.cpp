@@ -61,6 +61,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
     playArgs = new EventPlayEffectArgs();
+    mSequenceElements = NULL;
 
 }
 
