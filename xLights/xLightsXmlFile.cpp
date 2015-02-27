@@ -1273,8 +1273,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
             }
         }
     }
-
-    seqDocument.Save(GetFullPath());
 }
 
 wxArrayString xLightsXmlFile::GetTimingList(SequenceElements& seq_elements)
