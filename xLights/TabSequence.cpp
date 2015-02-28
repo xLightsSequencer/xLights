@@ -413,12 +413,6 @@ static void enableAllMenubarControls(wxMenuBar *parent, bool enable) {
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
     enableAllToolbarControls(MainToolBar, enable);
-    if (enable && SeqData.NumFrames() == 0) {
-        //no file is loaded, disable save/render buttons
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVE,false);
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVEAS,false);
-        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_RENDERALL,false);
-    }
     enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(EffectToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(EffectPaletteToolBar, enable && SeqData.NumFrames() > 0);
@@ -432,6 +426,16 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     enableAllChildControls(effectPalettePanel, enable && SeqData.NumFrames() > 0);
 
     enableAllMenubarControls(MenuBar, enable);
+
+    if (enable && SeqData.NumFrames() == 0) {
+        //no file is loaded, disable save/render buttons
+        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVE,false);
+        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_SAVEAS,false);
+        EnableToolbarButton(MainToolBar,ID_AUITOOLBAR_RENDERALL,false);
+        Menu_Settings_Sequence->Enable(false);
+        MenuItem_File_Save_Sequence->Enable(false);
+        MenuItem_File_Close_Sequence->Enable(false);
+    }
 }
 
 

@@ -7,28 +7,12 @@
 
 void xLightsFrame::NewSequence()
 {
-    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
-                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
-    {
-        return;
-    }
-
-    // clear everything to prepare for new sequence
-    xlightsFilename = "";
-    mediaFilename.Clear();
-    previewLoaded = false;
-    previewPlaying = false;
-    ResetTimer(NO_SEQ);
-    ResetSequenceGrid();
-    changedRow = 99999;
-    changedColumn = 99999;
-    playStartTime = playEndTime = 0;
-    selectedEffect = NULL;
+    // close any open sequences
+    CloseSequence();
 
     // assign global xml file object
     wxFileName xml_file;
     xml_file.SetPath(CurrentDir);
-    delete CurrentSeqXmlFile;
     CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
     SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
@@ -46,6 +30,8 @@ void xLightsFrame::NewSequence()
     //SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
     LoadSequencer(*CurrentSeqXmlFile);
     Menu_Settings_Sequence->Enable(true);
+    MenuItem_File_Save_Sequence->Enable(true);
+    MenuItem_File_Close_Sequence->Enable(true);
 
     if( (NetInfo.GetTotChannels() > SeqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > SeqData.NumFrames() )
@@ -60,6 +46,9 @@ void xLightsFrame::NewSequence()
 
 void xLightsFrame::OpenSequence()
 {
+    // close any open sequences
+    CloseSequence();
+
     bool loaded_xml = false;
     bool loaded_fseq = false;
     bool find_media = true;
@@ -67,17 +56,6 @@ void xLightsFrame::OpenSequence()
     wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if ( !filename.empty() )
     {
-        // clear everything to prepare for new sequence
-        mediaFilename.Clear();
-        previewLoaded = false;
-        previewPlaying = false;
-        ResetTimer(NO_SEQ);
-        ResetSequenceGrid();
-        changedRow = 99999;
-        changedColumn = 99999;
-        playStartTime = playEndTime = 0;
-        selectedEffect = NULL;
-
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
@@ -113,7 +91,6 @@ void xLightsFrame::OpenSequence()
         }
 
         // assign global xml file object
-        delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = new xLightsXmlFile(xml_file);
 
         // open the xml file so we can see if it has media
@@ -227,6 +204,39 @@ void xLightsFrame::OpenSequence()
     }
 }
 
+void xLightsFrame::CloseSequence()
+{
+    if (UnsavedChanges && wxNO == wxMessageBox("Sequence changes will be lost.  Do you wish to continue?",
+                                               "Sequence Changed Confirmation", wxICON_QUESTION | wxYES_NO))
+    {
+        return;
+    }
+
+    // clear everything to prepare for new sequence
+    xlightsFilename = "";
+    mediaFilename.Clear();
+    previewLoaded = false;
+    previewPlaying = false;
+    ResetTimer(NO_SEQ);
+    ResetSequenceGrid();
+    changedRow = 99999;
+    changedColumn = 99999;
+    playStartTime = playEndTime = 0;
+    selectedEffect = NULL;
+    if( CurrentSeqXmlFile )
+    {
+        delete CurrentSeqXmlFile;
+        CurrentSeqXmlFile = NULL;
+    }
+
+    //SeqData.init(0, 0, 50);
+    //mainSequencer->PanelWaveForm->CloseMediaFile();
+    //mainSequencer->PanelWaveForm->Refresh();
+    //mainSequencer->PanelEffectGrid->ForceRefresh();
+
+    EnableSequenceControls(true);  // let it re-evaluate menu state
+}
+
 bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModels)
 {
     delete xLightsFrame::CurrentSeqXmlFile;
@@ -242,7 +252,6 @@ bool xLightsFrame::SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModel
     {
         LoadSequencer(xml_file);
         xml_file.SetSequenceLoaded(true);
-        Menu_Settings_Sequence->Enable(true);
         return true;
     }
 

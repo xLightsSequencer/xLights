@@ -324,6 +324,7 @@ const long xLightsFrame::ID_AUITOOLBAR2 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
 const long xLightsFrame::IS_SAVE_SEQ = wxNewId();
+const long xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::idMenuQuit = wxNewId();
@@ -1454,6 +1455,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem_File_Save_Sequence = new wxMenuItem(MenuFile, IS_SAVE_SEQ, _("Save Sequence\tCTRL-S"), wxEmptyString, wxITEM_NORMAL);
     MenuItem_File_Save_Sequence->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER));
     MenuFile->Append(MenuItem_File_Save_Sequence);
+    MenuItem_File_Save_Sequence->Enable(false);
+    MenuItem_File_Close_Sequence = new wxMenuItem(MenuFile, ID_CLOSE_SEQ, _("Close Sequence"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItem_File_Close_Sequence);
+    MenuItem_File_Close_Sequence->Enable(false);
     MenuFile->AppendSeparator();
     MenuItem5 = new wxMenuItem(MenuFile, ID_MENUITEM2, _("Select Show Folder\tF9"), wxEmptyString, wxITEM_NORMAL);
     MenuItem5->SetBitmap(wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER")),wxART_OTHER));
@@ -1658,6 +1663,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_NEW_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnButtonNewSequenceClick);
     Connect(ID_OPEN_SEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Open_SequenceSelected);
     Connect(IS_SAVE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Save_SequenceSelected);
+    Connect(ID_CLOSE_SEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
     Connect(ID_MENUITEM2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
@@ -1956,9 +1962,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CurtainEdge=EffectsPanel1->Choice_Curtain_Edge->GetStrings();
     CurtainEffect=EffectsPanel1->Choice_Curtain_Effect->GetStrings();
 
-    // set menu state
-    Menu_Settings_Sequence->Enable(false);
-
     // Check if schedule should be running
     xout=0;
     long RunFlag=0;
@@ -2028,8 +2031,11 @@ xLightsFrame::~xLightsFrame()
     m_mgr->UnInit();
     MainAuiManager->UnInit();
 
-    delete CurrentSeqXmlFile;
-    CurrentSeqXmlFile = NULL;
+    if( CurrentSeqXmlFile )
+    {
+        delete CurrentSeqXmlFile;
+        CurrentSeqXmlFile = NULL;
+    }
 
     //(*Destroy(xLightsFrame)
     //*)
@@ -2817,6 +2823,11 @@ void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
     SaveSequence();
 }
 
+void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
+{
+    CloseSequence();
+}
+
 void xLightsFrame::OnResize(wxSizeEvent& event)
 {
 }
@@ -2834,3 +2845,4 @@ void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
         wxPostEvent(this, displayElementEvent);
     }
 }
+

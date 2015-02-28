@@ -638,6 +638,7 @@ private:
     void OnResize(wxSizeEvent& event);
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItemSequenceElementsSelected(wxCommandEvent& event);
+    void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -889,6 +890,7 @@ private:
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
     static const long IS_SAVE_SEQ;
+    static const long ID_CLOSE_SEQ;
     static const long ID_MENUITEM2;
     static const long ID_FILE_BACKUP;
     static const long idMenuQuit;
@@ -980,6 +982,7 @@ private:
     wxMenuItem* MenuItem23;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
+    wxMenuItem* MenuItem_File_Close_Sequence;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
     wxCheckBox* CheckBoxLightOutput;
@@ -1439,6 +1442,7 @@ protected:
     void NewSequence();
     void OpenSequence();
     void SaveSequence();
+    void CloseSequence();
     void RenderAll();
     void InsertRow();
     void UpdatePreview();

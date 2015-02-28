@@ -2940,8 +2940,14 @@
 				<object class="wxMenuItem" name="IS_SAVE_SEQ" variable="MenuItem_File_Save_Sequence" member="yes">
 					<label>Save Sequence</label>
 					<accel>CTRL-S</accel>
+					<enabled>0</enabled>
 					<bitmap stock_id="wxART_FILE_SAVE" />
 					<handler function="OnMenuItem_File_Save_SequenceSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_CLOSE_SEQ" variable="MenuItem_File_Close_Sequence" member="yes">
+					<label>Close Sequence</label>
+					<enabled>0</enabled>
+					<handler function="OnMenuItem_File_Close_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
 				<object class="wxMenuItem" name="ID_MENUITEM2" variable="MenuItem5" member="no">
