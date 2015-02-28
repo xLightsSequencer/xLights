@@ -1204,7 +1204,6 @@ void xLightsXmlFile::SetSequenceDuration(const wxString& length)
        }
     }
 }
-
 void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
     wxTextFile f;
@@ -1271,15 +1270,17 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
         }
 
+        double time, startTime, endTime;
+        int iTime1, iTime2;
         for( int k = 0; k < start_times.GetCount(); ++k )
         {
-            double time = 0.0;
-            double startTime, endTime;
             start_times[k].ToDouble(&time);
             startTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
             end_times[k].ToDouble(&time);
             endTime = TimeLine::RoundToMultipleOfPeriod(time,xLightsParent->GetSequenceElements().GetFrequency());
-            if( startTime == endTime )
+            iTime1 = (int)(startTime * 1000);
+            iTime2 = (int)(endTime * 1000);
+            if( iTime1 == iTime2 )
             {
                 if( k == start_times.GetCount()-1 ) // last timing mark
                 {
@@ -2048,3 +2049,4 @@ void xLightsXmlFile::FixVersionDifferences(const wxString& filename)
     if(modified) wxCopyFile(fileout,filename,true); // if we modified the file, copy over it
     wxRemoveFile(fileout); // get rid of temporary file
 }
+
