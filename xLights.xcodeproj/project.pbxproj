@@ -124,6 +124,7 @@
 		67A61A6D17B51C0F008E95BB /* xlights_out.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A1D17B51C0F008E95BB /* xlights_out.cpp */; };
 		67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2117B51C0F008E95BB /* xLightsApp.cpp */; };
 		67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A61A2417B51C0F008E95BB /* xLightsMain.cpp */; };
+		67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B189751AA22C990082B00C /* RenderMorph.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797171A5AE343008D5921 /* ColorPanel.cpp */; };
 		67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B797181A5AE343008D5921 /* TimingPanel.cpp */; };
@@ -328,6 +329,7 @@
 		67A61A2217B51C0F008E95BB /* xLightsApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsApp.h; sourceTree = "<group>"; };
 		67A61A2417B51C0F008E95BB /* xLightsMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsMain.cpp; sourceTree = "<group>"; };
 		67A61A2517B51C0F008E95BB /* xLightsMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsMain.h; sourceTree = "<group>"; };
+		67B189751AA22C990082B00C /* RenderMorph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderMorph.cpp; sourceTree = "<group>"; };
 		67B30CDC1A583F7A009E23FF /* libmpg123.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmpg123.0.dylib; path = lib/osx/libmpg123.0.dylib; sourceTree = "<group>"; };
 		67B4C91917B536D60006B951 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -479,6 +481,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67B189751AA22C990082B00C /* RenderMorph.cpp */,
 				67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */,
 				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
 				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
@@ -774,6 +777,7 @@
 				677DECF11A0BEB1000D43E5C /* RenderPinwheel.cpp in Sources */,
 				67A61A2A17B51C0F008E95BB /* E131Dialog.cpp in Sources */,
 				67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */,
+				67B189761AA22C990082B00C /* RenderMorph.cpp in Sources */,
 				67E9389D1A80FC5A00937772 /* SeqFileUtilities.cpp in Sources */,
 				67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */,
 				676F58781A1556210045FA22 /* RenderOff.cpp in Sources */,

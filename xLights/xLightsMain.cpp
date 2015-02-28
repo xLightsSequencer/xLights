@@ -2806,6 +2806,7 @@ void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+        playStartTime = playEndTime = 0;
     }
 }
 

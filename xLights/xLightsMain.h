@@ -1518,6 +1518,7 @@ protected:
     int playStartMS;
     int playStartTime;
     int playEndTime;
+    int playType;
 
     wxString selectedEffectString;
     int selectedEffectPalette;

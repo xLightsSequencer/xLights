@@ -13,6 +13,12 @@
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
 
+
+#define PLAY_TYPE_EFFECT 1
+#define PLAY_TYPE_MODEL  2
+
+
+
 /************************************* New Sequencer Code*****************************************/
 void xLightsFrame::CreateSequencer()
 {
@@ -478,6 +484,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                       mSequenceElements.GetSelectedRange(i)->EndTime,
                       EFFECT_SELECTED,false);
 
+        playType = PLAY_TYPE_EFFECT;
         playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
         playStartMS = -1;
@@ -489,10 +496,23 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
+    playType = PLAY_TYPE_MODEL;
+    playStartTime = 0;
+    wxString model = event.GetString();
+    
+    playBuffer.InitBuffer(GetModelNode(model),
+                          mSequenceElements.GetElement(model)->GetEffectLayerCount(),
+                          SeqData.FrameTime());
+    
+    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
+    playStartMS = -1;
+    PlayerDlg->MediaCtrl->Seek(0);
+    PlayerDlg->MediaCtrl->Play();
 }
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
     EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
+    playType = PLAY_TYPE_EFFECT;
     playStartTime = (int)(args->effect->GetStartTime() * 1000);
     playEndTime = (int)(args->effect->GetEndTime() * 1000);
     if(args->renderEffect)
@@ -528,6 +548,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     el->GetEffect(j)->SetEffectName(effectName);
                     el->GetEffect(j)->SetPalette(palette);
 
+                    playType = PLAY_TYPE_EFFECT;
                     playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
                     playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
                     playStartMS = -1;
@@ -556,6 +577,13 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (curt < 0) {
         playStartMS = -1;
         return;
+    }
+    if (playType == PLAY_TYPE_MODEL) {
+        int ms = PlayerDlg->MediaCtrl->Tell();
+        
+        int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms / 1000);
+        mainSequencer->PanelWaveForm->PositionSelected(i);
+        mainSequencer->PanelTimeLine->TimeSelected(i);
     }
 
     if (selectedEffect != NULL) {
