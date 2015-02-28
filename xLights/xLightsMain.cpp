@@ -320,6 +320,7 @@ const long xLightsFrame::ID_BITMAPBUTTON27 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON28 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON29 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
+const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR2 = wxNewId();
 const long xLightsFrame::ID_NEW_SEQUENCE = wxNewId();
 const long xLightsFrame::ID_OPEN_SEQUENCE = wxNewId();
@@ -1412,6 +1413,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     BitmapButton30->SetMaxSize(wxSize(16,16));
     BitmapButton30->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
     BitmapButton30->SetEffectIndex(29);
+    BitmapButton31 = new DragEffectBitmapButton(EffectPaletteToolBar, ID_BITMAPBUTTON35, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON35"));
+    BitmapButton31->SetMinSize(wxSize(16,16));
+    BitmapButton31->SetMaxSize(wxSize(16,16));
+    BitmapButton31->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+    BitmapButton31->SetEffectIndex(30);
     EffectPaletteToolBar->AddControl(BitmapButton1, _("Item label"));
     EffectPaletteToolBar->AddControl(BitmapButton2, _("Item label"));
     EffectPaletteToolBar->AddControl(BitmapButton3, _("Item label"));
@@ -1442,6 +1448,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     EffectPaletteToolBar->AddControl(BitmapButton28, _("Item label"));
     EffectPaletteToolBar->AddControl(BitmapButton29, _("Item label"));
     EffectPaletteToolBar->AddControl(BitmapButton30, _("Item label"));
+    EffectPaletteToolBar->AddControl(BitmapButton31, _("Item label"));
     EffectPaletteToolBar->Realize();
     MainAuiManager->AddPane(EffectPaletteToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     MainAuiManager->Update();
@@ -1539,6 +1546,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     StatusBar1->SetFieldsCount(2,__wxStatusBarWidths_1);
     StatusBar1->SetStatusStyles(2,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
+    DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+    Timer1.SetOwner(this, ID_TIMER1);
+    FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|\n\n"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
+    MessageDialog1 = new wxMessageDialog(this, _("Hello"), _("Message"), wxOK|wxCANCEL, wxDefaultPosition);
+    FileDialogPgoImage = new wxFileDialog(this, _("Select phoneme image file"), wxEmptyString, wxEmptyString, _("jpeg image(*.jpg)|*.jpg|\npng image(*.png)|*.png"), wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     DirDialog1 = new wxDirDialog(this, _("Select directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     Timer1.SetOwner(this, ID_TIMER1);
     FileDialogConvert = new wxFileDialog(this, _("Select file"), wxEmptyString, wxEmptyString, _("xLights Sequences(*.xseq)|*.xseq|\n\n\t\t\tLOR Music Sequences (*.lms)|*.lms|\n\n\t\t\tLOR Animation Sequences (*.las)|*.las|\n\n\t\t\tVixen Sequences (*.vix)|*.vix|\n\n\t\t\tFalcon Pi Player Sequences (*.fseq)|*.fseq|\n\n\t\t\tGlediator Record File (*.gled)|*.gled)|\n\n\t\t\tLynx Conductor Sequences (*.seq)|*.seq|\n\n\t\t\tHLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|\n\n"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
@@ -1681,6 +1693,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
+    Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);

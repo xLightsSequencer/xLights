@@ -5,7 +5,7 @@
 		<size_arg>1</size_arg>
 		<object class="wxGridSizer" variable="GridSizer1" member="no">
 			<cols>5</cols>
-			<rows>6</rows>
+			<rows>7</rows>
 			<object class="sizeritem">
 				<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" subclass="DragEffectBitmapButton" variable="BitmapButton1" member="yes">
 					<size>16,16</size>
@@ -390,6 +390,19 @@
 					<minsize>16,16</minsize>
 					<maxsize>16,16</maxsize>
 					<extra_code>BitmapButton30-&gt;SetEffectIndex(29);</extra_code>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON31" subclass="DragEffectBitmapButton" variable="BitmapButton31" member="yes">
+					<size>16,16</size>
+					<bg>wxSYS_COLOUR_BACKGROUND</bg>
+					<minsize>16,16</minsize>
+					<maxsize>16,16</maxsize>
+					<extra_code>BitmapButton31-&gt;SetEffectIndex(30);</extra_code>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

@@ -156,6 +156,7 @@ int Effect::GetEffectIndex(wxString effectName)
     else if(effectName=="Glediator"){return xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR;}
     else if(effectName=="Life"){return xLightsFrame::RGB_EFFECTS_e::eff_LIFE;}
     else if(effectName=="Meteors"){return xLightsFrame::RGB_EFFECTS_e::eff_METEORS;}
+    else if(effectName=="Morph"){return xLightsFrame::RGB_EFFECTS_e::eff_MORPH;}
     else if(effectName=="Piano"){return xLightsFrame::RGB_EFFECTS_e::eff_PIANO;}
     else if(effectName=="Pictures"){return xLightsFrame::RGB_EFFECTS_e::eff_PICTURES;}
     else if(effectName=="Pinwheel"){return xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL;}
