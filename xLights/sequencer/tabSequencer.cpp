@@ -792,9 +792,12 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
             p_XPM = meteors;
             toolTip = "Meteors";
             break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_MORPH:
+            p_XPM = morph;
+            toolTip = "Morph";
+            break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PIANO:
-//~ Fix this missing "piano" xpm
-            p_XPM = pinwheel;
+            p_XPM = piano;
             toolTip = "Piano";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:

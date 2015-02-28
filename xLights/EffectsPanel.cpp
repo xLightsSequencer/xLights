@@ -17,6 +17,7 @@
 #include "../include/glediator.xpm"
 #include "../include/life.xpm"
 #include "../include/meteors.xpm"
+#include "../include/morph.xpm"
 
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
@@ -224,6 +225,7 @@ const long EffectsPanel::ID_STATICTEXT131 = wxNewId();
 const long EffectsPanel::ID_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity = wxNewId();
 const long EffectsPanel::ID_PANEL18 = wxNewId();
+const long EffectsPanel::ID_PANEL_Morph = wxNewId();
 const long EffectsPanel::ID_STATICTEXT1 = wxNewId();
 const long EffectsPanel::ID_CHOICE_Piano_Style = wxNewId();
 const long EffectsPanel::ID_BITMAPBUTTON_SLIDER_Piano_Style = wxNewId();
@@ -616,6 +618,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     wxFlexGridSizer* FlexGridSizer35;
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer78;
     wxFlexGridSizer* FlexGridSizer89;
     wxFlexGridSizer* FlexGridSizer46;
     wxFlexGridSizer* FlexGridSizer48;
@@ -1184,6 +1187,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Panel1_Meteors->SetSizer(FlexGridSizer41);
     FlexGridSizer41->Fit(Panel1_Meteors);
     FlexGridSizer41->SetSizeHints(Panel1_Meteors);
+    Panel1_Morph = new wxScrolledWindow(Choicebook1, ID_PANEL_Morph, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL_Morph"));
+    FlexGridSizer78 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer78->AddGrowableCol(1);
+    Panel1_Morph->SetSizer(FlexGridSizer78);
+    FlexGridSizer78->Fit(Panel1_Morph);
+    FlexGridSizer78->SetSizeHints(Panel1_Morph);
     Panel1_Piano = new wxScrolledWindow(Choicebook1, ID_PANEL39, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL39"));
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer5->AddGrowableCol(0);
@@ -2179,6 +2188,7 @@ EffectsPanel::EffectsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     Choicebook1->AddPage(Panel1_Glediator, _("Glediator"), false);
     Choicebook1->AddPage(Panel1_Life, _("Life"), false);
     Choicebook1->AddPage(Panel1_Meteors, _("Meteors"), false);
+    Choicebook1->AddPage(Panel1_Morph, _("Morph"), false);
     Choicebook1->AddPage(Panel1_Piano, _("Piano"), false);
     Choicebook1->AddPage(Panel1_Pictures, _("Pictures"), false);
     Choicebook1->AddPage(Panel1_Pinwheel, _("Pinwheel"), false);

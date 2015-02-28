@@ -116,9 +116,11 @@
 #include "../include/glediator.xpm"
 #include "../include/life.xpm"
 #include "../include/meteors.xpm"
+#include "../include/morph.xpm"
 
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
+#include "../include/piano.xpm"
 #include "../include/pinwheel.xpm"
 #include "../include/ripple.xpm"
 #include "../include/singleStrand.xpm"
@@ -409,6 +411,7 @@ public:
         eff_GLEDIATOR,
         eff_LIFE,
         eff_METEORS,
+        eff_MORPH,
         eff_PIANO,
         eff_PICTURES,
         eff_PINWHEEL,
@@ -886,6 +889,7 @@ private:
     static const long ID_BITMAPBUTTON28;
     static const long ID_BITMAPBUTTON29;
     static const long ID_BITMAPBUTTON30;
+    static const long ID_BITMAPBUTTON35;
     static const long ID_AUITOOLBAR2;
     static const long ID_NEW_SEQUENCE;
     static const long ID_OPEN_SEQUENCE;
@@ -1122,6 +1126,7 @@ private:
     wxButton* Button_PgoStitch;
     wxMenuItem* MenuItem3;
     wxStaticText* StaticTextShowEnd;
+    DragEffectBitmapButton* BitmapButton31;
     wxFileDialog* FileDialogPgoImage;
     DragEffectBitmapButton* BitmapButton8;
     wxStaticText* StaticTextCurrentPreviewSize;

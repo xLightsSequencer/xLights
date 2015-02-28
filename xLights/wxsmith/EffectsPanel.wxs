@@ -1718,6 +1718,15 @@
 						<label>Meteors</label>
 					</object>
 					<object class="choicebookpage">
+						<object class="wxScrolledWindow" name="ID_PANEL_Morph" variable="Panel1_Morph" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
+								<cols>3</cols>
+								<growablecols>1</growablecols>
+							</object>
+						</object>
+						<label>Morph</label>
+					</object>
+					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL39" variable="Panel1_Piano" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 								<cols>1</cols>

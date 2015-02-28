@@ -444,6 +444,7 @@
 		<Unit filename="RenderGlediator.cpp" />
 		<Unit filename="RenderLife.cpp" />
 		<Unit filename="RenderMeteors.cpp" />
+		<Unit filename="RenderMorph.cpp" />
 		<Unit filename="RenderOff.cpp" />
 		<Unit filename="RenderOn.cpp" />
 		<Unit filename="RenderPiano.cpp" />

@@ -119,7 +119,7 @@ public:
         startFrame = 0;
         clearAllFrames = clear;
     }
-    
+
     virtual ~RenderJob() {
         if (buffer != NULL) {
             delete buffer;
@@ -134,12 +134,12 @@ public:
     PixelBufferClass *getBuffer() {
         return buffer;
     }
-    
+
     void setRenderRange(int start, int end) {
         startFrame = start;
         endFrame = end;
     }
-    
+
     virtual void Process() {
         //printf("Starting rendering %lx (no next)\n", (unsigned long)this);
         int maxFrameBeforeCheck = -1;
@@ -157,7 +157,7 @@ public:
             initialize(layer, startFrame, currentEffects[layer], settingsMaps[layer]);
             effectStates[layer] = true;
         }
-        
+
         for (int frame = startFrame; frame < endFrame; frame++) {
             if (origChangeCount != rowToRender->getChangeCount()) {
                 break;
@@ -179,7 +179,7 @@ public:
                 if (!persist || "None" == settingsMaps[layer]["Effect"]) {
                     buffer->Clear(layer);
                 }
-                
+
                 validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true);
                 effectsToUpdate |= validLayers[layer];
             }
@@ -206,7 +206,7 @@ public:
         }
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
     }
-    
+
 private:
     void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap) {
         if (el == NULL) {
@@ -219,7 +219,7 @@ private:
         updateBufferPaletteFromMap(layer, settingsMap);
         updateBufferFadesFromMap(layer, settingsMap);
         updateFitToTimeFromMap(layer, settingsMap);
-        
+
         if (el != NULL) {
             buffer->SetTimes(layer, el->GetStartTime() * 1000, el->GetEndTime() * 1000);
         }
@@ -234,14 +234,14 @@ private:
             int brightness = wxAtoi(s);
             buffer->SetBrightness(layer, brightness);
         }
-        
+
         int contrast=wxAtoi(settingsMap["SLIDER_Contrast"]);
         buffer->SetContrast(layer, contrast);
         buffer->SetMixType(layer, settingsMap["CHOICE_LayerMethod"]);
         int effectMixThreshold=wxAtoi(settingsMap["SLIDER_EffectLayerMix"]);
         buffer->SetMixThreshold(layer, effectMixThreshold, wxAtoi(settingsMap["CHECKBOX_LayerMorph"]) != 0); //allow threshold to vary -DJ
     }
-    
+
     void updateBufferPaletteFromMap(int layer, MapStringString& settingsMap) {
         xlColorVector newcolors;
         for (int i = 1; i <= 6; i++) {
@@ -254,20 +254,20 @@ private:
     void updateBufferFadesFromMap(int layer, MapStringString& settingsMap) {
         wxString tmpStr;
         double fadeIn, fadeOut;
-        
+
         tmpStr = settingsMap["TEXTCTRL_Fadein"];
         tmpStr.ToDouble(&fadeIn);
         tmpStr = settingsMap["TEXTCTRL_Fadeout"];
         tmpStr.ToDouble(&fadeOut);
-        
+
         buffer->SetFadeTimes(layer, fadeIn, fadeOut);
     }
-    
+
     void updateFitToTimeFromMap(int layer, MapStringString& settingsMap) {
         bool fitToTime = settingsMap["CHECKBOX_FitToTime"] == "1";
         buffer->SetFitToTime(layer, fitToTime);
     }
-    
+
     Effect *findEffectForFrame(int layer, int frame) {
         int time = frame * seqData.FrameTime();
         for (int e = 0; e < rowToRender->GetEffectLayer(layer)->GetEffectCount(); e++) {
@@ -283,7 +283,7 @@ private:
                          MapStringString& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-        
+
         if (!colorPalette.IsEmpty()) {
             settings = colorPalette + "," + settings;
         }
@@ -291,7 +291,7 @@ private:
         while (!settings.IsEmpty()) {
             before=settings.BeforeFirst(',');
             settings=settings.AfterFirst(',');
-            
+
             name=before.BeforeFirst('=');
             if (name[1] == '_') {
                 name = name.AfterFirst('_');
@@ -301,7 +301,7 @@ private:
         }
     }
 
-    
+
     Element *rowToRender;
     wxString name;
     int startFrame;
@@ -346,11 +346,11 @@ void xLightsFrame::RenderGridToSeqData() {
     for (int x = 0; x < SeqData.NumChannels(); x++) {
         channelsRendered[x] = -1;
     }
-    
+
     int noDepsCount = 0;
     int depsCount = 0;
     aggregator.setNext(&wait);
-    
+
 
     for (int row = 0; row < mSequenceElements.GetElementCount(); row++) {
         Element *rowEl = mSequenceElements.GetElement(row);
@@ -359,7 +359,7 @@ void xLightsFrame::RenderGridToSeqData() {
             wxXmlNode *modelNode = GetModelNode(rowEl->GetName());
             RenderJob *job = new RenderJob(rowEl, modelNode, SeqData, this);
             job->setRenderRange(0, SeqData.NumFrames());
-            
+
             bool hasDep = false;
             PixelBufferClass *buffer = job->getBuffer();
             size_t cn = playBuffer.ChannelsPerNode();
@@ -412,7 +412,7 @@ void xLightsFrame::RenderGridToSeqData() {
             wxYield();
         }
     }
-    
+
     delete []channelsRendered;
     delete []depJobs;
     delete []noDepJobs;
@@ -440,8 +440,8 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
 
 void xLightsFrame::ExportModel(wxCommandEvent &command) {
     wxString model = command.GetString();
-    
-    
+
+
     SeqExportDialog dialog(this);
     dialog.ModelExportTypes();
     bool ok;
@@ -460,11 +460,11 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             return;
         }
     } while (!ok);
-    
+
     wxString format=dialog.ChoiceFormat->GetStringSelection();
     wxStopWatch sw;
     wxString Out3=format.Left(3);
-    
+
     if (Out3 == "LSP")
     {
         filename = filename + "_USER";
@@ -472,10 +472,10 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     wxFileName oName(filename);
     oName.SetPath( CurrentDir );
     wxString fullpath;
-    
+
     StatusBar1->SetStatusText(_("Starting Export for ") + format + "-" + Out3);
     wxYield();
-    
+
     wxXmlNode *modelNode = GetModelNode(model);
     Element * el = mSequenceElements.GetElement(model);
     NextRenderer wait;
@@ -486,12 +486,12 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
     job->setNext(&wait);
     int cpn = job->getBuffer()->GetChanCountPerNode();
     jobPool.PushJob(job);
-    
+
     //wait to complete
     while (!wait.checkIfDone(SeqData.NumFrames())) {
         wxYield();
     }
-    
+
     if (Out3 == "Lcb") {
         oName.SetExt(_("lcb"));
         fullpath=oName.GetFullPath();
@@ -520,7 +520,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
     }
     StatusBar1->SetStatusText(_("Finished writing model: " )+fullpath + wxString::Format(" in %ld ms ",sw.Time()));
-    
+
     delete data;
 }
 
@@ -529,7 +529,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                                        PixelBufferClass &buffer, bool &resetEffectState,
                                        bool bgThread) {
     bool retval=true;
-    
+
     wxString SpeedStr=SettingsMap["SLIDER_Speed"];
     buffer.SetLayer(layer, period, wxAtoi(SpeedStr), resetEffectState);
     resetEffectState = false;
@@ -564,7 +564,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                              buffer.BufferWi/2, buffer.BufferHt/2,
                              SettingsMap["CHECKBOX_Circles_Plasma"]=="1"
                              );
-        
+
     } else if (effect == "Color Wash") {
         buffer.RenderColorWash(SettingsMap["CHECKBOX_ColorWash_HFade"]=="1",
                                SettingsMap["CHECKBOX_ColorWash_VFade"]=="1",
@@ -603,6 +603,12 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                              wxAtoi(SettingsMap["SLIDER_Meteors_Length"]),
                              MeteorsEffect.Index(SettingsMap["CHOICE_Meteors_Effect"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Swirl_Intensity"]));
+    } else if (effect == "Morph") {                 // hard-code for development
+        buffer.RenderMorph( 0, 0, 11, 0,            // int start_x1, int start_y1, int start_x2, int start_y2,
+                            0, 11, 11, 11,          // int end_x1,   int end_y1,   int end_x2,   int end_y2,
+                            1, 1, 10, 0,            // int start_length, int end_length, int head_duration, int acceleration,
+                            0, 0, 0,                // int tail_style, bool useHeadForStartColor, bool useHeadForEndColor,
+                            0 );                    // bool showEntireHeadAtStart
     } else if (effect == "Piano") {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),
@@ -738,6 +744,6 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                           wxAtoi(SettingsMap["SLIDER_Wave_Height"]),
                           WaveDirection.Index(SettingsMap["CHOICE_Wave_Direction"]));
     }
-    
+
     return retval;
 }

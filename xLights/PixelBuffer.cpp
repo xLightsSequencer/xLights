@@ -531,6 +531,12 @@ void PixelBufferClass::RenderMeteors(int MeteorType, int Count, int Length, int 
     effects[CurrentLayer].RenderMeteors(MeteorType,Count,Length,MeteorsEffect,SwirlIntensity);
 }
 
+void PixelBufferClass::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2, int start_length, int end_length, int head_duration, int acceleration, int tail_style, bool useHeadForStartColor, bool useHeadForEndColor,bool showEntireHeadAtStart ) {
+    effects[CurrentLayer].RenderMorph(start_x1, start_y1, start_x2, start_y2, end_x1, end_y1, end_x2, end_y2,
+                                      start_length, end_length, head_duration, acceleration, tail_style, useHeadForStartColor, useHeadForEndColor, showEntireHeadAtStart);
+}
+
+
 void PixelBufferClass::RenderPiano(int Style, int NumKeys, int NumRows, int DrawMode, bool Clipping, const wxString& CueFilename, const wxString& MapFilename, const wxString& ShapeFilename) { //added more controls -DJ
     effects[CurrentLayer].RenderPiano(Style, NumKeys, NumRows, DrawMode, Clipping, CueFilename, MapFilename, ShapeFilename);
 }

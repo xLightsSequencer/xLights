@@ -372,6 +372,7 @@ public:
     wxChoice* Choice_Faces_Phoneme;
     wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
+    wxScrolledWindow* Panel1_Morph;
     wxSlider* Slider_Circles_Count;
     wxBitmapButton* BitmapButton_FireworksFade;
     wxSlider* Slider_Tree_Branches;
@@ -655,6 +656,7 @@ protected:
     static const long ID_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_PANEL18;
+    static const long ID_PANEL_Morph;
     static const long ID_STATICTEXT1;
     static const long ID_CHOICE_Piano_Style;
     static const long ID_BITMAPBUTTON_SLIDER_Piano_Style;
