@@ -252,7 +252,7 @@ void RowHeading::render( wxPaintEvent& event )
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row=0;
-    int startY,endY;
+    int startY = 0,endY = 0;
     for(int i =0;i< mSequenceElements->GetRowInformationSize();i++)
     {
         wxBrush brush(*GetHeaderColor(mSequenceElements->GetRowInformation(i)),wxBRUSHSTYLE_SOLID);
