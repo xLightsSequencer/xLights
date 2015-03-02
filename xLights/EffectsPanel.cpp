@@ -2447,11 +2447,12 @@ wxString EffectsPanel::GetEffectStringFromWindow(wxWindow *ParentWin)
         else if (ChildName.StartsWith("ID_NOTEBOOK"))
         {
             wxNotebook* ctrl=(wxNotebook*)ChildWin;
-            s+= AttrName + "=" ;
-            s+=ctrl->GetPageText(ctrl->GetSelection());
+            s += AttrName + "=" ;
+            s += ctrl->GetPageText(ctrl->GetSelection());
+            s += ",";
             for(i=0; i<ctrl->GetPageCount(); i++)
             {
-                s+=GetEffectStringFromWindow(ctrl->GetPage(i)) + ",";
+                s+= GetEffectStringFromWindow(ctrl->GetPage(i)) + ",";
             }
         }
     }
