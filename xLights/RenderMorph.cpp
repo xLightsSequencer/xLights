@@ -50,6 +50,23 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     double step_size = 0.1;
+    
+    int hcols = 0, hcole = 1;
+    int tcols = 2, tcole = 3;
+    switch (palette.Size()) {
+        case 1:  //one color selected, use it for all
+            hcols = hcole = tcols = tcole = 0;
+            break;
+        case 2: //two colors, head/tail
+            hcols = hcole = 0;
+            tcols = tcole = 1;
+            break;
+        case 3: //three colors, head /tail start/end
+            hcols = hcole = 0;
+            tcols = 1;
+            tcole = 2;
+            break;
+    }
 
     int x1a = BufferWi * (start_x1/100.0);
     int y1a = BufferHt * (start_y1/100.0);
@@ -142,7 +159,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length + 1;
         tail_end_of_tail_pos = (2.0 * eff_pos - 1) * total_length;
         total_tail_length = head_end_of_tail_pos - tail_end_of_tail_pos;
-        Get2ColorBlend(0, 1, std::min( head_loc_pct, 1.0), head_color);
+        Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
     }
     else
     {
@@ -158,7 +175,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         pos_a = i;
         pos_b = v_shtx->size() * pct;
         double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
-        Get2ColorBlend(3, 2, tail_color_pct, tail_color);
+        Get2ColorBlend(tcole, tcols, tail_color_pct, tail_color);
         DrawThickLine( (*v_lngx)[pos_a], (*v_lngy)[pos_a], (*v_shtx)[pos_b], (*v_shty)[pos_b], tail_color, direction >= 0);
     }
 
