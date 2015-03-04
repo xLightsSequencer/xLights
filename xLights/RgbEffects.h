@@ -483,8 +483,10 @@ protected:
     void DrawHLine(int y, int xstart, int xend, const xlColor& color, bool wrap = false);
     void DrawVLine(int x, int ystart, int yend, const xlColor& color, bool wrap = false);
     void DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap = false);
-    void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);    
-    
+    void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
+    void DrawLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color );
+    void DrawThickLine( const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction );
+
     wxUint32 GetTempPixelRGB(int x, int y);
     void SetFireBuffer(int x, int y, int PaletteIdx);
     int GetFireBuffer(int x, int y);
@@ -547,7 +549,7 @@ protected:
     int imageCount;
     int imageIndex;
     int frame;
-    int maxmovieframes; 
+    int maxmovieframes;
 
     wxString PictureName;
     int LastSnowflakeCount;
@@ -572,13 +574,13 @@ protected:
     RgbBalls *balls;
     MetaBall *metaballs;
     int numBalls = 0;
-    
-    
+
+
     wxString ModeName; //model currently in effect
 
     size_t GetNodeCount();
     //int face[52][52];
-    
+
     //TextEffect
     wxSize synced_textsize;
 

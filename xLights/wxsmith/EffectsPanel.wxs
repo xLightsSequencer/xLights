@@ -1722,6 +1722,484 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
 								<cols>3</cols>
 								<growablecols>1</growablecols>
+								<object class="sizeritem">
+									<object class="wxNotebook" name="ID_NOTEBOOK_Morph" variable="Notebook_Morph" member="yes">
+										<size>287,218</size>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL4" variable="Panel6" member="yes">
+												<size>268,218</size>
+												<object class="wxFlexGridSizer" variable="FlexGridSizer86" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+															<label>X1a:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X1" variable="BitmapButton_Morph_Start_X1" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+															<label>Y1a:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y1" variable="BitmapButton_Morph_Start_Y1" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT61" variable="StaticText59" member="yes">
+															<label>X1b:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_X2" variable="BitmapButton_Morph_Start_X2" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT102" variable="StaticText99" member="yes">
+															<label>Y1b:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Start_Y2" variable="BitmapButton_Morph_Start_Y2" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT115" variable="StaticText115" member="yes">
+															<label>Length:</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_MorphStartLength" variable="Slider_MorphStartLength" member="yes">
+															<value>1</value>
+															<max>20</max>
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphStartLength" variable="BitmapButton_MorphStartLength" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Morph_Start_Link" variable="CheckBox_Morph_Start_Link" member="yes">
+															<label>Link Points</label>
+															<checked>1</checked>
+															<handler function="OnCheckBox_Morph_Start_LinkClick" entry="EVT_CHECKBOX" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Start</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL27" variable="Panel7" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer94" member="no">
+													<cols>3</cols>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT116" variable="StaticText117" member="yes">
+															<label>X2a:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X1" variable="BitmapButton_Morph_End_X1" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT117" variable="StaticText119" member="yes">
+															<label>Y2a:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" variable="Slider_Morph_End_Y1" member="yes">
+															<value>100</value>
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y1" variable="BitmapButton_Morph_End_Y1" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT119" variable="StaticText120" member="yes">
+															<label>X2b:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_X2" variable="BitmapButton_Morph_End_X2" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT121" variable="StaticText121" member="yes">
+															<label>Y2b:</label>
+														</object>
+														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" variable="Slider_Morph_End_Y2" member="yes">
+															<value>100</value>
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_End_Y2" variable="BitmapButton_Morph_End_Y2" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT122" variable="StaticText122" member="yes">
+															<label>Length:</label>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxSlider" name="ID_SLIDER_MorphEndLength" variable="Slider_MorphEndLength" member="yes">
+															<value>1</value>
+															<max>20</max>
+															<size>203,24</size>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON24" variable="BitmapButton4" member="yes">
+															<bitmap code="padlock16x16_blue_xpm" />
+															<size>13,13</size>
+															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxCheckBox" name="ID_CHECKBOX_Morph_End_Link" variable="CheckBox_Morph_End_Link" member="yes">
+															<label>Link Points</label>
+															<checked>1</checked>
+															<handler function="OnCheckBox_Morph_End_LinkClick" entry="EVT_CHECKBOX" />
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>End</label>
+										</object>
+										<object class="notebookpage">
+											<object class="wxPanel" name="ID_PANEL30" variable="Panel9" member="yes">
+												<object class="wxFlexGridSizer" variable="FlexGridSizer104" member="no">
+													<cols>1</cols>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer99" member="no">
+															<cols>3</cols>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
+																	<label>Head&#x0A;Duration:</label>
+																	<size>-1,-1</size>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_MorphDuration" variable="Slider_MorphDuration" member="yes">
+																	<value>20</value>
+																	<size>175,24</size>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Morph_Head_Length" variable="BitmapButton_Morph_Head_Length" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="ID_STATICTEXT124" variable="StaticText124" member="yes">
+																	<label>Acceleration</label>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
+																	<max>10</max>
+																	<size>175,24</size>
+																	<enabled>0</enabled>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_MorphAccel" variable="BitmapButton_MorphAccel" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="spacer">
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" variable="CheckBox_ShowHeadAtStart" member="yes">
+																	<label>Show Head at Start</label>
+																	<enabled>0</enabled>
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart" variable="BitmapButton_ShowHeadAtStart" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxFlexGridSizer" variable="FlexGridSizer105" member="no">
+															<cols>2</cols>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadStartColor" variable="CheckBox_MorphUseHeadStartColor" member="yes">
+																	<label>Use Head Start Color for Tail Start</label>
+																	<enabled>0</enabled>
+																</object>
+																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON22" variable="BitmapButton1" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadEndColor" variable="CheckBox_MorphUseHeadEndColor" member="yes">
+																	<label>Use Head End Color for Tail End</label>
+																	<enabled>0</enabled>
+																</object>
+																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+															<object class="sizeritem">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON23" variable="BitmapButton2" member="yes">
+																	<bitmap code="padlock16x16_blue_xpm" />
+																	<size>13,13</size>
+																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
+																</object>
+																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+																<option>1</option>
+															</object>
+														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>1</border>
+														<option>1</option>
+													</object>
+												</object>
+											</object>
+											<label>Options</label>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Morph</label>

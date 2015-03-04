@@ -253,6 +253,76 @@ void RgbEffects::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, b
     }
 }
 
+// Bresenham's line algorithm
+void RgbEffects::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
+{
+    int x0 = x0_;
+    int x1 = x1_;
+    int y0 = y0_;
+    int y1 = y1_;
+
+    int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+    int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
+    int err = (dx>dy ? dx : -dy)/2, e2;
+
+  for(;;){
+    SetPixel(x0,y0, color);
+    if (x0==x1 && y0==y1) break;
+    e2 = err;
+    if (e2 >-dx) { err -= dy; x0 += sx; }
+    if (e2 < dy) { err += dx; y0 += sy; }
+  }
+}
+
+void RgbEffects::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
+{
+    int x0 = x0_;
+    int x1 = x1_;
+    int y0 = y0_;
+    int y1 = y1_;
+    int lastx = x0;
+    int lasty = y0;
+
+    int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+    int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
+    int err = (dx>dy ? dx : -dy)/2, e2;
+
+  for(;;){
+    SetPixel(x0,y0, color);
+    if( (x0 != lastx) && (y0 != lasty) && (x0_ != x1_) && (y0_ != y1_) )
+    {
+        int fix = 0;
+        if( x0 > lastx ) fix += 1;
+        if( y0 > lasty ) fix += 2;
+        if( direction  ) fix += 4;
+        switch (fix)
+        {
+        case 2:
+        case 4:
+            if( x0 < BufferWi -2 ) SetPixel(x0+1,y0, color);
+            break;
+        case 3:
+        case 5:
+            if( x0 > 0 ) SetPixel(x0-1,y0, color);
+            break;
+        case 0:
+        case 1:
+            if( y0 < BufferHt -2 )SetPixel(x0,y0+1, color);
+            break;
+        case 6:
+        case 7:
+            if( y0 > 0 )SetPixel(x0,y0-1, color);
+            break;
+        }
+    }
+    lastx = x0;
+    lasty = y0;
+    if (x0==x1 && y0==y1) break;
+    e2 = err;
+    if (e2 >-dx) { err -= dy; x0 += sx; }
+    if (e2 < dy) { err += dx; y0 += sy; }
+  }
+}
 
 void RgbEffects::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bool filled, bool wrap)
 {

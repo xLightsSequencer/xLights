@@ -603,13 +603,26 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
                              wxAtoi(SettingsMap["SLIDER_Meteors_Length"]),
                              MeteorsEffect.Index(SettingsMap["CHOICE_Meteors_Effect"]),
                              wxAtoi(SettingsMap["SLIDER_Meteors_Swirl_Intensity"]));
-    } else if (effect == "Morph") {                 // hard-code for development
-        buffer.RenderMorph( 0, 0, 11, 0,            // int start_x1, int start_y1, int start_x2, int start_y2,
-                            0, 11, 11, 11,          // int end_x1,   int end_y1,   int end_x2,   int end_y2,
-                            1, 1, 10, 0,            // int start_length, int end_length, int head_duration, int acceleration,
-                            0, 0, 0,                // int tail_style, bool useHeadForStartColor, bool useHeadForEndColor,
-                            0 );                    // bool showEntireHeadAtStart
-    } else if (effect == "Piano") {
+    } else if (effect == "Morph") {
+        buffer.RenderMorph( wxAtoi(SettingsMap["SLIDER_Morph_Start_X1"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_Start_Y1"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_Start_X2"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_Start_Y2"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_End_X1"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_End_Y1"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_End_X2"]),
+                            wxAtoi(SettingsMap["SLIDER_Morph_End_Y2"]),
+                            wxAtoi(SettingsMap["SLIDER_MorphStartLength"]),
+                            wxAtoi(SettingsMap["SLIDER_MorphEndLength"]),
+                            SettingsMap["CHECKBOX_Morph_Start_Link"] == "1",
+                            SettingsMap["CHECKBOX_Morph_End_Link"] == "1",
+                            wxAtoi(SettingsMap["SLIDER_MorphDuration"]),
+                            wxAtoi(SettingsMap["SLIDER_MorphAccel"]),
+                            0,                      // int tail_style,
+                            SettingsMap["CHECKBOX_MorphUseHeadStartColor"]=="1",
+                            SettingsMap["CHECKBOX_MorphUseHeadEndColor"]=="1",
+                            SettingsMap["CHECKBOX_ShowHeadAtStart"]=="1");
+    } else if(effect == "Piano") {
         buffer.RenderPiano(PianoEffectStyles.Index(SettingsMap["CHOICE_Piano_Style"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumKeys"]),
                            wxAtoi(SettingsMap["SLIDER_Piano_NumRows"]),
