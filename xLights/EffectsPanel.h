@@ -139,7 +139,6 @@ public:
     wxBitmapButton* BitmapButton_TextPosition3;
     wxCheckBox* CheckBox_Circles_Radial;
     wxBitmapButton* BitmapButton_ButterflyChunks;
-    wxPanel* Panel6;
     wxStaticText* StaticText115;
     wxStaticText* StaticText87;
     wxTextCtrl* TextCtrl_Text_Line3;
@@ -406,10 +405,8 @@ public:
     wxPanel* Panel_Text3;
     wxSlider* Slider_PinwheelXC;
     wxChoice* Choice_Piano_Style;
-    wxPanel* Panel9;
     wxBitmapButton* BitmapButton_ColorWashVFade;
     wxChoice* Choice_Faces_Phoneme;
-    wxPanel* Panel7;
     wxStaticText* StaticText100;
     wxBitmapButton* BitmapButton20;
     wxScrolledWindow* Panel1_Morph;
@@ -472,7 +469,6 @@ public:
     wxBitmapButton* BitmapButton_CirclesBounce;
     wxChoice* Choice_CoroFaces_Phoneme;
     wxStaticText* StaticText80;
-    wxStaticText* StaticText2;
     wxStaticText* StaticText12;
     wxChoice* Choice_Pictures_Direction;
     wxScrolledWindow* Panel1_Twinkle;
@@ -704,7 +700,6 @@ protected:
     static const long ID_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_BITMAPBUTTON_SLIDER_Meteors_Swirl_Intensity;
     static const long ID_PANEL18;
-    static const long ID_STATICTEXT2;
     static const long ID_SLIDER_Morph_Start_X1;
     static const long ID_BITMAPBUTTON_SLIDER_Morph_Start_X1;
     static const long ID_STATICTEXT3;

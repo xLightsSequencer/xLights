@@ -1720,18 +1720,16 @@
 					<object class="choicebookpage">
 						<object class="wxScrolledWindow" name="ID_PANEL_Morph" variable="Panel1_Morph" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
-								<cols>3</cols>
-								<growablecols>1</growablecols>
+								<cols>1</cols>
 								<object class="sizeritem">
 									<object class="wxNotebook" name="ID_NOTEBOOK_Morph" variable="Notebook_Morph" member="yes">
-										<size>287,218</size>
 										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL4" variable="Panel6" member="yes">
-												<size>268,218</size>
+											<object class="wxPanel" name="ID_PANEL4" variable="MorphPanelStart" member="no">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer86" member="no">
 													<cols>3</cols>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
-														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticText2" member="no">
 															<label>X1a:</label>
 														</object>
 														<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1739,10 +1737,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X1" variable="Slider_Morph_Start_X1" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1751,6 +1747,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1766,10 +1763,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y1" variable="Slider_Morph_Start_Y1" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1778,6 +1773,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1793,10 +1789,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1805,6 +1799,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1820,10 +1815,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_Y2" variable="Slider_Morph_Start_Y2" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1832,6 +1825,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1850,9 +1844,8 @@
 														<object class="wxSlider" name="ID_SLIDER_MorphStartLength" variable="Slider_MorphStartLength" member="yes">
 															<value>1</value>
 															<max>20</max>
-															<size>203,24</size>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1861,6 +1854,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1887,9 +1881,10 @@
 											<label>Start</label>
 										</object>
 										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL27" variable="Panel7" member="yes">
+											<object class="wxPanel" name="ID_PANEL27" variable="MorphPanelEnd" member="no">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer94" member="no">
 													<cols>3</cols>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT116" variable="StaticText117" member="yes">
 															<label>X2a:</label>
@@ -1899,10 +1894,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X1" variable="Slider_Morph_End_X1" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1911,6 +1904,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1928,9 +1922,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y1" variable="Slider_Morph_End_Y1" member="yes">
 															<value>100</value>
-															<size>203,24</size>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1939,6 +1932,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1954,10 +1948,8 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
-															<size>203,24</size>
-														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes" />
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1966,6 +1958,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1983,9 +1976,8 @@
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Morph_End_Y2" variable="Slider_Morph_End_Y2" member="yes">
 															<value>100</value>
-															<size>203,24</size>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -1994,6 +1986,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2012,9 +2005,8 @@
 														<object class="wxSlider" name="ID_SLIDER_MorphEndLength" variable="Slider_MorphEndLength" member="yes">
 															<value>1</value>
 															<max>20</max>
-															<size>203,24</size>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -2023,6 +2015,7 @@
 															<bitmap code="padlock16x16_blue_xpm" />
 															<size>13,13</size>
 															<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2049,12 +2042,14 @@
 											<label>End</label>
 										</object>
 										<object class="notebookpage">
-											<object class="wxPanel" name="ID_PANEL30" variable="Panel9" member="yes">
+											<object class="wxPanel" name="ID_PANEL30" variable="MorphPanelOptions" member="no">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer104" member="no">
 													<cols>1</cols>
+													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer99" member="no">
 															<cols>3</cols>
+															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
 																	<label>Head&#x0A;Duration:</label>
@@ -2067,9 +2062,8 @@
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_MorphDuration" variable="Slider_MorphDuration" member="yes">
 																	<value>20</value>
-																	<size>175,24</size>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -2078,6 +2072,7 @@
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2095,10 +2090,9 @@
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
 																	<max>10</max>
-																	<size>175,24</size>
 																	<enabled>0</enabled>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -2107,6 +2101,7 @@
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2132,6 +2127,7 @@
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2139,7 +2135,7 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
 														<option>1</option>
 													</object>
@@ -2160,6 +2156,7 @@
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2180,6 +2177,7 @@
 																	<bitmap code="padlock16x16_blue_xpm" />
 																	<size>13,13</size>
 																	<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SingleStrand_ColorsClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
