@@ -579,9 +579,9 @@ void xLightsFrame::TimerRgbSeq(long msec)
         return;
     }
     if (playType == PLAY_TYPE_MODEL) {
-        int ms = PlayerDlg->MediaCtrl->Tell();
-        
-        int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms / 1000);
+        double ms = PlayerDlg->MediaCtrl->Tell();
+        ms /= 1000.0;
+        int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms);
         mainSequencer->PanelWaveForm->PositionSelected(i);
         mainSequencer->PanelTimeLine->TimeSelected(i);
     }
