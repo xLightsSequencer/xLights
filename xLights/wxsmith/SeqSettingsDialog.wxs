@@ -26,12 +26,11 @@
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Filename" variable="StaticText_Filename" member="yes">
 												<label></label>
-												<size>331,13</size>
 											</object>
 											<colspan>4</colspan>
 											<col>1</col>
 											<row>0</row>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -425,6 +424,7 @@
 						<object class="wxPanel" name="ID_PANEL4" variable="Panel_DataLayers" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
 								<cols>1</cols>
+								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxTreeCtrl" name="ID_TREECTRL_Data_Layers" variable="TreeCtrl_Data_Layers" member="yes">
 										<image_list>&lt;none&gt;</image_list>
@@ -445,7 +445,7 @@
 										<handler function="OnTreeCtrl_Data_LayersEndLabelEdit" entry="EVT_TREE_END_LABEL_EDIT" />
 										<handler function="OnTreeCtrl_Data_LayersSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -455,17 +455,15 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_Layer_Import" variable="Button_Layer_Import" member="yes">
 												<label>Import</label>
-												<size>60,23</size>
 												<handler function="OnButton_Layer_ImportClick" entry="EVT_BUTTON" />
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_Layer_Delete" variable="Button_Layer_Delete" member="yes">
 												<label>Delete</label>
-												<size>60,23</size>
 												<enabled>0</enabled>
 												<handler function="OnButton_Layer_DeleteClick" entry="EVT_BUTTON" />
 											</object>
@@ -496,7 +494,6 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_Reimport" variable="Button_Reimport" member="yes">
 												<label>Re-Import</label>
-												<size>60,23</size>
 												<enabled>0</enabled>
 												<handler function="OnButton_ReimportClick" entry="EVT_BUTTON" />
 											</object>
@@ -537,6 +534,7 @@
 					<hidden>1</hidden>
 					<fg>#FF0000</fg>
 					<font>
+						<size>20</size>
 						<weight>bold</weight>
 					</font>
 				</object>
