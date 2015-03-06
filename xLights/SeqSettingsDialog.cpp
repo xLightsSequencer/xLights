@@ -664,9 +664,20 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
-        xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
-        AddTimingCell(selected_timing);
-        xLightsParent->AddTimingElement(selected_timing);
+        if( selected_timing != "Empty" && !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        {
+            if( selected_timing == "Empty" )
+            {
+                selected_timing += "_1";
+            }
+            xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+            AddTimingCell(selected_timing);
+            xLightsParent->AddTimingElement(selected_timing);
+        }
+        else
+        {
+            wxMessageBox(string_format("Fixed Timing section %s already exists!", selected_timing), "Error", wxICON_ERROR | wxOK);
+        }
     }
     dialog.Destroy();
 }
@@ -683,6 +694,13 @@ void SeqSettingsDialog::OnButton_Xml_Import_TimingClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
 {
     int selection = event.GetId();
+    wxString new_name = Grid_Timing->GetCellValue(selection, 0);
+    if( xml_file->TimingAlreadyExists(new_name, xLightsParent) )
+    {
+        wxMessageBox(string_format("Timing section %s already exists!", new_name), "Error", wxICON_ERROR | wxOK);
+        new_name += "_1";
+        Grid_Timing->SetCellValue(new_name, selection, 0);
+    }
     wxArrayString timing_list;
     if( xml_file->GetSequenceLoaded() )
     {
@@ -692,7 +710,6 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     {
         timing_list = xml_file->GetTimingList();
     }
-    wxString new_name = Grid_Timing->GetCellValue(selection, 0);
     xLightsParent->RenameTimingElement(timing_list[selection], new_name);
     xml_file->SetTimingSectionName(timing_list[selection], new_name);
 }

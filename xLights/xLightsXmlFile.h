@@ -76,6 +76,7 @@ class xLightsXmlFile : public wxFileName
         void AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
         void DeleteTimingSection(wxString section);
         void SetTimingSectionName(wxString section, wxString name);
+        bool TimingAlreadyExists(wxString section, xLightsFrame* xLightsParent);
         wxArrayString GetTimingList() { return timing_list; }
         wxArrayString GetTimingList(SequenceElements& seq_elements);
         void ProcessAudacityTimingFiles(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);

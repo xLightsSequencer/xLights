@@ -1478,6 +1478,27 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
     seqDocument.Save(GetFullPath());
 }
 
+bool xLightsXmlFile::TimingAlreadyExists(wxString section, xLightsFrame* xLightsParent)
+{
+    if( sequence_loaded )
+    {
+        timing_list = GetTimingList(xLightsParent->GetSequenceElements());
+    }
+    else
+    {
+        timing_list = GetTimingList();
+    }
+    for( int i = 0; i < timing_list.size(); ++i )
+    {
+        if( timing_list[i] == section )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
 {
     AddTimingDisplayElement( interval_name, "1", "0" );
