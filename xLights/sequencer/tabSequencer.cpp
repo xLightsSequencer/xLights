@@ -496,8 +496,12 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+
     playType = PLAY_TYPE_MODEL;
-    playStartTime = 0;
+    playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
     wxString model = event.GetString();
     
     playBuffer.InitBuffer(GetModelNode(model),
@@ -506,7 +510,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     
     playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
     playStartMS = -1;
-    PlayerDlg->MediaCtrl->Seek(0);
+    PlayerDlg->MediaCtrl->Seek(playStartTime);
     PlayerDlg->MediaCtrl->Play();
 }
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
@@ -576,9 +580,25 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
     if (curt < 0) {
         playStartMS = -1;
+        if (playType == PLAY_TYPE_MODEL) {
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+            playStartTime = playEndTime = 0;
+            playType = 0;
+        }
         return;
     }
     if (playType == PLAY_TYPE_MODEL) {
+        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
+            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+            playStartTime = playEndTime = 0;
+            playStartMS = -1;
+            playType = 0;
+            return;
+        }
         double ms = PlayerDlg->MediaCtrl->Tell();
         ms /= 1000.0;
         int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms);

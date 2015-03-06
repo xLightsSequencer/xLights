@@ -61,6 +61,11 @@ class TimeLine : public wxWindow
 
         int GetTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
+    
+        int GetSelectedTimeMS() {
+            return mSelectedTimeMS;
+        }
+
 
         static double RoundToMultipleOfPeriod(double number,double period);
 
@@ -99,8 +104,8 @@ class TimeLine : public wxWindow
         int mViewableTimeMS;
         void render( wxPaintEvent& event );
         float GetFirstTimeLabelFromPixelOffset(int offset);
-        int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetPixelOffsetFromStartTime();
+        int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetMaxViewableTimeMS();
         int GetTotalViewableTimeMS();
         wxPanel* mParent;

@@ -2779,6 +2779,7 @@ void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable
     wxAuiToolBarItem* button = toolbar->FindTool(id);
     int state = enable?wxAUI_BUTTON_STATE_NORMAL:wxAUI_BUTTON_STATE_DISABLED;
     button->SetState(state);
+    toolbar->Refresh();
 }
 
 void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
