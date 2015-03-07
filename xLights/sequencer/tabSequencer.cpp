@@ -272,7 +272,10 @@ void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
     // event.GetInt holds position without first pixelOffset
-    mainSequencer->PanelTimeLine->TimeSelected(event.GetInt());
+    int newPlayTime = mainSequencer->PanelTimeLine->TimeSelected(event.GetInt());
+    if( mainSequencer->GetIsPlaying() ) {
+        PlayerDlg->MediaCtrl->Seek(newPlayTime);
+    }
 }
 
 
