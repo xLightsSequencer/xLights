@@ -47,6 +47,9 @@
 								<item>Star</item>
 								<item>Wreath</item>
 								<item>Custom</item>
+								<item>Sphere 360</item>
+								<item>Sphere 270</item>
+								<item>Sphere 180</item>
 							</content>
 							<selection>0</selection>
 							<handler function="OnChoice_DisplayAsSelect" entry="EVT_CHOICE" />

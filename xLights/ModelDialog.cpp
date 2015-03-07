@@ -98,6 +98,9 @@ ModelDialog::ModelDialog(wxWindow* parent,wxWindowID id)
     Choice_DisplayAs->Append(_("Star"));
     Choice_DisplayAs->Append(_("Wreath"));
     Choice_DisplayAs->Append(_("Custom"));
+    Choice_DisplayAs->Append(_("Sphere 360"));
+    Choice_DisplayAs->Append(_("Sphere 270"));
+    Choice_DisplayAs->Append(_("Sphere 180"));
     FlexGridSizer2->Add(Choice_DisplayAs, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText9 = new wxStaticText(this, ID_STATICTEXT12, _("Type of String"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
     FlexGridSizer2->Add(StaticText9, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -427,7 +430,7 @@ void ModelDialog::UpdateLabels()
         SpinCtrl_parm3->SetValue(1);
         SpinCtrl_parm3->Enable(false);
     }
-    else if (DisplayAs == "Tree 360" || DisplayAs == "Tree 270")
+    else if (DisplayAs == "Tree 360" || DisplayAs == "Tree 270" || DisplayAs == "Sphere 360" || DisplayAs == "Sphere 270")
     {
         ExtraParameterLabel->SetLabel("First Strand for Export");
         ExtraParameterLabel->Show();
@@ -878,7 +881,7 @@ void ModelDialog::OnBitmapButtonCustomPasteClick(wxCommandEvent& event)
     wxString errdetails; //-DJ
 
     copy_data.Replace("\r\r", "\n");
-    
+
     do
     {
         cur_line = copy_data.BeforeFirst('\n');

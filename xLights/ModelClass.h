@@ -37,7 +37,7 @@
 #include <wx/checklst.h>
 #include <wx/listbox.h>
 
-#include "ModelPreview.h" 
+#include "ModelPreview.h"
 #include "Color.h"
 
 
@@ -85,7 +85,7 @@ private:
             offsets[1] = 1;
             offsets[2] = 2;
         }
-        
+
         NodeBaseClass(int StringNumber, size_t NodesPerString)
         {
             StringNum=StringNumber;
@@ -127,7 +127,7 @@ private:
             c[1]=g;
             c[2]=b;
         }
-        
+
         virtual void SetFromChannels(const unsigned char *buf) {
             for (int x = 0; x < 3; x++) {
                 if (offsets[x] != 255) {
@@ -142,7 +142,7 @@ private:
                 }
             }
         }
-        
+
         int GetChanCount()
         {
             return chanCnt;
@@ -276,6 +276,7 @@ private:
     void InitFrame();
     void InitStar();
     void InitWreath();
+      void InitSphere();
     void InitWholeHouse(wxString);
 
     void SetBufferSize(int NewHt, int NewWi);
@@ -283,6 +284,7 @@ private:
     void SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder);
     void CopyBufCoord2ScreenCoord();
     void SetTreeCoord(long degrees);
+
     void SetLineCoord();
     void SetArchCoord();
     int GetCustomMaxChannel(const wxString& customModel);
@@ -369,11 +371,11 @@ public:
     int GetRotation();
     int ChannelsPerNode();
     int NodeStartChannel(size_t nodenum);
-    
+
     void GetNodeChannelValues(size_t nodenum, unsigned char *buf);
     void SetNodeChannelValues(size_t nodenum, unsigned char *buf);
     wxChar GetChannelColorLetter(wxByte chidx);
-    
+
     wxString ChannelLayoutHtml();
 //    int FindChannelAt(int x, int y);
 //    wxSize GetChannelCoords(std::vector<std::vector<int>>& chxy, bool shrink); //for pgo RenderFaces

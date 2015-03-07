@@ -2,6 +2,7 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
+; mar 3,2015: added new line for bin/xlights.map
 
 #define MyTitleName "xLights" 
 
@@ -32,17 +33,18 @@ Source: "C:\Users\Sean_Dell\wxwidgets-3.0.2\lib\gcc_dll\wxmsw30ud_gl_gcc_custom.
 Source: "C:\Users\Sean_Dell\Documents\xLights\bin\glut32.dll"; DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\bin\libmpg123-0.dll"; DestDir: "{app}"
 
-Source: "bin/ffmpeg.exe"; DestDir: "{app}"
+Source: "bin/ffmpeg.exe";       DestDir: "{app}"
+Source: "bin/xlights.map";      DestDir: "{app}"
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}"
-Source: "bin/gawk.exe"; DestDir: "{app}"
-Source: "bin/coroface.awk"; DestDir: "{app}"
-Source: "bin/corofaces.bat"; DestDir: "{app}"
+Source: "bin/gawk.exe";         DestDir: "{app}"
+Source: "bin/coroface.awk";     DestDir: "{app}"
+Source: "bin/corofaces.bat";    DestDir: "{app}"
 Source: "bin/picturefaces.awk"; DestDir: "{app}"
-Source: "bin/modelxls.awk"; DestDir: "{app}"
-Source: "bin/modelxls.bat"; DestDir: "{app}"
-Source: "bin/merge_xml.awk"; DestDir: "{app}"
-Source: "bin/PathEditor.exe"; DestDir: "{app}"
-Source: "include\xLights.ico"; DestDir: "{app}"
+Source: "bin/modelxls.awk";     DestDir: "{app}"
+Source: "bin/modelxls.bat";     DestDir: "{app}"
+Source: "bin/merge_xml.awk";    DestDir: "{app}"
+Source: "bin/PathEditor.exe";   DestDir: "{app}"
+Source: "include\xLights.ico";  DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 Source: "License.txt"; DestDir: "{app}";
