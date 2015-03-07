@@ -493,13 +493,14 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 
 void EffectsGrid::InitializeGrid()
 {
-    mIsInitialized = true;
+    if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
     glLoadIdentity();
     CreateEffectIconTextures();
+    mIsInitialized = true;
 }
 
 void EffectsGrid::StartDrawing(wxDouble pointSize)
@@ -798,14 +799,18 @@ void EffectsGrid::DrawTimingEffects(int row)
 
 void EffectsGrid::render( wxPaintEvent& evt )
 {
-    if(!mIsInitialized) return;
+    if(!mIsInitialized) { InitializeGrid(); }
+    if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
-    DrawHorizontalLines();
-    DrawVerticalLines();
-    DrawEffects();
+    if( mSequenceElements )
+    {
+        DrawHorizontalLines();
+        DrawVerticalLines();
+        DrawEffects();
+    }
     if(mDragging)
     {
         DrawRectangle(*wxYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);

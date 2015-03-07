@@ -96,11 +96,11 @@ int SequencePreview::getHeight()
 void SequencePreview::InitializePreview()
 {
     mIsInitialized = true;
-    wxGLCanvas::SetCurrent(*m_context);
+    /*wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
-    glLoadIdentity();
+    glLoadIdentity();*/
 }
 
 bool SequencePreview::StartDrawing(wxDouble pointSize)
@@ -138,6 +138,4 @@ void SequencePreview::render( wxPaintEvent& evt )
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFlush();
     SwapBuffers();
-
-
 }

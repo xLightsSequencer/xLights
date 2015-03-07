@@ -121,11 +121,11 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     mBackgroundBrightness = brightness;
-    wxGLCanvas::SetCurrent(*m_context);
-    wxClientDC dc(this);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
-    glLoadIdentity();
+    //wxGLCanvas::SetCurrent(*m_context);
+    //wxClientDC dc(this);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //prepare2DViewport(0,0,getWidth(), getHeight());
+    //glLoadIdentity();
 }
 
 /** Inits the OpenGL viewport for drawing in 2D. */
@@ -144,7 +144,6 @@ void ModelPreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrig
     glTranslatef(0,-getHeight(),0);
     // Set view port
     glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
-
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -179,8 +178,9 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
     glPointSize( mPointSize );
 }
 
-void ModelPreview::StartDrawing(wxDouble pointSize)
+bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
+    if( !IsShownOnScreen() ) return false;
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
@@ -202,6 +202,7 @@ void ModelPreview::StartDrawing(wxDouble pointSize)
         sprite->render();
     }
     glDisable(GL_TEXTURE_2D);   // textures
+    return true;
 }
 
 void ModelPreview::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)

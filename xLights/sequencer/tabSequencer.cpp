@@ -225,7 +225,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
         //mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
         mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
         mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
-        mainSequencer->PanelEffectGrid->InitializeGrid();
+        //mainSequencer->PanelEffectGrid->InitializeGrid();
 
         ResizeAndMakeEffectsScroll();
         ResizeMainSequencer();
@@ -503,11 +503,11 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     playType = PLAY_TYPE_MODEL;
     playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
     wxString model = event.GetString();
-    
+
     playBuffer.InitBuffer(GetModelNode(model),
                           mSequenceElements.GetElement(model)->GetEffectLayerCount(),
                           SeqData.FrameTime());
-    
+
     playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
     playStartMS = -1;
     PlayerDlg->MediaCtrl->Seek(playStartTime);

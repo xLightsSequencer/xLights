@@ -57,10 +57,11 @@ EVT_PAINT(Waveform::render)
 END_EVENT_TABLE()
 // Custom Events
 
+int opengl_canvas_args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   wxGLCanvas(parent,wxID_ANY,nullptr, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+                   wxGLCanvas(parent,wxID_ANY,opengl_canvas_args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     m_left_data = NULL;
     m_right_data = NULL;
@@ -85,6 +86,7 @@ Waveform::~Waveform()
     if (m_right_data) delete m_right_data;
     if (tmrScrollLeft) delete tmrScrollLeft;
     if (tmrScrollRight) delete tmrScrollRight;
+    delete m_context;
 }
 
 void Waveform::CloseMediaFile()
@@ -365,13 +367,31 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 
 void Waveform::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized){return;}
+    if(!IsShownOnScreen()) return;
 
     wxGLCanvas::SetCurrent(*m_context);
+
+    // This is required even though dc is not used otherwise.
+    wxPaintDC dc(this);
+
+    // Set the OpenGL viewport according to the client size of this canvas.
+    // This is done here rather than in a wxSizeEvent handler because our
+    // OpenGL rendering context (and thus viewport setting) is used with
+    // multiple canvases: If we updated the viewport in the wxSizeEvent
+    // handler, changing the size of one canvas causes a viewport setting that
+    // is wrong when next another canvas is repainted.
+    const wxSize ClientSize = GetClientSize();
+
+
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
-    DrawWaveView(views[mCurrentWaveView]); // continue the event
+    //prepare2DViewport(0,0,getWidth(), getHeight());
+    prepare2DViewport(0,0,ClientSize.x, ClientSize.y);
+    glLoadIdentity();
+    if(mIsInitialized)
+    {
+        DrawWaveView(views[mCurrentWaveView]); // continue the event
+    }
     glFlush();
     SwapBuffers();
 }
@@ -488,25 +508,25 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
 void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     // Rotate Axis and tranlate
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     glRotatef(180,0,0,1);
     glRotatef(180,0,1,0);
     glTranslatef(0,-getHeight(),0);
     // Set view port
     glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
 
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 int Waveform::getWidth()
