@@ -119,6 +119,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	//*)
 
     mParent = parent;
+    isPlaying = false;
     SetHandlers(this);
 }
 
@@ -219,6 +220,20 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case WXK_BACK:
         case WXK_DELETE:
             DeleteAllSelectedEffects();
+            event.StopPropagation();
+            break;
+        case WXK_SPACE:
+            {
+                if( isPlaying ) {
+                    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE_ON_GRID);
+                    wxPostEvent(mParent, playEvent);
+                }
+                else {
+                    wxCommandEvent playEvent(EVT_PLAY_SEQUENCE_ON_GRID);
+                    wxPostEvent(mParent, playEvent);
+                }
+
+            }
             event.StopPropagation();
             break;
         default:

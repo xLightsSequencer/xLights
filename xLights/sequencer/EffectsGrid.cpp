@@ -159,55 +159,56 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if (mSequenceElements == NULL) {
         return;
     }
-    int FirstSelected;
-    if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
-    {
-        mSequenceElements->UnSelectAllEffects();
-    }
-
-    int row = GetRow(event.GetY());
-    if(row>=mSequenceElements->GetRowInformationSize())
-        return;
-    int effectIndex;
-    int selectionType;
-    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
-    if(selectedEffect!= nullptr)
-    {
-        if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
+    if( !((MainSequencer*)mParent)->GetIsPlaying() ) {
+        int FirstSelected;
+        if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
         {
             mSequenceElements->UnSelectAllEffects();
-            selectedEffect->SetSelected(selectionType);
         }
-        mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-        Element* element = mSequenceElements->GetRowInformation(row)->element;
-        mSelectedRow = row;
-        mPaintOnIdleCounter = 0;
 
-        if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
+        int row = GetRow(event.GetY());
+        if(row>=mSequenceElements->GetRowInformationSize())
+            return;
+        int effectIndex;
+        int selectionType;
+        Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
+        if(selectedEffect!= nullptr)
         {
-            mSelectedEffect = selectedEffect;
-            if(element->GetType()=="model")
+            if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
             {
-                RaiseSelectedEffectChanged(mSelectedEffect);
-                RaisePlayModelEffect(element,mSelectedEffect,false);
+                mSequenceElements->UnSelectAllEffects();
+                selectedEffect->SetSelected(selectionType);
+            }
+            mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+            Element* element = mSequenceElements->GetRowInformation(row)->element;
+            mSelectedRow = row;
+            mPaintOnIdleCounter = 0;
+
+            if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
+            {
+                mSelectedEffect = selectedEffect;
+                if(element->GetType()=="model")
+                {
+                    RaiseSelectedEffectChanged(mSelectedEffect);
+                    RaisePlayModelEffect(element,mSelectedEffect,false);
+                }
             }
         }
-    }
 
-    if(mResizingMode!=EFFECT_RESIZE_NO)
-    {
-        mResizing = true;
-        mResizeEffectIndex = effectIndex;
+        if(mResizingMode!=EFFECT_RESIZE_NO)
+        {
+            mResizing = true;
+            mResizeEffectIndex = effectIndex;
+        }
+        else
+        {
+            mDragging = true;
+            mDragStartX = event.GetX();
+            mDragStartY = event.GetY();
+            mDragEndX = event.GetX();
+            mDragEndY = event.GetY();
+       }
     }
-    else
-    {
-        mDragging = true;
-        mDragStartX = event.GetX();
-        mDragStartY = event.GetY();
-        mDragEndX = event.GetX();
-        mDragEndY = event.GetY();
-   }
-
    UpdateTimePosition(event.GetX());
    event.Skip(true);
 }
@@ -493,13 +494,14 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 
 void EffectsGrid::InitializeGrid()
 {
-    mIsInitialized = true;
+    if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
     glLoadIdentity();
     CreateEffectIconTextures();
+    mIsInitialized = true;
 }
 
 void EffectsGrid::StartDrawing(wxDouble pointSize)
@@ -798,14 +800,18 @@ void EffectsGrid::DrawTimingEffects(int row)
 
 void EffectsGrid::render( wxPaintEvent& evt )
 {
-    if(!mIsInitialized) return;
+    if(!mIsInitialized) { InitializeGrid(); }
+    if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
-    DrawHorizontalLines();
-    DrawVerticalLines();
-    DrawEffects();
+    if( mSequenceElements )
+    {
+        DrawHorizontalLines();
+        DrawVerticalLines();
+        DrawEffects();
+    }
     if(mDragging)
     {
         DrawRectangle(*wxYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);

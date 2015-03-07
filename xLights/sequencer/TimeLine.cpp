@@ -249,7 +249,7 @@ int TimeLine::GetTimeLength()
     return mTimeLength;
 }
 
-void TimeLine::TimeSelected(int x)
+int TimeLine::TimeSelected(int x)
 {
     double time = GetAbsoluteTimefromPosition(x);
     // Round to nearest period
@@ -259,7 +259,7 @@ void TimeLine::TimeSelected(int x)
     mSelectedTimeMS = (int)(time * 1000);
     RaiseChangeTimeline();
     Refresh();
-
+    return mSelectedTimeMS;
 }
 
 int TimeLine::GetTimeMSfromPosition(int position)

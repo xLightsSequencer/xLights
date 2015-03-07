@@ -47,7 +47,7 @@ public:
 	int getWidth();
 	int getHeight();
 	void ClearBackground();
-    void InitializeGrid();
+
     void StartDrawing(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void EndDrawing();
@@ -60,7 +60,8 @@ public:
     void ForceRefresh();
 
 private:
-	void render(wxPaintEvent& evt);
+    void InitializeGrid();
+    void render(wxPaintEvent& evt);
     void prepare2DViewport(int x, int y, int w, int h);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);

@@ -244,6 +244,7 @@ int RowHeading::GetMaxRows()
 
 void RowHeading::render( wxPaintEvent& event )
 {
+    if(!IsShownOnScreen()) return;
     wxCoord w,h;
     wxPaintDC dc(this);
     wxPen penOutline(wxColor(32,32,32), .1);

@@ -46,7 +46,7 @@ class TimeLine : public wxWindow
         void SetZoomLevel(int level);
         int GetZoomLevel();
 
-        void TimeSelected(int x);
+        int TimeSelected(int x);
 
         int GetZoomLevelValue();
         int GetMaxZoomLevel();
@@ -61,7 +61,7 @@ class TimeLine : public wxWindow
 
         int GetTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
-    
+
         int GetSelectedTimeMS() {
             return mSelectedTimeMS;
         }

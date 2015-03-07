@@ -80,7 +80,7 @@ void xLightsFrame::UpdatePreview()
 {
     const xlColour *color;
     wxString SelModelName=ListBoxElementList->GetStringSelection();
-    modelPreview->StartDrawing(mPointSize);
+    if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {
         modelPreview->DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
@@ -888,20 +888,19 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbTrack(wxScrollEvent& event)
     }
     else
     {
-        PlayerDlg->MediaCtrl->Seek(msec);
+/*        PlayerDlg->MediaCtrl->Seek(msec);
         ShowPreviewTime(msec);
         if(PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
         {
             PlayerDlg->MediaCtrl->Play();
         }
         PreviewOutput(newperiod);
-        seekPoint = msec;
+        seekPoint = msec;*/
     }
 }
 
 void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event)
 {
-
     int newperiod = SliderPreviewTime->GetValue() * (SeqData.NumFrames()-1) / SliderPreviewTime->GetMax();
     long msec=newperiod * SeqData.FrameTime();
     if (mediaFilename.IsEmpty())
@@ -914,7 +913,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
     }
     else if(SeqPlayerState != PLAYING_SEQ_ANIM)
     {
-        ShowPreviewTime(msec);
+ /*       ShowPreviewTime(msec);
         PlayerDlg->MediaCtrl->Seek(msec);
 
         wxSleep(1);
@@ -927,7 +926,7 @@ void xLightsFrame::OnSliderPreviewTimeCmdScrollThumbRelease(wxScrollEvent& event
         //Update the time box.
 
         bbPlayPause->SetBitmap(playIcon);
-        previewPlaying = false;
+        previewPlaying = false;*/
     }
     Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
 }

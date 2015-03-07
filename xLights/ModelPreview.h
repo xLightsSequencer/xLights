@@ -24,8 +24,7 @@ public:
 	int getHeight();
 	void ClearBackground();
 	void InitializePreview(wxString img,int brightness);
-    void InitializePreview(wxString img);
-    void StartDrawing(wxDouble pointSize);
+    bool StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
     void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
     void DrawRectangle(const xlColor &color,bool dashed,int x1, int y1,int x2, int y2);
