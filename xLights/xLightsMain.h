@@ -223,6 +223,9 @@ wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_SEQUENCE_ON_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE_ON_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STOP_SEQUENCE_ON_GRID, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
@@ -1611,6 +1614,9 @@ protected:
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
+    void PlaySequenceOnGrid(wxCommandEvent& event);
+    void PauseSequenceOnGrid(wxCommandEvent& event);
+    void StopSequenceOnGrid(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
     void ShowDisplayElements(wxCommandEvent& event);
 

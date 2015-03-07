@@ -513,6 +513,45 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     PlayerDlg->MediaCtrl->Seek(playStartTime);
     PlayerDlg->MediaCtrl->Play();
 }
+
+void xLightsFrame::PlaySequenceOnGrid(wxCommandEvent& event)
+{
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+
+    // FIXME figure out what we should play here...possibly no row selected
+    playType = PLAY_TYPE_MODEL;
+    playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
+
+    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
+    playStartMS = -1;
+    PlayerDlg->MediaCtrl->Seek(playStartTime);
+    PlayerDlg->MediaCtrl->Play();
+    mainSequencer->SetIsPlaying(true);
+}
+
+void xLightsFrame::PauseSequenceOnGrid(wxCommandEvent& event)
+{
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+
+    PlayerDlg->MediaCtrl->Stop();
+    mainSequencer->SetIsPlaying(false);
+}
+
+void xLightsFrame::StopSequenceOnGrid(wxCommandEvent& event)
+{
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+
+    PlayerDlg->MediaCtrl->Stop();
+    PlayerDlg->MediaCtrl->Seek(playStartTime);
+    mainSequencer->SetIsPlaying(false);
+}
+
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
     EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();

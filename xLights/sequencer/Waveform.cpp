@@ -69,6 +69,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     tmrScrollRight = NULL;
 
     mIsInitialized = false;
+    m_dragging = false;
     mParent = parent;
     m_context = new wxGLContext(this);
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
