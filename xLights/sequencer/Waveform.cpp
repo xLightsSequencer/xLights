@@ -147,6 +147,19 @@ void Waveform::OnWaveScrollRight(wxTimerEvent& event)
     Refresh();
 }
 
+void Waveform::CheckNeedToScroll()
+{
+    double StartTime;
+    double EndTime;
+    mTimeline->GetViewableTimeRange(StartTime, EndTime);
+    int scroll_point = mTimeline->GetPositionFromTime(EndTime) * 0.9;
+    if(mSelectedPosition > scroll_point)
+    {
+        wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
+        wxPostEvent(mParent, eventScroll);
+    }
+}
+
 void Waveform::mouseLeftWindow( wxMouseEvent& event)
 {
     if (mIsInitialized)
@@ -582,7 +595,6 @@ int Waveform::SetStartPixelOffset(int offset)
 
 void Waveform::PositionSelected(int x)
 {
-    wxLogDebug(wxString::Format("Waveform::PositionSelected: %d", x));
     mSelectedPosition = x;
     m_shaded_region_x1 = x;
     m_shaded_region_x2 = x;
@@ -595,7 +607,6 @@ void Waveform::RecalcSelectedPosition()
     int SelectedTimeMS = mTimeline->GetSelectedTimeMS();
     mSelectedPosition = mTimeline->GetPositionFromTime((double)SelectedTimeMS/(double(1000.)));
     mTimeline->SetPosition(mSelectedPosition);
-    wxLogDebug(wxString::Format("Waveform::RecalcSelectedPosition: %d Time: %d", mSelectedPosition,SelectedTimeMS));
 }
 
 int Waveform::GetStartPixelOffset()

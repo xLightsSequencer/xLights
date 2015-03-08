@@ -270,6 +270,27 @@ void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
     mainSequencer->PanelTimeLine->SetStartTimeMS(startTime);
 }
 
+void xLightsFrame::ScrollRight(wxCommandEvent& event)
+{
+    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
+    int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
+    if( position < limit-1 )
+    {
+        int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize() / 2;
+        if (ts == 0) {
+            ts = 1;
+        }
+        position += ts;
+        if (position >= limit) {
+            position = limit - 1;
+        }
+        mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
+        wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+        wxPostEvent(this, eventScroll);
+        wxLogDebug("xLightsFrame::ScrollRight");
+    }
+}
+
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
     // event.GetInt holds position without first pixelOffset
@@ -648,6 +669,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms);
         mainSequencer->PanelWaveForm->PositionSelected(i);
         mainSequencer->PanelTimeLine->TimeSelected(i);
+        mainSequencer->PanelWaveForm->CheckNeedToScroll();
     }
 
     if (selectedEffect != NULL) {

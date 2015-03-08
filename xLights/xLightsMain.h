@@ -211,6 +211,7 @@ class RenderCommandEvent;
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -1604,6 +1605,7 @@ protected:
     void RowHeadingsChanged( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
+    void ScrollRight( wxCommandEvent& event);
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);

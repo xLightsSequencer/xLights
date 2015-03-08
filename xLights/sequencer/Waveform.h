@@ -16,6 +16,7 @@
 #define WAVEFORM_SIDE_MARGIN        25
 wxDECLARE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
 class TimeLine;
@@ -46,6 +47,8 @@ class Waveform : public wxGLCanvas
 
         void PositionSelected(int x);
         void RecalcSelectedPosition();
+
+        void CheckNeedToScroll();
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
