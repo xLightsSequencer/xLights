@@ -262,7 +262,6 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
-    wxLogDebug("xLightsFrame::HorizontalScrollChanged");
     int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
     int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
 
@@ -287,7 +286,6 @@ void xLightsFrame::ScrollRight(wxCommandEvent& event)
         mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
         wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
         wxPostEvent(this, eventScroll);
-        wxLogDebug("xLightsFrame::ScrollRight");
     }
 }
 
@@ -304,11 +302,11 @@ void xLightsFrame::TimeSelected( wxCommandEvent& event)
 
 void xLightsFrame::TimelineChanged( wxCommandEvent& event)
 {
-    wxLogDebug("xLightsFrame::TimelineChanged");
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelWaveForm->RecalcSelectedPosition();
+    mainSequencer->UpdateTimeDisplay(tla->SelectedTime);
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
@@ -546,7 +544,6 @@ void xLightsFrame::PlaySequence(wxCommandEvent& event)
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
 
-    // FIXME figure out what we should play here...possibly no row selected
     playType = PLAY_TYPE_MODEL;
     playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
 
@@ -563,7 +560,7 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
 
-    PlayerDlg->MediaCtrl->Stop();
+    PlayerDlg->MediaCtrl->Pause();
     mainSequencer->SetIsPlaying(false);
 }
 

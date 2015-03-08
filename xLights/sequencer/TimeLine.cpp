@@ -60,7 +60,7 @@ TimeLine::~TimeLine()
 
 void TimeLine::RaiseChangeTimeline()
 {
-    TimelineChangeArguments *tla = new TimelineChangeArguments(mZoomLevel,mStartPixelOffset,mSelectedPosition);
+    TimelineChangeArguments *tla = new TimelineChangeArguments(mZoomLevel,mStartPixelOffset,mSelectedTimeMS);
     wxCommandEvent eventTimeLineChanged(EVT_TIME_LINE_CHANGED);
     eventTimeLineChanged.SetClientData((void*)tla);
     eventTimeLineChanged.SetInt(0);
@@ -416,11 +416,11 @@ void TimeLine::GetViewableTimeRange(double &StartTime, double &EndTime)
     EndTime = mEndTime;
 }
 
-TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOffset,int selectedPosition)
+TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOffset,int selectedTime)
 {
     ZoomLevel = zoomLevel;
     StartPixelOffset = startPixelOffset;
-    SelectedPosition = selectedPosition;
+    SelectedTime = selectedTime;
 }
 
 double TimeLine::RoundToMultipleOfPeriod(double number,double frequency)

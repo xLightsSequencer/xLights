@@ -11,8 +11,8 @@
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL5" variable="PanelPlayControls" member="yes">
 					<size>175,100</size>
-					<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-						<label>Label</label>
+					<object class="wxStaticText" name="ID_STATICTEXT_Time" variable="StaticText_SeqTime" member="yes">
+						<label>Time:</label>
 						<pos>80,64</pos>
 					</object>
 				</object>
