@@ -225,11 +225,11 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case WXK_SPACE:
             {
                 if( isPlaying ) {
-                    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE_ON_GRID);
+                    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
                     wxPostEvent(mParent, playEvent);
                 }
                 else {
-                    wxCommandEvent playEvent(EVT_PLAY_SEQUENCE_ON_GRID);
+                    wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
                     wxPostEvent(mParent, playEvent);
                 }
 

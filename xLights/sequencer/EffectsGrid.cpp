@@ -62,7 +62,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = NULL;
-
 }
 
 EffectsGrid::~EffectsGrid()
@@ -159,58 +158,56 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if (mSequenceElements == NULL) {
         return;
     }
-    if( !((MainSequencer*)mParent)->GetIsPlaying() ) {
-        int FirstSelected;
-        if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
+    int FirstSelected;
+    if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
+    {
+        mSequenceElements->UnSelectAllEffects();
+    }
+
+    int row = GetRow(event.GetY());
+    if(row>=mSequenceElements->GetRowInformationSize())
+        return;
+    int effectIndex;
+    int selectionType;
+    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
+    if(selectedEffect!= nullptr)
+    {
+        if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
         {
             mSequenceElements->UnSelectAllEffects();
+            selectedEffect->SetSelected(selectionType);
         }
+        mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+        Element* element = mSequenceElements->GetRowInformation(row)->element;
+        mSelectedRow = row;
+        mPaintOnIdleCounter = 0;
 
-        int row = GetRow(event.GetY());
-        if(row>=mSequenceElements->GetRowInformationSize())
-            return;
-        int effectIndex;
-        int selectionType;
-        Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
-        if(selectedEffect!= nullptr)
+        if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
         {
-            if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
+            mSelectedEffect = selectedEffect;
+            if(element->GetType()=="model")
             {
-                mSequenceElements->UnSelectAllEffects();
-                selectedEffect->SetSelected(selectionType);
-            }
-            mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-            Element* element = mSequenceElements->GetRowInformation(row)->element;
-            mSelectedRow = row;
-            mPaintOnIdleCounter = 0;
-
-            if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
-            {
-                mSelectedEffect = selectedEffect;
-                if(element->GetType()=="model")
-                {
-                    RaiseSelectedEffectChanged(mSelectedEffect);
-                    RaisePlayModelEffect(element,mSelectedEffect,false);
-                }
+                RaiseSelectedEffectChanged(mSelectedEffect);
+                RaisePlayModelEffect(element,mSelectedEffect,false);
             }
         }
-
-        if(mResizingMode!=EFFECT_RESIZE_NO)
-        {
-            mResizing = true;
-            mResizeEffectIndex = effectIndex;
-        }
-        else
-        {
-            mDragging = true;
-            mDragStartX = event.GetX();
-            mDragStartY = event.GetY();
-            mDragEndX = event.GetX();
-            mDragEndY = event.GetY();
-       }
     }
-   UpdateTimePosition(event.GetX());
-   event.Skip(true);
+
+    if(mResizingMode!=EFFECT_RESIZE_NO)
+    {
+        mResizing = true;
+        mResizeEffectIndex = effectIndex;
+    }
+    else
+    {
+        mDragging = true;
+        mDragStartX = event.GetX();
+        mDragStartY = event.GetY();
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
+    }
+    UpdateTimePosition(event.GetX());
+    event.Skip(true);
 }
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)

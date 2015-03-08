@@ -582,6 +582,7 @@ int Waveform::SetStartPixelOffset(int offset)
 
 void Waveform::PositionSelected(int x)
 {
+    wxLogDebug(wxString::Format("Waveform::PositionSelected: %d", x));
     mSelectedPosition = x;
     m_shaded_region_x1 = x;
     m_shaded_region_x2 = x;
@@ -589,7 +590,13 @@ void Waveform::PositionSelected(int x)
     Update();
 }
 
-
+void Waveform::RecalcSelectedPosition()
+{
+    int SelectedTimeMS = mTimeline->GetSelectedTimeMS();
+    mSelectedPosition = mTimeline->GetPositionFromTime((double)SelectedTimeMS/(double(1000.)));
+    mTimeline->SetPosition(mSelectedPosition);
+    wxLogDebug(wxString::Format("Waveform::RecalcSelectedPosition: %d Time: %d", mSelectedPosition,SelectedTimeMS));
+}
 
 int Waveform::GetStartPixelOffset()
 {

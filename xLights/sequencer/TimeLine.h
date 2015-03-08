@@ -66,6 +66,7 @@ class TimeLine : public wxWindow
             return mSelectedTimeMS;
         }
 
+        void SetPosition(int value) { mSelectedPosition = value; }
 
         static double RoundToMultipleOfPeriod(double number,double period);
 

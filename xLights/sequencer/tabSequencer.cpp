@@ -262,6 +262,7 @@ void xLightsFrame::Zoom( wxCommandEvent& event)
 
 void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
 {
+    wxLogDebug("xLightsFrame::HorizontalScrollChanged");
     int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
     int timeLength = mainSequencer->PanelTimeLine->GetTimeLength();
 
@@ -282,10 +283,11 @@ void xLightsFrame::TimeSelected( wxCommandEvent& event)
 
 void xLightsFrame::TimelineChanged( wxCommandEvent& event)
 {
+    wxLogDebug("xLightsFrame::TimelineChanged");
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->PanelWaveForm->PositionSelected(tla->SelectedPosition);
+    mainSequencer->PanelWaveForm->RecalcSelectedPosition();
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
@@ -517,7 +519,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     PlayerDlg->MediaCtrl->Play();
 }
 
-void xLightsFrame::PlaySequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::PlaySequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
@@ -534,7 +536,7 @@ void xLightsFrame::PlaySequenceOnGrid(wxCommandEvent& event)
     mainSequencer->SetIsPlaying(true);
 }
 
-void xLightsFrame::PauseSequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
@@ -544,7 +546,7 @@ void xLightsFrame::PauseSequenceOnGrid(wxCommandEvent& event)
     mainSequencer->SetIsPlaying(false);
 }
 
-void xLightsFrame::StopSequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::StopSequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
