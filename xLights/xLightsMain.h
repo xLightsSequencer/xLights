@@ -211,6 +211,7 @@ class RenderCommandEvent;
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -223,9 +224,9 @@ wxDECLARE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PLAY_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDECLARE_EVENT(EVT_STOP_SEQUENCE_ON_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
@@ -1604,6 +1605,7 @@ protected:
     void RowHeadingsChanged( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);
     void HorizontalScrollChanged( wxCommandEvent& event);
+    void ScrollRight( wxCommandEvent& event);
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
@@ -1614,9 +1616,9 @@ protected:
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
-    void PlaySequenceOnGrid(wxCommandEvent& event);
-    void PauseSequenceOnGrid(wxCommandEvent& event);
-    void StopSequenceOnGrid(wxCommandEvent& event);
+    void PlaySequence(wxCommandEvent& event);
+    void PauseSequence(wxCommandEvent& event);
+    void StopSequence(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
     void ShowDisplayElements(wxCommandEvent& event);
 

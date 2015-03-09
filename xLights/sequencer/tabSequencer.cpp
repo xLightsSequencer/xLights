@@ -269,6 +269,26 @@ void xLightsFrame::HorizontalScrollChanged( wxCommandEvent& event)
     mainSequencer->PanelTimeLine->SetStartTimeMS(startTime);
 }
 
+void xLightsFrame::ScrollRight(wxCommandEvent& event)
+{
+    int position = mainSequencer->ScrollBarEffectsHorizontal->GetThumbPosition();
+    int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
+    if( position < limit-1 )
+    {
+        int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize() / 2;
+        if (ts == 0) {
+            ts = 1;
+        }
+        position += ts;
+        if (position >= limit) {
+            position = limit - 1;
+        }
+        mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
+        wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+        wxPostEvent(this, eventScroll);
+    }
+}
+
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
     // event.GetInt holds position without first pixelOffset
@@ -285,7 +305,8 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->PanelWaveForm->PositionSelected(tla->SelectedPosition);
+    mainSequencer->PanelWaveForm->RecalcSelectedPosition();
+    mainSequencer->UpdateTimeDisplay(tla->SelectedTime);
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
@@ -517,13 +538,12 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
     PlayerDlg->MediaCtrl->Play();
 }
 
-void xLightsFrame::PlaySequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::PlaySequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
 
-    // FIXME figure out what we should play here...possibly no row selected
     playType = PLAY_TYPE_MODEL;
     playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
 
@@ -534,17 +554,17 @@ void xLightsFrame::PlaySequenceOnGrid(wxCommandEvent& event)
     mainSequencer->SetIsPlaying(true);
 }
 
-void xLightsFrame::PauseSequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
 
-    PlayerDlg->MediaCtrl->Stop();
+    PlayerDlg->MediaCtrl->Pause();
     mainSequencer->SetIsPlaying(false);
 }
 
-void xLightsFrame::StopSequenceOnGrid(wxCommandEvent& event)
+void xLightsFrame::StopSequence(wxCommandEvent& event)
 {
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
@@ -646,6 +666,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms);
         mainSequencer->PanelWaveForm->PositionSelected(i);
         mainSequencer->PanelTimeLine->TimeSelected(i);
+        mainSequencer->PanelWaveForm->CheckNeedToScroll();
     }
 
     if (selectedEffect != NULL) {

@@ -66,6 +66,7 @@ class TimeLine : public wxWindow
             return mSelectedTimeMS;
         }
 
+        void SetPosition(int value) { mSelectedPosition = value; }
 
         static double RoundToMultipleOfPeriod(double number,double period);
 
@@ -114,11 +115,11 @@ class TimeLine : public wxWindow
 class TimelineChangeArguments
 {
     public:
-        TimelineChangeArguments(int zoomLevel, int startPixelOffset,int SelectedPosition);
+        TimelineChangeArguments(int zoomLevel, int startPixelOffset,int selectedTime);
         virtual ~TimelineChangeArguments();
         int ZoomLevel;
         int StartPixelOffset;
-        int SelectedPosition;
+        int SelectedTime;
 
 };
 

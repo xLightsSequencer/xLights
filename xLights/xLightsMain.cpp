@@ -389,6 +389,7 @@ const long xLightsFrame::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 
 wxDEFINE_EVENT(EVT_ZOOM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SCROLL_RIGHT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
@@ -401,9 +402,9 @@ wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
-wxDEFINE_EVENT(EVT_PLAY_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDEFINE_EVENT(EVT_STOP_SEQUENCE_ON_GRID, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
@@ -414,6 +415,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_TIME_LINE_CHANGED, xLightsFrame::TimelineChanged)
     EVT_COMMAND(wxID_ANY, EVT_ZOOM, xLightsFrame::Zoom)
     EVT_COMMAND(wxID_ANY, EVT_HORIZ_SCROLL, xLightsFrame::HorizontalScrollChanged)
+    EVT_COMMAND(wxID_ANY, EVT_SCROLL_RIGHT, xLightsFrame::ScrollRight)
     EVT_COMMAND(wxID_ANY, EVT_TIME_SELECTED, xLightsFrame::TimeSelected)
     EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
@@ -426,9 +428,9 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
-    EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE_ON_GRID, xLightsFrame::PlaySequenceOnGrid)
-    EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE_ON_GRID, xLightsFrame::PauseSequenceOnGrid)
-    EVT_COMMAND(wxID_ANY, EVT_STOP_SEQUENCE_ON_GRID, xLightsFrame::StopSequenceOnGrid)
+    EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE, xLightsFrame::PlaySequence)
+    EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE, xLightsFrame::PauseSequence)
+    EVT_COMMAND(wxID_ANY, EVT_STOP_SEQUENCE, xLightsFrame::StopSequence)
     EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
     EVT_COMMAND(wxID_ANY, EVT_IMPORT_TIMING, xLightsFrame::ExecuteImportTimingElement)
     wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
@@ -2491,6 +2493,8 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
+    StopNow();
+    wxLogDebug("xLightsFrame::OnClose");
     if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
             "Unsaved Changes", wxICON_QUESTION | wxYES_NO))
     {
@@ -2773,11 +2777,7 @@ void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 {
     if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
-        //PlayerDlg->MediaCtrl->Play();
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE_ON_GRID);
+        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
     }
 }
@@ -2794,11 +2794,7 @@ void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
 {
     if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
-        //PlayerDlg->MediaCtrl->Pause();
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-        wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE_ON_GRID);
+        wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
         wxPostEvent(this, playEvent);
     }
 }
@@ -2807,12 +2803,8 @@ void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
 {
     if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
-        //PlayerDlg->MediaCtrl->Stop();
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
-        //EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
         //playStartTime = playEndTime = 0;
-        wxCommandEvent playEvent(EVT_STOP_SEQUENCE_ON_GRID);
+        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
         wxPostEvent(this, playEvent);
     }
 }

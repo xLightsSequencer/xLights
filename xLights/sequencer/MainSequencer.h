@@ -12,9 +12,9 @@
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PLAY_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE_ON_GRID, wxCommandEvent);
-wxDECLARE_EVENT(EVT_STOP_SEQUENCE_ON_GRID, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
 
 class MainSequencer: public wxPanel
 {
@@ -26,13 +26,13 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         bool GetIsPlaying() { return isPlaying; }
         void SetIsPlaying(bool value) { isPlaying = value; }
-
+        void UpdateTimeDisplay(int time_ms);
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
 		wxScrollBar* ScrollBarEffectsVertical;
-		wxStaticText* StaticText1;
 		EffectsGrid* PanelEffectGrid;
+		wxStaticText* StaticText_SeqTime;
 		RowHeading* PanelRowHeadings;
 		wxPanel* PanelPlayControls;
 		Waveform* PanelWaveForm;
@@ -42,7 +42,7 @@ class MainSequencer: public wxPanel
 	protected:
 
 		//(*Identifiers(MainSequencer)
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT_Time;
 		static const long ID_PANEL5;
 		static const long ID_PANEL1;
 		static const long ID_PANEL3;
