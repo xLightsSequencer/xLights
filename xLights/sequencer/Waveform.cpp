@@ -79,7 +79,6 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
     tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
     mPaintOnIdleCounter = 0;
-    last_play_marker_pos = 0;
 }
 
 Waveform::~Waveform()
