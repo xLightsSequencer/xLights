@@ -10,7 +10,7 @@ BEGIN_EVENT_TABLE(TimeLine, wxWindow)
 EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
-
+EVT_LEFT_DCLICK(TimeLine::mouseLeftDClick)
 //EVT_LEAVE_WINDOW(TimeLine::mouseLeftWindow)
 //EVT_RIGHT_DOWN(TimeLine::rightClick)
 //EVT_SIZE(TimeLine::resized)
@@ -56,6 +56,11 @@ void TimeLine::mouseLeftUp( wxMouseEvent& event)
     triggerPlay();
     ReleaseMouse();
     Refresh(false);
+}
+
+void TimeLine::mouseLeftDClick(wxMouseEvent& event)
+{
+    CaptureMouse();
 }
 
 void TimeLine::triggerPlay()

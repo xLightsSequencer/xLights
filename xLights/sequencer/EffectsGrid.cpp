@@ -26,7 +26,7 @@ EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
-
+EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
 //EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 //EVT_SIZE(EffectsGrid::resized)
@@ -209,6 +209,11 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     UpdateTimePosition(event.GetX());
     CaptureMouse();
     event.Skip(true);
+}
+
+void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
+{
+    CaptureMouse();
 }
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)

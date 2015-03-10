@@ -79,6 +79,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
     tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
     mPaintOnIdleCounter = 0;
+    last_play_marker_pos = 0;
 }
 
 Waveform::~Waveform()
@@ -125,6 +126,7 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
     else {eventZoom.SetInt(ZOOM_IN);}
 
     wxPostEvent(GetParent(), eventZoom);
+    CaptureMouse();
 }
 
 void Waveform::UpdatePlayMarker()
@@ -404,6 +406,7 @@ void Waveform::render( wxPaintEvent& event )
     }
     glFlush();
     SwapBuffers();
+    wxLogDebug("Waveform::render");
 }
 
 void Waveform::DrawWaveView(const WaveView &wv)

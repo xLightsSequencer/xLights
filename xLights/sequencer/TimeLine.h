@@ -97,6 +97,7 @@ class TimeLine : public wxWindow
         void mouseLeftDown( wxMouseEvent& event);
         void mouseLeftUp( wxMouseEvent& event);
         void mouseMoved( wxMouseEvent& event);
+        void mouseLeftDClick(wxMouseEvent& event);
         void triggerPlay();
         bool mIsInitialized;
         int mStartTimeMS;
