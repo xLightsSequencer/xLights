@@ -275,7 +275,7 @@ void xLightsFrame::ScrollRight(wxCommandEvent& event)
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     if( position < limit-1 )
     {
-        int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize() / 2;
+        int ts = mainSequencer->ScrollBarEffectsHorizontal->GetThumbSize();
         if (ts == 0) {
             ts = 1;
         }
@@ -291,22 +291,15 @@ void xLightsFrame::ScrollRight(wxCommandEvent& event)
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
-    // event.GetInt holds position without first pixelOffset
-    int newPlayTime = mainSequencer->PanelTimeLine->TimeSelected(event.GetInt());
-    if( mainSequencer->GetIsPlaying() ) {
-        PlayerDlg->MediaCtrl->Seek(newPlayTime);
-    }
+    mainSequencer->PanelTimeLine->SetSelectedPositionStart(event.GetInt());
 }
-
-
 
 void xLightsFrame::TimelineChanged( wxCommandEvent& event)
 {
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->PanelWaveForm->RecalcSelectedPosition();
-    mainSequencer->UpdateTimeDisplay(tla->SelectedTime);
+    mainSequencer->UpdateTimeDisplay(tla->CurrentTime);
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
@@ -430,7 +423,7 @@ void xLightsFrame::ResizeMainSequencer()
     //mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(effectWidth-175,effectHeight));
 
 //    mainSequencer->ScrollBarEffectsVertical->SetSize(20,effectHeight);
-//    mainSequencer->ScrollBarEffectsVertical->SetMinSize(wxSize(20,effectHeight));
+//    mainSequencer->ScrollBarEffectsVertPLAY_TYPE_MODELical->SetMinSize(wxSize(20,effectHeight));
 //    mainSequencer->ScrollBarEffectsVertical->SetMaxSize(wxSize(20,effectHeight));
 
 //    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
@@ -520,48 +513,69 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+    if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+    {
+        //playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
+        //playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
+        //if( playEndTime == -1 ) {
+        //    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
+       // }
+        wxString model = event.GetString();
 
-    playType = PLAY_TYPE_MODEL;
-    playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
-    wxString model = event.GetString();
+        playBuffer.InitBuffer(GetModelNode(model),
+                              mSequenceElements.GetElement(model)->GetEffectLayerCount(),
+                              SeqData.FrameTime());
 
-    playBuffer.InitBuffer(GetModelNode(model),
-                          mSequenceElements.GetElement(model)->GetEffectLayerCount(),
-                          SeqData.FrameTime());
-
-    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
-    playStartMS = -1;
-    PlayerDlg->MediaCtrl->Seek(playStartTime);
-    PlayerDlg->MediaCtrl->Play();
+        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
 }
 
 void xLightsFrame::PlaySequence(wxCommandEvent& event)
 {
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,false);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
-
-    playType = PLAY_TYPE_MODEL;
-    playStartTime = mainSequencer->PanelTimeLine->GetSelectedTimeMS();
-
-    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
-    playStartMS = -1;
-    PlayerDlg->MediaCtrl->Seek(playStartTime);
-    PlayerDlg->MediaCtrl->Play();
-    mainSequencer->SetIsPlaying(true);
+    if( CurrentSeqXmlFile != NULL )
+    {
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,false);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
+        playType = PLAY_TYPE_MODEL;
+        playStartMS = -1;
+        playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
+        playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
+        PlayerDlg->MediaCtrl->Seek(playStartTime);
+        if( playEndTime == -1 ) {
+            playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
+        }
+        mainSequencer->PanelTimeLine->PlayStarted();
+        PlayerDlg->MediaCtrl->Play();
+    }
 }
 
 void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+    if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING) {
+        playStartMS = -1;
+        PlayerDlg->MediaCtrl->Pause();
+    }
+    else if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PAUSED) {
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        playStartMS = -1;
+        PlayerDlg->MediaCtrl->Play();
+    }
+}
 
-    PlayerDlg->MediaCtrl->Pause();
-    mainSequencer->SetIsPlaying(false);
+void xLightsFrame::TogglePlay(wxCommandEvent& event)
+{
+    if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_STOPPED) {
+        wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
+    else
+    {
+        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
 }
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
@@ -569,26 +583,62 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,true);
+    EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,true);
 
     PlayerDlg->MediaCtrl->Stop();
     PlayerDlg->MediaCtrl->Seek(playStartTime);
-    mainSequencer->SetIsPlaying(false);
+    mainSequencer->PanelTimeLine->PlayStopped();
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->UpdateTimeDisplay(playStartTime);
+}
+
+void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
+{
+    mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(0);
+    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+    wxPostEvent(this, eventScroll);
+
+    mainSequencer->PanelTimeLine->ResetMarkers(0);
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->UpdateTimeDisplay(0);
+}
+
+void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
+{
+    int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
+    mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
+    wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+    wxPostEvent(this, eventScroll);
+
+    int end_ms = SeqData.NumFrames() * SeqData.FrameTime();
+    mainSequencer->PanelTimeLine->ResetMarkers(end_ms);
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->UpdateTimeDisplay(end_ms);
+}
+
+void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
+{
+    //FIXME implement this:  use as a loop flag?
 }
 
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
-    EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
-    playType = PLAY_TYPE_EFFECT;
-    playStartTime = (int)(args->effect->GetStartTime() * 1000);
-    playEndTime = (int)(args->effect->GetEndTime() * 1000);
-    if(args->renderEffect)
+    if( PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING )
     {
-        RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+        EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
+        playType = PLAY_TYPE_EFFECT;
+        playStartTime = (int)(args->effect->GetStartTime() * 1000);
+        playEndTime = (int)(args->effect->GetEndTime() * 1000);
+        if(args->renderEffect)
+        {
+            RenderEffectForModel(args->element->GetName(),playStartTime,playEndTime);
+        }
+        playStartMS = -1;
+        playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
+                              args->element->GetEffectLayerCount(),
+                              SeqData.FrameTime());
     }
-    playStartMS = -1;
-    playBuffer.InitBuffer(GetModelNode(args->element->GetName()),
-                          args->element->GetEffectLayerCount(),
-                          SeqData.FrameTime());
 }
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
@@ -629,44 +679,62 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::TimerRgbSeq(long msec)
 {
-    if (playStartTime == playEndTime) {
+    // return if in model play mode and media has stopped
+    if (playType == PLAY_TYPE_MODEL && PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
         return;
     }
+
+    // return if we have reset play times
+    if (playEndTime == 0) {
+        return;
+    }
+
+    // capture start time if necessary
     if (playStartMS == -1) {
         playStartMS = msec;
     }
+
+    // record current time
     int curt = (playStartTime + msec - playStartMS);
-    if (curt > playEndTime) {
+
+    // repeat loop if in play effect mode
+    if (curt > playEndTime && playType == PLAY_TYPE_EFFECT) {
         playStartMS = msec;
-        curt = (playStartTime + msec - playStartMS);
+        curt = playStartTime;
     }
+
+    // reset all if current time is invalid
     if (curt < 0) {
         playStartMS = -1;
         if (playType == PLAY_TYPE_MODEL) {
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
             playStartTime = playEndTime = 0;
             playType = 0;
         }
         return;
     }
+
+
     if (playType == PLAY_TYPE_MODEL) {
+        // see if its time to stop model play
+        if (curt > playEndTime) {
+            playStartTime = playEndTime = 0;
+            playStartMS = -1;
+            playType = 0;
+            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+            wxPostEvent(this, playEvent);
+            return;
+        }
         if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
-            EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
             playStartTime = playEndTime = 0;
             playStartMS = -1;
             playType = 0;
             return;
         }
-        double ms = PlayerDlg->MediaCtrl->Tell();
-        ms /= 1000.0;
-        int i = mainSequencer->PanelTimeLine->GetPositionFromTime(ms);
-        mainSequencer->PanelWaveForm->PositionSelected(i);
-        mainSequencer->PanelTimeLine->TimeSelected(i);
+        int current_play_time = PlayerDlg->MediaCtrl->Tell();
+        mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
+        mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
+        mainSequencer->UpdateTimeDisplay(current_play_time);
     }
 
     if (selectedEffect != NULL) {

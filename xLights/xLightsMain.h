@@ -225,8 +225,12 @@ wxDECLARE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
@@ -646,6 +650,9 @@ private:
     void OnAuiToolBarItemRenderAllClick(wxCommandEvent& event);
     void OnMenuItemSequenceElementsSelected(wxCommandEvent& event);
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
+    void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
+    void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
+    void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -668,9 +675,9 @@ private:
     static const long ID_AUITOOLBAR_PLAY_NOW;
     static const long ID_AUITOOLBAR_PAUSE;
     static const long ID_AUITOOLBAR_STOP;
-    static const long ID_AUITOOLBARITEM6;
-    static const long ID_AUITOOLBARITEM4;
-    static const long ID_AUITOOLBARITEM7;
+    static const long ID_AUITOOLBAR_FIRST_FRAME;
+    static const long ID_AUITOOLBAR_LAST_FRAME;
+    static const long ID_AUITOOLBAR_REPLAY_SECTION;
     static const long ID_AUITOOLBAR_PLAY;
     static const long ID_AUITOOLBARITEM2;
     static const long ID_AUITOOLBARITEM5;
@@ -1518,11 +1525,11 @@ protected:
     bool SeqChanCtrlColor;
 
     PixelBufferClass playBuffer;
-    int playPeriod;
+    int playType;
     int playStartMS;
     int playStartTime;
     int playEndTime;
-    int playType;
+    bool replaySection;
 
     wxString selectedEffectString;
     int selectedEffectPalette;
@@ -1619,6 +1626,10 @@ protected:
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);
     void StopSequence(wxCommandEvent& event);
+    void SequenceFirstFrame(wxCommandEvent& event);
+    void SequenceLastFrame(wxCommandEvent& event);
+    void SequenceReplaySection(wxCommandEvent& event);
+    void TogglePlay(wxCommandEvent& event);
     void ExportModel(wxCommandEvent& event);
     void ShowDisplayElements(wxCommandEvent& event);
 

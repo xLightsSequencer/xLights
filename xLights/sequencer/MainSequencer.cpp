@@ -119,7 +119,6 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	//*)
 
     mParent = parent;
-    isPlaying = false;
     SetHandlers(this);
 }
 
@@ -146,9 +145,9 @@ void MainSequencer::UpdateEffectGridVerticalScrollBar()
 
 void MainSequencer::UpdateTimeDisplay(int time_ms)
 {
-
-    int msec=time_ms % 1000;
-    int seconds=time_ms / 1000;
+    int time = time_ms >= 0 ? time_ms : 0;
+    int msec=time % 1000;
+    int seconds=time / 1000;
     int minutes=seconds / 60;
     seconds=seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d",minutes,seconds,msec);
@@ -234,15 +233,8 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             break;
         case WXK_SPACE:
             {
-                if( isPlaying ) {
-                    wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-                    wxPostEvent(mParent, playEvent);
-                }
-                else {
-                    wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-                    wxPostEvent(mParent, playEvent);
-                }
-
+                wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
+                wxPostEvent(mParent, playEvent);
             }
             event.StopPropagation();
             break;
@@ -317,8 +309,8 @@ void MainSequencer::DeleteAllSelectedEffects()
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
-    int x1,x2;
-    PanelWaveForm->GetShadedRegion(&x1,&x2);
+    int x1 = PanelTimeLine->GetSelectedPositionStart();
+    int x2 = PanelTimeLine->GetSelectedPositionEnd();
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
     {

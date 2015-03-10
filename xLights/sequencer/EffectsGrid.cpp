@@ -207,6 +207,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mDragEndY = event.GetY();
     }
     UpdateTimePosition(event.GetX());
+    CaptureMouse();
     event.Skip(true);
 }
 
@@ -225,6 +226,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     mDragging = false;
     mDragDropping = false;
     mPaintOnIdleCounter = 0;
+    ReleaseMouse();
 }
 
 void EffectsGrid::Resize(int position)

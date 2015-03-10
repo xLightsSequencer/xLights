@@ -221,7 +221,6 @@ void xLightsFrame::CloseSequence()
     ResetSequenceGrid();
     changedRow = 99999;
     changedColumn = 99999;
-    playStartTime = playEndTime = 0;
     selectedEffect = NULL;
     if( CurrentSeqXmlFile )
     {

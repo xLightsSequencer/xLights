@@ -12,9 +12,7 @@
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
 
 class MainSequencer: public wxPanel
 {
@@ -24,8 +22,6 @@ class MainSequencer: public wxPanel
 		virtual ~MainSequencer();
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
-        bool GetIsPlaying() { return isPlaying; }
-        void SetIsPlaying(bool value) { isPlaying = value; }
         void UpdateTimeDisplay(int time_ms);
 
 		//(*Declarations(MainSequencer)
@@ -72,7 +68,6 @@ class MainSequencer: public wxPanel
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
-        bool isPlaying;
 };
 
 #endif

@@ -37,17 +37,12 @@ class Waveform : public wxGLCanvas
         int SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
 
-        void SetShadedRegion(int x1,int x2);
-        void GetShadedRegion(int* x1, int* x2);
-
         void SetTimeFrequency(int startPixel);
         int GetTimeFrequency();
 
         void SetTimeline(TimeLine* timeLine);
 
-        void PositionSelected(int x);
-        void RecalcSelectedPosition();
-
+        void UpdatePlayMarker();
         void CheckNeedToScroll();
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
@@ -85,12 +80,10 @@ class Waveform : public wxGLCanvas
         bool mIsInitialized;
         bool mPointSize;
         bool m_dragging;
-        bool m_scrolling;
-        bool m_scroll_speed;
+        //bool m_scrolling;
+        //bool m_scroll_speed;
         wxTimer* tmrScrollLeft;
         wxTimer* tmrScrollRight;
-        int m_shaded_region_x1;
-        int m_shaded_region_x2;
         float* m_left_data;
         float* m_right_data;
         int mSelectedPosition;
@@ -175,16 +168,16 @@ class Waveform : public wxGLCanvas
       	void mouseMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
-      	void mouseLeftWindow( wxMouseEvent& event);
+      	//void mouseLeftWindow( wxMouseEvent& event);
       	void OnIdle(wxIdleEvent &event);
       	void OnLeftDClick(wxMouseEvent& event);
-      	void OnWaveScrollLeft(wxTimerEvent& event);
-      	void OnWaveScrollRight(wxTimerEvent& event);
+      	//void OnWaveScrollLeft(wxTimerEvent& event);
+      	//void OnWaveScrollRight(wxTimerEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);
         void drawString (void * font, char *s, float x, float y, float z);
-        void ScrollWaveLeft(int xBasedSpeed);
-        void ScrollWaveRight(int xBasedSpeed);
-        void StopScrolling();
+        //void ScrollWaveLeft(int xBasedSpeed);
+        //void ScrollWaveRight(int xBasedSpeed);
+        //void StopScrolling();
         std::vector<WaveView> views;
 
 
