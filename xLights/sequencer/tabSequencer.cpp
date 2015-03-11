@@ -513,21 +513,27 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
 void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
+    wxString model = event.GetString();
+
+    playBuffer.InitBuffer(GetModelNode(model),
+                          mSequenceElements.GetElement(model)->GetEffectLayerCount(),
+                          SeqData.FrameTime());
+
     if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
     {
-        //playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
-        //playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
-        //if( playEndTime == -1 ) {
-        //    playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
-       // }
-        wxString model = event.GetString();
+        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+        wxPostEvent(this, playEvent);
+    }
+}
 
+void xLightsFrame::ModelSelected(wxCommandEvent& event)
+{
+    if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
+    {
+        wxString model = event.GetString();
         playBuffer.InitBuffer(GetModelNode(model),
                               mSequenceElements.GetElement(model)->GetEffectLayerCount(),
                               SeqData.FrameTime());
-
-        wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-        wxPostEvent(this, playEvent);
     }
 }
 

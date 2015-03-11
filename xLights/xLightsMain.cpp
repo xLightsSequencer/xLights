@@ -402,6 +402,7 @@ wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -432,6 +433,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
+    EVT_COMMAND(wxID_ANY, EVT_MODEL_SELECTED, xLightsFrame::ModelSelected)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE, xLightsFrame::PlaySequence)
     EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE, xLightsFrame::PauseSequence)
     EVT_COMMAND(wxID_ANY, EVT_STOP_SEQUENCE, xLightsFrame::StopSequence)
