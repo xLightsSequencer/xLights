@@ -31,7 +31,7 @@ static const int marker_size = 8;
 void TimeLine::mouseLeftDown( wxMouseEvent& event)
 {
     mCurrentPlayMarkerStart = GetPositionFromSelection(event.GetX());
-    mCurrentPlayMarkerStartMS = GetTimeMSfromPosition(mCurrentPlayMarkerStart);
+    mCurrentPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mCurrentPlayMarkerStart);
     mCurrentPlayMarkerEnd = -1;
     mCurrentPlayMarkerEndMS = -1;
     m_dragging = true;
@@ -42,7 +42,7 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
 void TimeLine::mouseMoved( wxMouseEvent& event)
 {
     if( m_dragging ) {
-        mCurrentPlayMarkerEndMS = GetTimeMSfromPosition(event.GetX());
+        mCurrentPlayMarkerEndMS = GetAbsoluteTimeMSfromPosition(event.GetX());
         if( mCurrentPlayMarkerEndMS < mStartTimeMS ) {
             mCurrentPlayMarkerEndMS = mStartTimeMS;
         }
@@ -92,6 +92,8 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mStartPixelOffset = 0;
     mFrequency = 40;
     mZoomLevel = 0;
+    mSelectedPosition = 0;
+    mSelectedTimeMS = 0;
     mStartTimeMS = 0;
     mStartTime = 0;
     mViewableTimeMS = GetMaxViewableTimeMS();
@@ -143,7 +145,7 @@ int TimeLine::GetPlayMarker()
 void TimeLine::SetSelectedPositionStart(int pos)
 {
     mSelectedPlayMarkerStart = GetPositionFromSelection(pos);
-    mSelectedPlayMarkerStartMS = GetTimeMSfromPosition(mSelectedPlayMarkerStart);
+    mSelectedPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mSelectedPlayMarkerStart);
     mSelectedPlayMarkerEnd = -1;
     mSelectedPlayMarkerEndMS = -1;
     Refresh(false);
@@ -151,7 +153,7 @@ void TimeLine::SetSelectedPositionStart(int pos)
 
 void TimeLine::SetSelectedPositionEnd(int pos)
 {
-    mSelectedPlayMarkerEndMS = GetTimeMSfromPosition(pos);
+    mSelectedPlayMarkerEndMS = GetAbsoluteTimeMSfromPosition(pos);
     if( mSelectedPlayMarkerEndMS < mStartTimeMS ) {
         mSelectedPlayMarkerEndMS = mStartTimeMS;
     }
@@ -349,11 +351,14 @@ void TimeLine::ZoomOut()
         SetZoomLevel(mZoomLevel+1);
         if(GetTotalViewableTimeMS()> mTimeLength)
         {
+            int selectedTime = mStartTimeMS+GetTimeMSfromPosition(mSelectedPosition);
             mStartTimeMS = 0;
             mStartPixelOffset = 0;
             mEndTimeMS = GetMaxViewableTimeMS();
             mStartTime = 0;
             mEndTime = (double)mEndTimeMS/(double)1000;
+            float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
+            mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
             RaiseChangeTimeline();
         }
     }
@@ -370,8 +375,8 @@ void TimeLine::ZoomIn()
 
 int TimeLine::GetStartTimeMSfromSelectedTimeAndPosition()
 {
-    float nMajorHashs = (float)mCurrentPlayMarker/(float)PIXELS_PER_MAJOR_HASH;
-    int startTime = (int)(GetTimeMSfromPosition(mCurrentPlayMarker) - (float)(nMajorHashs*TimePerMajorTickInMS()));
+    float nMajorHashs = (float)mSelectedPosition/(float)PIXELS_PER_MAJOR_HASH;
+    int startTime = (int)(mSelectedTimeMS - (float)(nMajorHashs*TimePerMajorTickInMS()));
     if(startTime < 0)
     {
         startTime = 0;
@@ -451,6 +456,13 @@ int TimeLine::GetTimeLength()
 }
 
 int TimeLine::GetTimeMSfromPosition(int position)
+{
+    float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
+    int time = (int)(nMajorHashs*TimePerMajorTickInMS());
+    return time;
+}
+
+int TimeLine::GetAbsoluteTimeMSfromPosition(int position)
 {
     float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
     int time = mStartTimeMS + (int)(nMajorHashs*TimePerMajorTickInMS());

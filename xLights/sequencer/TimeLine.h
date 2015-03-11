@@ -70,6 +70,7 @@ class TimeLine : public wxWindow
         int GetPositionFromTimeMS(int time);
 
         int GetTimeMSfromPosition(int position);
+        int GetAbsoluteTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
 
         static double RoundToMultipleOfPeriod(double number,double period);
@@ -105,6 +106,8 @@ class TimeLine : public wxWindow
         double mStartTime;
         double mEndTime;
 
+        int mSelectedTimeMS;
+        int mSelectedPosition;
         int mStartPixelOffset;
         int mFrequency;
         int mZoomLevel;

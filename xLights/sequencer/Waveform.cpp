@@ -160,7 +160,7 @@ void Waveform::CheckNeedToScroll()
     double EndTime;
     mTimeline->GetViewableTimeRange(StartTime, EndTime);
     int scroll_point = mTimeline->GetPositionFromTime(EndTime) * 0.99;
-    if(mSelectedPosition > scroll_point)
+    if(mTimeline->GetPlayMarker() > scroll_point)
     {
         wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
         wxPostEvent(mParent, eventScroll);
