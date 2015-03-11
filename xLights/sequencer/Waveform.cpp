@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
 EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
-EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
+//EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
 EVT_IDLE(Waveform::OnIdle)
 
@@ -100,14 +100,14 @@ void Waveform::CloseMediaFile()
 
 void Waveform::OnIdle(wxIdleEvent &event)
 {
-    // It will only repaint on idle for 5 times
+ /*   // It will only repaint on idle for 5 times
     // mPaintOnIdleCounter is reset to "0".
     if(!mIsInitialized){return;}
     if(mPaintOnIdleCounter < 5)
     {
         Refresh(false);
         mPaintOnIdleCounter++;
-    }
+    }*/
 }
 
 void Waveform::SetTimeline(TimeLine* timeLine)
@@ -125,9 +125,16 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
     else {eventZoom.SetInt(ZOOM_IN);}
 
     wxPostEvent(GetParent(), eventZoom);
+    if( !HasCapture() ) { CaptureMouse(); }
 }
 
-void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
+void Waveform::UpdatePlayMarker()
+{
+    Refresh(false);
+    Update();
+}
+
+/*void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
 {
     if(!mIsInitialized){return;}
     wxCommandEvent eventWaveMoved(EVT_WAVE_FORM_MOVED);
@@ -146,13 +153,13 @@ void Waveform::OnWaveScrollRight(wxTimerEvent& event)
     wxPostEvent(mParent, eventWaveMoved);
     Refresh();
 }
-
+*/
 void Waveform::CheckNeedToScroll()
 {
     double StartTime;
     double EndTime;
     mTimeline->GetViewableTimeRange(StartTime, EndTime);
-    int scroll_point = mTimeline->GetPositionFromTime(EndTime) * 0.9;
+    int scroll_point = mTimeline->GetPositionFromTime(EndTime) * 0.99;
     if(mSelectedPosition > scroll_point)
     {
         wxCommandEvent eventScroll(EVT_SCROLL_RIGHT);
@@ -160,7 +167,7 @@ void Waveform::CheckNeedToScroll()
     }
 }
 
-void Waveform::mouseLeftWindow( wxMouseEvent& event)
+/*void Waveform::mouseLeftWindow( wxMouseEvent& event)
 {
     if (mIsInitialized)
     {
@@ -169,24 +176,22 @@ void Waveform::mouseLeftWindow( wxMouseEvent& event)
             StopScrolling();
     }
 }
-
+*/
 void Waveform::mouseLeftDown( wxMouseEvent& event)
 {
-    if (mIsInitialized)
-    {
-        m_dragging = true;
-        m_shaded_region_x1 = event.GetPosition().x;
-        m_shaded_region_x2 = event.GetPosition().x;
-        wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
-        eventTimeSelected.SetInt(event.GetX());
-        wxPostEvent(mParent, eventTimeSelected);
-        Refresh();
-    }
+    if(!mIsInitialized){return;}
+    m_dragging = true;
+    mTimeline->SetSelectedPositionStart(event.GetX());
+    if( !HasCapture() ) { CaptureMouse(); }
+    Refresh(false);
 }
 
 void Waveform::mouseLeftUp( wxMouseEvent& event)
 {
     m_dragging = false;
+    mTimeline->LatchSelectedPositions();
+    if( HasCapture() ) { ReleaseMouse(); }
+    Refresh(false);
 }
 
 void Waveform::mouseMoved( wxMouseEvent& event)
@@ -194,19 +199,11 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     if(!mIsInitialized){return;}
     if (m_dragging)
     {
-        m_shaded_region_x2 = event.GetPosition().x;
-
-         double time = mTimeline->GetAbsoluteTimefromPosition(m_shaded_region_x2);
-        // Round to nearest period
-        time = mTimeline->RoundToMultipleOfPeriod(time,mFrequency);
-        // Recalulate Position with corrected time
-        m_shaded_region_x2 = mTimeline->GetPositionFromTime(time);
-        // Force refresh on idle
-        mPaintOnIdleCounter=0;
+        mTimeline->SetSelectedPositionEnd(event.GetX());
         Refresh(false);
     }
 
-    if(event.GetPosition().x > getWidth()-WAVEFORM_SIDE_MARGIN)
+    /*if(event.GetPosition().x > getWidth()-WAVEFORM_SIDE_MARGIN)
     {
         ScrollWaveLeft(event.GetPosition().x-(getWidth()-WAVEFORM_SIDE_MARGIN));
     }
@@ -217,10 +214,10 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     else
     {
        StopScrolling();
-    }
+    }*/
 }
 
-void Waveform::StopScrolling()
+/*void Waveform::StopScrolling()
 {
     m_scrolling=false;
     tmrScrollLeft->Stop();
@@ -246,7 +243,7 @@ void Waveform::ScrollWaveRight(int xBasedSpeed)
         tmrScrollRight->Stop();
     tmrScrollRight->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
 }
-
+*/
 // Open Media file and return elapsed time in millseconds
 int Waveform::OpenfileMediaFile(const char* filename)
 {
@@ -408,6 +405,7 @@ void Waveform::render( wxPaintEvent& event )
     }
     glFlush();
     SwapBuffers();
+    wxLogDebug("Waveform::render");
 }
 
 void Waveform::DrawWaveView(const WaveView &wv)
@@ -439,15 +437,20 @@ void Waveform::DrawWaveView(const WaveView &wv)
     glVertex2f(1, 0);
     glEnd();
 
-    if (m_shaded_region_x1!=m_shaded_region_x2)
+    // Get selection positions from timeline
+    int selected_x1 = mTimeline->GetSelectedPositionStart();
+    int selected_x2 = mTimeline->GetSelectedPositionEnd();
+
+    // draw shaded region if needed
+    if( selected_x1 != -1 && selected_x2 != -1)
     {
         glColor4ub(0,0,200,45);
         glEnable(GL_BLEND);
         glBegin(GL_QUADS);
-        glVertex2f(m_shaded_region_x1, 1);
-        glVertex2f(m_shaded_region_x2, 1);
-        glVertex2f(m_shaded_region_x2, getHeight()-1);
-        glVertex2f(m_shaded_region_x1,getHeight()-1);
+        glVertex2f(selected_x1, 1);
+        glVertex2f(selected_x2, 1);
+        glVertex2f(selected_x2, getHeight()-1);
+        glVertex2f(selected_x1,getHeight()-1);
         glEnd();
         glDisable(GL_BLEND);
     }
@@ -508,16 +511,27 @@ void Waveform::DrawWaveView(const WaveView &wv)
     }
     glEnd();
 
-    glColor4ub(0,0,0,128);
-    glBegin(GL_LINES);
-    glVertex2f(mSelectedPosition+1, 1);
-    glVertex2f(mSelectedPosition+1,getHeight()-1);
-    if(m_shaded_region_x1!=m_shaded_region_x2)
+    // draw selection line if not a range
+    if( selected_x1 != -1 && selected_x2 == -1 )
     {
-        glVertex2f(m_shaded_region_x2+1, 1);
-        glVertex2f(m_shaded_region_x2+1,getHeight()-1);
+        glColor4ub(0,0,0,128);
+        glBegin(GL_LINES);
+        glVertex2f(selected_x1, 1);
+        glVertex2f(selected_x1,getHeight()-1);
+        glEnd();
     }
-    glEnd();
+
+    // draw play marker line
+    int play_marker = mTimeline->GetPlayMarker();
+    if( play_marker != -1 )
+    {
+        glColor4ub(0,0,0,255);
+        glBegin(GL_LINES);
+        glVertex2f(play_marker, 1);
+        glVertex2f(play_marker,getHeight()-1);
+        glEnd();
+    }
+
 }
 
 void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
@@ -593,22 +607,6 @@ int Waveform::SetStartPixelOffset(int offset)
     return mStartPixelOffset;
 }
 
-void Waveform::PositionSelected(int x)
-{
-    mSelectedPosition = x;
-    m_shaded_region_x1 = x;
-    m_shaded_region_x2 = x;
-    Refresh();
-    Update();
-}
-
-void Waveform::RecalcSelectedPosition()
-{
-    int SelectedTimeMS = mTimeline->GetSelectedTimeMS();
-    mSelectedPosition = mTimeline->GetPositionFromTime((double)SelectedTimeMS/(double(1000.)));
-    mTimeline->SetPosition(mSelectedPosition);
-}
-
 int Waveform::GetStartPixelOffset()
 {
     return  mStartPixelOffset;
@@ -623,20 +621,6 @@ int Waveform::GetTimeFrequency()
 {
     return  mFrequency;
 }
-
-void Waveform::SetShadedRegion(int x1,int x2)
-{
-    m_shaded_region_x1 = x1;
-    m_shaded_region_x1 = x2;
-}
-
-void Waveform::GetShadedRegion(int* x1, int* x2)
-{
-
-    *x1 = m_shaded_region_x1;
-    *x2 = m_shaded_region_x2;
-}
-
 
 float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
 {

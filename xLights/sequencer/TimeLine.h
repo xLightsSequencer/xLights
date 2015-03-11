@@ -34,6 +34,17 @@ class TimeLine : public wxWindow
         void SetStartTimeMS(int time);
         float GetStartTimeMS();
 
+        void SetPlayMarkerMS(int ms);
+        int GetPlayMarker();
+
+        void SetSelectedPositionStart(int pos);
+        void SetSelectedPositionEnd(int pos);
+        int GetSelectedPositionStart() { return mSelectedPlayMarkerStart; }
+        int GetSelectedPositionEnd() { return mSelectedPlayMarkerEnd; }
+        void LatchSelectedPositions();
+
+        void ResetMarkers(int ms);
+
         void SetStartPixelOffset(int startPixel);
         int GetStartPixelOffset();
 
@@ -46,8 +57,6 @@ class TimeLine : public wxWindow
         void SetZoomLevel(int level);
         int GetZoomLevel();
 
-        int TimeSelected(int x);
-
         int GetZoomLevelValue();
         int GetMaxZoomLevel();
         void ZoomIn();
@@ -58,15 +67,10 @@ class TimeLine : public wxWindow
 
         void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
         int GetPositionFromTime(double time);
+        int GetPositionFromTimeMS(int time);
 
         int GetTimeMSfromPosition(int position);
         double GetAbsoluteTimefromPosition(int position);
-
-        int GetSelectedTimeMS() {
-            return mSelectedTimeMS;
-        }
-
-        void SetPosition(int value) { mSelectedPosition = value; }
 
         static double RoundToMultipleOfPeriod(double number,double period);
 
@@ -76,7 +80,10 @@ class TimeLine : public wxWindow
             int startPixel;
         };
 
-
+        void PlayStarted();       // signal the start of play so timeline can adjust marks
+        void PlayStopped();       // signal play stop so timeline can adjust marks
+        int GetNewStartTimeMS();  // return the time where to begin playing
+        int GetNewEndTimeMS();    // return the time where to end playing
 
         void MoveToLeft(int numberOfPixels);
         void MoveToRight(int numberOfPixels);
@@ -89,37 +96,57 @@ class TimeLine : public wxWindow
         DECLARE_EVENT_TABLE()
         void mouseLeftDown( wxMouseEvent& event);
         void mouseLeftUp( wxMouseEvent& event);
+        void mouseMoved( wxMouseEvent& event);
+        void mouseLeftDClick(wxMouseEvent& event);
+        void triggerPlay();
         bool mIsInitialized;
         int mStartTimeMS;
         int mEndTimeMS;
         double mStartTime;
         double mEndTime;
 
-        int mSelectedTimeMS;
-        int mSelectedPosition;
         int mStartPixelOffset;
         int mFrequency;
         int mZoomLevel;
         int mMaxZoomLevel;
         int mTimeLength;
         int mViewableTimeMS;
+        int mCurrentPlayMarkerStart;
+        int mCurrentPlayMarkerEnd;
+        int mSelectedPlayMarkerStart;
+        int mSelectedPlayMarkerEnd;
+        int mCurrentPlayMarker;
+        int mCurrentPlayMarkerStartMS;
+        int mCurrentPlayMarkerEndMS;
+        int mSelectedPlayMarkerStartMS;
+        int mSelectedPlayMarkerEndMS;
+        int mCurrentPlayMarkerMS;
+        bool m_dragging;
+        bool timeline_initiated_play;
+
         void render( wxPaintEvent& event );
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetPixelOffsetFromStartTime();
         int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetMaxViewableTimeMS();
         int GetTotalViewableTimeMS();
+        int GetPositionFromSelection(int position);
+        void DrawTriangleMarkerFacingLeft(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height);
+        void DrawTriangleMarkerFacingRight(wxPaintDC& dc, int& play_start_mark, const int& tri_size, int& height);
+        void DrawTriangleMarkerFacingDown(wxPaintDC& dc, int& play_start_mark, const int& tri_size);
+        void DrawRectangle(wxPaintDC& dc, int x1, int y1, int x2, int y2);
+        void RecalcMarkerPositions();
         wxPanel* mParent;
 };
 
 class TimelineChangeArguments
 {
     public:
-        TimelineChangeArguments(int zoomLevel, int startPixelOffset,int selectedTime);
+        TimelineChangeArguments(int zoomLevel, int startPixelOffset,int currentTime);
         virtual ~TimelineChangeArguments();
         int ZoomLevel;
         int StartPixelOffset;
-        int SelectedTime;
+        int CurrentTime;
 
 };
 

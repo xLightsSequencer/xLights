@@ -103,23 +103,26 @@
 						<label>Stop</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM6" variable="AuiToolBarFirstFrame" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_FIRST_FRAME" variable="AuiToolBarFirstFrame" member="yes">
 							<bitmap code="backward_24_xpm" />
 							<shorthelp>First Frame</shorthelp>
+							<handler function="OnAuiToolBarFirstFrameClick" entry="EVT_TOOL" />
 						</object>
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarLastFrame" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_LAST_FRAME" variable="AuiToolBarLastFrame" member="yes">
 							<bitmap code="forward_24_xpm" />
 							<shorthelp>Last Frame</shorthelp>
+							<handler function="OnAuiToolBarLastFrameClick" entry="EVT_TOOL" />
 						</object>
 						<label>Item label</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM7" variable="AuiToolBarItem6" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_REPLAY_SECTION" variable="AuiToolBarItemReplaySection" member="yes">
 							<bitmap code="replay_24_xpm" />
 							<shorthelp>Replay Section</shorthelp>
+							<handler function="OnAuiToolBarItemReplaySectionClick" entry="EVT_TOOL" />
 						</object>
 						<label>Item label</label>
 					</object>

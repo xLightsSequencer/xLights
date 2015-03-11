@@ -62,6 +62,9 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
         {
             mSequenceElements->UnSelectAllElements();
             e->SetSelected(true);
+            wxCommandEvent playEvent(EVT_MODEL_SELECTED);  // send model selection in case we need to switch playback to this model
+            playEvent.SetString(e->GetName());
+            wxPostEvent(GetParent(), playEvent);
             Refresh(false);
         }
         if(HitTestCollapseExpand(rowIndex,event.GetX(),&result))

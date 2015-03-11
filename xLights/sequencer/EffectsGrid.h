@@ -67,6 +67,7 @@ private:
 	void mouseDown(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
 	void mouseReleased(wxMouseEvent& event);
+    void mouseLeftDClick(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
 	void keyPressed(wxKeyEvent& event);

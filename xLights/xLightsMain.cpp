@@ -95,9 +95,9 @@ const long xLightsFrame::ID_AUITOOLBAR_MAIN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY_NOW = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PAUSE = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_STOP = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
-const long xLightsFrame::ID_AUITOOLBARITEM7 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
+const long xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
 const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
@@ -402,9 +402,14 @@ wxDEFINE_EVENT(EVT_LOAD_PERSPECTIVE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PERSPECTIVES_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STOP_SEQUENCE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_FIRST_FRAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_LAST_FRAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEQUENCE_REPLAY_SECTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RENDER_RANGE, RenderCommandEvent);
@@ -428,9 +433,14 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_PERSPECTIVES_CHANGED, xLightsFrame::PerspectivesChanged)
     EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
+    EVT_COMMAND(wxID_ANY, EVT_MODEL_SELECTED, xLightsFrame::ModelSelected)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE, xLightsFrame::PlaySequence)
     EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE, xLightsFrame::PauseSequence)
     EVT_COMMAND(wxID_ANY, EVT_STOP_SEQUENCE, xLightsFrame::StopSequence)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_FIRST_FRAME, xLightsFrame::SequenceFirstFrame)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_LAST_FRAME, xLightsFrame::SequenceLastFrame)
+    EVT_COMMAND(wxID_ANY, EVT_SEQUENCE_REPLAY_SECTION, xLightsFrame::SequenceReplaySection)
+    EVT_COMMAND(wxID_ANY, EVT_TOGGLE_PLAY, xLightsFrame::TogglePlay)
     EVT_COMMAND(wxID_ANY, EVT_SHOW_DISPLAY_ELEMENTS, xLightsFrame::ShowDisplayElements)
     EVT_COMMAND(wxID_ANY, EVT_IMPORT_TIMING, xLightsFrame::ExecuteImportTimingElement)
     wx__DECLARE_EVT1(EVT_RENDER_RANGE, wxID_ANY, &xLightsFrame::RenderRange)
@@ -542,9 +552,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PlayToolBar->AddTool(ID_AUITOOLBAR_PLAY_NOW, _("Play"), play_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Play"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_PAUSE, _("Pause"), pause_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Pause"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_STOP, _("Stop"), stop_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Stop"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM6, _("Item label"), backward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM4, _("Item label"), forward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
-    PlayToolBar->AddTool(ID_AUITOOLBARITEM7, _("Item label"), replay_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_FIRST_FRAME, _("Item label"), backward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("First Frame"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_LAST_FRAME, _("Item label"), forward_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), replay_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
     EffectToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR1, wxPoint(227,1), wxSize(110,27), wxAUI_TB_DEFAULT_STYLE);
@@ -1569,6 +1579,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_PLAY_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPlayButtonClick);
     Connect(ID_AUITOOLBAR_PAUSE,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPauseButtonClick);
     Connect(ID_AUITOOLBAR_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemStopClick);
+    Connect(ID_AUITOOLBAR_FIRST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarFirstFrameClick);
+    Connect(ID_AUITOOLBAR_LAST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarLastFrameClick);
+    Connect(ID_AUITOOLBAR_REPLAY_SECTION,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemReplaySectionClick);
     Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
@@ -1706,6 +1719,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     selectedEffectPalette = -1;
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
+    replaySection = false;
 
     CreateSequencer();
 
@@ -2809,6 +2823,33 @@ void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::OnAuiToolBarFirstFrameClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
+        wxPostEvent(this, playEvent);
+    }
+}
+
+void xLightsFrame::OnAuiToolBarLastFrameClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
+        wxPostEvent(this, playEvent);
+    }
+}
+
+void xLightsFrame::OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event)
+{
+    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    {
+        wxCommandEvent playEvent(EVT_SEQUENCE_REPLAY_SECTION);
+        wxPostEvent(this, playEvent);
+    }
+}
+
 void xLightsFrame::OnAuiToolBarItemZoominClick(wxCommandEvent& event)
 {
     if (Notebook1->GetSelection() == NEWSEQUENCER)
@@ -2858,4 +2899,3 @@ void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
         wxPostEvent(this, displayElementEvent);
     }
 }
-
