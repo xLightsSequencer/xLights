@@ -125,7 +125,7 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
     else {eventZoom.SetInt(ZOOM_IN);}
 
     wxPostEvent(GetParent(), eventZoom);
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void Waveform::UpdatePlayMarker()
@@ -182,7 +182,7 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
     if(!mIsInitialized){return;}
     m_dragging = true;
     mTimeline->SetSelectedPositionStart(event.GetX());
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
     Refresh(false);
 }
 
@@ -190,7 +190,7 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
 {
     m_dragging = false;
     mTimeline->LatchSelectedPositions();
-    ReleaseMouse();
+    if( HasCapture() ) { ReleaseMouse(); }
     Refresh(false);
 }
 

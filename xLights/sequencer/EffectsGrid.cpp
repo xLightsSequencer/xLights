@@ -207,13 +207,13 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mDragEndY = event.GetY();
     }
     UpdateTimePosition(event.GetX());
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
     event.Skip(true);
 }
 
 void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
 {
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
@@ -231,7 +231,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     mDragging = false;
     mDragDropping = false;
     mPaintOnIdleCounter = 0;
-    ReleaseMouse();
+    if( HasCapture() ) { ReleaseMouse(); }
 }
 
 void EffectsGrid::Resize(int position)

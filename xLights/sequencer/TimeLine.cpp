@@ -35,7 +35,7 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
     mCurrentPlayMarkerEnd = -1;
     mCurrentPlayMarkerEndMS = -1;
     m_dragging = true;
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
     Refresh(false);
 }
 
@@ -54,13 +54,13 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
 void TimeLine::mouseLeftUp( wxMouseEvent& event)
 {
     triggerPlay();
-    ReleaseMouse();
+    if( HasCapture() ) { ReleaseMouse(); }
     Refresh(false);
 }
 
 void TimeLine::mouseLeftDClick(wxMouseEvent& event)
 {
-    CaptureMouse();
+    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void TimeLine::triggerPlay()
