@@ -329,12 +329,12 @@ void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
     buffer_size = mpg123_outblock(mh);
     buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
     mpg123_seek(mh,0,SEEK_SET);
-    for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
+    for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK && bytesRead < buffer_size; )
     {
         memcpy(data+bytesRead,buffer,done);
         bytesRead+=done;
     }
-    if (done> 0)
+    if (done > 0 && bytesRead < buffer_size)
     {
         memcpy(data+bytesRead,buffer,done);
         bytesRead+=done;
