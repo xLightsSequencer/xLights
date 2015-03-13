@@ -103,7 +103,7 @@ Element* SequenceElements::GetElement(int index)
 }
 
 
-void SequenceElements::DeleteElement(wxString name)
+void SequenceElements::DeleteElement(const wxString &name)
 {
     for(int i=0;i<mElements.size();i++)
     {
@@ -114,6 +114,7 @@ void SequenceElements::DeleteElement(wxString name)
             delete e;
         }
     }
+    PopulateRowInformation();
 }
 
 Row_Information_Struct* SequenceElements::GetRowInformation(int index)
