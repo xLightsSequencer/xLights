@@ -159,12 +159,14 @@ class Waveform : public wxGLCanvas
 
         };
 
-        void DrawWaveView(const WaveView &wv);
+        void DrawWaveView(const WaveView &wv, wxDC& dc);
+        void DrawWaveViewGL(const WaveView &wv);
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void StartDrawing(wxDouble pointSize);
         int getWidth();
         int getHeight();
         void render( wxPaintEvent& event );
+        void renderGL( wxPaintEvent& event );
       	void mouseMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
