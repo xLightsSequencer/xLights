@@ -265,8 +265,9 @@ int Waveform::OpenfileMediaFile(const char* filename)
     /* Get Track Size */
     mMediaTrackSize = GetTrackSize(mh,m_bits,m_channels);
     buffer_size = mpg123_outblock(mh);
-    char * trackData = (char*)malloc((mMediaTrackSize+buffer_size)*m_bits*m_channels);
-    LoadTrackData(mh,trackData);
+    int size = (mMediaTrackSize+buffer_size)*m_bits*m_channels;
+    char * trackData = (char*)malloc(size);
+    LoadTrackData(mh,trackData, size);
     // Split data into left and right and normalize -1 to 1
     m_left_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
     m_right_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
@@ -321,7 +322,7 @@ void Waveform::SplitTrackDataAndNormalize(signed short* trackData,int trackSize,
     }
 }
 
-void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
+void Waveform::LoadTrackData(mpg123_handle *mh,char  * data, int maxSize)
 {
     size_t buffer_size;
     unsigned char *buffer;
@@ -332,12 +333,15 @@ void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
     mpg123_seek(mh,0,SEEK_SET);
     for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
     {
+        if ((bytesRead + done) >= maxSize) {
+            wxMessageBox("Error reading data from mp3, too much data read.");
+            free(buffer);
+            return;
+        }
         memcpy(data+bytesRead,buffer,done);
         bytesRead+=done;
     }
-
     free(buffer);
-
 }
 
 int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)

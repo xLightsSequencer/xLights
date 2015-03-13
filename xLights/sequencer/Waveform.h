@@ -61,7 +61,7 @@ class Waveform : public wxGLCanvas
     protected:
     private:
       	DECLARE_EVENT_TABLE()
-        void LoadTrackData(mpg123_handle *mh,char  * data);
+        void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize);
         void SplitTrackDataAndNormalize(signed short* trackData,int trackSize,float* leftData,float* rightData);
         void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
