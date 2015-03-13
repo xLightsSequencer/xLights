@@ -61,7 +61,7 @@ class SequenceElements
 
         void SetFirstVisibleModelRow(int row);
 
-        void DeleteElement(wxString name);
+        void DeleteElement(const wxString &name);
 
         void PopulateRowInformation();
         void PopulateVisibleRowInformation();
