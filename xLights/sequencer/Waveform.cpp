@@ -249,7 +249,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
 {
     mpg123_handle *mh;
     int err;
-
+    size_t buffer_size;
     int channels, encoding;
     long rate;
 
@@ -264,7 +264,8 @@ int Waveform::OpenfileMediaFile(const char* filename)
     m_channels = channels;
     /* Get Track Size */
     mMediaTrackSize = GetTrackSize(mh,m_bits,m_channels);
-    char * trackData = (char*)malloc(mMediaTrackSize*m_bits*m_channels);
+    buffer_size = mpg123_outblock(mh);
+    char * trackData = (char*)malloc((mMediaTrackSize+buffer_size)*m_bits*m_channels);
     LoadTrackData(mh,trackData);
     // Split data into left and right and normalize -1 to 1
     m_left_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
@@ -329,12 +330,7 @@ void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
     buffer_size = mpg123_outblock(mh);
     buffer = (unsigned char*) malloc(buffer_size * sizeof(unsigned char));
     mpg123_seek(mh,0,SEEK_SET);
-    for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK && bytesRead < buffer_size; )
-    {
-        memcpy(data+bytesRead,buffer,done);
-        bytesRead+=done;
-    }
-    if (done > 0 && bytesRead < buffer_size)
+    for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
     {
         memcpy(data+bytesRead,buffer,done);
         bytesRead+=done;
@@ -365,13 +361,8 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
     {
         fileSize += done;
     }
-    // Get size of last read and add it to size
-    if (done> 0)
-    {
-        fileSize += done;
-    }
+
     free(buffer);
-    // Debug
     trackSize = fileSize/(bits*channels);
     return trackSize;
 }
