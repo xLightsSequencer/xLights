@@ -672,7 +672,6 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
             }
             xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
             AddTimingCell(selected_timing);
-            xLightsParent->AddTimingElement(selected_timing);
         }
         else
         {

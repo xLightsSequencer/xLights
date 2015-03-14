@@ -551,6 +551,7 @@ void TimeLine::render( wxPaintEvent& event )
     wxPen pen(wxColor(128,128,128), .5);
     const wxPen* pen_black = wxBLACK_PEN;
     const wxPen* pen_green = wxGREEN_PEN;
+    const wxPen* pen_transparent = wxTRANSPARENT_PEN;
     dc.SetPen(pen);
     dc.GetSize(&w,&h);
     wxBrush brush(wxColor(212,208,200),wxBRUSHSTYLE_SOLID);
@@ -566,10 +567,12 @@ void TimeLine::render( wxPaintEvent& event )
     if( mSelectedPlayMarkerStart != -1 && mSelectedPlayMarkerEnd != -1 ) {
         int left_pos = std::min(mSelectedPlayMarkerStart, mSelectedPlayMarkerEnd);
         int right_pos = std::max(mSelectedPlayMarkerStart, mSelectedPlayMarkerEnd) - 1;
+        dc.SetPen(*pen_transparent);
         dc.SetBrush(brush_range);
         dc.DrawRectangle(left_pos, 0, right_pos - left_pos + 1, h);
     }
 
+    dc.SetPen(pen);
     wxString format;
     int minutes=0;
     int seconds=0;

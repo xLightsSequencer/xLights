@@ -1511,30 +1511,27 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
     else
     {
         int ms = wxAtoi(interval_name);;
-        if( sequence_loaded )
+        double interval = ms;
+        Element* element = xLightsParent->AddTimingElement(interval_name);
+        element->SetFixedTiming((int)interval);
+        interval /= 1000.0;
+        element->AddEffectLayer();
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+        double time = 0.0;
+        double end_time = GetSequenceDurationDouble();
+        double startTime, endTime, next_time;
+        while( time <= end_time )
         {
-            double interval = ms;
-            Element* element = xLightsParent->AddTimingElement(interval_name);
-            element->SetFixedTiming((int)interval);
-            interval /= 1000.0;
-            element->AddEffectLayer();
-            EffectLayer* effectLayer = element->GetEffectLayer(0);
-            double time = 0.0;
-            double end_time = GetSequenceDurationDouble();
-            double startTime, endTime, next_time;
-            while( time <= end_time )
-            {
-                next_time = (time + interval <= end_time) ? time + interval : end_time;
-                startTime = TimeLine::RoundToMultipleOfPeriod(time, xLightsParent->GetSequenceElements().GetFrequency());
-                endTime = TimeLine::RoundToMultipleOfPeriod(next_time, xLightsParent->GetSequenceElements().GetFrequency());
-                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
-                time += interval;
-            }
+            next_time = (time + interval <= end_time) ? time + interval : end_time;
+            startTime = TimeLine::RoundToMultipleOfPeriod(time, xLightsParent->GetSequenceElements().GetFrequency());
+            endTime = TimeLine::RoundToMultipleOfPeriod(next_time, xLightsParent->GetSequenceElements().GetFrequency());
+            effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+            time += interval;
         }
         node = AddFixedTiming( interval_name, string_format("%d",ms) );
     }
 
-    wxXmlNode* layer = AddChildXmlNode(node, "EffectLayer");
+    AddChildXmlNode(node, "EffectLayer");
 }
 
 bool xLightsXmlFile::ExtractMetaTagsFromMP3(wxString filename)

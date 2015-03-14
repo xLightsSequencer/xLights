@@ -94,6 +94,7 @@ void Waveform::CloseMediaFile()
 {
     mIsInitialized = false;
     views.clear();
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
 }
 
 
@@ -265,8 +266,9 @@ int Waveform::OpenfileMediaFile(const char* filename)
     /* Get Track Size */
     mMediaTrackSize = GetTrackSize(mh,m_bits,m_channels);
     buffer_size = mpg123_outblock(mh);
-    char * trackData = (char*)malloc((mMediaTrackSize+buffer_size)*m_bits*m_channels);
-    LoadTrackData(mh,trackData);
+    int size = (mMediaTrackSize+buffer_size)*m_bits*m_channels;
+    char * trackData = (char*)malloc(size);
+    LoadTrackData(mh,trackData, size);
     // Split data into left and right and normalize -1 to 1
     m_left_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
     m_right_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
@@ -321,7 +323,7 @@ void Waveform::SplitTrackDataAndNormalize(signed short* trackData,int trackSize,
     }
 }
 
-void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
+void Waveform::LoadTrackData(mpg123_handle *mh,char  * data, int maxSize)
 {
     size_t buffer_size;
     unsigned char *buffer;
@@ -332,12 +334,15 @@ void Waveform::LoadTrackData(mpg123_handle *mh,char  * data)
     mpg123_seek(mh,0,SEEK_SET);
     for (bytesRead = 0 ; mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK ; )
     {
+        if ((bytesRead + done) >= maxSize) {
+            wxMessageBox("Error reading data from mp3, too much data read.");
+            free(buffer);
+            return;
+        }
         memcpy(data+bytesRead,buffer,done);
         bytesRead+=done;
     }
-
     free(buffer);
-
 }
 
 int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
@@ -369,6 +374,14 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 
 void Waveform::render( wxPaintEvent& event )
 {
+    wxPaintDC dc(this);
+    if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED) {
+        DrawWaveView(views[mCurrentWaveView], dc);
+    }
+}
+
+void Waveform::renderGL( wxPaintEvent& event )
+{
     if(!IsShownOnScreen()) return;
 
     wxGLCanvas::SetCurrent(*m_context);
@@ -384,22 +397,113 @@ void Waveform::render( wxPaintEvent& event )
     // is wrong when next another canvas is repainted.
     const wxSize ClientSize = GetClientSize();
 
-
-    wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //prepare2DViewport(0,0,getWidth(), getHeight());
     prepare2DViewport(0,0,ClientSize.x, ClientSize.y);
     glLoadIdentity();
-    if(mIsInitialized)
+    if(mIsInitialized && mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
     {
-        DrawWaveView(views[mCurrentWaveView]); // continue the event
+        DrawWaveViewGL(views[mCurrentWaveView]); // continue the event
     }
     glFlush();
     SwapBuffers();
     wxLogDebug("Waveform::render");
 }
 
-void Waveform::DrawWaveView(const WaveView &wv)
+void Waveform::DrawWaveView(const WaveView &wv, wxDC &dc)
+{
+    wxCoord w,h;
+    int x,y1,y2,y1_2,y2_2;
+    int index;
+
+    const wxPen* pen_black = wxBLACK_PEN;
+    const wxPen* pen_white = wxWHITE_PEN;
+    const wxPen* pen_transparent = wxTRANSPARENT_PEN;
+    dc.GetSize(&w,&h);
+    wxBrush brush(wxColor(212,208,200),wxBRUSHSTYLE_SOLID);
+    wxBrush brush_range(wxColor(187, 173,193),wxBRUSHSTYLE_SOLID);
+    dc.SetBrush(brush);
+
+    int max_wave_ht = h - VERTICAL_PADDING;
+
+    // Draw Outside rectangle
+    dc.SetPen(*pen_black);
+    dc.DrawRectangle(0,0,w,h);
+
+    // Get selection positions from timeline
+    int selected_x1 = mTimeline->GetSelectedPositionStart();
+    int selected_x2 = mTimeline->GetSelectedPositionEnd();
+
+    // draw shaded region if needed
+    if( selected_x1 != -1 && selected_x2 != -1)
+    {
+        dc.SetPen(*pen_transparent);
+        dc.SetBrush(brush_range);
+        dc.DrawRectangle(selected_x1,1,selected_x2-selected_x1,h-2);
+    }
+
+    wxPen pen_wave(wxColor(130,178,207));
+    dc.SetPen(pen_wave);
+    int minMax = wv.MinMaxs.size();
+    for (int x=0;x<getWidth() && (x)<wv.MinMaxs.size();x++)
+    {
+        index = x+mStartPixelOffset;
+        if (index >= 0 && index < wv.MinMaxs.size())
+        {
+            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (h/2));
+            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (h/2));
+
+            if(y1 == y2)
+            {
+                glColor3ub(130,178,207);
+                dc.DrawPoint(x,y1);
+            }
+            else
+            {
+                dc.DrawLine(x, y1, x, y2);
+            }
+
+        }
+    }
+
+    dc.SetPen(*pen_white);
+    for(int x=0;x<getWidth()-1 && (x)<wv.MinMaxs.size();x++)
+    {
+        index = x + mStartPixelOffset;
+        if (index >= 0 && index < wv.MinMaxs.size())
+        {
+            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (h/2));
+            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (h/2));
+            if(y1 != y2)
+            {
+                if(x<wv.MinMaxs.size()-1)
+                {
+                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (h/2));
+                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (h/2));
+                    dc.DrawLine(x, y1, x+1, y1_2);
+                    dc.DrawLine(x, y2, x+1, y2_2);
+                }
+            }
+        }
+    }
+
+    // draw selection line if not a range
+    if( selected_x1 != -1 && selected_x2 == -1 )
+    {
+        dc.SetPen(*pen_black);
+        dc.DrawLine(selected_x1, 1, selected_x1, h-1);
+    }
+
+    // draw play marker line
+    int play_marker = mTimeline->GetPlayMarker();
+    if( play_marker != -1 )
+    {
+        dc.SetPen(*pen_black);
+        dc.DrawLine(play_marker, 1, play_marker, h-1);
+    }
+}
+
+void Waveform::DrawWaveViewGL(const WaveView &wv)
 {
     int x,y1,y2,y1_2,y2_2;
     int index;
