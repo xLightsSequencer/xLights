@@ -94,6 +94,7 @@ void Waveform::CloseMediaFile()
 {
     mIsInitialized = false;
     views.clear();
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
 }
 
 
@@ -374,8 +375,9 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 void Waveform::render( wxPaintEvent& event )
 {
     wxPaintDC dc(this);
-
-    DrawWaveView(views[mCurrentWaveView], dc);
+    if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED) {
+        DrawWaveView(views[mCurrentWaveView], dc);
+    }
 }
 
 void Waveform::renderGL( wxPaintEvent& event )
@@ -399,7 +401,7 @@ void Waveform::renderGL( wxPaintEvent& event )
     //prepare2DViewport(0,0,getWidth(), getHeight());
     prepare2DViewport(0,0,ClientSize.x, ClientSize.y);
     glLoadIdentity();
-    if(mIsInitialized)
+    if(mIsInitialized && mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
     {
         DrawWaveViewGL(views[mCurrentWaveView]); // continue the event
     }
