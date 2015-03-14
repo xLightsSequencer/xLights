@@ -664,12 +664,8 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         wxString selected_timing = dialog.GetTiming();
-        if( selected_timing != "Empty" && !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
         {
-            if( selected_timing == "Empty" )
-            {
-                selected_timing += "_1";
-            }
             xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
             AddTimingCell(selected_timing);
         }

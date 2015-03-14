@@ -27,8 +27,8 @@ void xLightsFrame::NewSequence()
 
     wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
     int ms = atoi(mss.c_str());
-    //SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
     LoadSequencer(*CurrentSeqXmlFile);
+    CurrentSeqXmlFile->SetSequenceLoaded(true);
     Menu_Settings_Sequence->Enable(true);
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
