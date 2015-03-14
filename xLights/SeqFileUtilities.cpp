@@ -43,6 +43,20 @@ void xLightsFrame::NewSequence()
         SeqData.init(NetInfo.GetTotChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 }
+static wxFileName mapFileName(const wxFileName &orig) {
+    if (orig.GetDirCount() == 0) {
+        //likely a filename from windows on Mac/Linux or vice versa
+        int idx = orig.GetFullName().Last('\\');
+        if (idx == -1) {
+            idx = orig.GetFullName().Last('/');
+        }
+        if (idx != -1) {
+            return wxFileName(orig.GetFullName().Left(idx),
+                              orig.GetFullName().Right(orig.GetFullName().Length() - idx - 1));
+        }
+    }
+    return orig;
+}
 
 void xLightsFrame::OpenSequence()
 {
@@ -80,7 +94,7 @@ void xLightsFrame::OpenSequence()
             FileConverter::ReadFalconFile(read_params);
             if( mf != "" )
             {
-                media_file = mf;
+                media_file = mapFileName(wxFileName::FileName(mf));
                 find_media = false;
             }
             DisplayXlightsFilename(xlightsFilename);
@@ -99,7 +113,7 @@ void xLightsFrame::OpenSequence()
         // if fseq didn't have media check xml
         if( CurrentSeqXmlFile->HasAudioMedia() )
         {
-            media_file = CurrentSeqXmlFile->GetMediaFile();
+            media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
             find_media = false;
         }
 
@@ -114,7 +128,7 @@ void xLightsFrame::OpenSequence()
                 ReadXlightsFile(xseq_file.GetFullPath(), &mf);
                 if( mf != "" )
                 {
-                    media_file = mf;
+                    media_file = mapFileName(wxFileName::FileName(mf));
                     find_media = false;
                 }
                 DisplayXlightsFilename(xlightsFilename);
@@ -125,10 +139,14 @@ void xLightsFrame::OpenSequence()
         }
 
         // search for missing media file in media directory and show directory
-        if( find_media )
+        if( find_media || !wxFileName(media_file).Exists())
         {
             wxFileName detect_media(selected_file);
-            detect_media.SetExt("mp3");
+            if (!find_media) {
+                detect_media = media_file;
+            } else {
+                detect_media.SetExt("mp3");
+            }
 
             // search media directory
             detect_media.SetPath(mediaDirectory);
