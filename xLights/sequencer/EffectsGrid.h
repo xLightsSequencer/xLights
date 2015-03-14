@@ -44,13 +44,7 @@ public:
 
     // Public Methods
 	void resized(wxSizeEvent& evt);
-	int getWidth();
-	int getHeight();
-	void ClearBackground();
-
-    void StartDrawing(wxDouble pointSize);
     void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
-    void EndDrawing();
     void SetCanvasSize(int w, int h);
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
@@ -73,6 +67,7 @@ private:
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
 	void OnIdle(wxIdleEvent &event);
+	void Draw();
 
     void DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);
     void DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2);
@@ -127,6 +122,9 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
+    int mWindowWidth;
+    int mWindowHeight;
+    int mWindowResized;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;

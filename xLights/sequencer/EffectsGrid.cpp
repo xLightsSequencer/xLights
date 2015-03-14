@@ -29,7 +29,7 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
 //EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
-//EVT_SIZE(EffectsGrid::resized)
+EVT_SIZE(EffectsGrid::resized)
 //EVT_KEY_DOWN(EffectsGrid::keyPressed)
 //EVT_KEY_UP(EffectsGrid::keyReleased)
 EVT_PAINT(EffectsGrid::render)
@@ -48,6 +48,9 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mDragDropping = false;
     mDropStartX = 0;
     mDropEndX = 0;
+    mWindowWidth = 0;
+    mWindowHeight = 0;
+    mWindowResized = false;
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -420,7 +423,7 @@ void EffectsGrid::OnIdle(wxIdleEvent &event)
     {
         Refresh(false);
         mPaintOnIdleCounter++;
-    }
+}
 }
 
 void EffectsGrid::ForceRefresh()
@@ -434,48 +437,23 @@ void EffectsGrid::SetTimeline(TimeLine* timeline)
         mTimeline = timeline;
 }
 
-void EffectsGrid::ClearBackground()
-{
-    wxGLCanvas::SetCurrent(*m_context);
-    wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    SwapBuffers();
-    return;
-}
-
-
 void EffectsGrid::resized(wxSizeEvent& evt)
 {
+    mWindowWidth = evt.GetSize().GetWidth();
+    mWindowHeight = evt.GetSize().GetHeight();
+    mWindowResized = true;
 }
 
 
 /** Inits the OpenGL viewport for drawing in 2D. */
 void EffectsGrid::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
-    glDisable(GL_TEXTURE_2D);   // textures
-    glDisable(GL_COLOR_MATERIAL);
-    glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
     glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, 0, 1);
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-}
-
-int EffectsGrid::getWidth()
-{
-    return GetSize().x;
-}
-
-int EffectsGrid::getHeight()
-{
-    return GetSize().y;
 }
 
 void EffectsGrid::SetCanvasSize(int w, int h)
@@ -501,21 +479,17 @@ void EffectsGrid::InitializeGrid()
     if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
     wxClientDC dc(this);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
+    glDisable(GL_TEXTURE_2D);   // textures
+    glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     glLoadIdentity();
     CreateEffectIconTextures();
     mIsInitialized = true;
-}
-
-void EffectsGrid::StartDrawing(wxDouble pointSize)
-{
-    mIsDrawing = true;
-    wxGLCanvas::SetCurrent(*m_context);
-    wxClientDC dc(this);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
-    glPointSize( pointSize );
 }
 
 void EffectsGrid::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
@@ -524,25 +498,17 @@ void EffectsGrid::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
     glVertex2f(x, y);
 }
 
-void EffectsGrid::EndDrawing()
-{
-    glEnd();
-    glFlush();
-    SwapBuffers();
-    mIsDrawing = false;
-}
-
 void EffectsGrid::DrawHorizontalLines()
 {
     // Draw Horizontal lines
     int x1=1;
-    int x2 = getWidth()-1;
+    int x2 = mWindowWidth-1;
     int y;
     bool isEvenLayer=false;
 
     glEnable(GL_BLEND);
     glColor4ub(100,100,100,5);
-    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< getHeight(), row < mSequenceElements->GetRowInformationSize();row++)
+    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< mWindowHeight, row < mSequenceElements->GetRowInformationSize();row++)
     {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformation(row);
         Element* e = ri->element;
@@ -561,7 +527,7 @@ void EffectsGrid::DrawHorizontalLines()
     }
     glDisable(GL_BLEND);
 
-    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< getHeight(), row < mSequenceElements->GetRowInformationSize();row++)
+    for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< mWindowHeight, row < mSequenceElements->GetRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
         DrawLine(*mGridlineColor,255,x1,y,x2,y,.2);
@@ -572,11 +538,11 @@ void EffectsGrid::DrawHorizontalLines()
 void EffectsGrid::DrawVerticalLines()
 {
     int x1=0;
-    int x2 = getWidth()-1;
+    int x2 = mWindowWidth-1;
     // Draw vertical lines
     int y1 = 0;
-    int y2 = getHeight()-1;
-    for(int x1=0;x1<getWidth();x1++)
+    int y2 = mWindowHeight-1;
+    for(int x1=0;x1<mWindowWidth;x1++)
     {
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
@@ -669,7 +635,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             }
             else
             {
-                effectLayer->GetEffect(effectIndex)->SetEndPosition(getWidth()+10);
+                effectLayer->GetEffect(effectIndex)->SetEndPosition(mWindowWidth+10);
             }
 
             // Draw horizontal
@@ -790,7 +756,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             }
             else
             {
-                effectLayer->GetEffect(effectIndex)->SetEndPosition(getWidth()+10);
+                effectLayer->GetEffect(effectIndex)->SetEndPosition(mWindowWidth+10);
             }
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
@@ -804,12 +770,19 @@ void EffectsGrid::DrawTimingEffects(int row)
 
 void EffectsGrid::render( wxPaintEvent& evt )
 {
+    Draw();
+}
+
+void EffectsGrid::Draw()
+{
     if(!mIsInitialized) { InitializeGrid(); }
     if(!IsShownOnScreen()) return;
     wxGLCanvas::SetCurrent(*m_context);
-    wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
+    if( mWindowResized )
+    {
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    }
     if( mSequenceElements )
     {
         DrawHorizontalLines();
@@ -820,9 +793,8 @@ void EffectsGrid::render( wxPaintEvent& evt )
     {
         DrawRectangle(*wxYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
-    //glEnable(GL_BLEND);
-    glFlush();
     SwapBuffers();
+    wxLogDebug("EffectsGrid::Draw");
 }
 
 
