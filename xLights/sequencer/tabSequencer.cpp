@@ -475,6 +475,16 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPalette());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
+        
+        playType = PLAY_TYPE_EFFECT;
+        playStartTime = effect->GetStartTime() * 1000;
+        playEndTime = effect->GetEndTime() * 1000;
+        playStartMS = -1;
+        
+        playBuffer.InitBuffer(GetModelNode(effect->GetParentEffectLayer()->GetParentElement()->GetName()),
+                              effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount(),
+                              SeqData.FrameTime());
+
     }
     wxString tooltip;
     effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
@@ -506,6 +516,11 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
         playStartMS = -1;
         RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
+        
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,false);
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_LAST_FRAME,false);
     }
 
     mainSequencer->PanelEffectGrid->Refresh(false);
