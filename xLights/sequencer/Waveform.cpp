@@ -374,6 +374,8 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
 
 void Waveform::render( wxPaintEvent& event )
 {
+    if(!IsShownOnScreen() || !mIsInitialized) return;
+
     wxPaintDC dc(this);
     if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED) {
         DrawWaveView(views[mCurrentWaveView], dc);
