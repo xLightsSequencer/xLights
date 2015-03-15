@@ -468,6 +468,7 @@ public:
     void AppendConvertLog(const wxString& msg);
     void RenderIseqData(bool bottom_layers);
     void ClearSequenceData();
+    void LoadAudioData(xLightsXmlFile& xml_file);
 
 private:
 
