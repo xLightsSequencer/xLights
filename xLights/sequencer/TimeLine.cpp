@@ -10,7 +10,7 @@ BEGIN_EVENT_TABLE(TimeLine, wxWindow)
 EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
-EVT_LEFT_DCLICK(TimeLine::mouseLeftDClick)
+EVT_MOUSE_CAPTURE_LOST(TimeLine::OnLostMouseCapture)
 //EVT_LEAVE_WINDOW(TimeLine::mouseLeftWindow)
 //EVT_RIGHT_DOWN(TimeLine::rightClick)
 //EVT_SIZE(TimeLine::resized)
@@ -28,14 +28,22 @@ const int TimeLine::ZoomLevelValues[] = {1,2,4,10,20,40,100,200,400,600,1200,240
 
 static const int marker_size = 8;
 
+void TimeLine::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
+{
+    m_dragging = false;
+}
+
 void TimeLine::mouseLeftDown( wxMouseEvent& event)
 {
     mCurrentPlayMarkerStart = GetPositionFromSelection(event.GetX());
     mCurrentPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mCurrentPlayMarkerStart);
     mCurrentPlayMarkerEnd = -1;
     mCurrentPlayMarkerEndMS = -1;
-    m_dragging = true;
-    if( !HasCapture() ) { CaptureMouse(); }
+    if( !m_dragging )
+    {
+        m_dragging = true;
+        CaptureMouse();
+    }
     Refresh(false);
 }
 
@@ -54,18 +62,16 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
 void TimeLine::mouseLeftUp( wxMouseEvent& event)
 {
     triggerPlay();
-    if( HasCapture() ) { ReleaseMouse(); }
+    if(m_dragging)
+    {
+        ReleaseMouse();
+        m_dragging = false;
+    }
     Refresh(false);
-}
-
-void TimeLine::mouseLeftDClick(wxMouseEvent& event)
-{
-    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void TimeLine::triggerPlay()
 {
-    m_dragging = false;
     timeline_initiated_play = true;
     if( mCurrentPlayMarkerEndMS != -1 && mCurrentPlayMarkerStartMS > mCurrentPlayMarkerEndMS )
     {

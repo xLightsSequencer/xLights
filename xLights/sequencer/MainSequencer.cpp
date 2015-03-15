@@ -311,6 +311,7 @@ void MainSequencer::InsertTimingMarkFromRange()
 {
     int x1 = PanelTimeLine->GetSelectedPositionStart();
     int x2 = PanelTimeLine->GetSelectedPositionEnd();
+    if( x2 == -1 ) x2 = x1;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
     {

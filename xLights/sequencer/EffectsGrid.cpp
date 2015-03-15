@@ -27,7 +27,7 @@ EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
 EVT_LEFT_UP(EffectsGrid::mouseReleased)
-EVT_LEFT_DCLICK(EffectsGrid::mouseLeftDClick)
+EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 //EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
 EVT_SIZE(EffectsGrid::resized)
@@ -82,6 +82,13 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
+
+void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
+{
+    mDragging = false;
+    mResizing = false;
+    mDragDropping = false;
+}
 
 void EffectsGrid::DragOver(int x, int y)
 {
@@ -204,20 +211,18 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     }
     else
     {
-        mDragging = true;
-        mDragStartX = event.GetX();
-        mDragStartY = event.GetY();
-        mDragEndX = event.GetX();
-        mDragEndY = event.GetY();
+        if( !mDragging )
+        {
+            mDragging = true;
+            mDragStartX = event.GetX();
+            mDragStartY = event.GetY();
+            mDragEndX = event.GetX();
+            mDragEndY = event.GetY();
+            CaptureMouse();
+        }
     }
     UpdateTimePosition(event.GetX());
-    if( !HasCapture() ) { CaptureMouse(); }
     event.Skip(true);
-}
-
-void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
-{
-    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
@@ -231,11 +236,15 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         }
     }
 
+    if(mDragging)
+    {
+        ReleaseMouse();
+        mDragging = false;
+    }
+
     mResizing = false;
-    mDragging = false;
     mDragDropping = false;
     mPaintOnIdleCounter = 0;
-    if( HasCapture() ) { ReleaseMouse(); }
 }
 
 void EffectsGrid::Resize(int position)
@@ -789,7 +798,7 @@ void EffectsGrid::Draw()
         DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
     SwapBuffers();
-    wxLogDebug("EffectsGrid::Draw");
+    //wxLogDebug("EffectsGrid::Draw");
 }
 
 

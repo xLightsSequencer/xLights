@@ -173,6 +173,7 @@ class Waveform : public wxGLCanvas
       	//void mouseLeftWindow( wxMouseEvent& event);
       	void OnIdle(wxIdleEvent &event);
       	void OnLeftDClick(wxMouseEvent& event);
+        void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
       	//void OnWaveScrollLeft(wxTimerEvent& event);
       	//void OnWaveScrollRight(wxTimerEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);
