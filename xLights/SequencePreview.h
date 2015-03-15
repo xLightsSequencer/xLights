@@ -25,7 +25,6 @@ public:
 	void ClearBackground();
     void InitializePreview();
     bool StartDrawing(wxDouble pointSize);
-    void DrawPoint(const xlColor &color, wxDouble x, wxDouble y);
     void EndDrawing();
 private:
 	void render(wxPaintEvent& evt);

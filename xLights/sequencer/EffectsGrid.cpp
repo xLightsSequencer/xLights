@@ -19,6 +19,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "EffectDropTarget.h"
+#include "../DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
 EVT_IDLE(EffectsGrid::OnIdle)
@@ -54,12 +55,12 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
-    mEffectColor = new wxColour(192,192,192);
-    mGridlineColor = new wxColour(40,40,40);
+    mEffectColor = new xlColor(192,192,192);
+    mGridlineColor = new xlColor(40,40,40);
 
-    mTimingColor = new wxColour(255,255,255);
-    mTimingVerticalLine = new wxColour(130,178,207);
-    mSelectionColor = new wxColour(255,0,255);
+    mTimingColor = new xlColor(255,255,255);
+    mTimingVerticalLine = new xlColor(130,178,207);
+    mSelectionColor = new xlColor(255,0,255);
 
     mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
@@ -492,12 +493,6 @@ void EffectsGrid::InitializeGrid()
     mIsInitialized = true;
 }
 
-void EffectsGrid::DrawPoint(const wxColour &color, wxDouble x, wxDouble y)
-{
-    glColor3ub(color.Red(), color.Green(),color.Blue());
-    glVertex2f(x, y);
-}
-
 void EffectsGrid::DrawHorizontalLines()
 {
     // Draw Horizontal lines
@@ -520,7 +515,7 @@ void EffectsGrid::DrawHorizontalLines()
             {
                 //Element is collapsed only one row should be shaded
                 int h = e->GetCollapsed()?DEFAULT_ROW_HEADING_HEIGHT:DEFAULT_ROW_HEADING_HEIGHT * e->GetEffectLayerCount();
-                DrawFillRectangle(*wxLIGHT_GREY,40,x1,y,x2,h);
+                DrawGLUtils::DrawFillRectangle(xlLIGHT_GREY,40,x1,y,x2,h);
             }
             isEvenLayer = !isEvenLayer;
         }
@@ -530,7 +525,7 @@ void EffectsGrid::DrawHorizontalLines()
     for(int row=0;(row*DEFAULT_ROW_HEADING_HEIGHT)< mWindowHeight, row < mSequenceElements->GetRowInformationSize();row++)
     {
         y = (row+1)*DEFAULT_ROW_HEADING_HEIGHT;
-        DrawLine(*mGridlineColor,255,x1,y,x2,y,.2);
+        DrawGLUtils::DrawLine(*mGridlineColor,255,x1,y,x2,y,.2);
     }
 
 }
@@ -547,7 +542,7 @@ void EffectsGrid::DrawVerticalLines()
         // Draw hash marks
         if ((x1+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH)==0)
         {
-            DrawLine(*mGridlineColor,255,x1,y1,x1,y2,.2);
+            DrawGLUtils::DrawLine(*mGridlineColor,255,x1,y1,x1,y2,.2);
         }
     }
 }
@@ -573,9 +568,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 {
     EffectLayer* effectLayer =mSequenceElements->GetRowInformation(row)->
                               element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-    wxColour* mEffectColorRight;
-    wxColour* mEffectColorLeft;
-    wxColour* mEffectColorCenter;
+    xlColor* mEffectColorRight;
+    xlColor* mEffectColorLeft;
+    xlColor* mEffectColorCenter;
     int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+2;
     int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-2;
     int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
@@ -613,12 +608,12 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                        effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_NOT_SELECTED ||
                         effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_LT_SELECTED)
                     {
-                        DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
                     }
                 }
                 else
                 {
-                    DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                    DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
                 }
                 effectLayer->GetEffect(effectIndex)->SetStartPosition(x1);
             }
@@ -630,7 +625,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             // Draw Right line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
             {
-                DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
+                DrawGLUtils::DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
                 effectLayer->GetEffect(effectIndex)->SetEndPosition(x2);
             }
             else
@@ -643,9 +638,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             {
                 if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
                 {
-                    DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
-                    DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
-                    DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                    DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
+                    DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
+                    DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
                     glEnable(GL_TEXTURE_2D);
                     DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
                     glDisable(GL_TEXTURE_2D);
@@ -653,13 +648,13 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 }
                 else if (x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT)
                 {
-                    DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-1,y,1);
-                    DrawLine(*mEffectColorRight,255,x1+(x/2)+1,y,x2,y,1);
-                    DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
+                    DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-1,y,1);
+                    DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+1,y,x2,y,1);
+                    DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-1,y-1,x1+(x/2)+1,y+1);
                 }
                 else
                 {
-                    DrawLine(*mEffectColorCenter,255,x1,y,x2,y,1);
+                    DrawGLUtils::DrawLine(*mEffectColorCenter,255,x1,y,x2,y,1);
                 }
             }
 
@@ -668,10 +663,10 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     if(mDragDropping && mDropRow == row)
     {
         int y3 = row*DEFAULT_ROW_HEADING_HEIGHT;
-        const wxColour c = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
+        const xlColor c = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
 
         glEnable(GL_BLEND);
-        DrawFillRectangle(c,80,mDropStartX,y3,mDropEndX-mDropStartX,DEFAULT_ROW_HEADING_HEIGHT);
+        DrawGLUtils::DrawFillRectangle(c,80,mDropStartX,y3,mDropEndX-mDropStartX,DEFAULT_ROW_HEADING_HEIGHT);
         glDisable(GL_BLEND);
     }
 }
@@ -681,9 +676,9 @@ void EffectsGrid::DrawTimingEffects(int row)
     Element* element =mSequenceElements->GetRowInformation(row)->element;
     int lIndex = mSequenceElements->GetRowInformation(row)->layerIndex;
     EffectLayer* effectLayer=element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-    wxColour* mEffectColorRight;
-    wxColour* mEffectColorLeft;
-    wxColour* mEffectColorCenter;
+    xlColor* mEffectColorRight;
+    xlColor* mEffectColorLeft;
+    xlColor* mEffectColorCenter;
     //if(effectLayer==nullptr)
     //    return;
     for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
@@ -722,19 +717,19 @@ void EffectsGrid::DrawTimingEffects(int row)
                        effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_NOT_SELECTED ||
                         effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_LT_SELECTED)
                     {
-                        DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
                     }
                 }
                 else
                 {
-                    DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
+                    DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y1,x1,y2,2);
                 }
 
                 effectLayer->GetEffect(effectIndex)->SetStartPosition(x1);
                 if(element->GetActive())
                 {
                     glEnable(GL_BLEND);
-                    DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x1,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x1,GetSize().y,1);
+                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x1,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x1,GetSize().y,1);
                     glDisable(GL_BLEND);
                 }
             }
@@ -745,12 +740,12 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw Right line
             if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
             {
-                DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
+                DrawGLUtils::DrawLine(*mEffectColorRight,255,x2,y1,x2,y2,2);
                 effectLayer->GetEffect(effectIndex)->SetEndPosition(x2);
                 if(element->GetActive())
                 {
                     glEnable(GL_BLEND);
-                    DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x2,GetSize().y,1);
+                    DrawGLUtils::DrawLine(*RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(row)->colorIndex),128,x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT,x2,GetSize().y,1);
                     glDisable(GL_BLEND);
                 }
             }
@@ -761,7 +756,7 @@ void EffectsGrid::DrawTimingEffects(int row)
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
             {
-                DrawLine(*mTimingColor,255,x1,y,x2,y,2);
+                DrawGLUtils::DrawLine(*mTimingColor,255,x1,y,x2,y,2);
             }
 
         }
@@ -791,7 +786,7 @@ void EffectsGrid::Draw()
     }
     if(mDragging)
     {
-        DrawRectangle(*wxYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
+        DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
     SwapBuffers();
     wxLogDebug("EffectsGrid::Draw");
@@ -820,16 +815,6 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glPopMatrix();
 }
 
-void EffectsGrid::DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,int x2, int y2,float width)
-{
-    glLineWidth(width);
-    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
-    glBegin(GL_LINES);
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y2);
-    glEnd();
-}
-
 void EffectsGrid::CreateEffectIconTextures()
 {
     const char** p_XPM;
@@ -837,7 +822,7 @@ void EffectsGrid::CreateEffectIconTextures()
     {
         wxString tooltip;
         p_XPM = xLightsFrame::GetIconBuffer(effectID, tooltip);
-        CreateOrUpdateTexture((char**)p_XPM,&m_EffectTextures[effectID]);
+        DrawGLUtils::CreateOrUpdateTexture((char**)p_XPM,&m_EffectTextures[effectID]);
     }
 }
 
@@ -846,118 +831,6 @@ void EffectsGrid::DeleteEffectIconTextures()
     for(int effectID=0;effectID<NUMBER_OF_EFFECTS;effectID++)
     {
         glDeleteTextures(1,&m_EffectTextures[effectID]);
-    }
-}
-
-void EffectsGrid::DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2)
-{
-    glColor3ub(color.Red(), color.Green(),color.Blue());
-    if (!dashed)
-    {
-        glBegin(GL_LINES);
-        glVertex2f(x1, y1);
-        glVertex2f(x2, y1);
-
-        glVertex2f(x2, y1);
-        glVertex2f(x2, y2);
-
-        glVertex2f(x2, y2);
-        glVertex2f(x1, y2);
-
-        glVertex2f(x1+1, y2);
-        glVertex2f(x1+1, y1);
-        glEnd();
-    }
-    else
-    {
-        glBegin(GL_POINTS);
-        // Line 1
-        int xs = x1<x2?x1:x2;
-        int xf = x1>x2?x1:x2;
-        for(int x=xs;x<=xf;x++)
-        {
-            if(x%8<4)
-            {
-                glVertex2f(x, y1);
-            }
-        }
-        // Line 2
-        int ys = y1<y2?y1:y2;
-        int yf = y1>y2?y1:y2;
-        for(int y=ys;y<=yf;y++)
-        {
-            if(y%8<4)
-            {
-                glVertex2f(x2,y);
-            }
-        }
-        // Line 3
-        xs = x1<x2?x1:x2;
-        xf = x1>x2?x1:x2;
-        for(int x=xs;x<=xf;x++)
-        {
-            if(x%8<4)
-            {
-                glVertex2f(x, y2);
-            }
-        }
-        // Line 4
-        ys = y1<y2?y1:y2;
-        yf = y1>y2?y1:y2;
-        for(int y=ys;y<=yf;y++)
-        {
-            if(y%8<4)
-            {
-                glVertex2f(x1,y);
-            }
-        }
-        glEnd();
-    }
-}
-
-void EffectsGrid::DrawFillRectangle(const wxColour &color, wxByte alpha, int x, int y,int width, int height)
-{
-    glColor4ub(color.Red(), color.Green(),color.Blue(),alpha);
-    //glColor3ub(color.Red(), color.Green(),color.Blue());
-    glBegin(GL_QUADS);
-    glVertex2f(x, y);
-    glVertex2f(x+width, y);
-    glVertex2f(x+width, y+height);
-    glVertex2f(x, y+height);
-    glEnd();
-}
-
-
-void EffectsGrid::CreateOrUpdateTexture(char** p_XPM, GLuint* texture)
-{
-    if (p_XPM != NULL)
-    {
-        wxBitmap l_Bitmap(p_XPM);
-        wxImage l_Image(l_Bitmap.ConvertToImage());
-
-        if (l_Image.IsOk() == true)
-        {
-            //if(*texture==0)
-            //{
-                glGenTextures(1,texture);
-                GLuint k = *texture;
-                if (*texture != 0)
-                {
-                    glBindTexture(GL_TEXTURE_2D, *texture);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-                }
-            // Comment out because we will never replace image, only create new
-            //}
-            //else
-            //{
-            //    glBindTexture(GL_TEXTURE_2D, *texture);
-            //    glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-            //             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-            //}
-        }
     }
 }
 

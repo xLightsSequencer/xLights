@@ -39,10 +39,10 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
                        wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
     DOUBLE_BUFFER(this);
-    mHeaderColorModel = new wxColour(212,208,200,30);
-    mHeaderColorView = new wxColour(159,157,152,30);
-    mHeaderColorTiming = new wxColour(130,178,207,30);
-    mHeaderSelectedColor = new wxColour(130,178,207,30);
+    mHeaderColorModel = new xlColor(212,208,200);
+    mHeaderColorView = new xlColor(159,157,152);
+    mHeaderColorTiming = new xlColor(130,178,207);
+    mHeaderSelectedColor = new xlColor(130,178,207);
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
 
 }
@@ -252,14 +252,14 @@ void RowHeading::render( wxPaintEvent& event )
     wxPaintDC dc(this);
     wxPen penOutline(wxColor(32,32,32), .1);
     dc.GetSize(&w,&h);
-    wxBrush brush(*mHeaderColorModel,wxBRUSHSTYLE_SOLID);
+    wxBrush brush(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row=0;
     int startY = 0,endY = 0;
     for(int i =0;i< mSequenceElements->GetRowInformationSize();i++)
     {
-        wxBrush brush(*GetHeaderColor(mSequenceElements->GetRowInformation(i)),wxBRUSHSTYLE_SOLID);
+        wxBrush brush(GetHeaderColor(mSequenceElements->GetRowInformation(i))->asWxColor(),wxBRUSHSTYLE_SOLID);
         dc.SetBrush(brush);
         startY = DEFAULT_ROW_HEADING_HEIGHT*row;
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
@@ -337,13 +337,13 @@ void RowHeading::render( wxPaintEvent& event )
         }
         row++;
     }
-    wxBrush b(*mHeaderColorModel,wxBRUSHSTYLE_SOLID);
+    wxBrush b(mHeaderColorModel->asWxColor(),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
 
 }
 
-const wxColour* RowHeading::GetHeaderColor(Row_Information_Struct* info)
+const xlColor* RowHeading::GetHeaderColor(Row_Information_Struct* info)
 {
     if (info->element->GetType() == "model")
     {
@@ -392,26 +392,26 @@ int RowHeading::getHeight()
     return GetSize().y;
 }
 
-const wxColour* RowHeading::GetTimingColor(int colorIndex)
+const xlColour* RowHeading::GetTimingColor(int colorIndex)
 {
-    const wxColour* value;
+    const xlColour* value;
     switch(colorIndex%5)
     {
         case 0:
             //
-            value = wxCYAN;
+            value = &xlCYAN;
             break;
         case 1:
-            value = wxRED;
+            value = &xlRED;
             break;
         case 2:
-            value = wxGREEN;
+            value = &xlGREEN;
             break;
         case 3:
-            value = wxBLUE;
+            value = &xlBLUE;
             break;
         default:
-            value = wxYELLOW;
+            value = &xlYELLOW;
             break;
     }
     return value;
