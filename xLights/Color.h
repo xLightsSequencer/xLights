@@ -38,7 +38,7 @@ public:
     unsigned char Red() const { return red; }
     unsigned char Blue() const { return blue; };
     unsigned char Green() const { return green; };
-    
+
     void Set(unsigned char r, unsigned char g, unsigned char b) {
         red = r;
         green = g;
@@ -87,7 +87,7 @@ public:
                 red = blue = green = 0;
                 return;
             }
-            
+
             Set((unsigned char)(tmp >> 16),
                 (unsigned char)(tmp >> 8),
                 (unsigned char)tmp);
@@ -98,7 +98,7 @@ public:
                 red = blue = green = 0;
                 return;
             }
-            
+
             Set((unsigned char)(tmp >> 16),
                 (unsigned char)(tmp >> 8),
                 (unsigned char)tmp);
@@ -119,7 +119,7 @@ static const xlColor xlBLACK(0, 0, 0);
 static const xlColor xlWHITE(255, 255, 255);
 static const xlColor xlYELLOW(255, 255, 0);
 static const xlColor xlLIGHT_GREY(211, 211, 211);
-
+static const xlColor xlCYAN(0, 255, 255);
 
 typedef xlColor xlColour;
 typedef std::vector<xlColor> xlColorVector;

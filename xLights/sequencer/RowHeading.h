@@ -4,6 +4,7 @@
 #include <wx/xml/xml.h>
 #include "SequenceElements.h"
 #include "wx/wx.h"
+#include "Color.h"
 
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100
@@ -26,7 +27,7 @@ class RowHeading : public wxWindow
         void SetCanvasSize(int width,int height);
 
         void SetSequenceElements(SequenceElements* elements);
-        static const wxColour* GetTimingColor(int index);
+        static const xlColor* GetTimingColor(int index);
         int getWidth();
         int getHeight();
         int GetMaxRows();
@@ -41,11 +42,11 @@ class RowHeading : public wxWindow
         void DrawHeading(wxPaintDC* dc, wxXmlNode* model,int width,int row);
         bool HitTestCollapseExpand(int row,int x, bool* IsCollapsed);
         bool HitTestTimingActive(int row,int x, bool* IsActive);
-        const wxColour* GetHeaderColor(Row_Information_Struct* info);
-        const wxColour * mHeaderColorModel;
-        const wxColour * mHeaderColorView;
-        const wxColour * mHeaderColorTiming;
-        const wxColour * mHeaderSelectedColor;
+        const xlColor* GetHeaderColor(Row_Information_Struct* info);
+        const xlColor * mHeaderColorModel;
+        const xlColor * mHeaderColorView;
+        const xlColor * mHeaderColorTiming;
+        const xlColor * mHeaderSelectedColor;
 
         int mSelectedRow;
         SequenceElements* mSequenceElements;

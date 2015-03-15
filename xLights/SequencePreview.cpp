@@ -116,12 +116,6 @@ bool SequencePreview::StartDrawing(wxDouble pointSize)
     return(true);
 }
 
-void SequencePreview::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
-{
-    glColor3ub(color.Red(), color.Green(),color.Blue());
-    glVertex2f(x, y);
-}
-
 void SequencePreview::EndDrawing()
 {
     glEnd();

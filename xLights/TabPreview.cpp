@@ -1,6 +1,7 @@
 #include "xLightsMain.h"
 #include "ModelDialog.h" //Cheating to avoid full recompile by adding this in main.h
 #include "heartbeat.h"
+#include "DrawGLUtils.h"
 #define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::OnButtonSavePreviewClick(wxCommandEvent& event)
@@ -83,7 +84,7 @@ void xLightsFrame::UpdatePreview()
     if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {
-        modelPreview->DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
+        DrawGLUtils::DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
     }
     for (int i=0; i<PreviewModels.size(); i++)
     {

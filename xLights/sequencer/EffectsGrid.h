@@ -8,6 +8,7 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
+#include "Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
 #include "EffectLayer.h"
@@ -44,7 +45,6 @@ public:
 
     // Public Methods
 	void resized(wxSizeEvent& evt);
-    void DrawPoint(const wxColour &color, wxDouble x, wxDouble y);
     void SetCanvasSize(int w, int h);
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
@@ -69,11 +69,7 @@ private:
 	void OnIdle(wxIdleEvent &event);
 	void Draw();
 
-    void DrawLine(const wxColour &color, wxByte alpha,int x1, int y1,int x2, int y2,float width);
-    void DrawRectangle(const wxColour &color, bool dashed, int x1, int y1,int x2, int y2);
-    void DrawFillRectangle(const wxColour &color, wxByte alpha, int x, int y,int width, int height);
     void DrawEffectIcon(GLuint* texture,int x, int y);
-    void CreateOrUpdateTexture(char** p_XPM, GLuint *texture);
     void CreateEffectIconTextures();
     void DeleteEffectIconTextures();
     void DrawHorizontalLines();
@@ -103,12 +99,12 @@ private:
     // for effect count
     GLuint m_EffectTextures[40];
     int mStartPixelOffset;
-    wxColour * mEffectColor;
-    wxColour * mGridlineColor;
-    wxColour * mTimingColor;
-    wxColour * mTimingVerticalLine;
+    xlColor * mEffectColor;
+    xlColor * mGridlineColor;
+    xlColor * mTimingColor;
+    xlColor * mTimingVerticalLine;
 
-    wxColour * mSelectionColor;
+    xlColor * mSelectionColor;
     wxWindow* mParent;
     TimeLine* mTimeline;
 
