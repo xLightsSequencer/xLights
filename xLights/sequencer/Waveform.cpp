@@ -47,7 +47,7 @@ EVT_LEFT_UP(Waveform::mouseLeftUp)
 //EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
 EVT_IDLE(Waveform::OnIdle)
-
+EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 //EVT_RIGHT_DOWN(ModelPreview::rightClick)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
@@ -97,7 +97,10 @@ void Waveform::CloseMediaFile()
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
 }
 
-
+void Waveform::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
+{
+    m_dragging = false;
+}
 
 void Waveform::OnIdle(wxIdleEvent &event)
 {
@@ -126,7 +129,6 @@ void Waveform::OnLeftDClick(wxMouseEvent& event)
     else {eventZoom.SetInt(ZOOM_IN);}
 
     wxPostEvent(GetParent(), eventZoom);
-    if( !HasCapture() ) { CaptureMouse(); }
 }
 
 void Waveform::UpdatePlayMarker()
@@ -181,17 +183,25 @@ void Waveform::CheckNeedToScroll()
 void Waveform::mouseLeftDown( wxMouseEvent& event)
 {
     if(!mIsInitialized){return;}
-    m_dragging = true;
+    if( !m_dragging )
+    {
+        m_dragging = true;
+        CaptureMouse();
+    }
     mTimeline->SetSelectedPositionStart(event.GetX());
-    if( !HasCapture() ) { CaptureMouse(); }
     Refresh(false);
 }
 
 void Waveform::mouseLeftUp( wxMouseEvent& event)
 {
-    m_dragging = false;
+    if(m_dragging)
+    {
+        ReleaseMouse();
+        m_dragging = false;
+    }
+
     mTimeline->LatchSelectedPositions();
-    if( HasCapture() ) { ReleaseMouse(); }
+
     Refresh(false);
 }
 
