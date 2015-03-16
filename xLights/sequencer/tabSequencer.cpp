@@ -176,6 +176,44 @@ void xLightsFrame::CheckForValidModels()
     }
 }
 
+void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
+{
+    mMediaLengthMS = xml_file.GetSequenceDurationMS();
+
+    mainSequencer->PanelWaveForm->CloseMediaFile();
+    if(xml_file.GetSequenceType()=="Media")
+    {
+        int musicLength = 0;
+        mediaFilename = xml_file.GetMediaFile();
+        if( mediaFilename == wxEmptyString )
+        {
+            SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
+            setting_dlg.Fit();
+            setting_dlg.ShowModal();
+            mediaFilename = xml_file.GetMediaFile();
+        }
+        if( mediaFilename != wxEmptyString )
+        {
+            PlayerDlg->Load(mediaFilename);
+            musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
+            if(musicLength <=0)
+            {
+                wxMessageBox("Invalid Media File");
+            }
+        }
+        else
+        {
+           wxMessageBox("Media File must be specified");
+        }
+        if (mMediaLengthMS == 0) {
+            mMediaLengthMS = musicLength;
+        }
+    }
+
+    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
+    mainSequencer->PanelTimeLine->Initialize();
+}
+
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
@@ -183,59 +221,19 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     CheckForValidModels();
 
-    mMediaLengthMS = xml_file.GetSequenceDurationMS();
+    LoadAudioData(xml_file);
 
-        mainSequencer->PanelWaveForm->CloseMediaFile();
-        if(xml_file.GetSequenceType()=="Media")
-        {
-            int musicLength = 0;
-            mediaFilename = xml_file.GetMediaFile();
-            if( mediaFilename == wxEmptyString )
-            {
-                SeqSettingsDialog setting_dlg(this, &xml_file, mediaDirectory, wxT("Please select Media file!!!"));
-                setting_dlg.Fit();
-                setting_dlg.ShowModal();
-                mediaFilename = xml_file.GetMediaFile();
-            }
-            if( mediaFilename != wxEmptyString )
-            {
-                PlayerDlg->Load(mediaFilename);
-                musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
-                if(musicLength <=0)
-                {
-                    wxMessageBox("Invalid Media File");
-                }
-            }
-            else
-            {
-               wxMessageBox("Media File must be specified");
-            }
-            if (mMediaLengthMS == 0) {
-                mMediaLengthMS = musicLength;
-            }
-            //mainSequencer->PanelWaveForm->SetCanvasSize(1200,75);
-        }
-
-//        wxString s = wxString::Format("Length=%d",mMediaLengthMS);
-//        wxMessageBox(s);
-        //mainSequencer->PanelTimeLine->SetTimeLength(230000);
-        mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
-        //mainSequencer->PanelTimeLine->SetCanvasSize(1200,25);
-        mainSequencer->PanelTimeLine->Initialize();
-        //mainSequencer->PanelEffectGrid->SetCanvasSize(1200,2200);
-        mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
-        mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
-        //mainSequencer->PanelEffectGrid->InitializeGrid();
-
-        ResizeAndMakeEffectsScroll();
-        ResizeMainSequencer();
-        int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-        mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
-        mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
-        mainSequencer->PanelWaveForm->Refresh();
-        mainSequencer->PanelEffectGrid->Refresh();
-        sPreview1->Refresh();
-        m_mgr->Update();
+    mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
+    mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
+    ResizeAndMakeEffectsScroll();
+    ResizeMainSequencer();
+    int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
+    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+    mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
+    mainSequencer->PanelWaveForm->Refresh();
+    mainSequencer->PanelEffectGrid->Refresh();
+    sPreview1->Refresh();
+    m_mgr->Update();
 }
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)
@@ -475,12 +473,12 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPalette());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
-        
+
         playType = PLAY_TYPE_EFFECT;
         playStartTime = effect->GetStartTime() * 1000;
         playEndTime = effect->GetEndTime() * 1000;
         playStartMS = -1;
-        
+
         playBuffer.InitBuffer(GetModelNode(effect->GetParentEffectLayer()->GetParentElement()->GetName()),
                               effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount(),
                               SeqData.FrameTime());
@@ -516,7 +514,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
         playStartMS = -1;
         RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
-        
+
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
         EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_FIRST_FRAME,false);

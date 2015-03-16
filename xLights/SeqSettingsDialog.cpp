@@ -1031,7 +1031,6 @@ void SeqSettingsDialog::MediaChooser()
         wxFileName name_and_path(filename);
         name_and_path.SetPath(fDir);
         xml_file->SetMediaFile(name_and_path.GetFullPath(), CheckBox_Overwrite_Tags->IsChecked());
-        xLightsParent->SetMediaFilename(name_and_path.GetFullPath());
         TextCtrl_Xml_Media_File->SetValue(name_and_path.GetFullPath());
         TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
         TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
@@ -1040,6 +1039,10 @@ void SeqSettingsDialog::MediaChooser()
         double length = length_ms / 1000.0f;
         xml_file->SetSequenceDuration(length);
         TextCtrl_Xml_Seq_Duration->SetValue(string_format("%.3f", length));
+        if( xml_file->GetSequenceLoaded() )
+        {
+            xLightsParent->LoadAudioData(*xml_file);
+        }
         StaticText_Warning->Hide();
         ProcessSequenceType();
     }

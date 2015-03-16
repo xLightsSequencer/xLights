@@ -182,12 +182,6 @@ void xLightsFrame::OpenSequence()
             setting_dlg.ShowModal();
         }
 
-        // load media if available
-        if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
-        {
-            SetMediaFilename(CurrentSeqXmlFile->GetMediaFile());
-        }
-
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = atoi(mss.c_str());
         loaded_xml = SeqLoadXlightsFile(*CurrentSeqXmlFile, true);
