@@ -111,11 +111,13 @@ void xLightsFrame::OpenSequence()
         CurrentSeqXmlFile->Open();
 
         // if fseq didn't have media check xml
-        if( CurrentSeqXmlFile->HasAudioMedia() )
+        if( CurrentSeqXmlFile->HasAudioMedia()
+           || !CurrentSeqXmlFile->GetMediaFile().IsEmpty())
         {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
             find_media = false;
         }
+        
 
         // still no media file?  look for an XSEQ file and load if found
         if( find_media )

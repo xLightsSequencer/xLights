@@ -120,7 +120,10 @@ void handleCrash(void *data) {
     report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_networks.xml").GetFullPath(), "xlights_networks.xml");
     report.AddFile(wxFileName(topFrame->CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     if (topFrame->GetSeqXmlFileName() != "") {
-        report.AddFile(topFrame->GetSeqXmlFileName(), wxFileName(topFrame->GetSeqXmlFileName()).GetName());
+        wxFileName fn(topFrame->GetSeqXmlFileName());
+        if (fn.Exists() && !fn.IsDir()) {
+            report.AddFile(topFrame->GetSeqXmlFileName(), fn.GetName());
+        }
     }
     wxString trace;
 #ifndef __WXMSW__

@@ -2774,6 +2774,9 @@ void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 }
 
 wxString xLightsFrame::GetSeqXmlFileName() {
+    if (CurrentSeqXmlFile == NULL) {
+        return "";
+    }
     return CurrentSeqXmlFile->GetFullPath();
 }
 

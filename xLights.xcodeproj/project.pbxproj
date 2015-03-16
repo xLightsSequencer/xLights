@@ -59,6 +59,7 @@
 		67879B7519F94544009D994D /* RenderShimmer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67879B7319F94544009D994D /* RenderShimmer.cpp */; };
 		679D6B7117B792D900CB251B /* libiconv.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92517B53DB50006B951 /* libiconv.2.4.0.dylib */; };
 		679D6B7217B86BAD00CB251B /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B4C92B17B53DE70006B951 /* QTKit.framework */; };
+		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
 		67A543FE1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */; };
 		67A61A2617B51C0F008E95BB /* AddShowDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */; };
@@ -238,6 +239,8 @@
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
 		67879B7319F94544009D994D /* RenderShimmer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderShimmer.cpp; sourceTree = "<group>"; };
 		679BEF1B1A9FCB1D00C37BB4 /* RenderCommandEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderCommandEvent.h; sourceTree = "<group>"; };
+		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
+		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A543FD1A014A2900B0ADB2 /* WholeHouseModelNameDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WholeHouseModelNameDialog.cpp; sourceTree = "<group>"; };
 		67A619BC17B51C0F008E95BB /* AddShowDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AddShowDialog.cpp; sourceTree = "<group>"; };
@@ -481,6 +484,7 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
 				67B189751AA22C990082B00C /* RenderMorph.cpp */,
 				67B845001A9C0E7500564051 /* DisplayElementsPanel.cpp */,
 				67B845021A9C0E7500564051 /* ModelViewSelector.cpp */,
@@ -598,6 +602,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				67A260ED1AB71EE3006B140D /* DrawGLUtils.h */,
 				676DCBF91A98E53800FBA86B /* FileConverter.h */,
 				676DCBFA1A98E53800FBA86B /* Images_png.h */,
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
@@ -810,6 +815,7 @@
 				67A61A3817B51C0F008E95BB /* RenderCircles.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
 				6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */,
+				67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */,
 				67A61A3917B51C0F008E95BB /* RenderColorWash.cpp in Sources */,
 				67A61A3A17B51C0F008E95BB /* RenderFire.cpp in Sources */,
 				67A61A3B17B51C0F008E95BB /* RenderFireworks.cpp in Sources */,

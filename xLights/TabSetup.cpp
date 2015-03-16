@@ -167,9 +167,11 @@ void xLightsFrame::SetDir(const wxString& newdir)
     // load sequence effects
 //~    EffectsPanel1->SetDefaultPalette();
 //~    EffectsPanel2->SetDefaultPalette();
-    LoadEffectsFile();
-    EnableSequenceControls(true);
     UpdateNetworkList();
+    LoadEffectsFile();
+    UpdateChannelNames();
+
+    EnableSequenceControls(true);
 
     Notebook1->ChangeSelection(SETUPTAB);
     StatusBar1->SetStatusText("", 0);
@@ -181,8 +183,6 @@ void xLightsFrame::UpdateNetworkList()
     long newidx,MaxChannels;
     long TotChannels=0;
     int NetCnt=0;
-    //int MaxLorChannels=240*16;
-    int MaxDmxChannels=512;
     int StartChannel;
 
     wxString MaxChannelsStr,NetName,msg;
@@ -212,7 +212,6 @@ void xLightsFrame::UpdateNetworkList()
     }
     //GridNetwork->SetColumnWidth(0,wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(1,NetCnt > 0 ? wxLIST_AUTOSIZE : 100);
-    UpdateChannelNames();
 }
 
 // reset test channel listbox

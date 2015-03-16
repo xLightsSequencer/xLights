@@ -275,17 +275,19 @@ void xLightsFrame::UpdateModelsList()
             name=e->GetAttribute("name");
             if (!name.IsEmpty())
             {
+                model=new ModelClass;
+                model->SetFromXml(e);
+                
+                if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
+                    wxMessageBox(wxString::Format("Model %s's last channel (%u) is beyond the end of the configured number of output channels (%u)",name, model->GetLastChannel(), NetInfo.GetTotChannels()));
+                }
                 if (ModelClass::IsMyDisplay(e))
                 {
-                    model=new ModelClass;
-                    model->SetFromXml(e);
                     ListBoxElementList->Append(name,model);
                     PreviewModels.push_back(ModelClassPtr(model));
                 }
                 else //keep a list of non-preview models as well -DJ
                 {
-                    model=new ModelClass;
-                    model->SetFromXml(e);
                     OtherModels.push_back(ModelClassPtr(model));
                 }
             }
