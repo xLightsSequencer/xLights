@@ -110,15 +110,13 @@ void DrawGLUtils::CreateOrUpdateTexture(char** p_XPM, GLuint* texture)
 {
     if (p_XPM != NULL)
     {
-        wxBitmap l_Bitmap(p_XPM);
-        wxImage l_Image(l_Bitmap.ConvertToImage());
+        wxImage l_Image(p_XPM);
 
         if (l_Image.IsOk() == true)
         {
             //if(*texture==0)
             //{
                 glGenTextures(1,texture);
-                GLuint k = *texture;
                 if (*texture != 0)
                 {
                     glBindTexture(GL_TEXTURE_2D, *texture);
