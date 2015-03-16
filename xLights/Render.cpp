@@ -327,8 +327,8 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
                                         ev->SettingsMap,
                                         *ev->buffer, *ev->ResetEffectState, false);
-    ev->done = true;
     ev->signal.Broadcast();
+    ev->done = true;
 }
 
 void xLightsFrame::RenderGridToSeqData() {
@@ -702,7 +702,7 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
         // this needs to be on the primary thread due to GDI calls
         if (bgThread) {
             RenderEvent ev(layer, period, SettingsMap, buffer, &resetEffectState);
-            GetEventHandler()->CallAfter(&xLightsFrame::RenderEffectOnMainThread, &ev);
+            CallAfter(&xLightsFrame::RenderEffectOnMainThread, &ev);
             wxMutexLocker lock(ev.mutex);
             int cnt = 0;
             while (cnt < 50 && !ev.done) {
