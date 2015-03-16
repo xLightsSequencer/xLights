@@ -2507,6 +2507,8 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
+    // Disconnect the resize events, otherwise they get called as we are shutting down
+    ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     StopNow();
     wxLogDebug("xLightsFrame::OnClose");
     if (UnsavedChanges && wxNO == wxMessageBox("Quit without saving?",
@@ -2516,8 +2518,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     }
 
     heartbeat("exit", true); //tell fido about graceful exit -DJ
-    // Disconnect the resize events, otherwise they get called as we are shutting down
-    ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     //ScrolledWindow1->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindow1Resize,0,this);
 
     Destroy();

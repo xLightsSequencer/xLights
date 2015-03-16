@@ -1530,6 +1530,7 @@ protected:
     int playType;
     int playStartMS;
     int playStartTime;
+    int playOffsetTime;
     int playEndTime;
     bool replaySection;
 
