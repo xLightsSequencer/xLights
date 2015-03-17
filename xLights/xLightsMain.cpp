@@ -463,9 +463,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizerTest;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
     wxFlexGridSizer* FlexGridSizer24;
     wxMenuItem* MenuItemCustomScript;
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
+    wxMenuItem* MenuItem25;
     wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer8;
     wxStaticText* StaticText37;
@@ -487,6 +489,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxMenu* Menu1;
@@ -496,16 +499,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenuItem* MenuItemDelList;
+    wxMenuItem* MenuItem24;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
+    wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
+    wxMenuItem* MenuItemSequenceElements;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer14;
+    wxMenuItem* MenuItem23;
     wxFlexGridSizer* FlexGridSizer20;
     wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
@@ -517,6 +524,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
+    wxMenuItem* MenuItem21;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
@@ -1524,7 +1532,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem18 = new wxMenu();
     MenuItemSequenceElements = new wxMenuItem(MenuItem18, ID_MENUITEM_SEQUENCE_ELEMENTS, _("Sequence Elements"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemSequenceElements);
-    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Models"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
     MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem21);
@@ -1706,9 +1714,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_MENUITEM_SEQUENCE_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSequenceElementsSelected);
+    Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_MENUITEM14,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
+    Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -2903,3 +2913,4 @@ void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
         wxPostEvent(this, displayElementEvent);
     }
 }
+

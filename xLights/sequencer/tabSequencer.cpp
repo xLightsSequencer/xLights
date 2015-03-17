@@ -1209,6 +1209,29 @@ void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("ModelPreview").IsShown();
+    if (visible) {
+        m_mgr->GetPane("ModelPreview").Hide();
+    } else {
+        m_mgr->GetPane("ModelPreview").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("EffectDropper").IsShown();
+    if (visible) {
+        m_mgr->GetPane("EffectDropper").Hide();
+    } else {
+        m_mgr->GetPane("EffectDropper").Show();
+    }
+    m_mgr->Update();
+}
+
+
 
 Element* xLightsFrame::AddTimingElement(wxString& name)
 {

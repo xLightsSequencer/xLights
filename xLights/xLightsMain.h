@@ -658,6 +658,8 @@ private:
     void ShowHideEffectSettingsWindow(wxCommandEvent& event);
     void ShowHideColorWindow(wxCommandEvent& event);
     void ShowHideLayerTimingWindow(wxCommandEvent& event);
+    void ShowHideModelPreview(wxCommandEvent& event);
+    void ShowHideEffectDropper(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -999,7 +1001,6 @@ private:
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
-    wxMenuItem* MenuItem23;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItem_File_Close_Sequence;
@@ -1027,14 +1028,12 @@ private:
     DragEffectBitmapButton* BitmapButton15;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
-    wxMenuItem* MenuItem22;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
     wxCheckBox* MapLORChannelsWithNoNetwork;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
-    wxMenuItem* MenuItem20;
     wxButton* ButtonStopNow;
     DragEffectBitmapButton* BitmapButton28;
     wxPanel* PanelConvert;
@@ -1088,7 +1087,6 @@ private:
     wxButton* ButtonSetPreviewSize;
     DragEffectBitmapButton* BitmapButton30;
     wxStaticText* StaticText16;
-    wxMenuItem* MenuItem21;
     wxStaticText* StaticText_PgoOutputType;
     wxAuiToolBar* EffectToolBar;
     wxPanel* PanelSetup;
@@ -1131,7 +1129,6 @@ private:
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxChoice* Choice_PgoGroupName;
-    wxMenuItem* MenuItem24;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxAuiNotebook* Notebook1;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
@@ -1166,7 +1163,6 @@ private:
     wxStaticText* StaticText15;
     wxStaticText* StaticText26;
     wxStaticText* StaticText8;
-    wxMenuItem* MenuItem26;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText30;
@@ -1198,7 +1194,6 @@ private:
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
-    wxMenuItem* MenuItemSequenceElements;
     wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
@@ -1207,7 +1202,6 @@ private:
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxMenuItem* MenuItem25;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;

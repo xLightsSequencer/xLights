@@ -3035,33 +3035,35 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM10" variable="MenuItem18" member="yes">
 					<label>Windows</label>
-					<object class="wxMenuItem" name="ID_MENUITEM_SEQUENCE_ELEMENTS" variable="MenuItemSequenceElements" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM_SEQUENCE_ELEMENTS" variable="MenuItemSequenceElements" member="no">
 						<label>Sequence Elements</label>
 						<handler function="OnMenuItemSequenceElementsSelected" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="yes">
-						<label>Models</label>
+					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="no">
+						<label>Model Preview</label>
+						<handler function="ShowHideModelPreview" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM13" variable="MenuItem21" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM13" variable="MenuItem21" member="no">
 						<label>Views</label>
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItem22" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItem22" member="no">
 						<label>Effect Settings</label>
 						<handler function="ShowHideEffectSettingsWindow" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM15" variable="MenuItem23" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM15" variable="MenuItem23" member="no">
 						<label>Colors</label>
 						<handler function="ShowHideColorWindow" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItem24" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItem24" member="no">
 						<label>Timing</label>
 						<handler function="ShowHideLayerTimingWindow" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItem25" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItem25" member="no">
 						<label>Effect Dropper</label>
+						<handler function="ShowHideEffectDropper" entry="EVT_MENU" />
 					</object>
 					<object class="separator" />
-					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="yes">
+					<object class="wxMenuItem" name="ID_MENUITEM_WINDOWS_PERSPECTIVE" variable="MenuItem26" member="no">
 						<label>Perspectives</label>
 					</object>
 				</object>
