@@ -517,6 +517,9 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        if (el->GetParentElement()->GetType() != "model") {
+            continue;
+        }
         // Delete Effects that are in same time range as dropped effect
         el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
