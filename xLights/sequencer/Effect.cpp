@@ -7,7 +7,7 @@ Effect::Effect(EffectLayer* parent)
 {
     mParentLayer = parent;
     changeCount = 0;
-    mPalette = -1;
+    mPalette = "";
 }
 
 Effect::~Effect()

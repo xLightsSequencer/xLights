@@ -1295,7 +1295,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
             if( sequence_loaded )
             {
-                effectLayer->AddEffect(0,0,labels[k],wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,0,labels[k],wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
             }
             else
             {
@@ -1350,10 +1350,8 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         }
     }
 
+    std::vector<wxString> colorPalettes;
     wxXmlNode* colorPalette_node = AddChildXmlNode(root, "ColorPalettes");
-    for (int x = 0; x < seq_elements.getNumberOfPalettes(); x++) {
-        AddChildXmlNode(colorPalette_node, "ColorPalette", seq_elements.getPalette(x));
-    }
     std::vector<wxString> effectStrings;
     wxXmlNode* effectDB_Node = AddChildXmlNode(root, "EffectDB");
 
@@ -1446,8 +1444,19 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         effect_node->AddAttribute("id", string_format("%d", effect->GetID()));
                         effect_node->AddAttribute("startTime", string_format("%f", effect->GetStartTime()));
                         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
-                        if (effect->GetPalette() != -1) {
-                            effect_node->AddAttribute("palette", string_format("%d", effect->GetPalette()));
+                        if (effect->GetPalette() != "") {
+                            int pref = -1;
+                            for (int x = 0; x < colorPalettes.size(); x++) {
+                                if (colorPalettes[x] == effect->GetPalette()) {
+                                    pref = x;
+                                }
+                            }
+                            if (pref == -1) {
+                                pref = colorPalettes.size();
+                                colorPalettes.push_back(effect->GetPalette());
+                                AddChildXmlNode(colorPalette_node, "ColorPalette", effect->GetPalette());
+                            }
+                            effect_node->AddAttribute("palette", string_format("%d", pref));
                         }
                     }
                     else if( element->GetType() == "timing" )
@@ -1531,7 +1540,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                 startTime = TimeLine::RoundToMultipleOfPeriod(time, xLightsParent->GetSequenceElements().GetFrequency());
                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time, xLightsParent->GetSequenceElements().GetFrequency());
-                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                 time += interval;
             }
         }

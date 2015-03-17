@@ -395,7 +395,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &name, const wxString &settings, int palette);
+    void SetEffectControls(const wxString &name, const wxString &settings, const wxString &palette);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
@@ -1436,7 +1436,6 @@ public:
 
     void RenderRange(RenderCommandEvent &cmd);
 
-    const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
     Element* AddTimingElement(wxString& name);
@@ -1532,7 +1531,7 @@ protected:
     bool replaySection;
 
     wxString selectedEffectString;
-    int selectedEffectPalette;
+    wxString selectedEffectPalette;
     Effect *selectedEffect;
 
     wxString lastPlayEffect;
@@ -1647,7 +1646,7 @@ protected:
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
     void UpdateEffectGridVerticalScrollBar();
-    wxString GetEffectTextFromWindows(int &palette);
+    wxString GetEffectTextFromWindows(wxString &palette);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels

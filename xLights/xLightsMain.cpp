@@ -1729,7 +1729,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
-    selectedEffectPalette = -1;
+    selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
     replaySection = false;

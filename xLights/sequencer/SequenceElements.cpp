@@ -173,6 +173,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
 
     wxXmlNode* root=seqDocument.GetRoot();
     std::vector<wxString> effectStrings;
+    std::vector<wxString> colorPalettes;
     mElements.clear();
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -264,7 +265,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                 next_time = (time + interval <= end_time) ? time + interval : end_time;
                                 startTime = TimeLine::RoundToMultipleOfPeriod(time,mFrequency);
                                 endTime = TimeLine::RoundToMultipleOfPeriod(next_time,mFrequency);
-                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,-1,startTime,endTime,EFFECT_NOT_SELECTED,false);
+                                effectLayer->AddEffect(0,0,wxEmptyString,wxEmptyString,"",startTime,endTime,EFFECT_NOT_SELECTED,false);
                                 time += interval;
                             }
                         }
@@ -322,7 +323,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                                 effectName = effect->GetAttribute("label");
 
                                             }
-                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,palette,startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
+                                            effectLayer->AddEffect(id,effectIndex,effectName,settings,
+                                                                   palette == -1 ? "" : colorPalettes[palette],
+                                                                   startTime,endTime,EFFECT_NOT_SELECTED,bProtected);
                                         }
                                     }
                                 }
@@ -661,27 +664,6 @@ int SequenceElements::GetTotalNumberOfModelRows()
 int SequenceElements::GetFirstVisibleModelRow()
 {
     return mFirstVisibleModelRow;
-}
-
-
-int SequenceElements::getPaletteIndex(const wxString &p) {
-    for (int x = 0; x < colorPalettes.size(); x++) {
-        if (p == colorPalettes[x]) {
-            return x;
-        }
-    }
-    colorPalettes.push_back(p);
-    return colorPalettes.size() - 1;
-}
-static const wxString EMPTY_STRING;
-const wxString& SequenceElements::getPalette(int i) {
-    if (i == -1) {
-        return EMPTY_STRING;
-    }
-    return colorPalettes[i];
-}
-int SequenceElements::getNumberOfPalettes() {
-    return colorPalettes.size();
 }
 
 void SequenceElements::SetVisibilityForAllModels(bool visibility)

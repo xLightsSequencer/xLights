@@ -23,7 +23,7 @@ class EffectLayer
         EffectLayer(Element* parent);
         virtual ~EffectLayer();
 
-        Effect *AddEffect(int id, int effectIndex, wxString name, wxString settings, int palette,
+        Effect *AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                           double startTime, double endTime, int Selected, bool Protected);
 
         Effect* GetEffect(int index);

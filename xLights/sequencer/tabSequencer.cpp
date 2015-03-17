@@ -448,10 +448,6 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->UpdateEffectGridVerticalScrollBar();
 }
 
-const wxString& xLightsFrame::GetColorPalette(int i) {
-    return mSequenceElements.getPalette(i);
-}
-
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
     mainSequencer->ScrollBarEffectsHorizontal->Update();
@@ -504,7 +500,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     mSequenceElements.UnSelectAllEffects();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
-    int palette;
+    wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
@@ -701,7 +697,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
-    int palette = -1;
+    wxString palette;
     wxString effectText = GetEffectTextFromWindows(palette);
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
@@ -799,7 +795,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     if (selectedEffect != NULL) {
-        int palette = -1;
+        wxString palette;
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
@@ -836,7 +832,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 }
 
 
-void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, int palette)
+void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, const wxString &palette)
 {
     long TempLong;
     wxColour color;
@@ -846,8 +842,8 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
     int cnt=0;
 
     wxString settings(origSettings);
-    if (palette != -1) {
-        settings += "," + mSequenceElements.getPalette(palette);
+    if (palette != "") {
+        settings += "," + palette;
     }
 
     SetChoicebook(EffectsPanel1->Choicebook1, effectName);
@@ -1107,7 +1103,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
 }
 
 
-wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
+wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
@@ -1116,8 +1112,7 @@ wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();
-    wxString colorString = colorPanel->GetColorString();
-    palette = mSequenceElements.getPaletteIndex(colorString);
+    palette = colorPanel->GetColorString();
     return effectText;
 }
 

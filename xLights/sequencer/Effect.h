@@ -77,8 +77,8 @@ class Effect
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
 
-        int GetPalette() const { return mPalette;}
-        void SetPalette(int i) { mPalette = i; IncrementChangeCount(); }
+        const wxString &GetPalette() const { return mPalette;}
+        void SetPalette(const wxString& i) { mPalette = i; IncrementChangeCount(); }
 
     protected:
     private:
@@ -94,7 +94,7 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         bool mDirty;
-        int mPalette;
+        wxString mPalette;
         EffectLayer* mParentLayer;
 };
 

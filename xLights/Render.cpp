@@ -213,7 +213,7 @@ private:
             loadSettingsMap("None", "", "", settingsMap);
         } else {
             loadSettingsMap(el->GetEffectName(), el->GetSettings(),
-                            xLights->GetColorPalette(el->GetPalette()),
+                            el->GetPalette(),
                             settingsMap);
         }
         updateBufferPaletteFromMap(layer, settingsMap);
