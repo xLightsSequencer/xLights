@@ -216,6 +216,7 @@ wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
@@ -1615,6 +1616,7 @@ protected:
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
+    void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);

@@ -453,19 +453,21 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
+void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
+    playType = PLAY_TYPE_STOPPED;
+    playStartTime = -1;
+    playEndTime = -1;
+    playStartMS = -1;
+    selectedEffect = NULL;
+    selectedEffectString = "";
+    selectedEffectPalette = "";
+
+}
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
     if(OnlyChoiceBookPage)
     {
-        playType = PLAY_TYPE_STOPPED;
-        playStartTime = -1;
-        playEndTime = -1;
-        playStartMS = -1;
-        selectedEffect = NULL;
-        selectedEffectString = "";
-        selectedEffectPalette = "";
-    
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->Choicebook1->GetSelection()!=pageIndex)
@@ -738,7 +740,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
                     playStartMS = -1;
                     RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
-
+                    mainSequencer->PanelEffectGrid->Refresh();
                 }
             }
         }
@@ -814,6 +816,15 @@ void xLightsFrame::TimerRgbSeq(long msec)
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
+            
+            int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+            wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
+            if (name !=  selectedEffect->GetEffectName()) {
+                selectedEffect->SetEffectName(name);
+                selectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+            
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
 

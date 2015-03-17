@@ -45,6 +45,7 @@ wxString Effect::GetEffectName()
 void Effect::SetEffectName(const wxString & name)
 {
     mName = name;
+    IncrementChangeCount();
 }
 
 int Effect::GetEffectIndex()

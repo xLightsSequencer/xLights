@@ -36,15 +36,15 @@ const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette5 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_BUTTON_Palette6 = wxNewId();
 const long ColorPanel::ID_STATICTEXT24 = wxNewId();
 const long ColorPanel::ID_SLIDER_SparkleFrequency = wxNewId();
-const long ColorPanel::ID_TEXTCTRL5 = wxNewId();
+const long ColorPanel::IDL_TEXTCTRL_SPARKLE = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_SparkleFrequency = wxNewId();
 const long ColorPanel::ID_STATICTEXT127 = wxNewId();
 const long ColorPanel::ID_SLIDER_Brightness = wxNewId();
-const long ColorPanel::ID_TEXTCTRL6 = wxNewId();
+const long ColorPanel::IDL_TEXTCTRLBRIGHTNESS = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_Brightness = wxNewId();
 const long ColorPanel::ID_STATICTEXT128 = wxNewId();
 const long ColorPanel::ID_SLIDER_Contrast = wxNewId();
-const long ColorPanel::ID_TEXTCTRL7 = wxNewId();
+const long ColorPanel::IDL_TEXTCTRLCONTRAST = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON_SLIDER_Contrast = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON87 = wxNewId();
 const long ColorPanel::ID_BITMAPBUTTON1 = wxNewId();
@@ -158,7 +158,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer2->Add(StaticText22, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_SparkleFrequency = new wxSlider(ColorScrollWindow, ID_SLIDER_SparkleFrequency, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_SparkleFrequency"));
 	FlexGridSizer2->Add(Slider_SparkleFrequency, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	txtCtrlSparkleFreq = new wxTextCtrl(ColorScrollWindow, ID_TEXTCTRL5, _("200"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL5"));
+	txtCtrlSparkleFreq = new wxTextCtrl(ColorScrollWindow, IDL_TEXTCTRL_SPARKLE, _("200"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDL_TEXTCTRL_SPARKLE"));
 	FlexGridSizer2->Add(txtCtrlSparkleFreq, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_SparkleFrequency = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_SparkleFrequency, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
 	BitmapButton_SparkleFrequency->SetDefault();
@@ -169,7 +169,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer2->Add(StaticText126, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Brightness = new wxSlider(ColorScrollWindow, ID_SLIDER_Brightness, 100, 0, 400, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Brightness"));
 	FlexGridSizer2->Add(Slider_Brightness, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	txtCtlBrightness = new wxTextCtrl(ColorScrollWindow, ID_TEXTCTRL6, _("100"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL6"));
+	txtCtlBrightness = new wxTextCtrl(ColorScrollWindow, IDL_TEXTCTRLBRIGHTNESS, _("100"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDL_TEXTCTRLBRIGHTNESS"));
 	FlexGridSizer2->Add(txtCtlBrightness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Brightness = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Brightness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Brightness"));
 	BitmapButton_Brightness->SetDefault();
@@ -180,7 +180,7 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	FlexGridSizer2->Add(StaticText127, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Contrast = new wxSlider(ColorScrollWindow, ID_SLIDER_Contrast, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Contrast"));
 	FlexGridSizer2->Add(Slider_Contrast, 1, wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	txtCtlContrast = new wxTextCtrl(ColorScrollWindow, ID_TEXTCTRL7, _("0"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("ID_TEXTCTRL7"));
+	txtCtlContrast = new wxTextCtrl(ColorScrollWindow, IDL_TEXTCTRLCONTRAST, _("0"), wxDefaultPosition, wxSize(32,20), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDL_TEXTCTRLCONTRAST"));
 	FlexGridSizer2->Add(txtCtlContrast, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	BitmapButton_Contrast = new wxBitmapButton(ColorScrollWindow, ID_BITMAPBUTTON_SLIDER_Contrast, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Contrast"));
 	BitmapButton_Contrast->SetDefault();
@@ -233,10 +233,13 @@ ColorPanel::ColorPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const w
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette5Click);
 	Connect(ID_BITMAPBUTTON_BUTTON_Palette6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_Palette6Click);
 	Connect(ID_SLIDER_SparkleFrequency,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_SparkleFrequencyCmdScrollThumbTrack);
+	Connect(IDL_TEXTCTRL_SPARKLE,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::OntxtCtrlSparkleFreqText);
 	Connect(ID_BITMAPBUTTON_SLIDER_SparkleFrequency,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_SparkleFrequencyClick);
 	Connect(ID_SLIDER_Brightness,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_BrightnessCmdScrollThumbTrack);
+	Connect(IDL_TEXTCTRLBRIGHTNESS,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::OntxtCtlBrightnessText);
 	Connect(ID_BITMAPBUTTON_SLIDER_Brightness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_BrightnessClick);
 	Connect(ID_SLIDER_Contrast,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&ColorPanel::OnSlider_ContrastCmdScrollThumbTrack);
+	Connect(IDL_TEXTCTRLCONTRAST,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ColorPanel::OntxtCtlContrastText);
 	Connect(ID_BITMAPBUTTON_SLIDER_Contrast,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorPanel::OnBitmapButton_ContrastClick);
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&ColorPanel::OnPaint);
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&ColorPanel::OnResize);
@@ -475,17 +478,17 @@ showlock(Contrast)
 
 void ColorPanel::OnSlider_SparkleFrequencyCmdScrollThumbTrack(wxScrollEvent& event)
 {
-    txtCtrlSparkleFreq->SetValue( wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue()));
+    txtCtrlSparkleFreq->ChangeValue( wxString::Format(wxT("%d"),Slider_SparkleFrequency->GetValue()));
 }
 
 void ColorPanel::OnSlider_BrightnessCmdScrollThumbTrack(wxScrollEvent& event)
 {
-    txtCtlBrightness->SetValue( wxString::Format(wxT("%d"),Slider_Brightness->GetValue()));
+    txtCtlBrightness->ChangeValue( wxString::Format(wxT("%d"),Slider_Brightness->GetValue()));
 }
 
 void ColorPanel::OnSlider_ContrastCmdScrollThumbTrack(wxScrollEvent& event)
 {
-    txtCtlContrast->SetValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
+    txtCtlContrast->ChangeValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
 }
 
 void ColorPanel::UpdateSliderText()
@@ -495,3 +498,45 @@ void ColorPanel::UpdateSliderText()
     txtCtlContrast->SetValue( wxString::Format(wxT("%d"),Slider_Contrast->GetValue()));
 }
 
+
+void ColorPanel::OntxtCtlBrightnessText(wxCommandEvent& event)
+{
+    int i = wxAtoi(txtCtlBrightness->GetValue());
+    if (i > Slider_Brightness->GetMax()) {
+        i = Slider_Brightness->GetMax();
+    }
+    if (i < 0) {
+        i = 0;
+    }
+    if (i != Slider_Brightness->GetValue()) {
+        Slider_Brightness->SetValue(i);
+    }
+}
+
+void ColorPanel::OntxtCtrlSparkleFreqText(wxCommandEvent& event)
+{
+    int i = wxAtoi(txtCtrlSparkleFreq->GetValue());
+    if (i > Slider_SparkleFrequency->GetMax()) {
+        i = Slider_SparkleFrequency->GetMax();
+    }
+    if (i < 0) {
+        i = 0;
+    }
+    if (i != Slider_SparkleFrequency->GetValue()) {
+        Slider_SparkleFrequency->SetValue(i);
+    }
+}
+
+void ColorPanel::OntxtCtlContrastText(wxCommandEvent& event)
+{
+    int i = wxAtoi(txtCtlContrast->GetValue());
+    if (i > Slider_Contrast->GetMax()) {
+        i = Slider_Contrast->GetMax();
+    }
+    if (i < 0) {
+        i = 0;
+    }
+    if (i != Slider_Contrast->GetValue()) {
+        Slider_Contrast->SetValue(i);
+    }
+}
