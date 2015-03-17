@@ -43,7 +43,7 @@ class Effect
         void SetEffectIndex(int effectIndex);
 
         wxString GetEffectName();
-        void SetEffectName(wxString name);
+        void SetEffectName(const wxString & name);
 
         double GetStartTime() const;
         void SetStartTime(double startTime);
@@ -52,7 +52,7 @@ class Effect
         void SetEndTime(double endTime);
 
         wxString GetSettings();
-        void SetSettings(wxString settings);
+        void SetSettings(const wxString &settings);
 
         int GetSelected();
         void SetSelected(int selected);

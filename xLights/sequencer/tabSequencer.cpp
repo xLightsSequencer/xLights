@@ -458,6 +458,14 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
     if(OnlyChoiceBookPage)
     {
+        playType = PLAY_TYPE_STOPPED;
+        playStartTime = -1;
+        playEndTime = -1;
+        playStartMS = -1;
+        selectedEffect = NULL;
+        selectedEffectString = "";
+        selectedEffectPalette = "";
+    
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->Choicebook1->GetSelection()!=pageIndex)
@@ -502,6 +510,8 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
     wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
+    selectedEffect = NULL;
+    
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
@@ -521,6 +531,11 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
+            
+            playBuffer.InitBuffer(GetModelNode(el->GetParentElement()->GetName()),
+                                  el->GetParentElement()->GetEffectLayerCount(),
+                                  SeqData.FrameTime());
+
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);

@@ -30,7 +30,7 @@ wxString Effect::GetSettings()
     return mSettings;
 }
 
-void Effect::SetSettings(wxString settings)
+void Effect::SetSettings(const wxString &settings)
 {
     mSettings = settings;
     IncrementChangeCount();
@@ -42,7 +42,7 @@ wxString Effect::GetEffectName()
     return mName;
 }
 
-void Effect::SetEffectName(wxString name)
+void Effect::SetEffectName(const wxString & name)
 {
     mName = name;
 }
