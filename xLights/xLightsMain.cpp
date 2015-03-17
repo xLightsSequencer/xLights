@@ -1770,7 +1770,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     // get list of most recently used directories
     wxString dir,mru_name;
-    int menuID, idx;
+    int idx;
     for (int i=0; i<MRU_LENGTH; i++)
     {
         mru_name=wxString::Format("mru%d",i);
@@ -1783,9 +1783,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
                 if (idx == wxNOT_FOUND) mru.Add(dir);
             }
         }
-        menuID = wxNewId();
-        mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru_name);
-        Connect(menuID,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+        mru_MenuItem[i] = NULL;
     }
     dir.clear();
     bool ok = config->Read(_("LastDir"), &dir);

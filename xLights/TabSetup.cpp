@@ -74,10 +74,11 @@ void xLightsFrame::SetDir(const wxString& newdir)
     for (i=0; i<MRU_LENGTH; i++)
     {
         mru_name=wxString::Format("mru%d",i);
-        wxString item = mru_MenuItem[i]->GetItemLabel();
-        if (MenuFile->FindItem(item) != wxNOT_FOUND)
+        if (mru_MenuItem[i] != NULL)
         {
-            MenuFile->Remove(mru_MenuItem[i]);
+            Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+            MenuFile->Delete(mru_MenuItem[i]);
+            mru_MenuItem[i] = NULL;
         }
         if (i < cnt)
         {
@@ -100,9 +101,12 @@ void xLightsFrame::SetDir(const wxString& newdir)
     }
     for (i=0; i<cnt; i++)
     {
-        mru_MenuItem[i]->SetItemLabel(mru[i]);
+        int menuID = wxNewId();
+        mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
+        Connect(menuID,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
         MenuFile->Append(mru_MenuItem[i]);
     }
+    MenuFile->UpdateUI();
 
     if (!DirExists)
     {
