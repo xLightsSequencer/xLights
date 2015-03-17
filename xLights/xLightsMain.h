@@ -655,6 +655,9 @@ private:
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
+    void ShowHideEffectSettingsWindow(wxCommandEvent& event);
+    void ShowHideColorWindow(wxCommandEvent& event);
+    void ShowHideLayerTimingWindow(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);

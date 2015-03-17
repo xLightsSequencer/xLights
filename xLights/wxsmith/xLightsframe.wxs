@@ -152,7 +152,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
 							<bitmap code="effects_xpm" />
 							<shorthelp>Effects</shorthelp>
-							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
+							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Effects</label>
 					</object>
@@ -160,7 +160,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
 							<bitmap code="colors_xpm" />
 							<shorthelp>Effect Colors</shorthelp>
-							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
+							<handler function="ShowHideColorWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Effect Colors</label>
 					</object>
@@ -168,7 +168,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
 							<bitmap code="layers_xpm" />
 							<shorthelp>Effect Layering</shorthelp>
-							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
+							<handler function="ShowHideLayerTimingWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Effect Layering</label>
 					</object>
@@ -3047,12 +3047,15 @@
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM14" variable="MenuItem22" member="yes">
 						<label>Effect Settings</label>
+						<handler function="ShowHideEffectSettingsWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM15" variable="MenuItem23" member="yes">
 						<label>Colors</label>
+						<handler function="ShowHideColorWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItem24" member="yes">
 						<label>Timing</label>
+						<handler function="ShowHideLayerTimingWindow" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM17" variable="MenuItem25" member="yes">
 						<label>Effect Dropper</label>

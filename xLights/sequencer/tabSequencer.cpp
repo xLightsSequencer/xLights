@@ -1175,6 +1175,41 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->Update();
 }
 
+
+void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("Effect").IsShown();
+    if (visible) {
+        m_mgr->GetPane("Effect").Hide();
+    } else {
+        m_mgr->GetPane("Effect").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("Color").IsShown();
+    if (visible) {
+        m_mgr->GetPane("Color").Hide();
+    } else {
+        m_mgr->GetPane("Color").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("LayerTiming").IsShown();
+    if (visible) {
+        m_mgr->GetPane("LayerTiming").Hide();
+    } else {
+        m_mgr->GetPane("LayerTiming").Show();
+    }
+    m_mgr->Update();
+}
+
+
 Element* xLightsFrame::AddTimingElement(wxString& name)
 {
     // Deactivate active timing mark so new one is selected;
