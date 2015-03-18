@@ -117,7 +117,7 @@ void xLightsFrame::OpenSequence()
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
             find_media = false;
         }
-        
+
 
         // still no media file?  look for an XSEQ file and load if found
         if( find_media )
@@ -140,8 +140,14 @@ void xLightsFrame::OpenSequence()
             }
         }
 
+        // double-check file existence
+        if( !wxFileName(media_file).Exists() )
+        {
+            find_media = true;
+        }
+
         // search for missing media file in media directory and show directory
-        if( find_media || !wxFileName(media_file).Exists())
+        if( find_media )
         {
             wxFileName detect_media(selected_file);
             if (!find_media) {
