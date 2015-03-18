@@ -706,7 +706,9 @@ void ModelClass::InitStar()
                 chan=stringStartChan[LastStringNum];
             }
             Nodes[n]->ActChan=chan;
-            chan+=ChanIncr;
+            if (!SingleNode) {
+                chan+=ChanIncr;
+            }
             size_t CoordCount=GetCoordCount(n);
             int lastx = 0, lasty = 0;
             for(size_t c=0; c < CoordCount; c++)
