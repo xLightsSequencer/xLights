@@ -7,7 +7,7 @@ Effect::Effect(EffectLayer* parent)
 {
     mParentLayer = parent;
     changeCount = 0;
-    mPalette = -1;
+    mPalette = "";
 }
 
 Effect::~Effect()
@@ -30,7 +30,7 @@ wxString Effect::GetSettings()
     return mSettings;
 }
 
-void Effect::SetSettings(wxString settings)
+void Effect::SetSettings(const wxString &settings)
 {
     mSettings = settings;
     IncrementChangeCount();
@@ -42,9 +42,10 @@ wxString Effect::GetEffectName()
     return mName;
 }
 
-void Effect::SetEffectName(wxString name)
+void Effect::SetEffectName(const wxString & name)
 {
     mName = name;
+    IncrementChangeCount();
 }
 
 int Effect::GetEffectIndex()

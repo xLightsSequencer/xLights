@@ -54,7 +54,7 @@ void EffectLayer::RemoveEffect(int index)
     }
 }
 
-Effect* EffectLayer::AddEffect(int id, int effectIndex, wxString name, wxString settings, int palette,
+Effect* EffectLayer::AddEffect(int id, int effectIndex, const wxString &name, const wxString &settings, const wxString &palette,
                                double startTime,double endTime, int Selected, bool Protected)
 {
     Effect *e = new Effect(this);

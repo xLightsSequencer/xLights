@@ -448,15 +448,21 @@ void xLightsFrame::ResizeMainSequencer()
     mainSequencer->UpdateEffectGridVerticalScrollBar();
 }
 
-const wxString& xLightsFrame::GetColorPalette(int i) {
-    return mSequenceElements.getPalette(i);
-}
-
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
+void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
+    playType = PLAY_TYPE_STOPPED;
+    playStartTime = -1;
+    playEndTime = -1;
+    playStartMS = -1;
+    selectedEffect = NULL;
+    selectedEffectString = "";
+    selectedEffectPalette = "";
+
+}
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {
     bool OnlyChoiceBookPage = event.GetClientData()==nullptr?true:false;
@@ -504,11 +510,16 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     mSequenceElements.UnSelectAllEffects();
     wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
-    int palette;
+    wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
+    selectedEffect = NULL;
+    
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
+        if (el->GetParentElement()->GetType() != "model") {
+            continue;
+        }
         // Delete Effects that are in same time range as dropped effect
         el->SelectEffectsInTimeRange(mSequenceElements.GetSelectedRange(i)->StartTime,
                                      mSequenceElements.GetSelectedRange(i)->EndTime);
@@ -525,6 +536,11 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
+            
+            playBuffer.InitBuffer(GetModelNode(el->GetParentElement()->GetName()),
+                                  el->GetParentElement()->GetEffectLayerCount(),
+                                  SeqData.FrameTime());
+
 
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
             EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,true);
@@ -701,7 +717,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 
 void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 {
-    int palette = -1;
+    wxString palette;
     wxString effectText = GetEffectTextFromWindows(palette);
     int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
     wxString effectName = EffectsPanel1->Choicebook1->GetPageText(EffectsPanel1->Choicebook1->GetSelection());
@@ -727,7 +743,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
                     playStartMS = -1;
                     RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
-
+                    mainSequencer->PanelEffectGrid->Refresh();
                 }
             }
         }
@@ -799,10 +815,19 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     if (selectedEffect != NULL) {
-        int palette = -1;
+        wxString palette;
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
+            
+            int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
+            wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
+            if (name !=  selectedEffect->GetEffectName()) {
+                selectedEffect->SetEffectName(name);
+                selectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+            
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
 
@@ -836,7 +861,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
 }
 
 
-void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, int palette)
+void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, const wxString &palette)
 {
     long TempLong;
     wxColour color;
@@ -846,8 +871,8 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
     int cnt=0;
 
     wxString settings(origSettings);
-    if (palette != -1) {
-        settings += "," + mSequenceElements.getPalette(palette);
+    if (palette != "") {
+        settings += "," + palette;
     }
 
     SetChoicebook(EffectsPanel1->Choicebook1, effectName);
@@ -1107,7 +1132,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
 }
 
 
-wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
+wxString xLightsFrame::GetEffectTextFromWindows(wxString &palette)
 {
     wxWindow*  window = (wxWindow*)EffectsPanel1->Choicebook1->GetPage(EffectsPanel1->Choicebook1->GetSelection());
     // This is needed because of the "Off" effect that does not return any text.
@@ -1116,8 +1141,7 @@ wxString xLightsFrame::GetEffectTextFromWindows(int &palette)
         effectText += ",";
     }
     effectText += timingPanel->GetTimingString();
-    wxString colorString = colorPanel->GetColorString();
-    palette = mSequenceElements.getPaletteIndex(colorString);
+    palette = colorPanel->GetColorString();
     return effectText;
 }
 
@@ -1174,6 +1198,64 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
     m_mgr->GetPane("DisplayElements").Show();
     m_mgr->Update();
 }
+
+
+void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("Effect").IsShown();
+    if (visible) {
+        m_mgr->GetPane("Effect").Hide();
+    } else {
+        m_mgr->GetPane("Effect").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("Color").IsShown();
+    if (visible) {
+        m_mgr->GetPane("Color").Hide();
+    } else {
+        m_mgr->GetPane("Color").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("LayerTiming").IsShown();
+    if (visible) {
+        m_mgr->GetPane("LayerTiming").Hide();
+    } else {
+        m_mgr->GetPane("LayerTiming").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("ModelPreview").IsShown();
+    if (visible) {
+        m_mgr->GetPane("ModelPreview").Hide();
+    } else {
+        m_mgr->GetPane("ModelPreview").Show();
+    }
+    m_mgr->Update();
+}
+
+void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("EffectDropper").IsShown();
+    if (visible) {
+        m_mgr->GetPane("EffectDropper").Hide();
+    } else {
+        m_mgr->GetPane("EffectDropper").Show();
+    }
+    m_mgr->Update();
+}
+
+
 
 Element* xLightsFrame::AddTimingElement(wxString& name)
 {

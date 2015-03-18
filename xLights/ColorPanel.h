@@ -97,15 +97,15 @@ class ColorPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_BUTTON_Palette6;
 		static const long ID_STATICTEXT24;
 		static const long ID_SLIDER_SparkleFrequency;
-		static const long ID_TEXTCTRL5;
+		static const long IDL_TEXTCTRL_SPARKLE;
 		static const long ID_BITMAPBUTTON_SLIDER_SparkleFrequency;
 		static const long ID_STATICTEXT127;
 		static const long ID_SLIDER_Brightness;
-		static const long ID_TEXTCTRL6;
+		static const long IDL_TEXTCTRLBRIGHTNESS;
 		static const long ID_BITMAPBUTTON_SLIDER_Brightness;
 		static const long ID_STATICTEXT128;
 		static const long ID_SLIDER_Contrast;
-		static const long ID_TEXTCTRL7;
+		static const long IDL_TEXTCTRLCONTRAST;
 		static const long ID_BITMAPBUTTON_SLIDER_Contrast;
 		static const long ID_BITMAPBUTTON87;
 		static const long ID_BITMAPBUTTON1;
@@ -137,6 +137,9 @@ class ColorPanel: public wxPanel
 		void OnSlider_BrightnessCmdScroll(wxScrollEvent& event);
 		void OnSlider_SparkleFrequencyCmdScroll(wxScrollEvent& event);
 		void OnSlider_ContrastCmdScroll(wxScrollEvent& event);
+		void OntxtCtlBrightnessText(wxCommandEvent& event);
+		void OntxtCtrlSparkleFreqText(wxCommandEvent& event);
+		void OntxtCtlContrastText(wxCommandEvent& event);
 		//*)
         wxCheckBox* GetPaletteCheckbox(int idx);
         wxButton* GetPaletteButton(int idx);

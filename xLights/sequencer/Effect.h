@@ -43,7 +43,7 @@ class Effect
         void SetEffectIndex(int effectIndex);
 
         wxString GetEffectName();
-        void SetEffectName(wxString name);
+        void SetEffectName(const wxString & name);
 
         double GetStartTime() const;
         void SetStartTime(double startTime);
@@ -52,7 +52,7 @@ class Effect
         void SetEndTime(double endTime);
 
         wxString GetSettings();
-        void SetSettings(wxString settings);
+        void SetSettings(const wxString &settings);
 
         int GetSelected();
         void SetSelected(int selected);
@@ -77,8 +77,8 @@ class Effect
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
 
-        int GetPalette() const { return mPalette;}
-        void SetPalette(int i) { mPalette = i; IncrementChangeCount(); }
+        const wxString &GetPalette() const { return mPalette;}
+        void SetPalette(const wxString& i) { mPalette = i; IncrementChangeCount(); }
 
     protected:
     private:
@@ -94,7 +94,7 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         bool mDirty;
-        int mPalette;
+        wxString mPalette;
         EffectLayer* mParentLayer;
 };
 

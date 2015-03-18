@@ -216,6 +216,7 @@ wxDECLARE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_EFFECT, wxCommandEvent);
@@ -395,7 +396,7 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &name, const wxString &settings, int palette);
+    void SetEffectControls(const wxString &name, const wxString &settings, const wxString &palette);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
@@ -655,6 +656,11 @@ private:
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
+    void ShowHideEffectSettingsWindow(wxCommandEvent& event);
+    void ShowHideColorWindow(wxCommandEvent& event);
+    void ShowHideLayerTimingWindow(wxCommandEvent& event);
+    void ShowHideModelPreview(wxCommandEvent& event);
+    void ShowHideEffectDropper(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -996,7 +1002,6 @@ private:
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
     wxButton* ButtonAddE131;
-    wxMenuItem* MenuItem23;
     wxTextCtrl* TextCtrlFilename;
     DragEffectBitmapButton* BitmapButton2;
     wxMenuItem* MenuItem_File_Close_Sequence;
@@ -1024,14 +1029,12 @@ private:
     DragEffectBitmapButton* BitmapButton15;
     wxRadioButton* RadioButtonRgbDim;
     wxStaticText* StaticText5;
-    wxMenuItem* MenuItem22;
     wxCheckBox* CheckBox_CoroPictureScaled;
     wxStaticText* StaticText25;
     wxCheckBox* MapLORChannelsWithNoNetwork;
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
-    wxMenuItem* MenuItem20;
     wxButton* ButtonStopNow;
     DragEffectBitmapButton* BitmapButton28;
     wxPanel* PanelConvert;
@@ -1085,7 +1088,6 @@ private:
     wxButton* ButtonSetPreviewSize;
     DragEffectBitmapButton* BitmapButton30;
     wxStaticText* StaticText16;
-    wxMenuItem* MenuItem21;
     wxStaticText* StaticText_PgoOutputType;
     wxAuiToolBar* EffectToolBar;
     wxPanel* PanelSetup;
@@ -1128,7 +1130,6 @@ private:
     wxRadioButton* RadioButtonRgbCycle4;
     wxStaticText* StaticText31;
     wxChoice* Choice_PgoGroupName;
-    wxMenuItem* MenuItem24;
     wxRadioButton* RadioButtonRgbTwinkle05;
     wxAuiNotebook* Notebook1;
     wxBitmapButton* BitmapButton_SaveCoroGroup;
@@ -1163,7 +1164,6 @@ private:
     wxStaticText* StaticText15;
     wxStaticText* StaticText26;
     wxStaticText* StaticText8;
-    wxMenuItem* MenuItem26;
     wxMenuItem* MenuItemRefresh;
     wxRadioButton* RadioButtonRgbAlt;
     wxStaticText* StaticText30;
@@ -1195,7 +1195,6 @@ private:
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
-    wxMenuItem* MenuItemSequenceElements;
     wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
@@ -1204,7 +1203,6 @@ private:
     wxStaticText* StaticTextShowStart;
     wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxMenuItem* MenuItem25;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;
@@ -1439,7 +1437,6 @@ public:
 
     void RenderRange(RenderCommandEvent &cmd);
 
-    const wxString &GetColorPalette(int idx);
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() { return mSequenceElements; }
     Element* AddTimingElement(wxString& name);
@@ -1535,7 +1532,7 @@ protected:
     bool replaySection;
 
     wxString selectedEffectString;
-    int selectedEffectPalette;
+    wxString selectedEffectPalette;
     Effect *selectedEffect;
 
     wxString lastPlayEffect;
@@ -1619,6 +1616,7 @@ protected:
     void VerticalScrollChanged( wxCommandEvent& event);
     void TimeSelected( wxCommandEvent& event);
     void SelectedEffectChanged( wxCommandEvent& event);
+    void UnselectedEffect( wxCommandEvent& event);
     void EffectDroppedOnGrid(wxCommandEvent& event);
     void PlayModelEffect(wxCommandEvent& event);
     void UpdateEffect(wxCommandEvent& event);
@@ -1650,7 +1648,7 @@ protected:
     void ResizeMainSequencer();
     void UpdateEffectGridHorizontalScrollBar();
     void UpdateEffectGridVerticalScrollBar();
-    wxString GetEffectTextFromWindows(int &palette);
+    wxString GetEffectTextFromWindows(wxString &palette);
 
     void EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable);
     // Panels

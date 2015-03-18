@@ -261,10 +261,11 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="ID_TEXTCTRL5" variable="txtCtrlSparkleFreq" member="yes">
+												<object class="wxTextCtrl" name="IDL_TEXTCTRL_SPARKLE" variable="txtCtrlSparkleFreq" member="yes">
 													<value>200</value>
 													<size>32,20</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+													<handler function="OntxtCtrlSparkleFreqText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -302,10 +303,11 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="ID_TEXTCTRL6" variable="txtCtlBrightness" member="yes">
+												<object class="wxTextCtrl" name="IDL_TEXTCTRLBRIGHTNESS" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
 													<size>32,20</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+													<handler function="OntxtCtlBrightnessText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
@@ -340,10 +342,11 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxTextCtrl" name="ID_TEXTCTRL7" variable="txtCtlContrast" member="yes">
+												<object class="wxTextCtrl" name="IDL_TEXTCTRLCONTRAST" variable="txtCtlContrast" member="yes">
 													<value>0</value>
 													<size>32,20</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
+													<handler function="OntxtCtlContrastText" entry="EVT_TEXT" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>

@@ -250,7 +250,7 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
     {
         if (cb->GetPageText(i) == PageName)
         {
-            cb->SetSelection(i);
+            cb->ChangeSelection(i);
             return;
         }
     }

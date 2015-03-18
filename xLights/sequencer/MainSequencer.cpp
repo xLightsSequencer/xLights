@@ -329,7 +329,7 @@ void MainSequencer::InsertTimingMarkFromRange()
                 double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
                 double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
                 wxString name,settings;
-                el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 PanelEffectGrid->ForceRefresh();
             }
             else
@@ -352,14 +352,14 @@ void MainSequencer::InsertTimingMarkFromRange()
                 {
                     double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(effect->GetEndPosition());
                     double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
-                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                    el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 // No effect to left start at time = 0
                 else
                 {
                     double t1 = 0;
                     double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
-                    el->AddEffect(0,0,name,settings,-1,t1,t2,false,false);
+                    el->AddEffect(0,0,name,settings,"",t1,t2,false,false);
                 }
                 PanelEffectGrid->ForceRefresh();
             }

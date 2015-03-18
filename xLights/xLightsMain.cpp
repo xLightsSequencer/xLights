@@ -394,6 +394,7 @@ wxDEFINE_EVENT(EVT_TIME_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_WINDOW_RESIZED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECTED_EFFECT_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UNSELECTED_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL_EFFECT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_DROPPED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EFFECT_UPDATED, wxCommandEvent);
@@ -425,6 +426,7 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_ROW_HEADINGS_CHANGED, xLightsFrame::RowHeadingsChanged)
     EVT_COMMAND(wxID_ANY, EVT_WINDOW_RESIZED, xLightsFrame::WindowResized)
     EVT_COMMAND(wxID_ANY, EVT_SELECTED_EFFECT_CHANGED, xLightsFrame::SelectedEffectChanged)
+    EVT_COMMAND(wxID_ANY, EVT_UNSELECTED_EFFECT, xLightsFrame::UnselectedEffect)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_DROPPED, xLightsFrame::EffectDroppedOnGrid)
     EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL_EFFECT, xLightsFrame::PlayModelEffect)
     EVT_COMMAND(wxID_ANY, EVT_EFFECT_UPDATED, xLightsFrame::UpdateEffect)
@@ -463,9 +465,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizerTest;
     wxFlexGridSizer* FlexGridSizer16;
     wxFlexGridSizer* FlexGridSizerSetup;
+    wxMenuItem* MenuItem26;
     wxFlexGridSizer* FlexGridSizer24;
     wxMenuItem* MenuItemCustomScript;
     wxStaticBoxSizer* StaticBoxSizerHighlightColor;
+    wxMenuItem* MenuItem25;
     wxBoxSizer* BoxSizer10;
     wxBoxSizer* BoxSizer8;
     wxStaticText* StaticText37;
@@ -487,6 +491,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer22;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
+    wxMenuItem* MenuItem22;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
     wxMenu* Menu1;
@@ -496,16 +501,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenuItem* MenuItemDelList;
+    wxMenuItem* MenuItem24;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
+    wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
+    wxMenuItem* MenuItemSequenceElements;
     wxFlexGridSizer* FlexGridSizer21;
     wxFlexGridSizer* FlexGridSizer14;
+    wxMenuItem* MenuItem23;
     wxFlexGridSizer* FlexGridSizer20;
     wxStaticText* StaticText28;
     wxBoxSizer* BoxSizer1;
@@ -517,6 +526,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer36;
     wxFlexGridSizer* FlexGridSizer6;
     wxStaticBoxSizer* StaticBoxSizer1;
+    wxMenuItem* MenuItem21;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizerConvert;
     wxFlexGridSizer* FlexGridSizer43;
@@ -1524,7 +1534,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem18 = new wxMenu();
     MenuItemSequenceElements = new wxMenuItem(MenuItem18, ID_MENUITEM_SEQUENCE_ELEMENTS, _("Sequence Elements"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItemSequenceElements);
-    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Models"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
     MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem21);
@@ -1582,9 +1592,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBAR_FIRST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarFirstFrameClick);
     Connect(ID_AUITOOLBAR_LAST_FRAME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarLastFrameClick);
     Connect(ID_AUITOOLBAR_REPLAY_SECTION,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemReplaySectionClick);
-    Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
-    Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
-    Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
+    Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
+    Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
+    Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -1706,6 +1716,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_MENUITEM_SEQUENCE_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSequenceElementsSelected);
+    Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
+    Connect(ID_MENUITEM14,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
+    Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
+    Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
+    Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -1716,7 +1731,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
-    selectedEffectPalette = -1;
+    selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
     replaySection = false;
@@ -1770,7 +1785,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     // get list of most recently used directories
     wxString dir,mru_name;
-    int menuID, idx;
+    int idx;
     for (int i=0; i<MRU_LENGTH; i++)
     {
         mru_name=wxString::Format("mru%d",i);
@@ -1783,9 +1798,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
                 if (idx == wxNOT_FOUND) mru.Add(dir);
             }
         }
-        menuID = wxNewId();
-        mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru_name);
-        Connect(menuID,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+        mru_MenuItem[i] = NULL;
     }
     dir.clear();
     bool ok = config->Read(_("LastDir"), &dir);
@@ -2902,3 +2915,4 @@ void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
         wxPostEvent(this, displayElementEvent);
     }
 }
+
