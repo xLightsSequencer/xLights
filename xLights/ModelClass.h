@@ -229,10 +229,10 @@ private:
             uint8_t cmin=std::min(c[0],std::min(c[1],c[2]));
             color.Set(cmin,cmin,cmin);
         }
-        virtual void SetFromChannels(const char *buf) {
+        virtual void SetFromChannels(const unsigned char *buf) {
             c[0] = c[1] = c[2] = buf[0];
         }
-        virtual void GetForChannels(char *buf) {
+        virtual void GetForChannels(unsigned char *buf) {
             buf[0] = std::min(c[0],std::min(c[1],c[2]));
         }
     };
@@ -243,7 +243,7 @@ private:
         {
             chanCnt = NODE_RGBW_CHAN_CNT;
         }
-        virtual void SetFromChannels(const char *buf) {
+        virtual void SetFromChannels(const unsigned char *buf) {
             if (buf[3] != 0) {
                 c[0] = c[1] = c[2] = buf[3];
             } else {
@@ -254,7 +254,7 @@ private:
                 }
             }
         }
-        virtual void GetForChannels(char *buf) {
+        virtual void GetForChannels(unsigned char *buf) {
             if (c[0] == c[1] && c[1] == c[2]) {
                 buf[0] = buf[1] = buf[2] = 0;
                 buf[3] = c[0];
