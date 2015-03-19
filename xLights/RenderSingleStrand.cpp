@@ -138,11 +138,11 @@ void RgbEffects::RenderSingleStrandChase(int ColorScheme,int Number_Chases, int 
                                     int Chase_Type1,bool Chase_Fade3d1,bool Chase_Group_All)
 {
 
-    int x,x1,y,i,ColorIdx,chases,width,slow_state;
+    int x,x1,y,i,chases,width,slow_state;
     int x2=0;
-    int color_index,x1_mod,mod_ChaseDirection;
-    int MaxNodes,Dual_Chases,All_Arches=0;
-    int start1,start2,start1_mid,xend,start1_group;
+    int mod_ChaseDirection;
+    int MaxNodes,Dual_Chases;
+    int start1,start2,start1_mid,start1_group;
     float dx;
 
     bool R_TO_L1;
@@ -297,7 +297,7 @@ void RgbEffects::draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,in
                             int width,bool R_TO_L1,int Chase_Width,bool Chase_Fade3d1,
                             int ChaseDirection)
 {
-    float  orig_v,new_v;
+    float  orig_v;
     int new_x,i,max_chase_width,pixels_per_chase;
     size_t colorcnt=GetColorCount();
     int ColorIdx;
@@ -310,8 +310,6 @@ void RgbEffects::draw_chase(int x,int y,wxImage::HSVValue hsv,int ColorScheme,in
 
     int pulsar=0;
     int n;
-    float val;
-    int mid = 0.5 + (max_chase_width/2.0);
     int pixels_per_color=max_chase_width/colorcnt;
     if(pixels_per_color<1) pixels_per_color=1;
     /*

@@ -169,7 +169,6 @@ void xLightsXmlFile::AddDisplayElement( const wxString& name, const wxString& ty
 void xLightsXmlFile::AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active )
 {
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* child;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -257,7 +256,7 @@ int xLightsXmlFile::AddColorPalette(const wxString &palette) {
 wxXmlNode* xLightsXmlFile::AddElement( const wxString& name, const wxString& type )
 {
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* child;
+    wxXmlNode* child = NULL;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -276,7 +275,7 @@ wxXmlNode* xLightsXmlFile::AddElement( const wxString& name, const wxString& typ
 wxXmlNode* xLightsXmlFile::AddFixedTiming( const wxString& name, const wxString& timing )
 {
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* child;
+    wxXmlNode* child = NULL;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
@@ -358,7 +357,6 @@ void xLightsXmlFile::AddTimingEffect( wxXmlNode* node,
 void xLightsXmlFile::UpdateNextId( const wxString& value )
 {
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* child;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {

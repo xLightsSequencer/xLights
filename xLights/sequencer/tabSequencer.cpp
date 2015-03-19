@@ -240,12 +240,10 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
 void xLightsFrame::EffectsResize(wxSizeEvent& event)
 {
-    int k=0;
 }
 
 void xLightsFrame::EffectsPaint(wxPaintEvent& event)
 {
-    int k=0;
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)

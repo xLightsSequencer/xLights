@@ -889,7 +889,6 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
             }
             case SP_XmlPullEvent::eEndTag:
             {
-                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
@@ -1407,13 +1406,11 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
 void FileConverter::ReadGlediatorFile(ConvertParameters& params)
 {
     wxFile f;
-    long xx;
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
 
     size_t fileLength;
-    int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
-    unsigned int ch,byte,byte1,byte2;
+    int j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     //wxString filename=string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 

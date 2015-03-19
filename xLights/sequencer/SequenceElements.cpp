@@ -169,8 +169,6 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
 {
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
 
-    int gridCol;
-
     wxXmlNode* root=seqDocument.GetRoot();
     std::vector<wxString> effectStrings;
     std::vector<wxString> colorPalettes;
@@ -196,7 +194,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                 {
                     collapsed = element->GetAttribute("collapsed")=='1'?true:false;
                 }
-                Element* e = AddElement(name,type,visible,collapsed,active,selected);
+                AddElement(name,type,visible,collapsed,active,selected);
                 // Add models for each view
                 if(type=="view")
                 {
@@ -208,7 +206,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         {
                            wxString modelName =  model[m];
                            wxString elementType = "model";
-                           Element* e = AddElement(modelName,elementType,false,false,false,false);
+                           AddElement(modelName,elementType,false,false,false,false);
                         }
                     }
                 }

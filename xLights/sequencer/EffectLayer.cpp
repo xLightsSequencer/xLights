@@ -27,7 +27,7 @@ int EffectLayer::GetIndex()
 
 void EffectLayer::SetIndex(int index)
 {
-    mIndex - index;
+    mIndex = index;
 }
 
 
@@ -156,8 +156,6 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     {
         if(mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition() > 10)
         {
-            int s =  mEffects[i]->GetStartPosition();
-            int e =  mEffects[i]->GetEndPosition();
             if (position >= mEffects[i]->GetStartPosition() &&
                 position <= mEffects[i]->GetEndPosition())
             {
@@ -188,8 +186,6 @@ int EffectLayer::GetEffectIndexThatContainsPosition(int position,int &selectionT
    selectionType = EFFECT_NOT_SELECTED;
     for(int i=0;i<mEffects.size();i++)
     {
-        int s =  mEffects[i]->GetStartPosition();
-        int e =  mEffects[i]->GetEndPosition();
         if (position >= mEffects[i]->GetStartPosition() &&
             position <= mEffects[i]->GetEndPosition())
         {
@@ -379,8 +375,6 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,dou
 {
     toLeft = NO_MAX;
     toRight = NO_MAX;
-    int effectMin = 0;
-    double effectMax = 0;
     for(int i=0;i<mEffects.size();i++)
     {
         if(mEffects[i]->GetSelected() != EFFECT_NOT_SELECTED)
@@ -391,7 +385,6 @@ void EffectLayer::GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,dou
             toRight = toRight<r?toRight:r;
         }
     }
-    int i = 0;
 }
 
 void EffectLayer::GetMaximumRangeOfMovementForEffect(int index, double &toLeft, double &toRight)

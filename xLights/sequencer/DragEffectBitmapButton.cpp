@@ -47,8 +47,7 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     wxDropSource dragSource(this,dragCursor,dragCursor,dragCursor );
 
     dragSource.SetData( dragData );
-    wxDragResult result = dragSource.DoDragDrop( wxDragMove );
-    int i = 0;
+    dragSource.DoDragDrop( wxDragMove );
 #endif
 }
 

@@ -837,8 +837,7 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 
 void xLightsFrame::PreviewOutput(int period)
 {
-    size_t m, n, chnum, NodeCnt;
-    wxByte intensity;
+    size_t m, n, NodeCnt;
     TimerOutput(period);
     modelPreview->StartDrawing(mPointSize);
     for (m=0; m<PreviewModels.size(); m++)

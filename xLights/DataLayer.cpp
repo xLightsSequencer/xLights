@@ -32,7 +32,7 @@ DataLayer* DataLayerSet::GetDataLayer(int index)
     }
     else
     {
-        nullptr;
+        return NULL;
     }
 }
 #include <wx/msgdlg.h>
