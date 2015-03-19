@@ -172,6 +172,7 @@ void xLightsFrame::LoadEffectsFile()
 
     UpdateModelsList();
     UpdateViewList();
+    displayElementsPanel->SetSequenceElementsModelsViews(&mSequenceElements,ModelsNode, ViewsNode);
     float elapsedTime = sw.Time()/1000.0; //msec => sec
     StatusBar1->SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), filename, elapsedTime));
 }
@@ -277,7 +278,7 @@ void xLightsFrame::UpdateModelsList()
             {
                 model=new ModelClass;
                 model->SetFromXml(e);
-                
+
                 if (model->GetLastChannel() >= NetInfo.GetTotChannels()) {
                     wxMessageBox(wxString::Format("Model %s's last channel (%u) is beyond the end of the configured number of output channels (%u)",name, model->GetLastChannel(), NetInfo.GetTotChannels()));
                 }

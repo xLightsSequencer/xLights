@@ -511,7 +511,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
     wxString palette;
     wxString settings = GetEffectTextFromWindows(palette);
     selectedEffect = NULL;
-    
+
     for(int i=0;i<mSequenceElements.GetSelectedRangeCount();i++)
     {
         EffectLayer* el = mSequenceElements.GetSelectedRange(i)->Layer;
@@ -534,7 +534,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
             playStartMS = -1;
             RenderEffectForModel(el->GetParentElement()->GetName(),playStartTime,playEndTime);
-            
+
             playBuffer.InitBuffer(GetModelNode(el->GetParentElement()->GetName()),
                                   el->GetParentElement()->GetEffectLayerCount(),
                                   SeqData.FrameTime());
@@ -817,7 +817,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
         wxString effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
             || palette != selectedEffectPalette) {
-            
+
             int effectIndex = EffectsPanel1->Choicebook1->GetSelection();
             wxString name = EffectsPanel1->Choicebook1->GetPageText(effectIndex);
             if (name !=  selectedEffect->GetEffectName()) {
@@ -825,7 +825,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 selectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
                 mainSequencer->PanelEffectGrid->ForceRefresh();
             }
-            
+
             selectedEffect->SetSettings(effectText);
             selectedEffect->SetPalette(palette);
 
@@ -1191,7 +1191,6 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 
 void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
-    displayElementsPanel->SetSequenceElementsModelsViews(&mSequenceElements,ModelsNode, ViewsNode);
     displayElementsPanel->Initialize();
     m_mgr->GetPane("DisplayElements").Show();
     m_mgr->Update();
