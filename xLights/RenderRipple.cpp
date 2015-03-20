@@ -54,7 +54,7 @@
 void RgbEffects::RenderRipple(int Object_To_Draw, int Movement, int Ripple_Thickness,int CheckBox_Ripple3D)
 {
 
-    int x,y,i,ColorIdx;
+    int i,ColorIdx;
     int xc,yc;
 
 #if 0

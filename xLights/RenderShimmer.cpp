@@ -46,7 +46,7 @@
 void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Timing,int Blinks_Per_Row)
 {
 
-    int x,y,i,i7,ColorIdx;
+    int x,y,i,ColorIdx;
 
 
 #if 0
@@ -60,9 +60,6 @@ void RgbEffects::RenderShimmer(int Duty_Factor,bool Use_All_Colors,bool Blink_Ti
     size_t colorcnt=GetColorCount();
 
     i=0;
-    double position = GetEffectTimeIntervalPosition(); // how far are we into the row> value is 0.0 to 1.0
-
-    int on_off=0;
 
     int slices=100;
     int istate=state/slices; // istate will be a counter every slices units of state. each istate is a square wave

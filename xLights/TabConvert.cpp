@@ -783,7 +783,6 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
 
     wxString ChannelName,TestName,xmlString,guiString;
     int ch,p,channels_exported=0;
-    int seqidx=0;
     int pos,bst,old_bst,ben;
     unsigned long rgb;
     float seconds;
@@ -1330,11 +1329,9 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
 void FRAMECLASS ReadGlediatorFile(const wxString& FileName)
 {
     wxFile f;
-    long xx;
 
     size_t fileLength;
-    int x,y,p,bytes_per_period,i,j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
-    unsigned int ch,byte,byte1,byte2;
+    int j,period,x_width=32,y_height=32; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     wxString filename=string_format(wxString("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
 
@@ -1355,7 +1352,7 @@ void FRAMECLASS ReadGlediatorFile(const wxString& FileName)
 
     wxYield();
     period = 0;
-    while(readcnt=f.Read(frameBuffer,SeqData.NumChannels()))   // Read one period of channels
+    while((readcnt=f.Read(frameBuffer,SeqData.NumChannels())))   // Read one period of channels
     {
         for(j=0; j<readcnt; j++)   // Loop thru all channel.s
         {
@@ -1703,7 +1700,6 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
             }
             case SP_XmlPullEvent::eEndTag:
             {
-                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
@@ -1863,7 +1859,6 @@ void FRAMECLASS ReadHLSFile(const wxString& filename)
                     wxYield();
                 }
                 nodecnt++;
-                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];

@@ -33,8 +33,6 @@ GLuint* loadImage(wxString path, int* imageWidth, int* imageHeight, int* texture
 
 	(*imageWidth)=img->GetWidth();
 	(*imageHeight)=img->GetHeight();
-	int i = *imageWidth;
-	int j = *imageHeight;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT,   1   );
 
@@ -45,8 +43,8 @@ GLuint* loadImage(wxString path, int* imageWidth, int* imageHeight, int* texture
      * of course adapt the bit below as needed.
      */
 
-	float power_of_two_that_gives_correct_width=std::log((float)(*imageWidth))/std::log(2.0);
-	float power_of_two_that_gives_correct_height=std::log((float)(*imageHeight))/std::log(2.0);
+	//float power_of_two_that_gives_correct_width=std::log((float)(*imageWidth))/std::log(2.0);
+	//float power_of_two_that_gives_correct_height=std::log((float)(*imageHeight))/std::log(2.0);
 
         // check if image dimensions are a power of two
         //if( (int)power_of_two_that_gives_correct_width == power_of_two_that_gives_correct_width &&

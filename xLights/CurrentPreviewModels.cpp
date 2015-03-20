@@ -84,7 +84,6 @@ void CurrentPreviewModels::OnCheckListBoxCurrentGroupsToggled(wxCommandEvent& ev
 void CurrentPreviewModels::PopulateModelGroups()
 {
     wxString name;
-    bool checked;
     wxXmlNode* e;
     CheckListBoxCurrentGroups->Clear();
 	for(e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )

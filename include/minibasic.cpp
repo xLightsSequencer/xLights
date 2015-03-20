@@ -2343,7 +2343,7 @@ int exitfor(char *id) {
   int answer;
   int len;
   const char *savestring = string;
-  while(string = strchr(string, '\n')) {
+  while((string = strchr(string, '\n'))) {
     errorflag = 0;
     token = gettoken(string);
     match(VALUE);

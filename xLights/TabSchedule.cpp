@@ -508,6 +508,10 @@ void xLightsFrame::OnTimerPlaylist(long msec)
     bool ShowPreview = (Notebook1->GetSelection() == PREVIEWTAB);
     switch (SeqPlayerState)
     {
+    case NO_SEQ:
+    case PAUSE_SEQ_ANIM:
+    case PLAYING_EFFECT:
+        break;
     case DELAY_AFTER_PLAY:
         if (msec > DelayAfterPlayMSEC)
         {

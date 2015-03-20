@@ -58,14 +58,12 @@ void RgbEffects::RenderWave(int WaveType,int FillColor,bool MirrorWave,int Numbe
     debug(10, "wave: type %d, fill %d, #waves %d, height %d, state %d", WaveType, FillColor, NumberWaves, WaveHeight, state);
     int x,y,y1,y2,y1mirror,y2mirror,ystart,dy,modx,modx2;
     double a,r,yc,deltay;
-    double degree,radian,degree_per_x,h=0.0;
-    static const double pi2=6.283185307;
+    double degree,radian,degree_per_x;
     static const double pi_180 = 0.01745329;
     xlColour color;
     wxImage::HSVValue hsv,hsv0,hsv1;
     palette.GetHSV(0,hsv0);
     palette.GetHSV(1,hsv1);
-    size_t colorcnt=GetColorCount();
     static std::vector<int> ybranch;
 
     yc = BufferHt/2.0;

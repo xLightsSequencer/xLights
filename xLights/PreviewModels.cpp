@@ -130,7 +130,6 @@ PreviewModels::~PreviewModels()
 void PreviewModels::PopulateModelGroups()
 {
     wxString name;
-    bool checked;
     wxXmlNode* e;
 	for(e=mModelGroups->GetChildren(); e!=NULL; e=e->GetNext() )
     {

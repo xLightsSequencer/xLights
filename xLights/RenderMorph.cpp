@@ -137,7 +137,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         v_shty = &v_ay;
     }
 
-    double pos_a, pos_b, pct;
+    double pos_a, pos_b;
     double total_length = v_lngx->size();     // total length of longest vector
     double head_duration = duration/100.0;    // time the head is in the frame
     double head_end_of_head_pos = total_length + 1;

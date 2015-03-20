@@ -29,9 +29,7 @@ void SequencePreview::mouseMoved(wxMouseEvent& event) {}
 void SequencePreview::mouseDown(wxMouseEvent& event) {}
 void SequencePreview::mouseWheelMoved(wxMouseEvent& event) {}
 void SequencePreview::mouseReleased(wxMouseEvent& event) {}
-void SequencePreview::rightClick(wxMouseEvent& event) {
-    int i=0;
-}
+void SequencePreview::rightClick(wxMouseEvent& event) {}
 void SequencePreview::mouseLeftWindow(wxMouseEvent& event) {}
 void SequencePreview::keyPressed(wxKeyEvent& event) {}
 void SequencePreview::keyReleased(wxKeyEvent& event) {}

@@ -1048,7 +1048,6 @@ void FileConverter::ReadHLSFile(ConvertParameters& params)
                     wxYield();
                 }
                 nodecnt++;
-                SP_XmlEndTagEvent * stagEvent = (SP_XmlEndTagEvent*)event;
                 if (cnt > 0)
                 {
                     NodeName = context[cnt - 1];
@@ -1437,7 +1436,7 @@ void FileConverter::ReadGlediatorFile(ConvertParameters& params)
 
     wxYield();
     period = 0;
-    while(readcnt=f.Read(frameBuffer,params.seq_data.NumChannels()))   // Read one period of channels
+    while((readcnt=f.Read(frameBuffer,params.seq_data.NumChannels())))   // Read one period of channels
     {
         for(j=0; j<readcnt; j++)   // Loop thru all channel.s
         {
