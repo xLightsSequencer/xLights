@@ -281,8 +281,19 @@ int Waveform::OpenfileMediaFile(const char* filename)
     LoadTrackData(mh,trackData, size);
     // Split data into left and right and normalize -1 to 1
     m_left_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
-    m_right_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
-    SplitTrackDataAndNormalize((signed short*)trackData,mMediaTrackSize,m_left_data,m_right_data);
+    if( m_channels == 2 )
+    {
+        m_right_data = (float*)malloc(sizeof(float)*mMediaTrackSize);
+        SplitTrackDataAndNormalize((signed short*)trackData,mMediaTrackSize,m_left_data,m_right_data);
+    }
+    else if( m_channels == 1 )
+    {
+        NormalizeMonoTrackData((signed short*)trackData,mMediaTrackSize,m_left_data);
+    }
+    else
+    {
+        wxMessageBox("More than 2 audio channels is not supported yet.", "Error");
+    }
     views.clear();
     int samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
     WaveView wv(mZoomLevel,samplesPerLine,m_left_data,mMediaTrackSize);
@@ -330,6 +341,16 @@ void Waveform::SplitTrackDataAndNormalize(signed short* trackData,int trackSize,
         leftData[i] = (float)lSample/(float)32768;
         rSample = trackData[(i*2)+1];
         rightData[i] = (float)rSample/(float)32768;
+    }
+}
+
+void Waveform::NormalizeMonoTrackData(signed short* trackData,int trackSize,float* leftData)
+{
+    signed short lSample;
+    for(int i=0;i<trackSize;i++)
+    {
+        lSample = trackData[i];
+        leftData[i] = (float)lSample/(float)32768;
     }
 }
 
