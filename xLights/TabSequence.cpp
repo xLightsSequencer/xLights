@@ -417,8 +417,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 {
     enableAllToolbarControls(MainToolBar, enable);
     enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
-    enableAllToolbarControls(EffectToolBar, enable && SeqData.NumFrames() > 0);
-    enableAllToolbarControls(EffectPaletteToolBar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(WindowMgmtToolbar, enable && SeqData.NumFrames() > 0);
+    enableAllToolbarControls(EffectsToolBar, enable && SeqData.NumFrames() > 0);
     enableAllToolbarControls(ViewToolBar, enable);
     enableAllToolbarControls(OutputToolBar, enable);
 
