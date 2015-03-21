@@ -110,8 +110,8 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_TOP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_BOTTOM,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
-	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp);
+	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_LINEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEUP,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_PAGEDOWN,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
 	Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ,wxEVT_SCROLL_THUMBTRACK,(wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
@@ -371,4 +371,37 @@ void MainSequencer::InsertTimingMarkFromRange()
     }
 }
 
+void MainSequencer::OnScrollBarEffectsHorizontalScrollLineUp(wxScrollEvent& event)
+{
+    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    if( position > 0 )
+    {
+        int ts = ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+        if (ts == 0) {
+            ts = 1;
+        }
+        position -= ts;
+        if (position < 0) {
+            position = 0;
+        }
+        ScrollBarEffectsHorizontal->SetThumbPosition(position);
+    }
+}
 
+void MainSequencer::OnScrollBarEffectsHorizontalScrollLineDown(wxScrollEvent& event)
+{
+    int position = ScrollBarEffectsHorizontal->GetThumbPosition();
+    int limit = ScrollBarEffectsHorizontal->GetRange();
+    if( position < limit-1 )
+    {
+        int ts = ScrollBarEffectsHorizontal->GetThumbSize() / 10;
+        if (ts == 0) {
+            ts = 1;
+        }
+        position += ts;
+        if (position >= limit) {
+            position = limit - 1;
+        }
+        ScrollBarEffectsHorizontal->SetThumbPosition(position);
+    }
+}

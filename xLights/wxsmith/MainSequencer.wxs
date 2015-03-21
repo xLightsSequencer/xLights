@@ -94,8 +94,8 @@
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_TOP" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_BOTTOM" />
-					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_LINEUP" />
-					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_LINEDOWN" />
+					<handler function="OnScrollBarEffectsHorizontalScrollLineUp" entry="EVT_COMMAND_SCROLL_LINEUP" />
+					<handler function="OnScrollBarEffectsHorizontalScrollLineDown" entry="EVT_COMMAND_SCROLL_LINEDOWN" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_PAGEUP" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_PAGEDOWN" />
 					<handler function="OnScrollBarEffectGridHorzScroll" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
