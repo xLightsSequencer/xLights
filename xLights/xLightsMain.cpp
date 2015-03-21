@@ -2469,7 +2469,8 @@ void xLightsFrame::StopNow(void)
         TestButtonsOff();
         break;
     case NEWSEQUENCER:
-        EnableSequenceControls(true);
+        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+        wxPostEvent(this, playEvent);
         break;
     }
 }
@@ -2521,7 +2522,7 @@ void xLightsFrame::OnMenuItemSavePlaylistsSelected(wxCommandEvent& event)
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     selectedEffect = NULL;
-    
+
     // Disconnect the resize events, otherwise they get called as we are shutting down
     ScrolledWindowPreview->Disconnect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnScrolledWindowPreviewResize,0,this);
     StopNow();
