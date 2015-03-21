@@ -98,12 +98,9 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mStartPixelOffset = 0;
     mFrequency = 40;
     mZoomLevel = 0;
-    mSelectedPosition = 0;
-    mSelectedTimeMS = 0;
     mStartTimeMS = 0;
     mStartTime = 0;
-    mViewableTimeMS = GetMaxViewableTimeMS();
-    mEndTimeMS = mViewableTimeMS;
+    mEndTimeMS = GetMaxViewableTimeMS();
     mEndTime = (double)mEndTimeMS/(double)1000;
     mCurrentPlayMarkerStart = -1;
     mCurrentPlayMarkerEnd = -1;
@@ -152,6 +149,15 @@ void TimeLine::SetSelectedPositionStart(int pos)
 {
     mSelectedPlayMarkerStart = GetPositionFromSelection(pos);
     mSelectedPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mSelectedPlayMarkerStart);
+    mSelectedPlayMarkerEnd = -1;
+    mSelectedPlayMarkerEndMS = -1;
+    Refresh(false);
+}
+
+void TimeLine::SetSelectedPositionStartMS(int time)
+{
+    mSelectedPlayMarkerStartMS = time;
+    mSelectedPlayMarkerStart = GetPositionFromTimeMS(mSelectedPlayMarkerStartMS);
     mSelectedPlayMarkerEnd = -1;
     mSelectedPlayMarkerEndMS = -1;
     Refresh(false);
@@ -305,15 +311,27 @@ int TimeLine::GetTimeFrequency()
 
 void TimeLine::SetZoomLevel(int level)
 {
-     mZoomLevel = level;
-     mViewableTimeMS = GetMaxViewableTimeMS();
-     mStartTimeMS = GetStartTimeMSfromSelectedTimeAndPosition();
-     mEndTimeMS = GetMaxViewableTimeMS();
-     mStartTime = (double)mStartTimeMS/(double)1000;
-     mEndTime = (double)mEndTimeMS/(double)1000;
-     mStartPixelOffset = GetPixelOffsetFromStartTime();
-     RecalcMarkerPositions();
-     RaiseChangeTimeline();
+    mZoomLevel = level;
+    if( (mSelectedPlayMarkerStartMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
+    {
+        float marker_ratio = (double)(mSelectedPlayMarkerStartMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
+        int total_ms = GetTotalViewableTimeMS();
+        mStartTimeMS = mSelectedPlayMarkerStartMS - marker_ratio * total_ms;
+        if( mStartTimeMS < 0 )
+        {
+            mStartTimeMS = 0;
+        }
+    }
+    else
+    {
+        mStartTimeMS = 0;
+    }
+    mEndTimeMS = GetMaxViewableTimeMS();
+    mStartTime = (double)mStartTimeMS/(double)1000;
+    mEndTime = (double)mEndTimeMS/(double)1000;
+    mStartPixelOffset = GetPixelOffsetFromStartTime();
+    RecalcMarkerPositions();
+    RaiseChangeTimeline();
 }
 
 void TimeLine::RecalcMarkerPositions()
@@ -357,14 +375,11 @@ void TimeLine::ZoomOut()
         SetZoomLevel(mZoomLevel+1);
         if(GetTotalViewableTimeMS()> mTimeLength)
         {
-            int selectedTime = mStartTimeMS+GetTimeMSfromPosition(mSelectedPosition);
             mStartTimeMS = 0;
             mStartPixelOffset = 0;
             mEndTimeMS = GetMaxViewableTimeMS();
             mStartTime = 0;
             mEndTime = (double)mEndTimeMS/(double)1000;
-            float nMajorHashs = (float)mSelectedTimeMS/(float)TimePerMajorTickInMS();
-            mSelectedPosition = (int)(nMajorHashs * PIXELS_PER_MAJOR_HASH);
             RaiseChangeTimeline();
         }
     }
@@ -377,17 +392,6 @@ void TimeLine::ZoomIn()
     {
         SetZoomLevel(mZoomLevel-1);
     }
-}
-
-int TimeLine::GetStartTimeMSfromSelectedTimeAndPosition()
-{
-    float nMajorHashs = (float)mSelectedPosition/(float)PIXELS_PER_MAJOR_HASH;
-    int startTime = (int)(mSelectedTimeMS - (float)(nMajorHashs*TimePerMajorTickInMS()));
-    if(startTime < 0)
-    {
-        startTime = 0;
-    }
-    return startTime;
 }
 
 int TimeLine::GetPixelOffsetFromStartTime()
@@ -472,6 +476,7 @@ int TimeLine::GetAbsoluteTimeMSfromPosition(int position)
 {
     float nMajorHashs = (float)position/(float)PIXELS_PER_MAJOR_HASH;
     int time = mStartTimeMS + (int)(nMajorHashs*TimePerMajorTickInMS());
+    time = RoundToMultipleOfPeriod(time,mFrequency);
     return time;
 }
 

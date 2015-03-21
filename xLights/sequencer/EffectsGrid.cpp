@@ -88,6 +88,7 @@ void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
     mDragging = false;
     mResizing = false;
     mDragDropping = false;
+    mResizingMode = EFFECT_RESIZE_NO;
 }
 
 void EffectsGrid::DragOver(int x, int y)
@@ -169,12 +170,11 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if (mSequenceElements == NULL) {
         return;
     }
-    int FirstSelected;
     if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
     {
         mSequenceElements->UnSelectAllEffects();
     }
-
+    int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetRowInformationSize())
         return;
@@ -183,7 +183,16 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,event.GetX(),effectIndex,selectionType);
     if(selectedEffect!= nullptr)
     {
-        if(selectedEffect->GetSelected() == EFFECT_NOT_SELECTED && !(event.ShiftDown() || event.ControlDown()))
+        // If clicked on effect edge set the selection to that position
+        if( selectionType == EFFECT_LT_SELECTED )
+        {
+            selected_time = (int)(selectedEffect->GetStartTime()*1000.0);
+        }
+        else if( selectionType == EFFECT_RT_SELECTED )
+        {
+            selected_time = (int)(selectedEffect->GetEndTime()*1000.0);
+        }
+        if(selectedEffect->GetSelected() != selectionType && !(event.ShiftDown() || event.ControlDown()))
         {
             mSequenceElements->UnSelectAllEffects();
             selectedEffect->SetSelected(selectionType);
@@ -221,7 +230,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             CaptureMouse();
         }
     }
-    UpdateTimePosition(event.GetX());
+    UpdateTimePosition(selected_time);
     event.Skip(true);
 }
 
@@ -232,7 +241,10 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
         if(mEffectLayer->GetParentElement()->GetType()=="model")
         {
             Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
-            RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
+            if(effect)
+            {
+                RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
+            }
         }
     }
 
@@ -280,7 +292,6 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position)
     double deltaTime;
     double toLeft,toRight;
     double time = mTimeline->GetAbsoluteTimefromPosition(position);
-    time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
     GetRangeOfMovementForSelectedEffects(toLeft,toRight);
     if(mResizingMode==EFFECT_RESIZE_LEFT)
     {
@@ -309,7 +320,6 @@ void EffectsGrid::ResizeMoveMultipleEffects(int position)
 void EffectsGrid::ResizeSingleEffect(int position)
 {
     double time = mTimeline->GetAbsoluteTimefromPosition(position);
-    time = TimeLine::RoundToMultipleOfPeriod(time,mTimeline->GetTimeFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT)
     {
         double minimumTime = mEffectLayer->GetMinimumStartTime(mResizeEffectIndex);
@@ -399,11 +409,11 @@ void EffectsGrid::RunMouseOverHitTests(Element* element,int effectLayerIndex,int
     }
 }
 
-void EffectsGrid::UpdateTimePosition(int position)
+void EffectsGrid::UpdateTimePosition(int time)
 {
     // Update time selection
     wxCommandEvent eventTimeSelected(EVT_TIME_SELECTED);
-    eventTimeSelected.SetInt(position);
+    eventTimeSelected.SetInt(time);
     wxPostEvent(mParent, eventTimeSelected);
 }
 

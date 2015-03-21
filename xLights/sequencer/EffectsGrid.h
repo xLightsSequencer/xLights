@@ -79,7 +79,7 @@ private:
     void DrawEffects();
     void Resize(int position);
     void RunMouseOverHitTests(Element * element,int effectLayerIndex, int x,int y);
-    void UpdateTimePosition(int position);
+    void UpdateTimePosition(int time);
     void CheckForSelectionRectangle();
     void RaiseSelectedEffectChanged(Effect* effect);
     void RaiseEffectDropped(int x, int y);

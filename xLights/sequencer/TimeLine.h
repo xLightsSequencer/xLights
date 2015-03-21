@@ -38,6 +38,7 @@ class TimeLine : public wxWindow
         int GetPlayMarker();
 
         void SetSelectedPositionStart(int pos);
+        void SetSelectedPositionStartMS(int time);
         void SetSelectedPositionEnd(int pos);
         int GetSelectedPositionStart() { return mSelectedPlayMarkerStart; }
         int GetSelectedPositionEnd() { return mSelectedPlayMarkerEnd; }
@@ -106,14 +107,11 @@ class TimeLine : public wxWindow
         double mStartTime;
         double mEndTime;
 
-        int mSelectedTimeMS;
-        int mSelectedPosition;
         int mStartPixelOffset;
         int mFrequency;
         int mZoomLevel;
         int mMaxZoomLevel;
         int mTimeLength;
-        int mViewableTimeMS;
         int mCurrentPlayMarkerStart;
         int mCurrentPlayMarkerEnd;
         int mSelectedPlayMarkerStart;
@@ -130,7 +128,6 @@ class TimeLine : public wxWindow
         void render( wxPaintEvent& event );
         float GetFirstTimeLabelFromPixelOffset(int offset);
         int GetPixelOffsetFromStartTime();
-        int GetStartTimeMSfromSelectedTimeAndPosition();
         int GetMaxViewableTimeMS();
         int GetTotalViewableTimeMS();
         int GetPositionFromSelection(int position);
