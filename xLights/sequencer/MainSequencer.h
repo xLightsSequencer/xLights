@@ -66,6 +66,7 @@ class MainSequencer: public wxPanel
         void TimeLineChanged( wxCommandEvent& event);
         void DeleteAllSelectedEffects();
         void InsertTimingMarkFromRange();
+        void SplitTimingMark();
         void SetHandlers(wxWindow *);
 
         wxWindow *mParent;

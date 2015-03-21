@@ -276,6 +276,11 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             InsertTimingMarkFromRange();
             event.StopPropagation();
             break;
+        case 's':
+        case 'S':
+            SplitTimingMark();
+            event.StopPropagation();
+            break;
     }
 }
 void MainSequencer::DeleteAllSelectedEffects()
@@ -317,10 +322,6 @@ void MainSequencer::InsertTimingMarkFromRange()
     {
         if(x1!=x2)
         {
-            //Force x1 the smaller of two positions
-            int tmp = x1;
-            x1=x1<x2?x1:x2;
-            x2=tmp<x2?x2:tmp;
             Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
             EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
             int index,result;
@@ -365,7 +366,39 @@ void MainSequencer::InsertTimingMarkFromRange()
             }
             else
             {
-                wxMessageBox("Timing exist already in the selected region","Timing placement error");
+                SplitTimingMark();  // inserting a timing mark inside a timing mark same as a split
+            }
+        }
+    }
+}
+
+void MainSequencer::SplitTimingMark()
+{
+    int x1 = PanelTimeLine->GetSelectedPositionStart();
+    int x2 = PanelTimeLine->GetSelectedPositionEnd();
+    if( x2 == -1 ) x2 = x1;
+    int selectedTiming = mSequenceElements->GetSelectedTimingRow();
+    if(selectedTiming >= 0)
+    {
+        Element* e = mSequenceElements->GetRowInformation(selectedTiming)->element;
+        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTiming)->layerIndex);
+        int index1,index2,result;
+        if(el->HitTestEffect(x1,index1,result) && el->HitTestEffect(x2,index2,result))
+        {
+            if( index1 == index2 )
+            {
+                Effect* eff1 = el->GetEffect(index1);
+                double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
+                double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
+                double old_end_time = eff1->GetEndTime();
+                eff1->SetEndTime(t1);
+                wxString name,settings;
+                el->AddEffect(0,0,name,settings,"",t2,old_end_time,false,false);
+                PanelEffectGrid->ForceRefresh();
+            }
+            else
+            {
+                wxMessageBox("Timing cannot be split across timing marks.","Timing placement error");
             }
         }
     }
