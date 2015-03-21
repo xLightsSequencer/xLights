@@ -154,27 +154,24 @@ bool EffectLayer::HitTestEffect(int position,int &index, int &result)
     bool isHit=false;
     for(int i=0;i<mEffects.size();i++)
     {
-        if(mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition() > 10)
+        if (position >= mEffects[i]->GetStartPosition() &&
+            position <= mEffects[i]->GetEndPosition())
         {
-            if (position >= mEffects[i]->GetStartPosition() &&
-                position <= mEffects[i]->GetEndPosition())
+            isHit = true;
+            index = i;
+            if(position < mEffects[i]->GetStartPosition() + 5)
             {
-                isHit = true;
-                index = i;
-                if(position < mEffects[i]->GetStartPosition() + 5)
-                {
-                    result = HIT_TEST_EFFECT_LT;
-                }
-                else if(position > mEffects[i]->GetEndPosition() - 5)
-                {
-                    result = HIT_TEST_EFFECT_RT;
-                }
-                else
-                {
-                    result = HIT_TEST_EFFECT_CTR;
-                }
-                break;
+                result = HIT_TEST_EFFECT_LT;
             }
+            else if(position > mEffects[i]->GetEndPosition() - 5)
+            {
+                result = HIT_TEST_EFFECT_RT;
+            }
+            else
+            {
+                result = HIT_TEST_EFFECT_CTR;
+            }
+            break;
         }
     }
     return isHit;

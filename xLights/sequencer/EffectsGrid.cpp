@@ -246,6 +246,19 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
             }
         }
+
+        // if dragging an effect endpoint move the selection point with it so it will
+        // focus on that spot if you zoom afterwards.
+        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
+        {
+            int selected_time = (int)(mSelectedEffect->GetStartTime()*1000.0);
+            UpdateTimePosition(selected_time);
+        }
+        else if( mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
+        {
+            int selected_time = (int)(mSelectedEffect->GetEndTime()*1000.0);
+            UpdateTimePosition(selected_time);
+        }
     }
 
     if(mDragging)
