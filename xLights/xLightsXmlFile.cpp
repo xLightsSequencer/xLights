@@ -1036,7 +1036,7 @@ bool xLightsXmlFile::LoadSequence()
 void xLightsXmlFile::CleanUpEffects()
 {
     wxXmlNode* root=seqDocument.GetRoot();
-    wxXmlNode* node;
+    wxXmlNode* node = NULL;
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {

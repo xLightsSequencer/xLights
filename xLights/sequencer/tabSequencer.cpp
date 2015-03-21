@@ -392,52 +392,17 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
 void xLightsFrame::ResizeMainSequencer()
 {
     //Play Controls
-    wxSize s = mainSequencer->GetSize();
-    int w = s.GetX();
-    int h = s.GetY();
-
     mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));
 
-    // Wave Form and Timeline
-    //mainSequencer->PanelWaveForm->SetCanvasSize(w-175,75);
-    //mainSequencer->PanelTimeLine->SetCanvasSize(w-175,25);
-
-    int effectHeight = h-120;
-
-    int effectWidth = w-20; // Width - vertical scrollbar width
-
-    //mainSequencer->PanelRowHeadings->SetSize(wxSize(175,effectHeight));
-    //mainSequencer->PanelRowHeadings->SetMinSize(wxSize(175,effectHeight));
-    //mainSequencer->PanelRowHeadings->SetMaxSize(wxSize(175,effectHeight));
-
     // Set max rows to determine correct row information size
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
-
-
-
-    //mainSequencer->PanelEffectGrid->SetSize(wxSize(effectWidth-175,effectHeight));
-    //mainSequencer->PanelEffectGrid->SetMinSize(wxSize(effectWidth-175,effectHeight));
-    //mainSequencer->PanelEffectGrid->SetMaxSize(wxSize(effectWidth-175,effectHeight));
-
-//    mainSequencer->ScrollBarEffectsVertical->SetSize(20,effectHeight);
-//    mainSequencer->ScrollBarEffectsVertPLAY_TYPE_MODELical->SetMinSize(wxSize(20,effectHeight));
-//    mainSequencer->ScrollBarEffectsVertical->SetMaxSize(wxSize(20,effectHeight));
-
-//    mainSequencer->panelEffectScrollBarSpacer->SetSize(175,20);
-//    mainSequencer->panelEffectScrollBarSpacer->SetMinSize(wxSize(175,20));
-//    mainSequencer->panelEffectScrollBarSpacer->SetMaxSize(wxSize(175,20));
-
-//    mainSequencer->ScrollBarEffectGridHorz->SetSize(w-175,20);
-//    mainSequencer->ScrollBarEffectGridHorz->SetMinSize(wxSize(w-175,20));
-//    mainSequencer->ScrollBarEffectGridHorz->SetMaxSize(wxSize(w-175,20));
 
 
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelTimeLine->Refresh();
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
-//    mainSequencer->panelEffectScrollBarSpacer->Refresh();
     mainSequencer->ScrollBarEffectsHorizontal->Refresh();
     mainSequencer->ScrollBarEffectsVertical->Refresh();
 

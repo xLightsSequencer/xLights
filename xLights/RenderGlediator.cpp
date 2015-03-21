@@ -72,12 +72,10 @@ void RgbEffects::RenderGlediator( const wxString& GledFilename)
 {
     wxFile f;
     //int maxframes=wxAtoi( MaxFrames ); // get max frames the user has passed in
-    int frame,maxframes;
     wxFileOffset fileLength;
     xlColor color;
     wxImage::HSVValue hsv;
-    int x,y,p,bytes_per_period,i,j,period; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
-    unsigned int ch,byte,byte1,byte2;
+    int x,y,i,j,period; // for now hard code matrix to be 32x32. after we get this working, we will prompt for this info during convert
     wxString filename=wxString::Format(_("01 - Carol of the Bells.mp3")); // hard code a mp3 file for now
     size_t readcnt;
     off_t offset;

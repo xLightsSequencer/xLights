@@ -7,12 +7,10 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                                 int pinwheel_thickness,bool pinwheel_rotation,
                                 int pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
 {
-    int i,a,x,y,xc,yc,ColorIdx,base_degrees;
-    int mod1440,state360,d_mod;
+    int a,xc,yc,ColorIdx,base_degrees;
     float t,tmax;
     srand(1);
-    float R,r,radius,d,d_orig;
-    double hyp,x2,y2;
+    float radius;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=GetColorCount();
 

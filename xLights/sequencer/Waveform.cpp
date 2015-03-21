@@ -446,7 +446,7 @@ void Waveform::renderGL( wxPaintEvent& event )
 void Waveform::DrawWaveView(const WaveView &wv, wxDC &dc)
 {
     wxCoord w,h;
-    int x,y1,y2,y1_2,y2_2;
+    int y1,y2,y1_2,y2_2;
     int index;
 
     const wxPen* pen_black = wxBLACK_PEN;
@@ -477,7 +477,6 @@ void Waveform::DrawWaveView(const WaveView &wv, wxDC &dc)
 
     wxPen pen_wave(wxColor(130,178,207));
     dc.SetPen(pen_wave);
-    int minMax = wv.MinMaxs.size();
     for (int x=0;x<getWidth() && (x)<wv.MinMaxs.size();x++)
     {
         index = x+mStartPixelOffset;
@@ -538,7 +537,7 @@ void Waveform::DrawWaveView(const WaveView &wv, wxDC &dc)
 
 void Waveform::DrawWaveViewGL(const WaveView &wv)
 {
-    int x,y1,y2,y1_2,y2_2;
+    int y1,y2,y1_2,y2_2;
     int index;
     glColor3ub(212,208,200);
     glBegin(GL_QUADS);
@@ -583,7 +582,6 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
         glDisable(GL_BLEND);
     }
 
-    int minMax = wv.MinMaxs.size();
     for (int x=0;x<getWidth() && (x)<wv.MinMaxs.size();x++)
     {
         index = x+mStartPixelOffset;

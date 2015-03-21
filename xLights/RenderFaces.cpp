@@ -83,11 +83,6 @@ void RgbEffects::RenderFaces(int Phoneme)
         FacesPhoneme.Add("rest");   9
     */
     wxImage::HSVValue hsv;
-    int maxframe=BufferHt*2;
-    int frame=(BufferHt * state / 200)%maxframe;
-    double offset=double(state)/100.0;
-    size_t colorcnt=GetColorCount();
-
 
 //    std::vector<int> chmap;
 //    std::vector<std::vector<int>> chmap; //array of arrays
@@ -259,8 +254,7 @@ void RgbEffects::drawline1(int Phoneme, int x1,int x2,int y1,int y2)
     ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
     hsv.hue = (float)Phoneme/10.0;
-    int ch;
-//    ch=FindChannelAtXY( x,  y,'A');
+    //int ch=FindChannelAtXY( x,  y,'A');
     hsv.value=1.0;
 
 
