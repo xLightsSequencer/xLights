@@ -169,6 +169,7 @@ class Waveform : public wxGLCanvas
         void render( wxPaintEvent& event );
         void renderGL( wxPaintEvent& event );
       	void mouseMoved(wxMouseEvent& event);
+        void mouseWheelMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
       	//void mouseLeftWindow( wxMouseEvent& event);

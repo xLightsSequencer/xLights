@@ -52,7 +52,7 @@ EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 //EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
-//EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
+EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
 EVT_PAINT(Waveform::render)
 END_EVENT_TABLE()
 // Custom Events
@@ -227,6 +227,31 @@ void Waveform::mouseMoved( wxMouseEvent& event)
     {
        StopScrolling();
     }*/
+}
+
+void Waveform::mouseWheelMoved(wxMouseEvent& event)
+{
+    if(event.CmdDown())
+    {
+        int i = event.GetWheelRotation();
+        if(i<0)
+        {
+            wxCommandEvent eventZoom(EVT_ZOOM);
+            eventZoom.SetInt(ZOOM_OUT);
+            wxPostEvent(mParent, eventZoom);
+        }
+        else
+        {
+            wxCommandEvent eventZoom(EVT_ZOOM);
+            eventZoom.SetInt(ZOOM_IN);
+            wxPostEvent(mParent, eventZoom);
+        }
+    }
+    else
+    {
+        wxPostEvent(GetParent()->GetEventHandler(), event);
+        event.Skip();
+    }
 }
 
 /*void Waveform::StopScrolling()
