@@ -189,6 +189,7 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
         CaptureMouse();
     }
     mTimeline->SetSelectedPositionStart(event.GetX());
+    SetFocus();
     Refresh(false);
 }
 
