@@ -1,10 +1,34 @@
-xLights is a program that allows you to play the sequence files from Vixen and
+﻿xLights is a program that allows you to play the sequence files from Vixen and
 LOR. It has the ability to drive USB DMX controllers, E1.31 Ethernet controllers. xLights has a extensive scheduler.
 Nutcracker is a program that generates animated effects on massive RGB devices such as megatrees, matrices, and arches.
 
 Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
+---------------------------------
+4.0.1	Mar 21,2015
+		Many bugs fixed. Go here to see closed bugs. https://github.com/smeighan/xLights/issues?q=is%3Aissue+is%3Aclosed
+		-bug (Gil) Must click in EffectGrid or timing marks can't be added/modified #89
+		-enh (Gil) Add ability to split timing marks #88
+		-bug (Gil) Single strand and garland use the same icon #86
+		-bug (Gil) Crash when creating new sequence with no timing track selected #84
+		-bug (Gil) Request: Zoom level minimum for effect edge dragging #83
+		-bug (Gil) Right scrolling arrow #67
+		-bug (Gil) Zoom doesn't focus on selection target #77
+		
+			Some new features: Click in the waveform and the type "s", the current timing mark will be split in half. This complements the "t" command that creates timing marks.
+			Double clicking in the waveform will zoom in. Ctl-double click in the waveform will zoom out
+4.0.0	Mar 20,2015
+    First Beta release of xLights 4. Dan Kulp, Dave Pitts, Gil Jones, Sean
+	-- There are still bugs in this release. Go to https://github.com/smeighan/xLights/issues to see current bugs and enhancements
+        -- You need to run Windows 7 and 8 in non-aero mode. 
+        -- Make a backup of your current sequecnes. Copy over the sound files and the xml files (xseq and fseq do not need to be copied)
+	-- If you want exact placement of the cursor inside the waveform, resample sound files to 192k constant bitrate using audacity
+	-- In 4.0 we do not have the "Create Random Effects" button, that will come out in XL 4.1
+	
+
+============================================== xLights 3.6.x =========================================================================
+
 3.6.15 Dec 25, 2014
 	-enh (dkulp) Modify F3 so that effects like morph can try to work.
     -enh (djulien) Allow option to continue Preview playback if channel data is missing from .xseq file (helps avoid the need to re-render everything if you've added props at the end)
