@@ -341,9 +341,7 @@ void xLightsFrame::UpdateEffectGridHorizontalScrollBar()
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
     mSequenceElements.PopulateRowInformation();
-    int height = DEFAULT_ROW_HEADING_HEIGHT * mSequenceElements.GetRowInformationSize();
     ResizeMainSequencer();
-//    m_mgr->Update();
 }
 
 void xLightsFrame::WindowResized( wxCommandEvent& event)
@@ -1132,7 +1130,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings",settings);
     }
-    bool success = m_mgr->LoadPerspective(settings,true);
+    m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
     m_mgr->GetPane(wxT("ModelPreview")).Show(true);
     m_mgr->Update();
