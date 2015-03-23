@@ -289,7 +289,6 @@ bool EffectsGrid::MultipleEffectsSelected()
     int count=0;
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
     {
-        Element * element = mSequenceElements->GetRowInformation(i)->element;
         EffectLayer* el = mSequenceElements->GetRowInformation(i)->element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
         count+= el->GetSelectedEffectCount();
         if(count > 1)
@@ -302,7 +301,7 @@ bool EffectsGrid::MultipleEffectsSelected()
 
 void EffectsGrid::ResizeMoveMultipleEffects(int position)
 {
-    double deltaTime;
+    double deltaTime = 0;
     double toLeft,toRight;
     double time = mTimeline->GetAbsoluteTimefromPosition(position);
     GetRangeOfMovementForSelectedEffects(toLeft,toRight);
@@ -950,6 +949,7 @@ Element* EffectsGrid::GetActiveTimingElement()
             break;
         }
     }
+    return returnValue;
 }
 
 void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &toRight)
@@ -965,7 +965,6 @@ void EffectsGrid::GetRangeOfMovementForSelectedEffects(double &toLeft, double &t
         toLeft = toLeft<left?toLeft:left;
         toRight = toRight<right?toRight:right;
     }
-    int i=0;
 }
 
 void EffectsGrid::MoveAllSelectedEffects(double delta)

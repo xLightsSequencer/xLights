@@ -293,7 +293,7 @@ void Waveform::cleanup(mpg123_handle *mh)
 // Open Media file and return elapsed time in millseconds
 int Waveform::OpenfileMediaFile(const char* filename)
 {
-    mpg123_handle *mh;
+    mpg123_handle *mh = NULL;
     int err;
     size_t buffer_size;
     int channels, encoding;
@@ -303,7 +303,9 @@ int Waveform::OpenfileMediaFile(const char* filename)
     if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
     {
         wxMessageBox(wxString::Format("Basic setup goes wrong: %s", mpg123_plain_strerror(err)), "Error");
-        cleanup(mh);
+        if (mh != NULL) {
+            cleanup(mh);
+        }
         return -1;
     }
 
