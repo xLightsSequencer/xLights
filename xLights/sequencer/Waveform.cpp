@@ -281,6 +281,15 @@ void Waveform::ScrollWaveRight(int xBasedSpeed)
     tmrScrollRight->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
 }
 */
+
+void Waveform::cleanup(mpg123_handle *mh)
+{
+    /* It's really to late for error checks here;-) */
+    mpg123_close(mh);
+    mpg123_delete(mh);
+    mpg123_exit();
+}
+
 // Open Media file and return elapsed time in millseconds
 int Waveform::OpenfileMediaFile(const char* filename)
 {
@@ -290,11 +299,30 @@ int Waveform::OpenfileMediaFile(const char* filename)
     int channels, encoding;
     long rate;
 
-    mpg123_init();
-    mh = mpg123_new(NULL, &err);
+    err = mpg123_init();
+    if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
+    {
+        wxMessageBox(wxString::Format("Basic setup goes wrong: %s", mpg123_plain_strerror(err)), "Error");
+        cleanup(mh);
+        return -1;
+    }
+
     /* open the file and get the decoding format */
-    mpg123_open(mh, filename);
-    mpg123_getformat(mh, &rate, &channels, &encoding);
+    if( mpg123_open(mh, filename) != MPG123_OK ||
+        mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
+    {
+        wxMessageBox(wxString::Format("Trouble with mpg123: %s", mpg123_strerror(mh)), "Error");
+        cleanup(mh);
+        return -1;
+    }
+
+    if( encoding != MPG123_ENC_SIGNED_16 )
+    {
+        wxMessageBox("Encoding unsupported.  Must be signed 16 bit.", "Error");
+        cleanup(mh);
+        return -2;
+    }
+
     /* set the output format and open the output device */
     m_bits = mpg123_encsize(encoding);
     m_rate = rate;

@@ -214,6 +214,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
+    mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
 }
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
@@ -290,6 +291,7 @@ void xLightsFrame::ScrollRight(wxCommandEvent& event)
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
     mainSequencer->PanelTimeLine->SetSelectedPositionStartMS(event.GetInt());
+    mainSequencer->PanelWaveForm->Refresh();
 }
 
 void xLightsFrame::TimelineChanged( wxCommandEvent& event)

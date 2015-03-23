@@ -384,7 +384,8 @@ void EffectsGrid::ResizeSingleEffect(int position)
     Refresh(false);
     mPaintOnIdleCounter=0;
     // Move time line and waveform to new position
-    UpdateTimePosition(position);
+    int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+    UpdateTimePosition(selected_time);
 }
 
 

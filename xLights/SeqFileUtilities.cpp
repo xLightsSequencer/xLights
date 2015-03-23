@@ -65,7 +65,6 @@ void xLightsFrame::OpenSequence()
 
     bool loaded_xml = false;
     bool loaded_fseq = false;
-    bool find_media = true;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
     wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if ( !filename.empty() )
@@ -95,7 +94,6 @@ void xLightsFrame::OpenSequence()
             if( mf != "" )
             {
                 media_file = mapFileName(wxFileName::FileName(mf));
-                find_media = false;
             }
             DisplayXlightsFilename(xlightsFilename);
             SeqBaseChannel=1;
@@ -115,12 +113,11 @@ void xLightsFrame::OpenSequence()
            || !CurrentSeqXmlFile->GetMediaFile().IsEmpty())
         {
             media_file = mapFileName(CurrentSeqXmlFile->GetMediaFile());
-            find_media = false;
         }
 
 
         // still no media file?  look for an XSEQ file and load if found
-        if( find_media )
+        if( !wxFileName(media_file).Exists() )
         {
             wxFileName xseq_file = selected_file;
             xseq_file.SetExt("xseq");
@@ -131,7 +128,6 @@ void xLightsFrame::OpenSequence()
                 if( mf != "" )
                 {
                     media_file = mapFileName(wxFileName::FileName(mf));
-                    find_media = false;
                 }
                 DisplayXlightsFilename(xlightsFilename);
                 SeqBaseChannel=1;
@@ -144,13 +140,12 @@ void xLightsFrame::OpenSequence()
         if( !wxFileName(media_file).Exists() )
         {
             wxFileName detect_media(media_file);
-            
+
             // search media directory
             detect_media.SetPath(mediaDirectory);
             if( detect_media.FileExists() )
             {
                 media_file = detect_media;
-                find_media = false;
             }
             else
             {
@@ -159,13 +154,12 @@ void xLightsFrame::OpenSequence()
                 if( detect_media.FileExists() )
                 {
                     media_file = detect_media;
-                    find_media = false;
                 }
             }
         }
 
         // search for missing media file in media directory and show directory
-        if( find_media )
+        if( !wxFileName(media_file).Exists() )
         {
             wxFileName detect_media(selected_file);
             detect_media.SetExt("mp3");
@@ -175,7 +169,6 @@ void xLightsFrame::OpenSequence()
             if( detect_media.FileExists() )
             {
                 media_file = detect_media;
-                find_media = false;
             }
             else
             {
@@ -184,13 +177,12 @@ void xLightsFrame::OpenSequence()
                 if( detect_media.FileExists() )
                 {
                     media_file = detect_media;
-                    find_media = false;
                 }
             }
         }
 
         // if fseq or xseq had media update xml
-        if( !CurrentSeqXmlFile->HasAudioMedia() && !find_media )
+        if( !CurrentSeqXmlFile->HasAudioMedia() && wxFileName(media_file).Exists() )
         {
             CurrentSeqXmlFile->SetMediaFile(media_file.GetFullPath(), true);
             int length_ms = Waveform::GetLengthOfMusicFileInMS(media_file.GetFullPath());
