@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.2	Mar 23,2015
+	-- bug (dkulp) Only RED shows when outputting from the SEQUENCER tab #92
+	-- bug (gil) Waveform does not respond to mouse wheel zooming unless effect grid has focus. #90
 4.0.1	Mar 21,2015
 		Many bugs fixed. Go here to see closed bugs. https://github.com/smeighan/xLights/issues?q=is%3Aissue+is%3Aclosed
 		-bug (Gil) Must click in EffectGrid or timing marks can't be added/modified #89
