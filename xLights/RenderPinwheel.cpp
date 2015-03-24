@@ -7,15 +7,14 @@ void RgbEffects::RenderPinwheel(int pinwheel_arms, int pinwheel_twist,
                                 int pinwheel_thickness,bool pinwheel_rotation,
                                 int pinwheel_3d, int xc_adj, int yc_adj,int pinwheel_armsize)
 {
-    int a,xc,yc,ColorIdx,base_degrees;
+    int a,xc,ColorIdx,base_degrees;
     float t,tmax;
     srand(1);
     float radius;
     wxImage::HSVValue hsv,hsv0,hsv1; //   we will define an hsv color model. The RGB colot model would have been "wxColour color;"
     size_t colorcnt=GetColorCount();
 
-    xc= (int)(BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
-    yc= (int)(BufferHt/2);
+    xc= (int)(std::max(BufferWi, BufferHt)/2);
 
 
     //
