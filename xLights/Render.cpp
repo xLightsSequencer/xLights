@@ -11,20 +11,15 @@
 class RenderEvent
 {
 public:
-    RenderEvent(int l, int p, const MapStringString& sm,
-                PixelBufferClass &b, bool *res) : mutex(), signal(mutex), SettingsMap(sm), signalDelete(mutex)
+    RenderEvent() : mutex(), signal(mutex)
     {
-        layer = l;
-        period = p;
-        buffer = &b;
-        ResetEffectState = res;
     }
     wxMutex mutex;
     wxCondition signal;
-    wxCondition signalDelete;
+
     int layer;
     int period;
-    const MapStringString &SettingsMap;
+    const MapStringString *settingsMap;
     PixelBufferClass *buffer;
     bool *ResetEffectState;
     bool returnVal = true;
@@ -118,6 +113,7 @@ public:
         }
         startFrame = 0;
         clearAllFrames = clear;
+        renderEvent.buffer = buffer;
     }
 
     virtual ~RenderJob() {
@@ -180,7 +176,7 @@ public:
                     buffer->Clear(layer);
                 }
 
-                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true);
+                validLayers[layer] = xLights->RenderEffectFromMap(layer, frame, settingsMaps[layer], *buffer, effectStates[layer], true, &renderEvent);
                 effectsToUpdate |= validLayers[layer];
             }
             if (!effectsToUpdate && clearAllFrames) {
@@ -310,6 +306,7 @@ private:
     xLightsFrame *xLights;
     SequenceData &seqData;
     bool clearAllFrames;
+    RenderEvent renderEvent;
 };
 
 
@@ -323,20 +320,10 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
 }
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
-    ev->mutex.Lock();
-    if (ev->buffer != NULL) {
-        ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
-                                            ev->SettingsMap,
-                                            *ev->buffer, *ev->ResetEffectState, false);
-    }
+    ev->returnVal = RenderEffectFromMap(ev->layer, ev->period,
+                                        *ev->settingsMap,
+                                        *ev->buffer, *ev->ResetEffectState, false, ev);
     ev->signal.Broadcast();
-    if (ev->signalDelete.WaitTimeout(10) != wxCOND_TIMEOUT) {
-        ev->mutex.Unlock();
-    } else {
-        printf("timeout\n");
-    }
-    
-    delete ev;
 }
 
 void xLightsFrame::RenderGridToSeqData() {
@@ -535,7 +522,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
 bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                                        PixelBufferClass &buffer, bool &resetEffectState,
-                                       bool bgThread) {
+                                       bool bgThread, RenderEvent *event) {
     bool retval=true;
 
     wxString SpeedStr=SettingsMap["SLIDER_Speed"];
@@ -709,16 +696,17 @@ bool xLightsFrame::RenderEffectFromMap(int layer, int period, const MapStringStr
     } else if (effect == "Text") {
         // this needs to be on the primary thread due to GDI calls
         if (bgThread) {
-            RenderEvent *ev = new RenderEvent(layer, period, SettingsMap, buffer, &resetEffectState);
-            ev->mutex.Lock();
-            CallAfter(&xLightsFrame::RenderEffectOnMainThread, ev);
-            if (ev->signal.WaitTimeout(500) == wxCOND_TIMEOUT) {
-                ev->buffer = NULL;
-            } else {
-                retval = ev->returnVal;
-                ev->mutex.Unlock();
+            event->layer = layer;
+            event->period = period;
+            event->settingsMap = &SettingsMap;
+            event->ResetEffectState = &resetEffectState;
+
+            event->mutex.Lock();
+            CallAfter(&xLightsFrame::RenderEffectOnMainThread, event);
+            if (event->signal.WaitTimeout(500) == wxCOND_NO_ERROR) {
+                retval = event->returnVal;
+                event->mutex.Unlock();
             }
-            ev->signalDelete.Broadcast();
         } else {
             buffer.RenderText(wxAtoi(SettingsMap["SLIDER_Text_Position1"]),
                               SettingsMap["TEXTCTRL_Text_Line1"],

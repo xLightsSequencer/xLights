@@ -1430,7 +1430,7 @@ public:
     void RenderGridToSeqData();
     bool RenderEffectFromMap(int layer, int period, const MapStringString& SettingsMap,
                              PixelBufferClass &buffer, bool &ResetEffectState,
-                             bool bgThread = false);
+                             bool bgThread = false, RenderEvent *event = NULL);
     void RenderEffectOnMainThread(RenderEvent *evt);
     void RenderEffectForModel(const wxString &model, int startms, int endms, bool clear = false);
 
