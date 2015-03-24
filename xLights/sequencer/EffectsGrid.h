@@ -34,7 +34,20 @@ struct EffectDropData;
 
 class MainSequencer;
 
-class EffectsGrid : public wxGLCanvas
+#ifndef __WXMSW__
+#define GL_CONTEXT_CLASS wxGLContext
+#else
+#define GL_CONTEXT_CLASS xlightsGLContext
+class xlightsGLContext;
+#endif
+
+
+class EffectsGrid
+#ifndef __WXMSW__
+: public wxGLCanvas
+#else
+: public wxWindow
+#endif
 {
 
 public:
@@ -94,7 +107,7 @@ private:
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
-    wxGLContext*	m_context;
+    GL_CONTEXT_CLASS*	m_context;
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count
     GLuint m_EffectTextures[40];
