@@ -18,6 +18,7 @@
 #define PLAY_TYPE_EFFECT 1
 #define PLAY_TYPE_MODEL  2
 #define PLAY_TYPE_EFFECT_PAUSED 3
+#define PLAY_TYPE_MODEL_PAUSED  4
 
 
 
@@ -445,7 +446,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
 
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
+        if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = effect->GetStartTime() * 1000;
             playEndTime = effect->GetEndTime() * 1000;
@@ -493,7 +494,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                       mSequenceElements.GetSelectedRange(i)->EndTime,
                       EFFECT_SELECTED,false);
 
-        if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
+        if (playType != PLAY_TYPE_MODEL) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
@@ -524,7 +525,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
                           mSequenceElements.GetElement(model)->GetEffectLayerCount(),
                           SeqData.FrameTime());
 
-    if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)
+    if (playType != PLAY_TYPE_MODEL)
     {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -533,7 +534,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
 {
-    if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
+    if (playType == PLAY_TYPE_MODEL)
     {
         wxString model = event.GetString();
         playBuffer.InitBuffer(GetModelNode(model),
@@ -561,41 +562,50 @@ void xLightsFrame::PlaySequence(wxCommandEvent& event)
             playStartMS = -1;
             playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
             playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
-            PlayerDlg->MediaCtrl->Seek(playStartTime);
+            if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+                PlayerDlg->MediaCtrl->Seek(playStartTime);
+            }
             if( playEndTime == -1 ) {
                 playEndTime = SeqData.NumFrames() * SeqData.FrameTime();
             }
             mainSequencer->PanelTimeLine->PlayStarted();
-            PlayerDlg->MediaCtrl->Play();
+            if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+                PlayerDlg->MediaCtrl->Play();
+            }
         }
     }
 }
 
 void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
-    if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING) {
-        playStartMS = -1;
-        PlayerDlg->MediaCtrl->Pause();
-    }
-    else if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PAUSED) {
-        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
-        playStartMS = -1;
-        PlayerDlg->MediaCtrl->Play();
-    }
-    else
+    if( CurrentSeqXmlFile->GetSequenceType() == "Media" )
     {
-        if( playType == PLAY_TYPE_EFFECT_PAUSED ) {
-            playType = PLAY_TYPE_EFFECT;
+        if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING) {
+            PlayerDlg->MediaCtrl->Pause();
         }
-        else {
-            playType = PLAY_TYPE_EFFECT_PAUSED;
+        else if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PAUSED) {
+            PlayerDlg->MediaCtrl->Play();
         }
+    }
+
+    if (playType == PLAY_TYPE_MODEL) {
+        playType = PLAY_TYPE_MODEL_PAUSED;
+    }
+    else if (playType == PLAY_TYPE_MODEL_PAUSED) {
+        EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,true);
+        playType = PLAY_TYPE_MODEL;
+    }
+    else if (playType == PLAY_TYPE_EFFECT_PAUSED) {
+        playType = PLAY_TYPE_EFFECT;
+    }
+    else {
+        playType = PLAY_TYPE_EFFECT_PAUSED;
     }
 }
 
 void xLightsFrame::TogglePlay(wxCommandEvent& event)
 {
-    if (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_STOPPED || playType == PLAY_TYPE_EFFECT) {
+    if (playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_EFFECT) {
         wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
         wxPostEvent(this, playEvent);
     }
@@ -610,8 +620,10 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
 {
     if( playType == PLAY_TYPE_MODEL )
     {
-        PlayerDlg->MediaCtrl->Stop();
-        PlayerDlg->MediaCtrl->Seek(playStartTime);
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+            PlayerDlg->MediaCtrl->Stop();
+            PlayerDlg->MediaCtrl->Seek(playStartTime);
+        }
         mainSequencer->PanelTimeLine->PlayStopped();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->UpdateTimeDisplay(playStartTime);
@@ -661,7 +673,7 @@ void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
 
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
-    if( PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING )
+    if( playType != PLAY_TYPE_MODEL )
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
         playType = PLAY_TYPE_EFFECT;
@@ -720,13 +732,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
     if (playType == PLAY_TYPE_STOPPED) {
         return;
     }
+
     // return if in model play mode and media has stopped
-    if (playType == PLAY_TYPE_MODEL && PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
+    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playType == PLAY_TYPE_MODEL && PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING) {
         return;
     }
 
-    // return if in play effect mode and it was paused or stopped
-    if (playType == PLAY_TYPE_EFFECT_PAUSED) {
+    // return if paused
+    if (playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_MODEL_PAUSED) {
         playStartMS = msec - playOffsetTime;  // maintain offset so we can restart where we paused
         return;
     }
@@ -763,14 +776,20 @@ void xLightsFrame::TimerRgbSeq(long msec)
 
     if (playType == PLAY_TYPE_MODEL) {
         // see if its time to stop model play
-        if ((curt > playEndTime) || (PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)) {
+        if ((curt > playEndTime) || (CurrentSeqXmlFile->GetSequenceType() == "Media" && PlayerDlg->MediaCtrl->GetState() != wxMEDIASTATE_PLAYING)) {
             playStartTime = playEndTime = 0;
             playStartMS = -1;
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
             wxPostEvent(this, playEvent);
             return;
         }
-        int current_play_time = PlayerDlg->MediaCtrl->Tell();
+        int current_play_time = 0;
+        if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
+            current_play_time = PlayerDlg->MediaCtrl->Tell();
+        }
+        else {
+            current_play_time = curt;
+        }
         mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time);
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
         mainSequencer->PanelWaveForm->CheckNeedToScroll();
