@@ -6,6 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.3	Mar 24,2015
+	-- bug (gil) Fix animation playback in effect grid. Also noticed this fixed something I hadn't noticed where the pause/play wasn't restarting the render in the proper spot. Fixes #78.
+	-- bug (dkulp) Fill out the pinwheel to the edges of a model. Use the max of the buffer width or height as basis for pinwheel arm length
+	-- enh (dkulp) Experiment with different OpenGL setup for Windows. This seems to improve Windows 8 display
 4.0.2	Mar 23,2015
 	-- bug (dkulp) Only RED shows when outputting from the SEQUENCER tab #92
 	-- bug (gil) Waveform does not respond to mouse wheel zooming unless effect grid has focus. #90
