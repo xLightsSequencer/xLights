@@ -29,8 +29,8 @@ class xlGLCanvas
         bool SwapBuffers();
 #endif
     protected:
-         GL_CONTEXT_CLASS*	m_context;
     private:
+        GL_CONTEXT_CLASS* m_context;
 };
 
 #endif // XLGLCANVAS_H

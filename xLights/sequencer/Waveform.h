@@ -1,13 +1,9 @@
 #ifndef WAVEFORM_H
 #define WAVEFORM_H
 
-#ifndef _glpane_
-#define _glpane_
-
 #include "wx/wx.h"
-#include "wx/glcanvas.h"
-#endif
 
+#include "xlGLCanvas.h"
 #include "mpg123.h"
 #include <vector>
 
@@ -21,7 +17,7 @@ wxDECLARE_EVENT(EVT_ZOOM, wxCommandEvent);
 
 class TimeLine;
 
-class Waveform : public wxGLCanvas
+class Waveform : public xlGLCanvas
 {
     public:
 
@@ -67,7 +63,6 @@ class Waveform : public wxGLCanvas
         void cleanup(mpg123_handle *mh);
         void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
         float GetSamplesPerLineFromZoomLevel(int ZoomLevel);
-        wxGLContext*	m_context;
         TimeLine* mTimeline;
         wxPanel* mParent;
         wxWindow* mMainWindow;

@@ -38,7 +38,7 @@ enum
 
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
-BEGIN_EVENT_TABLE(Waveform, wxGLCanvas)
+BEGIN_EVENT_TABLE(Waveform, xlGLCanvas)
 //EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
 //EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
 EVT_MOTION(Waveform::mouseMoved)
@@ -57,11 +57,9 @@ EVT_PAINT(Waveform::render)
 END_EVENT_TABLE()
 // Custom Events
 
-int opengl_canvas_args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
-
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   wxGLCanvas(parent,wxID_ANY,opengl_canvas_args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize)
 {
     m_left_data = NULL;
     m_right_data = NULL;
@@ -71,7 +69,6 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mIsInitialized = false;
     m_dragging = false;
     mParent = parent;
-    m_context = new wxGLContext(this);
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel=0;
     mStartPixelOffset = 0;
@@ -87,7 +84,6 @@ Waveform::~Waveform()
     if (m_right_data) delete m_right_data;
     if (tmrScrollLeft) delete tmrScrollLeft;
     if (tmrScrollRight) delete tmrScrollRight;
-    delete m_context;
 }
 
 void Waveform::CloseMediaFile()
@@ -473,7 +469,7 @@ void Waveform::renderGL( wxPaintEvent& event )
 {
     if(!IsShownOnScreen()) return;
 
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
 
     // This is required even though dc is not used otherwise.
     wxPaintDC dc(this);

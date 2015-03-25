@@ -2,20 +2,18 @@
 #ifndef SequencePreview_H
 #define SequencePreview_H
 //#include <wx/app.h>
-#ifndef _glpane_
-#define _glpane_
-#endif //
 
 #include "wx/wx.h"
-#include "wx/glcanvas.h"
+#include "xlGLCanvas.h"
+
 
 class xlColor;
 
-class SequencePreview : public wxGLCanvas
+class SequencePreview : public xlGLCanvas
 {
 
 public:
-	SequencePreview(wxPanel* parent, int* args);
+	SequencePreview(wxPanel* parent);
 	virtual ~SequencePreview();
 
     // Public Methods
@@ -40,8 +38,6 @@ private:
 
     bool mIsDrawing = false;
     bool mIsInitialized = false;
-
-    wxGLContext*	m_context;
 
 	DECLARE_EVENT_TABLE()
 };

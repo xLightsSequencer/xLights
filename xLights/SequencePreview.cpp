@@ -12,7 +12,7 @@
 #include "SequencePreview.h"
 #include "RgbEffects.h"
 
-BEGIN_EVENT_TABLE(SequencePreview, wxGLCanvas)
+BEGIN_EVENT_TABLE(SequencePreview, xlGLCanvas)
 //EVT_MOTION(SequencePreview::mouseMoved)
 //EVT_LEFT_DOWN(SequencePreview::mouseDown)
 //EVT_LEFT_UP(SequencePreview::mouseReleased)
@@ -35,21 +35,19 @@ void SequencePreview::keyPressed(wxKeyEvent& event) {}
 void SequencePreview::keyReleased(wxKeyEvent& event) {}
 
 
-SequencePreview::SequencePreview(wxPanel* parent, int* args) :
-    wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+SequencePreview::SequencePreview(wxPanel* parent) :
+    xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
-	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
 SequencePreview::~SequencePreview()
 {
-	delete m_context;
 }
 
 void SequencePreview::ClearBackground()
 {
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
     wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -105,7 +103,7 @@ bool SequencePreview::StartDrawing(wxDouble pointSize)
 {
     if(mIsDrawing){return false;}
     mIsDrawing = true;
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     prepare2DViewport(0,0,getWidth(), getHeight());
@@ -125,7 +123,7 @@ void SequencePreview::EndDrawing()
 void SequencePreview::render( wxPaintEvent& evt )
 {
     if(mIsDrawing || !mIsInitialized) return;
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFlush();

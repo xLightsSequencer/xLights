@@ -29,7 +29,6 @@ void xLightsFrame::CreateSequencer()
     timingPanel = NULL;
 
     mSequenceElements.SetFrequency(40);
-    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->SetSequenceElements(&mSequenceElements);
@@ -42,7 +41,7 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
-    sPreview1 = new SequencePreview(PanelSequencer,args);
+    sPreview1 = new SequencePreview(PanelSequencer);
     sPreview1->SetSize(wxSize(200,200));
     sPreview1->InitializePreview();
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).

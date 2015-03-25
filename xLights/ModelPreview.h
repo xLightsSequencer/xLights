@@ -1,21 +1,20 @@
 #ifndef MODELPREVIEW_H
 #define MODELPREVIEW_H
-#ifndef _glpane_
-#define _glpane_
+
+
 
 #include "wx/wx.h"
-#include "wx/glcanvas.h"
-#endif
 
 #include "Image.h"
 #include "XlightsDrawable.h"
 #include "Color.h"
+#include "xlGLCanvas.h"
 
-class ModelPreview : public wxGLCanvas
+class ModelPreview : public xlGLCanvas
 {
 
 public:
-	ModelPreview(wxPanel* parent, int* args);
+	ModelPreview(wxPanel* parent);
 	virtual ~ModelPreview();
 
     // Public Methods
@@ -51,7 +50,6 @@ private:
     wxString mBackgroundImage;
     int  mBackgroundBrightness=100;
     wxDouble mPointSize = 2.0;
-    wxGLContext*	m_context;
 
     Image* image = NULL;
     xLightsDrawable* sprite;

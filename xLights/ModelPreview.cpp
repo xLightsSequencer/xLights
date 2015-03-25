@@ -1,6 +1,5 @@
 #include "wx/wx.h"
 #include "wx/sizer.h"
-#include "wx/glcanvas.h"
 #ifdef __WXMAC__
  #include "OpenGL/glu.h"
  #include "OpenGL/gl.h"
@@ -11,7 +10,7 @@
 
 #include "ModelPreview.h"
 
-BEGIN_EVENT_TABLE(ModelPreview, wxGLCanvas)
+BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
 EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 EVT_LEFT_UP(ModelPreview::mouseLeftUp)
@@ -73,21 +72,19 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, int* args) :
-    wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
+ModelPreview::ModelPreview(wxPanel* parent) :
+    xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
-	m_context = new wxGLContext(this);
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 }
 
 ModelPreview::~ModelPreview()
 {
-	delete m_context;
 }
 
 void ModelPreview::ClearBackground()
 {
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
     wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -121,7 +118,7 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     mBackgroundBrightness = brightness;
-    //wxGLCanvas::SetCurrent(*m_context);
+    //SetCurrentGLContext();
     //wxClientDC dc(this);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //prepare2DViewport(0,0,getWidth(), getHeight());
@@ -184,7 +181,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
-    wxGLCanvas::SetCurrent(*m_context);
+    SetCurrentGLContext();
     wxClientDC dc(this);
     glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

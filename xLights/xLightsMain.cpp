@@ -1738,8 +1738,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     CreateSequencer();
 
-    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
-    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, args);
+    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
     playIcon = wxBitmap(control_play_blue_icon);
