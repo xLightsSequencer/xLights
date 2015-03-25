@@ -21,11 +21,7 @@
 #include "EffectDropTarget.h"
 #include "../DrawGLUtils.h"
 
-#ifdef __WXMSW__
-BEGIN_EVENT_TABLE(EffectsGrid, wxWindow)
-#else
-BEGIN_EVENT_TABLE(EffectsGrid, wxGLCanvas)
-#endif
+BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
 EVT_IDLE(EffectsGrid::OnIdle)
 EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
@@ -40,123 +36,11 @@ EVT_SIZE(EffectsGrid::resized)
 EVT_PAINT(EffectsGrid::render)
 END_EVENT_TABLE()
 // some useful events to use
-int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
-
-#ifdef __WXMSW__
-
-class GL_CONTEXT_CLASS {
-public:
-    GL_CONTEXT_CLASS(EffectsGrid *win) {
-        PIXELFORMATDESCRIPTOR pfd = {
-            sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
-            1,                     // version number
-            PFD_DRAW_TO_WINDOW |   // support window
-            PFD_SUPPORT_OPENGL   // support OpenGL
-            | PFD_DOUBLEBUFFER      // double buffered
-            ,
-            PFD_TYPE_RGBA,         // RGBA type
-            24,                    // 24-bit color depth
-            0, 0, 0, 0, 0, 0,      // color bits ignored
-            0,                     // no alpha buffer
-            0,                     // shift bit ignored
-            0,                     // no accumulation buffer
-            0, 0, 0, 0,            // accum bits ignored
-            16,                    // 32-bit z-buffer
-            0,                     // no stencil buffer
-            0,                     // no auxiliary buffer
-            PFD_MAIN_PLANE,        // main layer
-            0,                     // reserved
-            0, 0, 0                // layer masks ignored
-        };
-        m_hDC = ::GetDC(win->GetHWND());
-        origWin = win;
-        int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
 
 
-        //wxFile file("c:\\temp\\out.txt", wxFile::OpenMode::write);
-
-        int max = DescribePixelFormat(m_hDC, iPixelFormat,
-         sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-        int match = -1;
-        for (int x = 0; x < max; x++) {
-            DescribePixelFormat(m_hDC, x,
-                                sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-
-            if (pfd.cRedBits == 8
-                && pfd.cGreenBits == 8
-                && pfd.cBlueBits == 8
-                && pfd.cAlphaBits == 0   //don't need alpha things, has issues on Windows8 and Aero
-                && (pfd.dwFlags & PFD_SUPPORT_OPENGL)
-                && (pfd.dwFlags & PFD_DRAW_TO_WINDOW)
-                && (pfd.dwFlags & PFD_DOUBLEBUFFER)
-                && pfd.iPixelType == PFD_TYPE_RGBA) {
-                match = x;
-            }
-/*
-            file.Write(wxString::Format("%d   cd: %d   ab: %d  r:%d g:%d b:%d  %X      %d\n",
-                                         x,
-                                         pfd.cColorBits,
-                                         pfd.cAlphaBits,
-                                        pfd.cRedBits,
-                                        pfd.cGreenBits,
-                                        pfd.cBlueBits,
-                                         pfd.dwFlags,
-                                         match));
-                                         */
-        }
-
-
-        //file.Close();
-        if (match != -1) {
-            iPixelFormat = match;
-        }
-        DescribePixelFormat(m_hDC, iPixelFormat,
-                            sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-
-        SetPixelFormat(m_hDC, iPixelFormat, &pfd);
-        m_glContext = wglCreateContext(m_hDC);
-    }
-    ~GL_CONTEXT_CLASS() {
-        wglDeleteContext(m_glContext);
-        ::ReleaseDC(origWin->GetHWND(), m_hDC);
-    }
-    bool SetCurrent(EffectsGrid &win) {
-        if ( !wglMakeCurrent(m_hDC, m_glContext) )
-        {
-            wxLogLastError(wxT("wglMakeCurrent"));
-            return false;
-        }
-        return true;
-    }
-    bool SwapBuffers() {
-        if ( !::SwapBuffers(m_hDC) )
-        {
-            wxLogLastError(wxT("SwapBuffers"));
-            return false;
-        }
-        return true;
-    }
-    HDC m_hDC;
-    EffectsGrid *origWin;
-    HGLRC m_glContext;
-};
-
-#define SWAPBUFFERS m_context->SwapBuffers
-
-#else
-#define SWAPBUFFERS SwapBuffers
-
-#endif
-
-
-//EffectsGrid::EffectsGrid(wxWindow* parent, int* args) :
 EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name)
-#ifndef __WXMSW__
-    :wxGLCanvas(parent, wxID_ANY, args, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
-#else
-    :wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
-#endif
+    :xlGLCanvas(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
 {
     mIsInitialized = false;
     mParent = parent;
@@ -168,7 +52,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mWindowWidth = 0;
     mWindowHeight = 0;
     mWindowResized = false;
-	m_context = new GL_CONTEXT_CLASS(this);
+
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
     mEffectColor = new xlColor(192,192,192);
@@ -186,7 +70,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
 
 EffectsGrid::~EffectsGrid()
 {
-	delete m_context;
 	delete mEffectColor;
 	delete mGridlineColor;
 	delete mTimingColor;
@@ -626,7 +509,7 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 void EffectsGrid::InitializeGrid()
 {
     if(!IsShownOnScreen()) return;
-    m_context->SetCurrent(*this);
+    SetCurrentGLContext();
 //    wxClientDC dc(this);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
     glDisable(GL_TEXTURE_2D);   // textures
@@ -921,7 +804,7 @@ void EffectsGrid::Draw()
     if(!mIsInitialized) { InitializeGrid(); }
     if(!IsShownOnScreen()) return;
 
-    m_context->SetCurrent(*this);
+    SetCurrentGLContext();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     wxClientDC(this);
@@ -942,7 +825,7 @@ void EffectsGrid::Draw()
     //DrawGLUtils::DrawRectangle(xlYELLOW,false,5,5, GetSize().x - 10, GetSize().y - 10);
 
     glFlush();
-    SWAPBUFFERS();
+    SwapBuffers();
     //wxLogDebug("EffectsGrid::Draw");
 }
 

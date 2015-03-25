@@ -8,6 +8,7 @@
 
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
+#include "xlGLCanvas.h"
 #include "Color.h"
 #include "SequenceElements.h"
 #include "TimeLine.h"
@@ -34,20 +35,8 @@ struct EffectDropData;
 
 class MainSequencer;
 
-#ifndef __WXMSW__
-#define GL_CONTEXT_CLASS wxGLContext
-#else
-#define GL_CONTEXT_CLASS xlightsGLContext
-class xlightsGLContext;
-#endif
 
-
-class EffectsGrid
-#ifndef __WXMSW__
-: public wxGLCanvas
-#else
-: public wxWindow
-#endif
+class EffectsGrid : public xlGLCanvas
 {
 
 public:
@@ -107,7 +96,7 @@ private:
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
     bool mIsInitialized = false;
-    GL_CONTEXT_CLASS*	m_context;
+
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count
     GLuint m_EffectTextures[40];

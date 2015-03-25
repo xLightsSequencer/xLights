@@ -151,6 +151,7 @@
 		67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6131A097A35003E978F /* Image_Loader.cpp */; };
 		67F4C6171A097A35003E978F /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6141A097A35003E978F /* Image.cpp */; };
 		67F4C6181A097A35003E978F /* XlightsDrawable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F4C6151A097A35003E978F /* XlightsDrawable.cpp */; };
+		67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -379,6 +380,8 @@
 		67F4C6131A097A35003E978F /* Image_Loader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image_Loader.cpp; sourceTree = "<group>"; };
 		67F4C6141A097A35003E978F /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		67F4C6151A097A35003E978F /* XlightsDrawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XlightsDrawable.cpp; sourceTree = "<group>"; };
+		67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGLCanvas.cpp; sourceTree = "<group>"; };
+		67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGLCanvas.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -559,6 +562,7 @@
 				67A619EB17B51C0F008E95BB /* RenderText.cpp */,
 				67A619EC17B51C0F008E95BB /* RenderTree.cpp */,
 				67A619ED17B51C0F008E95BB /* RenderTwinkle.cpp */,
+				67F7EB771AC2DA2B0023C9B2 /* xlGLCanvas.cpp */,
 				674D34C61918238E00A993C7 /* RenderWave.cpp */,
 				67A619EF17B51C0F008E95BB /* RgbEffects.cpp */,
 				6784F9241A5653670018EC0C /* RowHeading.cpp */,
@@ -603,6 +607,7 @@
 			isa = PBXGroup;
 			children = (
 				67A260ED1AB71EE3006B140D /* DrawGLUtils.h */,
+				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,
 				676DCBF91A98E53800FBA86B /* FileConverter.h */,
 				676DCBFA1A98E53800FBA86B /* Images_png.h */,
 				676DCBFC1A98E53800FBA86B /* LorConvertDialog.h */,
@@ -806,6 +811,7 @@
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
 				67E36FA61A77D017007FFC9E /* PerspectivesPanel.cpp in Sources */,
 				67A61A3417B51C0F008E95BB /* PlaybackOptionsDialog.cpp in Sources */,
+				67F7EB791AC2DA2B0023C9B2 /* xlGLCanvas.cpp in Sources */,
 				6784F92C1A5653670018EC0C /* MainSequencer.cpp in Sources */,
 				67A61A3517B51C0F008E95BB /* PlayerFrame.cpp in Sources */,
 				67A61A3617B51C0F008E95BB /* RenderBars.cpp in Sources */,
