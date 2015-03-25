@@ -602,6 +602,8 @@
 		<Unit filename="xLightsMain.h" />
 		<Unit filename="xLightsXmlFile.cpp" />
 		<Unit filename="xLightsXmlFile.h" />
+		<Unit filename="xlGLCanvas.cpp" />
+		<Unit filename="xlGLCanvas.h" />
 		<Unit filename="xlights_out.cpp" />
 		<Unit filename="xlights_out.h" />
 		<Extensions>
