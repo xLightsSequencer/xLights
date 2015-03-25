@@ -73,16 +73,43 @@ public:
         int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
 
 
-        /*
-         int max = DescribePixelFormat(m_hDC, iPixelFormat,
+        //wxFile file("c:\\temp\\out.txt", wxFile::OpenMode::write);
+
+        int max = DescribePixelFormat(m_hDC, iPixelFormat,
          sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+        int match = -1;
         for (int x = 0; x < max; x++) {
             DescribePixelFormat(m_hDC, x,
                                 sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+
+            if (pfd.cRedBits == 8
+                && pfd.cGreenBits == 8
+                && pfd.cBlueBits == 8
+                && pfd.cAlphaBits == 0   //don't need alpha things, has issues on Windows8 and Aero
+                && (pfd.dwFlags & PFD_SUPPORT_OPENGL)
+                && (pfd.dwFlags & PFD_DRAW_TO_WINDOW)
+                && (pfd.dwFlags & PFD_DOUBLEBUFFER)
+                && pfd.iPixelType == PFD_TYPE_RGBA) {
+                match = x;
+            }
+/*
+            file.Write(wxString::Format("%d   cd: %d   ab: %d  r:%d g:%d b:%d  %X      %d\n",
+                                         x,
+                                         pfd.cColorBits,
+                                         pfd.cAlphaBits,
+                                        pfd.cRedBits,
+                                        pfd.cGreenBits,
+                                        pfd.cBlueBits,
+                                         pfd.dwFlags,
+                                         match));
+                                         */
         }
-         */
-        
-        //iPixelFormat = 10;
+
+
+        //file.Close();
+        if (match != -1) {
+            iPixelFormat = match;
+        }
         DescribePixelFormat(m_hDC, iPixelFormat,
                             sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
