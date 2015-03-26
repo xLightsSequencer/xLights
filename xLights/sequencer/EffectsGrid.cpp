@@ -214,8 +214,11 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 
     if(mResizingMode!=EFFECT_RESIZE_NO)
     {
-        mResizing = true;
-        mResizeEffectIndex = effectIndex;
+        if(selectedEffect != nullptr)
+        {
+            mResizing = true;
+            mResizeEffectIndex = effectIndex;
+        }
     }
     else
     {

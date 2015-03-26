@@ -105,7 +105,7 @@ bool EffectLayer::IsEndTimeLinked(int index)
 
 float EffectLayer::GetMaximumEndTime(int index)
 {
-    if(index == mEffects.size()-1)
+    if(index+1 >= mEffects.size())
     {
         return NO_MIN_MAX_TIME;
     }
