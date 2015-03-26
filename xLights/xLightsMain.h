@@ -1251,6 +1251,7 @@ private:
     // setup
     void OnMenuMRU(wxCommandEvent& event);
     void SetDir(const wxString& dirname);
+    void PromptForShowDirectory();
     void UpdateNetworkList();
     long GetNetworkSelection();
     void MoveNetworkRow(int fromRow, int toRow);

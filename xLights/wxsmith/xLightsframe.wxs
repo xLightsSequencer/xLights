@@ -3103,7 +3103,7 @@
 			<styles>wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxDirDialog" variable="DirDialog1" member="yes">
-			<message>Select directory</message>
+			<message>Select Show Directory</message>
 		</object>
 		<object class="wxTimer" name="ID_TIMER1" variable="Timer1" member="yes">
 			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />

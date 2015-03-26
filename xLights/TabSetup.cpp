@@ -150,9 +150,9 @@ void xLightsFrame::SetDir(const wxString& newdir)
             wxMessageBox(_("Unable to load network definition file"), _("Error"));
         }
     }
-    
-    mediaDirectory = NetworkXML.GetDocumentNode()->GetAttribute("mediaDirectory", mediaDirectory);
-    fseqDirectory = NetworkXML.GetDocumentNode()->GetAttribute("fseqDirectory", fseqDirectory);
+
+    NetworkXML.GetRoot()->GetAttribute("mediaDirectory", &mediaDirectory);
+    NetworkXML.GetRoot()->GetAttribute("fseqDirectory", &fseqDirectory);
     MediaDirectoryLabel->SetLabel(mediaDirectory);
     fseqDirectoryLabel->SetLabel(fseqDirectory);
     MediaDirectoryLabel->GetParent()->Layout();
@@ -314,6 +314,11 @@ void xLightsFrame::UpdateChannelNames()
 }
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event)
+{
+    PromptForShowDirectory();
+}
+
+void xLightsFrame::PromptForShowDirectory()
 {
     wxString newdir;
     if (DirDialog1->ShowModal() == wxID_OK)
