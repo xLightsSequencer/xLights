@@ -10,10 +10,11 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights-Nutcracker
-AppVersion=4.0.4
+AppVersion=4.0.5
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
-SetupIconFile=include\xLights.ico
+SetupIconFile=include\xLights4.ico
+
 UninstallDisplayIcon={app}\xLights.exe
 Compression=lzma2
 SolidCompression=yes
@@ -45,6 +46,7 @@ Source: "bin/modelxls.bat";     DestDir: "{app}"
 Source: "bin/merge_xml.awk";    DestDir: "{app}"
 Source: "bin/PathEditor.exe";   DestDir: "{app}"
 Source: "include\xLights.ico";  DestDir: "{app}"
+Source: "include\xLights4.ico";  DestDir: "{app}"
 Source: "C:\Users\Sean_Dell\Documents\xLights\songs/*.*"; DestDir: "{app}/songs"    ; Flags: replacesameversion recursesubdirs
 Source: "piano/*.*"; DestDir: "{app}/piano" 
 Source: "License.txt"; DestDir: "{app}";
@@ -52,7 +54,7 @@ Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
 [Icons] 
-Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "xLights4.ico";
 
 
 [Run]

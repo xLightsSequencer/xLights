@@ -2165,7 +2165,7 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s"),_(XLIGHTS_VERSION));
+    wxString hdg = wxString::Format(_("About xLights %s"),xlights_version_string);
     wxMessageBox(XLIGHTS_LICENSE, hdg);
 }
 

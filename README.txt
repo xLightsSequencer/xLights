@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.5  Mar 25, 2015
+	-- bug (dkulp) Move more items back into opengl. The preview window in the Sequencer tab is now udated
 4.0.4  Mar 24, 2015
 	-- bug (dkulp) Dan has fixed it so aero and non-aero now work on both windows 7 and 8! 
 4.0.3	Mar 24,2015

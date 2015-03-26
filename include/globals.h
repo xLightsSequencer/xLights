@@ -1,7 +1,8 @@
 #ifndef XLIGHTS_GLOBALS_H_INCLUDED_
 #define XLIGHTS_GLOBALS_H_INCLUDED_
 
-#define XLIGHTS_VERSION "4.0.4"
+// not needed, now it si defined in xLightsMain.h, line 242
+// #define XLIGHTS_VERSION "4.0.4"
 #define XLIGHTS_CONFIG_ID "xLights"
 #define XLIGHTS_HELP_URL        "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=Main_Page"
 #define XLIGHTS_SCRIPT_HELP_URL "http://sourceforge.net/apps/mediawiki/xlights/index.php?title=XScheduler_Script_Reference"
