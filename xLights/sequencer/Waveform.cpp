@@ -53,7 +53,7 @@ EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
-EVT_PAINT(Waveform::render)
+EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
 // Custom Events
 

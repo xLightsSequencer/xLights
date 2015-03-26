@@ -33,7 +33,6 @@ void xLightsFrame::CreateSequencer()
     mainSequencer = new MainSequencer(PanelSequencer);
     mainSequencer->SetSequenceElements(&mSequenceElements);
 
-    DOUBLE_BUFFER(mainSequencer);
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelPlayControls->SetSize(wxSize(175,100));
     mainSequencer->PanelPlayControls->SetMinSize(wxSize(175,100));

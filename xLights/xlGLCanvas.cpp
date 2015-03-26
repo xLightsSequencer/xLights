@@ -33,6 +33,7 @@ public:
         int iPixelFormat = ChoosePixelFormat(m_hDC, &pfd);
 
 
+        /*
         wxFile file("c:\\temp\\out.txt", wxFile::OpenMode::write);
 
         int max = DescribePixelFormat(m_hDC, iPixelFormat,
@@ -77,6 +78,7 @@ public:
         if (match != -1) {
             iPixelFormat = match;
         }
+         */
         DescribePixelFormat(m_hDC, iPixelFormat,
                             sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
