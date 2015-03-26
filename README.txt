@@ -6,6 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+	A number of fixes from both Dan and Gil
+	-- bug () Load Background image in 4.0.5 just gives a gray screen #107
+	-- bug () 4.0.4 3-24 Crash every time I save this sequence #106
+	-- bug () Win 7/8.1 issue #102
+	-- bug () Model Preview does not display under Sequencer tab #95
+	-- bug () Setup TAB - Directories my observed issue #93	
+	-- bug () No Icon displayed #109
 4.0.5  Mar 25, 2015
 	-- bug (dkulp) Move more items back into opengl. The preview window in the Sequencer tab is now updated
 	-- enh (sean) Created windows icons for xlights to be higher resolution
