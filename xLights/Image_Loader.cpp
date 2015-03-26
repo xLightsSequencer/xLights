@@ -5,13 +5,18 @@
 #include "wx/wx.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 
-GLuint* loadImage(wxString path, int* imageWidth, int* imageHeight, int* textureWidth, int* textureHeight)
+GLuint* loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
+                  bool &scaledW, bool &scaledH)
 {
 
 	GLuint* ID=new GLuint[1];
+    glEnable(GL_TEXTURE_2D);
+    int maxSize = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+   
 	glGenTextures( 1, &ID[0] );
-
 	glBindTexture( GL_TEXTURE_2D, *ID );
+
 
 	// the first time, init image handlers (remove this part if you do it somewhere else in your app)
 	static bool is_first_time = true;
@@ -31,8 +36,8 @@ GLuint* loadImage(wxString path, int* imageWidth, int* imageHeight, int* texture
 
 	wxImage* img=new wxImage( path );
 
-	(*imageWidth)=img->GetWidth();
-	(*imageHeight)=img->GetHeight();
+	imageWidth=img->GetWidth();
+	imageHeight=img->GetHeight();
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT,   1   );
 
@@ -43,129 +48,84 @@ GLuint* loadImage(wxString path, int* imageWidth, int* imageHeight, int* texture
      * of course adapt the bit below as needed.
      */
 
-	//float power_of_two_that_gives_correct_width=std::log((float)(*imageWidth))/std::log(2.0);
-	//float power_of_two_that_gives_correct_height=std::log((float)(*imageHeight))/std::log(2.0);
+	float power_of_two_that_gives_correct_width=std::log((float)imageWidth)/std::log(2.0);
+	float power_of_two_that_gives_correct_height=std::log((float)imageHeight)/std::log(2.0);
+    
+    textureWidth  = imageWidth;
+    textureHeight = imageHeight;
+    scaledH = scaledW = false;
+    if( (int)power_of_two_that_gives_correct_width != power_of_two_that_gives_correct_width ||
+       (int)power_of_two_that_gives_correct_height != power_of_two_that_gives_correct_height)
+    {
+        textureWidth=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_width)) );
+        textureHeight=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_height)) );
+        while (textureWidth > maxSize) {
+            //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
+            scaledW = true;
+            textureWidth /= 2;
+        }
+        while (textureHeight > maxSize) {
+            //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
+            scaledH = true;
+            textureHeight /= 2;
+        }
+        if (scaledH || scaledW) {
+            img->Rescale(scaledW ? textureWidth : imageWidth,
+                         scaledH ? textureHeight : imageHeight,
+                         wxIMAGE_QUALITY_HIGH);
+        }
+    }
+    
+    // note: must make a local copy before passing the data to OpenGL, as GetData() returns RGB
+    // and we want the Alpha channel if it's present. Additionally OpenGL seems to interpret the
+    // data upside-down so we need to compensate for that.
+    GLubyte *bitmapData=img->GetData();
+    GLubyte *alphaData=img->GetAlpha();
 
-        // check if image dimensions are a power of two
-        //if( (int)power_of_two_that_gives_correct_width == power_of_two_that_gives_correct_width &&
-        //    (int)power_of_two_that_gives_correct_height == power_of_two_that_gives_correct_height)
-        //{
-                // note: must make a local copy before passing the data to OpenGL, as GetData() returns RGB
-                // and we want the Alpha channel if it's present. Additionally OpenGL seems to interpret the
-                // data upside-down so we need to compensate for that.
-                GLubyte *bitmapData=img->GetData();
-                GLubyte *alphaData=img->GetAlpha();
+    int bytesPerPixel = img->HasAlpha() ?  4 : 3;
 
-                int bytesPerPixel = img->HasAlpha() ?  4 : 3;
+    int imageSize = textureWidth * textureHeight * bytesPerPixel;
+    GLubyte *imageData=new GLubyte[imageSize];
 
-                int imageSize = (*imageWidth) * (*imageHeight) * bytesPerPixel;
-                GLubyte *imageData=new GLubyte[imageSize];
+    int rev_val= scaledH ? textureHeight-1 : imageHeight - 1;
+    int bmpDataWid = scaledW ? textureWidth : imageWidth;
 
-                int rev_val=(*imageHeight)-1;
+    for(int y=0; y< textureHeight; y++) {
+            for(int x=0; x< textureWidth; x++) {
+                if ((scaledW || x < imageWidth) && (scaledH || y < imageHeight)) {
+                    //image and texture sizes match
+                    imageData[(x+y*textureWidth)*bytesPerPixel+0]=
+                            bitmapData[( x+(rev_val-y)*bmpDataWid)*3];
 
-                for(int y=0; y<(*imageHeight); y++)
-                {
-                        for(int x=0; x<(*imageWidth); x++)
-                        {
-                                imageData[(x+y*(*imageWidth))*bytesPerPixel+0]=
-                                        bitmapData[( x+(rev_val-y)*(*imageWidth))*3];
+                    imageData[(x+y*(textureWidth))*bytesPerPixel+1]=
+                            bitmapData[( x+(rev_val-y)*(bmpDataWid))*3 + 1];
 
-                                imageData[(x+y*(*imageWidth))*bytesPerPixel+1]=
-                                        bitmapData[( x+(rev_val-y)*(*imageWidth))*3 + 1];
+                    imageData[(x+y*(textureWidth))*bytesPerPixel+2]=
+                            bitmapData[( x+(rev_val-y)*(bmpDataWid))*3 + 2];
 
-                                imageData[(x+y*(*imageWidth))*bytesPerPixel+2]=
-                                        bitmapData[( x+(rev_val-y)*(*imageWidth))*3 + 2];
+                    if(bytesPerPixel==4) imageData[(x+y*(textureWidth))*bytesPerPixel+3]=
+                            alphaData[ x+(rev_val-y)*(bmpDataWid) ];
+                } else {
+                    imageData[(x+y*textureWidth)*bytesPerPixel+0] = 0;
+                    imageData[(x+y*textureWidth)*bytesPerPixel+1] = 0;
+                    imageData[(x+y*textureWidth)*bytesPerPixel+2] = 0;
+                    if(bytesPerPixel==4) imageData[(x+y*(textureWidth))*bytesPerPixel+3] = 0;
+                }
+            }//next
+    }//next
 
-                                if(bytesPerPixel==4) imageData[(x+y*(*imageWidth))*bytesPerPixel+3]=
-                                        alphaData[ x+(rev_val-y)*(*imageWidth) ];
-                        }//next
-                }//next
+    // if yes, everything is fine
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 bytesPerPixel,
+                 textureWidth,
+                 textureHeight,
+                 0,
+                 img->HasAlpha() ?  GL_RGBA : GL_RGB,
+                 GL_UNSIGNED_BYTE,
+                 imageData);
 
-                // if yes, everything is fine
-                glTexImage2D(GL_TEXTURE_2D,
-                             0,
-                             bytesPerPixel,
-                             *imageWidth,
-                             *imageHeight,
-                             0,
-                             img->HasAlpha() ?  GL_RGBA : GL_RGB,
-                             GL_UNSIGNED_BYTE,
-                             imageData);
-
-                (*textureWidth)  = (*imageWidth);
-                (*textureHeight) = (*imageHeight);
-
-                delete [] imageData;
-        //}
-/*
-	else // texture is not a power of two. We need to resize it
-	{
-
-		int newWidth=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_width)) );
-		int newHeight=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_height)) );
-
-		//printf("Unsupported image size. Recommand values: %i %i\n",newWidth,newHeight);
-
-		GLubyte	*bitmapData=img->GetData();
-		GLubyte        *alphaData=img->GetAlpha();
-
-		int old_bytesPerPixel = 3;
-		int bytesPerPixel = img->HasAlpha() ?  4 : 3;
-
-		int imageSize = newWidth * newHeight * bytesPerPixel;
-		GLubyte	*imageData=new GLubyte[imageSize];
-
-		int rev_val=(*imageHeight)-1;
-
-		for(int y=0; y<newHeight; y++)
-		{
-			for(int x=0; x<newWidth; x++)
-			{
-
-				if( x<(*imageWidth) && y<(*imageHeight) ){
-					imageData[(x+y*newWidth)*bytesPerPixel+0]=
-					bitmapData[( x+(rev_val-y)*(*imageWidth))*old_bytesPerPixel + 0];
-
-					imageData[(x+y*newWidth)*bytesPerPixel+1]=
-						bitmapData[( x+(rev_val-y)*(*imageWidth))*old_bytesPerPixel + 1];
-
-					imageData[(x+y*newWidth)*bytesPerPixel+2]=
-						bitmapData[( x+(rev_val-y)*(*imageWidth))*old_bytesPerPixel + 2];
-
-					if(bytesPerPixel==4) imageData[(x+y*newWidth)*bytesPerPixel+3]=
-						alphaData[ x+(rev_val-y)*(*imageWidth) ];
-
-				}
-				else
-				{
-
-					imageData[(x+y*newWidth)*bytesPerPixel+0] = 0;
-					imageData[(x+y*newWidth)*bytesPerPixel+1] = 0;
-					imageData[(x+y*newWidth)*bytesPerPixel+2] = 0;
-					if(bytesPerPixel==4) imageData[(x+y*newWidth)*bytesPerPixel+3] = 0;
-				}
-
-			}//next
-		}//next
-
-
-		glTexImage2D(GL_TEXTURE_2D,
-					 0,
-					 img->HasAlpha() ?  4 : 3,
-					 newWidth,
-					 newHeight,
-					 0,
-					 img->HasAlpha() ?  GL_RGBA : GL_RGB,
-					 GL_UNSIGNED_BYTE,
-					 imageData);
-
-		(*textureWidth)=newWidth;
-		(*textureHeight)=newHeight;
-
-		delete [] imageData;
-	}
-	*/
-
+    delete [] imageData;
 	// set texture parameters as you wish
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // GL_LINEAR
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // GL_LINEAR

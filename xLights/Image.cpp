@@ -13,10 +13,19 @@ Image::Image(wxString path)
 
 void Image::load(wxString path)
 {
-    ID=loadImage(path, &width, &height, &textureWidth, &textureHeight);
-
-    tex_coord_x = (float)width/(float)textureWidth;
-    tex_coord_y = (float)height/(float)textureHeight;
+    bool scaledW, scaledH;
+    ID=loadImage(path, width, height, textureWidth, textureHeight, scaledW, scaledH);
+    if (scaledW) {
+        tex_coord_x = 1.0;
+    } else {
+        tex_coord_x = (float)width/(float)textureWidth;
+    }
+    if (scaledH) {
+        tex_coord_y = 1.0;
+    } else {
+        tex_coord_y = (float)height/(float)textureHeight;
+    }
+    
 }
 
 GLuint* Image::getID()
