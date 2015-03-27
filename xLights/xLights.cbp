@@ -174,9 +174,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -216,9 +216,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -305,9 +305,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30u.a" />
 					<Add library="libwxmsw30u_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -346,9 +346,9 @@
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add library="libwxmsw30ud.a" />
 					<Add library="libwxmsw30ud_gl.a" />
-					<Add library="..\lib\windows\DbgHelp.Lib" />
-					<Add library="..\lib\windows\ImageHlp.Lib" />
-					<Add library="..\lib\windows\libmpg123-0.lib" />
+					<Add library="../lib/windows/DbgHelp.Lib" />
+					<Add library="../lib/windows/ImageHlp.Lib" />
+					<Add library="../lib/windows/libmpg123-0.lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='..\bin\deploy.bat  &quot;$(TARGET_OUTPUT_FILE)&quot;' />
@@ -480,8 +480,6 @@
 		<Unit filename="SeqSettingsDialog.h" />
 		<Unit filename="SequenceData.cpp" />
 		<Unit filename="SequenceData.h" />
-		<Unit filename="SequencePreview.cpp" />
-		<Unit filename="SequencePreview.h" />
 		<Unit filename="SerialPortWithRate.cpp" />
 		<Unit filename="SerialPortWithRate.h" />
 		<Unit filename="ShowDatesDialog.cpp" />

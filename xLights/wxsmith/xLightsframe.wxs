@@ -171,12 +171,20 @@
 						<label>Effect Layering</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="yes">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="no">
 							<bitmap code="model_preview_xpm" />
 							<shorthelp>Model Preview</shorthelp>
 							<handler function="ShowHideModelPreview" entry="EVT_TOOL" />
 						</object>
 						<label>Model Preview</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarButtonHousePreview" member="no">
+							<bitmap code="model_preview_xpm" />
+							<shorthelp>House Preview</shorthelp>
+							<handler function="ShowHideHousePreview" entry="EVT_TOOL" />
+						</object>
+						<label>House Preview</label>
 					</object>
 				</object>
 				<name>Windows Tool Bar</name>
@@ -3036,6 +3044,10 @@
 					<object class="wxMenuItem" name="ID_MENUITEM12" variable="MenuItem20" member="no">
 						<label>Model Preview</label>
 						<handler function="ShowHideModelPreview" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM3" variable="MenuItem6" member="no">
+						<label>House Preview</label>
+						<handler function="ShowHideHousePreview" entry="EVT_MENU" />
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM13" variable="MenuItem21" member="no">
 						<label>Views</label>

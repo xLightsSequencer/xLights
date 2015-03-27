@@ -34,7 +34,6 @@
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
-		67694F1D1A069BBE0030D020 /* SequencePreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1A1A069BBE0030D020 /* SequencePreview.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
 		676DCBFE1A98E53800FBA86B /* FileConverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBF81A98E53800FBA86B /* FileConverter.cpp */; };
 		676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */; };
@@ -181,7 +180,6 @@
 		672F95131A7A6619005FF8BF /* ColorPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorPanel.h; sourceTree = "<group>"; };
 		672F95141A7A6619005FF8BF /* TimingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimingPanel.h; sourceTree = "<group>"; };
 		672F95151A7A6619005FF8BF /* TopEffectsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TopEffectsPanel.h; sourceTree = "<group>"; };
-		672F95161A7A6619005FF8BF /* SequencePreview.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequencePreview.h; sourceTree = "<group>"; };
 		672F95171A7A6619005FF8BF /* NewSequenceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewSequenceDialog.h; sourceTree = "<group>"; };
 		672F95181A7A6619005FF8BF /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Color.h; sourceTree = "<group>"; };
 		672F95191A7A6619005FF8BF /* ModelPreview.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelPreview.h; sourceTree = "<group>"; };
@@ -210,7 +208,6 @@
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabPapagayo.cpp; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
-		67694F1A1A069BBE0030D020 /* SequencePreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequencePreview.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
 		676DCBF81A98E53800FBA86B /* FileConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileConverter.cpp; sourceTree = "<group>"; };
 		676DCBF91A98E53800FBA86B /* FileConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileConverter.h; sourceTree = "<group>"; };
@@ -574,7 +571,6 @@
 				672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */,
 				6780AB891A65C3480090B26E /* SequenceData.cpp */,
 				6784F9251A5653670018EC0C /* SequenceElements.cpp */,
-				67694F1A1A069BBE0030D020 /* SequencePreview.cpp */,
 				67A619FD17B51C0F008E95BB /* serial.cpp */,
 				67A619FF17B51C0F008E95BB /* SerialPortWithRate.cpp */,
 				67A61A0117B51C0F008E95BB /* ShowDatesDialog.cpp */,
@@ -655,7 +651,6 @@
 				67A619F917B51C0F008E95BB /* SeqParmsDialog.h */,
 				672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */,
 				6780AB881A65C3100090B26E /* SequenceData.h */,
-				672F95161A7A6619005FF8BF /* SequencePreview.h */,
 				67A619FE17B51C0F008E95BB /* serial.h */,
 				67A61A0017B51C0F008E95BB /* SerialPortWithRate.h */,
 				67A61A0217B51C0F008E95BB /* ShowDatesDialog.h */,
@@ -829,7 +824,6 @@
 				67043A4C1A07D17F00C09B71 /* dlgPreviewSize.cpp in Sources */,
 				67A61A3C17B51C0F008E95BB /* RenderGarlands.cpp in Sources */,
 				67A61A3D17B51C0F008E95BB /* RenderLife.cpp in Sources */,
-				67694F1D1A069BBE0030D020 /* SequencePreview.cpp in Sources */,
 				67A61A3E17B51C0F008E95BB /* RenderMeteors.cpp in Sources */,
 				67BEB4E118070DF900A51656 /* RenderSingleStrand.cpp in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,

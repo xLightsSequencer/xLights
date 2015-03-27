@@ -4,7 +4,6 @@
 #include <wx/filename.h>
 #include <wx/tipwin.h>
 #include "../xLightsMain.h"
-#include "../SequencePreview.h"
 #include "SequenceElements.h"
 #include "../TopEffectsPanel.h"
 #include "../EffectIconPanel.h"
@@ -40,9 +39,13 @@ void xLightsFrame::CreateSequencer()
     mainSequencer->PanelRowHeadings->SetSequenceElements(&mSequenceElements);
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
 
-    sPreview1 = new SequencePreview(PanelSequencer);
+    sPreview1 = new ModelPreview(PanelSequencer);
     sPreview1->SetSize(wxSize(200,200));
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
+                   BestSize(wxSize(200,200)).Left());
+    sPreview2 = new ModelPreview(PanelSequencer);
+    sPreview2->SetSize(wxSize(200,200));
+    m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
                    BestSize(wxSize(200,200)).Left());
 
     effectsPnl = new TopEffectsPanel(PanelSequencer);
@@ -145,8 +148,6 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         wxString settings = mCurrentPerpective->GetAttribute("settings");
         m_mgr->LoadPerspective(settings);
     }
-    m_mgr->GetPane(wxT("ModelPreview")).Show(true);
-
 }
 
 
@@ -236,6 +237,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
     sPreview1->Refresh();
+    sPreview2->Refresh();
     m_mgr->Update();
 }
 
@@ -842,6 +844,20 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
+    
+    if (sPreview2->StartDrawing(mPointSize)) {
+        for (int m=0; m<PreviewModels.size(); m++)
+        {
+            int NodeCnt=PreviewModels[m]->GetNodeCount();
+            for(int n=0; n<NodeCnt; n++)
+            {
+                int start = PreviewModels[m]->NodeStartChannel(n);
+                PreviewModels[m]->SetNodeChannelValues(n, &SeqData[frame][start]);
+            }
+            PreviewModels[m]->DisplayModelOnWindow(modelPreview);
+        }
+        sPreview2->EndDrawing();
+    }
 }
 
 
@@ -1153,7 +1169,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
     }
     m_mgr->LoadPerspective(settings,true);
     sPreview1->Refresh(false);
-    m_mgr->GetPane(wxT("ModelPreview")).Show(true);
+    sPreview2->Refresh(false);
     m_mgr->Update();
 }
 
@@ -1223,6 +1239,18 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
         m_mgr->GetPane("ModelPreview").Hide();
     } else {
         m_mgr->GetPane("ModelPreview").Show();
+    }
+    m_mgr->Update();
+}
+
+
+void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
+{
+    bool visible = m_mgr->GetPane("HousePreview").IsShown();
+    if (visible) {
+        m_mgr->GetPane("HousePreview").Hide();
+    } else {
+        m_mgr->GetPane("HousePreview").Show();
     }
     m_mgr->Update();
 }

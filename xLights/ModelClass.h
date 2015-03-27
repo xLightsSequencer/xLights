@@ -26,7 +26,6 @@
 
 #include <memory>
 #include <vector>
-#include "SequencePreview.h"
 #include <wx/xml/xml.h>
 #include <wx/gdicmn.h>
 #include <wx/colour.h>
@@ -351,10 +350,8 @@ public:
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml();
     wxCursor GetResizeCursor(int cornerIndex);
-    void DisplayModelOnWindow(ModelPreview* preview);
-    void DisplayModelOnWindow(wxWindow* window);
-    void DisplayModelOnWindow(ModelPreview* preview, const xlColour &color);
-    void DisplayEffectOnWindow(SequencePreview* preview, double pointSize);
+    void DisplayModelOnWindow(ModelPreview* preview, const xlColour *color =  NULL);
+    void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     void ResizeWithHandles(ModelPreview* preview, int mouseX,int mouseY);
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);

@@ -1328,90 +1328,6 @@ bool ModelClass::HitTest(ModelPreview* preview,int x,int y) {
     }
 }
 
-// display model using a single color
-void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour &color) {
-    size_t NodeCount=Nodes.size();
-    wxCoord sx,sy;
-    wxPen pen;
-    int w, h;
-    preview->GetSize(&w,&h);
-
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-
-    int w1 = int(offsetXpct*w);
-    int h1 = int(offsetYpct*h);
-
-    for(size_t n=0; n<NodeCount; n++) {
-        size_t CoordCount=GetCoordCount(n);
-        for(size_t c=0; c < CoordCount; c++) {
-            // draw node on screen
-            sx=Nodes[n]->Coords[c].screenX;
-            sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
-            DrawGLUtils::DrawPoint(color,sx,sy);
-        }
-    }
-    if(Selected) {
-        //Draw bounding rectangle
-        double radians=toRadians(PreviewRotation);
-        // Upper Left Handle
-        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx = sx + w1;
-        sy = sy + h1;
-        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-        mHandlePosition[0].x = sx;
-        mHandlePosition[0].y = sy;
-        // Upper Right Handle
-        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
-        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx = sx + w1;
-        sy = sy + h1;
-        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-        mHandlePosition[1].x = sx;
-        mHandlePosition[1].y = sy;
-        // Lower Right Handle
-        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
-        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx = sx + w1;
-        sy = sy + h1;
-        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-        mHandlePosition[2].x = sx;
-        mHandlePosition[2].y = sy;
-        // Lower Left Handle
-        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx = sx + w1;
-        sy = sy + h1;
-        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-        mHandlePosition[3].x = sx;
-        mHandlePosition[3].y = sy;
-
-        // Draw rotation handle square
-        sx = -RECT_HANDLE_WIDTH/2;
-        sy = ((RenderHt*scale/2) + 50);
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx += w1;
-        sy += h1;
-        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
-        // Save rotate handle
-        mHandlePosition[4].x = sx;
-        mHandlePosition[4].y = sy;
-        // Draw rotation handle from center to 25 over rendered height
-        sx = 0;
-        sy = ((RenderHt*scale/2) + 50);
-        TranslatePoint(radians,sx,sy,&sx,&sy);
-        sx += w1;
-        sy += h1;
-        DrawGLUtils::DrawLine(xlWHITE,255,w1,h1,sx,sy,1.0);
-    }
-}
-
 wxCursor ModelClass::GetResizeCursor(int cornerIndex) {
     int angleState;
     //LeftTop and RightBottom
@@ -1503,11 +1419,14 @@ int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y) {
 
 // display model using colors stored in each node
 // used when preview is running
-void ModelClass::DisplayModelOnWindow(ModelPreview* preview) {
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
     xlColour color;
+    if (c != NULL) {
+        color = *c;
+    }
     int w, h;
     preview->GetSize(&w, &h);
 
@@ -1520,7 +1439,9 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview) {
     if (StrobeRate==0) {
         // no strobing
         for(size_t n=0; n<NodeCount; n++) {
-            Nodes[n]->GetColor(color);
+            if (c == NULL) {
+                Nodes[n]->GetColor(color);
+            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen
@@ -1534,7 +1455,9 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview) {
     } else {
         // flash individual nodes according to StrobeRate
         for(size_t n=0; n<NodeCount; n++) {
-            Nodes[n]->GetColor(color);
+            if (c == NULL) {
+                Nodes[n]->GetColor(color);
+            }
             bool CanFlash = color.GetRGB() ==  0x00ffffff;
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
@@ -1552,22 +1475,79 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview) {
             }
         }
     }
+    if(Selected) {
+        //Draw bounding rectangle
+        double radians=toRadians(PreviewRotation);
+        // Upper Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[0].x = sx;
+        mHandlePosition[0].y = sy;
+        // Upper Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[1].x = sx;
+        mHandlePosition[1].y = sy;
+        // Lower Right Handle
+        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[2].x = sx;
+        mHandlePosition[2].y = sy;
+        // Lower Left Handle
+        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx = sx + w1;
+        sy = sy + h1;
+        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        mHandlePosition[3].x = sx;
+        mHandlePosition[3].y = sy;
+        
+        // Draw rotation handle square
+        sx = -RECT_HANDLE_WIDTH/2;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        DrawGLUtils::DrawFillRectangle(xlBLUE,255,sx,sy,RECT_HANDLE_WIDTH,RECT_HANDLE_WIDTH);
+        // Save rotate handle
+        mHandlePosition[4].x = sx;
+        mHandlePosition[4].y = sy;
+        // Draw rotation handle from center to 25 over rendered height
+        sx = 0;
+        sy = ((RenderHt*scale/2) + 50);
+        TranslatePoint(radians,sx,sy,&sx,&sy);
+        sx += w1;
+        sy += h1;
+        DrawGLUtils::DrawLine(xlWHITE,255,w1,h1,sx,sy,1.0);
+    }
 }
 
-// uses DrawCircle instead of DrawPoint
-void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSize) {
+void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     xlColor color;
     int w, h;
-
-
+    
+    
     preview->GetSize(&w, &h);
-
+    
     double scaleX = double(w) * 0.95 / RenderWi;
     double scaleY = double(h) * 0.95 / RenderHt;
     double scale=scaleY < scaleX ? scaleY : scaleX;
-
+    
     bool success = preview->StartDrawing(pointSize);
-
+    
     if(success) {
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
@@ -1579,7 +1559,9 @@ void ModelClass::DisplayEffectOnWindow(SequencePreview* preview, double pointSiz
                 // draw node on screen
                 sx=Nodes[n]->Coords[c].screenX;
                 sy=Nodes[n]->Coords[c].screenY;
-                DrawGLUtils::DrawPoint(color,(sx*scale)+(w/2),h-((sy*scale)+(h/2)+double(RenderHt)*0.025*scale));
+                
+                double newsy = ((sy*scale)+(h/2));
+                DrawGLUtils::DrawPoint(color, (sx*scale)+(w/2), newsy);
             }
         }
         preview->EndDrawing();

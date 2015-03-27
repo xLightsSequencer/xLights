@@ -85,7 +85,6 @@
 #include "CurrentPreviewModels.h"
 #include "PreviewModels.h"
 #include "ModelPreview.h"
-#include "SequencePreview.h"
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
 
@@ -663,6 +662,7 @@ private:
     void ShowHideLayerTimingWindow(wxCommandEvent& event);
     void ShowHideModelPreview(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
+    void ShowHideHousePreview(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -693,6 +693,7 @@ private:
     static const long ID_AUITOOLBARITEM5;
     static const long ID_AUITOOLBARITEM3;
     static const long ID_AUITOOLBARITEM1;
+    static const long ID_AUITOOLBARITEM4;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_AUITOOLBARITEM_ZOOM_IN;
     static const long ID_AUITOOLBARITEM_ZOOM_OUT;
@@ -930,6 +931,7 @@ private:
     static const long ID_MENUITEM7;
     static const long ID_MENUITEM_SEQUENCE_ELEMENTS;
     static const long ID_MENUITEM12;
+    static const long ID_MENUITEM3;
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM14;
     static const long ID_MENUITEM15;
@@ -1594,7 +1596,8 @@ protected:
     int mTextEntryContext;
 
     MainSequencer* mainSequencer;
-    SequencePreview* sPreview1;
+    ModelPreview * sPreview1;
+    ModelPreview * sPreview2;
     ColorPanel* colorPanel;
     TimingPanel* timingPanel;
     PerspectivesPanel* perspectivePanel;

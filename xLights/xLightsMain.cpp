@@ -105,6 +105,7 @@ const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
 const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_IN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_OUT = wxNewId();
@@ -342,6 +343,7 @@ const long xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
 const long xLightsFrame::ID_MENUITEM7 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_SEQUENCE_ELEMENTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM12 = wxNewId();
+const long xLightsFrame::ID_MENUITEM3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM14 = wxNewId();
 const long xLightsFrame::ID_MENUITEM15 = wxNewId();
@@ -512,6 +514,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer8;
     wxMenuItem* MenuItemSequenceElements;
     wxFlexGridSizer* FlexGridSizer21;
+    wxMenuItem* MenuItem6;
     wxFlexGridSizer* FlexGridSizer14;
     wxMenuItem* MenuItem23;
     wxFlexGridSizer* FlexGridSizer20;
@@ -571,6 +574,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), colors_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Colors"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Effect Layering"), layers_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Layering"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM1, _("Model Preview"), model_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), model_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     ViewToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1534,6 +1538,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem18->Append(MenuItemSequenceElements);
     MenuItem20 = new wxMenuItem(MenuItem18, ID_MENUITEM12, _("Model Preview"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem20);
+    MenuItem6 = new wxMenuItem(MenuItem18, ID_MENUITEM3, _("House Preview"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem18->Append(MenuItem6);
     MenuItem21 = new wxMenuItem(MenuItem18, ID_MENUITEM13, _("Views"), wxEmptyString, wxITEM_NORMAL);
     MenuItem18->Append(MenuItem21);
     MenuItem22 = new wxMenuItem(MenuItem18, ID_MENUITEM14, _("Effect Settings"), wxEmptyString, wxITEM_NORMAL);
@@ -1594,6 +1600,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_AUITOOLBARITEM1,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
+    Connect(ID_AUITOOLBARITEM4,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
@@ -1717,6 +1724,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
     Connect(ID_MENUITEM_SEQUENCE_ELEMENTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemSequenceElementsSelected);
     Connect(ID_MENUITEM12,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
+    Connect(ID_MENUITEM3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_MENUITEM14,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_MENUITEM15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);

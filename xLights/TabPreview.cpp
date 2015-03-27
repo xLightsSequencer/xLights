@@ -89,7 +89,7 @@ void xLightsFrame::UpdatePreview()
     for (int i=0; i<PreviewModels.size(); i++)
     {
         color = (PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected) ? &xlYELLOW : &xlLIGHT_GREY;
-        PreviewModels[i]->DisplayModelOnWindow(modelPreview, *color);
+        PreviewModels[i]->DisplayModelOnWindow(modelPreview, color);
     }
     modelPreview->EndDrawing();
 }

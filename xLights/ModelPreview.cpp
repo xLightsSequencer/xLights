@@ -49,11 +49,13 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
 
 void ModelPreview::render( wxPaintEvent& event )
 {
-    if (mIsInitialized)
-    {
-        event.ResumePropagation(1);
-        event.Skip (); // continue the event
-    }
+    if(mIsDrawing) return;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+    SetCurrentGLContext();
+    wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFlush();
+    SwapBuffers();
 }
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
@@ -100,12 +102,6 @@ void ModelPreview::InitializeGLCanvas()
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-    // Rotate Axis and tranlate
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glRotatef(180,0,0,1);
-    glRotatef(180,0,1,0);
-    glTranslatef(0,-getHeight(),0);
     mIsInitialized = true;
 }
 
@@ -150,6 +146,14 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
+    glPushMatrix();
+    // Rotate Axis and tranlate
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glRotatef(180,0,0,1);
+    glRotatef(180,0,1,0);
+    glTranslatef(0,-mWindowHeight,0);
+
     if(mBackgroundImageExists)
     {
         if (image == NULL)
@@ -161,13 +165,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         glColor3f(intensity, intensity, intensity);
         glEnable(GL_TEXTURE_2D);   // textures
         sprite->render();
+        glDisable(GL_TEXTURE_2D);   // textures
     }
-    glDisable(GL_TEXTURE_2D);   // textures
+    
     return true;
 }
 
 void ModelPreview::EndDrawing()
 {
+    glPopMatrix();
     SwapBuffers();
     mIsDrawing = false;
 }
