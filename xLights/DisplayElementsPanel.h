@@ -83,6 +83,8 @@ class DisplayElementsPanel: public wxPanel
 		void OnButtonShowAllClick(wxCommandEvent& event);
 		void OnButtonHideAllClick(wxCommandEvent& event);
 		void OnButtonMoveUpClick(wxCommandEvent& event);
+		void OnButtonDeleteModelsClick(wxCommandEvent& event);
+		void OnButtonMoveDownClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -31,7 +31,7 @@ void SequenceElements::Clear() {
     mVisibleRowInformation.clear();
     mRowInformation.clear();
     mSelectedRanges.clear();
-    
+
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
@@ -707,4 +707,35 @@ void SequenceElements::MoveSequenceElement(int index, int dest)
     }
 }
 
+void SequenceElements::MoveElementUp(const wxString &name)
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(name == mElements[i]->GetName())
+        {
+            // found element
+            if( i > 0 )
+            {
+                MoveSequenceElement(i, i-1);
+            }
+            break;
+        }
+    }
+}
+
+void SequenceElements::MoveElementDown(const wxString &name)
+{
+    for(int i=0;i<mElements.size();i++)
+    {
+        if(name == mElements[i]->GetName())
+        {
+            // found element
+            if( i < mElements.size()-1 )
+            {
+                MoveSequenceElement(i+1, i);
+            }
+            break;
+        }
+    }
+}
 

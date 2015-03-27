@@ -86,7 +86,7 @@
 													<object class="sizeritem">
 														<object class="wxListCtrl" name="ID_LISTCTRL_MODELS" subclass="wxCheckedListCtrl" variable="ListCtrlModels" member="yes">
 															<minsize>175,175</minsize>
-															<style>wxLC_REPORT</style>
+															<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -136,6 +136,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_DELETE_MODELS" variable="ButtonDeleteModels" member="yes">
 															<label>Delete Model</label>
+															<handler function="OnButtonDeleteModelsClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -161,6 +162,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_MOVE_DOWN" variable="ButtonMoveDown" member="yes">
 															<label>Move Down</label>
+															<handler function="OnButtonMoveDownClick" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>

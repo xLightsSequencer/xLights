@@ -73,7 +73,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlModels = new wxCheckedListCtrl(this, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
+	ListCtrlModels = new wxCheckedListCtrl(this, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
 	ListCtrlModels->SetMinSize(wxSize(175,175));
 	FlexGridSizer7->Add(ListCtrlModels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -107,7 +107,9 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	Connect(ID_BUTTON_SHOW_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonShowAllClick);
 	Connect(ID_BUTTON_HIDE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonHideAllClick);
 	Connect(ID_BUTTONADD_MODELS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonAddModelsClick);
+	Connect(ID_BUTTON_DELETE_MODELS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonDeleteModelsClick);
 	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonMoveUpClick);
+	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DisplayElementsPanel::OnButtonMoveDownClick);
 	Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&DisplayElementsPanel::OnLeftUp);
 	//*)
 
@@ -288,7 +290,99 @@ void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
     wxPostEvent(GetParent(), eventForceRefresh);
 }
 
+void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
+{
+    if( wxMessageBox("Delete all effects and layers for the selected model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES )
+    {
+        ListCtrlModels->Freeze();
+        long itemIndex = -1;
+
+        for (;;) {
+            itemIndex = ListCtrlModels->GetNextItem(itemIndex,
+                                                    wxLIST_NEXT_ALL,
+                                                    wxLIST_STATE_SELECTED);
+
+            if (itemIndex == -1) break;
+
+            // Got a selected item so handle it
+            Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
+            mSequenceElements->DeleteElement(e->GetName());
+            ListCtrlModels->DeleteItem(itemIndex);
+            break;
+        }
+        ListCtrlModels->Thaw();
+        ListCtrlModels->Refresh();
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+    }
+}
+
 void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
 {
+    ListCtrlModels->Freeze();
+    long itemIndex = -1;
 
+    for (;;) {
+        itemIndex = ListCtrlModels->GetNextItem(itemIndex,
+                                                wxLIST_NEXT_ALL,
+                                                wxLIST_STATE_SELECTED);
+
+        if (itemIndex == -1) break;
+
+        // Got a selected item so handle it
+        if( itemIndex > 0 )
+        {
+            Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
+            mSequenceElements->MoveElementUp(e->GetName());
+        }
+        break;
+    }
+    ListCtrlModels->Thaw();
+    PopulateModels();
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
+    if( itemIndex > 0 )
+    {
+        ListCtrlModels->SetItemState(itemIndex-1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+    else if( itemIndex != -1 )
+    {
+        ListCtrlModels->SetItemState(itemIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+}
+
+void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
+{
+    ListCtrlModels->Freeze();
+    long itemIndex = -1;
+    long num_items = ListCtrlModels->GetItemCount();
+
+    for (;;) {
+        itemIndex = ListCtrlModels->GetNextItem(itemIndex,
+                                                wxLIST_NEXT_ALL,
+                                                wxLIST_STATE_SELECTED);
+
+        if (itemIndex == -1) break;
+
+        // Got a selected item so handle it
+        if( itemIndex < num_items-1 )
+        {
+            Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
+            mSequenceElements->MoveElementDown(e->GetName());
+            ListCtrlModels->SetItemState(itemIndex+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        }
+        break;
+    }
+    ListCtrlModels->Thaw();
+    PopulateModels();
+    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+    wxPostEvent(GetParent(), eventForceRefresh);
+    if( itemIndex >= 0 && itemIndex < num_items-1 )
+    {
+        ListCtrlModels->SetItemState(itemIndex+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+    else if( itemIndex != -1 )
+    {
+        ListCtrlModels->SetItemState(itemIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
 }

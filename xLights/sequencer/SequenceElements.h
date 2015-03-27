@@ -59,7 +59,8 @@ class SequenceElements
         void SetMaxRowsDisplayed(int maxRows);
         void SetVisibilityForAllModels(bool visibility);
         void MoveSequenceElement(int index, int dest);
-
+        void MoveElementUp(const wxString &name);
+        void MoveElementDown(const wxString &name);
         void SetFirstVisibleModelRow(int row);
 
         void DeleteElement(const wxString &name);
