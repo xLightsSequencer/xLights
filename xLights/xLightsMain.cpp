@@ -2306,6 +2306,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     else if (pagenum == NEWSEQUENCER)
     {
         InitSequencer();
+        sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
     }
     else
     {
