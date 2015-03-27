@@ -165,7 +165,7 @@ void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, 0, 1);
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     mWindowResized = false;
 }
