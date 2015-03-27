@@ -727,7 +727,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 void xLightsFrame::TimerRgbSeq(long msec)
 {
     // return if play is stopped
-    if (playType == PLAY_TYPE_STOPPED) {
+    if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == NULL) {
         return;
     }
 

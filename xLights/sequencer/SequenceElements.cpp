@@ -23,6 +23,21 @@ SequenceElements::~SequenceElements()
     }
 }
 
+void SequenceElements::Clear() {
+    for (int x = 0; x < mElements.size(); x++) {
+        delete mElements[x];
+    }
+    mElements.clear();
+    mVisibleRowInformation.clear();
+    mRowInformation.clear();
+    mSelectedRanges.clear();
+    
+    mSelectedTimingRow = -1;
+    mTimingRowCount = 0;
+    mMaxRowsDisplayed = 0;
+    mFirstVisibleModelRow = 0;
+}
+
 
 Element* SequenceElements::AddElement(wxString &name,wxString &type,bool visible,bool collapsed,bool active, bool selected)
 {

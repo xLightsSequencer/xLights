@@ -44,6 +44,7 @@ class SequenceElements
         virtual ~SequenceElements();
         bool LoadSequencerFile(xLightsXmlFile& xml_file);
         bool SeqLoadXlightsFile(const wxString& filename, bool ChooseModels);
+        void Clear();
         Element* AddElement(wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* AddElement(int index,wxString &name, wxString &type,bool visible,bool collapsed,bool active, bool selected);
         Element* GetElement(const wxString &name);

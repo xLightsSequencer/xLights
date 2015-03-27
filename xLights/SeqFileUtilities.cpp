@@ -60,15 +60,15 @@ static wxFileName mapFileName(const wxFileName &orig) {
 
 void xLightsFrame::OpenSequence()
 {
-    // close any open sequences
-    CloseSequence();
-
     bool loaded_xml = false;
     bool loaded_fseq = false;
     wxString wildcards = "XML files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq";
     wxString filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xml", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if ( !filename.empty() )
     {
+        // close any open sequences
+        CloseSequence();
+        
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
@@ -223,6 +223,9 @@ void xLightsFrame::OpenSequence()
             StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
             return;
         }
+        mainSequencer->PanelWaveForm->Refresh();
+        mainSequencer->PanelEffectGrid->Refresh();
+        mainSequencer->PanelEffectGrid->ForceRefresh();
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
@@ -247,12 +250,14 @@ void xLightsFrame::CloseSequence()
     ResetSequenceGrid();
     changedRow = 99999;
     changedColumn = 99999;
+    playType = 0;
     selectedEffect = NULL;
     if( CurrentSeqXmlFile )
     {
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = NULL;
     }
+    mSequenceElements.Clear();
 
     //SeqData.init(0, 0, 50);
     //mainSequencer->PanelWaveForm->CloseMediaFile();
