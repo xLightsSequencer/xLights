@@ -1731,6 +1731,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
     replaySection = false;
+    playType = 0;
 
     CreateSequencer();
 
