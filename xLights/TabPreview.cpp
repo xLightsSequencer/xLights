@@ -79,7 +79,6 @@ void xLightsFrame::CompareMyDisplayToSeq()
 
 void xLightsFrame::UpdatePreview()
 {
-    const xlColour *color;
     if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {

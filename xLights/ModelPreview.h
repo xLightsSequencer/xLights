@@ -1,13 +1,12 @@
 #ifndef MODELPREVIEW_H
 #define MODELPREVIEW_H
 
-
+#include <memory>
 
 #include "wx/wx.h"
 
 #include "Image.h"
 #include "XlightsDrawable.h"
-#include "Color.h"
 #include "Color.h"
 #include "xlGLCanvas.h"
 
