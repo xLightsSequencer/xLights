@@ -576,7 +576,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ViewToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM_ZOOM_IN, _("Zoom In"), zoom_in_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM_ZOOM_OUT, _("Zoom Out"), zoom_out_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
-    ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Item label"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
+    ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     ViewToolBar->Realize();
     MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1596,6 +1596,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBARITEM1,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
+    Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);

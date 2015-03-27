@@ -218,8 +218,9 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
 							<bitmap code="settings_24_xpm" />
 							<shorthelp>Settings</shorthelp>
+							<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_TOOL" />
 						</object>
-						<label>Item label</label>
+						<label>Sequence Settings</label>
 					</object>
 				</object>
 				<name>View Tool Bar</name>
