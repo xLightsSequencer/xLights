@@ -67,6 +67,8 @@ ModelPreview::ModelPreview(wxPanel* parent) :
     xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    virtualWidth = 0;
+    virtualHeight = 0;
 }
 
 ModelPreview::~ModelPreview()
@@ -159,9 +161,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     glTranslatef(0,-mWindowHeight,0);
 
 
-    double scaleh= double(mWindowHeight) / double(virtualHeight);
-    double scalew = double(mWindowWidth) / double(virtualWidth);
-    glScalef(scalew, scaleh, 1.0);
+    if (virtualWidth > 0 && virtualHeight > 0) {
+        double scaleh= double(mWindowHeight) / double(virtualHeight);
+        double scalew = double(mWindowWidth) / double(virtualWidth);
+        glScalef(scalew, scaleh, 1.0);
+    }
     if(mBackgroundImageExists)
     {
         if (image == NULL)
