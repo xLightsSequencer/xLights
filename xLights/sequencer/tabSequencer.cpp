@@ -42,7 +42,6 @@ void xLightsFrame::CreateSequencer()
 
     sPreview1 = new SequencePreview(PanelSequencer);
     sPreview1->SetSize(wxSize(200,200));
-    sPreview1->InitializePreview();
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    BestSize(wxSize(200,200)).Left());
 
@@ -214,6 +213,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
 }
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)

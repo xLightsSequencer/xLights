@@ -17,16 +17,15 @@ public:
 	virtual ~SequencePreview();
 
     // Public Methods
-	void resized(wxSizeEvent& evt);
-	int getWidth();
-	int getHeight();
-	void ClearBackground();
     void InitializePreview();
     bool StartDrawing(wxDouble pointSize);
     void EndDrawing();
+
+protected:
+    virtual void InitializeGLCanvas();
+
 private:
 	void render(wxPaintEvent& evt);
-    void prepare2DViewport(int x, int y, int w, int h);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
@@ -37,7 +36,6 @@ private:
 	void keyReleased(wxKeyEvent& event);
 
     bool mIsDrawing = false;
-    bool mIsInitialized = false;
 
 	DECLARE_EVENT_TABLE()
 };

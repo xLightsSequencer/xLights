@@ -46,7 +46,6 @@ public:
 	virtual ~EffectsGrid();
 
     // Public Methods
-	void resized(wxSizeEvent& evt);
     void SetCanvasSize(int w, int h);
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
@@ -55,10 +54,11 @@ public:
     void OnDrop(int x, int y);
     void ForceRefresh();
 
+protected:
+    virtual void InitializeGLCanvas();
+
 private:
-    void InitializeGrid();
     void render(wxPaintEvent& evt);
-    void prepare2DViewport(int x, int y, int w, int h);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);
 	void mouseWheelMoved(wxMouseEvent& event);
@@ -95,7 +95,6 @@ private:
     int GetRow(int y);
     SequenceElements* mSequenceElements;
     bool mIsDrawing = false;
-    bool mIsInitialized = false;
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count
@@ -120,9 +119,6 @@ private:
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
-    int mWindowWidth;
-    int mWindowHeight;
-    int mWindowResized;
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;

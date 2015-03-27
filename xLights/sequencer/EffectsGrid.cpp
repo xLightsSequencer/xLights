@@ -30,7 +30,6 @@ EVT_LEFT_UP(EffectsGrid::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(EffectsGrid::OnLostMouseCapture)
 //EVT_RIGHT_DOWN(EffectsGrid::rightClick)
 //EVT_LEAVE_WINDOW(EffectsGrid::mouseLeftWindow)
-EVT_SIZE(EffectsGrid::resized)
 //EVT_KEY_DOWN(EffectsGrid::keyPressed)
 //EVT_KEY_UP(EffectsGrid::keyReleased)
 EVT_PAINT(EffectsGrid::render)
@@ -42,16 +41,12 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
                        long style, const wxString &name)
     :xlGLCanvas(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
 {
-    mIsInitialized = false;
     mParent = parent;
     mDragging = false;
     mResizing = false;
     mDragDropping = false;
     mDropStartX = 0;
     mDropEndX = 0;
-    mWindowWidth = 0;
-    mWindowHeight = 0;
-    mWindowResized = false;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
@@ -472,25 +467,6 @@ void EffectsGrid::SetTimeline(TimeLine* timeline)
         mTimeline = timeline;
 }
 
-void EffectsGrid::resized(wxSizeEvent& evt)
-{
-    mWindowWidth = evt.GetSize().GetWidth();
-    mWindowHeight = evt.GetSize().GetHeight();
-    mWindowResized = true;
-}
-
-
-/** Inits the OpenGL viewport for drawing in 2D. */
-void EffectsGrid::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
-{
-    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, 0, 1);
-    glMatrixMode(GL_MODELVIEW);
-}
-
 void EffectsGrid::SetCanvasSize(int w, int h)
 {
     SetSize(wxSize(w,h));
@@ -509,11 +485,10 @@ void EffectsGrid::SetStartPixelOffset(int offset)
     mStartPixelOffset = offset;
 }
 
-void EffectsGrid::InitializeGrid()
+void EffectsGrid::InitializeGLCanvas()
 {
     if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
-//    wxClientDC dc(this);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
     glDisable(GL_TEXTURE_2D);   // textures
     glDisable(GL_COLOR_MATERIAL);
@@ -804,7 +779,7 @@ void EffectsGrid::render( wxPaintEvent& evt )
 
 void EffectsGrid::Draw()
 {
-    if(!mIsInitialized) { InitializeGrid(); }
+    if(!mIsInitialized) { InitializeGLCanvas(); }
     if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
@@ -825,11 +800,9 @@ void EffectsGrid::Draw()
     {
         DrawGLUtils::DrawRectangle(xlYELLOW,true,mDragStartX,mDragStartY,mDragEndX,mDragEndY);
     }
-    //DrawGLUtils::DrawRectangle(xlYELLOW,false,5,5, GetSize().x - 10, GetSize().y - 10);
 
     glFlush();
     SwapBuffers();
-    //wxLogDebug("EffectsGrid::Draw");
 }
 
 

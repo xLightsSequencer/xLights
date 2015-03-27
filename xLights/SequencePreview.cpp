@@ -18,7 +18,6 @@ BEGIN_EVENT_TABLE(SequencePreview, xlGLCanvas)
 //EVT_LEFT_UP(SequencePreview::mouseReleased)
 //EVT_RIGHT_DOWN(SequencePreview::rightClick)
 //EVT_LEAVE_WINDOW(SequencePreview::mouseLeftWindow)
-//EVT_SIZE(SequencePreview::resized)
 //EVT_KEY_DOWN(SequencePreview::keyPressed)
 //EVT_KEY_UP(SequencePreview::keyReleased)
 //EVT_MOUSEWHEEL(SequencePreview::mouseWheelMoved)
@@ -45,68 +44,33 @@ SequencePreview::~SequencePreview()
 {
 }
 
-void SequencePreview::ClearBackground()
+void SequencePreview::InitializeGLCanvas()
 {
+    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
-    wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    SwapBuffers();
-    return;
-}
-
-void SequencePreview::resized(wxSizeEvent& evt)
-{
-}
-
-
-/** Inits the OpenGL viewport for drawing in 2D. */
-void SequencePreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
-{
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
     glEnable(GL_TEXTURE_2D);   // textures
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
-    glMatrixMode(GL_PROJECTION);
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     glLoadIdentity();
-
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-}
-
-int SequencePreview::getWidth()
-{
-    return GetSize().x;
-}
-
-int SequencePreview::getHeight()
-{
-    return GetSize().y;
-}
-
-void SequencePreview::InitializePreview()
-{
     mIsInitialized = true;
-    /*wxGLCanvas::SetCurrent(*m_context);
-    wxClientDC dc(this);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
-    glLoadIdentity();*/
 }
 
 bool SequencePreview::StartDrawing(wxDouble pointSize)
 {
     if(mIsDrawing){return false;}
     mIsDrawing = true;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
     SetCurrentGLContext();
     wxClientDC dc(this);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
+    if( mWindowResized )
+    {
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    }
     glPointSize( pointSize );
     glBegin(GL_POINTS);
     return(true);

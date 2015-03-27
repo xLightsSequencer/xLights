@@ -28,34 +28,21 @@
 #include "Waveform.h"
 #include "TimeLine.h"
 #include <wx/file.h>
-//#include "glut.h"
-
-enum
-{
-    SCROLL_TIMER_LEFT= 0,
-    SCROLL_TIMER_RIGHT= 1
-};
-
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(Waveform, xlGLCanvas)
-//EVT_TIMER(SCROLL_TIMER_LEFT, Waveform::OnWaveScrollLeft)
-//EVT_TIMER(SCROLL_TIMER_RIGHT, Waveform::OnWaveScrollRight)
 EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
-//EVT_LEAVE_WINDOW(Waveform::mouseLeftWindow)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
 EVT_IDLE(Waveform::OnIdle)
 EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
-//EVT_RIGHT_DOWN(ModelPreview::rightClick)
-//EVT_SIZE(ModelPreview::resized)
-//EVT_KEY_DOWN(ModelPreview::keyPressed)
-//EVT_KEY_UP(ModelPreview::keyReleased)
+EVT_SIZE(Waveform::Resized)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
 EVT_PAINT(Waveform::renderGL)
 END_EVENT_TABLE()
-// Custom Events
+
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
@@ -63,8 +50,6 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 {
     m_left_data = NULL;
     m_right_data = NULL;
-    tmrScrollLeft = NULL;
-    tmrScrollRight = NULL;
 
     mIsInitialized = false;
     m_dragging = false;
@@ -73,8 +58,6 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mZoomLevel=0;
     mStartPixelOffset = 0;
     SetTimeFrequency(40);
-    tmrScrollLeft = new wxTimer(this,SCROLL_TIMER_LEFT);
-    tmrScrollRight = new wxTimer(this,SCROLL_TIMER_RIGHT);
     mPaintOnIdleCounter = 0;
 }
 
@@ -82,8 +65,6 @@ Waveform::~Waveform()
 {
     if (m_left_data) delete m_left_data;
     if (m_right_data) delete m_right_data;
-    if (tmrScrollLeft) delete tmrScrollLeft;
-    if (tmrScrollRight) delete tmrScrollRight;
 }
 
 void Waveform::CloseMediaFile()
@@ -133,26 +114,6 @@ void Waveform::UpdatePlayMarker()
     Update();
 }
 
-/*void Waveform::OnWaveScrollLeft(wxTimerEvent& event)
-{
-    if(!mIsInitialized){return;}
-    wxCommandEvent eventWaveMoved(EVT_WAVE_FORM_MOVED);
-    int offset = SetStartPixelOffset(mStartPixelOffset+25);
-    eventWaveMoved.SetInt(offset);
-    wxPostEvent(mParent, eventWaveMoved);
-    Refresh();
-}
-
-void Waveform::OnWaveScrollRight(wxTimerEvent& event)
-{
-    if(!mIsInitialized){return;}
-    wxCommandEvent eventWaveMoved(EVT_WAVE_FORM_MOVED);
-    int offset = SetStartPixelOffset(mStartPixelOffset-25);
-    eventWaveMoved.SetInt(offset);
-    wxPostEvent(mParent, eventWaveMoved);
-    Refresh();
-}
-*/
 void Waveform::CheckNeedToScroll()
 {
     double StartTime;
@@ -166,16 +127,6 @@ void Waveform::CheckNeedToScroll()
     }
 }
 
-/*void Waveform::mouseLeftWindow( wxMouseEvent& event)
-{
-    if (mIsInitialized)
-    {
-        m_dragging = false;
-        if(m_scrolling)
-            StopScrolling();
-    }
-}
-*/
 void Waveform::mouseLeftDown( wxMouseEvent& event)
 {
     if(!mIsInitialized){return;}
@@ -210,19 +161,6 @@ void Waveform::mouseMoved( wxMouseEvent& event)
         mTimeline->SetSelectedPositionEnd(event.GetX());
         Refresh(false);
     }
-
-    /*if(event.GetPosition().x > getWidth()-WAVEFORM_SIDE_MARGIN)
-    {
-        ScrollWaveLeft(event.GetPosition().x-(getWidth()-WAVEFORM_SIDE_MARGIN));
-    }
-    else if (event.GetPosition().x < WAVEFORM_SIDE_MARGIN)
-    {
-        ScrollWaveRight(WAVEFORM_SIDE_MARGIN - event.GetPosition().x);
-    }
-    else
-    {
-       StopScrolling();
-    }*/
 }
 
 void Waveform::mouseWheelMoved(wxMouseEvent& event)
@@ -249,34 +187,6 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
         event.Skip();
     }
 }
-
-/*void Waveform::StopScrolling()
-{
-    m_scrolling=false;
-    tmrScrollLeft->Stop();
-    tmrScrollRight->Stop();
-}
-
-void Waveform::ScrollWaveLeft(int xBasedSpeed)
-{
-    if(!mIsInitialized){return;}
-
-    m_scrolling = true;
-    if(tmrScrollLeft->IsRunning())
-        tmrScrollLeft->Stop();
-    tmrScrollLeft->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
-}
-
-void Waveform::ScrollWaveRight(int xBasedSpeed)
-{
-    if(!mIsInitialized){return;}
-
-    m_scrolling = true;
-    if(tmrScrollRight->IsRunning())
-        tmrScrollRight->Stop();
-    tmrScrollRight->Start(WAVEFORM_SIDE_MARGIN-xBasedSpeed);
-}
-*/
 
 void Waveform::cleanup(mpg123_handle *mh)
 {
@@ -351,7 +261,6 @@ int Waveform::OpenfileMediaFile(const char* filename)
     WaveView wv(mZoomLevel,samplesPerLine,m_left_data,mMediaTrackSize);
     views.push_back(wv);
     mCurrentWaveView = 0;
-    mIsInitialized = true;
 
     mpg123_close(mh);
     mpg123_delete(mh);
@@ -455,151 +364,59 @@ int Waveform::GetTrackSize(mpg123_handle *mh,int bits, int channels)
     return trackSize;
 }
 
-void Waveform::render( wxPaintEvent& event )
+void Waveform::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen() || !mIsInitialized) return;
-
-    wxPaintDC dc(this);
-    if (mCurrentWaveView != NO_WAVE_VIEW_SELECTED) {
-        DrawWaveView(views[mCurrentWaveView], dc);
-    }
+    if(!IsShownOnScreen()) return;
+    SetCurrentGLContext();
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
+    glDisable(GL_TEXTURE_2D);   // textures
+    glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    glLoadIdentity();
+    mIsInitialized = true;
+    SetZoomLevel(mZoomLevel);
 }
 
 void Waveform::renderGL( wxPaintEvent& event )
 {
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+
     if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
 
-    // This is required even though dc is not used otherwise.
-    wxPaintDC dc(this);
-
-    // Set the OpenGL viewport according to the client size of this canvas.
-    // This is done here rather than in a wxSizeEvent handler because our
-    // OpenGL rendering context (and thus viewport setting) is used with
-    // multiple canvases: If we updated the viewport in the wxSizeEvent
-    // handler, changing the size of one canvas causes a viewport setting that
-    // is wrong when next another canvas is repainted.
-    const wxSize ClientSize = GetClientSize();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //prepare2DViewport(0,0,getWidth(), getHeight());
-    prepare2DViewport(0,0,ClientSize.x, ClientSize.y);
-    glLoadIdentity();
-    if(mIsInitialized && mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
+
+    if( mWindowResized )
     {
-        DrawWaveViewGL(views[mCurrentWaveView]); // continue the event
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
+    if(mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
+    {
+        DrawWaveView(views[mCurrentWaveView]);
+    }
+
     glFlush();
     SwapBuffers();
-    wxLogDebug("Waveform::render");
 }
 
-void Waveform::DrawWaveView(const WaveView &wv, wxDC &dc)
-{
-    wxCoord w,h;
-    int y1,y2,y1_2,y2_2;
-    int index;
-
-    const wxPen* pen_black = wxBLACK_PEN;
-    const wxPen* pen_white = wxWHITE_PEN;
-    const wxPen* pen_transparent = wxTRANSPARENT_PEN;
-    dc.GetSize(&w,&h);
-    wxBrush brush(wxColor(212,208,200),wxBRUSHSTYLE_SOLID);
-    wxBrush brush_range(wxColor(187, 173,193),wxBRUSHSTYLE_SOLID);
-    dc.SetBrush(brush);
-
-    int max_wave_ht = h - VERTICAL_PADDING;
-
-    // Draw Outside rectangle
-    dc.SetPen(*pen_black);
-    dc.DrawRectangle(0,0,w,h);
-
-    // Get selection positions from timeline
-    int selected_x1 = mTimeline->GetSelectedPositionStart();
-    int selected_x2 = mTimeline->GetSelectedPositionEnd();
-
-    // draw shaded region if needed
-    if( selected_x1 != -1 && selected_x2 != -1)
-    {
-        dc.SetPen(*pen_transparent);
-        dc.SetBrush(brush_range);
-        dc.DrawRectangle(selected_x1,1,selected_x2-selected_x1,h-2);
-    }
-
-    wxPen pen_wave(wxColor(130,178,207));
-    dc.SetPen(pen_wave);
-    for (int x=0;x<getWidth() && (x)<wv.MinMaxs.size();x++)
-    {
-        index = x+mStartPixelOffset;
-        if (index >= 0 && index < wv.MinMaxs.size())
-        {
-            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (h/2));
-            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (h/2));
-
-            if(y1 == y2)
-            {
-                glColor3ub(130,178,207);
-                dc.DrawPoint(x,y1);
-            }
-            else
-            {
-                dc.DrawLine(x, y1, x, y2);
-            }
-
-        }
-    }
-
-    dc.SetPen(*pen_white);
-    for(int x=0;x<getWidth()-1 && (x)<wv.MinMaxs.size();x++)
-    {
-        index = x + mStartPixelOffset;
-        if (index >= 0 && index < wv.MinMaxs.size())
-        {
-            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (h/2));
-            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (h/2));
-            if(y1 != y2)
-            {
-                if(x<wv.MinMaxs.size()-1)
-                {
-                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (h/2));
-                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (h/2));
-                    dc.DrawLine(x, y1, x+1, y1_2);
-                    dc.DrawLine(x, y2, x+1, y2_2);
-                }
-            }
-        }
-    }
-
-    // draw selection line if not a range
-    if( selected_x1 != -1 && selected_x2 == -1 )
-    {
-        dc.SetPen(*pen_black);
-        dc.DrawLine(selected_x1, 1, selected_x1, h-1);
-    }
-
-    // draw play marker line
-    int play_marker = mTimeline->GetPlayMarker();
-    if( play_marker != -1 )
-    {
-        dc.SetPen(*pen_black);
-        dc.DrawLine(play_marker, 1, play_marker, h-1);
-    }
-}
-
-void Waveform::DrawWaveViewGL(const WaveView &wv)
+void Waveform::DrawWaveView(const WaveView &wv)
 {
     int y1,y2,y1_2,y2_2;
     int index;
     glColor3ub(212,208,200);
     glBegin(GL_QUADS);
     glVertex2f(0, 0);
-    glVertex2f(getWidth(), 0);
-    glVertex2f(getWidth(), getHeight());
-    glVertex2f(0,getHeight());
+    glVertex2f(mWindowWidth, 0);
+    glVertex2f(mWindowWidth, mWindowHeight);
+    glVertex2f(0,mWindowHeight);
     glEnd();
 
-    int max_wave_ht = getHeight() - VERTICAL_PADDING;
+    int max_wave_ht = mWindowHeight - VERTICAL_PADDING;
 
 
     // Draw Outside rectangle
@@ -607,12 +424,12 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
     glColor3ub(128,128,128);
     glBegin(GL_LINES);
     glVertex2f(1, 0);
-    glVertex2f(getWidth(), 1);
-    glVertex2f(getWidth(), 1);
-    glVertex2f(getWidth(), getHeight());
-    glVertex2f(getWidth(), getHeight());
-    glVertex2f(1,getHeight());
-    glVertex2f(1,getHeight());
+    glVertex2f(mWindowWidth, 1);
+    glVertex2f(mWindowWidth, 1);
+    glVertex2f(mWindowWidth, mWindowHeight);
+    glVertex2f(mWindowWidth, mWindowHeight);
+    glVertex2f(1,mWindowHeight);
+    glVertex2f(1,mWindowHeight);
     glVertex2f(1, 0);
     glEnd();
 
@@ -628,19 +445,19 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
         glBegin(GL_QUADS);
         glVertex2f(selected_x1, 1);
         glVertex2f(selected_x2, 1);
-        glVertex2f(selected_x2, getHeight()-1);
-        glVertex2f(selected_x1,getHeight()-1);
+        glVertex2f(selected_x2, mWindowHeight-1);
+        glVertex2f(selected_x1,mWindowHeight-1);
         glEnd();
         glDisable(GL_BLEND);
     }
 
-    for (int x=0;x<getWidth() && (x)<wv.MinMaxs.size();x++)
+    for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
     {
         index = x+mStartPixelOffset;
         if (index >= 0 && index < wv.MinMaxs.size())
         {
-            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (getHeight()/2));
-            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (getHeight()/2));
+            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
 
             if(y1 == y2)
             {
@@ -665,19 +482,19 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
     glBegin(GL_LINES);
     glPointSize( 2 );
     glColor3ub(255,255,255);
-    for(int x=0;x<getWidth()-1 && (x)<wv.MinMaxs.size();x++)
+    for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
     {
         index = x + mStartPixelOffset ;
         if (index >= 0 && index < wv.MinMaxs.size())
         {
-            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (getHeight()/2));
-            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (getHeight()/2));
+            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
             if(y1 != y2)
             {
                 if(x<wv.MinMaxs.size()-1)
                 {
-                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (getHeight()/2));
-                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (getHeight()/2));
+                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
                     glVertex2f(x, y1);
                     glVertex2f(x+1, y1_2);
 
@@ -695,7 +512,7 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
         glColor4ub(0,0,0,128);
         glBegin(GL_LINES);
         glVertex2f(selected_x1, 1);
-        glVertex2f(selected_x1,getHeight()-1);
+        glVertex2f(selected_x1,mWindowHeight-1);
         glEnd();
     }
 
@@ -706,51 +523,18 @@ void Waveform::DrawWaveViewGL(const WaveView &wv)
         glColor4ub(0,0,0,255);
         glBegin(GL_LINES);
         glVertex2f(play_marker, 1);
-        glVertex2f(play_marker,getHeight()-1);
+        glVertex2f(play_marker,mWindowHeight-1);
         glEnd();
     }
-
-}
-
-void Waveform::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
-{
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    // Rotate Axis and tranlate
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glRotatef(180,0,0,1);
-    glRotatef(180,0,1,0);
-    glTranslatef(0,-getHeight(),0);
-    // Set view port
-    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1.0, 1.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-}
-
-int Waveform::getWidth()
-{
-    return GetSize().x;
-}
-
-int Waveform::getHeight()
-{
-    return GetSize().y;
 }
 
 void Waveform::SetZoomLevel(int level)
 {
+    mZoomLevel = level;
+
     if(!mIsInitialized){return;}
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-    mZoomLevel = level;
     for(int i=0;i<views.size();i++)
     {
         if(views[i].GetZoomLevel() == mZoomLevel)

@@ -16,7 +16,6 @@ EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 EVT_LEFT_UP(ModelPreview::mouseLeftUp)
 EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
 EVT_RIGHT_DOWN(ModelPreview::rightClick)
-//EVT_SIZE(ModelPreview::resized)
 //EVT_KEY_DOWN(ModelPreview::keyPressed)
 //EVT_KEY_UP(ModelPreview::keyReleased)
 //EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
@@ -57,16 +56,6 @@ void ModelPreview::render( wxPaintEvent& event )
     }
 }
 
-void ModelPreview::resized(wxSizeEvent& event)
-{
-    if (mIsInitialized)
-    {
-        event.ResumePropagation(1);
-        event.Skip (); // continue the event
-    }
-}
-
-
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 //void ModelPreview::rightClick(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
@@ -80,26 +69,6 @@ ModelPreview::ModelPreview(wxPanel* parent) :
 
 ModelPreview::~ModelPreview()
 {
-}
-
-void ModelPreview::ClearBackground()
-{
-    SetCurrentGLContext();
-    wxClientDC dc(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    SwapBuffers();
-    return;
-}
-
-int ModelPreview::getWidth()
-{
-    return GetSize().x;
-}
-
-int ModelPreview::getHeight()
-{
-    return GetSize().y;
 }
 
 void ModelPreview::SetCanvasSize(int width,int height)
@@ -118,36 +87,27 @@ void ModelPreview::InitializePreview(wxString img,int brightness)
     mBackgroundImage = img;
     mBackgroundImageExists = wxFileExists(mBackgroundImage)?true:false;
     mBackgroundBrightness = brightness;
-    //SetCurrentGLContext();
-    //wxClientDC dc(this);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //prepare2DViewport(0,0,getWidth(), getHeight());
-    //glLoadIdentity();
 }
 
-/** Inits the OpenGL viewport for drawing in 2D. */
-void ModelPreview::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
+void ModelPreview::InitializeGLCanvas()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if(!IsShownOnScreen()) return;
+    SetCurrentGLContext();
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
     // Rotate Axis and tranlate
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     glRotatef(180,0,0,1);
     glRotatef(180,0,1,0);
     glTranslatef(0,-getHeight(),0);
-    // Set view port
-    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
+    mIsInitialized = true;
 }
-
 
 void ModelPreview::SetOrigin()
 {
@@ -178,6 +138,7 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
     if( !IsShownOnScreen() ) return false;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
@@ -185,7 +146,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     wxClientDC dc(this);
     glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    prepare2DViewport(0,0,getWidth(), getHeight());
+    if( mWindowResized )
+    {
+        prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+    }
     if(mBackgroundImageExists)
     {
         if (image == NULL)

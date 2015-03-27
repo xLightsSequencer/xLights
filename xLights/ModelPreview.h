@@ -18,10 +18,6 @@ public:
 	virtual ~ModelPreview();
 
     // Public Methods
-	void resized(wxSizeEvent& event);
-	int getWidth();
-	int getHeight();
-	void ClearBackground();
 	void InitializePreview(wxString img,int brightness);
     bool StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
@@ -30,10 +26,12 @@ public:
 	void SetbackgroundImage(wxString image);
 	void SetBackgroundBrightness(int brightness);
 
+protected:
+    virtual void InitializeGLCanvas();
+
 private:
 	void render(wxPaintEvent& event);
 	void SetOrigin();
-    void prepare2DViewport(int x, int y, int w, int h);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseLeftDown(wxMouseEvent& event);
 	void mouseLeftUp(wxMouseEvent& event);
@@ -45,7 +43,6 @@ private:
 	void keyReleased(wxKeyEvent& event);
 
     bool mIsDrawing = false;
-    bool mIsInitialized = false;
     bool mBackgroundImageExists = false;
     wxString mBackgroundImage;
     int  mBackgroundBrightness=100;

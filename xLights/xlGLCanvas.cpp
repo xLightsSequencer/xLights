@@ -111,18 +111,29 @@ public:
 };
 #endif
 
+#ifdef __WXMSW__
+BEGIN_EVENT_TABLE(xlGLCanvas, wxWindow)
+#else
+BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
+#endif // __WXMSW__
+EVT_SIZE(xlGLCanvas::Resized)
+END_EVENT_TABLE()
 
 static const int GLARGS[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                 const wxSize &size, long style, const wxString &name)
 #ifndef __WXMSW__
-    :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
+    :wxGLCanvas(parent, id, GLARGS, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS),
 #else
-    :wxWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS)
+    :   wxWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS),
 #endif
+        mWindowWidth(0),
+        mWindowHeight(0),
+        mWindowResized(false),
+        mIsInitialized(false),
+        m_context(new GL_CONTEXT_CLASS(this))
 {
-    m_context = new GL_CONTEXT_CLASS(this);
 }
 
 xlGLCanvas::~xlGLCanvas()
@@ -139,5 +150,24 @@ bool xlGLCanvas::SwapBuffers() {
     m_context->SwapBuffers();
 }
 #endif
+
+void xlGLCanvas::Resized(wxSizeEvent& evt)
+{
+    mWindowWidth = evt.GetSize().GetWidth();
+    mWindowHeight = evt.GetSize().GetHeight();
+    mWindowResized = true;
+}
+
+// Inits the OpenGL viewport for drawing in 2D.
+void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y)
+{
+    glViewport(topleft_x, topleft_y, bottomrigth_x-topleft_x, bottomrigth_y-topleft_y);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glOrtho(topleft_x, bottomrigth_x, bottomrigth_y, topleft_y, 0, 1);
+    glMatrixMode(GL_MODELVIEW);
+    mWindowResized = false;
+}
 
 

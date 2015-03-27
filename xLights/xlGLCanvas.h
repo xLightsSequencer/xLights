@@ -25,10 +25,24 @@ class xlGLCanvas
 
         void SetCurrentGLContext();
 
+        int getWidth() { return mWindowWidth; }
+        int getHeight() { return mWindowHeight; }
+
 #ifdef __WXMSW__
         bool SwapBuffers();
 #endif
     protected:
+      	DECLARE_EVENT_TABLE()
+
+        int mWindowWidth;
+        int mWindowHeight;
+        int mWindowResized;
+        bool mIsInitialized;
+
+        virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
+        void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
+        void Resized(wxSizeEvent& evt);
+
     private:
         GL_CONTEXT_CLASS* m_context;
 };

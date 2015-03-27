@@ -55,6 +55,8 @@ class Waveform : public xlGLCanvas
 
 
     protected:
+        virtual void InitializeGLCanvas();
+
     private:
       	DECLARE_EVENT_TABLE()
         void LoadTrackData(mpg123_handle *mh,char  * data, int maxSize);
@@ -74,16 +76,10 @@ class Waveform : public xlGLCanvas
         int m_bits;
         int m_rate;
         int m_channels;
-        bool mIsInitialized;
         bool mPointSize;
         bool m_dragging;
-        //bool m_scrolling;
-        //bool m_scroll_speed;
-        wxTimer* tmrScrollLeft;
-        wxTimer* tmrScrollRight;
         float* m_left_data;
         float* m_right_data;
-        int mSelectedPosition;
         int mPaintOnIdleCounter;
 
         class WaveView
@@ -156,29 +152,18 @@ class Waveform : public xlGLCanvas
 
         };
 
-        void DrawWaveView(const WaveView &wv, wxDC& dc);
-        void DrawWaveViewGL(const WaveView &wv);
-        void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
+        void DrawWaveView(const WaveView &wv);
         void StartDrawing(wxDouble pointSize);
-        int getWidth();
-        int getHeight();
-        void render( wxPaintEvent& event );
         void renderGL( wxPaintEvent& event );
       	void mouseMoved(wxMouseEvent& event);
         void mouseWheelMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
-      	//void mouseLeftWindow( wxMouseEvent& event);
       	void OnIdle(wxIdleEvent &event);
       	void OnLeftDClick(wxMouseEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
-      	//void OnWaveScrollLeft(wxTimerEvent& event);
-      	//void OnWaveScrollRight(wxTimerEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);
         void drawString (void * font, char *s, float x, float y, float z);
-        //void ScrollWaveLeft(int xBasedSpeed);
-        //void ScrollWaveRight(int xBasedSpeed);
-        //void StopScrolling();
         std::vector<WaveView> views;
 
 
