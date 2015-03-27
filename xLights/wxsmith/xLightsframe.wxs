@@ -191,13 +191,6 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM10" variable="AuiToolBarItem9" member="yes">
-							<bitmap code="eye_open_24_xpm" />
-							<shorthelp>Search</shorthelp>
-						</object>
-						<label>Item label</label>
-					</object>
-					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
 							<bitmap code="zoom_in_24_xpm" />
 							<shorthelp>Zoom In</shorthelp>
@@ -217,13 +210,6 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
 							<bitmap code="settings_24_xpm" />
 							<shorthelp>Settings</shorthelp>
-						</object>
-						<label>Item label</label>
-					</object>
-					<object class="AuiToolBarItem">
-						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM11" variable="AuiToolBarItem10" member="yes">
-							<bitmap code="home_24_xpm" />
-							<shorthelp>Home</shorthelp>
 						</object>
 						<label>Item label</label>
 					</object>

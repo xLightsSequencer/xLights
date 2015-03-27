@@ -159,6 +159,7 @@
 #include "../include/effects.xpm"
 #include "../include/colors.xpm"
 #include "../include/layers.xpm"
+#include "../include/model_preview_24.xpm"
 
 #ifndef __WXOSX__
 #include "../include/green-gear-24.xpm"
@@ -692,11 +693,9 @@ private:
     static const long ID_AUITOOLBARITEM5;
     static const long ID_AUITOOLBARITEM3;
     static const long ID_AUIWINDOWTOOLBAR;
-    static const long ID_AUITOOLBARITEM10;
     static const long ID_AUITOOLBARITEM_ZOOM_IN;
     static const long ID_AUITOOLBARITEM_ZOOM_OUT;
     static const long ID_AUITOOLBARITEM14;
-    static const long ID_AUITOOLBARITEM11;
     static const long ID_AUITOOLBAR_VIEW;
     static const long ID_BITMAPBUTTON_TAB_INFO;
     static const long ID_BUTTON_STOP_NOW;
