@@ -1435,47 +1435,36 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
 
-    // avoid performing StrobeRate test in inner loop for performance reasons
-    if (StrobeRate==0) {
-        // no strobing
-        for(size_t n=0; n<NodeCount; n++) {
-            if (c == NULL) {
-                Nodes[n]->GetColor(color);
-            }
-            size_t CoordCount=GetCoordCount(n);
-            for(size_t c=0; c < CoordCount; c++) {
-                // draw node on screen
-                sx=Nodes[n]->Coords[c].screenX;;
-                sy=Nodes[n]->Coords[c].screenY;
-                sx = (sx*scale)+w1;
-                sy = (sy*scale)+h1;
-                DrawGLUtils::DrawPoint(color,sx,sy);
-            }
-        }
-    } else {
-        // flash individual nodes according to StrobeRate
-        for(size_t n=0; n<NodeCount; n++) {
-            if (c == NULL) {
-                Nodes[n]->GetColor(color);
-            }
-            bool CanFlash = color.GetRGB() ==  0x00ffffff;
-            size_t CoordCount=GetCoordCount(n);
-            for(size_t c=0; c < CoordCount; c++) {
-                xlColor c2(0, 0, 0);
-                // draw node on screen
-                if (CanFlash && rand() % StrobeRate == 0) {
-                    c2 = color;
-                }
+    bool started = false;
+    xlColor lastColor;
 
-                sx=Nodes[n]->Coords[c].screenX;
-                sy=Nodes[n]->Coords[c].screenY;
-                sx = (sx*scale)+w1;
-                sy = (sy*scale)+h1;
-                DrawGLUtils::DrawPoint(color,sx,sy);
+    for(size_t n=0; n<NodeCount; n++) {
+        if (c == NULL) {
+            Nodes[n]->GetColor(color);
+        }
+        if (!started || lastColor != color) {
+            if (started) {
+                DrawGLUtils::EndPoints();
             }
+            DrawGLUtils::StartPoints(color);
+            started = true;
+            lastColor = color;
+        }
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c=0; c < CoordCount; c++) {
+            // draw node on screen
+            sx=Nodes[n]->Coords[c].screenX;;
+            sy=Nodes[n]->Coords[c].screenY;
+            sx = (sx*scale)+w1;
+            sy = (sy*scale)+h1;
+            DrawGLUtils::AddPoint(sx,sy);
         }
     }
-    if(Selected) {
+    if (started) {
+        DrawGLUtils::EndPoints();
+    }
+
+    if (Selected) {
         //Draw bounding rectangle
         double radians=toRadians(PreviewRotation);
         // Upper Left Handle
@@ -1552,8 +1541,18 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
         // layer calculation and map to output
         size_t NodeCount=Nodes.size();
         double sx,sy;
+        xlColor lastColor;
+        bool started = false;
         for(size_t n=0; n<NodeCount; n++) {
             Nodes[n]->GetColor(color);
+            if (!started || lastColor != color) {
+                if (started) {
+                    DrawGLUtils::EndPoints();
+                }
+                DrawGLUtils::StartPoints(color);
+                started = true;
+                lastColor = color;
+            }
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 // draw node on screen
@@ -1561,8 +1560,11 @@ void ModelClass::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) 
                 sy=Nodes[n]->Coords[c].screenY;
                 
                 double newsy = ((sy*scale)+(h/2));
-                DrawGLUtils::DrawPoint(color, (sx*scale)+(w/2), newsy);
+                DrawGLUtils::AddPoint((sx*scale)+(w/2), newsy);
             }
+        }
+        if (started) {
+            DrawGLUtils::EndPoints();
         }
         preview->EndDrawing();
     }

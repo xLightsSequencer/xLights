@@ -10,6 +10,19 @@
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 
+void DrawGLUtils::StartPoints(const xlColor &color) {
+    glColor3ub(color.Red(), color.Green(),color.Blue());
+    glBegin(GL_POINTS);
+}
+void DrawGLUtils::AddPoint(wxDouble x, wxDouble y) {
+    glVertex2f(x, y);
+}
+void DrawGLUtils::EndPoints() {
+    glEnd();
+}
+
+
+
 void DrawGLUtils::DrawPoint(const xlColor &color, wxDouble x, wxDouble y)
 {
     glColor3ub(color.Red(), color.Green(),color.Blue());
