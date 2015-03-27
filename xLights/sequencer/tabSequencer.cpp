@@ -627,6 +627,9 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
         mainSequencer->UpdateTimeDisplay(playStartTime);
     }
     playType = PLAY_TYPE_STOPPED;
+    if( CheckBoxLightOutput->IsChecked() && xout ) {
+        xout->alloff();
+    }
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PLAY_NOW,true);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_STOP,false);
     EnableToolbarButton(PlayToolBar,ID_AUITOOLBAR_PAUSE,false);
