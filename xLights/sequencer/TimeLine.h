@@ -29,8 +29,7 @@ class TimeLine : public wxWindow
                        long style=0, const wxString &name=wxPanelNameStr);
         virtual ~TimeLine();
         void Initialize();
-        void SetCanvasSize(int width,int height);
-
+        
         void SetStartTimeMS(int time);
         float GetStartTimeMS();
 

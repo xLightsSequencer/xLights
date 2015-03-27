@@ -22,7 +22,6 @@
 #include "../DrawGLUtils.h"
 
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
-EVT_IDLE(EffectsGrid::OnIdle)
 EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
 EVT_LEFT_DOWN(EffectsGrid::mouseDown)
@@ -57,7 +56,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mTimingVerticalLine = new xlColor(130,178,207);
     mSelectionColor = new xlColor(255,0,255);
 
-    mPaintOnIdleCounter=0;
     SetDropTarget(new EffectDropTarget((wxWindow*)this,true));
     playArgs = new EventPlayEffectArgs();
     mSequenceElements = NULL;
@@ -114,7 +112,6 @@ void EffectsGrid::DragOver(int x, int y)
         mDragDropping = false;
     }
     Refresh(false);
-    mPaintOnIdleCounter=0;
 }
 
 void EffectsGrid::OnDrop(int x, int y)
@@ -194,7 +191,6 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mEffectLayer = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
         Element* element = mSequenceElements->GetRowInformation(row)->element;
         mSelectedRow = row;
-        mPaintOnIdleCounter = 0;
 
         if(mSelectedRow!=row || selectedEffect!=mSelectedEffect)
         {
@@ -266,7 +262,6 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
     mResizing = false;
     mDragDropping = false;
-    mPaintOnIdleCounter = 0;
 }
 
 void EffectsGrid::Resize(int position)
@@ -378,7 +373,6 @@ void EffectsGrid::ResizeSingleEffect(int position)
         }
     }
     Refresh(false);
-    mPaintOnIdleCounter=0;
     // Move time line and waveform to new position
     int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
     UpdateTimePosition(selected_time);
@@ -442,37 +436,15 @@ void EffectsGrid::CheckForSelectionRectangle()
     }
 }
 
-void EffectsGrid::OnIdle(wxIdleEvent &event)
-{
-    // This is a hack to get the grid to repaint after row header
-    // information has changed. The counter prevents grid from
-    // continuously repainting during idle causing excessive
-    // cpu usage. It will only repaint on idle for 25 times
-    // mPaintOnIdleCounter is reset to "0".
-    if(mPaintOnIdleCounter <5)
-    {
-        Refresh(false);
-        mPaintOnIdleCounter++;
-}
-}
-
 void EffectsGrid::ForceRefresh()
 {
-    mPaintOnIdleCounter=0;
+    Refresh();
 }
 
 
 void EffectsGrid::SetTimeline(TimeLine* timeline)
 {
         mTimeline = timeline;
-}
-
-void EffectsGrid::SetCanvasSize(int w, int h)
-{
-    SetSize(wxSize(w,h));
-    SetMaxSize(wxSize(w,h));
-    SetMinSize(wxSize(w,h));
-    mPaintOnIdleCounter= 0;
 }
 
 void EffectsGrid::SetSequenceElements(SequenceElements* elements)

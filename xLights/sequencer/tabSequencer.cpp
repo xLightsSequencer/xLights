@@ -220,6 +220,7 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
     mSequenceElements.SetViewsNode(ViewsNode); // This must come first before LoadSequencerFile.
     mSequenceElements.LoadSequencerFile(xml_file);
+    mSequenceElements.PopulateRowInformation();
 
     CheckForValidModels();
 
@@ -396,7 +397,7 @@ void xLightsFrame::ResizeMainSequencer()
 
     // Set max rows to determine correct row information size
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
-
+    mSequenceElements.PopulateVisibleRowInformation();
 
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelTimeLine->Refresh();

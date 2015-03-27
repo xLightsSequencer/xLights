@@ -46,7 +46,6 @@ public:
 	virtual ~EffectsGrid();
 
     // Public Methods
-    void SetCanvasSize(int w, int h);
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
     void SetTimeline(TimeLine* timeline);
@@ -68,7 +67,6 @@ private:
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
-	void OnIdle(wxIdleEvent &event);
 	void Draw();
 
     void DrawEffectIcon(GLuint* texture,int x, int y);
@@ -122,7 +120,6 @@ private:
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
-    int mPaintOnIdleCounter;
 
     // Drag And Drop
     bool mDragDropping;

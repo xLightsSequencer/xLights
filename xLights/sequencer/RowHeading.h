@@ -24,8 +24,6 @@ class RowHeading : public wxWindow
                        long style=0, const wxString &name=wxPanelNameStr);
         virtual ~RowHeading();
 
-        void SetCanvasSize(int width,int height);
-
         void SetSequenceElements(SequenceElements* elements);
         static const xlColor* GetTimingColor(int index);
         int getWidth();

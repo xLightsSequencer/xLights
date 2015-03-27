@@ -228,16 +228,6 @@ bool RowHeading::HitTestTimingActive(int row,int x, bool* IsActive)
     }
 }
 
-void RowHeading::SetCanvasSize(int width,int height)
-{
-    SetSize(width,height);
-    wxSize s;
-    s.SetWidth(width);
-    s.SetHeight(height);
-    SetMaxSize(s);
-    SetMinSize(s);
-}
-
 int RowHeading::GetMaxRows()
 {
     int max = (int)(getHeight()/DEFAULT_ROW_HEADING_HEIGHT);

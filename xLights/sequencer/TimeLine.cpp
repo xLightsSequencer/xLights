@@ -534,17 +534,6 @@ void TimeLine::MoveToRight(int numberOfPixels)
 
 }
 
-
-void TimeLine::SetCanvasSize(int width,int height)
-{
-    SetSize(width,height);
-    wxSize s;
-    s.SetWidth(width);
-    s.SetHeight(height);
-    SetMaxSize(s);
-    SetMinSize(s);
-}
-
 void TimeLine::Initialize()
 {
     mIsInitialized = true;

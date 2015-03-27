@@ -34,7 +34,6 @@ void SequenceElements::Clear() {
     
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
-    mMaxRowsDisplayed = 0;
     mFirstVisibleModelRow = 0;
 }
 
