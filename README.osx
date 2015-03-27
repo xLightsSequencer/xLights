@@ -45,11 +45,8 @@ However, I followed the method used for Linux from inside a Terminal window:
     NOTE: If running on OS X Yosemite, the Font dialog for the Text effect will 
        crash if build with wxWidgets 3.0.2.  You need to checkout the latest
        wsWdigets code:
-     svn co https://svn.wxwidgets.org/svn/wx/wxWidgets/branches/WX_3_0_BRANCH wxWidgets
+     git clone -b WX_3_0_BRANCH https://github.com/wxWidgets/wxWidgets
        to get the latest fixes for the Font selection to work.
-
-    NOTE: If using OS X Yosemite, you will need to edit webview_webkit.mm
-       to change “#include <WebKit/WebKit.h>” to “#include <WebKit/WebKitLegacy.h>”
 
   cd <wxMac base dir>
   export CXXFLAGS="-stdlib=libc++ -std=c++11" 
