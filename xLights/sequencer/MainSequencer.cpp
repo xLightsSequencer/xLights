@@ -391,10 +391,13 @@ void MainSequencer::SplitTimingMark()
                 double t1 = PanelTimeLine->GetAbsoluteTimefromPosition(x1);
                 double t2 = PanelTimeLine->GetAbsoluteTimefromPosition(x2);
                 double old_end_time = eff1->GetEndTime();
-                eff1->SetEndTime(t1);
-                wxString name,settings;
-                el->AddEffect(0,0,name,settings,"",t2,old_end_time,false,false);
-                PanelEffectGrid->ForceRefresh();
+                if( x1 != x2 || ((x1 == x2) && t1 != eff1->GetStartTime() && t1 != eff1->GetEndTime()) )
+                {
+                    eff1->SetEndTime(t1);
+                    wxString name,settings;
+                    el->AddEffect(0,0,name,settings,"",t2,old_end_time,false,false);
+                    PanelEffectGrid->ForceRefresh();
+                }
             }
             else
             {
