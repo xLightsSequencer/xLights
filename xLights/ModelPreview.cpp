@@ -81,8 +81,12 @@ void ModelPreview::SetCanvasSize(int width,int height)
     s.SetHeight(height);
     SetMaxSize(s);
     SetMinSize(s);
+    SetVirtualCanvasSize(width, height);
 }
-
+void ModelPreview::SetVirtualCanvasSize(int width, int height) {
+    virtualWidth = width;
+    virtualHeight = height;
+}
 void ModelPreview::InitializePreview(wxString img,int brightness)
 {
     image = NULL;
@@ -154,6 +158,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     glRotatef(180,0,1,0);
     glTranslatef(0,-mWindowHeight,0);
 
+
+    double scaleh= double(mWindowHeight) / double(virtualHeight);
+    double scalew = double(mWindowWidth) / double(virtualWidth);
+    glScalef(scalew, scaleh, 1.0);
     if(mBackgroundImageExists)
     {
         if (image == NULL)

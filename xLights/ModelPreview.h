@@ -23,6 +23,10 @@ public:
     void SetPointSize(wxDouble pointSize);
     void EndDrawing();
 	void SetCanvasSize(int width,int height);
+    void SetVirtualCanvasSize(int width, int height);
+    void GetVirtualCanvasSize(int &w, int& h) {
+        w = virtualWidth; h = virtualHeight;
+    }
 	void SetbackgroundImage(wxString image);
 	void SetBackgroundBrightness(int brightness);
 
@@ -47,6 +51,7 @@ private:
     wxString mBackgroundImage;
     int  mBackgroundBrightness=100;
     wxDouble mPointSize = 2.0;
+    int virtualWidth, virtualHeight;
 
     Image* image = NULL;
     xLightsDrawable* sprite;

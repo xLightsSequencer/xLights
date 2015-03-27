@@ -2730,6 +2730,7 @@ void xLightsFrame::SetPreviewSize(int width,int height)
     SetXmlSetting("previewHeight",wxString::Format("%d",height));
     SaveEffectsFile();
     modelPreview->SetCanvasSize(width,height);
+    sPreview2->SetVirtualCanvasSize(width, height);
 }
 void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& value)
 {

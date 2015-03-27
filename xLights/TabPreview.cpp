@@ -1008,6 +1008,7 @@ void xLightsFrame::OnButtonSetBackgroundImageClick(wxCommandEvent& event)
         mBackgroundImage = filename;
         SetXmlSetting("backgroundImage",mBackgroundImage);
         modelPreview->SetbackgroundImage(mBackgroundImage);
+        sPreview2->SetbackgroundImage(mBackgroundImage);
         SaveEffectsFile();
         UpdatePreview();
     }
@@ -1018,6 +1019,7 @@ void xLightsFrame::OnSlider_BackgroundBrightnessCmdSliderUpdated(wxScrollEvent& 
     mBackgroundBrightness = Slider_BackgroundBrightness->GetValue();
     SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
     modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
+    sPreview2->SetBackgroundBrightness(mBackgroundBrightness);
     SaveEffectsFile();
     UpdatePreview();
 }

@@ -107,6 +107,7 @@ void xLightsFrame::InitSequencer()
     mSequencerInitialize = true;
     CheckForAndCreateDefaultPerpective();
     perspectivePanel->SetPerspectives(PerspectivesNode);
+    sPreview2->InitializePreview(mBackgroundImage,mBackgroundBrightness);
 }
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
@@ -854,7 +855,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
                 int start = PreviewModels[m]->NodeStartChannel(n);
                 PreviewModels[m]->SetNodeChannelValues(n, &SeqData[frame][start]);
             }
-            PreviewModels[m]->DisplayModelOnWindow(modelPreview);
+            PreviewModels[m]->DisplayModelOnWindow(sPreview2);
         }
         sPreview2->EndDrawing();
     }

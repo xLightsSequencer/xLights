@@ -1428,10 +1428,20 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         color = *c;
     }
     int w, h;
-    preview->GetSize(&w, &h);
-
-    double scale=RenderHt > RenderWi ? double(h) / RenderHt * PreviewScale : double(w) / RenderWi * PreviewScale;
-
+    //int vw, vh;
+    //preview->GetSize(&w, &h);
+    preview->GetVirtualCanvasSize(w, h);
+    
+    double scalex=double(w) / RenderWi * PreviewScale;
+    double scaley=double(h) / RenderHt * PreviewScale;
+    if (RenderHt > RenderWi) {
+        scalex = scaley;
+    } else {
+        scaley = scalex;
+    }
+    //scalex = scalex * double(w)/double(vw);
+    //scaley = scaley * double(h)/double(vh);
+    
     int w1 = int(offsetXpct*w);
     int h1 = int(offsetYpct*h);
 
@@ -1455,8 +1465,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
             // draw node on screen
             sx=Nodes[n]->Coords[c].screenX;;
             sy=Nodes[n]->Coords[c].screenY;
-            sx = (sx*scale)+w1;
-            sy = (sy*scale)+h1;
+            sx = (sx*scalex)+w1;
+            sy = (sy*scaley)+h1;
             DrawGLUtils::AddPoint(sx,sy);
         }
     }
@@ -1464,12 +1474,12 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         DrawGLUtils::EndPoints();
     }
 
-    if (Selected) {
+    if (Selected && c != NULL) {
         //Draw bounding rectangle
         double radians=toRadians(PreviewRotation);
         // Upper Left Handle
-        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
@@ -1477,8 +1487,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         mHandlePosition[0].x = sx;
         mHandlePosition[0].y = sy;
         // Upper Right Handle
-        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
-        sy = (RenderHt*scale/2) + BOUNDING_RECT_OFFSET;
+        sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
+        sy = (RenderHt*scaley/2) + BOUNDING_RECT_OFFSET;
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
@@ -1486,8 +1496,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         mHandlePosition[1].x = sx;
         mHandlePosition[1].y = sy;
         // Lower Right Handle
-        sx =  (RenderWi*scale/2) + BOUNDING_RECT_OFFSET;
-        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sx =  (RenderWi*scalex/2) + BOUNDING_RECT_OFFSET;
+        sy = (-RenderHt*scaley/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
@@ -1495,8 +1505,8 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         mHandlePosition[2].x = sx;
         mHandlePosition[2].y = sy;
         // Lower Left Handle
-        sx =  (-RenderWi*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
-        sy = (-RenderHt*scale/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sx =  (-RenderWi*scalex/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
+        sy = (-RenderHt*scaley/2) - BOUNDING_RECT_OFFSET-RECT_HANDLE_WIDTH;
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx = sx + w1;
         sy = sy + h1;
@@ -1506,7 +1516,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         
         // Draw rotation handle square
         sx = -RECT_HANDLE_WIDTH/2;
-        sy = ((RenderHt*scale/2) + 50);
+        sy = ((RenderHt*scaley/2) + 50);
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx += w1;
         sy += h1;
@@ -1516,7 +1526,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         mHandlePosition[4].y = sy;
         // Draw rotation handle from center to 25 over rendered height
         sx = 0;
-        sy = ((RenderHt*scale/2) + 50);
+        sy = ((RenderHt*scaley/2) + 50);
         TranslatePoint(radians,sx,sy,&sx,&sy);
         sx += w1;
         sy += h1;
