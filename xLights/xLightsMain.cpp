@@ -1747,7 +1747,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     CreateSequencer();
 
-    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview);
+    modelPreview = new ModelPreview( (wxPanel*) ScrolledWindowPreview, PreviewModels, true);
     BoxSizerModelsPreview->Add(modelPreview, 1, wxEXPAND);
 
     playIcon = wxBitmap(control_play_blue_icon);

@@ -270,7 +270,7 @@ void ModelClass::SetFromXml(wxXmlNode* ModelNode, bool zeroBased) {
 void ModelClass::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
     Nodes[nodenum]->GetForChannels(buf);
 }
-void ModelClass::SetNodeChannelValues(size_t nodenum, unsigned char *buf) {
+void ModelClass::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
     Nodes[nodenum]->SetFromChannels(buf);
 }
 
@@ -1419,7 +1419,7 @@ int ModelClass::CheckIfOverHandles(ModelPreview* preview, wxCoord x,wxCoord y) {
 
 // display model using colors stored in each node
 // used when preview is running
-void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) {
+void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c, bool allowSelected) {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
@@ -1474,7 +1474,7 @@ void ModelClass::DisplayModelOnWindow(ModelPreview* preview, const xlColour *c) 
         DrawGLUtils::EndPoints();
     }
 
-    if (Selected && c != NULL) {
+    if (Selected && c != NULL && allowSelected) {
         //Draw bounding rectangle
         double radians=toRadians(PreviewRotation);
         // Upper Left Handle

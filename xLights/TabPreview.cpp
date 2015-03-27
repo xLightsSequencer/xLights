@@ -80,17 +80,12 @@ void xLightsFrame::CompareMyDisplayToSeq()
 void xLightsFrame::UpdatePreview()
 {
     const xlColour *color;
-    wxString SelModelName=ListBoxElementList->GetStringSelection();
     if(!modelPreview->StartDrawing(mPointSize)) return;
     if(m_creating_bound_rect)
     {
         DrawGLUtils::DrawRectangle(xlYELLOW,true,m_bound_start_x,m_bound_start_y,m_bound_end_x,m_bound_end_y);
     }
-    for (int i=0; i<PreviewModels.size(); i++)
-    {
-        color = (PreviewModels[i]->Selected || PreviewModels[i]->GroupSelected) ? &xlYELLOW : &xlLIGHT_GREY;
-        PreviewModels[i]->DisplayModelOnWindow(modelPreview, color);
-    }
+    modelPreview->Render();
     modelPreview->EndDrawing();
 }
 
@@ -837,20 +832,9 @@ void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 
 void xLightsFrame::PreviewOutput(int period)
 {
-    size_t m, n, NodeCnt;
     TimerOutput(period);
-    modelPreview->StartDrawing(mPointSize);
-    for (m=0; m<PreviewModels.size(); m++)
-    {
-        NodeCnt=PreviewModels[m]->GetNodeCount();
-        for(n=0; n<NodeCnt; n++)
-        {
-            int start = PreviewModels[m]->NodeStartChannel(n);
-            PreviewModels[m]->SetNodeChannelValues(n, &SeqData[period][start]);
-        }
-        PreviewModels[m]->DisplayModelOnWindow(modelPreview);
-    }
-    modelPreview->EndDrawing();
+    modelPreview->Render(&SeqData[period][0]);
+
     int amtdone = period * SliderPreviewTime->GetMax() / (SeqData.NumFrames()-1);
     SliderPreviewTime->SetValue(amtdone);
 }

@@ -9,6 +9,7 @@
 #endif
 
 #include "ModelPreview.h"
+#include "ModelClass.h"
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -54,23 +55,60 @@ void ModelPreview::render( wxPaintEvent& event )
     SetCurrentGLContext();
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glFlush();
-    SwapBuffers();
+    
+    if(!StartDrawing(mPointSize)) return;
+    Render();
+    EndDrawing();
 }
+
+void ModelPreview::Render() {
+    if (PreviewModels != NULL) {
+        for (int i=0; i<PreviewModels->size(); i++) {
+            const xlColor *color = ((*PreviewModels)[i])->Selected || ((*PreviewModels)[i]->GroupSelected) ? &xlYELLOW : &xlLIGHT_GREY;
+            if (!allowSelected) {
+                color = &xlLIGHT_GREY;
+            }
+            (*PreviewModels)[i]->DisplayModelOnWindow(this, color, allowSelected);
+        }
+    }
+}
+void ModelPreview::Render(const unsigned char *data) {
+    if (StartDrawing(mPointSize)) {
+        if (PreviewModels != NULL) {
+            for (int m=0; m<PreviewModels->size(); m++) {
+                int NodeCnt=(*PreviewModels)[m]->GetNodeCount();
+                for(int n=0; n<NodeCnt; n++) {
+                    int start = (*PreviewModels)[m]->NodeStartChannel(n);
+                    (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
+                }
+                (*PreviewModels)[m]->DisplayModelOnWindow(this);
+            }
+        }
+        EndDrawing();
+    }
+}
+
+
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {}
 //void ModelPreview::rightClick(wxMouseEvent& event) {}
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent) :
-    xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &models, bool a)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
 }
-
+ModelPreview::ModelPreview(wxPanel* parent)
+: xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), PreviewModels(NULL), allowSelected(false)
+{
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    virtualWidth = 0;
+    virtualHeight = 0;
+}
 ModelPreview::~ModelPreview()
 {
 }

@@ -43,7 +43,7 @@ void xLightsFrame::CreateSequencer()
     sPreview1->SetSize(wxSize(200,200));
     m_mgr->AddPane(sPreview1,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    BestSize(wxSize(200,200)).Left());
-    sPreview2 = new ModelPreview(PanelSequencer);
+    sPreview2 = new ModelPreview(PanelSequencer, PreviewModels, false);
     sPreview2->SetSize(wxSize(200,200));
     m_mgr->AddPane(sPreview2,wxAuiPaneInfo().Name(wxT("HousePreview")).Caption(wxT("House Preview")).
                    BestSize(wxSize(200,200)).Left());
@@ -845,20 +845,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
     }
 
     playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
-    
-    if (sPreview2->StartDrawing(mPointSize)) {
-        for (int m=0; m<PreviewModels.size(); m++)
-        {
-            int NodeCnt=PreviewModels[m]->GetNodeCount();
-            for(int n=0; n<NodeCnt; n++)
-            {
-                int start = PreviewModels[m]->NodeStartChannel(n);
-                PreviewModels[m]->SetNodeChannelValues(n, &SeqData[frame][start]);
-            }
-            PreviewModels[m]->DisplayModelOnWindow(sPreview2);
-        }
-        sPreview2->EndDrawing();
-    }
+    sPreview2->Render(&SeqData[frame][0]);
 }
 
 

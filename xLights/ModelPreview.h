@@ -8,13 +8,18 @@
 #include "Image.h"
 #include "XlightsDrawable.h"
 #include "Color.h"
+#include "Color.h"
 #include "xlGLCanvas.h"
+
+class ModelClass;
+typedef std::unique_ptr<ModelClass> ModelClassPtr;
 
 class ModelPreview : public xlGLCanvas
 {
 
 public:
-	ModelPreview(wxPanel* parent);
+    ModelPreview(wxPanel* parent);
+	ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &previewModels, bool allowSelected);
 	virtual ~ModelPreview();
 
     // Public Methods
@@ -29,6 +34,9 @@ public:
     }
 	void SetbackgroundImage(wxString image);
 	void SetBackgroundBrightness(int brightness);
+    
+    void Render();
+    void Render(const unsigned char *data);
 
 protected:
     virtual void InitializeGLCanvas();
@@ -55,6 +63,8 @@ private:
 
     Image* image = NULL;
     xLightsDrawable* sprite;
+    std::vector<ModelClassPtr> *PreviewModels;
+    bool allowSelected;
 
 	DECLARE_EVENT_TABLE()
 };
