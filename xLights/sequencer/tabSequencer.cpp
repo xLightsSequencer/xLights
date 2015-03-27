@@ -617,7 +617,7 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
 
 void xLightsFrame::StopSequence(wxCommandEvent& event)
 {
-    if( playType == PLAY_TYPE_MODEL )
+    if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
     {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
             PlayerDlg->MediaCtrl->Stop();
