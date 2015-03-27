@@ -170,6 +170,14 @@
 						</object>
 						<label>Effect Layering</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="yes">
+							<bitmap code="model_preview_xpm" />
+							<shorthelp>Model Preview</shorthelp>
+							<handler function="ShowHideModelPreview" entry="EVT_TOOL" />
+						</object>
+						<label>Model Preview</label>
+					</object>
 				</object>
 				<name>Windows Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

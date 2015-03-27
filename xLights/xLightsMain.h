@@ -692,6 +692,7 @@ private:
     static const long ID_AUITOOLBARITEM2;
     static const long ID_AUITOOLBARITEM5;
     static const long ID_AUITOOLBARITEM3;
+    static const long ID_AUITOOLBARITEM1;
     static const long ID_AUIWINDOWTOOLBAR;
     static const long ID_AUITOOLBARITEM_ZOOM_IN;
     static const long ID_AUITOOLBARITEM_ZOOM_OUT;

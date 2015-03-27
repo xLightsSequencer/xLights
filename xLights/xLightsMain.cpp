@@ -104,6 +104,7 @@ const long xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM3 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
 const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_IN = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM_ZOOM_OUT = wxNewId();
@@ -569,6 +570,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM2, _("Effects"), effects_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), colors_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Colors"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Effect Layering"), layers_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Layering"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM1, _("Model Preview"), model_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     ViewToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1591,6 +1593,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBARITEM2,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_AUITOOLBARITEM5,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM3,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
+    Connect(ID_AUITOOLBARITEM1,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
