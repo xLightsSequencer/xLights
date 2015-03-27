@@ -831,19 +831,14 @@ void xLightsFrame::TimerRgbSeq(long msec)
         }
     }
 
-    bool output = CheckBoxLightOutput->IsChecked() && xout;
     int frame = curt / SeqData.FrameTime();
     //have the frame, copy from SeqData
     int nn = playBuffer.GetNodeCount();
-    size_t cn=playBuffer.ChannelsPerNode();
     for (int node = 0; node < nn; node++) {
         int start = playBuffer.NodeStartChannel(node);
         playBuffer.SetNodeChannelValues(node, &SeqData[frame][start]);
-        if (output) {
-            xout->SetIntensities(start,&SeqData[frame][start],cn);
-        }
     }
-
+    TimerOutput(frame);
     playBuffer.DisplayEffectOnWindow(sPreview1, mPointSize);
     sPreview2->Render(&SeqData[frame][0]);
 }
