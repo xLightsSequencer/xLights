@@ -68,7 +68,7 @@ void xLightsFrame::OpenSequence()
     {
         // close any open sequences
         CloseSequence();
-        
+
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
@@ -223,9 +223,9 @@ void xLightsFrame::OpenSequence()
             StatusBar1->SetStatusText(wxString::Format("Failed to load: '%s'.", filename));
             return;
         }
-        mainSequencer->PanelWaveForm->Refresh();
-        mainSequencer->PanelEffectGrid->Refresh();
-        mainSequencer->PanelEffectGrid->ForceRefresh();
+
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(this, eventForceRefresh);
 
         float elapsedTime = sw.Time()/1000.0; //msec => sec
         StatusBar1->SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));

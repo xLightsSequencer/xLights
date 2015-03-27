@@ -86,7 +86,8 @@ void SequencePreview::EndDrawing()
 
 void SequencePreview::render( wxPaintEvent& evt )
 {
-    if(mIsDrawing || !mIsInitialized) return;
+    if(mIsDrawing) return;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
     SetCurrentGLContext();
     wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
