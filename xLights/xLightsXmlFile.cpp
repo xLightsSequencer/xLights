@@ -813,6 +813,9 @@ bool xLightsXmlFile::LoadV3Sequence()
         wxXmlNode* layer1 = AddChildXmlNode(child, "EffectLayer");
         wxXmlNode* layer2 = AddChildXmlNode(child, "EffectLayer");
 
+        timing[num_effects-1].ToDouble(&time1);
+        time1 += 0.05;
+        last_time = string_format("%.3f", time1);
         for(int j = 0; j < num_effects; ++j)
         {
             int next_effect = i+(j*models.GetCount());
@@ -855,17 +858,11 @@ bool xLightsXmlFile::LoadV3Sequence()
                 wxString data2 = SubstituteV3toV4tags(prefix + eff2);
                 data1 = AdjustV3Effect(effect1, data1);
                 data2 = AdjustV3Effect(effect2, data2);
-                wxString end_time = (j+1<num_effects) ? timing[j+1] : GetSequenceDurationString();
+
+                wxString end_time = (j+1<num_effects) ? timing[j+1] : last_time;
 
                 AddEffect( layer1, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
                 AddEffect( layer2, effect2, data2, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
-
-                end_time.ToDouble(&time1);
-                last_time.ToDouble(&time2);
-                if( time1 > time2 )
-                {
-                    last_time = end_time;
-                }
 
                 effect_id++;
             }
@@ -884,7 +881,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     wxXmlNode* layer = AddChildXmlNode(child, "EffectLayer");
     for(int j = 0; j < num_effects; ++j)
     {
-        AddTimingEffect( layer, labels[j], timing_protection[j], "0", timing[j], (j+1<num_effects) ? timing[j+1] : GetSequenceDurationString() );
+        AddTimingEffect( layer, labels[j], timing_protection[j], "0", timing[j], (j+1<num_effects) ? timing[j+1] : last_time );
     }
 
     UpdateNextId( string_format("%d",effect_id) );
