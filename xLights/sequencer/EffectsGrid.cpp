@@ -127,12 +127,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         return;
     }
     int rowIndex = GetRow(event.GetY());
-    if(rowIndex >= mSequenceElements->GetRowInformationSize())
-    {
-        SetCursor(wxCURSOR_DEFAULT);
-        //Refresh(false);
-        return;
-    }
+    bool out_of_bounds = (rowIndex >= mSequenceElements->GetRowInformationSize());
+
     if(mResizing)
     {
         Resize(event.GetX());
@@ -151,8 +147,11 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
-        RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
+        if(!out_of_bounds)
+        {
+            Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
+            RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
+        }
     }
 }
 
