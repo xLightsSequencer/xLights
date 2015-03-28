@@ -68,6 +68,7 @@ class Waveform : public xlGLCanvas
         TimeLine* mTimeline;
         wxPanel* mParent;
         wxWindow* mMainWindow;
+        bool mAudioIsLoaded;
         int mStartPixelOffset;
         int mCurrentWaveView;
         int mMediaTrackSize;
@@ -80,7 +81,6 @@ class Waveform : public xlGLCanvas
         bool m_dragging;
         float* m_left_data;
         float* m_right_data;
-        int mPaintOnIdleCounter;
 
         class WaveView
         {
@@ -114,36 +114,39 @@ class Waveform : public xlGLCanvas
 
             void SetMinMaxSampleSet(float SamplesPerPixel, float*sampleData, int trackSize)
             {
-                int sampleIndex=0;
-                float minimum=1;
-                float maximum=-1;
-                int iSamplesPerPixel = (int)SamplesPerPixel;
-                int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
-                MinMaxs.clear();
-                for(int i=0;i<totalMinMaxs;i++)
+                if( sampleData != nullptr )
                 {
-                    // Use float calculation to minimize compounded rounding of position
-                    sampleIndex = (int)((float)i*SamplesPerPixel);
-                    minimum=1;
-                    maximum=-1;
-                    int j;
-                    for(j=sampleIndex;j<sampleIndex+iSamplesPerPixel && j<trackSize;j++)
+                    int sampleIndex=0;
+                    float minimum=1;
+                    float maximum=-1;
+                    int iSamplesPerPixel = (int)SamplesPerPixel;
+                    int totalMinMaxs = (int)((float)trackSize/SamplesPerPixel)+1;
+                    MinMaxs.clear();
+                    for(int i=0;i<totalMinMaxs;i++)
                     {
-                        if(sampleData[j]< minimum)
+                        // Use float calculation to minimize compounded rounding of position
+                        sampleIndex = (int)((float)i*SamplesPerPixel);
+                        minimum=1;
+                        maximum=-1;
+                        int j;
+                        for(j=sampleIndex;j<sampleIndex+iSamplesPerPixel && j<trackSize;j++)
                         {
-                            minimum = sampleData[j];
+                            if(sampleData[j]< minimum)
+                            {
+                                minimum = sampleData[j];
+                            }
+                            if(sampleData[j]> maximum)
+                            {
+                                maximum = sampleData[j];
+                            }
                         }
-                        if(sampleData[j]> maximum)
-                        {
-                            maximum = sampleData[j];
-                        }
+                        MINMAX mm;
+                        mm.min = minimum;
+                        mm.max = maximum;
+                        MinMaxs.push_back(mm);
+                        if (j>=trackSize)
+                            break;
                     }
-                    MINMAX mm;
-                    mm.min = minimum;
-                    mm.max = maximum;
-                    MinMaxs.push_back(mm);
-                    if (j>=trackSize)
-                        break;
                 }
                 int l = MinMaxs.size();
                 l++;
@@ -159,7 +162,6 @@ class Waveform : public xlGLCanvas
         void mouseWheelMoved(wxMouseEvent& event);
       	void mouseLeftDown(wxMouseEvent& event);
       	void mouseLeftUp( wxMouseEvent& event);
-      	void OnIdle(wxIdleEvent &event);
       	void OnLeftDClick(wxMouseEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void OutputText(GLfloat x, GLfloat y, char *text);

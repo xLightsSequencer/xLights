@@ -182,7 +182,6 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
     mMediaLengthMS = xml_file.GetSequenceDurationMS();
 
-    mainSequencer->PanelWaveForm->CloseMediaFile();
     if(xml_file.GetSequenceType()=="Media")
     {
         int musicLength = 0;

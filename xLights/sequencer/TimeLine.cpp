@@ -93,25 +93,8 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 {
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
-    mIsInitialized=false;
-    mStartPixelOffset = 0;
-    mFrequency = 40;
-    mZoomLevel = 0;
-    mStartTimeMS = 0;
-    mStartTime = 0;
-    mEndTimeMS = GetMaxViewableTimeMS();
-    mEndTime = (double)mEndTimeMS/(double)1000;
-    mCurrentPlayMarkerStart = -1;
-    mCurrentPlayMarkerEnd = -1;
-    mSelectedPlayMarkerStart = -1;
-    mSelectedPlayMarkerEnd = -1;
-    mCurrentPlayMarker = -1;
-    mCurrentPlayMarkerStartMS = -1;
-    mCurrentPlayMarkerEndMS = -1;
-    mSelectedPlayMarkerStartMS = -1;
-    mSelectedPlayMarkerEndMS = -1;
-    mCurrentPlayMarkerMS = -1;
-    m_dragging = false;
+    mIsInitialized = false;
+    // most variable initialization is done in the Initialize() function
 }
 
 TimeLine::~TimeLine()
@@ -537,6 +520,24 @@ void TimeLine::MoveToRight(int numberOfPixels)
 void TimeLine::Initialize()
 {
     mIsInitialized = true;
+    mStartPixelOffset = 0;
+    mFrequency = 40;
+    mZoomLevel = 0;
+    mStartTimeMS = 0;
+    mStartTime = 0;
+    mEndTimeMS = GetMaxViewableTimeMS();
+    mEndTime = (double)mEndTimeMS/(double)1000;
+    mCurrentPlayMarkerStart = -1;
+    mCurrentPlayMarkerEnd = -1;
+    mSelectedPlayMarkerStart = -1;
+    mSelectedPlayMarkerEnd = -1;
+    mCurrentPlayMarker = -1;
+    mCurrentPlayMarkerStartMS = -1;
+    mCurrentPlayMarkerEndMS = -1;
+    mSelectedPlayMarkerStartMS = -1;
+    mSelectedPlayMarkerEndMS = -1;
+    mCurrentPlayMarkerMS = -1;
+    m_dragging = false;
 }
 
 void TimeLine::render( wxPaintEvent& event )

@@ -36,7 +36,6 @@ EVT_MOTION(Waveform::mouseMoved)
 EVT_LEFT_DOWN(Waveform::mouseLeftDown)
 EVT_LEFT_UP(Waveform::mouseLeftUp)
 EVT_LEFT_DCLICK(Waveform::OnLeftDClick)
-EVT_IDLE(Waveform::OnIdle)
 EVT_MOUSE_CAPTURE_LOST(Waveform::OnLostMouseCapture)
 EVT_SIZE(Waveform::Resized)
 EVT_MOUSEWHEEL(Waveform::mouseWheelMoved)
@@ -50,45 +49,40 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
 {
     m_left_data = NULL;
     m_right_data = NULL;
-
-    mIsInitialized = false;
+    mAudioIsLoaded = false;
     m_dragging = false;
     mParent = parent;
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     mZoomLevel=0;
     mStartPixelOffset = 0;
     SetTimeFrequency(40);
-    mPaintOnIdleCounter = 0;
 }
 
 Waveform::~Waveform()
 {
-    if (m_left_data) delete m_left_data;
-    if (m_right_data) delete m_right_data;
+    CloseMediaFile();
 }
 
 void Waveform::CloseMediaFile()
 {
-    mIsInitialized = false;
     views.clear();
+    if (m_left_data)
+    {
+        delete m_left_data;
+        m_left_data = nullptr;
+    }
+    if (m_right_data)
+    {
+        delete m_right_data;
+        m_right_data = nullptr;
+    }
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+    mAudioIsLoaded = false;
 }
 
 void Waveform::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
     m_dragging = false;
-}
-
-void Waveform::OnIdle(wxIdleEvent &event)
-{
- /*   // It will only repaint on idle for 5 times
-    // mPaintOnIdleCounter is reset to "0".
-    if(!mIsInitialized){return;}
-    if(mPaintOnIdleCounter < 5)
-    {
-        Refresh(false);
-        mPaintOnIdleCounter++;
-    }*/
 }
 
 void Waveform::SetTimeline(TimeLine* timeLine)
@@ -267,6 +261,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
     mpg123_exit();
     free(trackData);
     float seconds = (float)mMediaTrackSize * ((float)1/(float)rate);
+    mAudioIsLoaded = true;
     return (int)(seconds * (float)1000);
 }
 
@@ -395,10 +390,7 @@ void Waveform::renderGL( wxPaintEvent& event )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
-    if(mCurrentWaveView != NO_WAVE_VIEW_SELECTED)
-    {
-        DrawWaveView(views[mCurrentWaveView]);
-    }
+    DrawWaveView(views[mCurrentWaveView]);
 
     glFlush();
     SwapBuffers();
@@ -451,60 +443,63 @@ void Waveform::DrawWaveView(const WaveView &wv)
         glDisable(GL_BLEND);
     }
 
-    for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
+    if( mAudioIsLoaded )
     {
-        index = x+mStartPixelOffset;
-        if (index >= 0 && index < wv.MinMaxs.size())
+        for (int x=0;x<mWindowWidth && (x)<wv.MinMaxs.size();x++)
         {
-            y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-            y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-
-            if(y1 == y2)
+            index = x+mStartPixelOffset;
+            if (index >= 0 && index < wv.MinMaxs.size())
             {
-                glColor3ub(130,178,207);
-                glBegin(GL_POINTS);
-                glVertex2f(x,y1);
-                glEnd();
-            }
-            else
-            {
-                glPointSize( 1 );
-                glColor3ub(130,178,207);
-                glBegin(GL_LINES);
-                glVertex2f(x, y1);
-                glVertex2f(x, y2);
-                glEnd();
-            }
+                y1 = (int)((wv.MinMaxs[index].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                y2 = (int)((wv.MinMaxs[index].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
 
-        }
-    }
-
-    glBegin(GL_LINES);
-    glPointSize( 2 );
-    glColor3ub(255,255,255);
-    for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
-    {
-        index = x + mStartPixelOffset ;
-        if (index >= 0 && index < wv.MinMaxs.size())
-        {
-            y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-            y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-            if(y1 != y2)
-            {
-                if(x<wv.MinMaxs.size()-1)
+                if(y1 == y2)
                 {
-                    y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
-                    y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                    glColor3ub(130,178,207);
+                    glBegin(GL_POINTS);
+                    glVertex2f(x,y1);
+                    glEnd();
+                }
+                else
+                {
+                    glPointSize( 1 );
+                    glColor3ub(130,178,207);
+                    glBegin(GL_LINES);
                     glVertex2f(x, y1);
-                    glVertex2f(x+1, y1_2);
-
                     glVertex2f(x, y2);
-                    glVertex2f(x+1, y2_2);
+                    glEnd();
+                }
+
+            }
+        }
+
+        glBegin(GL_LINES);
+        glPointSize( 2 );
+        glColor3ub(255,255,255);
+        for(int x=0;x<mWindowWidth-1 && (x)<wv.MinMaxs.size();x++)
+        {
+            index = x + mStartPixelOffset ;
+            if (index >= 0 && index < wv.MinMaxs.size())
+            {
+                y1 = (int)((wv.MinMaxs[mStartPixelOffset+x].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                y2 = (int)((wv.MinMaxs[mStartPixelOffset+x].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                if(y1 != y2)
+                {
+                    if(x<wv.MinMaxs.size()-1)
+                    {
+                        y1_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].min * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                        y2_2 = (int)((wv.MinMaxs[mStartPixelOffset+x+1].max * (float)(max_wave_ht/2))+ (mWindowHeight/2));
+                        glVertex2f(x, y1);
+                        glVertex2f(x+1, y1_2);
+
+                        glVertex2f(x, y2);
+                        glVertex2f(x+1, y2_2);
+                    }
                 }
             }
         }
+        glEnd();
     }
-    glEnd();
 
     // draw selection line if not a range
     if( selected_x1 != -1 && selected_x2 == -1 )
@@ -586,16 +581,10 @@ int Waveform::GetTimeFrequency()
 
 float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel)
 {
-    // period           = 1/frequency
-    // Frequency        = number of frames per second.
-    // mMediaTrackSize  = number of samples in media track
-
     // The number of periods for each Zoomlevel is held in ZoomLevelValues array
     int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
     float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
     float samplesPerPixel = (float)timePerPixel * (float)m_rate;
-//    if (mZoomLevel==2)
-//       samplesPerPixel+= .7;
     return samplesPerPixel;
 }
 

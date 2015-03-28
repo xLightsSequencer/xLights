@@ -256,10 +256,7 @@ void xLightsFrame::CloseSequence()
     }
     mSequenceElements.Clear();
 
-    //SeqData.init(0, 0, 50);
-    //mainSequencer->PanelWaveForm->CloseMediaFile();
-    //mainSequencer->PanelWaveForm->Refresh();
-    //mainSequencer->PanelEffectGrid->ForceRefresh();
+    mainSequencer->PanelWaveForm->CloseMediaFile();
 
     EnableSequenceControls(true);  // let it re-evaluate menu state
 }
