@@ -6,6 +6,13 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.7  Mar 27, 2015
+	-- enh (dkulp) Whole House Preview is now part of SEQUENCER tab. This was a major code rewrite!
+	-- bug (gil) Unable to delete models from the Sequence Element Screen #101
+	-- bug (gil) Timing insert when near an endpoint causes overlapping timings. #100
+	-- bug (gil) Adding and deleting models #54
+	-- bug (gil) Waveform showing as black window #58
+4.0.6  Mar 26, 2015
 	A number of fixes from both Dan and Gil
 	-- bug () Load Background image in 4.0.5 just gives a gray screen #107
 	-- bug () 4.0.4 3-24 Crash every time I save this sequence #106
