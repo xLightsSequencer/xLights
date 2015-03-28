@@ -201,6 +201,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
                 RaisePlayModelEffect(element,mSelectedEffect,false);
             }
         }
+        Refresh(false);
     }
 
     if(mResizingMode!=EFFECT_RESIZE_NO)
@@ -209,6 +210,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         {
             mResizing = true;
             mResizeEffectIndex = effectIndex;
+            Refresh(false);
         }
     }
     else
@@ -221,6 +223,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
             mDragEndX = event.GetX();
             mDragEndY = event.GetY();
             CaptureMouse();
+            Refresh(false);
         }
     }
     UpdateTimePosition(selected_time);
@@ -262,6 +265,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
     mResizing = false;
     mDragDropping = false;
+    Refresh(false);
 }
 
 void EffectsGrid::Resize(int position)
