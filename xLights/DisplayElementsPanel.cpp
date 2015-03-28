@@ -73,7 +73,7 @@ DisplayElementsPanel::DisplayElementsPanel(wxWindow* parent,wxWindowID id,const 
 	FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Models:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
-	ListCtrlModels = new wxCheckedListCtrl(this, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
+	ListCtrlModels = new wxCheckedListCtrl(this, ID_LISTCTRL_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_MODELS"));
 	ListCtrlModels->SetMinSize(wxSize(175,175));
 	FlexGridSizer7->Add(ListCtrlModels, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -292,7 +292,7 @@ void DisplayElementsPanel::OnButtonHideAllClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
 {
-    if( wxMessageBox("Delete all effects and layers for the selected model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES )
+    if( wxMessageBox("Delete all effects and layers for the selected model(s)?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES )
     {
         ListCtrlModels->Freeze();
         long itemIndex = -1;
@@ -308,7 +308,7 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
             Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
             mSequenceElements->DeleteElement(e->GetName());
             ListCtrlModels->DeleteItem(itemIndex);
-            break;
+            itemIndex = -1; // reset to delete next item which may have same index
         }
         ListCtrlModels->Thaw();
         ListCtrlModels->Refresh();
@@ -319,7 +319,9 @@ void DisplayElementsPanel::OnButtonDeleteModelsClick(wxCommandEvent& event)
 
 void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
 {
-    ListCtrlModels->Freeze();
+    ListCtrlModels->Freeze();  // prevent list changes while we work on it
+    bool items_moved = false;
+    std::vector<long> selected_list;
     long itemIndex = -1;
 
     for (;;) {
@@ -330,30 +332,38 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
         if (itemIndex == -1) break;
 
         // Got a selected item so handle it
-        if( itemIndex > 0 )
+        selected_list.push_back(itemIndex);
+    }
+
+    if( selected_list[0] != 0 )  // don't let item or group move up if top item is selected
+    {
+        items_moved = true;
+        for( long i = 0; i < selected_list.size(); i++ )
         {
-            Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
+            Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
             mSequenceElements->MoveElementUp(e->GetName());
         }
-        break;
     }
-    ListCtrlModels->Thaw();
-    PopulateModels();
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
-    if( itemIndex > 0 )
+    ListCtrlModels->Thaw();  // free up the list
+
+    if( items_moved )
     {
-        ListCtrlModels->SetItemState(itemIndex-1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        PopulateModels();
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+        for( long i = 0; i < selected_list.size(); i++ )
+        {
+            ListCtrlModels->SetItemState(selected_list[i]-1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        }
     }
-    else if( itemIndex != -1 )
-    {
-        ListCtrlModels->SetItemState(itemIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
+    selected_list.clear();
 }
 
 void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
 {
-    ListCtrlModels->Freeze();
+    ListCtrlModels->Freeze();  // prevent list changes while we work on it
+    bool items_moved = false;
+    std::vector<long> selected_list;
     long itemIndex = -1;
     long num_items = ListCtrlModels->GetItemCount();
 
@@ -365,24 +375,29 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
         if (itemIndex == -1) break;
 
         // Got a selected item so handle it
-        if( itemIndex < num_items-1 )
+        selected_list.push_back(itemIndex);
+    }
+
+    if( selected_list.back() < num_items-1 )  // don't let item or group move down if bottom item is selected
+    {
+        items_moved = true;
+        for( long i = selected_list.size()-1; i >= 0; i-- )
         {
-            Element* e = (Element*)ListCtrlModels->GetItemData(itemIndex);
+            Element* e = (Element*)ListCtrlModels->GetItemData(selected_list[i]);
             mSequenceElements->MoveElementDown(e->GetName());
-            ListCtrlModels->SetItemState(itemIndex+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
-        break;
     }
-    ListCtrlModels->Thaw();
-    PopulateModels();
-    wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-    wxPostEvent(GetParent(), eventForceRefresh);
-    if( itemIndex >= 0 && itemIndex < num_items-1 )
+    ListCtrlModels->Thaw();  // free up the list
+
+    if( items_moved )
     {
-        ListCtrlModels->SetItemState(itemIndex+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        PopulateModels();
+        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+        wxPostEvent(GetParent(), eventForceRefresh);
+        for( long i = 0; i < selected_list.size(); i++ )
+        {
+            ListCtrlModels->SetItemState(selected_list[i]+1, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        }
     }
-    else if( itemIndex != -1 )
-    {
-        ListCtrlModels->SetItemState(itemIndex, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
+    selected_list.clear();
 }

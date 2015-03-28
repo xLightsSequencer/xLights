@@ -86,7 +86,7 @@
 													<object class="sizeritem">
 														<object class="wxListCtrl" name="ID_LISTCTRL_MODELS" subclass="wxCheckedListCtrl" variable="ListCtrlModels" member="yes">
 															<minsize>175,175</minsize>
-															<style>wxLC_REPORT|wxLC_SINGLE_SEL</style>
+															<style>wxLC_REPORT</style>
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
