@@ -6,6 +6,20 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.8  Mar 28, 2015
+		Gil Jones has been busy on this Saturday, Mar 28th
+	-- bug (gil) Error message when audio file missing #116
+	-- bug (gil) Drawing and selection issues in EffectsGrid #115
+	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
+	-- bug (gil) Purple effect highlight in grid is not moving with the mouse click to next effect. #113
+	-- bug (sean) Title bar says 4.0.67 versus 4.0.7 #112
+	-- bug (gil) 4.0.6 File, New sequence does not scrub screen from previous sequence #111
+	-- bug (gil) 4.0.6 Hard Crash on opening subsequent sequence #110
+	-- bug (gil) Can't cancel New Sequence #76
+	-- bug (gil) Ability to close the current open sequence #37
+	-- bug (gil) Dragging selection of effects similar to #59 #79
+	-- enh (sean) Created "House Preview" icon to be used on tool bar. This will cycle display on/off
+	
 4.0.7  Mar 27, 2015
 	-- enh (dkulp) Whole House Preview is now part of SEQUENCER tab. This was a major code rewrite!
 	-- bug (gil) Unable to delete models from the Sequence Element Screen #101
