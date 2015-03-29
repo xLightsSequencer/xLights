@@ -180,7 +180,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarButtonHousePreview" member="no">
-							<bitmap code="model_preview_xpm" />
+							<bitmap code="house_preview_xpm" />
 							<shorthelp>House Preview</shorthelp>
 							<handler function="ShowHideHousePreview" entry="EVT_TOOL" />
 						</object>

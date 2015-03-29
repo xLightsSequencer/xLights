@@ -574,7 +574,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), colors_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Colors"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Effect Layering"), layers_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Layering"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM1, _("Model Preview"), model_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("Model Preview"), wxEmptyString, NULL);
-    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), model_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), house_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     ViewToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
