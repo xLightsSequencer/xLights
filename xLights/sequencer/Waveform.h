@@ -24,7 +24,7 @@ class Waveform : public xlGLCanvas
         static int GetLengthOfMusicFileInMS(const char* filename);
         static int GetTrackSize(mpg123_handle *mh,int bits, int channels);
 
-        int OpenfileMediaFile(const char* filename);
+        int OpenfileMediaFile(const char* filename, wxString& error);
         void CloseMediaFile();
 
         void SetZoomLevel(int level);
