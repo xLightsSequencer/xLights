@@ -65,6 +65,7 @@ const long SeqSettingsDialog::ID_PANEL4 = wxNewId();
 const long SeqSettingsDialog::ID_NOTEBOOK_Seq_Settings = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warning = wxNewId();
 const long SeqSettingsDialog::ID_STATICTEXT_Warn_No_Media = wxNewId();
+const long SeqSettingsDialog::ID_BUTTON_CANCEL = wxNewId();
 const long SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
 //*)
 
@@ -308,6 +309,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     StaticText_Warn_No_Media->SetFont(StaticText_Warn_No_MediaFont);
     FlexGridSizer1->Add(StaticText_Warn_No_Media, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+    Button_Cancel = new wxButton(this, ID_BUTTON_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CANCEL"));
+    Button_Cancel->Hide();
+    FlexGridSizer7->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Close = new wxButton(this, ID_BUTTON_Close, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Close"));
     FlexGridSizer7->Add(Button_Close, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer7, 1, wxLEFT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -338,12 +342,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     Connect(ID_BUTTON_Move_Up,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Move_UpClick);
     Connect(ID_BUTTON_Move_Down,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_Move_DownClick);
     Connect(ID_BUTTON_Reimport,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_ReimportClick);
+    Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
     Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
 
     if( wizard_active )
     {
         WizardPage1();
+        Button_Cancel->Show();
     }
 
 	if( warning != "" )
@@ -983,7 +989,7 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
-    Close();
+    EndModal(wxID_OK);
 }
 
 void SeqSettingsDialog::OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event)
@@ -1155,5 +1161,10 @@ void SeqSettingsDialog::OnButton_ImportTimingsClick(wxCommandEvent& event)
 
 void SeqSettingsDialog::OnButton_Button_WizardDoneClick(wxCommandEvent& event)
 {
-    Close();
+    EndModal(wxID_OK);
+}
+
+void SeqSettingsDialog::OnButton_CancelClick(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
 }

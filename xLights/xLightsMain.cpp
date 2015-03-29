@@ -2912,6 +2912,11 @@ void xLightsFrame::OnMenuItem_File_Save_SequenceSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 {
     CloseSequence();
+
+    // force refreshes since grid has been cleared
+    mainSequencer->PanelTimeLine->RaiseChangeTimeline();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
 }
 
 void xLightsFrame::OnResize(wxSizeEvent& event)

@@ -17,7 +17,13 @@ void xLightsFrame::NewSequence()
 
     SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, mediaDirectory, wxT(""), true);
     setting_dlg.Fit();
-    setting_dlg.ShowModal();
+    int ret_code = setting_dlg.ShowModal();
+    if( ret_code == wxID_CANCEL )
+    {
+        delete CurrentSeqXmlFile;
+        CurrentSeqXmlFile = NULL;
+        return;
+    }
 
     // load media if available
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->HasAudioMedia() )
