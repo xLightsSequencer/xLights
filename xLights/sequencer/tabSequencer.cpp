@@ -293,7 +293,10 @@ void xLightsFrame::ScrollRight(wxCommandEvent& event)
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
     mainSequencer->PanelTimeLine->SetSelectedPositionStartMS(event.GetInt());
+    mainSequencer->PanelTimeLine->Refresh();
+    mainSequencer->PanelTimeLine->Update();
     mainSequencer->PanelWaveForm->Refresh();
+    mainSequencer->PanelWaveForm->Update();
 }
 
 void xLightsFrame::TimelineChanged( wxCommandEvent& event)

@@ -126,6 +126,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     if (!mIsInitialized || mSequenceElements == NULL) {
         return;
     }
+
     int rowIndex = GetRow(event.GetY());
     bool out_of_bounds = (rowIndex >= mSequenceElements->GetRowInformationSize());
 
@@ -133,6 +134,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
     {
         Resize(event.GetX());
         Refresh(false);
+        Update();
     }
     else if (mDragging)
     {
@@ -144,6 +146,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         }
         CheckForSelectionRectangle();
         Refresh(false);
+
     }
     else
     {
@@ -778,6 +781,7 @@ void EffectsGrid::Draw()
 
     glFlush();
     SwapBuffers();
+    wxLogDebug("EffectsGrid::Draw");
 }
 
 
