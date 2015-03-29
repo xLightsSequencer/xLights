@@ -73,6 +73,7 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxButton* Button_Xml_Import_Timing;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
+		wxButton* Button_Cancel;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxStaticText* StaticText_Filename;
 		wxTextCtrl* TextCtrl_Xml_Comment;
@@ -162,6 +163,7 @@ class SeqSettingsDialog: public wxDialog
 		static const long ID_NOTEBOOK_Seq_Settings;
 		static const long ID_STATICTEXT_Warning;
 		static const long ID_STATICTEXT_Warn_No_Media;
+		static const long ID_BUTTON_CANCEL;
 		static const long ID_BUTTON_Close;
 		//*)
 
@@ -207,7 +209,6 @@ class SeqSettingsDialog: public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void OnChoice_Xml_Seq_TimingSelect(wxCommandEvent& event);
 		void OnTreeCtrl_Data_LayersBeginDrag(wxTreeEvent& event);		void OnBitmapButton_skip_importClick(wxCommandEvent& event);
-
 		void OnButton_Layer_ImportClick(wxCommandEvent& event);
 		void OnButton_Layer_DeleteClick(wxCommandEvent& event);
 		void OnButton_Move_UpClick(wxCommandEvent& event);
@@ -216,7 +217,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnTreeCtrl_Data_LayersBeginLabelEdit(wxTreeEvent& event);
 		void OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event);
 		void OnButton_ReimportClick(wxCommandEvent& event);
-
+		void OnButton_CancelClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
