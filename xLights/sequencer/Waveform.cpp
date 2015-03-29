@@ -191,7 +191,7 @@ void Waveform::cleanup(mpg123_handle *mh)
 }
 
 // Open Media file and return elapsed time in millseconds
-int Waveform::OpenfileMediaFile(const char* filename)
+int Waveform::OpenfileMediaFile(const char* filename, wxString& error)
 {
     mpg123_handle *mh = NULL;
     int err;
@@ -202,7 +202,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
     err = mpg123_init();
     if(err != MPG123_OK || (mh = mpg123_new(NULL, &err)) == NULL)
     {
-        wxMessageBox(wxString::Format("Basic setup goes wrong: %s", mpg123_plain_strerror(err)), "Error");
+        error = wxString::Format("Basic setup goes wrong: %s", mpg123_plain_strerror(err));
         if (mh != NULL) {
             cleanup(mh);
         }
@@ -213,14 +213,14 @@ int Waveform::OpenfileMediaFile(const char* filename)
     if( mpg123_open(mh, filename) != MPG123_OK ||
         mpg123_getformat(mh, &rate, &channels, &encoding) != MPG123_OK )
     {
-        wxMessageBox(wxString::Format("Trouble with mpg123: %s", mpg123_strerror(mh)), "Error");
+        error = wxString::Format("Trouble with mpg123: %s", mpg123_strerror(mh));
         cleanup(mh);
         return -1;
     }
 
     if( encoding != MPG123_ENC_SIGNED_16 )
     {
-        wxMessageBox("Encoding unsupported.  Must be signed 16 bit.", "Error");
+        error = "Encoding unsupported.  Must be signed 16 bit.";
         cleanup(mh);
         return -2;
     }
@@ -248,7 +248,7 @@ int Waveform::OpenfileMediaFile(const char* filename)
     }
     else
     {
-        wxMessageBox("More than 2 audio channels is not supported yet.", "Error");
+        error = "More than 2 audio channels is not supported yet.";
     }
     views.clear();
     int samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);

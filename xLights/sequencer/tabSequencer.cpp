@@ -196,10 +196,11 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         if( mediaFilename != wxEmptyString )
         {
             PlayerDlg->Load(mediaFilename);
-            musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile());
+            wxString error;
+            musicLength = mainSequencer->PanelWaveForm->OpenfileMediaFile(xml_file.GetMediaFile(), error);
             if(musicLength <=0)
             {
-                wxMessageBox("Invalid Media File");
+                wxMessageBox(wxString::Format("Media File Missing or Corrupted.\n\nDetails: %s", error));
             }
         }
         else
@@ -213,6 +214,9 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
+    int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
+    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+    mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
 }
@@ -231,10 +235,6 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
     ResizeAndMakeEffectsScroll();
     ResizeMainSequencer();
-    int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
-    mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
-    mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
     sPreview1->Refresh();
     sPreview2->Refresh();
