@@ -781,7 +781,6 @@ void EffectsGrid::Draw()
 
     glFlush();
     SwapBuffers();
-    wxLogDebug("EffectsGrid::Draw");
 }
 
 
