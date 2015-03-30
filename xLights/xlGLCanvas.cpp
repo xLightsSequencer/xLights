@@ -117,6 +117,7 @@ BEGIN_EVENT_TABLE(xlGLCanvas, wxWindow)
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
 #endif // __WXMSW__
 EVT_SIZE(xlGLCanvas::Resized)
+EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
 static const int GLARGS[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};

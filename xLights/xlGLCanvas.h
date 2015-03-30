@@ -42,6 +42,7 @@ class xlGLCanvas
         virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);
+        void OnEraseBackGround(wxEraseEvent& event) {};
 
     private:
         GL_CONTEXT_CLASS* m_context;
