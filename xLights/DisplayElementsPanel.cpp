@@ -323,14 +323,18 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
     bool items_moved = false;
     std::vector<long> selected_list;
     long itemIndex = -1;
+    long firstItemIndex = -1;
 
     for (;;) {
         itemIndex = ListCtrlModels->GetNextItem(itemIndex,
                                                 wxLIST_NEXT_ALL,
                                                 wxLIST_STATE_SELECTED);
-
         if (itemIndex == -1) break;
 
+        if(firstItemIndex==-1)
+        {
+            firstItemIndex = itemIndex;
+        }
         // Got a selected item so handle it
         selected_list.push_back(itemIndex);
     }
@@ -357,6 +361,10 @@ void DisplayElementsPanel::OnButtonMoveUpClick(wxCommandEvent& event)
         }
     }
     selected_list.clear();
+    if(firstItemIndex!=-1 && firstItemIndex!=0)
+    {
+        ListCtrlModels->EnsureVisible(firstItemIndex-1);
+    }
 }
 
 void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
@@ -365,6 +373,8 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
     bool items_moved = false;
     std::vector<long> selected_list;
     long itemIndex = -1;
+    long lastItemIndex = -1;
+
     long num_items = ListCtrlModels->GetItemCount();
 
     for (;;) {
@@ -373,6 +383,9 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
                                                 wxLIST_STATE_SELECTED);
 
         if (itemIndex == -1) break;
+
+        lastItemIndex = itemIndex;
+
 
         // Got a selected item so handle it
         selected_list.push_back(itemIndex);
@@ -400,4 +413,8 @@ void DisplayElementsPanel::OnButtonMoveDownClick(wxCommandEvent& event)
         }
     }
     selected_list.clear();
+    if(lastItemIndex!=-1 && lastItemIndex!=ListCtrlModels->GetItemCount()-1)
+    {
+        ListCtrlModels->EnsureVisible(lastItemIndex+1);
+    }
 }
