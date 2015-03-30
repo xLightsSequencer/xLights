@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.9  Mar 31, 2015
+	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
+	-- bug (dpitts) modified move model up and down in the Sequence Elements screen to keep the moving model in the screen
 4.0.8  Mar 28, 2015
 		Gil Jones has been busy on this Saturday, Mar 28th
 	-- bug (gil) Error message when audio file missing #116
