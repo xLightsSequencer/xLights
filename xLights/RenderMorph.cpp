@@ -22,6 +22,7 @@
 **************************************************************/
 
 #include "RgbEffects.h"
+#include <cmath>
 
 static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1_, std::vector<int> *vx,  std::vector<int> *vy)
 {
@@ -50,7 +51,7 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
 {
     double eff_pos = GetEffectTimeIntervalPosition();
     double step_size = 0.1;
-    
+
     int hcols = 0, hcole = 1;
     int tcols = 2, tcole = 3;
     switch (palette.Size()) {
@@ -66,6 +67,16 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
             tcols = 1;
             tcole = 2;
             break;
+    }
+
+    if( useHeadForStartColor )
+    {
+        tcols = hcols;
+    }
+
+    if( useHeadForEndColor )
+    {
+        tcole = hcole;
     }
 
     int x1a = BufferWi * (start_x1/100.0);
@@ -145,15 +156,30 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     double head_end_of_tail_pos = -1.0;
     double tail_end_of_tail_pos = -1.0;
     double total_tail_length = 0.0;
-    //double accel = 1 + acceleration / 10.0;
+    double accel = 1 + acceleration / 10.0;
 
     // calculate current size of the head
     double current_total_head_length = 0.0;
+    double head_loc_pct = eff_pos / head_duration * accel;
     if( head_duration > 0.0 )
     {
-        double head_loc_pct = eff_pos / head_duration;
+        if( accel > 0 )
+        {
+            head_loc_pct = std::pow(eff_pos * 100.0, accel) / 100.0 / head_duration;
+        }
+        else
+        {
+            head_loc_pct = eff_pos / head_duration;
+        }
         current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
-        tail_end_of_head_pos = total_length * head_loc_pct - current_total_head_length;
+        if( showEntireHeadAtStart )
+        {
+            tail_end_of_head_pos = total_length * head_loc_pct;
+        }
+        else
+        {
+            tail_end_of_head_pos = total_length * head_loc_pct - current_total_head_length;
+        }
         head_end_of_head_pos = tail_end_of_head_pos + current_total_head_length - 1;
         head_end_of_tail_pos = tail_end_of_head_pos  - step_size;
         tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length + 1;

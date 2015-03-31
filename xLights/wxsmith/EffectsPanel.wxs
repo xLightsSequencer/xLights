@@ -1789,7 +1789,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_Start_X2" variable="Slider_Morph_Start_X2" member="yes">
+															<value>100</value>
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -1869,7 +1871,6 @@
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Morph_Start_Link" variable="CheckBox_Morph_Start_Link" member="yes">
 															<label>Link Points</label>
-															<checked>1</checked>
 															<handler function="OnCheckBox_Morph_Start_LinkClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -1948,7 +1949,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes" />
+														<object class="wxSlider" name="ID_SLIDER_Morph_End_X2" variable="Slider_Morph_End_X2" member="yes">
+															<value>100</value>
+														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
@@ -2030,7 +2033,6 @@
 													<object class="sizeritem">
 														<object class="wxCheckBox" name="ID_CHECKBOX_Morph_End_Link" variable="CheckBox_Morph_End_Link" member="yes">
 															<label>Link Points</label>
-															<checked>1</checked>
 															<handler function="OnCheckBox_Morph_End_LinkClick" entry="EVT_CHECKBOX" />
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2090,7 +2092,6 @@
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
 																	<max>10</max>
-																	<enabled>0</enabled>
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2116,7 +2117,6 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_ShowHeadAtStart" variable="CheckBox_ShowHeadAtStart" member="yes">
 																	<label>Show Head at Start</label>
-																	<enabled>0</enabled>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2145,7 +2145,6 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadStartColor" variable="CheckBox_MorphUseHeadStartColor" member="yes">
 																	<label>Use Head Start Color for Tail Start</label>
-																	<enabled>0</enabled>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
@@ -2166,7 +2165,6 @@
 															<object class="sizeritem">
 																<object class="wxCheckBox" name="ID_CHECKBOX_MorphUseHeadEndColor" variable="CheckBox_MorphUseHeadEndColor" member="yes">
 																	<label>Use Head End Color for Tail End</label>
-																	<enabled>0</enabled>
 																</object>
 																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
