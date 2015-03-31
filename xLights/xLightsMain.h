@@ -120,8 +120,11 @@
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
 #include "../include/piano.xpm"
+#include "../include/pictures.xpm"
+
 #include "../include/pinwheel.xpm"
 #include "../include/ripple.xpm"
+#include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
 #include "../include/snowflakes.xpm"
 #include "../include/snowstorm.xpm"
@@ -241,7 +244,7 @@ wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
 static const wxString xlights_base_name = "XL4 BETA";
 static const wxString xlights_version_string = "4.0.9";
-static const wxString xlights_build_date = "Mar29";
+static const wxString xlights_build_date = "Mar30";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 

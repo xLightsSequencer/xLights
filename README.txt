@@ -9,6 +9,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 4.0.9  Mar 31, 2015
 	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
 	-- bug (dpitts) modified move model up and down in the Sequence Elements screen to keep the moving model in the screen
+	-- bug ()	Fade across timing marks not working correctly #56
+	-- bug ()	Tabs can be moved (like moving frames from the Sequence tab around) #57
+	-- bug ()	Changing default perspective causes uncaptured crash on exit #64
+	-- bug ()	dragging the main window larger (repeat of closed #69) #70
+	-- bug ()	4.0.6 Hard Crash on opening subsequent sequence #110 (Just a retest to make sure still good)
 4.0.8  Mar 28, 2015
 		Gil Jones has been busy on this Saturday, Mar 28th
 	-- bug (gil) Error message when audio file missing #116

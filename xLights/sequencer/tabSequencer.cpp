@@ -1052,7 +1052,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
 //~ Fix this missing "pictures" xpm
-            p_XPM = Off;
+            p_XPM = pictures;
             toolTip = "Pictures";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
@@ -1065,7 +1065,7 @@ const char** xLightsFrame::GetIconBuffer(int effectID, wxString &toolTip)
             break;
 //~ Fix this missing "shimmer" xpm
         case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
-            p_XPM = Off;
+            p_XPM = shimmer;
             toolTip = "Shimmer";
             break;
         case xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND:

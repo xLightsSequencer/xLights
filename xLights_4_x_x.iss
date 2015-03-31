@@ -10,7 +10,7 @@
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 AppName=xLights-Nutcracker
-AppVersion=4.0.8
+AppVersion=4.0.9
 DefaultDirName={pf}\xLights
 DefaultGroupName=xLights
 SetupIconFile=include\xLights4.ico
@@ -54,7 +54,8 @@ Source: "README.txt";  DestDir: "{app}"; Flags: isreadme
 ;Source: "README.corofaces.txt";  DestDir: "{app}"; Flags: isreadme
 
 [Icons] 
-Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "xLights4.ico";
+Name: "{commondesktop}\xLights4"; Filename: "{app}\xLights.EXE";   WorkingDir: "{app}"; Tasks: desktopicon ;   IconFilename: "{app}\xLights4.ico";
+
 
 
 [Run]

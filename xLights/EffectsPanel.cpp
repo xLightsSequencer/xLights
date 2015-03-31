@@ -22,8 +22,11 @@
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
 #include "../include/piano.xpm"
+#include "../include/pictures.xpm"
+
 #include "../include/pinwheel.xpm"
 #include "../include/ripple.xpm"
+#include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
 #include "../include/snowflakes.xpm"
 #include "../include/snowstorm.xpm"

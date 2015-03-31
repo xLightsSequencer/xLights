@@ -1,9 +1,10 @@
 /* XPM */
 static const char *life[] = {
-/* columns rows colors chars-per-pixel */
-"16 16 2 1 ",
+/* width height num_colors chars_per_pixel */
+"16 16 2 1", 
+/* colors */
 "  c #5C0EB0",
-". c None",
+". c #FAFDB9",
 /* pixels */
 ".......... .....",
 ".. .......  ....",
