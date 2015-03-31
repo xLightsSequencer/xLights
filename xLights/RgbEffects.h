@@ -591,6 +591,7 @@ public:
 private:
     void RenderRadial(int start_x,int start_y,int radius,int colorCnt, int number, bool radial_3D);
     void RenderCirclesUpdate(int number, RgbBalls* effObjs);
+    void ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x, int width);
 };
 
 #endif // XLIGHTS_RGBEFFECTS_H

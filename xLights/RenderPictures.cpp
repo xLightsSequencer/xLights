@@ -222,11 +222,22 @@ void RgbEffects::LoadPixelsFromTextFile(wxFile& debug, const wxString& filename)
 }
 #endif
 
+void RgbEffects::ProcessPixel(int x_pos, int y_pos, xlColour color, bool wrap_x, int width)
+{
+    int x_value = x_pos;
+    if( wrap_x )  // if set wrap image at boundary
+    {
+        x_value %= width;
+        x_value = (x_value >= 0) ? (x_value) : (width + x_value);
+    }
+    SetPixel(x_value,y_pos,color);
+}
+
 //#define WANT_DEBUG_IMPL
 //#define WANT_DEBUG 100
 //#include "djdebug.cpp"
 
-void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps)
+void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int GifSpeed, bool is20fps, int xc_adj, int yc_adj, bool wrap_x)
 {
     const int speedfactor=4;
     wxString suffix,extension,BasePicture,sPicture,NewPictureName,buff;
@@ -400,6 +411,9 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
 //    if (state < 4) wrdebug(1, "pic: state %d, style %d, img (%d, %d), wnd (%d, %d)", state, dir, imgwidth, imght, BufferWi, BufferHt);
 //    if (state < 4) wxMessageBox(xLightsApp::WantDebug? "DEBUG ON": "debug off");
 
+    int xoffset_adj = (xc_adj/100.0)*BufferWi; // xc_adj is from -100 to 100
+    int yoffset_adj = (yc_adj/100.0)*BufferHt; // yc_adj is from -100 to 100
+
 // copy image to buffer
     xlColour c;
     int debug_count = 0;
@@ -413,60 +427,60 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:
-                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,yoffset-y,c);
+                    ProcessPixel(x+BufferWi-(state % ((imgwidth+BufferWi+xoffset_adj)*speedfactor)) / speedfactor,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // left
                 case RENDER_PICTURE_RIGHT: //1:
-                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,yoffset-y,c);
+                    ProcessPixel(x+(state % ((imgwidth+BufferWi+xoffset_adj)*speedfactor)) / speedfactor-imgwidth,yoffset-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // right
                 case RENDER_PICTURE_UP: //2:
-                    SetPixel(x-xoffset,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    ProcessPixel(x-xoffset+xoffset_adj,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up
                 case RENDER_PICTURE_UPONCE: //18
-                    SetPixel(x - xoffset, state / speedfactor - y, c);
+                    ProcessPixel(x - xoffset+xoffset_adj, state / speedfactor - y, c, wrap_x, imgwidth);
                     break; // up
                 case RENDER_PICTURE_DOWN: //3:
-                    SetPixel(x-xoffset,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    ProcessPixel(x-xoffset+xoffset_adj,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
                     break; // down
                 case RENDER_PICTURE_DOWNONCE: //19
-                    SetPixel(x - xoffset, BufferHt + imght - y - state / speedfactor, c);
+                    ProcessPixel(x - xoffset+xoffset_adj, BufferHt + imght - y - yoffset_adj - state / speedfactor, c, wrap_x, imgwidth);
                     break; // down
                 case RENDER_PICTURE_UPLEFT: //5:
-                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    ProcessPixel(x+xoffset_adj+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-left
                 case RENDER_PICTURE_DOWNLEFT: //6:
-                    SetPixel(x+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    ProcessPixel(x+xoffset_adj+BufferWi-(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
                     break; // down-left
                 case RENDER_PICTURE_UPRIGHT: //7:
-                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y,c);
+                    ProcessPixel(x+xoffset_adj+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,(state % ((imght+BufferHt)*speedfactor)) / speedfactor-y-yoffset_adj,c, wrap_x, imgwidth);
                     break; // up-right
                 case RENDER_PICTURE_DOWNRIGHT: //8:
-                    SetPixel(x+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c);
+                    ProcessPixel(x+xoffset_adj+(state % ((imgwidth+BufferWi)*speedfactor)) / speedfactor-imgwidth,BufferHt+imght-y-yoffset_adj-(state % ((imght+BufferHt)*speedfactor)) / speedfactor,c, wrap_x, imgwidth);
                     break; // down-right
                 case RENDER_PICTURE_SCALED: //9: //scaled, no motion -DJ
 //TODO: use rescale or resize?
 //                    wrdebug(1, "zoom[%d]: pic (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, x, y, imgwidth, imght, (int)(x * xscale), (int)(BufferHt - 1 - y * yscale), BufferWi, BufferHt, c.GetRGB());
-                    SetPixel(x * xscale, BufferHt - 1 - y * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    ProcessPixel((x+xoffset_adj) * xscale, BufferHt - 1 - y * yscale, c, wrap_x, imgwidth); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
-                    SetPixel(x - xoffset, BufferHt + yoffset - y, c); // - BufferHt, c);
+                    ProcessPixel(x - xoffset+xoffset_adj, BufferHt + yoffset - y - yoffset_adj, c, wrap_x, imgwidth); // - BufferHt, c);
                     break;
                 case RENDER_PICTURE_WIGGLE: //11: //back+forth a little (wiggle) -DJ
-                    SetPixel(x + xoffset, yoffset - y, c);
+                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x, imgwidth);
                     break;
                 case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
 //TODO: use rescale or resize?
-                    SetPixel(x * xscale, (BufferHt - 1 - y) * yscale, c); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    ProcessPixel((x+xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, imgwidth); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
 //NOTE: a Rotation option should probably be added to all effects rather than just doing it here -DJ
                 case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
 //                    wrdebug(1, "peeka 90[%d] xofs %d, yofs %d, (x, y) (%d, %d) of (%d, %d) -> wnd (%d, %d) of (%d, %d), color 0x%x", state, xoffset, yoffset, x, y, imgwidth, imght, BufferWi + xoffset - y, x - yoffset, BufferWi, BufferHt, c.GetRGB());
-                    SetPixel(BufferWi + xoffset - y, x - yoffset, c);
+                    ProcessPixel(BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x, imgwidth);
                     break;
                 case RENDER_PICTURE_PEEKABOO_180: //14: //peekaboo 180 -DJ
-                    SetPixel(x - xoffset, y - yoffset, c);
+                    ProcessPixel(x - xoffset+xoffset_adj, y - yoffset - yoffset_adj, c, wrap_x, imgwidth);
                     break;
                 case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
-                    SetPixel(y - xoffset, BufferHt + yoffset - x, c);
+                    ProcessPixel(y - xoffset+xoffset_adj, BufferHt + yoffset + yoffset_adj - x, c, wrap_x, imgwidth);
 //                    SetPixel(y - yoffset - BufferHt, x - xoffset, c);
                     break;
                 case RENDER_PICTURE_FLAGWAVE: //17: //flag wave in wind -DJ
@@ -486,11 +500,11 @@ void RgbEffects::RenderPictures(int dir, const wxString& NewPictureName2,int Gif
                         if (waveX < 0) waveY *= -1;
                     }
 //                    if (y == 5) debug(1, "draw: x %d, wavex %d => wave# %d, wavey %d", x, waveX, waveN, waveY);
-                    SetPixel(x - xoffset, yoffset - y + waveY - 1, c);
+                    ProcessPixel(x - xoffset+xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x, imgwidth);
                     break;
                 default:
                     if (debug_count++ < 2100) wrdebug(wxString::Format("pic: c 0x%2x%2x%2x (%d,%d) -> (%d,%d)", c.Red(), c.Green(), c.Blue(), x, y, x-xoffset, yoffset-y - 1)); //NOTE: xlColor is BGR internally
-                    SetPixel(x-xoffset,yoffset-y - 1,c);
+                    ProcessPixel(x-xoffset+xoffset_adj,yoffset+yoffset_adj-y - 1,c, wrap_x, imgwidth);
                     break; // no movement - centered
                 }
             }

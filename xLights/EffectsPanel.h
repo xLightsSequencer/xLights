@@ -12,6 +12,7 @@
 #include <wx/panel.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
 #include <wx/button.h>
 #include <wx/choicebk.h>
 //*)
@@ -53,9 +54,9 @@ public:
     wxStaticText* StaticText19;
     wxStaticText* StaticText120;
     wxScrolledWindow* Panel1_Snowstorm;
+    wxBitmapButton* BitmapButton_SnowflakesType;
     wxBitmapButton* BitmapButton_Piano_Clipping;
     wxSlider* Slider_Skips_StartPos;
-    wxBitmapButton* BitmapButton_SnowflakesType;
     wxCheckBox* CheckBox_Morph_Start_Link;
     wxChoice* Choice_Text_Dir1;
     wxBitmapButton* BitmapButton_GarlandsSpacing;
@@ -172,6 +173,7 @@ public:
     wxCheckBox* CheckBox_Mirror_Wave;
     wxBitmapButton* BitmapButton_SpiralsCount;
     wxScrolledWindow* Panel1_Snowflakes;
+    wxSlider* Slider_PicturesYC;
     wxStaticText* StaticText24;
     wxCheckBox* CheckBox_MorphUseHeadEndColor;
     wxStaticText* StaticText104;
@@ -236,6 +238,7 @@ public:
     wxBitmapButton* BitmapButton_TextToCenter3;
     wxCheckBox* CheckBox_Bars_3D;
     wxCheckBox* CheckBox_Bars_Highlight;
+    wxSlider* Slider_PicturesXC;
     wxBitmapButton* BitmapButton8;
     wxSlider* Slider_Butterfly_Skip;
     wxBitmapButton* BitmapButton_SnowstormCount;
@@ -436,6 +439,7 @@ public:
     wxBitmapButton* BitmapButton_TextDir1;
     wxBitmapButton* BitmapButton_CurtainRepeat;
     wxScrolledWindow* Panel1_Fireworks;
+    wxCheckBox* CheckBox_Pictures_WrapX;
     wxSlider* Slider_Fire_Height;
     wxStaticText* StaticText17;
     wxBitmapButton* BitmapButton_SnowstormLength;
@@ -489,6 +493,7 @@ public:
     wxStaticText* StaticText51;
     wxCheckBox* CheckBox_Spirals_Blend;
     wxStaticText* StaticText33;
+    wxStaticText* StaticText_Pictures_XC;
     wxScrolledWindow* Panel1_ColorWash;
     wxSlider* Slider_Pinwheel_Twist;
     wxTextCtrl* TextCtrl_Eff_On_End;
@@ -538,6 +543,7 @@ public:
     wxStaticText* StaticText41;
     wxStaticText* StaticText29;
     wxStaticText* StaticText34;
+    wxStaticText* StaticText_Pictures_YC;
     wxStaticText* StaticText101;
     wxStaticText* StaticText102;
     wxBitmapButton* BitmapButton_3D;
@@ -790,6 +796,11 @@ protected:
     static const long ID_STATICTEXT4;
     static const long ID_CHECKBOX_MovieIs20FPS;
     static const long ID_BITMAPBUTTON_CHECKBOX_MovieIs20FPS;
+    static const long ID_STATICTEXT_Pictures_XC;
+    static const long ID_SLIDER_PicturesXC;
+    static const long ID_CHECKBOX_Pictures_WrapX;
+    static const long ID_STATICTEXT_Pictures_YC;
+    static const long ID_SLIDER_PicturesYC;
     static const long ID_PANEL20;
     static const long ID_STATICTEXT65;
     static const long ID_SLIDER_Pinwheel_Arms;
