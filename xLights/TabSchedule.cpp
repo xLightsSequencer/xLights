@@ -486,19 +486,9 @@ int xLightsFrame::FindNotebookPage(wxString& pagename)
 
 void xLightsFrame::TimerOutput(int period)
 {
-    int chindex;
-    char intensity;
-    if (CheckBoxLightOutput->IsChecked())
+    if (CheckBoxLightOutput->IsChecked() && xout)
     {
-        for (chindex=0; chindex<SeqData.NumChannels(); chindex++)
-        {
-            intensity=SeqData[period][chindex];
-            if (xout && intensity != LastIntensity[chindex])
-            {
-                xout->SetIntensity(chindex, intensity);
-                LastIntensity[chindex]=intensity;
-            }
-        }
+        xout->SetIntensities(0, &SeqData[period][0], SeqData.NumChannels());
     }
 }
 
@@ -538,8 +528,6 @@ void xLightsFrame::OnTimerPlaylist(long msec)
         }
         break;
     case STARTING_SEQ_ANIM:
-        LastIntensity.clear();
-        LastIntensity.resize(SeqData.NumChannels(),1);
         ResetTimer(PLAYING_SEQ_ANIM);
         break;
     case PLAYING_SEQ_ANIM:
@@ -567,8 +555,6 @@ void xLightsFrame::OnTimerPlaylist(long msec)
     case STARTING_SEQ:
         if(PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
         {
-            LastIntensity.clear();
-            LastIntensity.resize(SeqData.NumChannels(),1);
             ResetTimer(PLAYING_SEQ);
         }
         else
@@ -602,7 +588,6 @@ void xLightsFrame::OnTimerPlaylist(long msec)
     case PAUSE_SEQ:
         if (PlayerDlg->MediaCtrl->GetState() == wxMEDIASTATE_PLAYING)
         {
-            LastIntensity.resize(SeqData.NumChannels(),1);
             ResetTimer(PLAYING_SEQ);
         } else if (ShowPreview && previewPlaying)
         {

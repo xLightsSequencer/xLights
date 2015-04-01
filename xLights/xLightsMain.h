@@ -1678,7 +1678,6 @@ protected:
     TopEffectsPanel* effectsPnl;
     EffectsPanel* EffectsPanel1;
     wxFlexGridSizer* FlexGridEffects;
-    std::string LastIntensity;
     std::set<int> LorTimingList; // contains a list of period numbers, set by ReadLorFile()
 
 //add lock/unlock/random state flags -DJ
