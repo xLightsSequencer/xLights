@@ -6,6 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+	Gill added ability to position a picture in the X & Y direction
+	-- bug (gil) Deleting a timing mark crashes X/Lights #118
+	-- bug (gil) Enhancement: Picture Position #14
+	-- bug (gil) Fade across timing marks not working correctly #56
+	-- bug (sean) Fixed the Life, Pictures and Shimmer icons for effects.
 4.0.9  Mar 31, 2015
 	-- bug (gil) Move multiple elements at once using Render Position (move up/move down) in Sequence Elements Frame #114
 	-- bug (dpitts) modified move model up and down in the Sequence Elements screen to keep the moving model in the screen
