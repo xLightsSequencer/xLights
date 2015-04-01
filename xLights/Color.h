@@ -70,6 +70,13 @@ public:
     wxColor asWxColor() const {
         return wxColor(red, green, blue);
     }
+    wxImage::HSVValue asHSV() {
+        wxImage::RGBValue newrgb;
+        newrgb.red= Red();
+        newrgb.green=Green();
+        newrgb.blue=Blue();
+        return wxImage::RGBtoHSV(newrgb);
+    }
     wxUint32 GetRGB() const
     { return Red() | (Green() << 8) | (Blue() << 16); }
 

@@ -588,6 +588,48 @@ void EffectsGrid::DrawEffects()
     }
 }
 
+void GetOnEffectColors(Effect *e, xlColor &start, xlColor &end) {
+    wxString p = e->GetPalette();
+    wxString settings = e->GetSettings();
+    MapStringString settingsMap;
+
+    if (!p.IsEmpty()) {
+        settings = p + "," + settings;
+    }
+    wxString before,after,name,value;
+    while (!settings.IsEmpty()) {
+        before=settings.BeforeFirst(',');
+        settings=settings.AfterFirst(',');
+        
+        name=before.BeforeFirst('=');
+        if (name[1] == '_') {
+            name = name.AfterFirst('_');
+        }
+        value=before.AfterFirst('=');
+        settingsMap[name]=value;
+    }
+    xlColor newcolor;
+    for (int i = 1; i <= 6; i++) {
+        if (settingsMap[wxString::Format("CHECKBOX_Palette%d",i)] ==  "1") {
+            newcolor = xlColor(settingsMap[wxString::Format("BUTTON_Palette%d",i)]);
+            break;
+        }
+    }
+    int starti = wxAtoi(settingsMap.Get("TEXTCTRL_Eff_On_Start", "100"));
+    int endi = wxAtoi(settingsMap.Get("TEXTCTRL_Eff_On_End", "100"));
+    
+    if (starti == 100 && endi == 100) {
+        start = end = newcolor;
+    } else {
+        wxImage::HSVValue hsv = newcolor.asHSV();
+        hsv.value = (hsv.value * starti) / 100;
+        start = hsv;
+        hsv = newcolor.asHSV();
+        hsv.value = (hsv.value * endi) / 100;
+        end = hsv;
+    }
+}
+
 void EffectsGrid::DrawModelOrViewEffects(int row)
 {
     EffectLayer* effectLayer =mSequenceElements->GetRowInformation(row)->
@@ -660,6 +702,21 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
             {
+                if (e->GetEffectIndex() == xLightsFrame::RGB_EFFECTS_e::eff_ON)
+                {
+                    xlColor start;
+                    xlColor end;
+                    GetOnEffectColors(e, start, end);
+                    glColor3ub(start.Red(), start.Green(),start.Blue());
+                    glBegin(GL_QUADS);
+                    glVertex2f(x1, y1);
+                    glVertex2f(x1, y2);
+                    glColor3ub(end.Red(), end.Green(),end.Blue());
+                    glVertex2f(x2, y2);
+                    glVertex2f(x2, y1);
+                    glEnd();
+                }
+                
                 if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
                 {
                     DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);

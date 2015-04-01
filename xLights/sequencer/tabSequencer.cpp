@@ -814,7 +814,6 @@ void xLightsFrame::TimerRgbSeq(long msec)
             if (name !=  selectedEffect->GetEffectName()) {
                 selectedEffect->SetEffectName(name);
                 selectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
-                mainSequencer->PanelEffectGrid->ForceRefresh();
             }
 
             selectedEffect->SetSettings(effectText);
@@ -829,6 +828,7 @@ void xLightsFrame::TimerRgbSeq(long msec)
             playStartMS = -1;
 
             RenderEffectForModel(el->GetName(),playStartTime,playEndTime);
+            mainSequencer->PanelEffectGrid->ForceRefresh();
             return;
         }
     }
