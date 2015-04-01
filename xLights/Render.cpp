@@ -417,19 +417,22 @@ void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int 
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);
-    job = new RenderJob(el, modelNode, SeqData, this, false, clear);
-    //account for some rounding by rendering before/after
-    int startframe = startms / SeqData.FrameTime() - 1;
-    if (startframe < 0) {
-        startframe = 0;
+    if( el->GetType() != "Timing" && modelNode != nullptr )
+    {
+        job = new RenderJob(el, modelNode, SeqData, this, false, clear);
+        //account for some rounding by rendering before/after
+        int startframe = startms / SeqData.FrameTime() - 1;
+        if (startframe < 0) {
+            startframe = 0;
+        }
+        int endframe = endms / SeqData.FrameTime() + 1;
+        if (endframe >= SeqData.NumFrames()) {
+            endframe = SeqData.NumFrames() - 1;
+        }
+        job->setRenderRange(startframe, endframe);
+        job->setPreviousFrameDone(SeqData.NumFrames() + 1);
+        jobPool.PushJob(job);
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
-    if (endframe >= SeqData.NumFrames()) {
-        endframe = SeqData.NumFrames() - 1;
-    }
-    job->setRenderRange(startframe, endframe);
-    job->setPreviousFrameDone(SeqData.NumFrames() + 1);
-    jobPool.PushJob(job);
 }
 
 
