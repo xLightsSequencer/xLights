@@ -276,7 +276,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                     adjust(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTime(), min, max);
                     adjust(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTime(), min, max);
                 }
-                
+
                 sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
                 RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
             }
@@ -284,9 +284,14 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
 
         // if dragging an effect endpoint move the selection point with it so it will
         // focus on that spot if you zoom afterwards.
-        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED  || mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
+        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetStartTime()*1000.0);
+            UpdateTimePosition(selected_time);
+        }
+        else if( mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
+        {
+            int selected_time = (int)(mSelectedEffect->GetEndTime()*1000.0);
             UpdateTimePosition(selected_time);
         }
     }
