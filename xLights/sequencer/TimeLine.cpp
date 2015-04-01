@@ -94,6 +94,9 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);
     mIsInitialized = false;
+    mZoomLevel = 0;
+    mFrequency = 20;
+    m_dragging = false;
     // most variable initialization is done in the Initialize() function
 }
 

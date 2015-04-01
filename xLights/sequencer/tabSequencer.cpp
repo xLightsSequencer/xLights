@@ -70,8 +70,8 @@ void xLightsFrame::CreateSequencer()
     // DisplayElements Panel
     displayElementsPanel = new DisplayElementsPanel(PanelSequencer);
 
-    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Sequence Elements")).
-                   BestSize(wxSize(200,250)).Float());
+    m_mgr->AddPane(displayElementsPanel,wxAuiPaneInfo().Name(wxT("DisplayElements")).Caption(wxT("Sequence Elements"))
+                   .Float());
     // Hide the panel on start.
     m_mgr->GetPane("DisplayElements").Hide();
 
