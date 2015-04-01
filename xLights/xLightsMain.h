@@ -87,6 +87,7 @@
 #include "ModelPreview.h"
 #include "dlgPreviewSize.h"
 #include "SequenceData.h"
+#include "UtilClasses.h"
 
 #include "sequencer/EffectsGrid.h"
 #include "sequencer/MainSequencer.h"
@@ -254,27 +255,6 @@ static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms
 
 static wxCriticalSection gs_xoutCriticalSection;
 
-class MapStringString: public std::map<wxString,wxString> {
-public:
-    MapStringString(): std::map<wxString,wxString>() {
-    }
-    const wxString &operator[](const wxString &key) const {
-        return Get(key, notFound);
-    }
-    wxString &operator[](const wxString &key) {
-        return std::map<wxString, wxString>::operator[](key);
-    }
-    const wxString &Get(const wxString &key, const wxString &def) const {
-        std::map<wxString,wxString>::const_iterator i(find(key));
-        if (i == end()) {
-            return def;
-        }
-        return i->second;
-    }
-private:
-    wxString notFound;
-};
-
 
 typedef SequenceData SeqDataType;
 
@@ -419,7 +399,8 @@ public:
     void EndScript(const char *scriptname);
     int  FindNotebookPage(wxString& pagename);
     wxWindow* FindNotebookControl(int nbidx, PlayListIds id);
-    void SetEffectControls(const wxString &name, const wxString &settings, const wxString &palette);
+    void SetEffectControls(const wxString &name, const MapStringString &settings, const MapStringString &palette);
+    void SetEffectControls(const MapStringString &settings);
     wxXmlNode* CreateEffectNode(wxString& name);
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);

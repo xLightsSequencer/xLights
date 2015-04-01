@@ -206,10 +206,12 @@ public:
 private:
     void initialize(int layer, int frame, Effect *el, MapStringString &settingsMap) {
         if (el == NULL) {
-            loadSettingsMap("None", "", "", settingsMap);
+            settingsMap.clear();
+            settingsMap["Effect"]="None";
         } else {
-            loadSettingsMap(el->GetEffectName(), el->GetSettings(),
-                            el->GetPalette(),
+            loadSettingsMap(el->GetEffectName(),
+                            el->GetSettings(),
+                            el->GetPaletteMap(),
                             settingsMap);
         }
         updateBufferPaletteFromMap(layer, settingsMap);
@@ -274,26 +276,26 @@ private:
         }
         return NULL;
     }
-    void loadSettingsMap(const wxString &effectName, wxString settings,
-                         const wxString &colorPalette,
+    void loadSettingsMap(const wxString &effectName,
+                         const MapStringString &settings,
+                         const MapStringString &colorPalette,
                          MapStringString& settingsMap) {
         settingsMap.clear();
         settingsMap["Effect"]=effectName;
-
-        if (!colorPalette.IsEmpty()) {
-            settings = colorPalette + "," + settings;
-        }
-        wxString before,after,name,value;
-        while (!settings.IsEmpty()) {
-            before=settings.BeforeFirst(',');
-            settings=settings.AfterFirst(',');
-
-            name=before.BeforeFirst('=');
+        
+        for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
+            wxString name = it->first;
             if (name[1] == '_') {
                 name = name.AfterFirst('_');
             }
-            value=before.AfterFirst('=');
-            settingsMap[name]=value;
+            settingsMap[name] = it->second;
+        }
+        for (std::map<wxString,wxString>::const_iterator it=colorPalette.begin(); it!=colorPalette.end(); ++it) {
+            wxString name = it->first;
+            if (name[1] == '_') {
+                name = name.AfterFirst('_');
+            }
+            settingsMap[name] = it->second;
         }
     }
 

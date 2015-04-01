@@ -446,7 +446,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     else
     {
         Effect* effect = (Effect*)event.GetClientData();
-        SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPalette());
+        SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
 
@@ -845,9 +845,12 @@ void xLightsFrame::TimerRgbSeq(long msec)
     sPreview2->Render(&SeqData[frame][0]);
 }
 
-
-void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString &origSettings, const wxString &palette)
-{
+void xLightsFrame::SetEffectControls(const wxString &effectName, const MapStringString &settings, const MapStringString &palette) {
+    SetChoicebook(EffectsPanel1->Choicebook1, effectName);
+    SetEffectControls(settings);
+    SetEffectControls(palette);
+}
+void xLightsFrame::SetEffectControls(const MapStringString &settings) {
     long TempLong;
     wxColour color;
     wxWindow *CtrlWin, *ContextWin;
@@ -855,12 +858,6 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
     wxPanel *efPanel;
     int cnt=0;
 
-    wxString settings(origSettings);
-    if (palette != "") {
-        settings += "," + palette;
-    }
-
-    SetChoicebook(EffectsPanel1->Choicebook1, effectName);
 //NOTE: the settings loop after this section does not initialize controls.
 //For controls that have been added recently, an older version of the XML file will cause initial settings to be incorrect.
 //A loop needs to be added to initialize the wx controls to a predictable value.
@@ -872,13 +869,9 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
     EffectsPanel1->CheckBox_TextToCenter3->SetValue(false);
     EffectsPanel1->CheckBox_TextToCenter4->SetValue(false);
     EffectsPanel1->SingleStrandEffectType->SetSelection(0);
-    while (!settings.IsEmpty())
-    {
+    for (std::map<wxString,wxString>::const_iterator it=settings.begin(); it!=settings.end(); ++it) {
 //NOTE: this doesn't handle "," embedded into Text lines (causes "unable to find" error): -DJ
-        before=settings.BeforeFirst(',');
-        after=settings.AfterFirst(',');
-
-        name=before.BeforeFirst('=');
+        name = it->first;
         if (name.StartsWith("E_"))
         {
             ContextWin=EffectsPanel1;
@@ -899,12 +892,11 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
         }
         else
         {
-            settings=after;
             continue;
             //efPanel = NULL;
             //ContextWin=SeqPanelLeft;
         }
-        value=before.AfterFirst('=');
+        value=it->second;
         CtrlWin=wxWindow::FindWindowByName(name,ContextWin);
         if (CtrlWin)
         {
@@ -963,7 +955,6 @@ void xLightsFrame::SetEffectControls(const wxString &effectName, const wxString 
         {
             wxMessageBox("Unable to find: "+name, "Internal Error");
         }
-        settings=after;
         cnt++;
     }
     // set textbox values for sliders that have them

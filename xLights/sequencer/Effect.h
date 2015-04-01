@@ -3,6 +3,8 @@
 
 #include "wx/wx.h"
 #include <vector>
+#include "../UtilClasses.h"
+#include "../Color.h"
 
 #define EFFECT_BARS         0
 #define EFFECT_BUTTERFLY    1
@@ -36,23 +38,20 @@ class Effect
         Effect(EffectLayer* parent);
         virtual ~Effect();
 
-        int GetID();
+        int GetID() const;
         void SetID(int id);
 
-        int GetEffectIndex();
+        int GetEffectIndex() const;
         void SetEffectIndex(int effectIndex);
 
-        wxString GetEffectName();
+        wxString GetEffectName() const;
         void SetEffectName(const wxString & name);
 
         double GetStartTime() const;
         void SetStartTime(double startTime);
 
-        double GetEndTime();
+        double GetEndTime() const;
         void SetEndTime(double endTime);
-
-        wxString GetSettings();
-        void SetSettings(const wxString &settings);
 
         int GetSelected();
         void SetSelected(int selected);
@@ -77,8 +76,19 @@ class Effect
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
 
-        const wxString &GetPalette() const { return mPalette;}
-        void SetPalette(const wxString& i) { mPalette = i; IncrementChangeCount(); }
+    
+        wxString GetSettingsAsString() const {
+            return mSettings.AsString();
+        }
+        const MapStringString &GetSettings() const {
+            return mSettings;
+        }
+        void SetSettings(const wxString &settings);
+
+        const xlColorVector GetPalette() const { return mColors;}
+        const MapStringString &GetPaletteMap() const { return mPaletteMap;}
+        wxString GetPaletteAsString() const { return mPaletteMap.AsString();}
+        void SetPalette(const wxString& i);
 
     protected:
     private:
@@ -86,7 +96,6 @@ class Effect
         int mID;
         int mEffectIndex;
         wxString mName;
-        wxString mSettings;
         double mStartTime;
         double mEndTime;
         int mSelected;
@@ -94,8 +103,11 @@ class Effect
         int mStartPosition;
         int mEndPosition;
         bool mDirty;
-        wxString mPalette;
         EffectLayer* mParentLayer;
+    
+        MapStringString mSettings;
+        MapStringString mPaletteMap;
+        xlColorVector mColors;
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

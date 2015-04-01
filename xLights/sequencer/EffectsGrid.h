@@ -76,6 +76,7 @@ private:
     void DrawHorizontalLines();
     void DrawVerticalLines();
     void DrawModelOrViewEffects(int row);
+    bool DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
     void DrawTimingEffects(int row);
     void DrawEffects();
     void Resize(int position);

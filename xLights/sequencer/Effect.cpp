@@ -7,14 +7,13 @@ Effect::Effect(EffectLayer* parent)
 {
     mParentLayer = parent;
     changeCount = 0;
-    mPalette = "";
 }
 
 Effect::~Effect()
 {
 }
 
-int Effect::GetID()
+int Effect::GetID() const
 {
     return mID;
 }
@@ -25,19 +24,28 @@ void Effect::SetID(int id)
 }
 
 
-wxString Effect::GetSettings()
-{
-    return mSettings;
-}
-
 void Effect::SetSettings(const wxString &settings)
 {
-    mSettings = settings;
+    mSettings.Parse(settings);
     IncrementChangeCount();
     mDirty = true;
 }
 
-wxString Effect::GetEffectName()
+void Effect::SetPalette(const wxString& i)
+{
+    mPaletteMap.Parse(i);
+    mColors.clear();
+    for (int i = 1; i <= 6; i++) {
+        if (mPaletteMap[wxString::Format("C_CHECKBOX_Palette%d",i)] ==  "1") {
+            mColors.push_back(xlColor(mPaletteMap[wxString::Format("C_BUTTON_Palette%d",i)]));
+        }
+    }
+    IncrementChangeCount();
+    mDirty = true;
+}
+
+
+wxString Effect::GetEffectName() const
 {
     return mName;
 }
@@ -48,7 +56,7 @@ void Effect::SetEffectName(const wxString & name)
     IncrementChangeCount();
 }
 
-int Effect::GetEffectIndex()
+int Effect::GetEffectIndex() const
 {
     return mEffectIndex;
 }
@@ -72,7 +80,7 @@ void Effect::SetStartTime(double startTime)
    mDirty = true;
 }
 
-double Effect::GetEndTime()
+double Effect::GetEndTime() const
 {
     return mEndTime;
 }
