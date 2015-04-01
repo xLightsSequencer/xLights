@@ -906,6 +906,18 @@ void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wx
     }
 }
 
+int ModelClass::GetNodeChannelCount(const wxString & nodeType) {
+    if (nodeType.StartsWith("Single Color")) {
+        return 1;
+    } else if (nodeType == "Strobes White 3fps") {
+        return 1;
+    } else if (nodeType == "4 Channel RGBW") {
+        return 4;
+    }
+    return 3;
+}
+
+
 bool ModelClass::CanRotate() {
     return true; // DisplayAs == "Single Line";
 }

@@ -389,8 +389,10 @@ int ModelDialog::GetChannelsPerStringStd()
 {
     wxString StringType=Choice_StringType->GetStringSelection();
     wxString DisplayAs=Choice_DisplayAs->GetStringSelection();
-    bool SingleChannel = ModelClass::HasSingleChannel(StringType);
-    if (SingleChannel) return 1;
+    int chanCountPerString = ModelClass::GetNodeChannelCount(StringType);
+    if (chanCountPerString != 3) {
+        return chanCountPerString;
+    }
     if (ModelClass::HasSingleNode(StringType)) return 3;
     if (DisplayAs != "Window Frame")
     {

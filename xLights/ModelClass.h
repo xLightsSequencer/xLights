@@ -441,8 +441,9 @@ public:
     // true for traditional strings
     static bool HasSingleChannel(const wxString& StrType)
     {
-        return StrType.StartsWith(wxT("Single")) || StrType.StartsWith(wxT("Strobe"));
+        return GetNodeChannelCount(StrType) == 1;
     }
+    static int GetNodeChannelCount(const wxString & nodeType);
 
 };
 typedef std::unique_ptr<ModelClass> ModelClassPtr;
