@@ -163,6 +163,10 @@
 #include "../include/layers.xpm"
 #include "../include/model_preview_24.xpm"
 #include "../include/house_preview_24.xpm"
+#include "../include/stop_sign_24.xpm"
+#include "../include/lights_off_24.xpm"
+#include "../include/output_lights_24.xpm"
+#include "../include/graceful_stop_24.xpm"
 
 
 #ifndef __WXOSX__
@@ -354,6 +358,19 @@ public:
 #else
 #define DOUBLE_BUFFER(a) a->SetDoubleBuffered(true);
 #endif
+
+class wxAuiToolBar;
+class AUIToolbarButtonWrapper {
+public:
+    AUIToolbarButtonWrapper(wxAuiToolBar *tb, int i) : toolbar(tb), id(i) {}
+    
+    bool IsChecked();
+    void SetValue(bool b);
+    void Enable(bool b);
+private:
+    wxAuiToolBar *toolbar;
+    int id;
+};
 
 class xLightsFrame: public wxFrame
 {
@@ -1013,7 +1030,6 @@ private:
     wxMenuItem* MenuItem_File_Close_Sequence;
     wxFileDialog* FileDialogConvert;
     wxTimer Timer1;
-    wxCheckBox* CheckBoxLightOutput;
     wxRadioButton* RadioButtonTwinkle50;
     wxRadioButton* RadioButtonRgbTwinkle10;
     DragEffectBitmapButton* BitmapButton26;
@@ -1041,7 +1057,6 @@ private:
     wxPanel* PanelPreview;
     wxStaticText* StaticText6;
     wxButton* ButtonTestClear;
-    wxButton* ButtonStopNow;
     wxPanel* PanelConvert;
     DragEffectBitmapButton* BitmapButton28;
     wxTextCtrl* TextCtrl_PgoMinRest;
@@ -1124,7 +1139,6 @@ private:
     wxSplitterWindow* SplitterWindow1;
     wxSlider* SliderFgIntensity;
     xlAuiToolBar* MainToolBar;
-    wxButton* ButtonLightsOff;
     DragEffectBitmapButton* BitmapButton10;
     wxPanel* PanelTestStandard;
     wxStaticText* StaticText20;
@@ -1153,8 +1167,8 @@ private:
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxMenuItem* MenuItem9;
-    wxStaticText* StaticText4;
     wxRadioButton* RadioButtonAlt;
+    wxStaticText* StaticText4;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
@@ -1201,13 +1215,11 @@ private:
     wxMenuItem* MenuItem_File_Save_Sequence;
     wxChoice* LORImportTimeResolution;
     wxStaticText* StaticText17;
-    wxBitmapButton* BitmapButtonTabInfo;
     wxStaticText* StaticText11;
     wxScrolledWindow* ScrolledWindowPreview;
     wxRadioButton* RadioButtonRgbCycle5;
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
-    wxButton* ButtonGracefulStop;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
@@ -1224,6 +1236,9 @@ private:
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
     //*)
+    
+    AUIToolbarButtonWrapper *CheckBoxLightOutput;
+    AUIToolbarButtonWrapper *ButtonGracefulStop;
 
     wxBitmap pauseIcon;
     wxBitmap playIcon;

@@ -251,36 +251,45 @@
 			<object class="AuiManagerItem">
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_OUTPUT" subclass="xlAuiToolBar" variable="OutputToolBar" member="yes">
 					<object class="AuiToolBarItem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
-							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_BUTTON" />
-							<tooltip>Tips for using the current tab</tooltip>
-							<style>wxBU_AUTODRAW|wxRAISED_BORDER</style>
-							<handler function="OnBitmapButtonTabInfoClick" entry="EVT_BUTTON" />
+						<object class="wxAuiToolBarItem" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
+							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_OTHER" />
+							<shorthelp>Tips for using current tab</shorthelp>
+							<handler function="OnBitmapButtonTabInfoClick" entry="EVT_TOOL" />
 						</object>
+						<label>Information</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxButton" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
-							<label>Stop Now!</label>
-							<handler function="OnButtonStopNowClick" entry="EVT_BUTTON" />
+						<object class="wxAuiToolBarItem" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
+							<bitmap code="stop_sign_24_xpm" />
+							<shorthelp>Stop Now!</shorthelp>
+							<handler function="OnButtonStopNowClick" entry="EVT_TOOL" />
 						</object>
+						<label>Stop</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxButton" name="ID_BUTTON_GRACEFUL_STOP" variable="ButtonGracefulStop" member="yes">
-							<label>Graceful Stop</label>
-							<handler function="OnButtonGracefulStopClick" entry="EVT_BUTTON" />
+						<object class="wxAuiToolBarItem" name="ID_BUTTON_GRACEFUL_STOP" variable="ButtonGracefulStop" member="yes">
+							<bitmap code="graceful_stop_24_xpm" />
+							<shorthelp>Graceful Stop</shorthelp>
+							<handler function="OnButtonGracefulStopClick" entry="EVT_TOOL" />
 						</object>
+						<label>Graceful Stop</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxButton" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
-							<label>Lights Off</label>
-							<handler function="OnButtonLightsOffClick" entry="EVT_BUTTON" />
+						<object class="wxAuiToolBarItem" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
+							<bitmap code="lights_off_24_xpm" />
+							<shorthelp>Lights Off</shorthelp>
+							<handler function="OnButtonLightsOffClick" entry="EVT_TOOL" />
 						</object>
+						<label>Lights Off</label>
 					</object>
 					<object class="AuiToolBarItem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-							<label>Output to Lights</label>
-							<handler function="OnCheckBoxLightOutputClick" entry="EVT_CHECKBOX" />
+						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
+							<bitmap code="output_lights_24_xpm" />
+							<shorthelp>Output To Lights</shorthelp>
+							<itemkind>Check</itemkind>
+							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
 						</object>
+						<label>Output To Lights</label>
 					</object>
 				</object>
 				<name>Output Tool Bar</name>

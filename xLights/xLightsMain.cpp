@@ -584,18 +584,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     ViewToolBar->Realize();
     MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
     OutputToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_OUTPUT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-    BitmapButtonTabInfo = new wxBitmapButton(OutputToolBar, ID_BITMAPBUTTON_TAB_INFO, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxRAISED_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_TAB_INFO"));
-    BitmapButtonTabInfo->SetToolTip(_("Tips for using the current tab"));
-    ButtonStopNow = new wxButton(OutputToolBar, ID_BUTTON_STOP_NOW, _("Stop Now!"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_STOP_NOW"));
-    ButtonGracefulStop = new wxButton(OutputToolBar, ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_GRACEFUL_STOP"));
-    ButtonLightsOff = new wxButton(OutputToolBar, ID_BUTTON_LIGHTS_OFF, _("Lights Off"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LIGHTS_OFF"));
-    CheckBoxLightOutput = new wxCheckBox(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LIGHT_OUTPUT"));
-    CheckBoxLightOutput->SetValue(false);
-    OutputToolBar->AddControl(BitmapButtonTabInfo, wxEmptyString);
-    OutputToolBar->AddControl(ButtonStopNow, wxEmptyString);
-    OutputToolBar->AddControl(ButtonGracefulStop, wxEmptyString);
-    OutputToolBar->AddControl(ButtonLightsOff, wxEmptyString);
-    OutputToolBar->AddControl(CheckBoxLightOutput, wxEmptyString);
+    OutputToolBar->AddTool(ID_BITMAPBUTTON_TAB_INFO, _("Information"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_INFORMATION")),wxART_OTHER), wxNullBitmap, wxITEM_NORMAL, _("Tips for using current tab"), wxEmptyString, NULL);
+    OutputToolBar->AddTool(ID_BUTTON_STOP_NOW, _("Stop"), stop_sign_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Stop Now!"), wxEmptyString, NULL);
+    OutputToolBar->AddTool(ID_BUTTON_GRACEFUL_STOP, _("Graceful Stop"), graceful_stop_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Graceful Stop"), wxEmptyString, NULL);
+    OutputToolBar->AddTool(ID_BUTTON_LIGHTS_OFF, _("Lights Off"), lights_off_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Lights Off"), wxEmptyString, NULL);
+    OutputToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), output_lights_24_xpm, wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     OutputToolBar->Realize();
     MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(25).Top().Gripper());
     EffectsToolBar = new wxAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxPoint(993,6), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1604,11 +1597,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_AUITOOLBARITEM_ZOOM_IN,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(ID_AUITOOLBARITEM_ZOOM_OUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
-    Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
-    Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
-    Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
-    Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
-    Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
+    Connect(ID_BITMAPBUTTON_TAB_INFO,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
+    Connect(ID_BUTTON_STOP_NOW,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonStopNowClick);
+    Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
+    Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
+    Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeMediaDirectory);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeFseqDirectory);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
@@ -1739,6 +1732,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     SetTitle( xlights_base_name + " (Ver " + xlights_version_string + ") " + xlights_build_date );
 
+    CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
+    ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
+
+    
     selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
@@ -2091,6 +2088,9 @@ xLightsFrame::~xLightsFrame()
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = NULL;
     }
+
+    delete CheckBoxLightOutput;
+    delete ButtonGracefulStop;
 
     //(*Destroy(xLightsFrame)
     //*)
@@ -2937,3 +2937,12 @@ void xLightsFrame::OnMenuItemSequenceElementsSelected(wxCommandEvent& event)
     }
 }
 
+bool AUIToolbarButtonWrapper::IsChecked() {
+    return toolbar->GetToolToggled(id);
+}
+void AUIToolbarButtonWrapper::SetValue(bool b) {
+    toolbar->ToggleTool(id, b);
+}
+void AUIToolbarButtonWrapper::Enable(bool b) {
+    toolbar->EnableTool(id, b);
+}
