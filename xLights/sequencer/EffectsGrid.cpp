@@ -20,6 +20,8 @@
 #include "EffectLayer.h"
 #include "EffectDropTarget.h"
 #include "../DrawGLUtils.h"
+#include "RenderCommandEvent.h"
+
 
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
 EVT_MOTION(EffectsGrid::mouseMoved)
@@ -74,6 +76,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {}
 void EffectsGrid::mouseLeftWindow(wxMouseEvent& event) {}
 void EffectsGrid::keyReleased(wxKeyEvent& event){}
 void EffectsGrid::keyPressed(wxKeyEvent& event){}
+
+void EffectsGrid::sendRenderEvent(const wxString &model, double start, double end, bool clear) {
+    RenderCommandEvent event(model, start, end, clear, false);
+    wxPostEvent(mParent, event);
+}
+
 
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
@@ -168,6 +176,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         mSequenceElements->UnSelectAllEffects();
     }
     int selected_time = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+    mStartResizeTime = selected_time;
     int row = GetRow(event.GetY());
     if(row>=mSequenceElements->GetRowInformationSize())
         return;
@@ -232,29 +241,52 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     event.Skip(true);
 }
 
+void adjust(double time, double &min, double &max) {
+    if (time < min) {
+        min = time;
+    }
+    if (time > max) {
+        max = time;
+    }
+}
+
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
     if(mResizing)
     {
         if(mEffectLayer->GetParentElement()->GetType()=="model")
         {
+            double stime = mStartResizeTime / 1000;
+            double time = mTimeline->GetAbsoluteTimefromPosition(event.GetX());
+            double min = stime;
+            double max = stime;
+            adjust(time, min, max);
+
             Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
             if(effect)
             {
+                adjust(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTime(), min, max);
+                adjust(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTime(), min, max);
+                if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && mResizeEffectIndex > 0) {
+                    //also have to re-render the effect to the left
+                    adjust(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTime(), min, max);
+                    adjust(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTime(), min, max);
+                } else if (mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED
+                           && mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
+                    adjust(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTime(), min, max);
+                    adjust(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTime(), min, max);
+                }
+                
+                sendRenderEvent(mEffectLayer->GetParentElement()->GetName(), min, max);
                 RaisePlayModelEffect(mEffectLayer->GetParentElement(),effect,true);
             }
         }
 
         // if dragging an effect endpoint move the selection point with it so it will
         // focus on that spot if you zoom afterwards.
-        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED )
+        if( mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED  || mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
         {
             int selected_time = (int)(mSelectedEffect->GetStartTime()*1000.0);
-            UpdateTimePosition(selected_time);
-        }
-        else if( mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED )
-        {
-            int selected_time = (int)(mSelectedEffect->GetEndTime()*1000.0);
             UpdateTimePosition(selected_time);
         }
     }

@@ -57,6 +57,7 @@ protected:
     virtual void InitializeGLCanvas();
 
 private:
+    void sendRenderEvent(const wxString &model, double start, double end, bool clear = true);
     void render(wxPaintEvent& evt);
 	void mouseMoved(wxMouseEvent& event);
 	void mouseDown(wxMouseEvent& event);
@@ -111,6 +112,7 @@ private:
     Effect* mSelectedEffect;
 
     int mResizingMode;
+    int mStartResizeTime;
     bool mResizing;
     bool mDragging;
     int mDragStartX;

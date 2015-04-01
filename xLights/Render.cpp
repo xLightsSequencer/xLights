@@ -414,6 +414,7 @@ void xLightsFrame::RenderGridToSeqData() {
 }
 
 void xLightsFrame::RenderEffectForModel(const wxString &model, int startms, int endms, bool clear) {
+    //printf("render model %d %d   %d\n", startms,endms, clear);
     RenderJob *job = NULL;
     Element * el = mSequenceElements.GetElement(model);
     wxXmlNode *modelNode = GetModelNode(model);
