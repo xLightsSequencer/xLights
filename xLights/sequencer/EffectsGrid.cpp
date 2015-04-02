@@ -624,6 +624,45 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             glEnd();
         }
         break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH: {
+            xlColor start;
+            xlColor end;
+            int cnt = e->GetPalette().size();
+            if (cnt == 0) {
+                break;
+            }
+            start = e->GetPalette()[0];
+            if (cnt == 1) {
+                glColor3ub(start.Red(), start.Green(),start.Blue());
+                glBegin(GL_QUADS);
+                glVertex2f(x1, y1);
+                glVertex2f(x1, y2);
+                glVertex2f(x2, y2);
+                glVertex2f(x2, y1);
+                glEnd();
+                break;
+            }
+            int xl = x1;
+            start = e->GetPalette()[0];
+            for (int x = 1; x < cnt; x++) {
+                end = e->GetPalette()[x];
+                int xr = x1 + (x2 - x1) * x / (cnt  - 1);
+                if (x == (cnt - 1)) {
+                    xr = x2;
+                }
+                glColor3ub(start.Red(), start.Green(),start.Blue());
+                glBegin(GL_QUADS);
+                glVertex2f(xl, y1);
+                glVertex2f(xl, y2);
+                glColor3ub(end.Red(), end.Green(),end.Blue());
+                glVertex2f(xr, y2);
+                glVertex2f(xr, y1);
+                glEnd();
+                start = end;
+                xl = xr;
+            }
+        }
+        break;
         default: {}
     }
     return true;
