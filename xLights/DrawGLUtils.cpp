@@ -119,6 +119,44 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     glEnd();
 }
 
+void DrawGLUtils::DrawHBlendedRectangle(const xlColor &left, const xlColor &right, int x1, int y1,int x2, int y2) {
+    glColor3ub(left.Red(), left.Green(), left.Blue());
+    glBegin(GL_QUADS);
+    glVertex2f(x1, y1);
+    glVertex2f(x1, y2);
+    glColor3ub(right.Red(), right.Green(),right.Blue());
+    glVertex2f(x2, y2);
+    glVertex2f(x2, y1);
+    glEnd();
+}
+void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int y1,int x2, int y2) {
+    xlColor start;
+    xlColor end;
+    int cnt = colors.size();
+    if (cnt == 0) {
+        return;
+    }
+    start = colors[0];
+    if (cnt == 1) {
+        DrawGLUtils::DrawHBlendedRectangle(start, start, x1, y1, x2, y2);
+        return;
+    }
+    int xl = x1;
+    start = colors[0];
+    for (int x = 1; x < cnt; x++) {
+        end =  colors[x];
+        int xr = x1 + (x2 - x1) * x / (cnt  - 1);
+        if (x == (cnt - 1)) {
+            xr = x2;
+        }
+        DrawGLUtils::DrawHBlendedRectangle(start, end, xl, y1, xr, y2);
+        start = end;
+        xl = xr;
+    }
+}
+
+
+
 void DrawGLUtils::CreateOrUpdateTexture(char** p_XPM, GLuint* texture)
 {
     if (p_XPM != NULL)
