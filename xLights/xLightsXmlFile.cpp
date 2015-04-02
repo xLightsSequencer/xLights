@@ -227,28 +227,30 @@ static wxString GetContent(wxXmlNode *node) {
     return s;
 }
 
-int xLightsXmlFile::AddColorPalette(const wxString &palette) {
+int xLightsXmlFile::AddColorPalette(StringIntMap &paletteCache, const wxString &palette) {
     int cnt = 0;
     wxXmlNode* root=seqDocument.GetRoot();
     wxXmlNode* child;
+
+    int size = paletteCache.size();
+    int i = paletteCache[palette];
+    if (i != 0) {
+        return i - 1;
+    }
 
     for(wxXmlNode* e=root->GetChildren(); e!=NULL; e=e->GetNext() )
     {
         if (e->GetName() == "ColorPalettes")
         {
-            for(wxXmlNode* cp=e->GetChildren(); cp!=NULL; cp=cp->GetNext() )
-            {
-                if (cp->GetName() == "ColorPalette" && cp->GetNodeContent() == palette) {
-                    return cnt;
-                }
-                cnt++;
-            }
+            cnt = size;
             AddChildXmlNode(e, "ColorPalette", palette);
+            paletteCache[palette] = cnt + 1;
             return cnt;
         }
     }
     child = AddChildXmlNode(root, "ColorPalettes");
     AddChildXmlNode(child, "ColorPalette", palette);
+    paletteCache[palette] = 1;
     return cnt;
 }
 
@@ -318,6 +320,7 @@ static wxString SplitPalette(wxString &data)
 }
 
 void xLightsXmlFile::AddEffect( wxXmlNode* node,
+                                StringIntMap &paletteCache,
                                 const wxString& name,
                                 const wxString& d,
                                 const wxString& protection,
@@ -328,7 +331,7 @@ void xLightsXmlFile::AddEffect( wxXmlNode* node,
 {
     wxString data = d;
     wxString palette = SplitPalette(data);
-    int p = AddColorPalette(palette);
+    int p = AddColorPalette(paletteCache, palette);
     wxXmlNode* effect = AddChildXmlNode(node, "Effect", data);
     effect->AddAttribute("name", name);
     effect->AddAttribute("protected", protection);
@@ -806,6 +809,7 @@ bool xLightsXmlFile::LoadV3Sequence()
     int num_effects = timing.GetCount();
     int effect_id = 1;
     wxXmlNode* child;
+    StringIntMap paletteCache;
 
     for(int i = 0; i < models.GetCount(); ++i)
     {
@@ -861,8 +865,8 @@ bool xLightsXmlFile::LoadV3Sequence()
 
                 wxString end_time = (j+1<num_effects) ? timing[j+1] : last_time;
 
-                AddEffect( layer1, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
-                AddEffect( layer2, effect2, data2, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
+                AddEffect( layer1, paletteCache, effect1, data1, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
+                AddEffect( layer2, paletteCache, effect2, data2, effect_protection[j], "0", string_format("%d",effect_id), timing[j], end_time );
 
                 effect_id++;
             }
@@ -1345,9 +1349,9 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         }
     }
 
-    std::vector<wxString> colorPalettes;
+    StringIntMap colorPalettes;
     wxXmlNode* colorPalette_node = AddChildXmlNode(root, "ColorPalettes");
-    std::vector<wxString> effectStrings;
+    StringIntMap effectStrings;
     wxXmlNode* effectDB_Node = AddChildXmlNode(root, "EffectDB");
 
     // Now add new elements to our xml document
@@ -1413,16 +1417,12 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
 
                     if( element->GetType() == "model" )
                     {
-                        int ref = -1;
                         wxString effectString = effect->GetSettingsAsString();
-                        for (int x = 0; x < effectStrings.size(); x++) {
-                            if (effectStrings[x] == effectString) {
-                                ref = x;
-                            }
-                        }
+                        int size = effectStrings.size();
+                        int ref = effectStrings[effectString] - 1;
                         if (ref == -1) {
-                            ref = effectStrings.size();
-                            effectStrings.push_back(effectString);
+                            ref = size;
+                            effectStrings[effectString] = ref + 1;
                             AddChildXmlNode(effectDB_Node, "Effect", effectString);
                         }
 
@@ -1442,15 +1442,11 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                         effect_node->AddAttribute("endTime", string_format("%f", effect->GetEndTime()));
                         wxString palette = effect->GetPaletteAsString();
                         if (palette != "") {
-                            int pref = -1;
-                            for (int x = 0; x < colorPalettes.size(); x++) {
-                                if (colorPalettes[x] == palette) {
-                                    pref = x;
-                                }
-                            }
+                            size = colorPalettes.size();
+                            int pref = colorPalettes[palette] - 1;
                             if (pref == -1) {
-                                pref = colorPalettes.size();
-                                colorPalettes.push_back(palette);
+                                pref = size;
+                                colorPalettes[palette] = pref + 1;
                                 AddChildXmlNode(colorPalette_node, "ColorPalette", palette);
                             }
                             effect_node->AddAttribute("palette", string_format("%d", pref));

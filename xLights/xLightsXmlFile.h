@@ -10,6 +10,9 @@
 class SequenceElements;  // forward declaration needed due to circular dependency
 class xLightsFrame;
 
+
+WX_DECLARE_STRING_HASH_MAP( int, StringIntMap );
+
 class xLightsXmlFile : public wxFileName
 {
     public:
@@ -118,15 +121,16 @@ class xLightsXmlFile : public wxFileName
         void AddTimingDisplayElement( const wxString& name, const wxString& visible, const wxString& active );
         void AddDisplayElement( const wxString& name, const wxString& type, const wxString& visible, const wxString& collapsed, const wxString& active );
         wxXmlNode* AddElement( const wxString& name, const wxString& type );
-        int AddColorPalette(const wxString &palette);
+        int AddColorPalette(StringIntMap &paletteCache, const wxString &palette);
         void AddEffect( wxXmlNode* node,
+                       StringIntMap &paletteCache,
                         const wxString& name,
                         const wxString& data,
                         const wxString& protection,
                         const wxString& selected,
                         const wxString& id,
                         const wxString& start_time,
-                        const wxString& end_time );
+                        const wxString& end_time);
         void AddTimingEffect( wxXmlNode* node,
                               const wxString& label,
                               const wxString& protection,

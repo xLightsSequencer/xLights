@@ -2584,20 +2584,19 @@ void xLightsFrame::InitPapagayoTab(bool tab_changed)
 #ifndef GRID_EDIT_KLUDGE
 //set up custom renderer for all cells:
 //filenames tend to be unique at the end and repetitive at the start (due to folder name), so scroll text by default
-    myGridCellStringRenderer* cell_renderer = new myGridCellStringRenderer();
-//set up custom cell editor for all cells:
+
+    //set up custom cell editor for all cells:
 //NOTE: behavior is different for top row vs. other cells so use 2 different editors (not strictly necessary, but safer)
 //list of choices must be updated upon entry to tab in case other user actions changed list of available models/ or channels
-    myGridCellChoiceEditor* model_chooser = new myGridCellChoiceEditor(0, NULL, false); //0, choices, false));
-    myGridCellChoiceEditor* node_chooser = new myGridCellChoiceEditor(0, NULL, true);
 //    model_chooser->grid_parent = GridCoroFaces;
 //    node_chooser->grid_parent = GridCoroFaces;
     for (int r = 0; r < GridCoroFaces->GetRows(); ++r)
         for (int c = 0; c < GridCoroFaces->GetCols(); ++c)
         {
 //            GridCoroFaces->SetCellEditor(r, c, new myGridCellChoiceEditor(0, NULL, r)); //r? node_chooser: model_chooser);
-            GridCoroFaces->SetCellEditor(r, c, (r == Model_Row)? model_chooser: node_chooser);
-            if (r != Model_Row) GridCoroFaces->SetCellRenderer(r, c, cell_renderer);
+            myGridCellChoiceEditor *chooser = new myGridCellChoiceEditor(0, NULL, r != Model_Row);
+            GridCoroFaces->SetCellEditor(r, c, chooser);
+            if (r != Model_Row) GridCoroFaces->SetCellRenderer(r, c, new myGridCellStringRenderer());
         }
     debug(10, "set up %d rows, %d cols with custom grid cell editor, renderer", GridCoroFaces->GetRows(), GridCoroFaces->GetCols());
 #endif //ndef GRID_EDIT_KLUDGE
