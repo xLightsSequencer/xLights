@@ -495,8 +495,8 @@ static wxString SubstituteV3toV4tags(const wxString& effect_string)
     new_string.Replace("E2_CHECKBOX_Palette4", "C_CHECKBOX_Palette4");
     new_string.Replace("E2_CHECKBOX_Palette5", "C_CHECKBOX_Palette5");
     new_string.Replace("E2_CHECKBOX_Palette6", "C_CHECKBOX_Palette6");
-    new_string.Replace("E1", "E");
-    new_string.Replace("E2", "E");
+    new_string.Replace("E1_", "E_");
+    new_string.Replace("E2_", "E_");
 
     new_string = "T_CHOICE_LayerMethod=" + new_string;
 
