@@ -694,6 +694,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         mEffectColorRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
+        
+        bool drawIcon = DrawEffectBackground(e, x1, y1, x2, y2);
+
 
         if (mode==SCREEN_L_R_OFF)
         {
@@ -740,7 +743,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             // Draw horizontal
             if(mode!=SCREEN_L_R_OFF)
             {
-                if (DrawEffectBackground(e, x1, y1, x2, y2)) {
+                if (drawIcon) {
                     if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
                     {
                         DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
