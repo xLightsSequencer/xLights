@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Improve efficiency of effect background render on grid.  Let OpenGL do the clipping.
     -- enh (gil) Improve morph acceleration option and add deceleration option
 4.0.12  Apr 2, 2015
 	-- enh (gil) Render Morph effect into background of effect layer. This follows on ON and COLORWASH

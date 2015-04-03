@@ -643,7 +643,7 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
     end_t = e->GetPalette()[tcole];
 }
 
-bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, int x3, int x4) {
+bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
     switch (e->GetEffectIndex()) {
         case xLightsFrame::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
@@ -663,26 +663,9 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             xlColor start_t;
             xlColor end_t;
             GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
-            if( x3 == x1 && x4 == x2 )
-            {
-                int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
-                DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
-                DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
-            }
-            else
-            {
-                int head_right_end = (int)((float)(x4-x3) * (float)head_duration / 100.0) + x3;
-                bool tail_viewable = head_right_end < x2;
-                int x_mid = tail_viewable ? head_right_end : x2;
-                if( head_right_end > x1 ) // draw head if visible
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
-                }
-                if( tail_viewable ) // draw tail if visible
-                {
-                    DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
-                }
-            }
+            int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
+            DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
+            DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
             return false;
         }
         break;
@@ -718,7 +701,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
 
-        bool drawIcon = DrawEffectBackground(e, x1, y1, x2, y2, x3, x4);
+        bool drawIcon = DrawEffectBackground(e, x3, y1, x4, y2);
 
 
         if (mode==SCREEN_L_R_OFF)
