@@ -39,11 +39,8 @@ wxDragResult EffectDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
 {
     if(mIsEffectsGrid)
     {
-        ((EffectsGrid*)(mParent))->DragOver(x,y);
-        return wxDragCopy;
+        if( ((EffectsGrid*)(mParent))->DragOver(x,y) )
+            return wxDragCopy;
     }
-    else
-    {
-        return wxDragNone;
-    }
+    return wxDragNone;
 }

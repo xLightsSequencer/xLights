@@ -92,7 +92,7 @@ void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
     mResizingMode = EFFECT_RESIZE_NO;
 }
 
-void EffectsGrid::DragOver(int x, int y)
+bool EffectsGrid::DragOver(int x, int y)
 {
     int row = GetRow(y);
     int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
@@ -121,12 +121,16 @@ void EffectsGrid::DragOver(int x, int y)
         mDragDropping = false;
     }
     Refresh(false);
+    return mDragDropping;
 }
 
 void EffectsGrid::OnDrop(int x, int y)
 {
-    mDragDropping = false;
-    RaiseEffectDropped(x,y);
+    if( mDragDropping )
+    {
+        RaiseEffectDropped(x,y);
+        mDragDropping = false;
+    }
     Refresh(false);
 }
 
@@ -306,7 +310,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
     } else if (mDragging) {
         ReleaseMouse();
         mDragging = false;
-        
+
         if (mDragStartX == event.GetX()
             && mDragStartY == event.GetY()) {
             checkForEmptyCell = true;
@@ -322,7 +326,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
             EffectLayer* tel = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
             EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
-            
+
             int selectionType;
             int timingIndex = tel->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
             int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
@@ -333,7 +337,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 mDropStartTime = tel->GetEffect(timingIndex)->GetStartTime();
                 mDropEndTime = tel->GetEffect(timingIndex)->GetEndTime();
                 mDropRow = row;
-                
+
                 mEmptyCellSelected = true;
                 mSelectedTimingIndex = timingIndex;
                 mSelectedTimingRow = selectedTimingIndex;
@@ -400,7 +404,7 @@ void EffectsGrid::Paste(const wxString &data) {
             sendRenderEvent(el->GetParentElement()->GetName(),
                             mDropStartTime,
                             mDropEndTime, true);
-            
+
             RaiseSelectedEffectChanged(ef);
             mSelectedEffect = ef;
             mEmptyCellSelected = false;

@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug (gil) Don't allow dropping effect past last timing cell on right
     -- enh (gil) Improve efficiency of effect background render on grid.  Let OpenGL do the clipping.
     -- enh (gil) Improve morph acceleration option and add deceleration option
 4.0.12  Apr 2, 2015

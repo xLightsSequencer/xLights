@@ -49,7 +49,7 @@ public:
     void SetStartPixelOffset(int offset);
     void SetSequenceElements(SequenceElements* elements);
     void SetTimeline(TimeLine* timeline);
-    void DragOver(int x, int y);
+    bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void ForceRefresh();
 
@@ -132,7 +132,7 @@ private:
     int mDropRow;
     double mDropStartTime;
     double mDropEndTime;
-    
+
     bool mEmptyCellSelected;
     int mSelectedTimingIndex;
     int mSelectedTimingRow;
