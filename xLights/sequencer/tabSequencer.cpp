@@ -424,7 +424,8 @@ void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
     selectedEffect = NULL;
     selectedEffectString = "";
     selectedEffectPalette = "";
-
+    sPreview1->Refresh();
+    sPreview2->Refresh();
 }
 void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 {

@@ -169,6 +169,10 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
 void EffectsGrid::mouseDown(wxMouseEvent& event)
 {
+    if (mEmptyCellSelected) {
+        mEmptyCellSelected = false;
+        Refresh();
+    }
     if (mSequenceElements == NULL) {
         return;
     }
@@ -253,6 +257,10 @@ void adjust(double time, double &min, double &max) {
 
 void EffectsGrid::mouseReleased(wxMouseEvent& event)
 {
+    if (mSequenceElements == NULL) {
+        return;
+    }
+    bool checkForEmptyCell = false;
     if(mResizing)
     {
         if(mEffectLayer->GetParentElement()->GetType()=="model")
@@ -295,12 +303,45 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             int selected_time = (int)(mSelectedEffect->GetEndTime()*1000.0);
             UpdateTimePosition(selected_time);
         }
-    }
-
-    if(mDragging)
-    {
+    } else if (mDragging) {
         ReleaseMouse();
         mDragging = false;
+        
+        if (mDragStartX == event.GetX()
+            && mDragStartY == event.GetY()) {
+            checkForEmptyCell = true;
+        }
+
+    } else {
+        checkForEmptyCell = true;
+    }
+    if (checkForEmptyCell) {
+        int row = GetRow(event.GetPosition().y);
+        int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+        if (selectedTimingIndex >= 0 && row < mSequenceElements->GetRowInformationSize()) {
+            Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
+            EffectLayer* tel = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
+            EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+            
+            int selectionType;
+            int timingIndex = tel->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
+            int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
+            if (effectIndex == -1 && timingIndex != -1) {
+                //found an empty "cell"
+                mDropStartX = tel->GetEffect(timingIndex)->GetStartPosition();
+                mDropEndX = tel->GetEffect(timingIndex)->GetEndPosition();
+                mDropStartTime = tel->GetEffect(timingIndex)->GetStartTime();
+                mDropEndTime = tel->GetEffect(timingIndex)->GetEndTime();
+                mDropRow = row;
+                
+                mEmptyCellSelected = true;
+                mSelectedTimingIndex = timingIndex;
+                mSelectedTimingRow = selectedTimingIndex;
+                mSequenceElements->UnSelectAllEffects();
+                wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
+                wxPostEvent(mParent, eventUnSelected);
+            }
+        }
     }
 
     mResizing = false;
@@ -334,6 +375,38 @@ bool EffectsGrid::MultipleEffectsSelected()
     }
     return false;
 }
+void EffectsGrid::Paste(const wxString &data) {
+    if (mEmptyCellSelected) {
+        wxArrayString efdata = wxSplit(data, '\n');
+        if (efdata.size() == 0) {
+            return;
+        }
+        efdata = wxSplit(efdata[0], '\t');
+        if (efdata.size() != 3) {
+            return;
+        }
+        EffectLayer* el = mSequenceElements->GetRowInformation(mDropRow)->element->GetEffectLayer(mSequenceElements->GetRowInformation(mDropRow)->layerIndex);
+        int effectIndex = Effect::GetEffectIndex(efdata[0]);
+        if (effectIndex >= 0) {
+            Effect* ef = el->AddEffect(0,
+                          effectIndex,
+                          efdata[0],
+                          efdata[1],
+                          efdata[2],
+                          mDropStartTime,
+                          mDropEndTime,
+                          EFFECT_SELECTED,
+                          false);
+            sendRenderEvent(el->GetParentElement()->GetName(),
+                            mDropStartTime,
+                            mDropEndTime, true);
+            RaisePlayModelEffect(el->GetParentElement(), ef, false);
+            mEmptyCellSelected = false;
+        }
+    }
+    Refresh();
+}
+
 
 void EffectsGrid::ResizeMoveMultipleEffects(int position)
 {
@@ -775,7 +848,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
 
         }
     }
-    if(mDragDropping && mDropRow == row)
+    if((mDragDropping || mEmptyCellSelected) && mDropRow == row)
     {
         int y3 = row*DEFAULT_ROW_HEADING_HEIGHT;
         const xlColor c = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);

@@ -53,6 +53,7 @@ public:
     void OnDrop(int x, int y);
     void ForceRefresh();
 
+    void Paste(const wxString &data);
 protected:
     virtual void InitializeGLCanvas();
 
@@ -131,6 +132,10 @@ private:
     int mDropRow;
     double mDropStartTime;
     double mDropEndTime;
+    
+    bool mEmptyCellSelected;
+    int mSelectedTimingIndex;
+    int mSelectedTimingRow;
 
     EventPlayEffectArgs* playArgs;
 

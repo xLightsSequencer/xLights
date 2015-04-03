@@ -3,6 +3,7 @@
 #include "RenderCommandEvent.h"
 #include "TimeLine.h"
 #include <wx/event.h>
+#include <wx/clipbrd.h>
 
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
@@ -281,8 +282,62 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             SplitTimingMark();
             event.StopPropagation();
             break;
+        case 'c':
+        case 'C':
+            if (event.CmdDown() || event.ControlDown()) {
+                CopySelectedEffects();
+                event.StopPropagation();
+            }
+            break;
+        case 'x':
+        case 'X':
+            if (event.CmdDown() || event.ControlDown()) {
+                CopySelectedEffects();
+                DeleteAllSelectedEffects();
+                event.StopPropagation();
+            }
+            break;
+        case 'v':
+        case 'V':
+            if (event.CmdDown() || event.ControlDown()) {
+                Paste();
+                event.StopPropagation();
+            }
+            break;
+            
     }
 }
+void MainSequencer::CopySelectedEffects() {
+    wxString copy_data;
+    for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
+    {
+        Element* element = mSequenceElements->GetRowInformation(i)->element;
+        EffectLayer* el = element->GetEffectLayer(mSequenceElements->GetRowInformation(i)->layerIndex);
+        for (int x = 0; x < el->GetEffectCount(); x++) {
+            Effect *ef = el->GetEffect(x);
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                copy_data += ef->GetEffectName() + "\t" + ef->GetSettingsAsString() + "\t" + ef->GetPaletteAsString() + "\n";
+            }
+        }
+    }
+    if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+        }
+        wxTheClipboard->Close();
+    }
+}
+void MainSequencer::Paste() {
+    wxTextDataObject data;
+    if (wxTheClipboard->Open()) {
+        if (wxTheClipboard->GetData(data)) {
+            PanelEffectGrid->Paste(data.GetText());
+        }
+        wxTheClipboard->Close();
+    }
+}
+
+
 void MainSequencer::DeleteAllSelectedEffects()
 {
     for(int i=0;i<mSequenceElements->GetRowInformationSize();i++)
@@ -309,7 +364,6 @@ void MainSequencer::DeleteAllSelectedEffects()
         }
     }
     PanelEffectGrid->ForceRefresh();
-
 }
 
 void MainSequencer::InsertTimingMarkFromRange()
