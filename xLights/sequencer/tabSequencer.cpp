@@ -467,6 +467,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     wxString tooltip;
     effectsPnl->SetDragIconBuffer(GetIconBuffer(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
     effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
+    mainSequencer->PanelEffectGrid->SetFocus();
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)

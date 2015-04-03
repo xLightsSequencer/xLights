@@ -247,7 +247,6 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
         }
     }
     UpdateTimePosition(selected_time);
-    event.Skip(true);
 }
 
 void adjust(double time, double &min, double &max) {
