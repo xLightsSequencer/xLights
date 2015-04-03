@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Improve morph acceleration option and add deceleration option
 4.0.12  Apr 2, 2015
 	-- enh (gil) Render Morph effect into background of effect layer. This follows on ON and COLORWASH
 	-- bug () Add show directory to SETUP tab #156
@@ -13,9 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- bug () Edit Display Elements window not full view #129
 	-- bug () Text element with Horizontal matrix and output to lights enabled - Crash #127
 	-- bug () Resizing effects then deleting - Effect still shows in preview #125
-	Gil had this comment on his changes for Morph "Since Dan already laid the ground work for effect backgrounds 
-		I was able to code up the Morph in about 10 minutes.  I'm currently not handling when they clip on the 
-		window edges so I'm try to fix that and then check it in.  Most of these I used white for the head except 
+	Gil had this comment on his changes for Morph "Since Dan already laid the ground work for effect backgrounds
+		I was able to code up the Morph in about 10 minutes.  I'm currently not handling when they clip on the
+		window edges so I'm try to fix that and then check it in.  Most of these I used white for the head except
 		for 2 in the middle you can see the head color transition."
 4.0.11  Apr 1, 2015
 	-- bug (gil) Fix convert error where E1 or E2 color values were changed. Example #E1987C was being changed into #E987C
@@ -54,7 +55,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- bug (gil) Ability to close the current open sequence #37
 	-- bug (gil) Dragging selection of effects similar to #59 #79
 	-- enh (sean) Created "House Preview" icon to be used on tool bar. This will cycle display on/off
-	
+
 4.0.7  Mar 27, 2015
 	-- enh (dkulp) Whole House Preview is now part of SEQUENCER tab. This was a major code rewrite!
 	-- bug (gil) Unable to delete models from the Sequence Element Screen #101
@@ -67,13 +68,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 	-- bug () 4.0.4 3-24 Crash every time I save this sequence #106
 	-- bug () Win 7/8.1 issue #102
 	-- bug () Model Preview does not display under Sequencer tab #95
-	-- bug () Setup TAB - Directories my observed issue #93	
+	-- bug () Setup TAB - Directories my observed issue #93
 	-- bug () No Icon displayed #109
 4.0.5  Mar 25, 2015
 	-- bug (dkulp) Move more items back into opengl. The preview window in the Sequencer tab is now updated
 	-- enh (sean) Created windows icons for xlights to be higher resolution
 4.0.4  Mar 24, 2015
-	-- bug (dkulp) Dan has fixed it so aero and non-aero now work on both windows 7 and 8! 
+	-- bug (dkulp) Dan has fixed it so aero and non-aero now work on both windows 7 and 8!
 4.0.3	Mar 24,2015
 	-- bug (gil) Fix animation playback in effect grid. Also noticed this fixed something I hadn't noticed where the pause/play wasn't restarting the render in the proper spot. Fixes #78.
 	-- bug (dkulp) Fill out the pinwheel to the edges of a model. Use the max of the buffer width or height as basis for pinwheel arm length
@@ -90,17 +91,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES:
 		-bug (Gil) Request: Zoom level minimum for effect edge dragging #83
 		-bug (Gil) Right scrolling arrow #67
 		-bug (Gil) Zoom doesn't focus on selection target #77
-		
+
 			Some new features: Click in the waveform and the type "s", the current timing mark will be split in half. This complements the "t" command that creates timing marks.
 			Double clicking in the waveform will zoom in. Ctl-double click in the waveform will zoom out
 4.0.0	Mar 20,2015
     First Beta release of xLights 4. Dan Kulp, Dave Pitts, Gil Jones, Sean
 	-- There are still bugs in this release. Go to https://github.com/smeighan/xLights/issues to see current bugs and enhancements
-        -- You need to run Windows 7 and 8 in non-aero mode. 
+        -- You need to run Windows 7 and 8 in non-aero mode.
         -- Make a backup of your current sequecnes. Copy over the sound files and the xml files (xseq and fseq do not need to be copied)
 	-- If you want exact placement of the cursor inside the waveform, resample sound files to 192k constant bitrate using audacity
 	-- In 4.0 we do not have the "Create Random Effects" button, that will come out in XL 4.1
-	
+
 
 ============================================== xLights 3.6.x =========================================================================
 

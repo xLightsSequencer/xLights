@@ -2091,6 +2091,7 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxSlider" name="ID_SLIDER_MorphAccel" variable="Slider_MorphAccel" member="yes">
+																	<min>-10</min>
 																	<max>10</max>
 																</object>
 																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

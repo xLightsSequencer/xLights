@@ -45,6 +45,14 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
   }
 }
 
+double calcAccel(double ratio, double accel)
+{
+    accel /= 3.0;
+    if( accel == 0 ) return 1.0;
+    else if( accel > 0 ) return std::pow(ratio, accel);
+    else return (1 - std::pow(1 - ratio, -accel));
+}
+
 void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start_y2, int end_x1, int end_y1, int end_x2, int end_y2,
                              int start_length, int end_length, bool start_linked, bool end_linked, int duration, int acceleration, int tail_style,
                              bool useHeadForStartColor, bool useHeadForEndColor, bool showEntireHeadAtStart )
@@ -156,21 +164,15 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
     double head_end_of_tail_pos = -1.0;
     double tail_end_of_tail_pos = -1.0;
     double total_tail_length = 0.0;
-    double accel = 1 + acceleration / 10.0;
 
     // calculate current size of the head
     double current_total_head_length = 0.0;
-    double head_loc_pct = eff_pos / head_duration * accel;
+    double head_loc_pct;
+    double head_pos_adj = eff_pos * calcAccel(eff_pos, acceleration);
+
     if( head_duration > 0.0 )
     {
-        if( accel > 0 )
-        {
-            head_loc_pct = std::pow(eff_pos * 100.0, accel) / 100.0 / head_duration;
-        }
-        else
-        {
-            head_loc_pct = eff_pos / head_duration;
-        }
+        head_loc_pct = head_pos_adj / head_duration;
         current_total_head_length = end_length * head_loc_pct + start_length * (1.0 - head_loc_pct);  // adjusted head length excluding clipping
         if( showEntireHeadAtStart )
         {
@@ -183,14 +185,14 @@ void RgbEffects::RenderMorph(int start_x1, int start_y1, int start_x2, int start
         head_end_of_head_pos = tail_end_of_head_pos + current_total_head_length - 1;
         head_end_of_tail_pos = tail_end_of_head_pos  - step_size;
         tail_end_of_tail_pos = head_end_of_tail_pos - total_tail_length + 1;
-        tail_end_of_tail_pos = (2.0 * eff_pos - 1) * total_length;
+        tail_end_of_tail_pos = (2.0 * head_pos_adj - 1) * total_length;
         total_tail_length = head_end_of_tail_pos - tail_end_of_tail_pos;
         Get2ColorBlend(hcols, hcole, std::min( head_loc_pct, 1.0), head_color);
     }
     else
     {
         total_tail_length = total_length;
-        tail_end_of_tail_pos = (2.0 * eff_pos - 1) * total_length;
+        tail_end_of_tail_pos = (2.0 * head_pos_adj - 1) * total_length;
         head_end_of_tail_pos = tail_end_of_tail_pos + total_tail_length;
     }
 
