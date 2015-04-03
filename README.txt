@@ -6,6 +6,28 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.12  Apr 2, 2015
+	-- enh (gil) Render Morph effect into background of effect layer. This follows on ON and COLORWASH
+	-- bug () Add show directory to SETUP tab #156
+	-- bug () Undocking panels for first time - not showing complete panel #147
+	-- bug () Edit Display Elements window not full view #129
+	-- bug () Text element with Horizontal matrix and output to lights enabled - Crash #127
+	-- bug () Resizing effects then deleting - Effect still shows in preview #125
+	Gil had this comment on his changes for Morph "Since Dan already laid the ground work for effect backgrounds 
+		I was able to code up the Morph in about 10 minutes.  I'm currently not handling when they clip on the 
+		window edges so I'm try to fix that and then check it in.  Most of these I used white for the head except 
+		for 2 in the middle you can see the head color transition."
+4.0.11  Apr 1, 2015
+	-- bug (gil) Fix convert error where E1 or E2 color values were changed. Example #E1987C was being changed into #E987C
+	-- enh (dkulp) ON effect now paints the sequence grid with the actual color of the On
+	-- enh (dkulp) COLORWASH now draws on sequencer area actual colors of effect
+	-- enh (dkulp) STOP lights now, STOP gracefully, output to lights are now icons
+	-- bug (dkulp) Edit Display Elements window not full view #129
+	-- bug (gil) Not able to delete models in sequencer #122
+	-- bug (sean) House preview screen in the sequencer tab version 4.0.10 #121
+	-- bug (dkulp) Model assigning incorrect number of channels #126
+
+4.0.10  Mar 31, 2015
 	Gill added ability to position a picture in the X & Y direction
 	-- bug (gil) Deleting a timing mark crashes X/Lights #118
 	-- bug (gil) Enhancement: Picture Position #14

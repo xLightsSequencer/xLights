@@ -124,6 +124,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
         xout=0;
     }
     CurrentDir=newdir;
+    showDirectory=newdir;
     mediaDirectory=newdir;
     fseqDirectory=newdir;
     UnsavedChanges=false;
@@ -151,8 +152,10 @@ void xLightsFrame::SetDir(const wxString& newdir)
         }
     }
 
+    NetworkXML.GetRoot()->GetAttribute("showDirectory", &showDirectory);
     NetworkXML.GetRoot()->GetAttribute("mediaDirectory", &mediaDirectory);
     NetworkXML.GetRoot()->GetAttribute("fseqDirectory", &fseqDirectory);
+    ShowDirectoryLabel->SetLabel(showDirectory);
     MediaDirectoryLabel->SetLabel(mediaDirectory);
     fseqDirectoryLabel->SetLabel(fseqDirectory);
     MediaDirectoryLabel->GetParent()->Layout();
@@ -691,7 +694,8 @@ void xLightsFrame::ChangeMediaDirectory(wxCommandEvent& event)
 {
     wxDirDialog dialog(this);
     dialog.SetPath(mediaDirectory);
-    if (dialog.ShowModal() == wxID_OK) {
+    if (dialog.ShowModal() == wxID_OK)
+    {
         mediaDirectory = dialog.GetPath();
         MediaDirectoryLabel->SetLabel(mediaDirectory);
         MediaDirectoryLabel->GetParent()->Layout();
@@ -704,7 +708,8 @@ void xLightsFrame::ChangeFseqDirectory(wxCommandEvent& event)
 {
     wxDirDialog dialog(this);
     dialog.SetPath(fseqDirectory);
-    if (dialog.ShowModal() == wxID_OK) {
+    if (dialog.ShowModal() == wxID_OK)
+    {
         fseqDirectory = dialog.GetPath();
         fseqDirectoryLabel->SetLabel(fseqDirectory);
         fseqDirectoryLabel->GetParent()->Layout();

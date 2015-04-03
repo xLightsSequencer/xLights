@@ -248,8 +248,8 @@ wxDECLARE_EVENT(EVT_IMPORT_TIMING, wxCommandEvent);
 
 
 static const wxString xlights_base_name = "XL4 BETA";
-static const wxString xlights_version_string = "4.0.10";
-static const wxString xlights_build_date = "Mar31";
+static const wxString xlights_version_string = "4.0.12";
+static const wxString xlights_build_date = "Apr2";
 
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 
@@ -343,7 +343,7 @@ class wxAuiToolBar;
 class AUIToolbarButtonWrapper {
 public:
     AUIToolbarButtonWrapper(wxAuiToolBar *tb, int i) : toolbar(tb), id(i) {}
-    
+
     bool IsChecked();
     void SetValue(bool b);
     void Enable(bool b);
@@ -740,10 +740,12 @@ private:
     static const long ID_BITMAPBUTTON30;
     static const long ID_BITMAPBUTTON35;
     static const long ID_AUIEFFECTSTOOLBAR;
-    static const long ID_ANY;
+    static const long ID_BUTTON3;
+    static const long ID_STATICTEXT4;
     static const long ID_BUTTON1;
-    static const long ID_STATICTEXT24;
+    static const long ID_ANY;
     static const long ID_BUTTON2;
+    static const long ID_STATICTEXT24;
     static const long ID_BUTTON_SAVE_SETUP;
     static const long ID_BUTTON_ADD_DONGLE;
     static const long ID_BUTTON_ADD_E131;
@@ -1086,6 +1088,7 @@ private:
     wxAuiToolBar* ViewToolBar;
     wxMenu* MenuItem15;
     wxButton* ButtonUpdateShow;
+    wxStaticText* ShowDirectoryLabel;
     wxStaticText* StaticText7;
     wxMenu* MenuFile;
     wxButton* ButtonSetPreviewSize;
@@ -1217,7 +1220,7 @@ private:
     wxRadioButton* RadioButtonTwinkle05;
     wxStaticText* StaticText3;
     //*)
-    
+
     AUIToolbarButtonWrapper *CheckBoxLightOutput;
     AUIToolbarButtonWrapper *ButtonGracefulStop;
 
@@ -1275,6 +1278,7 @@ private:
     void OnTimerTest(long curtime);
 
     wxString mediaFilename;
+    wxString showDirectory;
     wxString mediaDirectory;
     wxString fseqDirectory;
     SeqDataType SeqData;

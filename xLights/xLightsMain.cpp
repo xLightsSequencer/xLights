@@ -149,10 +149,12 @@ const long xLightsFrame::ID_BITMAPBUTTON29 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON30 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON35 = wxNewId();
 const long xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
-const long xLightsFrame::ID_ANY = wxNewId();
+const long xLightsFrame::ID_BUTTON3 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT4 = wxNewId();
 const long xLightsFrame::ID_BUTTON1 = wxNewId();
-const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
+const long xLightsFrame::ID_ANY = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
+const long xLightsFrame::ID_STATICTEXT24 = wxNewId();
 const long xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_DONGLE = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_E131 = wxNewId();
@@ -490,6 +492,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
     wxFlexGridSizer* FlexGridSizer22;
+    wxStaticText* StaticText38;
     wxFlexGridSizer* FlexGridSizer56;
     wxFlexGridSizer* FlexGridSizer9;
     wxMenuItem* MenuItem22;
@@ -509,6 +512,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer34;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
+    wxButton* Button3;
     wxFlexGridSizer* FlexGridSizer15;
     wxFlexGridSizer* FlexGridSizer18;
     wxFlexGridSizer* FlexGridSizer8;
@@ -787,18 +791,24 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     FlexGridSizerSetup->AddGrowableRow(1);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, PanelSetup, _("Directories"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText28 = new wxStaticText(PanelSetup, wxID_ANY, _("Default Media Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer2->Add(StaticText38, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    Button3 = new wxButton(PanelSetup, ID_BUTTON3, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer2->Add(Button3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer2->Add(ShowDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText28 = new wxStaticText(PanelSetup, wxID_ANY, _("Media Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText28, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    MediaDirectoryLabel = new wxStaticText(PanelSetup, ID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_ANY"));
-    FlexGridSizer2->Add(MediaDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button1 = new wxButton(PanelSetup, ID_BUTTON1, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer2->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    MediaDirectoryLabel = new wxStaticText(PanelSetup, ID_ANY, _("{Media Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_ANY"));
+    FlexGridSizer2->Add(MediaDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText37 = new wxStaticText(PanelSetup, wxID_ANY, _("fseq Save Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText37, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    fseqDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT24, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
-    FlexGridSizer2->Add(fseqDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button2 = new wxButton(PanelSetup, ID_BUTTON2, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer2->Add(Button2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    fseqDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT24, _("{Fseq Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT24"));
+    FlexGridSizer2->Add(fseqDirectoryLabel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Lighting Networks"));
@@ -1602,6 +1612,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_BUTTON_GRACEFUL_STOP,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonGracefulStopClick);
     Connect(ID_BUTTON_LIGHTS_OFF,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonLightsOffClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeMediaDirectory);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::ChangeFseqDirectory);
     Connect(ID_BUTTON_SAVE_SETUP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
@@ -1735,7 +1746,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
 
-    
+
     selectedEffectPalette = "";
     selectedEffect = NULL;
     playStartTime = playEndTime = 0;
