@@ -400,7 +400,9 @@ void EffectsGrid::Paste(const wxString &data) {
             sendRenderEvent(el->GetParentElement()->GetName(),
                             mDropStartTime,
                             mDropEndTime, true);
-            RaisePlayModelEffect(el->GetParentElement(), ef, false);
+            
+            RaiseSelectedEffectChanged(ef);
+            mSelectedEffect = ef;
             mEmptyCellSelected = false;
         }
     }
