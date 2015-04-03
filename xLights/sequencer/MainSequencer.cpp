@@ -284,6 +284,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             break;
         case 'c':
         case 'C':
+        case WXK_CONTROL_C:
             if (event.CmdDown() || event.ControlDown()) {
                 CopySelectedEffects();
                 event.StopPropagation();
@@ -291,6 +292,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             break;
         case 'x':
         case 'X':
+        case WXK_CONTROL_X:
             if (event.CmdDown() || event.ControlDown()) {
                 CopySelectedEffects();
                 DeleteAllSelectedEffects();
@@ -299,12 +301,13 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             break;
         case 'v':
         case 'V':
+        case WXK_CONTROL_V:
             if (event.CmdDown() || event.ControlDown()) {
                 Paste();
                 event.StopPropagation();
             }
             break;
-            
+
     }
 }
 void MainSequencer::CopySelectedEffects() {
