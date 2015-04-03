@@ -29,7 +29,7 @@ class TimeLine : public wxWindow
                        long style=0, const wxString &name=wxPanelNameStr);
         virtual ~TimeLine();
         void Initialize();
-        
+
         void SetStartTimeMS(int time);
         float GetStartTimeMS();
 
@@ -65,7 +65,7 @@ class TimeLine : public wxWindow
         int TimePerMajorTickInMS();
         void GetViewableTimeRange(double &StartTime, double &EndTime);
 
-        void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2);
+        void GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4);
         int GetPositionFromTime(double time);
         int GetPositionFromTimeMS(int time);
 

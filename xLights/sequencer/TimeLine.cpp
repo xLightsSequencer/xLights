@@ -400,13 +400,17 @@ int TimeLine::GetPositionFromTimeMS(int time)
    return xAbsolutePosition - mStartPixelOffset;
 }
 
-void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2)
+void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_SCREEN_MODE &screenMode,int &x1, int &x2, int& x3, int& x4)
 {
     if(startTime < mStartTime && endTime > mEndTime)
     {
         screenMode = SCREEN_L_R_ACROSS;
         x1 = 0;
         x2 = GetSize().x;
+        double majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x3=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x4=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
     }
     else if(startTime < mStartTime && endTime <= mEndTime)
     {
@@ -414,6 +418,9 @@ void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_
         double majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x1=0;
         x2=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x3=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        x4=x2;
     }
     else if(startTime >= mStartTime && endTime > mEndTime)
     {
@@ -421,6 +428,9 @@ void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_
         double majorHashs = (double)((startTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x1=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         x2=GetSize().x;
+        majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
+        x4=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        x3=x1;
     }
     else if(startTime >= mStartTime && endTime <= mEndTime)
     {
@@ -429,6 +439,8 @@ void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_
         x1=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
         majorHashs = (double)((endTime*1000) - mStartTimeMS)/(double)TimePerMajorTickInMS();
         x2=(int)(majorHashs * (double)PIXELS_PER_MAJOR_HASH);
+        x3=x1;
+        x4=x2;
     }
     else if((startTime < mStartTime && endTime < mStartTime) ||
             (startTime > mStartTime && endTime > mStartTime))
@@ -436,8 +448,9 @@ void TimeLine::GetPositionsFromTimeRange(double startTime,double endTime,EFFECT_
         screenMode = SCREEN_L_R_OFF;
         x1=0;
         x2=0;
+        x3=x1;
+        x4=x2;
     }
-
 }
 
 void TimeLine::SetTimeLength(int ms)
@@ -475,15 +488,15 @@ double TimeLine::GetAbsoluteTimefromPosition(int position)
 
 int TimeLine::GetMaxViewableTimeMS()
 {
-    wxSize s = GetSize();
-    float majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
+    float width = (float)GetSize().x;
+    float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
     return (int)((majorTicks * (float)TimePerMajorTickInMS()) + mStartTimeMS);
 }
 
 int TimeLine::GetTotalViewableTimeMS()
 {
-    wxSize s = GetSize();
-    float majorTicks = s.GetWidth()/PIXELS_PER_MAJOR_HASH;
+    float width = (float)GetSize().x;
+    float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
     return (int)((majorTicks * (float)TimePerMajorTickInMS()));
 }
 
@@ -495,11 +508,11 @@ int TimeLine::GetZoomLevelValue()
 int TimeLine::GetMaxZoomLevel()
 {
     int i;
-    wxSize s = GetSize();
-    float majorTicks = (float)s.GetWidth()/(float)PIXELS_PER_MAJOR_HASH;
+    float width = (float)GetSize().x;
+    float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
     for(i=0;i<=MAX_ZOOM_OUT_INDEX;i++)
     {
-        float majorTicks = (float)s.GetWidth()/(float)PIXELS_PER_MAJOR_HASH;
+        float majorTicks = width / (float)PIXELS_PER_MAJOR_HASH;
         int timeMS =  (int)((float)ZoomLevelValues[i] * ((float)1000/(float)mFrequency) * majorTicks);
         if(timeMS > mTimeLength)
         {

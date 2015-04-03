@@ -606,7 +606,44 @@ void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     }
 }
 
-bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
+void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlColor &start_t, xlColor &end_t) {
+    int useHeadStart = wxAtoi(e->GetSettings().Get("E_CHECKBOX_MorphUseHeadStartColor", "0"));
+    int useTailStart = wxAtoi(e->GetSettings().Get("E_CHECKBOX_MorphUseHeadEndColor", "0"));
+
+    int hcols = 0, hcole = 1;
+    int tcols = 2, tcole = 3;
+    switch (e->GetPalette().size()) {
+        case 1:  //one color selected, use it for all
+            hcols = hcole = tcols = tcole = 0;
+            break;
+        case 2: //two colors, head/tail
+            hcols = hcole = 0;
+            tcols = tcole = 1;
+            break;
+        case 3: //three colors, head /tail start/end
+            hcols = hcole = 0;
+            tcols = 1;
+            tcole = 2;
+            break;
+    }
+
+    if( useHeadStart > 0 )
+    {
+        tcols = hcols;
+    }
+
+    if( useTailStart > 0 )
+    {
+        tcole = hcole;
+    }
+
+    start_h = e->GetPalette()[hcols];
+    end_h = e->GetPalette()[hcole];
+    start_t = e->GetPalette()[tcols];
+    end_t = e->GetPalette()[tcole];
+}
+
+bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, int x3, int x4) {
     switch (e->GetEffectIndex()) {
         case xLightsFrame::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
@@ -617,6 +654,36 @@ bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
         break;
         case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH: {
             DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
+        }
+        break;
+        case xLightsFrame::RGB_EFFECTS_e::eff_MORPH: {
+            int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_MorphDuration", "20"));
+            xlColor start_h;
+            xlColor end_h;
+            xlColor start_t;
+            xlColor end_t;
+            GetMorphEffectColors(e, start_h, end_h, start_t, end_t);
+            if( x3 == x1 && x4 == x2 )
+            {
+                int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
+                DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
+                DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
+            }
+            else
+            {
+                int head_right_end = (int)((float)(x4-x3) * (float)head_duration / 100.0) + x3;
+                bool tail_viewable = head_right_end < x2;
+                int x_mid = tail_viewable ? head_right_end : x2;
+                if( head_right_end > x1 ) // draw head if visible
+                {
+                    DrawGLUtils::DrawHBlendedRectangle(start_h, end_h, x1, y1+1, x_mid, y2-1);
+                }
+                if( tail_viewable ) // draw tail if visible
+                {
+                    DrawGLUtils::DrawHBlendedRectangle(start_t, end_t, x_mid, y1+4, x2, y2-4);
+                }
+            }
+            return false;
         }
         break;
         default: {}
@@ -640,9 +707,9 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         Effect* e = effectLayer->GetEffect(effectIndex);
         EFFECT_SCREEN_MODE mode;
 
-        int x1,x2;
+        int x1,x2,x3,x4;
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTime(),
-                                       effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2);
+                                       effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2,x3,x4);
         int x = x2-x1;
         // Draw Left line
         mEffectColorLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
@@ -650,8 +717,8 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
         mEffectColorRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED?mEffectColor:mSelectionColor;
         mEffectColorCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?mSelectionColor:mEffectColor;
-        
-        bool drawIcon = DrawEffectBackground(e, x1, y1, x2, y2);
+
+        bool drawIcon = DrawEffectBackground(e, x1, y1, x2, y2, x3, x4);
 
 
         if (mode==SCREEN_L_R_OFF)
@@ -666,7 +733,7 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
                 if(effectIndex>0)
                 {
                     // Draw left line if effect has different start time then previous effect or
-                    // previous effect was not selected, or only left was selected
+                    // previous effect was not selected, or onlwidthy left was selected
                     if(effectLayer->GetEffect(effectIndex)->GetStartTime() != effectLayer->GetEffect(effectIndex-1)->GetEndTime() ||
                        effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_NOT_SELECTED ||
                         effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_LT_SELECTED)
@@ -752,10 +819,10 @@ void EffectsGrid::DrawTimingEffects(int row)
         int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+4;
         int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
         int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT/2);
-        int x1,x2;
+        int x1,x2,x3,x4;
 
         mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTime(),
-                                       effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2);
+                                       effectLayer->GetEffect(effectIndex)->GetEndTime(),mode,x1,x2,x3,x4);
         mEffectColorLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                            effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED?mTimingColor:mSelectionColor;
         mEffectColorRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
