@@ -449,7 +449,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
 
-        if (playType != PLAY_TYPE_MODEL) {
+        if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = effect->GetStartTime() * 1000;
             playEndTime = effect->GetEndTime() * 1000;
@@ -498,7 +498,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                       mSequenceElements.GetSelectedRange(i)->EndTime,
                       EFFECT_SELECTED,false);
 
-        if (playType != PLAY_TYPE_MODEL) {
+        if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
             playType = PLAY_TYPE_EFFECT;
             playStartTime = mSequenceElements.GetSelectedRange(i)->StartTime * 1000;
             playEndTime = mSequenceElements.GetSelectedRange(i)->EndTime * 1000;
@@ -680,7 +680,7 @@ void xLightsFrame::SequenceReplaySection(wxCommandEvent& event)
 
 void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 {
-    if( playType != PLAY_TYPE_MODEL )
+    if( playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
     {
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
         playType = PLAY_TYPE_EFFECT;
@@ -720,12 +720,14 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
                     el->GetEffect(j)->SetEffectName(effectName);
                     el->GetEffect(j)->SetPalette(palette);
 
-                    playType = PLAY_TYPE_EFFECT;
-                    playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
-                    playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
-                    playStartMS = -1;
-                    RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
-                    mainSequencer->PanelEffectGrid->Refresh();
+                    if(playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED)
+                    {
+                        playType = PLAY_TYPE_EFFECT;
+                        playStartTime = (int)(el->GetEffect(j)->GetStartTime() * 1000);
+                        playEndTime = (int)(el->GetEffect(j)->GetEndTime() * 1000);
+                        playStartMS = -1;
+                        RenderEffectForModel(element->GetName(),playStartTime,playEndTime);
+                    }
                 }
             }
         }
@@ -735,6 +737,9 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 
 void xLightsFrame::TimerRgbSeq(long msec)
 {
+    // Update play status so sequencer grid can allow dropping timings during playback
+    mainSequencer->SetPlayStatus(playType);
+
     // return if play is stopped
     if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == NULL) {
         return;

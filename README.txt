@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Allow timings to be added while model playback is paused.
+    -- bug (gil) Disallow effect play while paused in model playback.
+    -- enh (gil) Add an empty timing track to a new sequence by default.
     -- enh (gil) Ability to add timing marks while sequence is playing
     -- bug (gil) Dropping or Control-V pasting into an empty area with a partial effect consumes the effect #160
     -- enh (gil)  When dragging effects, do not require timing track to be active #143

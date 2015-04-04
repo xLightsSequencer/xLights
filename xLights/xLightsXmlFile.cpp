@@ -1500,6 +1500,19 @@ bool xLightsXmlFile::TimingAlreadyExists(wxString section, xLightsFrame* xLights
     return false;
 }
 
+void xLightsXmlFile::AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
+{
+    AddTimingDisplayElement( interval_name, "1", "0" );
+    wxXmlNode* node;
+
+    if( sequence_loaded )
+    {
+        xLightsParent->AddTimingElement(interval_name);
+    }
+    node = AddElement( interval_name, "timing" );
+
+    AddChildXmlNode(node, "EffectLayer");
+}
 
 void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent)
 {

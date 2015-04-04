@@ -26,6 +26,12 @@ BEGIN_EVENT_TABLE(MainSequencer,wxPanel)
 
 END_EVENT_TABLE()
 
+// FIXME consider moving to common header to avoid duplicates
+#define PLAY_TYPE_STOPPED 0
+#define PLAY_TYPE_EFFECT 1
+#define PLAY_TYPE_MODEL  2
+#define PLAY_TYPE_EFFECT_PAUSED 3
+#define PLAY_TYPE_MODEL_PAUSED  4
 
 void MainSequencer::SetHandlers(wxWindow *window)
 {
@@ -120,6 +126,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
 	//*)
 
     mParent = parent;
+    mPlayType = 0;
     SetHandlers(this);
 }
 
@@ -153,6 +160,11 @@ void MainSequencer::UpdateTimeDisplay(int time_ms)
     seconds=seconds % 60;
     wxString play_time = wxString::Format("Time: %d:%02d.%02d",minutes,seconds,msec);
     StaticText_SeqTime->SetLabel(play_time);
+}
+
+void MainSequencer::SetPlayStatus(int play_type)
+{
+    mPlayType = play_type;
 }
 
 void MainSequencer::OnPanelWaveFormPaint(wxPaintEvent& event)
@@ -373,7 +385,7 @@ void MainSequencer::InsertTimingMarkFromRange()
 {
     int x1;
     int x2;
-    if( PanelTimeLine->GetPlayMarker() != -1 )
+    if( mPlayType == PLAY_TYPE_MODEL )
     {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
@@ -443,7 +455,7 @@ void MainSequencer::SplitTimingMark()
 {
     int x1;
     int x2;
-    if( PanelTimeLine->GetPlayMarker() != -1 )
+    if( mPlayType == PLAY_TYPE_MODEL )
     {
         x1 = PanelTimeLine->GetPlayMarker();
         x2 = x1;
