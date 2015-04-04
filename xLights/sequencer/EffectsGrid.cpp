@@ -92,47 +92,88 @@ void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
     mResizingMode = EFFECT_RESIZE_NO;
 }
 
+void EffectsGrid::AdjustDropLocations(int x, EffectLayer* el)
+{
+    if( !el->GetRangeIsClear(mDropStartX, mDropEndX) )
+    {
+        Effect* before_eff = el->GetEffectBeforeEmptySpace(x);
+        if( before_eff != nullptr )
+        {
+            if( before_eff->GetEndPosition() > mDropStartX ) {
+                mDropStartX = before_eff->GetEndPosition();
+                mDropStartTime = before_eff->GetEndTime();
+            }
+        }
+        Effect* after_eff = el->GetEffectAfterEmptySpace(x);
+        if( after_eff != nullptr )
+        {
+            if( after_eff->GetStartPosition() < mDropEndX ) {
+                mDropEndX = after_eff->GetStartPosition();
+                mDropEndTime = after_eff->GetStartTime();
+            }
+        }
+    }
+}
+
 bool EffectsGrid::DragOver(int x, int y)
 {
+    mDragDropping = false;
     int row = GetRow(y);
-    int effectIndex;
-    int selectionType;
-    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,x,effectIndex,selectionType);
-    if(selectedEffect != nullptr)
+    if( row < mSequenceElements->GetRowInformationSize() )
     {
-        mDragDropping = true;
-        mDropStartX = selectedEffect->GetStartPosition();
-        mDropEndX = selectedEffect->GetEndPosition();
-        mDropStartTime = selectedEffect->GetStartTime();
-        mDropEndTime = selectedEffect->GetEndTime();
-        mDropRow = row;
-    }
-    else
-    {
-        int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
-        if(selectedTimingIndex >= 0)
+        int effectIndex;
+        int selectionType;
+
+        Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,x,effectIndex,selectionType);
+        if(selectedEffect != nullptr)
         {
-            Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
-            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
-            int selectionType;
-            int timingIndex = el->GetEffectIndexThatContainsPosition(x,selectionType);
-            if(timingIndex >=0)
-            {
-                mDragDropping = true;
-                mDropStartX = el->GetEffect(timingIndex)->GetStartPosition();
-                mDropEndX = el->GetEffect(timingIndex)->GetEndPosition();
-                mDropStartTime = el->GetEffect(timingIndex)->GetStartTime();
-                mDropEndTime = el->GetEffect(timingIndex)->GetEndTime();
-                mDropRow = row;
-            }
-            else
-            {
-                mDragDropping = false;
-            }
+            mDragDropping = true;
+            mDropStartX = selectedEffect->GetStartPosition();
+            mDropEndX = selectedEffect->GetEndPosition();
+            mDropStartTime = selectedEffect->GetStartTime();
+            mDropEndTime = selectedEffect->GetEndTime();
+            mDropRow = row;
         }
         else
         {
-            mDragDropping = false;
+            int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+            if(selectedTimingIndex >= 0)
+            {
+                Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
+                EffectLayer* tel = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
+                int selectionType;
+                int timingIndex = tel->GetEffectIndexThatContainsPosition(x,selectionType);
+                if(timingIndex >=0)
+                {
+                    EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+                    if( el != nullptr )
+                    {
+                        mDropStartX = tel->GetEffect(timingIndex)->GetStartPosition();
+                        mDropEndX = tel->GetEffect(timingIndex)->GetEndPosition();
+                        mDropStartTime = tel->GetEffect(timingIndex)->GetStartTime();
+                        mDropEndTime = tel->GetEffect(timingIndex)->GetEndTime();
+                        AdjustDropLocations(x, el);
+                        mDragDropping = true;
+                        mDropRow = row;
+                    }
+                }
+            }
+            else
+            {
+                EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
+                if( el != nullptr )
+                {
+                    mDropStartTime = mTimeline->GetAbsoluteTimefromPosition(x);
+                    mDropStartTime -= 0.5;
+                    if( mDropStartTime < 0.0 ) mDropStartTime = 0.0;
+                    mDropEndTime = mDropStartTime + 1.0;
+                    mDropStartX = mTimeline->GetPositionFromTime(mDropStartTime);
+                    mDropEndX = mTimeline->GetPositionFromTime(mDropEndTime);
+                    AdjustDropLocations(x, el);
+                    mDragDropping = true;
+                    mDropRow = row;
+                }
+            }
         }
     }
     Refresh(false);
@@ -342,16 +383,15 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
             EffectLayer* el = mSequenceElements->GetRowInformation(row)->element->GetEffectLayer(mSequenceElements->GetRowInformation(row)->layerIndex);
 
             int selectionType;
-            int timingIndex = tel->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
-            int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetPosition().x,selectionType);
+            int timingIndex = tel->GetEffectIndexThatContainsPosition(event.GetX(),selectionType);
+            int effectIndex = el->GetEffectIndexThatContainsPosition(event.GetX(),selectionType);
             if (effectIndex == -1 && timingIndex != -1) {
-                //found an empty "cell"
                 mDropStartX = tel->GetEffect(timingIndex)->GetStartPosition();
                 mDropEndX = tel->GetEffect(timingIndex)->GetEndPosition();
                 mDropStartTime = tel->GetEffect(timingIndex)->GetStartTime();
                 mDropEndTime = tel->GetEffect(timingIndex)->GetEndTime();
                 mDropRow = row;
-
+                AdjustDropLocations(event.GetX(), el);
                 mEmptyCellSelected = true;
                 mSelectedTimingIndex = timingIndex;
                 mSelectedTimingRow = selectedTimingIndex;

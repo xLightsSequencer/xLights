@@ -246,6 +246,69 @@ Effect* EffectLayer::GetEffectAfterPosition(int position)
     }
 }
 
+Effect*  EffectLayer::GetEffectBeforeEmptySpace(int position)
+{
+    int i;
+    for(i=mEffects.size()-1; i >= 0; i--)
+    {
+        if( mEffects[i]->GetEndPosition() < position )
+        {
+            break;
+        }
+    }
+    if(i<0)
+    {
+        return nullptr;
+    }
+    else
+    {
+        return mEffects[i];
+    }
+}
+
+Effect*  EffectLayer::GetEffectAfterEmptySpace(int position)
+{
+    int i;
+    for(i=0; i < mEffects.size(); i++)
+    {
+        if( mEffects[i]->GetStartPosition() > position )
+        {
+            break;
+        }
+    }
+    if(i==mEffects.size())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return mEffects[i];
+    }
+}
+
+bool EffectLayer::GetRangeIsClear(int startX, int endX)
+{
+    int i;
+    for(i=0; i<mEffects.size();i++)
+    {
+        // check if start is between effect range
+        if( (startX > mEffects[i]->GetStartPosition()) && (startX < mEffects[i]->GetEndPosition()) )
+        {
+            return false;
+        }
+        // check if end is between effect range
+        if( (endX > mEffects[i]->GetStartPosition()) && (endX < mEffects[i]->GetEndPosition()) )
+        {
+            return false;
+        }
+        // check effect is between start and end
+        if( (mEffects[i]->GetStartPosition() > startX) && (mEffects[i]->GetStartPosition() < endX) )
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
 {

@@ -80,6 +80,7 @@ private:
     bool DrawEffectBackground(const Effect *effect, int x1, int y1, int x2, int y2);
     void DrawTimingEffects(int row);
     void DrawEffects();
+    void AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position);
     void RunMouseOverHitTests(Element * element,int effectLayerIndex, int x,int y);
     void UpdateTimePosition(int time);

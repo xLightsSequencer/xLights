@@ -46,6 +46,9 @@ class EffectLayer
         int GetEffectIndexThatContainsPosition(int position,int &selectionType);
         Effect* GetEffectBeforePosition(int position);
         Effect* GetEffectAfterPosition(int position);
+        bool GetRangeIsClear(int startX, int endX);
+        Effect* GetEffectBeforeEmptySpace(int position);
+        Effect* GetEffectAfterEmptySpace(int position);
 
         void GetMaximumRangeOfMovementForSelectedEffects(double &toLeft,double &toRight);
         void SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected);
@@ -59,7 +62,7 @@ class EffectLayer
         void DeleteSelectedEffects();
         static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
-    
+
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
 

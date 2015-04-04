@@ -6,6 +6,8 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug (gil) Dropping or Control-V pasting into an empty area with a partial effect consumes the effect #160
+    -- enh (gil)  When dragging effects, do not require timing track to be active #143
 4.0.13  Apr 3, 2015
 	-- bug (gil) When dropping in effect on top of another, original timing marks should be used #159
 	-- enh (dkulp) Implement a simple copy/paste (single "cell" only, only into empty cells). Gil made Windows version work.
