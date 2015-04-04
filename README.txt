@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- enh (gil) Ability to add timing marks while sequence is playing
     -- bug (gil) Dropping or Control-V pasting into an empty area with a partial effect consumes the effect #160
     -- enh (gil)  When dragging effects, do not require timing track to be active #143
 4.0.13  Apr 3, 2015
