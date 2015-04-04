@@ -6,6 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.13  Apr 3, 2015
+	-- bug (gil) When dropping in effect on top of another, original timing marks should be used #159
+	-- enh (dkulp) Implement a simple copy/paste (single "cell" only, only into empty cells). Gil made Windows version work.
+	-- bug (dkulp) Send the correct event so the effect panel updates
+	-- bug (dkulp) Fix crash switching back and forth between Papagayo tab
     -- enh (gil) Smoother horizontal scrolling on effects grid.
     -- bug (gil) Fix it taking multiple clicks to get focus on an effect for delete/copy/etc.
     -- bug (gil) Don't allow dropping effect past last timing cell on right
