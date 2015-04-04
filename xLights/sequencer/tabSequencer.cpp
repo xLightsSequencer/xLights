@@ -300,9 +300,12 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->UpdateTimeDisplay(tla->CurrentTime);
+    mainSequencer->PanelTimeLine->Update();
     mainSequencer->PanelWaveForm->Refresh();
+    mainSequencer->PanelWaveForm->Update();
     mainSequencer->PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     mainSequencer->PanelEffectGrid->Refresh();
+    mainSequencer->PanelEffectGrid->Update();
     UpdateEffectGridHorizontalScrollBar();
     // Set text entry to timing for "T" insertion
     mTextEntryContext = TEXT_ENTRY_TIMING;
