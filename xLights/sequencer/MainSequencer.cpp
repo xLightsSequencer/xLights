@@ -371,8 +371,18 @@ void MainSequencer::DeleteAllSelectedEffects()
 
 void MainSequencer::InsertTimingMarkFromRange()
 {
-    int x1 = PanelTimeLine->GetSelectedPositionStart();
-    int x2 = PanelTimeLine->GetSelectedPositionEnd();
+    int x1;
+    int x2;
+    if( PanelTimeLine->GetPlayMarker() != -1 )
+    {
+        x1 = PanelTimeLine->GetPlayMarker();
+        x2 = x1;
+    }
+    else
+    {
+        x1 = PanelTimeLine->GetSelectedPositionStart();
+        x2 = PanelTimeLine->GetSelectedPositionEnd();
+    }
     if( x2 == -1 ) x2 = x1;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
@@ -431,8 +441,18 @@ void MainSequencer::InsertTimingMarkFromRange()
 
 void MainSequencer::SplitTimingMark()
 {
-    int x1 = PanelTimeLine->GetSelectedPositionStart();
-    int x2 = PanelTimeLine->GetSelectedPositionEnd();
+    int x1;
+    int x2;
+    if( PanelTimeLine->GetPlayMarker() != -1 )
+    {
+        x1 = PanelTimeLine->GetPlayMarker();
+        x2 = x1;
+    }
+    else
+    {
+        x1 = PanelTimeLine->GetSelectedPositionStart();
+        x2 = PanelTimeLine->GetSelectedPositionEnd();
+    }
     if( x2 == -1 ) x2 = x1;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
     if(selectedTiming >= 0)
