@@ -6,7 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-    -- enh (gil) Allow timings to be added while model playback is paused.
+4.0.14  Apr 4, 2015
+	-- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
+    -- enh (gil) Allow timings to be added while model playback is paused. This is like xltap. Press play and use the "t" key to create timing marks
     -- bug (gil) Disallow effect play while paused in model playback.
     -- enh (gil) Add an empty timing track to a new sequence by default.
     -- enh (gil) Ability to add timing marks while sequence is playing
