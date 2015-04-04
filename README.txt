@@ -6,6 +6,9 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.14  Apr 4, 2015
+    These two issues are worth their own release. You will find that using xLights 4 just got a lot better.
+    
     -- bug (gil) Dropping or Control-V pasting into an empty area with a partial effect consumes the effect #160
     -- enh (gil)  When dragging effects, do not require timing track to be active #143
 4.0.13  Apr 3, 2015
