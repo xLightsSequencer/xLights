@@ -128,6 +128,7 @@ MainSequencer::MainSequencer(wxWindow* parent,wxWindowID id,const wxPoint& pos,c
     mParent = parent;
     mPlayType = 0;
     SetHandlers(this);
+    keyBindings.LoadDefaults();
 }
 
 MainSequencer::~MainSequencer()
@@ -265,35 +266,31 @@ void MainSequencer::OnKeyDown(wxKeyEvent& event)
 void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();
+    
+    KeyBinding *binding = keyBindings.Find(uc);
+    if (binding != NULL) {
+        event.StopPropagation();
+        switch (binding->GetType()) {
+            case TIMING_ADD:
+                InsertTimingMarkFromRange();
+                break;
+            case TIMING_SPLIT:
+                SplitTimingMark();
+                break;
+            case KEY_ZOOM_IN:
+                PanelTimeLine->ZoomIn();
+                break;
+            case KEY_ZOOM_OUT:
+                PanelTimeLine->ZoomOut();
+                break;
+            case EFFECT_STRING:
+                PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n");
+                break;
+        }
+    }
     //printf("OnChar %d   %c\n", uc, uc);
     switch(uc)
     {
-        case '+':
-            PanelTimeLine->ZoomIn();
-            event.StopPropagation();
-            break;
-        case '-':
-            PanelTimeLine->ZoomOut();
-            event.StopPropagation();
-            break;
-            /*
-        case WXK_F5:
-        {
-            wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
-            wxPostEvent(this, eventEffectUpdated);
-            break;
-        }
-             */
-        case 't':
-        case 'T':
-            InsertTimingMarkFromRange();
-            event.StopPropagation();
-            break;
-        case 's':
-        case 'S':
-            SplitTimingMark();
-            event.StopPropagation();
-            break;
         case 'c':
         case 'C':
         case WXK_CONTROL_C:

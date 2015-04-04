@@ -8,6 +8,7 @@
 #include "RowHeading.h"
 #include "EffectsGrid.h"
 #include "Waveform.h"
+#include "../KeyBindings.h"
 
 
 wxDECLARE_EVENT(EVT_HORIZ_SCROLL, wxCommandEvent);
@@ -77,6 +78,7 @@ class MainSequencer: public wxPanel
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
         int mPlayType;
+        KeyBindingMap keyBindings;
 };
 
 #endif
