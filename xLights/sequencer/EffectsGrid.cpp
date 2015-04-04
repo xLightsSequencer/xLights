@@ -95,30 +95,45 @@ void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 bool EffectsGrid::DragOver(int x, int y)
 {
     int row = GetRow(y);
-    int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
-    if(selectedTimingIndex >= 0)
+    int effectIndex;
+    int selectionType;
+    Effect* selectedEffect = mSequenceElements->GetSelectedEffectAtRowAndPosition(row,x,effectIndex,selectionType);
+    if(selectedEffect != nullptr)
     {
-        Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
-        EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
-        int selectionType;
-        int timingIndex = el->GetEffectIndexThatContainsPosition(x,selectionType);
-        if(timingIndex >=0)
+        mDragDropping = true;
+        mDropStartX = selectedEffect->GetStartPosition();
+        mDropEndX = selectedEffect->GetEndPosition();
+        mDropStartTime = selectedEffect->GetStartTime();
+        mDropEndTime = selectedEffect->GetEndTime();
+        mDropRow = row;
+    }
+    else
+    {
+        int selectedTimingIndex = mSequenceElements->GetSelectedTimingRow();
+        if(selectedTimingIndex >= 0)
         {
-            mDragDropping = true;
-            mDropStartX = el->GetEffect(timingIndex)->GetStartPosition();
-            mDropEndX = el->GetEffect(timingIndex)->GetEndPosition();
-            mDropStartTime = el->GetEffect(timingIndex)->GetStartTime();
-            mDropEndTime = el->GetEffect(timingIndex)->GetEndTime();
-            mDropRow = row;
+            Element* e = mSequenceElements->GetRowInformation(selectedTimingIndex)->element;
+            EffectLayer* el = e->GetEffectLayer(mSequenceElements->GetRowInformation(selectedTimingIndex)->layerIndex);
+            int selectionType;
+            int timingIndex = el->GetEffectIndexThatContainsPosition(x,selectionType);
+            if(timingIndex >=0)
+            {
+                mDragDropping = true;
+                mDropStartX = el->GetEffect(timingIndex)->GetStartPosition();
+                mDropEndX = el->GetEffect(timingIndex)->GetEndPosition();
+                mDropStartTime = el->GetEffect(timingIndex)->GetStartTime();
+                mDropEndTime = el->GetEffect(timingIndex)->GetEndTime();
+                mDropRow = row;
+            }
+            else
+            {
+                mDragDropping = false;
+            }
         }
         else
         {
             mDragDropping = false;
         }
-    }
-    else
-    {
-        mDragDropping = false;
     }
     Refresh(false);
     return mDragDropping;
@@ -856,10 +871,18 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
     if((mDragDropping || mEmptyCellSelected) && mDropRow == row)
     {
         int y3 = row*DEFAULT_ROW_HEADING_HEIGHT;
-        const xlColor c = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(mSequenceElements->GetSelectedTimingRow())->colorIndex);
-
+        xlColor highlight_color;
+        int selected_timing_row = mSequenceElements->GetSelectedTimingRow();
+        if( selected_timing_row >= 0 )
+        {
+            highlight_color = *RowHeading::GetTimingColor(mSequenceElements->GetRowInformation(selected_timing_row)->colorIndex);
+        }
+        else
+        {
+            highlight_color = *RowHeading::GetTimingColor(0);
+        }
         glEnable(GL_BLEND);
-        DrawGLUtils::DrawFillRectangle(c,80,mDropStartX,y3,mDropEndX-mDropStartX,DEFAULT_ROW_HEADING_HEIGHT);
+        DrawGLUtils::DrawFillRectangle(highlight_color,80,mDropStartX,y3,mDropEndX-mDropStartX,DEFAULT_ROW_HEADING_HEIGHT);
         glDisable(GL_BLEND);
     }
 }
