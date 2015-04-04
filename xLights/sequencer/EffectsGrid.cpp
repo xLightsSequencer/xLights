@@ -458,10 +458,11 @@ void EffectsGrid::Paste(const wxString &data) {
                           mDropEndTime,
                           EFFECT_SELECTED,
                           false);
-            sendRenderEvent(el->GetParentElement()->GetName(),
-                            mDropStartTime,
-                            mDropEndTime, true);
-
+            if (!ef->GetPaletteMap().empty()) {
+                sendRenderEvent(el->GetParentElement()->GetName(),
+                                mDropStartTime,
+                                mDropEndTime, true);
+            }
             RaiseSelectedEffectChanged(ef);
             mSelectedEffect = ef;
             mEmptyCellSelected = false;

@@ -448,6 +448,13 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
         SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
+        if (effect->GetPaletteMap().empty()) {
+            effect->SetPalette(selectedEffectPalette);
+            effect->SetSettings(selectedEffectString);
+            RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetName(),
+                                 effect->GetStartTime() * 1000,
+                                 effect->GetEndTime() * 1000);
+        }
 
         if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
             playType = PLAY_TYPE_EFFECT;

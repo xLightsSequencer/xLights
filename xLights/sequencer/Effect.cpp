@@ -35,13 +35,16 @@ void Effect::SetPalette(const wxString& i)
 {
     mPaletteMap.Parse(i);
     mColors.clear();
+    IncrementChangeCount();
+    mDirty = true;
+    if (mPaletteMap.empty()) {
+        return;
+    }
     for (int i = 1; i <= 6; i++) {
         if (mPaletteMap[wxString::Format("C_CHECKBOX_Palette%d",i)] ==  "1") {
             mColors.push_back(xlColor(mPaletteMap[wxString::Format("C_BUTTON_Palette%d",i)]));
         }
     }
-    IncrementChangeCount();
-    mDirty = true;
 }
 
 

@@ -32,6 +32,7 @@
 		675006781923EBBD00875D45 /* RenderGlediator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675006771923EBBD00875D45 /* RenderGlediator.cpp */; };
 		675878DB1A89297200205A75 /* DataLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675878D91A89297200205A75 /* DataLayer.cpp */; };
 		6760BF131953BAD700704AEA /* TabPapagayo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6760BF121953BAD700704AEA /* TabPapagayo.cpp */; };
+		67623E711AD07E320022667B /* KeyBindings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67623E6F1AD07E320022667B /* KeyBindings.cpp */; };
 		67694F1B1A069BBE0030D020 /* CurrentPreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */; };
 		67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F191A069BBE0030D020 /* PreviewModels.cpp */; };
 		67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67694F1E1A0729220030D020 /* ModelPreview.cpp */; };
@@ -206,6 +207,8 @@
 		675878D91A89297200205A75 /* DataLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataLayer.cpp; sourceTree = "<group>"; };
 		675878DA1A89297200205A75 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
 		6760BF121953BAD700704AEA /* TabPapagayo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TabPapagayo.cpp; sourceTree = "<group>"; };
+		67623E6F1AD07E320022667B /* KeyBindings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyBindings.cpp; sourceTree = "<group>"; };
+		67623E701AD07E320022667B /* KeyBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyBindings.h; sourceTree = "<group>"; };
 		67694F181A069BBE0030D020 /* CurrentPreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurrentPreviewModels.cpp; sourceTree = "<group>"; };
 		67694F191A069BBE0030D020 /* PreviewModels.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreviewModels.cpp; sourceTree = "<group>"; };
 		67694F1E1A0729220030D020 /* ModelPreview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelPreview.cpp; sourceTree = "<group>"; };
@@ -595,6 +598,7 @@
 				67F4C6151A097A35003E978F /* XlightsDrawable.cpp */,
 				67A61A2417B51C0F008E95BB /* xLightsMain.cpp */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
+				67623E6F1AD07E320022667B /* KeyBindings.cpp */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -602,6 +606,7 @@
 		67E7087717B51AB400A22034 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				67623E701AD07E320022667B /* KeyBindings.h */,
 				67A260ED1AB71EE3006B140D /* DrawGLUtils.h */,
 				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,
 				676DCBF91A98E53800FBA86B /* FileConverter.h */,
@@ -843,6 +848,7 @@
 				67A61A4617B51C0F008E95BB /* RenderTree.cpp in Sources */,
 				67BC91031A3FD22F00905A53 /* RenderOn.cpp in Sources */,
 				67A61A4717B51C0F008E95BB /* RenderTwinkle.cpp in Sources */,
+				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4917B51C0F008E95BB /* RgbEffects.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67F4C6171A097A35003E978F /* Image.cpp in Sources */,
