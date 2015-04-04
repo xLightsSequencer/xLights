@@ -35,6 +35,7 @@ void xLightsFrame::NewSequence()
     int ms = atoi(mss.c_str());
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
+    CurrentSeqXmlFile->AddNewTimingSection("New Timing", this);
     Menu_Settings_Sequence->Enable(true);
     MenuItem_File_Save_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);

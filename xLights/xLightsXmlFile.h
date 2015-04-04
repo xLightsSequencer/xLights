@@ -76,6 +76,7 @@ class xLightsXmlFile : public wxFileName
         void SetSequenceLoaded(bool value) { sequence_loaded = value; }
         bool GetSequenceLoaded() { return sequence_loaded; }
 
+        void AddNewTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
         void AddFixedTimingSection(wxString interval_name, xLightsFrame* xLightsParent);
         void DeleteTimingSection(wxString section);
         void SetTimingSectionName(wxString section, wxString name);

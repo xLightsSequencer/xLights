@@ -23,6 +23,7 @@ class MainSequencer: public wxPanel
 		void SetSequenceElements(SequenceElements* elements);
         void UpdateEffectGridVerticalScrollBar();
         void UpdateTimeDisplay(int time_ms);
+        void SetPlayStatus(int play_type);
 
 		//(*Declarations(MainSequencer)
 		wxScrollBar* ScrollBarEffectsHorizontal;
@@ -67,7 +68,7 @@ class MainSequencer: public wxPanel
         void InsertTimingMarkFromRange();
         void SplitTimingMark();
         void SetHandlers(wxWindow *);
-    
+
         void DeleteAllSelectedEffects();
         void CopySelectedEffects();
         void Paste();
@@ -75,6 +76,7 @@ class MainSequencer: public wxPanel
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
+        int mPlayType;
 };
 
 #endif

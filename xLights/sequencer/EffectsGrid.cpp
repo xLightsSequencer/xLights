@@ -222,7 +222,10 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
         if(!out_of_bounds)
         {
             Element* element = mSequenceElements->GetRowInformation(rowIndex)->element;
-            RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
+            if( element != nullptr )
+            {
+                RunMouseOverHitTests(element,mSequenceElements->GetRowInformation(rowIndex)->layerIndex,event.GetX(),event.GetY());
+            }
         }
     }
 }
