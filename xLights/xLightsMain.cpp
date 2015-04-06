@@ -1580,13 +1580,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Menu_Settings_Sequence = new wxMenuItem(Menu1, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_Settings_Sequence);
     MenuItem7 = new wxMenu();
-    MenuItem10 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_SMALL, _("Small"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem10 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_SMALL, _("Small\tCTRL-1"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->Append(MenuItem10);
-    MenuItem11 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_MEDIUM, _("Medium"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem11 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_MEDIUM, _("Medium\tCTRL-2"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->Append(MenuItem11);
-    MenuItem12 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_LARGE, _("Large"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem12 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_LARGE, _("Large\tCTRL-3"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->Append(MenuItem12);
-    MenuItem14 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_XLARGE, _("Extra Large"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem14 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_XLARGE, _("Extra Large\tCTRL-4"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->Append(MenuItem14);
     Menu1->Append(ID_MENUITEM4, _("Icon Size"), MenuItem7, wxEmptyString);
     MenuItem13 = new wxMenuItem(Menu1, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
