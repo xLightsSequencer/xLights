@@ -70,7 +70,6 @@ public:
                         const char **data32,
                         const char **data48) {
         
-        double scale = 1.0;
         std::map<int, wxBitmap> *data = &size16;
         const char ** dc = data16;
         if (size <= 16) {
@@ -92,6 +91,7 @@ public:
         }
  
 #ifdef __WXOSX__
+        double scale = 1.0;
         //Retina Display, use the larger icons with the scale factor set
         if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
             if (size == 16) {
@@ -104,7 +104,6 @@ public:
                 dc = data48;
             }
         }
-#endif
         const wxBitmap &bmp = (*data)[eff];
         if (!bmp.IsOk()) {
             wxImage image(dc);
@@ -115,6 +114,18 @@ public:
                 (*data)[eff] = wxBitmap(scaled, -1, scale);
             }
         }
+#else
+        const wxBitmap &bmp = (*data)[eff];
+        if (!bmp.IsOk()) {
+            wxImage image(dc);
+            if (image.GetSize() == wxSize(size, size)) {
+                (*data)[eff] = wxBitmap(image);
+            } else {
+                wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
+                (*data)[eff] = wxBitmap(scaled);
+            }
+        }
+#endif
         return (*data)[eff];
     }
     
