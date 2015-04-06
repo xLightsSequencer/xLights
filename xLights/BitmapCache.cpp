@@ -55,7 +55,7 @@
 
 
 #ifdef __WXOSX__
-#include "wx/osx/private.h"
+double xlOSXGetMainScreenContentScaleFactor();
 #endif
 
 class EffectBitmapCache {
@@ -93,7 +93,7 @@ public:
  
 #ifdef __WXOSX__
         //Retina Display, use the larger icons with the scale factor set
-        if (wxOSXGetMainScreenContentScaleFactor() > 1.9) {
+        if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
             if (size == 16) {
                 size = 32;
                 scale = 2.0;
