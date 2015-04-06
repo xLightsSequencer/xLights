@@ -59,5 +59,6 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 void DragEffectBitmapButton::SetBitmap(const wxBitmap &bpm)
 {
     mDragIconBuffer = &bpm;
-    SetBitmapLabel(bpm);
+    wxBitmapButton::SetBitmap(wxBitmap()); //resets the images
+    wxBitmapButton::SetBitmap(bpm);
 }
