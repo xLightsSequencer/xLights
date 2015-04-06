@@ -1,5 +1,5 @@
 /* XPM */
-static const char *butterfly-32[] = {
+static const char *butterfly_32[] = {
 /* width height num_colors chars_per_pixel */
 "32 32 250 2", 
 /* colors */

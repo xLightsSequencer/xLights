@@ -1,5 +1,5 @@
 /* XPM */
-static const char *bars-16[] = {
+static const char *bars_16[] = {
 /* width height num_colors chars_per_pixel */
 "16 16 24 1", 
 /* colors */

@@ -9,8 +9,18 @@
 #include "xLightsMain.h"
 
 
-#include "../include/bars.xpm"
-#include "../include/butterfly.xpm"
+//#include "../include/bars.xpm"
+#include "../include/bars-16.xpm"
+#include "../include/bars-24.xpm"
+#include "../include/bars-32.xpm"
+#include "../include/bars-48.xpm"
+
+//#include "../include/butterfly.xpm"
+#include "../include/butterfly-16.xpm"
+#include "../include/butterfly-24.xpm"
+#include "../include/butterfly_32.xpm"
+#include "../include/butterfly-48.xpm"
+
 #include "../include/circles.xpm"
 #include "../include/ColorWash.xpm"
 #include "../include/corofaces.xpm"
@@ -44,6 +54,10 @@
 #include "../include/wave.xpm"
 
 
+#ifdef __WXOSX__
+#include "wx/osx/private.h"
+#endif
+
 class EffectBitmapCache {
 public:
     EffectBitmapCache() {
@@ -56,6 +70,7 @@ public:
                         const char **data32,
                         const char **data48) {
         
+        double scale = 1.0;
         std::map<int, wxBitmap> *data = &size16;
         const char ** dc = data16;
         if (size <= 16) {
@@ -75,16 +90,29 @@ public:
             size = 48;
             dc = data48;
         }
-        
-        
+ 
+#ifdef __WXOSX__
+        //Retina Display, use the larger icons with the scale factor set
+        if (wxOSXGetMainScreenContentScaleFactor() > 1.9) {
+            if (size == 16) {
+                size = 32;
+                scale = 2.0;
+                dc = data32;
+            } else if (size == 24) {
+                size = 48;
+                scale = 2.0;
+                dc = data48;
+            }
+        }
+#endif
         const wxBitmap &bmp = (*data)[eff];
         if (!bmp.IsOk()) {
             wxImage image(dc);
             if (image.GetSize() == wxSize(size, size)) {
-                (*data)[eff] = wxBitmap(image);
+                (*data)[eff] = wxBitmap(image, -1, scale);
             } else {
                 wxImage scaled = image.Scale(size, size, wxIMAGE_QUALITY_HIGH);
-                (*data)[eff] = wxBitmap(scaled);
+                (*data)[eff] = wxBitmap(scaled, -1, scale);
             }
         }
         return (*data)[eff];
@@ -110,10 +138,10 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, On, On, On, On);
         case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
             toolTip = "Bars";
-            return effectBitmaps.get(size, effectID, bars, bars, bars, bars);
+            return effectBitmaps.get(size, effectID, bars_16, bars_24, bars_32, bars_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY:
             toolTip = "Butterfly";
-            return effectBitmaps.get(size, effectID, butterfly, butterfly, butterfly, butterfly);
+            return effectBitmaps.get(size, effectID, butterfly_16, butterfly_24, butterfly_32, butterfly_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
             toolTip = "Circles";
             return effectBitmaps.get(size, effectID, circles, circles, circles, circles);
