@@ -359,6 +359,7 @@ const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
+const long xLightsFrame::ID_MENUITEM_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM4 = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
@@ -493,6 +494,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem1;
     wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem14;
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
@@ -1584,6 +1586,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     MenuItem7->Append(MenuItem11);
     MenuItem12 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_LARGE, _("Large"), wxEmptyString, wxITEM_NORMAL);
     MenuItem7->Append(MenuItem12);
+    MenuItem14 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_XLARGE, _("Extra Large"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem7->Append(MenuItem14);
     Menu1->Append(ID_MENUITEM4, _("Icon Size"), MenuItem7, wxEmptyString);
     MenuItem13 = new wxMenuItem(Menu1, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem13);
@@ -1757,6 +1761,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
@@ -1794,7 +1799,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     wxConfigBase* config = wxConfigBase::Get();
-    
+
     effGridPrevX = 0;
     effGridPrevY = 0;
 
@@ -1859,7 +1864,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     }
     config->Read("xLightsIconSize", &mIconSize, 16);
     if (mIconSize != 16) {
-        wxCommandEvent event(wxEVT_NULL, mIconSize == 24 ? ID_MENUITEM_ICON_MEDIUM: ID_MENUITEM_ICON_LARGE);
+        int id = ID_MENUITEM_ICON_MEDIUM;
+        if (mIconSize == 32) {
+            id = ID_MENUITEM_ICON_LARGE;
+        } else if (mIconSize == 48) {
+            id = ID_MENUITEM_ICON_XLARGE;
+        }
+        wxCommandEvent event(wxEVT_NULL, id);
         SetIconSize(event);
     }
 
@@ -2127,7 +2138,7 @@ xLightsFrame::~xLightsFrame()
     }
     config->Write("xLightsIconSize", mIconSize);
     config->Flush();
-    
+
     wxFileName kbf;
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
@@ -3003,11 +3014,13 @@ void AUIToolbarButtonWrapper::Enable(bool b) {
 
 void xLightsFrame::SetIconSize(wxCommandEvent& event)
 {
-    int size = 32;
+    int size = 48;
     if (event.GetId() == ID_MENUITEM_ICON_SMALL) {
         size = 16;
     } else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM) {
         size = 24;
+    } else if (event.GetId() == ID_MENUITEM_ICON_LARGE) {
+        size = 32;
     }
     mIconSize = size;
     for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {

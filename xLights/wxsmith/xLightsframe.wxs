@@ -3136,6 +3136,10 @@
 						<label>Large</label>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_XLARGE" variable="MenuItem14" member="no">
+						<label>Extra Large</label>
+						<handler function="SetIconSize" entry="EVT_MENU" />
+					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
 					<label>Reset Toolbars</label>

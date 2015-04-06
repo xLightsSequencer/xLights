@@ -918,6 +918,7 @@ private:
     static const long ID_MENUITEM_ICON_SMALL;
     static const long ID_MENUITEM_ICON_MEDIUM;
     static const long ID_MENUITEM_ICON_LARGE;
+    static const long ID_MENUITEM_ICON_XLARGE;
     static const long ID_MENUITEM4;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
