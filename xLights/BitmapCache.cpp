@@ -21,17 +21,56 @@
 #include "../include/butterfly_32.xpm"
 #include "../include/butterfly-48.xpm"
 
-#include "../include/circles.xpm"
+//#include "../include/circles.xpm"
+#include "../include/circles-16.xpm"
+#include "../include/circles-24.xpm"
+#include "../include/circles-32.xpm"
+#include "../include/circles-48.xpm"
+
 #include "../include/ColorWash.xpm"
 #include "../include/corofaces.xpm"
-#include "../include/curtain.xpm"
+
+//#include "../include/curtain.xpm"
+#include "../include/curtain-16.xpm"
+#include "../include/curtain-24.xpm"
+#include "../include/curtain-32.xpm"
+#include "../include/curtain-48.xpm"
+
+
 #include "../include/faces.xpm"
-#include "../include/fire.xpm"
-#include "../include/fireworks.xpm"
-#include "../include/garlands.xpm"
+
+//#include "../include/fire.xpm"
+#include "../include/fire-16.xpm"
+#include "../include/fire-24.xpm"
+#include "../include/fire-32.xpm"
+#include "../include/fire-48.xpm"
+
+
+//#include "../include/fireworks.xpm"
+#include "../include/fireworks-16.xpm"
+#include "../include/fireworks-24.xpm"
+#include "../include/fireworks-32.xpm"
+#include "../include/fireworks-48.xpm"
+
+//#include "../include/garlands.xpm"
+#include "../include/garlands-16.xpm"
+#include "../include/garlands-24.xpm"
+#include "../include/garlands-32.xpm"
+#include "../include/garlands-48.xpm"
+
 #include "../include/glediator.xpm"
-#include "../include/life.xpm"
-#include "../include/meteors.xpm"
+//#include "../include/life.xpm"
+#include "../include/life-16.xpm"
+#include "../include/life-24.xpm"
+#include "../include/life-32.xpm"
+#include "../include/life-48.xpm"
+
+//#include "../include/meteors.xpm"
+#include "../include/meteors-16.xpm"
+#include "../include/meteors-24.xpm"
+#include "../include/meteors-32.xpm"
+#include "../include/meteors-48.xpm"
+
 #include "../include/morph.xpm"
 
 #include "../include/Off.xpm"
@@ -39,13 +78,30 @@
 #include "../include/piano.xpm"
 #include "../include/pictures.xpm"
 
-#include "../include/pinwheel.xpm"
-#include "../include/ripple.xpm"
+//#include "../include/pinwheel.xpm"
+#include "../include/pinwheel-16.xpm"
+#include "../include/pinwheel-24.xpm"
+#include "../include/pinwheel-32.xpm"
+#include "../include/pinwheel-48.xpm"
+
+
+//#include "../include/ripple.xpm"
+#include "../include/ripple-16.xpm"
+#include "../include/ripple-24.xpm"
+#include "../include/ripple-32.xpm"
+#include "../include/ripple-48.xpm"
+
 #include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
 #include "../include/snowflakes.xpm"
 #include "../include/snowstorm.xpm"
-#include "../include/spirals.xpm"
+
+//#include "../include/spirals.xpm"
+#include "../include/spirals-16.xpm"
+#include "../include/spirals-24.xpm"
+#include "../include/spirals-32.xpm"
+#include "../include/spirals-48.xpm"
+
 #include "../include/spirograph.xpm"
 #include "../include/strobe.xpm"
 #include "../include/text.xpm"
@@ -62,14 +118,14 @@ class EffectBitmapCache {
 public:
     EffectBitmapCache() {
     }
-    
+
     const wxBitmap &get(int size,
                         int eff,
                         const char **data16,
                         const char **data24,
                         const char **data32,
                         const char **data48) {
-        
+
         std::map<int, wxBitmap> *data = &size16;
         const char ** dc = data16;
         if (size <= 16) {
@@ -89,7 +145,7 @@ public:
             size = 48;
             dc = data48;
         }
- 
+
 #ifdef __WXOSX__
         double scale = 1.0;
         //Retina Display, use the larger icons with the scale factor set
@@ -128,12 +184,12 @@ public:
 #endif
         return (*data)[eff];
     }
-    
+
     std::map<int, wxBitmap> size16;
     std::map<int, wxBitmap> size24;
     std::map<int, wxBitmap> size32;
     std::map<int, wxBitmap> size48;
-    
+
 } effectBitmaps;
 
 
@@ -155,7 +211,7 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, butterfly_16, butterfly_24, butterfly_32, butterfly_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
             toolTip = "Circles";
-            return effectBitmaps.get(size, effectID, circles, circles, circles, circles);
+            return effectBitmaps.get(size, effectID, circles_16, circles_24, circles_32, circles_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
             toolTip = "ColorWash";
             return effectBitmaps.get(size, effectID, ColorWash, ColorWash, ColorWash, ColorWash);
@@ -164,28 +220,28 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, corofaces, corofaces, corofaces, corofaces);
         case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
             toolTip = "Curtain";
-            return effectBitmaps.get(size, effectID, curtain, curtain, curtain, curtain);
+            return effectBitmaps.get(size, effectID, curtain_16, curtain_24, curtain_32, curtain_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
             toolTip = "Matrix Faces";
             return effectBitmaps.get(size, effectID, faces, faces, faces, faces);
         case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
             toolTip = "Fire";
-            return effectBitmaps.get(size, effectID, fire, fire, fire, fire);
+            return effectBitmaps.get(size, effectID, fire_16, fire_24, fire_32, fire_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS:
             toolTip = "Fireworks";
-            return effectBitmaps.get(size, effectID, fireworks, fireworks, fireworks, fireworks);
+            return effectBitmaps.get(size, effectID, fireworks_16, fireworks_24, fireworks_32, fireworks_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS:
             toolTip = "Garlands";
-            return effectBitmaps.get(size, effectID, garlands, garlands, garlands, garlands);
+            return effectBitmaps.get(size, effectID, garlands_16, garlands_24, garlands_32, garlands_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR:
             toolTip = "Glediator";
             return effectBitmaps.get(size, effectID, glediator, glediator, glediator, glediator);
         case xLightsFrame::RGB_EFFECTS_e::eff_LIFE:
             toolTip = "Life";
-            return effectBitmaps.get(size, effectID, life, life, life, life);
+            return effectBitmaps.get(size, effectID, life_16, life_24, life_32, life_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_METEORS:
             toolTip = "Meteors";
-            return effectBitmaps.get(size, effectID, meteors, meteors, meteors, meteors);
+            return effectBitmaps.get(size, effectID, meteors_16, meteors_24, meteors_32, meteors_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_MORPH:
             toolTip = "Morph";
             return effectBitmaps.get(size, effectID, morph, morph, morph, morph);
@@ -197,10 +253,10 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, pictures, pictures, pictures, pictures);
         case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
             toolTip = "Pinwheel";
-            return effectBitmaps.get(size, effectID, pinwheel, pinwheel, pinwheel, pinwheel);
+            return effectBitmaps.get(size, effectID, pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE:
             toolTip = "Ripple";
-            return effectBitmaps.get(size, effectID, ripple, ripple, ripple, ripple);
+            return effectBitmaps.get(size, effectID, ripple_16, ripple_24, ripple_32, ripple_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
             toolTip = "Shimmer";
             return effectBitmaps.get(size, effectID, shimmer, shimmer, shimmer, shimmer);
@@ -215,7 +271,7 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, snowstorm, snowstorm, snowstorm, snowstorm);
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
             toolTip = "Spirals";
-            return effectBitmaps.get(size, effectID, spirals, spirals, spirals, spirals);
+            return effectBitmaps.get(size, effectID, spirals_16, spirals_24, spirals_32, spirals_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
             toolTip = "Spirograph";
             return effectBitmaps.get(size, effectID, spirograph, spirograph, spirograph, spirograph);

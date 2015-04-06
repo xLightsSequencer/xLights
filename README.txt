@@ -6,8 +6,10 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+4.0.15  Apr 6, 2015
    -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
    -- enh (dkulp) Add support for different icon sizes
+   -- enh (sean) create dozens of new icons in 16x16, 24x24, 32x32 and 48x48 to support dan's new icon size  chooser
    -- enh (dkulp) Add ability to reset the toolbar locations back to default
 4.0.14  Apr 4, 2015
     -- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
