@@ -157,33 +157,30 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int
 
 
 
-void DrawGLUtils::CreateOrUpdateTexture(char** p_XPM, GLuint* texture)
+void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp, GLuint* texture)
 {
-    if (p_XPM != NULL)
-    {
-        wxImage l_Image(p_XPM);
+    wxImage l_Image = bmp.ConvertToImage();
 
-        if (l_Image.IsOk() == true)
-        {
-            //if(*texture==0)
-            //{
-                glGenTextures(1,texture);
-                if (*texture != 0)
-                {
-                    glBindTexture(GL_TEXTURE_2D, *texture);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-                }
-            // Comment out because we will never replace image, only create new
-            //}
-            //else
-            //{
-            //    glBindTexture(GL_TEXTURE_2D, *texture);
-            //    glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-            //             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-            //}
-        }
+    if (l_Image.IsOk() == true)
+    {
+        //if(*texture==0)
+        //{
+            glGenTextures(1,texture);
+            if (*texture != 0)
+            {
+                glBindTexture(GL_TEXTURE_2D, *texture);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
+                         0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
+            }
+        // Comment out because we will never replace image, only create new
+        //}
+        //else
+        //{
+        //    glBindTexture(GL_TEXTURE_2D, *texture);
+        //    glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
+        //             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
+        //}
     }
 }

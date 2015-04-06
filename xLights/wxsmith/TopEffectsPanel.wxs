@@ -31,7 +31,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SelectedEffect" subclass="DragEffectBitmapButton" variable="BitmapButtonSelectedEffect" member="yes">
-											<bitmap code="butterfly" />
+											<bitmap code="Off" />
 											<size>13,13</size>
 											<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
 											<handler function="OnBitmapButtonSelectedEffectClick" entry="EVT_BUTTON" />

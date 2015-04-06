@@ -17,9 +17,7 @@
 #include "Element.h"
 
 
-#define MINIMUM_EFFECT_WIDTH_FOR_ICON       25
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
-#define EFFECT_ICON_WIDTH                   16
 
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1

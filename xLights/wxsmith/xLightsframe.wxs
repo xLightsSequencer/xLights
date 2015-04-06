@@ -145,7 +145,7 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUIWINDOWTOOLBAR" variable="WindowMgmtToolbar" member="yes">
+				<object class="wxAuiToolBar" name="ID_AUIWINDOWTOOLBAR" subclass="xlAuiToolBar" variable="WindowMgmtToolbar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
 							<bitmap code="effects_xpm" />
@@ -205,7 +205,7 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" variable="ViewToolBar" member="yes">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" subclass="xlAuiToolBar" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
 							<bitmap code="zoom_in_24_xpm" />
@@ -310,8 +310,7 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
-				<object class="wxAuiToolBar" name="ID_AUIEFFECTSTOOLBAR" variable="EffectsToolBar" member="yes">
-					<pos>993,6</pos>
+				<object class="wxAuiToolBar" name="ID_AUIEFFECTSTOOLBAR" subclass="xlAuiToolBar" variable="EffectsToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxBitmapButton" name="ID_BITMAPBUTTON7" subclass="DragEffectBitmapButton" variable="BitmapButton1" member="yes">
 							<size>16,16</size>
@@ -3122,6 +3121,25 @@
 				<object class="wxMenuItem" name="ID_SEQ_SETTINGS" variable="Menu_Settings_Sequence" member="yes">
 					<label>Sequence Settings</label>
 					<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenu" name="ID_MENUITEM4" variable="MenuItem7" member="no">
+					<label>Icon Size</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_SMALL" variable="MenuItem10" member="no">
+						<label>Small</label>
+						<handler function="SetIconSize" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_MEDIUM" variable="MenuItem11" member="no">
+						<label>Medium</label>
+						<handler function="SetIconSize" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_LARGE" variable="MenuItem12" member="no">
+						<label>Large</label>
+						<handler function="SetIconSize" entry="EVT_MENU" />
+					</object>
+				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
+					<label>Reset Toolbars</label>
+					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">

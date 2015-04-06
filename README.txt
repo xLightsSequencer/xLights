@@ -6,8 +6,11 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+
+   -- enh (dkulp) Add support for different icon sizes
+   -- enh (dkulp) Add ability to reset the toolbar locations back to default
 4.0.14  Apr 4, 2015
-	-- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
+    -- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
     -- enh (gil) Allow timings to be added while model playback is paused. This is like xltap. Press play and use the "t" key to create timing marks
     -- bug (gil) Disallow effect play while paused in model playback.
     -- enh (gil) Add an empty timing track to a new sequence by default.

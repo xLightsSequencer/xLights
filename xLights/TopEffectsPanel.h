@@ -21,7 +21,7 @@ class TopEffectsPanel: public wxPanel
 		TopEffectsPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TopEffectsPanel();
 
-		void SetDragIconBuffer(const char** buffer);
+		void SetDragIconBuffer(const wxBitmap &buffer);
 
 		//(*Declarations(TopEffectsPanel)
 		DragEffectBitmapButton* BitmapButtonSelectedEffect;

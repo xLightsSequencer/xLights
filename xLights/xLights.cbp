@@ -364,6 +364,7 @@
 		</Linker>
 		<Unit filename="AddShowDialog.cpp" />
 		<Unit filename="AddShowDialog.h" />
+		<Unit filename="BitmapCache.cpp" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
 		<Unit filename="ChannelMapDialog.cpp" />

@@ -14,6 +14,6 @@ namespace DrawGLUtils
     
     void DrawHBlendedRectangle(const xlColor &lcolor, const xlColor &rcolor, int x, int y, int x2, int y2);
     void DrawHBlendedRectangle(const xlColorVector &colors, int x, int y, int x2, int y2);
-    void CreateOrUpdateTexture(char** p_XPM, GLuint* texture);
+    void CreateOrUpdateTexture(const wxBitmap &bmp, GLuint* texture);
 }
 

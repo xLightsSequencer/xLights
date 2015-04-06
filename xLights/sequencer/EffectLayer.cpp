@@ -3,6 +3,7 @@
 #include <vector>
 #include "EffectsGrid.h"
 #include "Effect.h"
+#include "RowHeading.h"
 
 
 
@@ -322,7 +323,7 @@ void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSel
             continue;
         }
         int center = mEffects[i]->GetStartPosition() + ((mEffects[i]->GetEndPosition() - mEffects[i]->GetStartPosition())/2);
-        int squareWidth =  center<MINIMUM_EFFECT_WIDTH_FOR_ICON?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:EFFECT_ICON_WIDTH;
+        int squareWidth =  center<DEFAULT_ROW_HEADING_HEIGHT-6?MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT:DEFAULT_ROW_HEADING_HEIGHT-6;
         int squareLeft = center - (squareWidth/2);
         int squareRight = center + (squareWidth/2);
         // If selection around icon/square

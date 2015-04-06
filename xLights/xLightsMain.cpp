@@ -356,6 +356,11 @@ const long xLightsFrame::ID_MENUITEM10 = wxNewId();
 const long xLightsFrame::ID_EXPORT_ALL = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODEL = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
+const long xLightsFrame::ID_MENUITEM_ICON_SMALL = wxNewId();
+const long xLightsFrame::ID_MENUITEM_ICON_MEDIUM = wxNewId();
+const long xLightsFrame::ID_MENUITEM_ICON_LARGE = wxNewId();
+const long xLightsFrame::ID_MENUITEM4 = wxNewId();
+const long xLightsFrame::ID_MENUITEM5 = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_STATUSBAR1 = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
@@ -491,6 +496,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer37;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer25;
+    wxMenuItem* MenuItem11;
     wxFlexGridSizer* FlexGridSizer22;
     wxStaticText* StaticText38;
     wxFlexGridSizer* FlexGridSizer56;
@@ -498,13 +504,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItem22;
     wxFlexGridSizer* FlexGridSizer2;
     wxBoxSizer* BoxSizer2;
+    wxMenuItem* MenuItem13;
     wxMenu* Menu1;
     wxFlexGridSizer* FlexGridSizer7;
+    wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
     wxButton* Button2;
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
+    wxMenu* MenuItem7;
     wxMenuItem* MenuItemDelList;
+    wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
@@ -573,7 +583,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), replay_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
-    WindowMgmtToolbar = new wxAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    WindowMgmtToolbar = new xlAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM2, _("Effects"), effects_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), colors_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Colors"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM3, _("Effect Layering"), layers_xpm, wxNullBitmap, wxITEM_NORMAL, _("Effect Layering"), wxEmptyString, NULL);
@@ -581,7 +591,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), house_preview_xpm, wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
-    ViewToolBar = new wxAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    ViewToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_VIEW, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM_ZOOM_IN, _("Zoom In"), zoom_in_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom In"), wxEmptyString, NULL);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM_ZOOM_OUT, _("Zoom Out"), zoom_out_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), settings_24_xpm, wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
@@ -595,7 +605,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     OutputToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), output_lights_24_xpm, wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     OutputToolBar->Realize();
     MainAuiManager->AddPane(OutputToolBar, wxAuiPaneInfo().Name(_T("Output Tool Bar")).ToolbarPane().Caption(_("Output Tool Bar")).CloseButton(false).Layer(10).Position(25).Top().Gripper());
-    EffectsToolBar = new wxAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxPoint(993,6), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     BitmapButton1 = new DragEffectBitmapButton(EffectsToolBar, ID_BITMAPBUTTON7, wxNullBitmap, wxDefaultPosition, wxSize(16,16), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON7"));
     BitmapButton1->SetMinSize(wxSize(16,16));
     BitmapButton1->SetMaxSize(wxSize(16,16));
@@ -1567,6 +1577,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Menu1 = new wxMenu();
     Menu_Settings_Sequence = new wxMenuItem(Menu1, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(Menu_Settings_Sequence);
+    MenuItem7 = new wxMenu();
+    MenuItem10 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_SMALL, _("Small"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem7->Append(MenuItem10);
+    MenuItem11 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_MEDIUM, _("Medium"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem7->Append(MenuItem11);
+    MenuItem12 = new wxMenuItem(MenuItem7, ID_MENUITEM_ICON_LARGE, _("Large"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem7->Append(MenuItem12);
+    Menu1->Append(ID_MENUITEM4, _("Icon Size"), MenuItem7, wxEmptyString);
+    MenuItem13 = new wxMenuItem(Menu1, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem13);
     MenuBar->Append(Menu1, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
@@ -1734,6 +1754,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENUITEM16,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
     Connect(ID_MENUITEM17,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
+    Connect(ID_MENUITEM_ICON_SMALL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(wxID_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer1Trigger);
@@ -1746,6 +1770,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonGracefulStop = new AUIToolbarButtonWrapper(OutputToolBar, ID_BUTTON_GRACEFUL_STOP);
 
+
+    mResetToolbars = false;
+    mIconSize = 16;
 
     selectedEffectPalette = "";
     selectedEffect = NULL;
@@ -1767,7 +1794,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     SetName("xLights");
     wxPersistenceManager::Get().RegisterAndRestore(this);
     wxConfigBase* config = wxConfigBase::Get();
-
+    
     effGridPrevX = 0;
     effGridPrevY = 0;
 
@@ -1830,6 +1857,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION)) {
         MainAuiManager->LoadPerspective(tbData.Right(tbData.size() - 5));
     }
+    config->Read("xLightsIconSize", &mIconSize, 16);
+    if (mIconSize != 16) {
+        wxCommandEvent event(wxEVT_NULL, mIconSize == 24 ? ID_MENUITEM_ICON_MEDIUM: ID_MENUITEM_ICON_LARGE);
+        SetIconSize(event);
+    }
+
 
     // initialize all effect wxChoice lists
 
@@ -2087,8 +2120,14 @@ xLightsFrame::~xLightsFrame()
     selectedEffect = NULL;
 
     wxConfigBase* config = wxConfigBase::Get();
-    config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
+    if (mResetToolbars) {
+        config->DeleteEntry("ToolbarLocations");
+    } else {
+        config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
+    }
+    config->Write("xLightsIconSize", mIconSize);
     config->Flush();
+    
 
     //must call these or the app will crash on exit
     m_mgr->UnInit();
@@ -2956,4 +2995,42 @@ void AUIToolbarButtonWrapper::SetValue(bool b) {
 }
 void AUIToolbarButtonWrapper::Enable(bool b) {
     toolbar->EnableTool(id, b);
+}
+
+void xLightsFrame::SetIconSize(wxCommandEvent& event)
+{
+    int size = 32;
+    if (event.GetId() == ID_MENUITEM_ICON_SMALL) {
+        size = 16;
+    } else if (event.GetId() == ID_MENUITEM_ICON_MEDIUM) {
+        size = 24;
+    }
+    mIconSize = size;
+    for (int x = 0; x < EffectsToolBar->GetToolCount(); x++) {
+        EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMaxSize(wxSize(size, size));
+    }
+    EffectsToolBar->Realize();
+    wxSize sz = EffectsToolBar->GetSize();
+    wxAuiPaneInfo &info = MainAuiManager->GetPane("EffectsToolBar");
+    info.BestSize(sz);
+    MainAuiManager->Update();
+
+    const wxWindowList& lst =effectPalettePanel->GetChildren();
+    for (int x = 0; x < lst.size(); x++) {
+        lst[x]->SetSizeHints(size, size, size, size);
+    }
+    effectPalettePanel->Layout();
+
+    DEFAULT_ROW_HEADING_HEIGHT = size + 6;
+    mainSequencer->PanelRowHeadings->Refresh();
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
+{
+    wxMessageBox("Toolbar locations will reset to defaults upon restart.");
+    mResetToolbars = true;
 }

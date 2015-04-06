@@ -8,7 +8,7 @@
 
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100
-#define DEFAULT_ROW_HEADING_HEIGHT  22
+#define DEFAULT_ROW_HEADING_HEIGHT  RowHeading::rowHeadingSize
 #define DEFAULT_ROW_HEADING_MARGIN  16
 #define INDENT_ROW_HEADING_MARGIN   24
 
@@ -29,6 +29,8 @@ class RowHeading : public wxWindow
         int getWidth();
         int getHeight();
         int GetMaxRows();
+    
+    static int rowHeadingSize;
 
     protected:
     private:

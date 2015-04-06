@@ -4,19 +4,26 @@
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
                                 const wxSize &size, long style, const wxValidator &validator,
-                                const wxString &name): wxBitmapButton (parent, id, bitmap,pos,size,style,validator,name)
+                                const wxString &name)
+    : wxBitmapButton (parent, id, bitmap,pos,size,style,validator,name), mDragIconBuffer(&bitmap)
 {
     Connect (wxEVT_LEFT_DOWN, wxMouseEventHandler (DragEffectBitmapButton::OnMouseLeftDown));
+    mEffectIndex = 0;
 }
 
 DragEffectBitmapButton::~DragEffectBitmapButton()
 {
 }
-
-void DragEffectBitmapButton::SetEffectIndex(int index)
+void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
+                                            int maxW, int maxH,
+                                            int incW, int incH ) {
+    wxBitmapButton::DoSetSizeHints(minW, minH, maxW, maxH, incW, incH);
+    SetEffectIndex(mEffectIndex, minW);
+}
+void DragEffectBitmapButton::SetEffectIndex(int index, int sz)
 {
     wxString tooltip;
-    SetBitmap(xLightsFrame::GetIconBuffer(index, tooltip));
+    SetBitmap(xLightsFrame::GetIcon(index, tooltip, sz));
     SetToolTip(tooltip);
     mEffectIndex = index;
 }
@@ -37,9 +44,7 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
     eventEffectChanged.SetClientData(nullptr);
     wxPostEvent(GetParent(), eventEffectChanged);
 
-
-    wxBitmap* bmDrag=new wxBitmap(mDragIconBuffer);
-    wxCursor dragCursor(bmDrag->ConvertToImage());
+    wxCursor dragCursor(mDragIconBuffer->ConvertToImage());
 
 #ifndef __linux__
 	// FIXME - This is failing compile on Linux/GTK, not sure why yet
@@ -51,9 +56,8 @@ void DragEffectBitmapButton::OnMouseLeftDown (wxMouseEvent& event)
 #endif
 }
 
-void DragEffectBitmapButton::SetBitmap(const char** xpm)
+void DragEffectBitmapButton::SetBitmap(const wxBitmap &bpm)
 {
-    mDragIconBuffer = xpm;
-    wxBitmap bm(xpm);
-    SetBitmapLabel(bm);
+    mDragIconBuffer = &bpm;
+    SetBitmapLabel(bpm);
 }

@@ -32,6 +32,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 
 
+int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
 RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                        long style, const wxString &name):

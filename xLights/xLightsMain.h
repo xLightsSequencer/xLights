@@ -103,40 +103,6 @@
 
 #include "wx/aui/aui.h"
 
-#include "../include/bars.xpm"
-#include "../include/butterfly.xpm"
-#include "../include/circles.xpm"
-#include "../include/ColorWash.xpm"
-#include "../include/corofaces.xpm"
-#include "../include/curtain.xpm"
-#include "../include/faces.xpm"
-#include "../include/fire.xpm"
-#include "../include/fireworks.xpm"
-#include "../include/garlands.xpm"
-#include "../include/glediator.xpm"
-#include "../include/life.xpm"
-#include "../include/meteors.xpm"
-#include "../include/morph.xpm"
-
-#include "../include/Off.xpm"
-#include "../include/On.xpm"
-#include "../include/piano.xpm"
-#include "../include/pictures.xpm"
-
-#include "../include/pinwheel.xpm"
-#include "../include/ripple.xpm"
-#include "../include/shimmer.xpm"
-#include "../include/singleStrand.xpm"
-#include "../include/snowflakes.xpm"
-#include "../include/snowstorm.xpm"
-#include "../include/spirals.xpm"
-#include "../include/spirograph.xpm"
-#include "../include/strobe.xpm"
-#include "../include/text.xpm"
-#include "../include/tree.xpm"
-#include "../include/twinkle.xpm"
-#include "../include/wave.xpm"
-
 //  <scm> 01-17-2015
 #include "../include/zoom-out-24.xpm"
 #include "../include/zoom-in-24.xpm"
@@ -405,7 +371,7 @@ public:
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
-    static const char** GetIconBuffer(int effectID, wxString &toolTip);
+    static const wxBitmap &GetIcon(int effectID, wxString &toolTip, int size = 16);
 
 
      enum RGB_EFFECTS_e
@@ -666,6 +632,8 @@ private:
     void ShowHideModelPreview(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
     void ShowHideHousePreview(wxCommandEvent& event);
+    void SetIconSize(wxCommandEvent& event);
+    void ResetToolbarLocations(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -947,6 +915,11 @@ private:
     static const long ID_EXPORT_ALL;
     static const long ID_EXPORT_MODEL;
     static const long ID_SEQ_SETTINGS;
+    static const long ID_MENUITEM_ICON_SMALL;
+    static const long ID_MENUITEM_ICON_MEDIUM;
+    static const long ID_MENUITEM_ICON_LARGE;
+    static const long ID_MENUITEM4;
+    static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
     static const long ID_TIMER1;
@@ -990,6 +963,7 @@ private:
     wxButton* Button_papagayo_output_sequence;
     wxMenu* MenuItem18;
     wxTextCtrl* TextCtrl_PgoAutoFade;
+    xlAuiToolBar* ViewToolBar;
     wxMenuItem* MenuItem8;
     wxButton* ButtonClearLog;
     DragEffectBitmapButton* BitmapButton6;
@@ -1048,7 +1022,6 @@ private:
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
     wxPanel* PanelSequencer;
-    wxAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
@@ -1085,7 +1058,6 @@ private:
     wxButton* ButtonShowDatesChange;
     wxButton* ButtonAddShow;
     wxRadioButton* RadioButtonDim;
-    wxAuiToolBar* ViewToolBar;
     wxMenu* MenuItem15;
     wxButton* ButtonUpdateShow;
     wxStaticText* ShowDirectoryLabel;
@@ -1114,6 +1086,7 @@ private:
     wxCheckBox* CheckBox_PgoAutoRest;
     wxPanel* Panel3;
     wxStaticText* StaticText18;
+    xlAuiToolBar* EffectsToolBar;
     wxListCtrl* GridNetwork;
     DragEffectBitmapButton* BitmapButton9;
     wxSlider* SliderRgbChaseSpeed;
@@ -1143,7 +1116,6 @@ private:
     wxButton* Button_PgoStitch;
     wxMenuItem* MenuItem3;
     wxStaticText* StaticTextShowEnd;
-    wxAuiToolBar* EffectsToolBar;
     DragEffectBitmapButton* BitmapButton31;
     wxFileDialog* FileDialogPgoImage;
     DragEffectBitmapButton* BitmapButton8;
@@ -1153,6 +1125,7 @@ private:
     wxMenuItem* MenuItem9;
     wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
     wxRadioButton* RadioButtonRgbChase3;
@@ -1529,6 +1502,9 @@ protected:
     long SeqBaseChannel;
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
+    
+    bool mResetToolbars;
+    int mIconSize;
 
     PixelBufferClass playBuffer;
     int playType;

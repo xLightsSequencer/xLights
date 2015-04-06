@@ -12,14 +12,17 @@ class DragEffectBitmapButton : public wxBitmapButton
         DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos=wxDefaultPosition,
                                 const wxSize &size=wxDefaultSize, long style=wxBU_AUTODRAW, const wxValidator &validator=wxDefaultValidator,
                                 const wxString &name=wxButtonNameStr);
-
+    virtual void DoSetSizeHints( int minW, int minH,
+                                int maxW, int maxH,
+                                int incW, int incH );
         virtual ~DragEffectBitmapButton();
         void OnMouseLeftDown (wxMouseEvent& event);
-        void SetBitmap(const char** xpm);
-        void SetEffectIndex(int index);
+        void SetBitmap(const wxBitmap &bmp);
+        void SetEffectIndex(int index, int sz = 16);
+
     protected:
     private:
-        const char** mDragIconBuffer;
+        const wxBitmap *mDragIconBuffer;
 
         wxString (*GetStringFunction)();
 

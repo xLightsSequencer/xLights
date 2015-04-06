@@ -23,7 +23,6 @@
 #include "RenderCommandEvent.h"
 
 
-
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
 EVT_MOTION(EffectsGrid::mouseMoved)
 EVT_MOUSEWHEEL(EffectsGrid::mouseWheelMoved)
@@ -887,13 +886,14 @@ void EffectsGrid::DrawModelOrViewEffects(int row)
             if(mode!=SCREEN_L_R_OFF)
             {
                 if (drawIcon) {
-                    if(x > MINIMUM_EFFECT_WIDTH_FOR_ICON)
+                    if(x > (DEFAULT_ROW_HEADING_HEIGHT + 4))
                     {
-                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-9,y,1);
-                        DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+9,y,x2,y,1);
-                        DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-9,y1,x1+(x/2)+9,y2);
+                        int sz = (DEFAULT_ROW_HEADING_HEIGHT - 6) / 2;
+                        DrawGLUtils::DrawLine(*mEffectColorLeft,255,x1,y,x1+(x/2)-sz-1,y,1);
+                        DrawGLUtils::DrawLine(*mEffectColorRight,255,x1+(x/2)+sz+1,y,x2,y,1);
+                        DrawGLUtils::DrawRectangle(*mEffectColor,false,x1+(x/2)-sz-1,y1,x1+(x/2)+sz+1,y2);
                         glEnable(GL_TEXTURE_2D);
-                        DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],x1+(x/2)-11,row*DEFAULT_ROW_HEADING_HEIGHT);
+                        DrawEffectIcon(&m_EffectTextures[e->GetEffectIndex()],x1+(x/2)-sz-3,row*DEFAULT_ROW_HEADING_HEIGHT);
                         glDisable(GL_TEXTURE_2D);
 
                     }
@@ -1055,7 +1055,6 @@ void EffectsGrid::Draw()
 }
 
 
-
 void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
 {
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -1066,25 +1065,23 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glVertex2f( x+4, y+4 );
 
     glTexCoord2f(1,0);
-    glVertex2f(x+18,y+4);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-4,y+4);
 
     glTexCoord2f(1,1);
-    glVertex2f(x+18,y+18);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-4,y+DEFAULT_ROW_HEADING_HEIGHT-4);
 
     glTexCoord2f(0,1);
-    glVertex2f(x+4,y+18);
+    glVertex2f(x+4,y+DEFAULT_ROW_HEADING_HEIGHT-4);
     glEnd();
     glPopMatrix();
 }
 
 void EffectsGrid::CreateEffectIconTextures()
 {
-    const char** p_XPM;
     for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         wxString tooltip;
-        p_XPM = xLightsFrame::GetIconBuffer(effectID, tooltip);
-        DrawGLUtils::CreateOrUpdateTexture((char**)p_XPM,&m_EffectTextures[effectID]);
+        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 48), &m_EffectTextures[effectID]);
     }
 }
 

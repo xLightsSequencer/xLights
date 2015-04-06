@@ -3,6 +3,7 @@
 #include <wx/event.h>
 #include "xLightsMain.h"
 #include "sequencer/EffectDropTarget.h"
+#include "../include/Off.xpm"
 
 //(*InternalHeaders(TopEffectsPanel)
 #include <wx/bitmap.h>
@@ -43,7 +44,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
 	ButtonUpdateEffect = new wxButton(this, ID_BUTTON_UpdateEffect, _("Update (F5)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_UpdateEffect"));
 	FlexGridSizer5->Add(ButtonUpdateEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButtonSelectedEffect = new DragEffectBitmapButton(this, ID_BITMAPBUTTON_SelectedEffect, butterfly, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SelectedEffect"));
+	BitmapButtonSelectedEffect = new DragEffectBitmapButton(this, ID_BITMAPBUTTON_SelectedEffect, Off, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_SelectedEffect"));
 	BitmapButtonSelectedEffect->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
 	FlexGridSizer5->Add(BitmapButtonSelectedEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -64,7 +65,7 @@ TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& p
 	//*)
 
     SetDropTarget(new EffectDropTarget((wxWindow*)this,false));
-    BitmapButtonSelectedEffect->SetBitmap(Off);
+    BitmapButtonSelectedEffect->SetBitmap(wxBitmap(Off));
 }
 
 TopEffectsPanel::~TopEffectsPanel()
@@ -74,7 +75,7 @@ TopEffectsPanel::~TopEffectsPanel()
 }
 
 
-void TopEffectsPanel::SetDragIconBuffer(const char** buffer)
+void TopEffectsPanel::SetDragIconBuffer(const wxBitmap &buffer)
 {
     BitmapButtonSelectedEffect->SetBitmap(buffer);
 }
