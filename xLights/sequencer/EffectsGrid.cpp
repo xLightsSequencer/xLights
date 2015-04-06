@@ -238,6 +238,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
     if (mSequenceElements == NULL) {
         return;
     }
+    SetFocus();
     if(!(event.ShiftDown() || event.ControlDown()) && mResizingMode == EFFECT_RESIZE_NO)
     {
         mSequenceElements->UnSelectAllEffects();

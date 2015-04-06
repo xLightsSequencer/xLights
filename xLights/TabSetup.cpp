@@ -37,7 +37,7 @@ void xLightsFrame::SetDir(const wxString& newdir)
     static bool HasMenuSeparator=false;
     int idx, cnt, i;
 
-    if (newdir != CurrentDir) {
+    if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
         kbf.AssignDir(CurrentDir);
         kbf.SetFullName("xlights_keybindings.xml");
