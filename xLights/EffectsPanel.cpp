@@ -2768,17 +2768,6 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     wxWindow *window = Choicebook1->GetPage(effidx);
     s += GetRandomEffectStringFromWindow(window, prefix);
 
-    // get palette
-    wxColour color;
-    for (int i=1; i<=PALETTE_SIZE; i++)
-    {
-//~        color = GetPaletteColor(i);
-//        AttrName.Printf("BUTTON_Palette%d=", i);
-//        s += prefix+AttrName + color.GetAsString(wxC2S_HTML_SYNTAX);
-//        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
-//        AttrName.Printf("CHECKBOX_Palette%d=", i);
-//        s += prefix + AttrName + v;
-    }
     return s;
 }
 

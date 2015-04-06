@@ -37,6 +37,13 @@ void xLightsFrame::SetDir(const wxString& newdir)
     static bool HasMenuSeparator=false;
     int idx, cnt, i;
 
+    if (newdir != CurrentDir) {
+        wxFileName kbf;
+        kbf.AssignDir(CurrentDir);
+        kbf.SetFullName("xlights_keybindings.xml");
+        mainSequencer->keyBindings.Save(kbf);
+    }
+    
     // reject change if something is playing
     if (play_mode == play_sched || play_mode == play_list || play_mode == play_single)
     {
@@ -177,6 +184,11 @@ void xLightsFrame::SetDir(const wxString& newdir)
     UpdateNetworkList();
     LoadEffectsFile();
     UpdateChannelNames();
+    
+    wxFileName kbf;
+    kbf.AssignDir(CurrentDir);
+    kbf.SetFullName("xlights_keybindings.xml");
+    mainSequencer->keyBindings.Load(kbf);
 
     EnableSequenceControls(true);
 

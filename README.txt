@@ -6,7 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-
+   -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
    -- enh (dkulp) Add support for different icon sizes
    -- enh (dkulp) Add ability to reset the toolbar locations back to default
 4.0.14  Apr 4, 2015

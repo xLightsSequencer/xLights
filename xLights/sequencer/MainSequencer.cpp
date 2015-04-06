@@ -283,6 +283,9 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             case KEY_ZOOM_OUT:
                 PanelTimeLine->ZoomOut();
                 break;
+            case RANDOM_EFFECT:
+                PanelEffectGrid->Paste("Random\t\t\n");
+                break;
             case EFFECT_STRING:
                 PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n");
                 break;

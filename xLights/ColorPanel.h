@@ -24,6 +24,7 @@ class ColorPanel: public wxPanel
 		virtual ~ColorPanel();
 
 		wxString GetColorString();
+        wxString GetRandomColorString();
 
         bool PaletteChanged;
         bool EffectChanged;
@@ -147,8 +148,11 @@ class ColorPanel: public wxPanel
         void setlock(wxButton* button); //, EditState& islocked);
         typedef enum { Normal, Locked, Random } EditState;
         std::unordered_map<std::string, EditState> buttonState;
+        bool isRandom_(wxControl* ctl, const char*debug);
+        #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
 		DECLARE_EVENT_TABLE()
+    
 };
 
 #endif

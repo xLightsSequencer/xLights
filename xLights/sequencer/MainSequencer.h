@@ -37,6 +37,8 @@ class MainSequencer: public wxPanel
 		TimeLine* PanelTimeLine;
 		//*)
 
+        KeyBindingMap keyBindings;
+
 	protected:
 
 		//(*Identifiers(MainSequencer)
@@ -78,7 +80,6 @@ class MainSequencer: public wxPanel
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
         int mPlayType;
-        KeyBindingMap keyBindings;
 };
 
 #endif

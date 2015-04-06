@@ -446,10 +446,20 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
     else
     {
         Effect* effect = (Effect*)event.GetClientData();
+        bool resetStrings = false;
+        if ("Random" == effect->GetEffectName()) {
+            wxString settings, palette;
+            wxString effectName = CreateEffectStringRandom(settings, palette);
+            effect->SetEffectName(effectName);
+            effect->SetEffectIndex(Effect::GetEffectIndex(effectName));
+            effect->SetPalette(palette);
+            effect->SetSettings(settings);
+            resetStrings = true;
+        }
         SetEffectControls(effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap());
         selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
         selectedEffect = effect;
-        if (effect->GetPaletteMap().empty()) {
+        if (effect->GetPaletteMap().empty() || resetStrings) {
             effect->SetPalette(selectedEffectPalette);
             effect->SetSettings(selectedEffectString);
             RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetName(),

@@ -2128,6 +2128,10 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsIconSize", mIconSize);
     config->Flush();
     
+    wxFileName kbf;
+    kbf.AssignDir(CurrentDir);
+    kbf.SetFullName("xlights_keybindings.xml");
+    mainSequencer->keyBindings.Save(kbf);
 
     //must call these or the app will crash on exit
     m_mgr->UnInit();

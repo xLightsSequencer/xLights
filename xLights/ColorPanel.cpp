@@ -270,6 +270,34 @@ void ColorPanel::SetButtonColor(wxBitmapButton* btn, const wxColour* c)
     btn->SetBitmap(bmp);
 }
 
+bool ColorPanel::isRandom_(wxControl* ctl, const char*debug)
+{
+    //    if (!ctl->GetName().length()) djdebug("NO NAME FOR %s", debug);
+    bool retval = (buttonState[std::string(ctl->GetName())] != Locked); //== Random);
+    //    djdebug("isRandom(%s) = %d", (const char*)ctl->GetName().c_str(), retval);
+    return retval;
+}
+wxString ColorPanel::GetRandomColorString() {
+    wxString ChildName,AttrName;
+    wxString ret;
+    // get palette
+    wxColour color;
+    for (int i=1; i <= PALETTE_SIZE; i++) {
+        color = GetPaletteColor(i);
+        AttrName.Printf("C_BUTTON_Palette%d=", i);
+        ret += AttrName + color.GetAsString(wxC2S_HTML_SYNTAX) + ",";
+        
+        wxString v = (isRandom(GetPaletteButton(i))? rand() % 2: GetPaletteCheckbox(i)->GetValue()) ? "1" : "0";
+        AttrName.Printf("C_CHECKBOX_Palette%d=", i);
+        ret += AttrName + v + ",";
+    }
+    //TODO: randomize
+    ret += wxString::Format("C_SLIDER_SparkleFrequency=%d,",Slider_SparkleFrequency->GetValue());
+    ret += wxString::Format("C_SLIDER_Brightness=%d,",Slider_Brightness->GetValue());
+    ret += wxString::Format("C_SLIDER_Contrast=%d",Slider_Contrast->GetValue());
+    return ret;
+}
+
 wxString ColorPanel::GetColorString()
 {
     wxString s,ChildName,AttrName;

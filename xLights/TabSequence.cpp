@@ -442,6 +442,45 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 }
 
 
+
+//modifed for partially random -DJ
+//void djdebug(const char* fmt, ...); //_DJ
+wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &palette)
+{
+    int eff1;
+    if (EffectsPanel1->isRandom_()) { //avoid a few types of random effects
+        eff1 = ChooseRandomEffect();
+    } else {
+        eff1 = EffectsPanel1->Choicebook1->GetSelection();
+    }
+    
+    settings = EffectsPanel1->GetRandomEffectString(eff1);
+    
+
+    palette = colorPanel->GetRandomColorString();
+    return EffectNames[eff1];
+}
+
+int xLightsFrame::ChooseRandomEffect()
+{
+    bool BAD_CHOICE=1;
+    int eff,count=0;
+    int MAX_TRIES=10;
+    
+    //    srand (time(NULL));
+    while (BAD_CHOICE && count<MAX_TRIES)
+    {
+        count++;
+        eff=rand() % eff_LASTEFFECT;
+        BAD_CHOICE = (eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
+                      || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
+                      || eff_OFF == eff || eff_ON == eff);
+    }
+    if(count==MAX_TRIES) eff=eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
+    return eff;
+}
+
+
 void xLightsFrame::CutOrCopyToClipboard(bool IsCut)
 {
 
@@ -601,145 +640,7 @@ wxXmlNode* xLightsFrame::CreateEffectNode(wxString& name)
     return NewXml;
 }
 
-//modifed for partially random -DJ
-//void djdebug(const char* fmt, ...); //_DJ
-wxString xLightsFrame::CreateEffectStringRandom()
-{
-    int eff1, eff2, layerOp;
-    wxString s;
-    s.clear();
 
-    /*
-     enum RGB_EFFECTS_e
-    {
-        eff_NONE,
-        eff_OFF,
-        eff_ON,
-        eff_BARS,
-        eff_BUTTERFLY,
-        eff_CIRCLES,
-        eff_COLORWASH,
-        eff_COROFACES,
-        eff_CURTAIN,
-        eff_FACES,
-        eff_FIRE,
-        eff_FIREWORKS,
-        eff_GARLANDS,
-        eff_GLEDIATOR,
-        eff_LIFE,
-        eff_METEORS,
-        eff_PIANO,
-        eff_PICTURES,
-        eff_PINWHEEL,
-        eff_RIPPLE,
-        eff_SHIMMER,
-        eff_SINGLESTRAND,
-        eff_SNOWFLAKES,
-        eff_SNOWSTORM,
-        eff_SPIRALS,
-        eff_SPIROGRAPH,
-        eff_STROBE,
-        eff_TEXT,
-        eff_TREE,
-        eff_TWINKLE,
-        eff_WAVE,
-        eff_LASTEFFECT //Always the last entry
-    };
-    */
-    //   Old way
-    eff1 = EffectsPanel1->isRandom_()? rand() % eff_LASTEFFECT: EffectsPanel1->Choicebook1->GetSelection();
-
-    //  new way
-    if (EffectsPanel1->isRandom_()) //avoid a few types of random effects
-    {
-        eff1 = CreateRandomEffect(eff_LASTEFFECT);
-        /* eff1 = (eff_NONE == eff1 || eff_TEXT == eff1 || eff_PICTURES == eff1 || eff_PIANO == eff1
-                 || eff_FACES == eff1 || eff_COROFACES == eff1 ||eff_GLEDIATOR == eff1
-                 || eff_OFF == eff1)? eff_NONE:eff1;
-         if(eff1 < eff_NONE || eff1 >= eff_LASTEFFECT) eff1 = eff_NONE;
-             */
-    }
-    else
-    {
-        eff1 = EffectsPanel1->Choicebook1->GetSelection();
-    }
-//~    if (EffectsPanel2->isRandom_()) //avoid a few types of random effects
-//    {
-//        eff2 = CreateRandomEffect(eff_LASTEFFECT);
-//        /*
-//        eff2 = (eff_NONE == eff2|| eff_TEXT == eff2 || eff_PICTURES == eff2 || eff_PIANO == eff2 // if the above eff2+1 pushes into an effect
-//                || eff_FACES == eff2 || eff_COROFACES == eff2 ||eff_GLEDIATOR == eff2
-//                || eff_OFF == eff2)? eff_NONE:eff2;                  // we should skip, just set effect to NONE
-//        if(eff2 < eff_NONE || eff2 >= eff_LASTEFFECT) eff2 = eff_NONE;
-//            */
-//    }
-//    else
-//    {
-//        eff2 = EffectsPanel2->Choicebook1->GetSelection();
-//    }
-
-//~    layerOp = isRandom(Slider_EffectLayerMix)? rand() % LASTLAYER: Choice_LayerMethod->GetSelection();
-    s = EffectNames[eff1] + ","+EffectNames[eff2] + "," + EffectLayerOptions[layerOp];
-#if 0 // <SCM>
-    s += ",ID_CHECKBOX_LayerMorph=0";
-#else
-//~    s += ",ID_CHECKBOX_LayerMorph=" + wxString::Format("%d", (isRandom(CheckBox_LayerMorph)? rand() & 1: CheckBox_LayerMorph->GetValue())? 1: 0);
-#endif // 1
-//~    s += ",ID_SLIDER_SparkleFrequency=" + wxString::Format("%d", isRandom(Slider_SparkleFrequency)? rand() % Slider_SparkleFrequency->GetMax(): Slider_SparkleFrequency->GetValue()); // max is actually all teh way left, ie no sparkles
-
-    //  first calculate it the old way
-//~    int newbrightness = isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue();
-//~    newbrightness=100; // but instead overwrite it. no matter what we are creating, lets not mess with brightness
-    //  s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", isRandom(Slider_Brightness)? rand() % Slider_Brightness->GetMax(): Slider_Brightness->GetValue());
-//~    s += ",ID_SLIDER_Brightness=" + wxString::Format("%d", newbrightness);
-
-//~    s += ",ID_SLIDER_Contrast=" + wxString::Format("%d", isRandom(Slider_Contrast)? 0: Slider_Contrast->GetValue()); //use 0 instead of random value?
-    s += EffectsPanel1->GetRandomEffectString(eff1);
-//~    s += EffectsPanel2->GetRandomEffectString(eff2);
-#if 0 //partially random -DJ
-    int PageIdx1=EffectsPanel1->Choicebook1->GetSelection();
-    int PageIdx2=EffectsPanel2->Choicebook1->GetSelection();
-    // ID_CHOICEBOOK1, ID_CHOICEBOOK2, ID_CHOICE_LayerMethod
-    wxString s=EffectsPanel1->Choicebook1->GetPageText(PageIdx1)+","+EffectsPanel2->Choicebook1->GetPageText(PageIdx2);
-    s+=","+Choice_LayerMethod->GetStringSelection();
-    s+=",ID_SLIDER_SparkleFrequency="+wxString::Format("%d",Slider_SparkleFrequency->GetValue());
-    s+=",ID_SLIDER_Brightness="+wxString::Format("%d",Slider_Brightness->GetValue());
-    s+=",ID_SLIDER_Contrast="+wxString::Format("%d",Slider_Contrast->GetValue());
-    s+=",ID_SLIDER_EffectLayerMix="+wxString::Format("%d",Slider_EffectLayerMix->GetValue());
-    s+=EffectsPanel1->GetEffectString();
-    s+=EffectsPanel2->GetEffectString();
-#elif 0
-#define tostr(thing)  #thing
-#define EFFECT "Color Wash"
-#define SPFREQ  200
-#define BRIGHT  109
-#define CONTRAST  69
-    s= EFFECT ",None,Effect 1,ID_SLIDER_SparkleFrequency= " tostr(SPREQ) ",ID_SLIDER_Brightness=" tostr(BRIGHT) ",ID_SLIDER_Contrast=" tostr(CONTRAST) ",ID_SLIDER_EffectLayerMix=0";
-    s+=EffectsPanel1->GetRandomEffectString(eff1);
-    s+=EffectsPanel2->GetRandomEffectString(eff2);
-#endif
-    return s;
-
-}
-
-int xLightsFrame::CreateRandomEffect(int eff_LASTEFFECT)
-{
-    bool BAD_CHOICE=1;
-    int eff,count=0;
-    int MAX_TRIES=10;
-
-    //    srand (time(NULL));
-    while (BAD_CHOICE && count<MAX_TRIES)
-    {
-        count++;
-        eff=rand() % eff_LASTEFFECT;
-        BAD_CHOICE = (eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
-                      || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
-                      || eff_OFF == eff || eff_ON == eff);
-    }
-    if(count==MAX_TRIES) eff=eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
-    return eff;
-}
 
 wxString xLightsFrame::CreateEffectString()
 {

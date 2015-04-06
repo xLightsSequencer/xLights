@@ -1400,7 +1400,7 @@ private:
     long GetGridStartTimeMSec(int row);
     void UpdateRgbPlaybackStatus(int seconds, long msec, int EffectPeriod, const wxString& seqtype);
     //void SetTextColor(wxWindow* w);
-    int CreateRandomEffect(int eff_LASTEFFECT);
+    int ChooseRandomEffect();
 
     void GridCellChanged(int row, int col);
     void UpdateBufferFadesFromCtrl(PixelBufferClass &buffer);
@@ -1432,7 +1432,7 @@ protected:
     bool SeqLoadXlightsFile(xLightsXmlFile& xml_file, bool ChooseModels);
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
-    wxString CreateEffectStringRandom();
+    wxString CreateEffectStringRandom(wxString &settings, wxString &palette);
     void BackupDirectory(wxString targetDirName);
     void NewSequence();
     void OpenSequence();

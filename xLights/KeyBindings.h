@@ -7,6 +7,7 @@
 #define __xLights__KeyBindings__
 
 #include "wx/wx.h"
+#include "wx/filename.h"
 #include <vector>
 
 enum KeyBindingType {
@@ -14,6 +15,7 @@ enum KeyBindingType {
     TIMING_SPLIT,
     KEY_ZOOM_IN,
     KEY_ZOOM_OUT,
+    RANDOM_EFFECT,
     EFFECT_STRING
 };
 
@@ -43,8 +45,8 @@ public:
     
     void LoadDefaults();
     
-    void Load(wxString &file);
-    void Save(wxString &file);
+    void Load(wxFileName &file);
+    void Save(wxFileName &file);
     
     KeyBinding *Find(unsigned char);
     
