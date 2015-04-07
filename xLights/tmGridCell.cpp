@@ -17,8 +17,11 @@ const long tmGrid::ID_GRID_RENDERER = wxNewId();
 void wxGridCellButtonRenderer::
 Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
 {
+#ifndef __linux__
+   // DrawTitleBarBitmap() is only available on MSW and OS X according to wx/renderer.h
    wxRendererNative::Get().DrawTitleBarBitmap(&grid, dc, rect, wxTITLEBAR_BUTTON_CLOSE, wxCONTROL_CURRENT);
    //wxRendererNative::Get().DrawPushButton(&grid, dc, rect, wxCONTROL_CURRENT);
+#endif
    wxFont font = grid.GetFont();
    dc.SetFont(font);
    int x = rect.x + 10;
