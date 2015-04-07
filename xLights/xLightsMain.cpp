@@ -1848,6 +1848,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
 
     effGridPrevX = 0;
     effGridPrevY = 0;
+    m_creating_bound_rect = false;
 
     // Load headings into network list
     wxListItem itemCol;
