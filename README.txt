@@ -6,12 +6,21 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
-   -- enh (Gil) Add SuperStar import function (Morphs only).
+4.0.16  Apr 7, 2015
+	-- enh (sean) Added new icons (16,24,32,48 bit sizes) for pictures, text, spirograph, twinkle,wave,tree,snowflakes,snowstorm
+    -- enh (Gil) Add SuperStar import function (Morphs only).
+	-- enh (dkulp) ctl-1 thru ctl-4 and alt-1 thru alt-4 now select the icon sizes for sequencer area and tools area respectively
+	-- enh (dkulp) Bunches of size/position adjustments to try and get things to display better on HiDPI screens
+	-- bug (dkulp) Fix potential crash when change to Preview tab.
+	-- bug (gil) Models window Alphabetizing? #167
+	-- bug (dkulp) 4.0.14 Fade Up, Fade down have improper timing #172
+	-- enh (gil) Application allows multiple simultaneous instances to be launched #74. We will continue to allow multiple instances to be launched.
+	-- enh (dkulp) Enhancement request: Effect icon sizes #162
 4.0.15  Apr 6, 2015
-   -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
-   -- enh (dkulp) Add support for different icon sizes
-   -- enh (sean) create dozens of new icons in 16x16, 24x24, 32x32 and 48x48 to support dan's new icon size  chooser
-   -- enh (dkulp) Add ability to reset the toolbar locations back to default
+    -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
+    -- enh (dkulp) Add support for different icon sizes
+    -- enh (sean) create dozens of new icons in 16x16, 24x24, 32x32 and 48x48 to support dan's new icon size  chooser
+    -- enh (dkulp) Add ability to reset the toolbar locations back to default
 4.0.14  Apr 4, 2015
     -- enh (dkulp) New keys bound as short-cuts for dropping effects. Do this instead of dragging effects.
     -- enh (gil) Allow timings to be added while model playback is paused. This is like xltap. Press play and use the "t" key to create timing marks
