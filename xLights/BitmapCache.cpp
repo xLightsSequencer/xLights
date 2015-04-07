@@ -76,7 +76,12 @@
 #include "../include/Off.xpm"
 #include "../include/On.xpm"
 #include "../include/piano.xpm"
-#include "../include/pictures.xpm"
+
+//#include "../include/pictures.xpm"
+#include "../include/pictures-16.xpm"
+#include "../include/pictures-24.xpm"
+#include "../include/pictures-32.xpm"
+#include "../include/pictures-48.xpm"
 
 //#include "../include/pinwheel.xpm"
 #include "../include/pinwheel-16.xpm"
@@ -93,8 +98,18 @@
 
 #include "../include/shimmer.xpm"
 #include "../include/singleStrand.xpm"
-#include "../include/snowflakes.xpm"
-#include "../include/snowstorm.xpm"
+
+//#include "../include/snowflakes.xpm"
+#include "../include/snowflakes-16.xpm"
+#include "../include/snowflakes-24.xpm"
+#include "../include/snowflakes-32.xpm"
+#include "../include/snowflakes-48.xpm"
+
+//#include "../include/snowstorm.xpm"
+#include "../include/snowstorm-16.xpm"
+#include "../include/snowstorm-24.xpm"
+#include "../include/snowstorm-32.xpm"
+#include "../include/snowstorm-48.xpm"
 
 //#include "../include/spirals.xpm"
 #include "../include/spirals-16.xpm"
@@ -102,12 +117,37 @@
 #include "../include/spirals-32.xpm"
 #include "../include/spirals-48.xpm"
 
-#include "../include/spirograph.xpm"
+//#include "../include/spirograph.xpm"
+#include "../include/spirograph-16.xpm"
+#include "../include/spirograph-24.xpm"
+#include "../include/spirograph-32.xpm"
+#include "../include/spirograph-48.xpm"
+
 #include "../include/strobe.xpm"
-#include "../include/text.xpm"
-#include "../include/tree.xpm"
-#include "../include/twinkle.xpm"
-#include "../include/wave.xpm"
+
+//#include "../include/text.xpm"
+#include "../include/text-16.xpm"
+#include "../include/text-24.xpm"
+#include "../include/text-32.xpm"
+#include "../include/text-48.xpm"
+
+//#include "../include/tree.xpm"
+#include "../include/tree-16.xpm"
+#include "../include/tree-24.xpm"
+#include "../include/tree-32.xpm"
+#include "../include/tree-48.xpm"
+
+//#include "../include/twinkle.xpm"
+#include "../include/twinkle-16.xpm"
+#include "../include/twinkle-24.xpm"
+#include "../include/twinkle-32.xpm"
+#include "../include/twinkle-48.xpm"
+
+//#include "../include/wave.xpm"
+#include "../include/wave-16.xpm"
+#include "../include/wave-24.xpm"
+#include "../include/wave-32.xpm"
+#include "../include/wave-48.xpm"
 
 
 #ifdef __WXOSX__
@@ -250,7 +290,7 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, piano, piano, piano, piano);
         case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
             toolTip = "Pictures";
-            return effectBitmaps.get(size, effectID, pictures, pictures, pictures, pictures);
+            return effectBitmaps.get(size, effectID, pictures_16, pictures_24, pictures_32, pictures_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
             toolTip = "Pinwheel";
             return effectBitmaps.get(size, effectID, pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48);
@@ -265,31 +305,31 @@ const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size)
             return effectBitmaps.get(size, effectID, singleStrand, singleStrand, singleStrand, singleStrand);
         case xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES:
             toolTip = "Snow Flakes";
-            return effectBitmaps.get(size, effectID, snowflakes, snowflakes, snowflakes, snowflakes);
+            return effectBitmaps.get(size, effectID, snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM:
             toolTip = "Snow Storm";
-            return effectBitmaps.get(size, effectID, snowstorm, snowstorm, snowstorm, snowstorm);
+            return effectBitmaps.get(size, effectID, snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
             toolTip = "Spirals";
             return effectBitmaps.get(size, effectID, spirals_16, spirals_24, spirals_32, spirals_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
             toolTip = "Spirograph";
-            return effectBitmaps.get(size, effectID, spirograph, spirograph, spirograph, spirograph);
+            return effectBitmaps.get(size, effectID, spirograph_16, spirograph_24, spirograph_32, spirograph_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
             toolTip = "Strobe";
             return effectBitmaps.get(size, effectID, strobe, strobe, strobe, strobe);
         case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
             toolTip = "Text";
-            return effectBitmaps.get(size, effectID, text, text, text, text);
+            return effectBitmaps.get(size, effectID, text_16, text_24, text_32, text_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
             toolTip = "Tree";
-            return effectBitmaps.get(size, effectID, tree, tree, tree, tree);
+            return effectBitmaps.get(size, effectID, tree_16, tree_24, tree_32, tree_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
             toolTip = "Twinkle";
-            return effectBitmaps.get(size, effectID, twinkle, twinkle, twinkle, twinkle);
+            return effectBitmaps.get(size, effectID, twinkle_16, twinkle_24, twinkle_32, twinkle_48);
         case xLightsFrame::RGB_EFFECTS_e::eff_WAVE:
             toolTip = "Wave";
-            return effectBitmaps.get(size, effectID, wave, wave, wave, wave);
+            return effectBitmaps.get(size, effectID, wave_16, wave_24, wave_32, wave_48);
         default:
             break;
     }
