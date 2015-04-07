@@ -303,13 +303,39 @@ bool EffectLayer::GetRangeIsClear(int startX, int endX)
             return false;
         }
         // check effect is between start and end
-        if( (mEffects[i]->GetStartPosition() > startX) && (mEffects[i]->GetStartPosition() < endX) )
+        if( (mEffects[i]->GetStartPosition() >= startX) && (mEffects[i]->GetEndPosition() <= endX) )
         {
             return false;
         }
     }
     return true;
 }
+
+bool EffectLayer::GetRangeIsClear(double start_time, double end_time)
+{
+    int i;
+    for(i=0; i<mEffects.size();i++)
+    {
+        // check if start is between effect range
+        if( (start_time > mEffects[i]->GetStartTime()) && (start_time < mEffects[i]->GetEndTime()) )
+        {
+            return false;
+        }
+        // check if end is between effect range
+        if( (end_time > mEffects[i]->GetStartTime()) && (end_time < mEffects[i]->GetEndTime()) )
+        {
+            return false;
+        }
+        // check effect is between start and end
+        if( (mEffects[i]->GetStartTime() >= start_time) && (mEffects[i]->GetEndTime() <= end_time) )
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 
 void EffectLayer::SelectEffectsInPositionRange(int startX,int endX,int &FirstSelected)
 {

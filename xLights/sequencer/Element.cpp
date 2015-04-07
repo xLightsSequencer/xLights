@@ -105,10 +105,12 @@ EffectLayer* Element::GetEffectLayer(int index)
     return mEffectLayers[index];
 }
 
-void Element::AddEffectLayer()
+EffectLayer* Element::AddEffectLayer()
 {
-    mEffectLayers.push_back(new EffectLayer(this));
+    EffectLayer* new_layer = new EffectLayer(this);
+    mEffectLayers.push_back(new_layer);
     IncrementChangeCount();
+    return new_layer;
 }
 
 void Element::RemoveEffectLayer(int index)

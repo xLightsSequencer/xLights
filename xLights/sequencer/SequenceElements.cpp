@@ -267,8 +267,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         {
                             element->SetFixedTiming((int)interval);
                             interval /= 1000.0;
-                            element->AddEffectLayer();
-                            EffectLayer* effectLayer = element->GetEffectLayer(0);
+                            EffectLayer* effectLayer = element->AddEffectLayer();
                             double time = 0.0;
                             double end_time = xml_file.GetSequenceDurationDouble();
                             double startTime, endTime, next_time;
@@ -283,13 +282,11 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                         }
                         else
                         {
-                            int layerIndex=0;
                             for(wxXmlNode* effectLayerNode=elementNode->GetChildren(); effectLayerNode!=NULL; effectLayerNode=effectLayerNode->GetNext())
                             {
                                 if (effectLayerNode->GetName() == "EffectLayer")
                                 {
-                                    element->AddEffectLayer();
-                                    EffectLayer* effectLayer = element->GetEffectLayer(layerIndex);
+                                    EffectLayer* effectLayer = element->AddEffectLayer();
                                     for(wxXmlNode* effect=effectLayerNode->GetChildren(); effect!=NULL; effect=effect->GetNext())
                                     {
                                         if (effect->GetName() == "Effect")
@@ -341,7 +338,6 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file)
                                         }
                                     }
                                 }
-                                layerIndex++;
                             }
                         }
                     }

@@ -1228,8 +1228,7 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
         if( sequence_loaded )
         {
             element = xLightsParent->AddTimingElement(filename);
-            element->AddEffectLayer();
-            effectLayer = element->GetEffectLayer(0);
+            effectLayer = element->AddEffectLayer();
         }
         else
         {
@@ -1536,8 +1535,7 @@ void xLightsXmlFile::AddFixedTimingSection(wxString interval_name, xLightsFrame*
             Element* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming((int)interval);
             interval /= 1000.0;
-            element->AddEffectLayer();
-            EffectLayer* effectLayer = element->GetEffectLayer(0);
+            EffectLayer* effectLayer = element->AddEffectLayer();
             double time = 0.0;
             double end_time = GetSequenceDurationDouble();
             double startTime, endTime, next_time;

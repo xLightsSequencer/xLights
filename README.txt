@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+   -- enh (Gil) Add SuperStar import function (Morphs only).
 4.0.15  Apr 6, 2015
    -- enh (dkulp) Add more key bindings.  Save/Load them to xlights_keybindings.xml.
    -- enh (dkulp) Add support for different icon sizes

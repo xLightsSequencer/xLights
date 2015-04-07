@@ -33,6 +33,7 @@
 #include <wx/filedlg.h>
 #include <wx/choice.h>
 #include <wx/bmpbuttn.h>
+#include <wx/gbsizer.h>
 #include <wx/button.h>
 #include <wx/dirdlg.h>
 #include <wx/frame.h>
@@ -440,6 +441,7 @@ public:
     void RenderIseqData(bool bottom_layers);
     void ClearSequenceData();
     void LoadAudioData(xLightsXmlFile& xml_file);
+    void ImportSuperStar();
 
 private:
 
@@ -635,6 +637,7 @@ private:
     void SetIconSize(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void SetToolIconSize(wxCommandEvent& event);
+    void OnButton_ImportSuperstarClick(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -802,6 +805,10 @@ private:
     static const long ID_BUTTON_START_CONVERSION;
     static const long ID_STATICTEXT18;
     static const long ID_TEXTCTRL_CONVERSION_STATUS;
+    static const long ID_CHOICE_SuperStarImportModel;
+    static const long ID_BUTTON_IMPORT_SUPERSTAR;
+    static const long ID_STATICTEXT31;
+    static const long ID_STATICTEXT39;
     static const long ID_PANEL_CONVERT;
     static const long ID_BUTTON_PREVIEW_OPEN;
     static const long ID_STATICTEXT23;
@@ -983,6 +990,7 @@ private:
     wxStaticText* StaticText36;
     wxPanel* Panel2;
     wxButton* ButtonTestSelectAll;
+    wxStaticText* StaticText40;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
     wxMenu* MenuItem16;
@@ -1029,11 +1037,13 @@ private:
     DragEffectBitmapButton* BitmapButton20;
     wxButton* ButtonStartConversion;
     wxStaticText* StaticText19;
+    wxChoice* ChoiceSuperStarImportModel;
     wxPanel* PanelSequencer;
     wxMenuItem* MenuItemViewSavePerspective;
     wxButton* ButtonDeleteShow;
     wxButton* Button_CoroGroupClear;
     DragEffectBitmapButton* BitmapButton17;
+    wxStaticText* StaticText39;
     wxButton* ButtonSelectModelGroups;
     wxRadioButton* RadioButtonRgbShimmer;
     wxAuiManager* m_mgr;
@@ -1131,8 +1141,8 @@ private:
     wxCheckBox* CheckBox_PgoAutoFade;
     wxTextCtrl* TextCtrl_papagayo_output_filename;
     wxMenuItem* MenuItem9;
-    wxRadioButton* RadioButtonAlt;
     wxStaticText* StaticText4;
+    wxRadioButton* RadioButtonAlt;
     xlAuiToolBar* WindowMgmtToolbar;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxPanel* PanelRgbCycle;
@@ -1186,6 +1196,7 @@ private:
     wxGrid* GridCoroFaces;
     wxStaticText* StaticTextShowStart;
     wxBitmapButton* BitmapButtonMoveNetworkDown;
+    wxButton* Button_ImportSuperstar;
     wxStaticText* StaticTextPreviewFileName;
     wxSlider* SliderPreviewTime;
     wxStaticText* StaticText9;

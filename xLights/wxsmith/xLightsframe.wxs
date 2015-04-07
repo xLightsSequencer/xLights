@@ -1816,11 +1816,19 @@
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON_START_CONVERSION" variable="ButtonStartConversion" member="yes">
-														<label>Start Conversion</label>
-														<handler function="OnButtonStartConversionClick" entry="EVT_BUTTON" />
+													<object class="wxFlexGridSizer" variable="FlexGridSizer19" member="no">
+														<cols>3</cols>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_START_CONVERSION" variable="ButtonStartConversion" member="yes">
+																<label>Start Conversion</label>
+																<handler function="OnButtonStartConversionClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
 													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -1858,6 +1866,71 @@
 										</object>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer32" member="no">
+										<cols>3</cols>
+										<object class="sizeritem">
+											<object class="wxStaticBoxSizer" variable="StaticBoxSizer3" member="no">
+												<label>SuperStar Importer:</label>
+												<object class="sizeritem">
+													<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+														<object class="sizeritem">
+															<object class="wxChoice" name="ID_CHOICE_SuperStarImportModel" variable="ChoiceSuperStarImportModel" member="yes">
+																<style>wxCB_SORT</style>
+															</object>
+															<col>1</col>
+															<row>0</row>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON_IMPORT_SUPERSTAR" variable="Button_ImportSuperstar" member="yes">
+																<label>Select SuperStar File</label>
+																<handler function="OnButton_ImportSuperstarClick" entry="EVT_BUTTON" />
+															</object>
+															<col>1</col>
+															<row>1</row>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT31" variable="StaticText39" member="yes">
+																<label>This is currently designed to work with SuperStar sequences&#x0A;for CCR ribbon trees.  Some SuperStar files are not XML compliant&#x0A;and need manual editing first. &#x0A;The only sections needed are &quot;layouts&quot; and &quot;morphs&quot;.</label>
+															</object>
+															<colspan>4</colspan>
+															<col>0</col>
+															<row>2</row>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT39" variable="StaticText40" member="yes">
+																<label>Select Model:</label>
+															</object>
+															<col>0</col>
+															<row>0</row>
+															<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>

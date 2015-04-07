@@ -47,6 +47,7 @@ class EffectLayer
         Effect* GetEffectBeforePosition(int position);
         Effect* GetEffectAfterPosition(int position);
         bool GetRangeIsClear(int startX, int endX);
+        bool GetRangeIsClear(double start_time, double end_time);
         Effect* GetEffectBeforeEmptySpace(int position);
         Effect* GetEffectAfterEmptySpace(int position);
 

@@ -44,14 +44,14 @@ class Element
         EffectLayer* GetEffectLayer(int index);
         int GetEffectLayerCount();
 
-        void AddEffectLayer();
+        EffectLayer* AddEffectLayer();
         void RemoveEffectLayer(int index);
 
         int GetIndex();
         void SetIndex(int index);
 
         int Index;
-    
+
         void IncrementChangeCount();
         int getChangeCount() const { return changeCount; }
     protected:
