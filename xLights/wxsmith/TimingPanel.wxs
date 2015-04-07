@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxPanel" name="TimingPanel">
+		<size>778,707</size>
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 			<cols>3</cols>
+			<growablecols>2</growablecols>
 			<object class="sizeritem">
 				<object class="wxPanel" name="ID_PANEL1" variable="Panel_Sizer" member="yes">
 					<handler function="OnResize" entry="EVT_SIZE" />
@@ -25,7 +27,7 @@
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 													<cols>4</cols>
-													<growablecols>1</growablecols>
+													<growablecols>1,2</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText59" member="yes">
 															<label>Speed</label>
@@ -50,7 +52,7 @@
 													<object class="sizeritem">
 														<object class="wxTextCtrl" name="ID_TEXTCTRL_Speed" variable="TextCtrl_Speed" member="yes">
 															<value>10</value>
-															<size>30,20</size>
+															<size>20,-1d</size>
 															<style>wxTE_READONLY</style>
 														</object>
 														<flag>wxBOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -169,7 +171,7 @@
 													<object class="sizeritem">
 														<object class="wxTextCtrl" name="ID_TEXTCTRL_LayerMix" variable="txtCtlEffectMix" member="yes">
 															<value>0</value>
-															<size>32,20</size>
+															<size>20,-1d</size>
 															<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -201,7 +203,6 @@
 														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadein" variable="TextCtrl_Fadein" member="yes">
 															<value>0.00</value>
 															<maxlength>4</maxlength>
-															<size>37,20</size>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -237,7 +238,6 @@
 														<object class="wxTextCtrl" name="ID_TEXTCTRL_Fadeout" variable="TextCtrl_Fadeout" member="yes">
 															<value>0.00</value>
 															<maxlength>4</maxlength>
-															<size>37,20</size>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>

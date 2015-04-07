@@ -9,12 +9,17 @@
 			<growablerows>1</growablerows>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>4</cols>
+					<cols>5</cols>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_ADD_PERSPECTIVE" variable="ButtonAddPerspective" member="yes">
 							<label>+</label>
-							<size>24,24</size>
 							<tooltip>Add Perspective</tooltip>
+							<style>wxBU_EXACTFIT</style>
 							<handler function="OnButtonAddPerspectiveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -24,8 +29,8 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="D_BUTTON_DELETE_PERSPECTIVE" variable="ButtonDeletePerspective" member="yes">
 							<label>-</label>
-							<size>24,24</size>
 							<tooltip>Delete Perspective</tooltip>
+							<style>wxBU_EXACTFIT</style>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -34,12 +39,17 @@
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_RENAME_PERSPECTIVE" variable="ButtonRenamePerspective" member="yes">
 							<label>Rename</label>
-							<size>70,24</size>
 							<tooltip>Rename Perspective</tooltip>
+							<style>wxBU_EXACTFIT</style>
 							<handler function="OnButtonRenamePerspectiveClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 				</object>

@@ -21,10 +21,9 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxTextCtrl" name="ID_TEXTCTRL_Rename_Text" variable="TextCtrl_Rename_Text" member="yes">
-					<size>254,21</size>
 					<handler function="OnTextCtrl_Rename_TextText" entry="EVT_TEXT" />
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>15</border>
 				<option>1</option>
 			</object>

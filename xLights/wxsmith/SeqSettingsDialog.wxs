@@ -106,7 +106,6 @@
 													<item>Media</item>
 													<item>Animation</item>
 												</content>
-												<size>125,21</size>
 												<handler function="OnChoice_Xml_Seq_TypeSelect" entry="EVT_CHOICE" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -121,6 +120,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
 										<cols>3</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT_Xml_MediaFile" variable="StaticText_Xml_MediaFile" member="yes">
 												<label>Media:</label>
@@ -131,10 +131,9 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Media_File" variable="TextCtrl_Xml_Media_File" member="yes">
-												<size>326,21</size>
 												<style>wxTE_READONLY</style>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -149,7 +148,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -166,7 +165,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Seq_Duration" variable="TextCtrl_Xml_Seq_Duration" member="yes">
-												<size>81,21</size>
 												<handler function="OnTextCtrl_Xml_Seq_DurationText" entry="EVT_TEXT" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -240,7 +238,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author" variable="TextCtrl_Xml_Author" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_AuthorText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -257,7 +255,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Author_Email" variable="TextCtrl_Xml_Author_Email" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_Author_EmailText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -274,7 +272,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Website" variable="TextCtrl_Xml_Website" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_WebsiteText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -291,7 +289,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Song" variable="TextCtrl_Xml_Song" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_SongText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -308,7 +306,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Artist" variable="TextCtrl_Xml_Artist" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_ArtistText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -325,7 +323,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Album" variable="TextCtrl_Xml_Album" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_AlbumText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -342,7 +340,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Music_Url" variable="TextCtrl_Xml_Music_Url" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_Music_UrlText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -359,7 +357,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Xml_Comment" variable="TextCtrl_Xml_Comment" member="yes">
-										<size>250,21</size>
+										<size>150,-1d</size>
 										<handler function="OnTextCtrl_Xml_CommentText" entry="EVT_TEXT" />
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -388,7 +386,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_Xml_New_Timing" variable="Button_Xml_New_Timing" member="yes">
 												<label>New</label>
-												<size>60,23</size>
+												<style>wxBU_EXACTFIT</style>
 												<handler function="OnButton_Xml_New_TimingClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -398,7 +396,7 @@
 										<object class="sizeritem">
 											<object class="wxButton" name="ID_BUTTON_Xml_Import_Timing" variable="Button_Xml_Import_Timing" member="yes">
 												<label>Import</label>
-												<size>60,23</size>
+												<style>wxBU_EXACTFIT</style>
 												<handler function="OnButton_Xml_Import_TimingClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

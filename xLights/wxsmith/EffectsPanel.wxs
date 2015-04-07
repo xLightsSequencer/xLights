@@ -9,6 +9,7 @@
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>2</cols>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="Choicebook1" member="yes">
 					<handler function="OnChoicebook1PageChanged" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
@@ -58,6 +59,7 @@
 						<object class="wxScrolledWindow" name="ID_PANEL25" variable="Panel1_On" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer92" member="no">
 								<cols>1</cols>
+								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer96" member="no">
 										<cols>1</cols>
@@ -86,10 +88,12 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer93" member="no">
-										<cols>2</cols>
+										<cols>1</cols>
+										<growablecols>0</growablecols>
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer95" member="no">
 												<cols>3</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="wxID_ANY" variable="StaticText113" member="no">
 														<label>Start Intensity</label>
@@ -103,14 +107,14 @@
 														<value>100</value>
 														<handler function="OnSlider_Eff_On_StartCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_Start" variable="TextCtrl_Eff_On_Start" member="yes">
 														<value>100</value>
-														<size>30,21</size>
+														<size>20,-1d</size>
 														<style>wxTE_PROCESS_ENTER</style>
 														<handler function="OnTextCtrl_Eff_On_StartText" entry="EVT_TEXT" />
 													</object>
@@ -131,14 +135,14 @@
 														<value>100</value>
 														<handler function="OnSlider_Eff_On_EndCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 													</object>
-													<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>2</border>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
 													<object class="wxTextCtrl" name="ID_TEXTCTRL_Eff_On_End" variable="TextCtrl_Eff_On_End" member="yes">
 														<value>100</value>
-														<size>30,21</size>
+														<size>20,-1d</size>
 														<style>wxTE_PROCESS_ENTER</style>
 														<handler function="OnTextCtrl_Eff_On_EndText" entry="EVT_TEXT" />
 													</object>
@@ -165,6 +169,7 @@
 							<object class="wxFlexGridSizer" variable="FlexGridSizer35" member="no">
 								<cols>3</cols>
 								<vgap>0d</vgap>
+								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT25" variable="StaticText23" member="yes">
 										<label>Palette Rep</label>
@@ -209,7 +214,7 @@
 										<selection>0</selection>
 										<handler function="OnChoice_Bars_DirectionSelect" entry="EVT_CHOICE" />
 									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -780,7 +785,7 @@
 													<option>1</option>
 												</object>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>2</border>
 											<option>1</option>
 										</object>
@@ -961,7 +966,7 @@
 							<pos>150,14</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 								<cols>3</cols>
-								<growablecols>0</growablecols>
+								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText7" member="yes">
 										<label>Curtain Edge</label>
@@ -1480,7 +1485,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Glediator_Filename" variable="TextCtrl_Glediator_Filename" member="yes">
-										<size>255,21</size>
+										<size>200,-1d</size>
 										<style>wxTE_READONLY</style>
 									</object>
 									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -1721,6 +1726,7 @@
 						<object class="wxScrolledWindow" name="ID_PANEL_Morph" variable="Panel1_Morph" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer78" member="no">
 								<cols>1</cols>
+								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxNotebook" name="ID_NOTEBOOK_Morph" variable="Notebook_Morph" member="yes">
 										<object class="notebookpage">
@@ -2054,7 +2060,7 @@
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT123" variable="StaticText123" member="yes">
-																	<label>Head&#x0A;Duration:</label>
+																	<label>Head Duration:</label>
 																	<size>-1,-1</size>
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -2193,7 +2199,7 @@
 											<label>Options</label>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -2569,6 +2575,7 @@
 											<object class="wxButton" name="ID_BUTTON_PICTURES_FILENAME" variable="Button_Pictures_Filename" member="yes">
 												<label>File name</label>
 												<bg>#E0E0E0</bg>
+												<style>wxBU_EXACTFIT</style>
 												<handler function="OnButton_Pictures_FilenameClick" entry="EVT_BUTTON" />
 											</object>
 											<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2698,6 +2705,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer106" member="no">
 												<cols>2</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT_Pictures_XC" variable="StaticText_Pictures_XC" member="yes">
 														<label>X-axis Center</label>
@@ -2710,7 +2718,7 @@
 													<object class="wxSlider" name="ID_SLIDER_PicturesXC" variable="Slider_PicturesXC" member="yes">
 														<min>-100</min>
 													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -2725,7 +2733,7 @@
 											</object>
 											<col>0</col>
 											<row>0</row>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -2753,12 +2761,12 @@
 											<rowspan>2</rowspan>
 											<col>1</col>
 											<row>0</row>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -3175,6 +3183,7 @@
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer56" member="no">
 								<cols>3</cols>
+								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT68" variable="StaticText66" member="yes">
 										<label>Duty Factor</label>
@@ -3188,7 +3197,7 @@
 										<value>50</value>
 										<min>1</min>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -3270,7 +3279,7 @@
 										<value>4</value>
 										<min>1</min>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -3294,13 +3303,15 @@
 						<object class="wxScrolledWindow" name="ID_PANEL2" variable="Panel1_SingleStrand" member="yes">
 							<pos>39,6</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer89" member="no">
-								<cols>3</cols>
+								<cols>1</cols>
+								<growablecols>0</growablecols>
 								<object class="sizeritem">
 									<object class="wxNotebook" name="ID_NOTEBOOK_SSEFFECT_TYPE" variable="SingleStrandEffectType" member="yes">
 										<object class="notebookpage">
 											<object class="wxPanel" name="ID_PANEL3" variable="Panel1" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer24" member="no">
 													<cols>3</cols>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT63" variable="StaticText61" member="yes">
 															<label>Colors  </label>
@@ -3310,9 +3321,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes">
-															<size>95,21</size>
-														</object>
+														<object class="wxChoice" name="ID_CHOICE_SingleStrand_Colors" variable="Choice_SingleStrand_Colors" member="yes" />
 														<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														<border>5</border>
 														<option>1</option>
@@ -3344,7 +3353,7 @@
 															<selmin>1</selmin>
 															<selmax>20</selmax>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3372,7 +3381,7 @@
 															<value>10</value>
 															<min>1</min>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3403,7 +3412,7 @@
 															<min>1</min>
 															<max>20</max>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3429,9 +3438,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes">
-															<size>95,21</size>
-														</object>
+														<object class="wxChoice" name="ID_CHOICE_Chase_Type1" variable="Choice_Chase_Type1" member="yes" />
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
@@ -3513,9 +3520,11 @@
 											<object class="wxPanel" name="ID_PANEL21" variable="Panel2" member="yes">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer79" member="no">
 													<cols>1</cols>
+													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer81" member="no">
 															<cols>3</cols>
+															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT106" variable="StaticText101" member="yes">
 																	<label>Band size</label>
@@ -3530,7 +3539,7 @@
 																	<min>1</min>
 																	<max>20</max>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -3546,13 +3555,14 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer82" member="no">
 															<cols>3</cols>
+															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT107" variable="StaticText105" member="yes">
 																	<label>Skip size</label>
@@ -3567,7 +3577,7 @@
 																	<max>20</max>
 																	<handler function="OnSlider_Skips_SkipSizeCmdScroll" entry="EVT_COMMAND_SCROLL" />
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -3583,13 +3593,14 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer83" member="no">
 															<cols>3</cols>
+															<growablecols>1</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT110" variable="StaticText106" member="yes">
 																	<label>Starting Position</label>
@@ -3604,7 +3615,7 @@
 																	<min>1</min>
 																	<max>20</max>
 																</object>
-																<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
@@ -3620,7 +3631,7 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3660,7 +3671,7 @@
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -3669,7 +3680,7 @@
 											<label>Skips</label>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -4119,7 +4130,6 @@
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT90" variable="StaticText89" member="yes">
 										<label>d - Distance</label>
-										<size>84,13</size>
 									</object>
 									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
@@ -4196,6 +4206,7 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer87" member="no">
 										<cols>3</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT112" variable="StaticText110" member="yes">
 												<label>Number Strobes</label>
@@ -4226,13 +4237,14 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer88" member="no">
 										<cols>3</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT113" variable="StaticText111" member="yes">
 												<label>Strobe Duration</label>
@@ -4246,7 +4258,7 @@
 												<value>10</value>
 												<min>1</min>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -4262,13 +4274,14 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizer90" member="no">
 										<cols>3</cols>
+										<growablecols>1</growablecols>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="ID_STATICTEXT114" variable="StaticText112" member="yes">
 												<label>Strobe Type</label>
@@ -4283,7 +4296,7 @@
 												<min>1</min>
 												<max>4</max>
 											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 											<border>5</border>
 											<option>1</option>
 										</object>
@@ -4299,7 +4312,7 @@
 											<option>1</option>
 										</object>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
@@ -4319,6 +4332,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer100" member="no">
 												<cols>2</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT53" variable="StaticText53" member="yes">
 														<label>Line 1</label>
@@ -4344,6 +4358,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer101" member="no">
 												<cols>2</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT54" variable="StaticText54" member="yes">
 														<label>Line 2</label>
@@ -4369,6 +4384,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer102" member="no">
 												<cols>2</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT22" variable="StaticText19" member="yes">
 														<label>Line 3</label>
@@ -4394,6 +4410,7 @@
 										<object class="sizeritem">
 											<object class="wxFlexGridSizer" variable="FlexGridSizer103" member="no">
 												<cols>2</cols>
+												<growablecols>1</growablecols>
 												<object class="sizeritem">
 													<object class="wxStaticText" name="ID_STATICTEXT23" variable="StaticText20" member="yes">
 														<label>Line 4</label>
@@ -4432,7 +4449,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT1" variable="Button_Text_Font1" member="yes">
 															<label>Font1</label>
-															<size>48,23</size>
+															<style>wxBU_EXACTFIT</style>
 															<handler function="OnButton_Text_Font1Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4614,7 +4631,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT2" variable="Button_Text_Font2" member="yes">
 															<label>Font2</label>
-															<size>48,23</size>
+															<style>wxBU_EXACTFIT</style>
 															<handler function="OnButton_Text_Font2Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4796,7 +4813,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT3" variable="Button_Text_Font3" member="yes">
 															<label>Font3</label>
-															<size>48,23</size>
+															<style>wxBU_EXACTFIT</style>
 															<handler function="OnButton_Text_Font3Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -4978,7 +4995,7 @@
 													<object class="sizeritem">
 														<object class="wxButton" name="ID_BUTTON_TEXT_FONT4" variable="Button_Text_Font4" member="yes">
 															<label>Font4</label>
-															<size>48,23</size>
+															<style>wxBU_EXACTFIT</style>
 															<handler function="OnButton_Text_Font4Click" entry="EVT_BUTTON" />
 														</object>
 														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -5317,6 +5334,7 @@
 							<pos>184,10</pos>
 							<object class="wxFlexGridSizer" variable="FlexGridSizer51" member="no">
 								<cols>3</cols>
+								<growablecols>1</growablecols>
 								<object class="sizeritem">
 									<object class="wxStaticText" name="ID_STATICTEXT49" variable="StaticText47" member="yes">
 										<label>Wave Type</label>
@@ -5406,7 +5424,7 @@
 										<min>180</min>
 										<max>3600</max>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -5433,7 +5451,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Thickness_Percentage" variable="Slider_Thickness_Percentage" member="yes">
 										<value>5</value>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -5460,7 +5478,7 @@
 									<object class="wxSlider" name="ID_SLIDER_Wave_Height" variable="Slider_Wave_Height" member="yes">
 										<value>50</value>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -5485,7 +5503,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxChoice" name="ID_CHOICE_Wave_Direction" variable="Choice_Wave_Direction" member="yes" />
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 									<border>2</border>
 									<option>1</option>
 								</object>
@@ -5514,7 +5532,7 @@
 					<cols>1</cols>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-							<cols>4</cols>
+							<cols>2</cols>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICEBOOK1" variable="BitmapButton_LayerEffect" member="yes">
 									<bitmap code="padlock16x16_blue_xpm" />
@@ -5564,12 +5582,12 @@
 								<option>1</option>
 							</object>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+				<flag>wxEXPAND|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

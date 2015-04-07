@@ -5,9 +5,11 @@
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<growablecols>1</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl1" member="yes">
 							<image_list>&lt;none&gt;</image_list>
@@ -19,11 +21,11 @@
 								<item2>TreeCtrl1</item2>
 								<item2>&lt;none&gt;</item2>
 							</items_text>
-							<size>200,300</size>
+							<minsize>80,-1d</minsize>
 							<style>wxTR_HIDE_ROOT|wxTR_DEFAULT_STYLE</style>
 							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

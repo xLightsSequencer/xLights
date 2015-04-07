@@ -65,10 +65,9 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_IP_ADDR" variable="TextCtrlIpAddr" member="yes">
 							<value>MULTICAST</value>
-							<size>115,28</size>
 							<enabled>0</enabled>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

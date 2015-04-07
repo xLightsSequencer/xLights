@@ -2,7 +2,7 @@
 <wxsmith>
 	<object class="wxFrame" name="xLightsFrame">
 		<title>&lt;use variables in xLightsMain.h&gt;</title>
-		<size>1100,800</size>
+		<size>1411,1103</size>
 		<tooltip>Export only Channels associated with one model</tooltip>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
@@ -252,7 +252,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_OUTPUT" subclass="xlAuiToolBar" variable="OutputToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_BITMAPBUTTON_TAB_INFO" variable="BitmapButtonTabInfo" member="yes">
-							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_OTHER" />
+							<bitmap stock_id="wxART_INFORMATION" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Tips for using current tab</shorthelp>
 							<handler function="OnBitmapButtonTabInfoClick" entry="EVT_TOOL" />
 						</object>
@@ -2007,7 +2007,6 @@
 										</object>
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_TIME" variable="TextCtrlPreviewTime" member="yes">
-												<size>58,21</size>
 												<style>wxTE_READONLY</style>
 											</object>
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2018,12 +2017,13 @@
 											<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
 												<cols>3</cols>
 												<object class="sizeritem">
-													<object class="wxFlexGridSizer" variable="FlexGridSizer41" member="no">
-														<cols>3</cols>
+													<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
+														<cols>6</cols>
+														<growablecols>1</growablecols>
 														<object class="sizeritem">
 															<object class="wxSlider" name="ID_SLIDER_PREVIEW_TIME" variable="SliderPreviewTime" member="yes">
 																<max>200</max>
-																<size>250,30</size>
+																<size>150,-1d</size>
 																<handler function="OnSliderPreviewTimeCmdScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
 																<handler function="OnSliderPreviewTimeCmdScrollThumbRelease" entry="EVT_COMMAND_SCROLL_THUMBRELEASE" />
 																<handler function="OnSliderPreviewTimeCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -2032,14 +2032,6 @@
 															<border>5</border>
 															<option>1</option>
 														</object>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxFlexGridSizer" variable="FlexGridSizer40" member="no">
-														<cols>5</cols>
 														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT_CURRENT_PREVIEW_SIZE" variable="StaticTextCurrentPreviewSize" member="yes">
 																<label>Size: 1920x1080</label>
@@ -2076,15 +2068,14 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxSlider" name="ID_SLIDER_BACKGROUND_BRIGHTNESS" variable="Slider_BackgroundBrightness" member="yes">
-																<size>80,20</size>
 																<handler function="OnSlider_BackgroundBrightnessCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -2131,7 +2122,7 @@
 														<style>wxLB_SORT</style>
 														<handler function="OnListBoxElementListSelect" entry="EVT_LISTBOX" />
 													</object>
-													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>
 												</object>
@@ -2177,7 +2168,7 @@
 														<object class="sizeritem">
 															<object class="wxTextCtrl" name="ID_TEXTCTRL_PREVIEW_ELEMENT_SIZE" variable="TextCtrlPreviewElementSize" member="yes">
 																<value>50</value>
-																<size>30,20</size>
+																<size>25,-1d</size>
 																<handler function="OnTextCtrlPreviewElementSizeText" entry="EVT_TEXT" />
 															</object>
 															<flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2185,7 +2176,7 @@
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
@@ -2214,7 +2205,7 @@
 														<object class="sizeritem">
 															<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrlModelRotationDegrees" member="yes">
 																<value>0</value>
-																<size>30,20</size>
+																<size>25,-1d</size>
 																<handler function="OnTextCtrlModelRotationDegreesText" entry="EVT_TEXT" />
 															</object>
 															<flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
@@ -2222,7 +2213,7 @@
 															<option>1</option>
 														</object>
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<option>1</option>
 												</object>
 												<object class="sizeritem">
@@ -2622,10 +2613,10 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxTextCtrl" name="ID_TEXTCTRL67" variable="TextCtrl_papagayo_output_filename" member="yes">
-																<size>237,20</size>
+																<size>150,-1d</size>
 																<tooltip>Sequence output will contain the generated effects.</tooltip>
 															</object>
-															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 															<border>5</border>
 															<option>1</option>
 														</object>
@@ -2866,7 +2857,7 @@
 																<object class="sizeritem">
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_PgoMinRest" variable="TextCtrl_PgoMinRest" member="yes">
 																		<value>.2</value>
-																		<size>40,21</size>
+																		<size>25,-1d</size>
 																		<tooltip>Minimum gap size to insert Rest into.</tooltip>
 																		<handler function="OnTextCtrl_PgoMinRestText" entry="EVT_TEXT" />
 																	</object>
@@ -2884,7 +2875,7 @@
 																<object class="sizeritem">
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_PgoMaxRest" variable="TextCtrl_PgoMaxRest" member="yes">
 																		<value>.4</value>
-																		<size>40,21</size>
+																		<size>25,-1d</size>
 																		<tooltip>Maximum gap size to insert Rest into.</tooltip>
 																		<handler function="OnTextCtrl_PgoMaxRestText" entry="EVT_TEXT" />
 																	</object>
@@ -2924,7 +2915,7 @@
 																<object class="sizeritem">
 																	<object class="wxTextCtrl" name="ID_TEXTCTRL_PgoAutoFade" variable="TextCtrl_PgoAutoFade" member="yes">
 																		<value>1.5</value>
-																		<size>52,21</size>
+																		<size>30,-1d</size>
 																		<tooltip>Fade after this length of inactivity.</tooltip>
 																		<handler function="OnTextCtrl_PgoAutoFadeText" entry="EVT_TEXT" />
 																	</object>

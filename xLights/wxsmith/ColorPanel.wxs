@@ -263,7 +263,7 @@
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDL_TEXTCTRL_SPARKLE" variable="txtCtrlSparkleFreq" member="yes">
 													<value>200</value>
-													<size>32,20</size>
+													<size>20,-1d</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtrlSparkleFreqText" entry="EVT_TEXT" />
 												</object>
@@ -305,7 +305,7 @@
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDL_TEXTCTRLBRIGHTNESS" variable="txtCtlBrightness" member="yes">
 													<value>100</value>
-													<size>32,20</size>
+													<size>20,-1d</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtlBrightnessText" entry="EVT_TEXT" />
 												</object>
@@ -344,7 +344,7 @@
 											<object class="sizeritem">
 												<object class="wxTextCtrl" name="IDL_TEXTCTRLCONTRAST" variable="txtCtlContrast" member="yes">
 													<value>0</value>
-													<size>32,20</size>
+													<size>20,-1d</size>
 													<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 													<handler function="OntxtCtlContrastText" entry="EVT_TEXT" />
 												</object>

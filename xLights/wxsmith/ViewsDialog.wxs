@@ -78,9 +78,11 @@
 										<object class="wxFlexGridSizer" variable="FlexGridSizer12" member="no">
 											<cols>1</cols>
 											<rows>3</rows>
+											<growablecols>0</growablecols>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer13" member="no">
-													<cols>3</cols>
+													<cols>2</cols>
+													<growablecols>1</growablecols>
 													<object class="sizeritem">
 														<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
 															<label>Name:</label>
@@ -91,28 +93,30 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxTextCtrl" name="ID_TEXT_VIEW_NAME" variable="Text_ViewName" member="yes">
-															<size>151,21</size>
 															<handler function="OnText_ViewNameTextEnter" entry="EVT_TEXT_ENTER" />
 														</object>
-														<flag>wxALL|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
 												<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 													<cols>3</cols>
+													<growablecols>0,2</growablecols>
 													<object class="sizeritem">
 														<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-															<cols>3</cols>
+															<cols>1</cols>
+															<growablecols>0</growablecols>
 															<object class="sizeritem">
 																<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 																	<cols>1</cols>
 																	<rows>2</rows>
+																	<growablecols>0</growablecols>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
 																			<label>Models to add:</label>
@@ -127,17 +131,17 @@
 																			<size>-1,120</size>
 																			<style>wxLB_SORT|wxVSCROLL</style>
 																		</object>
-																		<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																		<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																		<border>5</border>
 																		<option>1</option>
 																	</object>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
@@ -148,6 +152,7 @@
 															<object class="sizeritem">
 																<object class="wxButton" name="ID_BT_ADD_MODEL_VIEW" variable="btAddModelToView" member="yes">
 																	<label>-&gt;</label>
+																	<style>wxBU_EXACTFIT</style>
 																	<handler function="OnbtAddModelToViewClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -157,6 +162,7 @@
 															<object class="sizeritem">
 																<object class="wxButton" name="ID_BT_REVOVE_MODEL_VIEW" variable="btRemoveModelFromView" member="yes">
 																	<label>&lt;-</label>
+																	<style>wxBU_EXACTFIT</style>
 																	<handler function="OnbtRemoveModelFromViewClick" entry="EVT_BUTTON" />
 																</object>
 																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -172,6 +178,7 @@
 														<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 															<cols>1</cols>
 															<rows>2</rows>
+															<growablecols>0</growablecols>
 															<object class="sizeritem">
 																<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 																	<label>Models in View:</label>
@@ -186,17 +193,17 @@
 																	<size>-1,120</size>
 																	<style>wxLB_SORT|wxVSCROLL</style>
 																</object>
-																<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 																<border>5</border>
 																<option>1</option>
 															</object>
 														</object>
-														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>
 													</object>
 												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -227,12 +234,12 @@
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>

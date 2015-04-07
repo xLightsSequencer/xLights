@@ -29,8 +29,8 @@ RenameTextDialog::RenameTextDialog(wxWindow* parent,wxWindowID id)
 	wxFont StaticText_Rename_LabelFont(12,wxSWISS,wxFONTSTYLE_NORMAL,wxNORMAL,false,_T("Arial"),wxFONTENCODING_DEFAULT);
 	StaticText_Rename_Label->SetFont(StaticText_Rename_LabelFont);
 	FlexGridSizer1->Add(StaticText_Rename_Label, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Rename_Text = new wxTextCtrl(this, ID_TEXTCTRL_Rename_Text, wxEmptyString, wxDefaultPosition, wxSize(254,21), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Rename_Text"));
-	FlexGridSizer1->Add(TextCtrl_Rename_Text, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 15);
+	TextCtrl_Rename_Text = new wxTextCtrl(this, ID_TEXTCTRL_Rename_Text, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Rename_Text"));
+	FlexGridSizer1->Add(TextCtrl_Rename_Text, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 15);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));

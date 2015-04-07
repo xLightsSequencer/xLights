@@ -8,6 +8,7 @@
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 					<cols>1</cols>
+					<growablecols>0</growablecols>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 							<cols>2</cols>
@@ -42,7 +43,7 @@
 										<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrlStartHour" member="yes">
 											<value>18</value>
 											<max>23</max>
-											<size>52,21</size>
+											<size>35,-1d</size>
 											<tooltip>Start hour (0-23)</tooltip>
 											<style>wxSP_ARROW_KEYS</style>
 										</object>
@@ -69,7 +70,7 @@
 										<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrlStartMinute" member="yes">
 											<value>0</value>
 											<max>59</max>
-											<size>52,21</size>
+											<size>35,-1d</size>
 											<tooltip>Start minute (0-59)</tooltip>
 											<style>wxSP_ARROW_KEYS|wxSP_WRAP</style>
 										</object>
@@ -97,7 +98,7 @@
 										<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrlEndHour" member="yes">
 											<value>21</value>
 											<max>23</max>
-											<size>52,21</size>
+											<size>35,-1d</size>
 											<tooltip>End hour (0-23)</tooltip>
 											<style>wxSP_ARROW_KEYS</style>
 										</object>
@@ -124,7 +125,7 @@
 										<object class="wxSpinCtrl" name="ID_SPINCTRL4" variable="SpinCtrlEndMinute" member="yes">
 											<value>0</value>
 											<max>59</max>
-											<size>52,21</size>
+											<size>35,-1d</size>
 											<tooltip>End minute (0-59)</tooltip>
 											<style>wxSP_ARROW_KEYS|wxSP_WRAP</style>
 										</object>
@@ -214,10 +215,9 @@
 					<object class="sizeritem">
 						<object class="wxListBox" name="ID_LISTBOX1" variable="ListBoxDates" member="yes">
 							<default>-1</default>
-							<size>231,87</size>
 							<style>wxLB_EXTENDED|wxLB_ALWAYS_SB</style>
 						</object>
-						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxSHAPED|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -239,7 +239,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
