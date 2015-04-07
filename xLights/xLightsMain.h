@@ -634,6 +634,7 @@ private:
     void ShowHideHousePreview(wxCommandEvent& event);
     void SetIconSize(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
+    void SetToolIconSize(wxCommandEvent& event);
     //*)
 
     void OnPopupClick(wxCommandEvent &evt);
@@ -920,6 +921,11 @@ private:
     static const long ID_MENUITEM_ICON_LARGE;
     static const long ID_MENUITEM_ICON_XLARGE;
     static const long ID_MENUITEM4;
+    static const long ID_MENUITEM_GRID_ICON_SMALL;
+    static const long ID_MENUITEM_GRID_ICON_MEDIUM;
+    static const long ID_MENUITEM_GRID_ICON_LARGE;
+    static const long ID_MENUITEM_GRID_ICON_XLARGE;
+    static const long ID_MENUITEM6;
     static const long ID_MENUITEM5;
     static const long idMenuHelpContent;
     static const long ID_STATUSBAR1;
@@ -979,6 +985,7 @@ private:
     wxButton* ButtonTestSelectAll;
     wxButton* ButtonSaveSchedule;
     wxRadioButton* RadioButtonRgbTwinkle50;
+    wxMenu* MenuItem16;
     wxStaticText* StaticText27;
     DragEffectBitmapButton* BitmapButton13;
     DragEffectBitmapButton* BitmapButton4;
@@ -1506,6 +1513,7 @@ protected:
 
     bool mResetToolbars;
     int mIconSize;
+    int mGridSpacing;
 
     PixelBufferClass playBuffer;
     int playType;

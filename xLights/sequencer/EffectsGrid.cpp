@@ -1088,7 +1088,7 @@ void EffectsGrid::CreateEffectIconTextures()
 
 void EffectsGrid::DeleteEffectIconTextures()
 {
-    for(int effectID=0;effectID<NUMBER_OF_EFFECTS;effectID++)
+    for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         glDeleteTextures(1,&m_EffectTextures[effectID]);
     }

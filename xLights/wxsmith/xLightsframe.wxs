@@ -3123,23 +3123,46 @@
 					<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM4" variable="MenuItem7" member="no">
-					<label>Icon Size</label>
+					<label>Tool Icon Size</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_ICON_SMALL" variable="MenuItem10" member="no">
+						<label>Small</label>
+						<accel>ALT-1</accel>
+						<handler function="SetToolIconSize" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_MEDIUM" variable="MenuItem11" member="no">
+						<label>Medium</label>
+						<accel>ALT-2</accel>
+						<handler function="SetToolIconSize" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_LARGE" variable="MenuItem12" member="no">
+						<label>Large</label>
+						<accel>ALT-3</accel>
+						<handler function="SetToolIconSize" entry="EVT_MENU" />
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_ICON_XLARGE" variable="MenuItem14" member="no">
+						<label>Extra Large</label>
+						<accel>ALT-4</accel>
+						<handler function="SetToolIconSize" entry="EVT_MENU" />
+					</object>
+				</object>
+				<object class="wxMenu" name="ID_MENUITEM6" variable="MenuItem16" member="yes">
+					<label>Grid Spacing</label>
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_SMALL" variable="MenuItem17" member="no">
 						<label>Small</label>
 						<accel>CTRL-1</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM_ICON_MEDIUM" variable="MenuItem11" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_MEDIUM" variable="MenuItem19" member="no">
 						<label>Medium</label>
 						<accel>CTRL-2</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM_ICON_LARGE" variable="MenuItem12" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_LARGE" variable="MenuItem27" member="no">
 						<label>Large</label>
 						<accel>CTRL-3</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
 					</object>
-					<object class="wxMenuItem" name="ID_MENUITEM_ICON_XLARGE" variable="MenuItem14" member="no">
+					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_XLARGE" variable="MenuItem28" member="no">
 						<label>Extra Large</label>
 						<accel>CTRL-4</accel>
 						<handler function="SetIconSize" entry="EVT_MENU" />
