@@ -145,7 +145,7 @@ class TimelineChangeArguments
         virtual ~TimelineChangeArguments();
         int ZoomLevel;
         int StartPixelOffset;
-        int CurrentTime;
+        int CurrentTimeMS;
 
 };
 

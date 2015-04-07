@@ -300,7 +300,7 @@ void xLightsFrame::TimelineChanged( wxCommandEvent& event)
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     mainSequencer->PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     mainSequencer->PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
-    mainSequencer->UpdateTimeDisplay(tla->CurrentTime);
+    mainSequencer->UpdateTimeDisplay(tla->CurrentTimeMS);
     mainSequencer->PanelTimeLine->Update();
     mainSequencer->PanelWaveForm->Refresh();
     mainSequencer->PanelWaveForm->Update();

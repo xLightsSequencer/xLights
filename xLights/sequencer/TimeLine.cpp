@@ -739,7 +739,7 @@ TimelineChangeArguments::TimelineChangeArguments(int zoomLevel, int startPixelOf
 {
     ZoomLevel = zoomLevel;
     StartPixelOffset = startPixelOffset;
-    CurrentTime = currentTime;
+    CurrentTimeMS = currentTime;
 }
 
 double TimeLine::RoundToMultipleOfPeriod(double number,double frequency)
