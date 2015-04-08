@@ -1568,10 +1568,10 @@ void FRAMECLASS ReadVixFile(const wxString& filename)
         numChannels = 0;
     }
     AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
-    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),SeqData.NumChannels()), false);
+    AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),numChannels), false);
     AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
     AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
-    if (SeqData.NumChannels() == 0)
+    if (numChannels == 0)
     {
         return;
     }

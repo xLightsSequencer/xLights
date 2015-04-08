@@ -1352,10 +1352,10 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
         numChannels = 0;
     }
     params.xLightsParent->AppendConvertStatus (string_format(wxString("Max Intensity=%ld\n"),MaxIntensity), false);
-    params.xLightsParent->AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),params.seq_data.NumChannels()), false);
+    params.xLightsParent->AppendConvertStatus (string_format(wxString("# of Channels=%ld\n"),numChannels), false);
     params.xLightsParent->AppendConvertStatus (string_format(wxString("Vix Event Period=%ld\n"),VixEventPeriod), false);
     params.xLightsParent->AppendConvertStatus (string_format(wxString("Vix data len=%ld\n"),VixDataLen), false);
-    if (params.seq_data.NumChannels() == 0)
+    if (numChannels == 0)
     {
         return;
     }
