@@ -186,7 +186,7 @@ void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth
     x2 = bottomrigth_x;
     y2 =bottomrigth_y;
     xlSetRetinaCanvasViewport(*this, x,y,x2,y2);
-    glViewport(x,y,x2,y2);
+    glViewport(x,y,x2-x,y2-y);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
