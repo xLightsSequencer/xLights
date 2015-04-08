@@ -228,6 +228,7 @@ void xLightsFrame::ShowModelsDialog()
         }
     }
     dialog.HtmlEasyPrint=HtmlEasyPrint;
+    dialog.SetSequenceElements(&mSequenceElements);
     dialog.ShowModal();
 
     // append any new models to the main xml structure
@@ -453,9 +454,9 @@ wxString xLightsFrame::CreateEffectStringRandom(wxString &settings, wxString &pa
     } else {
         eff1 = EffectsPanel1->Choicebook1->GetSelection();
     }
-    
+
     settings = EffectsPanel1->GetRandomEffectString(eff1);
-    
+
 
     palette = colorPanel->GetRandomColorString();
     return EffectNames[eff1];
@@ -466,7 +467,7 @@ int xLightsFrame::ChooseRandomEffect()
     bool BAD_CHOICE=1;
     int eff,count=0;
     int MAX_TRIES=10;
-    
+
     //    srand (time(NULL));
     while (BAD_CHOICE && count<MAX_TRIES)
     {

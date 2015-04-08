@@ -6,6 +6,7 @@ Latest releases are found at http://nutcracker123.com/nutcracker/releases/
 
 XLIGHTS/NUTCRACKER RELEASE NOTES:
 ---------------------------------
+    -- bug (Gil) Delete model and effects from Sequencer when model is deleted from Preview page. #178
     -- bug (Gil) Fix Vixen import issue.
 4.0.16  Apr 7, 2015
 	-- enh (sean) Added new icons (16,24,32,48 bit sizes) for pictures, text, spirograph, twinkle,wave,tree,snowflakes,snowstorm
