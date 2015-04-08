@@ -1063,16 +1063,16 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
     glPushMatrix();
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
-    glVertex2f( x+4, y+4 );
+    glVertex2f( x+3, y+3);
 
     glTexCoord2f(1,0);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-4,y+4);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-3,y+3);
 
     glTexCoord2f(1,1);
-    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-4,y+DEFAULT_ROW_HEADING_HEIGHT-4);
+    glVertex2f(x+DEFAULT_ROW_HEADING_HEIGHT-3,y+DEFAULT_ROW_HEADING_HEIGHT-3);
 
     glTexCoord2f(0,1);
-    glVertex2f(x+4,y+DEFAULT_ROW_HEADING_HEIGHT-4);
+    glVertex2f(x+3,y+DEFAULT_ROW_HEADING_HEIGHT-3);
     glEnd();
     glPopMatrix();
 }
@@ -1082,7 +1082,10 @@ void EffectsGrid::CreateEffectIconTextures()
     for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         wxString tooltip;
-        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 48), &m_EffectTextures[effectID]);
+        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 48, true),
+                                       xLightsFrame::GetIcon(effectID, tooltip, 32, true),
+                                       xLightsFrame::GetIcon(effectID, tooltip, 16, true),
+                                       &m_EffectTextures[effectID]);
     }
 }
 

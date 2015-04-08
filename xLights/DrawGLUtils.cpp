@@ -51,12 +51,12 @@ void DrawGLUtils::DrawRectangle(const xlColor &color, bool dashed, int x1, int y
         glVertex2f(x2, y1);
 
         glVertex2f(x2, y1);
-        glVertex2f(x2, y2);
+        glVertex2f(x2, y2 - 0.4f);
 
-        glVertex2f(x2, y2);
-        glVertex2f(x1, y2);
+        glVertex2f(x2, y2 - 0.4f);
+        glVertex2f(x1, y2 - 0.4f);
 
-        glVertex2f(x1+1, y2);
+        glVertex2f(x1+1, y2 - 0.4f);
         glVertex2f(x1+1, y1);
         glEnd();
     }
@@ -155,32 +155,34 @@ void DrawGLUtils::DrawHBlendedRectangle(const xlColorVector &colors, int x1, int
     }
 }
 
-
-
-void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp, GLuint* texture)
-{
-    wxImage l_Image = bmp.ConvertToImage();
-
+static void addMipMap(GLuint* texture, const wxImage &l_Image, int &level) {
     if (l_Image.IsOk() == true)
     {
-        //if(*texture==0)
-        //{
-            glGenTextures(1,texture);
-            if (*texture != 0)
-            {
-                glBindTexture(GL_TEXTURE_2D, *texture);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-                         0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-            }
-        // Comment out because we will never replace image, only create new
-        //}
-        //else
-        //{
-        //    glBindTexture(GL_TEXTURE_2D, *texture);
-        //    glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
-        //             0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
-        //}
+        glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, (GLsizei)l_Image.GetWidth(), (GLsizei)l_Image.GetHeight(),
+                     0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)l_Image.GetData());
+        int err = glGetError();
+        if (err == GL_NO_ERROR) {
+            level++;
+        }
     }
+}
+
+
+void DrawGLUtils::CreateOrUpdateTexture(const wxBitmap &bmp48,
+                                        const wxBitmap &bmp32,
+                                        const wxBitmap &bmp16,
+                                        GLuint* texture)
+{
+    int level = 0;
+    glGenTextures(1,texture);
+    glBindTexture(GL_TEXTURE_2D, *texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    addMipMap(texture, bmp48.ConvertToImage().Rescale(64, 64, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(texture, bmp32.ConvertToImage(), level);
+    addMipMap(texture, bmp16.ConvertToImage(), level);
+    addMipMap(texture, bmp16.ConvertToImage().Rescale(8, 8, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(texture, bmp16.ConvertToImage().Rescale(4, 4, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(texture, bmp16.ConvertToImage().Rescale(2, 2, wxIMAGE_QUALITY_HIGH), level);
+    addMipMap(texture, bmp16.ConvertToImage().Rescale(1, 1, wxIMAGE_QUALITY_HIGH), level);
 }
