@@ -1082,7 +1082,7 @@ void EffectsGrid::CreateEffectIconTextures()
     for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         wxString tooltip;
-        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 48), &m_EffectTextures[effectID]);
+        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 32), &m_EffectTextures[effectID]);
     }
 }
 
