@@ -51,10 +51,10 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
 void ModelPreview::render( wxPaintEvent& event )
 {
     if(mIsDrawing) return;
-    if(!mIsInitialized) { InitializeGLCanvas(); }
-    SetCurrentGLContext();
-    wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //if(!mIsInitialized) { InitializeGLCanvas(); }
+    //SetCurrentGLContext();
+    //wxPaintDC(this); // only to be used in paint events. use wxClientDC to paint outside the paint event
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(!StartDrawing(mPointSize)) return;
     Render();
@@ -96,7 +96,7 @@ void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, std::vector<ModelClassPtr> &models, bool a)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), PreviewModels(&models), allowSelected(a)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "", !a), PreviewModels(&models), allowSelected(a)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
@@ -177,19 +177,19 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 
 bool ModelPreview::StartDrawing(wxDouble pointSize)
 {
-    if( !IsShownOnScreen() ) return false;
+    if(!IsShownOnScreen()) return false;
     if(!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
     wxClientDC dc(this);
-    glPointSize( mPointSize );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if( mWindowResized )
     {
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     }
+    glPointSize(translateToBacking(mPointSize));
     glPushMatrix();
     // Rotate Axis and tranlate
     glMatrixMode(GL_MODELVIEW);
@@ -198,11 +198,20 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     glRotatef(180,0,1,0);
     glTranslatef(0,-mWindowHeight,0);
 
-
-    if (virtualWidth > 0 && virtualHeight > 0) {
+    if (virtualWidth > 0 && virtualHeight > 0
+        && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
         double scaleh= double(mWindowHeight) / double(virtualHeight);
         double scalew = double(mWindowWidth) / double(virtualWidth);
         glScalef(scalew, scaleh, 1.0);
+
+        if (scalew < scaleh) {
+            scaleh = scalew;
+        }
+        double d = translateToBacking(mPointSize * scaleh);
+        if (d < 1.0) {
+            d = 1.0;
+        }
+        glPointSize(d);
     }
     if(mBackgroundImageExists)
     {
