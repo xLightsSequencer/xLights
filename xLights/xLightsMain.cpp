@@ -490,6 +490,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItem25;
     wxFlexGridSizer* FlexGridSizer19;
     wxBoxSizer* BoxSizer10;
+    wxButton* Button01;
     wxBoxSizer* BoxSizer8;
     wxStaticText* StaticText37;
     wxFlexGridSizer* FlexGridSizer23;
@@ -499,7 +500,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxGridBagSizer* GridBagSizer1;
     wxStaticBoxSizer* StaticBoxSizer4;
     wxFlexGridSizer* FlexGridSizer10;
-    wxButton* Button01;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer27;
     wxMenuItem* MenuItem1;
@@ -522,7 +522,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxFlexGridSizer* FlexGridSizer7;
     wxMenuItem* MenuItem10;
     wxFlexGridSizer* FlexGridSizerCal;
-    wxButton* Button02;
     wxStaticText* StaticText21;
     wxFlexGridSizer* FlexGridSizer55;
     wxMenu* MenuItem7;
@@ -530,13 +529,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenuItem* MenuItem12;
     wxMenuItem* MenuItem24;
     wxMenuItem* MenuItem27;
+    wxButton* Button02;
     wxFlexGridSizer* FlexGridSizerNetworks;
     wxFlexGridSizer* FlexGridSizer57;
     wxFlexGridSizer* FlexGridSizer29;
     wxFlexGridSizer* FlexGridSizer34;
     wxMenuItem* MenuItem20;
     wxFlexGridSizer* FlexGridSizerPreview;
-    wxButton* Button03;
     wxStaticBoxSizer* StaticBoxSizer3;
     wxMenuItem* MenuItem28;
     wxFlexGridSizer* FlexGridSizer15;
@@ -578,6 +577,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent,wxWindowID id)
     wxMenu* Menu5;
     wxMenuItem* MenuItem19;
     wxFlexGridSizer* FlexGridSizer30;
+    wxButton* Button03;
 
     Create(parent, wxID_ANY, _("<use variables in xLightsMain.h>"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("wxID_ANY"));
     SetClientSize(wxSize(1411,1103));
