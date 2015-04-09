@@ -9,3 +9,4 @@ thumbs.db
 xcuserdata
 xcshareddata
 build
+.DS_Store
