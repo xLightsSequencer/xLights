@@ -10,6 +10,7 @@
 
 class BitmapCache {
 public:
+    
     enum RGB_EFFECTS_e  {
         eff_OFF,
         eff_ON,

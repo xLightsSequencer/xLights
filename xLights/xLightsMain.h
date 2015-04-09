@@ -105,11 +105,8 @@
 #include "wx/aui/aui.h"
 
 //  <scm> 01-17-2015
-#include "../include/zoom-out-24.xpm"
-#include "../include/zoom-in-24.xpm"
 #include "../include/stop-24.xpm"
 #include "../include/stop-24_off.xpm"
-#include "../include/settings-24.xpm"
 #include "../include/trash-24.xpm"
 #include "../include/search-24.xpm"
 #include "../include/replay-24.xpm"
@@ -125,16 +122,6 @@
 #include "../include/eye-open-24.xpm"
 #include "../include/backward-24.xpm"
 #include "../include/backward-24_off.xpm"
-
-#include "../include/effects.xpm"
-#include "../include/colors.xpm"
-#include "../include/layers.xpm"
-#include "../include/model_preview_24.xpm"
-#include "../include/house_preview_24.xpm"
-#include "../include/stop_sign_24.xpm"
-#include "../include/lights_off_24.xpm"
-#include "../include/output_lights_24.xpm"
-#include "../include/graceful_stop_24.xpm"
 
 
 #ifndef __WXOSX__

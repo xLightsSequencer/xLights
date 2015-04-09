@@ -148,7 +148,7 @@
 				<object class="wxAuiToolBar" name="ID_AUIWINDOWTOOLBAR" subclass="xlAuiToolBar" variable="WindowMgmtToolbar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM2" variable="AuiToolBarEffects" member="yes">
-							<bitmap code="effects_xpm" />
+							<bitmap stock_id="xlART_EFFECTS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effects</shorthelp>
 							<handler function="ShowHideEffectSettingsWindow" entry="EVT_TOOL" />
 						</object>
@@ -156,7 +156,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM5" variable="AuiToolBarColors" member="yes">
-							<bitmap code="colors_xpm" />
+							<bitmap stock_id="xlART_COLORS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effect Colors</shorthelp>
 							<handler function="ShowHideColorWindow" entry="EVT_TOOL" />
 						</object>
@@ -164,7 +164,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
-							<bitmap code="layers_xpm" />
+							<bitmap stock_id="xlART_LAYERS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Effect Layering</shorthelp>
 							<handler function="ShowHideLayerTimingWindow" entry="EVT_TOOL" />
 						</object>
@@ -172,7 +172,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM1" variable="AuiToolBarButtonModelPreview" member="no">
-							<bitmap code="model_preview_xpm" />
+							<bitmap stock_id="xlART_MODEL_PREVIEW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Model Preview</shorthelp>
 							<handler function="ShowHideModelPreview" entry="EVT_TOOL" />
 						</object>
@@ -180,7 +180,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM4" variable="AuiToolBarButtonHousePreview" member="no">
-							<bitmap code="house_preview_xpm" />
+							<bitmap stock_id="xlART_HOUSE_PREVIEW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>House Preview</shorthelp>
 							<handler function="ShowHideHousePreview" entry="EVT_TOOL" />
 						</object>
@@ -208,7 +208,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_VIEW" subclass="xlAuiToolBar" variable="ViewToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_IN" variable="AuiToolBarItemZoomin" member="yes">
-							<bitmap code="zoom_in_24_xpm" />
+							<bitmap stock_id="xlART_ZOOM_IN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Zoom In</shorthelp>
 							<handler function="OnAuiToolBarItemZoominClick" entry="EVT_TOOL" />
 						</object>
@@ -216,7 +216,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM_ZOOM_OUT" variable="AuiToolBarItem_ZoomOut" member="yes">
-							<bitmap code="zoom_out_24_xpm" />
+							<bitmap stock_id="xlART_ZOOM_OUT" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Zoom Out</shorthelp>
 							<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_TOOL" />
 						</object>
@@ -224,7 +224,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM14" variable="AuiToolBarItem13" member="yes">
-							<bitmap code="settings_24_xpm" />
+							<bitmap stock_id="xlART_SETTINGS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Settings</shorthelp>
 							<handler function="OnMenu_Settings_SequenceSelected" entry="EVT_TOOL" />
 						</object>
@@ -260,7 +260,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_BUTTON_STOP_NOW" variable="ButtonStopNow" member="yes">
-							<bitmap code="stop_sign_24_xpm" />
+							<bitmap stock_id="xlART_STOP_NOW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Stop Now!</shorthelp>
 							<handler function="OnButtonStopNowClick" entry="EVT_TOOL" />
 						</object>
@@ -268,7 +268,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_BUTTON_GRACEFUL_STOP" variable="ButtonGracefulStop" member="yes">
-							<bitmap code="graceful_stop_24_xpm" />
+							<bitmap stock_id="xlART_GRACEFUL_STOP" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Graceful Stop</shorthelp>
 							<handler function="OnButtonGracefulStopClick" entry="EVT_TOOL" />
 						</object>
@@ -276,7 +276,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_BUTTON_LIGHTS_OFF" variable="ButtonLightsOff" member="yes">
-							<bitmap code="lights_off_24_xpm" />
+							<bitmap stock_id="xlART_LIGHTS_OFF" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Lights Off</shorthelp>
 							<handler function="OnButtonLightsOffClick" entry="EVT_TOOL" />
 						</object>
@@ -284,7 +284,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_CHECKBOX_LIGHT_OUTPUT" variable="CheckBoxLightOutput" member="yes">
-							<bitmap code="output_lights_24_xpm" />
+							<bitmap stock_id="xlART_OUTPUT_LIGHTS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Output To Lights</shorthelp>
 							<itemkind>Check</itemkind>
 							<handler function="OnCheckBoxLightOutputClick" entry="EVT_TOOL" />
