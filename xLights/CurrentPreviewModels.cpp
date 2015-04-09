@@ -36,7 +36,7 @@ CurrentPreviewModels::CurrentPreviewModels(wxWindow* parent,wxXmlNode* ModelGrou
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model Groups:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	CheckListBoxCurrentGroups = new wxCheckListBox(this, ID_CHECKLISTBOX_CURRENT_GROUPS, wxDefaultPosition, wxSize(150,140), 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX_CURRENT_GROUPS"));
+	CheckListBoxCurrentGroups = new wxCheckListBox(this, ID_CHECKLISTBOX_CURRENT_GROUPS, wxDefaultPosition, wxSize(150,140), 0, 0, wxLB_SORT|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX_CURRENT_GROUPS"));
 	FlexGridSizer2->Add(CheckListBoxCurrentGroups, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);

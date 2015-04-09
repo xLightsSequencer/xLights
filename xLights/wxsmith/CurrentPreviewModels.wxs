@@ -27,7 +27,7 @@
 					<object class="sizeritem">
 						<object class="wxCheckListBox" name="ID_CHECKLISTBOX_CURRENT_GROUPS" variable="CheckListBoxCurrentGroups" member="yes">
 							<size>150,140</size>
-							<style>wxVSCROLL</style>
+							<style>wxLB_SORT|wxVSCROLL</style>
 							<handler function="OnCheckListBoxCurrentGroupsToggled" entry="EVT_CHECKLISTBOX" />
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

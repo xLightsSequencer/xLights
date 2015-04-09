@@ -46,6 +46,7 @@
 												<object class="wxListBox" name="ID_LISTBOX_MODEL_GROUPS" variable="ListBoxModelGroups" member="yes">
 													<default>-1</default>
 													<minsize>120,100</minsize>
+													<style>wxLB_SORT</style>
 													<handler function="OnListBoxModelGroupsSelect" entry="EVT_LISTBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -124,7 +125,7 @@
 															<default>-1</default>
 															<size>100,63</size>
 															<minsize>120,100</minsize>
-															<style>wxVSCROLL</style>
+															<style>wxLB_SORT|wxVSCROLL</style>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
@@ -179,6 +180,7 @@
 															<default>-1</default>
 															<size>100,0</size>
 															<minsize>120,100</minsize>
+															<style>wxLB_SORT</style>
 														</object>
 														<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
