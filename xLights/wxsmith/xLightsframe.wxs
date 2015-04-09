@@ -13,7 +13,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_MAIN" subclass="xlAuiToolBar" variable="MainToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPENSHOW" variable="AuiToolBarItemOpenShowDirectory" member="no">
-							<bitmap code="select_show_folder_24_xpm" />
+							<bitmap stock_id="wxART_FOLDER_OPEN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Select Show Directory</shorthelp>
 							<handler function="OnMenuOpenFolderSelected" entry="EVT_TOOL" />
 						</object>
@@ -21,7 +21,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_NEWSEQUENCE" variable="AuiToolBarItemNewSequence" member="no">
-							<bitmap code="file_new_24_xpm" />
+							<bitmap stock_id="wxART_NEW" stock_client="wxART_TOOLBAR" />
 							<shorthelp>New Sequence</shorthelp>
 							<handler function="OnButtonNewSequenceClick" entry="EVT_TOOL" />
 						</object>
@@ -29,7 +29,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_OPEN" variable="AuiToolBarItemOpen" member="no">
-							<bitmap code="folder_xpm" />
+							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Open Sequence</shorthelp>
 							<handler function="OnBitmapButtonOpenSeqClick" entry="EVT_TOOL" />
 						</object>
@@ -37,7 +37,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVE" variable="AuiToolBarItemSave" member="no">
-							<bitmap code="save_24_xpm" />
+							<bitmap stock_id="wxART_FILE_SAVE" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Save</shorthelp>
 							<handler function="OnBitmapButtonSaveSeqClick" entry="EVT_TOOL" />
 						</object>
@@ -45,7 +45,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_SAVEAS" variable="AuiToolBarItemSaveAs" member="no">
-							<bitmap code="save_as_24_xpm" />
+							<bitmap stock_id="wxART_FILE_SAVE_AS" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Save As</shorthelp>
 							<handler function="OnButtonClickSaveAs" entry="EVT_TOOL" />
 						</object>
@@ -53,7 +53,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_RENDERALL" variable="AuiToolBarItemRenderAll" member="no">
-							<bitmap code="green_gear_24_xpm" />
+							<bitmap stock_id="xlART_RENDER_ALL" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Render All</shorthelp>
 							<handler function="OnAuiToolBarItemRenderAllClick" entry="EVT_TOOL" />
 						</object>
@@ -80,7 +80,7 @@
 				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_PLAY" subclass="xlAuiToolBar" variable="PlayToolBar" member="yes">
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PLAY_NOW" variable="AuiToolBarItemPlayButton" member="no">
-							<bitmap code="play_24_xpm" />
+							<bitmap stock_id="xlART_PLAY" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Play</shorthelp>
 							<handler function="OnAuiToolBarItemPlayButtonClick" entry="EVT_TOOL" />
 						</object>
@@ -88,7 +88,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_PAUSE" variable="AuiToolBarItemPauseButton" member="no">
-							<bitmap code="pause_24_xpm" />
+							<bitmap stock_id="xlART_PAUSE" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Pause</shorthelp>
 							<handler function="OnAuiToolBarItemPauseButtonClick" entry="EVT_TOOL" />
 						</object>
@@ -96,7 +96,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_STOP" variable="AuiToolBarItemStop" member="yes">
-							<bitmap code="stop_24_xpm" />
+							<bitmap stock_id="xlART_STOP" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Stop</shorthelp>
 							<handler function="OnAuiToolBarItemStopClick" entry="EVT_TOOL" />
 						</object>
@@ -104,7 +104,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_FIRST_FRAME" variable="AuiToolBarFirstFrame" member="yes">
-							<bitmap code="backward_24_xpm" />
+							<bitmap stock_id="xlART_BACKWARD" stock_client="wxART_TOOLBAR" />
 							<shorthelp>First Frame</shorthelp>
 							<handler function="OnAuiToolBarFirstFrameClick" entry="EVT_TOOL" />
 						</object>
@@ -112,7 +112,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_LAST_FRAME" variable="AuiToolBarLastFrame" member="yes">
-							<bitmap code="forward_24_xpm" />
+							<bitmap stock_id="xlART_FORWARD" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Last Frame</shorthelp>
 							<handler function="OnAuiToolBarLastFrameClick" entry="EVT_TOOL" />
 						</object>
@@ -120,7 +120,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_REPLAY_SECTION" variable="AuiToolBarItemReplaySection" member="yes">
-							<bitmap code="replay_24_xpm" />
+							<bitmap stock_id="xlART_REPLAY" stock_client="wxART_TOOLBAR" />
 							<shorthelp>Replay Section</shorthelp>
 							<handler function="OnAuiToolBarItemReplaySectionClick" entry="EVT_TOOL" />
 						</object>

@@ -164,6 +164,31 @@
 #include "../include/zoom-in-24.xpm"
 #include "../include/settings-24.xpm"
 
+#include "../include/green-gear-24.xpm"
+#include "../include/select_show_folder-24.xpm"
+#include "../include/save-24.xpm"
+#include "../include/save-as-24.xpm"
+#include "../include/folder.xpm"
+#include "../include/file_new-24.xpm"
+
+#include "../include/stop-24.xpm"
+#include "../include/stop-24_off.xpm"
+#include "../include/trash-24.xpm"
+#include "../include/search-24.xpm"
+#include "../include/replay-24.xpm"
+#include "../include/play-24.xpm"
+#include "../include/play-24_off.xpm"
+#include "../include/pause-24.xpm"
+#include "../include/pause-24_off.xpm"
+#include "../include/move-24.xpm"
+#include "../include/home-24.xpm"
+#include "../include/gears-24.xpm"
+#include "../include/forward-24.xpm"
+#include "../include/forward-24_off.xpm"
+#include "../include/eye-open-24.xpm"
+#include "../include/backward-24.xpm"
+#include "../include/backward-24_off.xpm"
+
 
 #include "wx/artprov.h"
 
@@ -321,6 +346,38 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm, zoom_out_24_xpm);
     } else if ("xlART_SETTINGS" == id) {
         return effectBitmaps.get(24, false, id, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm, settings_24_xpm);
+    } else if ("xlART_PLAY" == id) {
+        return effectBitmaps.get(24, false, id, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm, play_24_xpm);
+    } else if ("xlART_PAUSE" == id) {
+        return effectBitmaps.get(24, false, id, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm, pause_24_xpm);
+    } else if ("xlART_BACKWARD" == id) {
+        return effectBitmaps.get(24, false, id, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm, backward_24_xpm);
+    } else if ("xlART_FORWARD" == id) {
+        return effectBitmaps.get(24, false, id, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm, forward_24_xpm);
+    } else if ("xlART_REPLAY" == id) {
+        return effectBitmaps.get(24, false, id, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm, replay_24_xpm);
+    } else if ("xlART_STOP" == id) {
+        return effectBitmaps.get(24, false, id, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm, stop_24_xpm);
+#ifndef __WXOSX__
+    //don't use these on OSX as the OSX supplied Icons look MUCH better and more inline with expectations on a Mac
+    } else if ("xlART_RENDER_ALL" == id) {
+        return effectBitmaps.get(24, false, id, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm, green_gear_24_xpm);
+    } else if (wxART_FOLDER_OPEN == id) {
+        return effectBitmaps.get(24, false, id, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm, select_show_folder_24_xpm);
+    } else if (wxART_NEW == id) {
+        return effectBitmaps.get(24, false, id, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm, file_new_24_xpm);
+    } else if (wxART_FILE_OPEN == id) {
+        return effectBitmaps.get(24, false, id, folder_xpm, folder_xpm, folder_xpm, folder_xpm, folder_xpm);
+    } else if (wxART_FILE_SAVE == id) {
+        return effectBitmaps.get(24, false, id, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm, save_24_xpm);
+    } else if (wxART_FILE_SAVE_AS == id) {
+        return effectBitmaps.get(24, false, id, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm, save_as_24_xpm);
+#else
+    } else if ("xlART_RENDER_ALL" == id) {
+        return wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")), wxART_OTHER);
+    } else if (wxART_TOOLBAR == client) {
+        return wxArtProvider::GetBitmap(id, wxART_OTHER);
+#endif
     }
     printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;

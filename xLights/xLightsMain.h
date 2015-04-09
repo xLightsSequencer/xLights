@@ -104,41 +104,6 @@
 
 #include "wx/aui/aui.h"
 
-//  <scm> 01-17-2015
-#include "../include/stop-24.xpm"
-#include "../include/stop-24_off.xpm"
-#include "../include/trash-24.xpm"
-#include "../include/search-24.xpm"
-#include "../include/replay-24.xpm"
-#include "../include/play-24.xpm"
-#include "../include/play-24_off.xpm"
-#include "../include/pause-24.xpm"
-#include "../include/pause-24_off.xpm"
-#include "../include/move-24.xpm"
-#include "../include/home-24.xpm"
-#include "../include/gears-24.xpm"
-#include "../include/forward-24.xpm"
-#include "../include/forward-24_off.xpm"
-#include "../include/eye-open-24.xpm"
-#include "../include/backward-24.xpm"
-#include "../include/backward-24_off.xpm"
-
-
-#ifndef __WXOSX__
-#include "../include/green-gear-24.xpm"
-#include "../include/select_show_folder-24.xpm"
-#include "../include/save-24.xpm"
-#include "../include/save-as-24.xpm"
-#include "../include/folder.xpm"
-#include "../include/file_new-24.xpm"
-#else
-#define green_gear_24_xpm          wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND_AND_REPLACE")),wxART_OTHER)
-#define select_show_folder_24_xpm  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FOLDER_OPEN")),wxART_OTHER)
-#define file_new_24_xpm            wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_NEW")),wxART_OTHER)
-#define folder_xpm                 wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_OPEN")),wxART_OTHER)
-#define save_24_xpm                wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE")),wxART_OTHER)
-#define save_as_24_xpm             wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FILE_SAVE_AS")),wxART_OTHER)
-#endif
 
 #include "JobPool.h"
 
