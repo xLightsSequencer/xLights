@@ -2,7 +2,6 @@
 <wxsmith>
 	<object class="wxDialog" name="dlgPreviewSize">
 		<title>Set Preview Size</title>
-		<size>191,110</size>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
