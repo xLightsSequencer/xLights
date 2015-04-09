@@ -34,7 +34,9 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
     wxArrayString data;
     SetBufferSize(parm2,parm1);
     SetRenderSize(parm2,parm1);
+    wxString stringType;
 
+    Nodes.clear();
     if(WholeHouseData.Length()> 0) {
         wxArrayString wholeHouseDataArr=wxSplit(WholeHouseData,';');
         int coordinateCount=wholeHouseDataArr.size();
@@ -44,7 +46,12 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
         data[0].ToLong(&actChn);
         data[1].ToLong(&xCoord);
         data[2].ToLong(&yCoord);
-        SetNodeCount(1,1,rgbOrder);
+        if (data.size() > 3) {
+            stringType = data[3];
+        } else {
+            stringType = rgbOrder;
+        }
+        Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType, 1, stringType)));
         Nodes.back()->StringNum = 0;
         Nodes.back()->ActChan = actChn;
         Nodes.back()->Coords[0].bufX = xCoord;
@@ -55,12 +62,20 @@ void ModelClass::InitWholeHouse(wxString WholeHouseData) {
             data[0].ToLong(&actChn);
             data[1].ToLong(&xCoord);
             data[2].ToLong(&yCoord);
+            if (data.size() > 3) {
+                stringType = data[3];
+            } else {
+                stringType = rgbOrder;
+            }
             if(actChn != lastActChn) {
-                SetNodeCount(1,0,rgbOrder);
+                Nodes.push_back(NodeBaseClassPtr(createNode(1, stringType, 1, stringType)));
                 Nodes.back()->StringNum = 0;
                 Nodes.back()->ActChan = actChn;
+                Nodes.back()->Coords[0].bufX = xCoord;
+                Nodes.back()->Coords[0].bufY = yCoord;
+            } else {
+                Nodes.back()->AddBufCoord(xCoord,yCoord);
             }
-            Nodes.back()->AddBufCoord(xCoord,yCoord);
             lastActChn = actChn;
         }
     }
@@ -869,6 +884,23 @@ int ModelClass::ChannelsPerNode() {
     return SingleChannel ? 1 : 3;
 }
 
+ModelClass::NodeBaseClass* ModelClass::createNode(int ns, const wxString &StringType, size_t NodesPerString, const wxString &rgbOrder) {
+    if (StringType=="Single Color Red" || StringType == "R") {
+        return new NodeClassRed(ns, NodesPerString);
+    } else if (StringType=="Single Color Green" || StringType == "G") {
+        return new NodeClassGreen(ns,NodesPerString);
+    } else if (StringType=="Single Color Blue" || StringType == "B") {
+        return new NodeClassBlue(ns,NodesPerString);
+    } else if (StringType=="Single Color White" || StringType == "W") {
+        return new NodeClassWhite(ns,NodesPerString);
+    } else if (StringType=="Strobes White 3fps") {
+        return new NodeClassWhite(ns,NodesPerString);
+    } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
+        return new NodeClassRGBW(ns,NodesPerString);
+    }
+    return new NodeBaseClass(ns,1,rgbOrder);
+}
+
 // set size of Nodes vector and each Node's Coords vector
 void ModelClass::SetNodeCount(size_t NumStrings, size_t NodesPerString, const wxString &rgbOrder) {
     size_t n;
@@ -1269,7 +1301,7 @@ void ModelClass::CopyBufCoord2ScreenCoord() {
         size_t CoordCount=GetCoordCount(n);
         for(size_t c=0; c < CoordCount; c++) {
             Nodes[n]->Coords[c].screenX = Nodes[n]->Coords[c].bufX - xoffset;
-            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY-yoffset;
+            Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY - yoffset;
         }
     }
     SetRenderSize(BufferHt,BufferWi);
@@ -1289,7 +1321,8 @@ void ModelClass::UpdateXmlWithScale() {
     ModelXml->AddAttribute("versionNumber", wxString::Format("%d",ModelVersion));
 }
 
-void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel) {
+void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
+                                      std::vector<int>& actChannel, std::vector<wxString>& nodeTypes) {
     size_t NodeCount=Nodes.size();
     wxCoord sx,sy;
     wxPen pen;
@@ -1311,6 +1344,7 @@ void ModelClass::AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xP
             xPos.push_back(sx);
             yPos.push_back(sy);
             actChannel.push_back(Nodes[n]->ActChan);
+            nodeTypes.push_back(Nodes[n]->GetNodeType());
         }
     }
 }

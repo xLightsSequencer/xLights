@@ -141,6 +141,13 @@ private:
                 }
             }
         }
+        virtual wxString GetNodeType() {
+            wxString nt("   ");
+            nt[offsets[0]] = 'R';
+            nt[offsets[1]] = 'G';
+            nt[offsets[2]] = 'B';
+            return nt;
+        }
 
         int GetChanCount()
         {
@@ -183,6 +190,10 @@ private:
         {
             color.Set(c[0],0,0);
         }
+        virtual wxString GetNodeType() {
+            return "R";
+        }
+
     };
 
     class NodeClassGreen : public NodeBaseClass
@@ -198,6 +209,9 @@ private:
         {
             color.Set(0,c[1],0);
         }
+        virtual wxString GetNodeType() {
+            return "G";
+        }
     };
 
     class NodeClassBlue : public NodeBaseClass
@@ -212,6 +226,9 @@ private:
         virtual void GetColor(xlColor& color)
         {
             color.Set(0,0,c[2]);
+        }
+        virtual wxString GetNodeType() {
+            return "B";
         }
     };
 
@@ -233,6 +250,9 @@ private:
         }
         virtual void GetForChannels(unsigned char *buf) {
             buf[0] = std::min(c[0],std::min(c[1],c[2]));
+        }
+        virtual wxString GetNodeType() {
+            return "W";
         }
     };
     class NodeClassRGBW : public NodeBaseClass
@@ -265,9 +285,14 @@ private:
                 }
             }
         }
+        virtual wxString GetNodeType() {
+            return "RGBW";
+        }
     };
 
     typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
+    static NodeBaseClass* createNode(int ns, const wxString &StringType, size_t NodesPerString, const wxString &rgbOrder);
+
 
     void InitVMatrix(int firstExportStrand = 0);
     void InitHMatrix();
@@ -356,7 +381,8 @@ public:
     void RotateWithHandles(ModelPreview* preview,bool ShiftKeyPressed,  int mouseX,int mouseY);
     bool HitTest(ModelPreview* preview,int x,int y);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
-    void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,std::vector<int>& actChannel);
+    void AddToWholeHouseModel(ModelPreview* preview,std::vector<int>& xPos,std::vector<int>& yPos,
+                              std::vector<int>& actChannel,std::vector<wxString>& nodeTypes);
     void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
     bool CanRotate();
     void Rotate(int degrees);
@@ -414,6 +440,8 @@ public:
         else
             return 0;
     }
+    
+    
 
     static bool IsMyDisplay(wxXmlNode* ModelNode)
     {

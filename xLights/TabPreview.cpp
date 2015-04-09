@@ -115,13 +115,14 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     std::vector<int> xPos;
     std::vector<int> yPos;
     std::vector<int> actChannel;
+    std::vector<wxString> nodeType;
 
     modelPreview->GetSize(&w, &h);
 
     // Add node position and channel number to arrays
     for (int i=0; i<PreviewModels.size(); i++)
     {
-        PreviewModels[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel);
+        PreviewModels[i]->AddToWholeHouseModel(modelPreview,xPos,yPos,actChannel,nodeType);
         index+=PreviewModels[i]->GetNodeCount();
         StatusBar1->SetStatusText(wxString::Format("Processing %d of %d models",i+1,PreviewModels.size()));
     }
@@ -143,7 +144,7 @@ void xLightsFrame::BuildWholeHouseModel(wxString modelName)
     {
         xPos[i] = (int)(scale*(float)xPos[i]);
         yPos[i] = (int)((scale*(float)yPos[i]));
-        WholeHouseData += wxString::Format(wxT("%i,%i,%i"),actChannel[i],xPos[i],yPos[i]);
+        WholeHouseData += wxString::Format(wxT("%i,%i,%i,%s"),actChannel[i],xPos[i],yPos[i],(const char *)nodeType[i].c_str());
         if(i!=xPos.size()-1)
         {
             WholeHouseData+=";";
