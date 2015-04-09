@@ -161,6 +161,7 @@
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		6717E3AD19FC9D3F00E94972 /* RenderRipple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderRipple.cpp; sourceTree = "<group>"; };
 		671B331C1AD5CB7600C9F215 /* UtilClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UtilClasses.h; sourceTree = "<group>"; };
+		671B331D1AD6071600C9F215 /* BitmapCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BitmapCache.h; sourceTree = "<group>"; };
 		671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragEffectBitmapButton.cpp; path = sequencer/DragEffectBitmapButton.cpp; sourceTree = "<group>"; };
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671D814D1A673CC4005819EA /* NewSequenceDialog.wxs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = NewSequenceDialog.wxs; sourceTree = "<group>"; };
@@ -614,6 +615,7 @@
 			isa = PBXGroup;
 			children = (
 				671B331C1AD5CB7600C9F215 /* UtilClasses.h */,
+				671B331D1AD6071600C9F215 /* BitmapCache.h */,
 				67623E701AD07E320022667B /* KeyBindings.h */,
 				67A260ED1AB71EE3006B140D /* DrawGLUtils.h */,
 				67F7EB781AC2DA2B0023C9B2 /* xlGLCanvas.h */,

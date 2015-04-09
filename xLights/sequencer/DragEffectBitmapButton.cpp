@@ -1,5 +1,6 @@
 #include "DragEffectBitmapButton.h"
 #include <wx/dnd.h>
+#include "../BitmapCache.h"
 #include "../xLightsMain.h"
 
 DragEffectBitmapButton::DragEffectBitmapButton (wxWindow *parent, wxWindowID id, const wxBitmap &bitmap, const wxPoint &pos,
@@ -23,7 +24,7 @@ void DragEffectBitmapButton::DoSetSizeHints(int minW, int minH,
 void DragEffectBitmapButton::SetEffectIndex(int index, int sz)
 {
     wxString tooltip;
-    SetBitmap(xLightsFrame::GetIcon(index, tooltip, sz));
+    SetBitmap(BitmapCache::GetEffectIcon(index, tooltip, sz));
     SetToolTip(tooltip);
     mEffectIndex = index;
 }

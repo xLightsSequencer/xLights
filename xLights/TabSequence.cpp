@@ -8,6 +8,7 @@
 #include "SeqSettingsDialog.h"
 #include "NewSequenceDialog.h"
 #include "xLightsXmlFile.h"
+#include "BitmapCache.h"
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename)
 {
@@ -472,12 +473,12 @@ int xLightsFrame::ChooseRandomEffect()
     while (BAD_CHOICE && count<MAX_TRIES)
     {
         count++;
-        eff=rand() % eff_LASTEFFECT;
-        BAD_CHOICE = (eff_TEXT == eff || eff_PICTURES == eff || eff_PIANO == eff
-                      || eff_FACES == eff || eff_COROFACES == eff || eff_GLEDIATOR == eff
-                      || eff_OFF == eff || eff_ON == eff);
+        eff=rand() % BitmapCache::eff_LASTEFFECT;
+        BAD_CHOICE = (BitmapCache::eff_TEXT == eff || BitmapCache::eff_PICTURES == eff || BitmapCache::eff_PIANO == eff
+                      || BitmapCache::eff_FACES == eff || BitmapCache::eff_COROFACES == eff || BitmapCache::eff_GLEDIATOR == eff
+                      || BitmapCache::eff_OFF == eff || BitmapCache::eff_ON == eff);
     }
-    if(count==MAX_TRIES) eff=eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
+    if(count==MAX_TRIES) eff=BitmapCache::eff_OFF; // we failed to find a good effect after MAX_TRIES attempts
     return eff;
 }
 

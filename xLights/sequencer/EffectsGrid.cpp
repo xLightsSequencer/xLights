@@ -21,6 +21,7 @@
 #include "EffectDropTarget.h"
 #include "../DrawGLUtils.h"
 #include "RenderCommandEvent.h"
+#include "../BitmapCache.h"
 
 
 BEGIN_EVENT_TABLE(EffectsGrid, xlGLCanvas)
@@ -782,18 +783,18 @@ void GetMorphEffectColors(const Effect *e, xlColor &start_h, xlColor &end_h, xlC
 
 bool EffectsGrid::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2) {
     switch (e->GetEffectIndex()) {
-        case xLightsFrame::RGB_EFFECTS_e::eff_ON: {
+        case BitmapCache::RGB_EFFECTS_e::eff_ON: {
             xlColor start;
             xlColor end;
             GetOnEffectColors(e, start, end);
             DrawGLUtils::DrawHBlendedRectangle(start, end, x1, y1, x2, y2);
         }
         break;
-        case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH: {
+        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH: {
             DrawGLUtils::DrawHBlendedRectangle(e->GetPalette(), x1, y1, x2, y2);
         }
         break;
-        case xLightsFrame::RGB_EFFECTS_e::eff_MORPH: {
+        case BitmapCache::RGB_EFFECTS_e::eff_MORPH: {
             int head_duration = wxAtoi(e->GetSettings().Get("E_SLIDER_MorphDuration", "20"));
             xlColor start_h;
             xlColor end_h;
@@ -1079,19 +1080,19 @@ void EffectsGrid::DrawEffectIcon(GLuint* texture,int x, int y)
 
 void EffectsGrid::CreateEffectIconTextures()
 {
-    for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
+    for(int effectID=0;effectID<BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         wxString tooltip;
-        DrawGLUtils::CreateOrUpdateTexture(xLightsFrame::GetIcon(effectID, tooltip, 48, true),
-                                       xLightsFrame::GetIcon(effectID, tooltip, 32, true),
-                                       xLightsFrame::GetIcon(effectID, tooltip, 16, true),
+        DrawGLUtils::CreateOrUpdateTexture(BitmapCache::GetEffectIcon(effectID, tooltip, 64, true),
+                                       BitmapCache::GetEffectIcon(effectID, tooltip, 32, true),
+                                       BitmapCache::GetEffectIcon(effectID, tooltip, 16, true),
                                        &m_EffectTextures[effectID]);
     }
 }
 
 void EffectsGrid::DeleteEffectIconTextures()
 {
-    for(int effectID=0;effectID<xLightsFrame::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
+    for(int effectID=0;effectID<BitmapCache::RGB_EFFECTS_e::eff_LASTEFFECT;effectID++)
     {
         glDeleteTextures(1,&m_EffectTextures[effectID]);
     }

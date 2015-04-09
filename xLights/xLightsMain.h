@@ -372,44 +372,7 @@ public:
     bool SaveEffectsFile();
     void SetStatusText(const wxString &msg);
 
-    static const wxBitmap &GetIcon(int effectID, wxString &toolTip, int size = 16, bool exact = false);
 
-
-     enum RGB_EFFECTS_e
-    {
-        eff_OFF,
-        eff_ON,
-        eff_BARS,
-        eff_BUTTERFLY,
-        eff_CIRCLES,
-        eff_COLORWASH,
-        eff_COROFACES,
-        eff_CURTAIN,
-        eff_FACES,
-        eff_FIRE,
-        eff_FIREWORKS,
-        eff_GARLANDS,
-        eff_GLEDIATOR,
-        eff_LIFE,
-        eff_METEORS,
-        eff_MORPH,
-        eff_PIANO,
-        eff_PICTURES,
-        eff_PINWHEEL,
-        eff_RIPPLE,
-        eff_SHIMMER,
-        eff_SINGLESTRAND,
-        eff_SNOWFLAKES,
-        eff_SNOWSTORM,
-        eff_SPIRALS,
-        eff_SPIROGRAPH,
-        eff_STROBE,
-        eff_TEXT,
-        eff_TREE,
-        eff_TWINKLE,
-        eff_WAVE,
-        eff_LASTEFFECT //Always the last entry
-    };
 
    enum LAYER_OPTIONS_e
     {

@@ -12,6 +12,7 @@
 #include "Effect.h"
 #include "../SeqSettingsDialog.h"
 #include "../DisplayElementsPanel.h"
+#include "../BitmapCache.h"
 
 
 #define PLAY_TYPE_STOPPED 0
@@ -486,7 +487,7 @@ void xLightsFrame::SelectedEffectChanged(wxCommandEvent& event)
 
     }
     wxString tooltip;
-    effectsPnl->SetDragIconBuffer(GetIcon(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
+    effectsPnl->SetDragIconBuffer(BitmapCache::GetEffectIcon(EffectsPanel1->Choicebook1->GetSelection(), tooltip));
     effectsPnl->BitmapButtonSelectedEffect->SetEffectIndex(EffectsPanel1->Choicebook1->GetSelection());
     mainSequencer->PanelEffectGrid->SetFocus();
 }

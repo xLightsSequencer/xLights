@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Daniel Kulp. All rights reserved.
 //
 
-#include "xLightsMain.h"
-
+#include <map>
+#include "BitmapCache.h"
 
 //#include "../include/bars.xpm"
 #include "../include/bars-16.xpm"
@@ -164,7 +164,8 @@ public:
                         const char **data16,
                         const char **data24,
                         const char **data32,
-                        const char **data48) {
+                        const char **data48,
+                        const char **data64) {
 
         std::map<int, wxBitmap> *data = &size16;
         const char ** dc = data16;
@@ -180,10 +181,14 @@ public:
             data = &size32;
             size = 32;
             dc = data32;
-        } else {
+        } else if (size <= 48) {
             data = &size48;
             size = 48;
             dc = data48;
+        } else {
+            data = &size64;
+            size = 64;
+            dc = data64;
         }
 
 #ifdef __WXOSX__
@@ -194,16 +199,22 @@ public:
                 data = &size16e;
             } else if (size == 24) {
                 data = &size24e;
+            } else if (size == 32) {
+                data = &size32e;
             }
         } else if (xlOSXGetMainScreenContentScaleFactor() > 1.9) {
-            if (size == 16) {
+            if (size == 16 && (data16 != data32)) {
                 size = 32;
                 scale = 2.0;
                 dc = data32;
-            } else if (size == 24) {
+            } else if (size == 24 && (data24 != data48)) {
                 size = 48;
                 scale = 2.0;
                 dc = data48;
+            } else if (size == 32 && (data64 != data48) && (data64 != data32)) {
+                size = 64;
+                scale = 2.0;
+                dc = data64;
             }
         }
         const wxBitmap &bmp = (*data)[eff];
@@ -235,115 +246,120 @@ public:
     std::map<int, wxBitmap> size24;
     std::map<int, wxBitmap> size32;
     std::map<int, wxBitmap> size48;
+    std::map<int, wxBitmap> size64;
     
 #ifdef __WXOSX__
     std::map<int, wxBitmap> size16e;
     std::map<int, wxBitmap> size24e;
+    std::map<int, wxBitmap> size32e;
 #endif
 } effectBitmaps;
 
+static const wxBitmap tmp;
+const wxBitmap &BitmapCache::GetToolbarIcon(const wxString &name, int size) {
+    return tmp;
+}
 
-const wxBitmap &xLightsFrame::GetIcon(int effectID, wxString &toolTip, int size, bool exact)
-{
+const wxBitmap &BitmapCache::GetEffectIcon(int effectID, wxString &toolTip, int size, bool exact) {
     switch(effectID)
     {
-        case xLightsFrame::RGB_EFFECTS_e::eff_OFF:
+        case BitmapCache::RGB_EFFECTS_e::eff_OFF:
             toolTip = "Off";
-            return effectBitmaps.get(size, exact, effectID, Off, Off, Off, Off);
-        case xLightsFrame::RGB_EFFECTS_e::eff_ON:
+            return effectBitmaps.get(size, exact, effectID, Off, Off, Off, Off, Off);
+        case BitmapCache::RGB_EFFECTS_e::eff_ON:
             toolTip = "On";
-            return effectBitmaps.get(size, exact, effectID, On, On, On, On);
-        case xLightsFrame::RGB_EFFECTS_e::eff_BARS:
+            return effectBitmaps.get(size, exact, effectID, On, On, On, On, On);
+        case BitmapCache::RGB_EFFECTS_e::eff_BARS:
             toolTip = "Bars";
-            return effectBitmaps.get(size, exact, effectID, bars_16, bars_24, bars_32, bars_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_BUTTERFLY:
+            return effectBitmaps.get(size, exact, effectID, bars_16, bars_24, bars_32, bars_48, bars_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_BUTTERFLY:
             toolTip = "Butterfly";
-            return effectBitmaps.get(size, exact, effectID, butterfly_16, butterfly_24, butterfly_32, butterfly_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_CIRCLES:
+            return effectBitmaps.get(size, exact, effectID, butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_CIRCLES:
             toolTip = "Circles";
-            return effectBitmaps.get(size, exact, effectID, circles_16, circles_24, circles_32, circles_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_COLORWASH:
+            return effectBitmaps.get(size, exact, effectID, circles_16, circles_24, circles_32, circles_48, circles_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_COLORWASH:
             toolTip = "ColorWash";
-            return effectBitmaps.get(size, exact, effectID, ColorWash, ColorWash, ColorWash, ColorWash);
-        case xLightsFrame::RGB_EFFECTS_e::eff_COROFACES:
+            return effectBitmaps.get(size, exact, effectID, ColorWash, ColorWash, ColorWash, ColorWash, ColorWash);
+        case BitmapCache::RGB_EFFECTS_e::eff_COROFACES:
             toolTip = "Coro Faces";
-            return effectBitmaps.get(size, exact, effectID, corofaces, corofaces, corofaces, corofaces);
-        case xLightsFrame::RGB_EFFECTS_e::eff_CURTAIN:
+            return effectBitmaps.get(size, exact, effectID, corofaces, corofaces, corofaces, corofaces, corofaces);
+        case BitmapCache::RGB_EFFECTS_e::eff_CURTAIN:
             toolTip = "Curtain";
-            return effectBitmaps.get(size, exact, effectID, curtain_16, curtain_24, curtain_32, curtain_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_FACES:
+            return effectBitmaps.get(size, exact, effectID, curtain_16, curtain_24, curtain_32, curtain_48, curtain_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_FACES:
             toolTip = "Matrix Faces";
-            return effectBitmaps.get(size, exact, effectID, faces, faces, faces, faces);
-        case xLightsFrame::RGB_EFFECTS_e::eff_FIRE:
+            return effectBitmaps.get(size, exact, effectID, faces, faces, faces, faces, faces);
+        case BitmapCache::RGB_EFFECTS_e::eff_FIRE:
             toolTip = "Fire";
-            return effectBitmaps.get(size, exact, effectID, fire_16, fire_24, fire_32, fire_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_FIREWORKS:
+            return effectBitmaps.get(size, exact, effectID, fire_16, fire_24, fire_32, fire_48, fire_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_FIREWORKS:
             toolTip = "Fireworks";
-            return effectBitmaps.get(size, exact, effectID, fireworks_16, fireworks_24, fireworks_32, fireworks_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_GARLANDS:
+            return effectBitmaps.get(size, exact, effectID, fireworks_16, fireworks_24, fireworks_32, fireworks_48, fireworks_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_GARLANDS:
             toolTip = "Garlands";
-            return effectBitmaps.get(size, exact, effectID, garlands_16, garlands_24, garlands_32, garlands_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_GLEDIATOR:
+            return effectBitmaps.get(size, exact, effectID, garlands_16, garlands_24, garlands_32, garlands_48, garlands_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_GLEDIATOR:
             toolTip = "Glediator";
-            return effectBitmaps.get(size, exact, effectID, glediator, glediator, glediator, glediator);
-        case xLightsFrame::RGB_EFFECTS_e::eff_LIFE:
+            return effectBitmaps.get(size, exact, effectID, glediator, glediator, glediator, glediator, glediator);
+        case BitmapCache::RGB_EFFECTS_e::eff_LIFE:
             toolTip = "Life";
-            return effectBitmaps.get(size, exact, effectID, life_16, life_24, life_32, life_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_METEORS:
+            return effectBitmaps.get(size, exact, effectID, life_16, life_24, life_32, life_48, life_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_METEORS:
             toolTip = "Meteors";
-            return effectBitmaps.get(size, exact, effectID, meteors_16, meteors_24, meteors_32, meteors_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_MORPH:
+            return effectBitmaps.get(size, exact, effectID, meteors_16, meteors_24, meteors_32, meteors_48, meteors_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_MORPH:
             toolTip = "Morph";
-            return effectBitmaps.get(size, exact, effectID, morph, morph, morph, morph);
-        case xLightsFrame::RGB_EFFECTS_e::eff_PIANO:
+            return effectBitmaps.get(size, exact, effectID, morph, morph, morph, morph, morph);
+        case BitmapCache::RGB_EFFECTS_e::eff_PIANO:
             toolTip = "Piano";
-            return effectBitmaps.get(size, exact, effectID, piano, piano, piano, piano);
-        case xLightsFrame::RGB_EFFECTS_e::eff_PICTURES:
+            return effectBitmaps.get(size, exact, effectID, piano, piano, piano, piano, piano);
+        case BitmapCache::RGB_EFFECTS_e::eff_PICTURES:
             toolTip = "Pictures";
-            return effectBitmaps.get(size, exact, effectID, pictures_16, pictures_24, pictures_32, pictures_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_PINWHEEL:
+            return effectBitmaps.get(size, exact, effectID, pictures_16, pictures_24, pictures_32, pictures_48, pictures_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_PINWHEEL:
             toolTip = "Pinwheel";
-            return effectBitmaps.get(size, exact, effectID, pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_RIPPLE:
+            return effectBitmaps.get(size, exact, effectID, pinwheel_16, pinwheel_24, pinwheel_32, pinwheel_48, pinwheel_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_RIPPLE:
             toolTip = "Ripple";
-            return effectBitmaps.get(size, exact, effectID, ripple_16, ripple_24, ripple_32, ripple_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SHIMMER:
+            return effectBitmaps.get(size, exact, effectID, ripple_16, ripple_24, ripple_32, ripple_48, ripple_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_SHIMMER:
             toolTip = "Shimmer";
-            return effectBitmaps.get(size, exact, effectID, shimmer, shimmer, shimmer, shimmer);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SINGLESTRAND:
+            return effectBitmaps.get(size, exact, effectID, shimmer, shimmer, shimmer, shimmer, shimmer);
+        case BitmapCache::RGB_EFFECTS_e::eff_SINGLESTRAND:
             toolTip = "Single Strand";
-            return effectBitmaps.get(size, exact, effectID, singleStrand, singleStrand, singleStrand, singleStrand);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SNOWFLAKES:
+            return effectBitmaps.get(size, exact, effectID, singleStrand, singleStrand, singleStrand, singleStrand, singleStrand);
+        case BitmapCache::RGB_EFFECTS_e::eff_SNOWFLAKES:
             toolTip = "Snow Flakes";
-            return effectBitmaps.get(size, exact, effectID, snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SNOWSTORM:
+            return effectBitmaps.get(size, exact, effectID, snowflakes_16, snowflakes_24, snowflakes_32, snowflakes_48, snowflakes_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_SNOWSTORM:
             toolTip = "Snow Storm";
-            return effectBitmaps.get(size, exact, effectID, snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SPIRALS:
+            return effectBitmaps.get(size, exact, effectID, snowstorm_16, snowstorm_24, snowstorm_32, snowstorm_48, snowstorm_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_SPIRALS:
             toolTip = "Spirals";
-            return effectBitmaps.get(size, exact, effectID, spirals_16, spirals_24, spirals_32, spirals_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_SPIROGRAPH:
+            return effectBitmaps.get(size, exact, effectID, spirals_16, spirals_24, spirals_32, spirals_48, spirals_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_SPIROGRAPH:
             toolTip = "Spirograph";
-            return effectBitmaps.get(size, exact, effectID, spirograph_16, spirograph_24, spirograph_32, spirograph_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_STROBE:
+            return effectBitmaps.get(size, exact, effectID, spirograph_16, spirograph_24, spirograph_32, spirograph_48, spirograph_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_STROBE:
             toolTip = "Strobe";
-            return effectBitmaps.get(size, exact, effectID, strobe, strobe, strobe, strobe);
-        case xLightsFrame::RGB_EFFECTS_e::eff_TEXT:
+            return effectBitmaps.get(size, exact, effectID, strobe, strobe, strobe, strobe, strobe);
+        case BitmapCache::RGB_EFFECTS_e::eff_TEXT:
             toolTip = "Text";
-            return effectBitmaps.get(size, exact, effectID, text_16, text_24, text_32, text_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_TREE:
+            return effectBitmaps.get(size, exact, effectID, text_16, text_24, text_32, text_48, text_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_TREE:
             toolTip = "Tree";
-            return effectBitmaps.get(size, exact, effectID, tree_16, tree_24, tree_32, tree_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_TWINKLE:
+            return effectBitmaps.get(size, exact, effectID, tree_16, tree_24, tree_32, tree_48, tree_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_TWINKLE:
             toolTip = "Twinkle";
-            return effectBitmaps.get(size, exact, effectID, twinkle_16, twinkle_24, twinkle_32, twinkle_48);
-        case xLightsFrame::RGB_EFFECTS_e::eff_WAVE:
+            return effectBitmaps.get(size, exact, effectID, twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_48);
+        case BitmapCache::RGB_EFFECTS_e::eff_WAVE:
             toolTip = "Wave";
-            return effectBitmaps.get(size, exact, effectID, wave_16, wave_24, wave_32, wave_48);
+            return effectBitmaps.get(size, exact, effectID, wave_16, wave_24, wave_32, wave_48, wave_48);
         default:
             break;
     }
     toolTip = "Off";
-    return effectBitmaps.get(size, exact, effectID, Off, Off, Off, Off);
+    return effectBitmaps.get(size, exact, effectID, Off, Off, Off, Off, Off);
 }
 
