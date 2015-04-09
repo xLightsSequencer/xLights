@@ -930,7 +930,6 @@ void xLightsFrame::SetEffectControls(const MapStringString &settings) {
             }
             else if (name.StartsWith("ID_TEXTCTRL"))
             {
-                value.Replace("&comma;", ",", true); //kludge: remove escape code for "," -DJ
                 wxTextCtrl* ctrl=(wxTextCtrl*)CtrlWin;
                 ctrl->SetValue(value);
             }

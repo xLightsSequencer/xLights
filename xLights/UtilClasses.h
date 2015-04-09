@@ -33,6 +33,9 @@ public:
             
             name=before.BeforeFirst('=');
             value=before.AfterFirst('=');
+            value.Replace("&comma;", ",", true); //unescape the commas
+            value.Replace("&amp;", "&", true); //unescape the amps
+
             (*this)[name]=value;
         }
     }
@@ -43,7 +46,10 @@ public:
             if (ret.Length() != 0) {
                 ret += ",";
             }
-            ret += it->first + "=" + it->second;
+            wxString value = it->second;
+            value.Replace("&", "&amp;", true); //need to escape the amps
+            value.Replace(",", "&comma;", true); //need to escape the commas
+            ret += it->first + "=" + value;
         }
         return ret;
     }
